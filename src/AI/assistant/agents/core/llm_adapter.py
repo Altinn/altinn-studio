@@ -10,8 +10,14 @@ from collections.abc import Callable
 from typing import Any
 
 from shared.config.base_config import get_config
+from shared.telemetry import model_call
+from shared.telemetry.names import (
+    GEN_AI_PROVIDER_ANTHROPIC,
+    GEN_AI_PROVIDER_AZURE_OPENAI,
+    GEN_AI_PROVIDER_OPENAI,
+)
 from shared.utils.langfuse_utils import trace_generation
-from shared.utils.logging_utils import get_logger
+from shared.utils.logging_utils import describe_error, get_logger
 
 from .messages import (
     AssistantMessage,
@@ -207,11 +213,7 @@ class AnthropicAdapter(LLMAdapter):
             # Pragma: a single fallback is harmless even for non-transient
             # errors — the second call will raise the same exception and
             # the loop's outer handler turns it into a clean termination.
-            log.warning(
-                "Streaming chat failed (%s: %s); retrying without streaming.",
-                type(exc).__name__,
-                exc,
-            )
+            log.warning("Streaming chat failed (%s); retrying without streaming.", describe_error(exc))
             return await self._client.messages.create(**kwargs)
 
     async def chat(
@@ -263,11 +265,32 @@ class AnthropicAdapter(LLMAdapter):
             # On stream failure we fall back to a one-shot non-streaming
             # `messages.create` so the workflow continues — the UI loses
             # mid-token typing for that turn, but the turn itself recovers.
-            response = await self._stream_or_fallback(
-                kwargs=kwargs,
-                on_text_delta=on_text_delta,
-                on_tool_use_start=on_tool_use_start,
-            )
+            with model_call(provider=GEN_AI_PROVIDER_ANTHROPIC, model=self.model) as call:
+                response = await self._stream_or_fallback(
+                    kwargs=kwargs,
+                    on_text_delta=on_text_delta,
+                    on_tool_use_start=on_tool_use_start,
+                )
+                usage_obj = getattr(response, "usage", None)
+                usage = {
+                    "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
+                    "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
+                    "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0)
+                    if usage_obj
+                    else 0,
+                    "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
+                }
+                call.response_model = getattr(response, "model", None)
+                call.finish_reason = response.stop_reason
+                # Anthropic counts cache reads and writes apart from input_tokens.
+                call.record_usage(
+                    input_tokens=usage["input_tokens"]
+                    + usage["cache_read_input_tokens"]
+                    + usage["cache_creation_input_tokens"],
+                    output_tokens=usage["output_tokens"],
+                    cache_read_input_tokens=usage["cache_read_input_tokens"],
+                    cache_creation_input_tokens=usage["cache_creation_input_tokens"],
+                )
 
             content: list[ContentBlock] = []
             dropped_block_types: dict[str, int] = {}
@@ -291,14 +314,6 @@ class AnthropicAdapter(LLMAdapter):
                     dropped_block_types,
                     self.model,
                 )
-
-            usage_obj = getattr(response, "usage", None)
-            usage = {
-                "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
-                "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
-                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) if usage_obj else 0,
-                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
-            }
 
             assistant = AssistantMessage(
                 content=content,
@@ -418,6 +433,9 @@ def build_openai_request(
 class OpenAIAdapter(LLMAdapter):
     """Talks to OpenAI or Azure OpenAI via the chat-completions API."""
 
+    # As the GenAI semantic conventions name it. An OpenAI-compatible host speaks OpenAI's API.
+    provider = GEN_AI_PROVIDER_OPENAI
+
     def __init__(self, *, model: str, max_tokens: int | None = None) -> None:
 
         config = get_config()
@@ -446,6 +464,7 @@ class OpenAIAdapter(LLMAdapter):
                 api_key=config.AZURE_API_KEY,
                 api_version=config.AZURE_API_VERSION,
             )
+            self.provider = GEN_AI_PROVIDER_AZURE_OPENAI
         elif config.OPENAI_API_KEY:
             from openai import AsyncOpenAI
 
@@ -495,8 +514,26 @@ class OpenAIAdapter(LLMAdapter):
                 tool_schemas=tool_schemas,
             )
 
-            response = await self._client.chat.completions.create(**kwargs)
-            choice = response.choices[0]
+            with model_call(provider=self.provider, model=self.model) as call:
+                response = await self._client.chat.completions.create(**kwargs)
+                choice = response.choices[0]
+                usage_obj = getattr(response, "usage", None)
+                prompt_details = getattr(usage_obj, "prompt_tokens_details", None)
+                usage = {
+                    "input_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
+                    "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
+                    # prompt_tokens includes both; Anthropic reports them apart.
+                    "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
+                    "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0) or 0,
+                }
+                call.response_model = getattr(response, "model", None)
+                call.finish_reason = choice.finish_reason
+                call.record_usage(
+                    input_tokens=usage["input_tokens"],
+                    output_tokens=usage["output_tokens"],
+                    cache_read_input_tokens=usage["cache_read_input_tokens"],
+                    cache_creation_input_tokens=usage["cache_creation_input_tokens"],
+                )
             message = choice.message
 
             content: list[ContentBlock] = []
@@ -512,16 +549,6 @@ class OpenAIAdapter(LLMAdapter):
                     # into a tool_result error the model can recover from.
                     args = {}
                 content.append(ToolUseBlock(id=call.id, name=call.function.name, input=args))
-
-            usage_obj = getattr(response, "usage", None)
-            prompt_details = getattr(usage_obj, "prompt_tokens_details", None)
-            usage = {
-                "input_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
-                "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
-                # prompt_tokens includes both; Anthropic reports them apart.
-                "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
-                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0) or 0,
-            }
 
             assistant = AssistantMessage(
                 content=content,

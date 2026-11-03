@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from langfuse import Langfuse, get_client
 
 from shared.config.base_config import get_config
+from shared.telemetry import attached, langfuse_context, langfuse_tracer_provider
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -27,27 +28,17 @@ def init_langfuse():
         return None
 
     try:
-        from opentelemetry import trace as _otel_trace
-        from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
-
-        # Give Langfuse its own dedicated TracerProvider so it is isolated from
-        # the global OTel provider that third-party libraries share.
-        langfuse_provider = _OtelTracerProvider()
-
+        # Langfuse gets a tracer provider of its own, so the service's spans, which go to the
+        # shared backend, never reach Langfuse, and Langfuse's spans, which carry the prompts
+        # and output, never reach the shared backend.
         _client = Langfuse(
             secret_key=config.LANGFUSE_SECRET_KEY,
             public_key=config.LANGFUSE_PUBLIC_KEY,
             host=config.LANGFUSE_HOST,
             release=config.LANGFUSE_RELEASE,
             environment=config.LANGFUSE_ENVIRONMENT,
-            tracer_provider=langfuse_provider,
+            tracer_provider=langfuse_tracer_provider(),
         )
-
-        # Reset the global OTel provider to a bare no-op (no exporters/processors).
-        # Any third-party library that instruments via the global provider will
-        # now get a no-op tracer, eliminating duplicate child spans and orphan
-        # traces from health checks.
-        _otel_trace.set_tracer_provider(_OtelTracerProvider())
 
         _initialized = True
         log.info(
@@ -196,7 +187,9 @@ def get_current_trace_id() -> str | None:
     if not is_langfuse_enabled():
         return None
     try:
-        return get_client().get_current_trace_id()
+        # The current span can be one of the service's own, which is in no Langfuse trace.
+        with attached(langfuse_context()):
+            return get_client().get_current_trace_id()
     except Exception:
         log.exception("Failed to get current Langfuse trace ID")
         return None

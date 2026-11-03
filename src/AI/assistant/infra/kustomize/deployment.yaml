@@ -67,3 +67,16 @@ spec:
                   key: LANGFUSE_ENVIRONMENT
             - name: LANGFUSE_RELEASE
               value: "altinity-agents-v1"
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "assistant"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.observability.svc.cluster.local:4318"

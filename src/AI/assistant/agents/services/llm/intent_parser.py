@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from shared.models import AgentAttachment
-from shared.utils.logging_utils import get_logger
+from shared.utils.logging_utils import describe_error, get_logger
 
 from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 
@@ -75,19 +75,19 @@ async def parse_intent_async(
 
         # Log if the intent parser marked something unsafe (should only be security threats now)
         if not parsed.safe:
-            log.warning(f"Intent parser flagged goal as unsafe: {parsed.reason}")
+            log.warning(f"Intent parser flagged goal as unsafe (confidence={parsed.confidence})")
 
         return parsed
 
     except Exception as e:
-        log.error(f"LLM intent parsing failed: {e}")
+        log.error(f"LLM intent parsing failed: {describe_error(e)}")
         return ParsedIntent(
             action=GATE_FAILED_ACTION,
             component="unknown",
             target=goal,
             safe=False,
             confidence=0.0,
-            reason=f"Intent parsing failed: {e!s}",
+            reason=f"Intent parsing failed: {describe_error(e)}",
         )
 
 

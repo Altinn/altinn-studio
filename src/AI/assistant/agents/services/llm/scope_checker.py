@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from agents.prompts import get_prompt_with_langfuse
-from shared.utils.logging_utils import get_logger
+from shared.utils.logging_utils import describe_error, get_logger
 
 from .llm_client import get_llm_client
 from .recent_turns import prepend_recent_turns
@@ -48,7 +48,7 @@ async def check_scope_async(query: str, conversation_history: Sequence[Any] | No
     try:
         response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
     except Exception as e:
-        log.warning(f"Scope check LLM call failed, defaulting to in-scope: {e}")
+        log.warning(f"Scope check LLM call failed, defaulting to in-scope: {describe_error(e)}")
         return ScopeCheckResult(in_scope=True, reason=f"Scope check failed open: {e}")
 
     cleaned = response.strip()
@@ -74,5 +74,8 @@ async def check_scope_async(query: str, conversation_history: Sequence[Any] | No
             reason=data.get("reason"),
         )
     except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as e:
-        log.warning(f"Failed to parse scope check response, defaulting to in-scope: {response!r} ({e})")
+        log.warning(
+            f"Failed to parse scope check response, defaulting to in-scope: {type(e).__name__} "
+            f"(response length: {len(response)})"
+        )
         return ScopeCheckResult(in_scope=True, reason="Failed to parse scope check response")

@@ -29,6 +29,7 @@ from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketState
 
 from agents.services.events import sink
+from shared.utils.logging_utils import describe_error
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ async def _stream_developer_events(ws: WebSocket, developer: str):
             if not got_new:
                 logger.debug(f"⏰ Wait timed out (cursor={cursor}) developer={developer}, looping")
         except Exception as e:
-            logger.warning(f"Wait error for developer {developer}: {e}")
+            logger.warning(f"Wait error while streaming developer events: {describe_error(e)}")
 
 
 async def _receive_initial_registration(ws: WebSocket):
