@@ -14,6 +14,7 @@ from .preview_render_check_tool import PreviewRenderCheckTool
 from .read_file_tool import ReadFileTool
 from .scan_repo_tool import ScanRepoTool
 from .skill_tool import SkillTool
+from .upgrade_app_tool import UpgradeAppToV9Tool
 from .verify_changes_tool import VerifyChangesTool
 from .web_fetch_tool import WebFetchTool
 from .write_file_tool import WriteFileTool
@@ -28,6 +29,7 @@ __all__ = [
     "ReadFileTool",
     "ScanRepoTool",
     "SkillTool",
+    "UpgradeAppToV9Tool",
     "VerifyChangesTool",
     "WebFetchTool",
     "WriteFileTool",

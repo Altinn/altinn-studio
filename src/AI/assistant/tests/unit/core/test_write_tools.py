@@ -27,6 +27,7 @@ from agents.core import (
     EditFileTool,
     LoopContext,
     PreviewRenderCheckTool,
+    UpgradeAppToV9Tool,
     VerifyChangesTool,
     WriteFileTool,
 )
@@ -80,6 +81,7 @@ class TestPermission:
             (CommitSessionBranchTool, {"message": "msg"}),
             (PreviewRenderCheckTool, {}),
             (DatamodelSyncTool, {"schema_path": "App/models/model.schema.json"}),
+            (UpgradeAppToV9Tool, {}),
         ],
     )
     async def test_denied_in_read_only_mode(self, tool_factory, args):
@@ -113,6 +115,16 @@ class TestVerifyChanges:
         assert not result.is_error
         # Successful verify marks the file in verified_files.
         assert "App/ui/form/layouts/Page1.json" in ctx.extras["verified_files"]
+
+    async def test_deleted_file_passes_with_a_note(self, tmp_path: Path):
+        # Only the v9 upgrade deletes files, for example App/ui/layout-sets.json.
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/ui/layout-sets.json"})
+        tool = VerifyChangesTool()
+        result = await tool.run(tool.input_schema(), ctx)
+
+        assert not result.is_error
+        assert "App/ui/layout-sets.json: deleted, nothing to validate" in result.content
+        assert "App/ui/layout-sets.json" in ctx.extras["verified_files"]
 
     async def test_layout_is_validated_against_the_schema_of_the_app_version(self, tmp_path: Path, monkeypatch):
         layout_path = tmp_path / "App" / "ui" / "form" / "layouts" / "Page1.json"

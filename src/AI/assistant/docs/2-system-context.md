@@ -26,10 +26,13 @@ flowchart LR
   A["Assistant service"] -->|traces, prompts, scores| F["Langfuse"]
   A -->|web_fetch| W["docs.altinn.studio"]
   A -->|render check, local stack only| P["Studio app preview"]
+  A -->|v9 upgrade, run API| O["Core operator"]
   Q["Designer scheduler"] -->|nightly trace cleanup| A
 ```
 
 _Support services. Langfuse is optional. Without it, the service records no traces and uses local prompt files._
+
+The v9 upgrade runs code from the app, so the service does not run it itself. It asks the [core operator](../../../core/operator/README.md) for a run for the commit of the app. The operator queues the run and starts a sandbox Job. When the Job is ready, the service uploads the app, and the Job runs the upgrade in a microVM without secrets. The service fetches the result as soon as the run has completed, because the operator deletes the Job and its result a few minutes later. The operator keeps no copy of the app or the result. The service holds no Kubernetes permission. It sends the operator a projected ServiceAccount token that only the operator accepts.
 
 ## Connect and register a thread
 
