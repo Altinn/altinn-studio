@@ -1,0 +1,23 @@
+# Only the core operator enqueues, reads and cancels workflows. The engine API has no authentication of its own, so
+# this policy is what keeps other callers out.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: operator-workflow-engine-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: operator-workflow-engine
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: core-operator
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: core-operator
+      ports:
+        - protocol: TCP
+          port: 9090
