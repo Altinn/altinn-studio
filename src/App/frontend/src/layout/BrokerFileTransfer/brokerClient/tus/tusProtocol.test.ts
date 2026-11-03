@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { configureBrokerClient } from 'src/layout/BrokerFileTransfer/brokerClient/config';
 import {
   concatenateUploads,
+  createPartialUpload,
   createUpload,
   getUploadLength,
   getUploadOffset,
@@ -53,6 +54,27 @@ describe('createUpload', () => {
     fetchMock.mockResolvedValue(Response.json({ detail: 'Too large' }, { status: 400 }));
 
     await expect(createUpload('id', 100)).rejects.toMatchObject({ status: 400, body: { detail: 'Too large' } });
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('createPartialUpload', () => {
+  it('answers with the path of the part the server created', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 201, headers: { Location: `${TUS_PATH}/id/partial/a` } }));
+
+    await expect(createPartialUpload('id', 100)).resolves.toBe(`${TUS_PATH}/id/partial/a`);
+    const headers = new Headers(fetchMock.mock.calls[0][1]!.headers);
+    expect(headers.get('Upload-Concat')).toBe('partial');
+    expect(headers.get('Upload-Length')).toBe('100');
+  });
+
+  it.each([
+    ['a dropped connection', () => fetchMock.mockRejectedValue(new TypeError('Failed to fetch'))],
+    ['a failing server', () => fetchMock.mockResolvedValue(new Response(null, { status: 503 }))],
+  ])('does not ask again after %s, since the server would create another part', async (_, fail) => {
+    fail();
+
+    await expect(createPartialUpload('id', 100)).rejects.toThrow();
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 });

@@ -37,9 +37,9 @@ export type ContinueTransferInput = {
   sender: string;
   fileTransferId: string;
   file: File;
-  // What Broker already holds of the file; without uploaded, the upload starts over
-  plan: UploadPlan | null;
-  uploaded: number | null;
+  // What Broker already holds of the file
+  plan: UploadPlan;
+  uploaded: number;
 };
 
 export type PlannedUpload = {
@@ -204,6 +204,9 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     try {
       plan = await createUploadPlan(given.fileTransferId, file, current.controller.signal);
     } catch (error) {
+      if (session === current) {
+        discard(given, null);
+      }
       stopInitializing(current, new UploadPlanError(given.fileTransferId, error));
       return;
     }
@@ -247,27 +250,8 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     if (session) {
       return;
     }
-    if (plan && uploaded !== null) {
-      show(newActiveUpload({ ...given, file }, 'uploading'));
-      await run({ resourceId: given.resourceId, sender: given.sender, plan, file }, uploaded);
-      return;
-    }
-    if (plan) {
-      discardUpload(plan);
-    }
-
-    const current = beginInitializing({ ...given, file });
-    if (!current) {
-      return;
-    }
-    current.transfer = { ...given, fileName: file.name };
-    try {
-      await assertFileUnchanged(file);
-    } catch (error) {
-      stopInitializing(current, error);
-      return;
-    }
-    await planAndRun(current, current.transfer, file);
+    show(newActiveUpload({ ...given, file }, 'uploading'));
+    await run({ resourceId: given.resourceId, sender: given.sender, plan, file }, uploaded);
   }
 
   function pause() {

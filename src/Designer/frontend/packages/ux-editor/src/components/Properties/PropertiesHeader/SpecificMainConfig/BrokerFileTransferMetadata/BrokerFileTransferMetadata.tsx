@@ -52,7 +52,6 @@ export const BrokerFileTransferMetadata = ({
     setOpenIndex(null);
   };
 
-  // The summary is rendered as text, so escaping would show a value like "Barn & unge" as "Barn &amp; unge"
   const describeValue = (value: MetadataValue): string => {
     if (typeof value === 'string') {
       return t('ux_editor.component_properties.metadata.text_summary', {

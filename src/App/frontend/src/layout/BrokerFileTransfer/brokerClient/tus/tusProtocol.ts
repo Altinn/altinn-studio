@@ -28,12 +28,11 @@ export async function createPartialUpload(
   length: number,
   signal?: AbortSignal,
 ): Promise<string> {
-  const response = await send(
-    'POST',
-    tusUploadPath(fileTransferId),
-    { 'Upload-Length': String(length), 'Upload-Concat': 'partial' },
+  const response = await apiRequest(tusUploadPath(fileTransferId), {
+    method: 'POST',
+    headers: { ...TUS_HEADERS, 'Upload-Length': String(length), 'Upload-Concat': 'partial' },
     signal,
-  );
+  });
 
   await assertCreated(response);
   return locationPath(response);
@@ -98,7 +97,7 @@ export function isTemporary(status: number): boolean {
   return status === 423 || status >= 500;
 }
 
-// Retrying a POST is safe here: a repeated create leaves an unused upload, and a repeated join gets a 409
+// Retrying these POSTs is safe: a whole upload has the transfer's id, so a repeated create gets the same one, and a repeated join gets a 409
 async function send(
   method: 'HEAD' | 'POST',
   path: string,

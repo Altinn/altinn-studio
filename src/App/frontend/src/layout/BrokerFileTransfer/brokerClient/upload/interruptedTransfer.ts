@@ -13,14 +13,13 @@ import {
 
 export type ResumableTransfer = {
   fileName: string;
-  plan: UploadPlan | null;
-  // null when part of the plan has expired, so the upload starts over
-  uploaded: number | null;
+  plan: UploadPlan;
+  uploaded: number;
 };
 
 export type InterruptedTransfer =
   | { status: 'received'; fileName: string; fileTransferStatus: string }
-  | { status: 'gone' }
+  | { status: 'gone'; plan?: UploadPlan }
   | ({ status: 'resumable' } & ResumableTransfer);
 
 export async function checkInterruptedTransfer(
@@ -41,15 +40,17 @@ export async function checkInterruptedTransfer(
   }
 
   const plan = await findUploadPlan(fileTransferId, signal);
-  const uploaded = plan ? await readUploadedBytes(plan, signal) : 0;
+  const uploaded = plan ? await readUploadedBytes(plan, signal) : null;
+  if (!plan || uploaded === null) {
+    return { status: 'gone', plan: plan ?? undefined };
+  }
   return { status: 'resumable', fileName: overview.fileName, plan, uploaded };
 }
 
-export function expectedFileSize({ plan, uploaded }: ResumableTransfer): number | null {
-  return plan && uploaded !== null ? planSize(plan) : null;
+export function expectedFileSize({ plan }: ResumableTransfer): number {
+  return planSize(plan);
 }
 
 export function isSameFile(transfer: ResumableTransfer, file: File): boolean {
-  const size = expectedFileSize(transfer);
-  return file.name === transfer.fileName && (size === null || file.size === size);
+  return file.name === transfer.fileName && file.size === expectedFileSize(transfer);
 }

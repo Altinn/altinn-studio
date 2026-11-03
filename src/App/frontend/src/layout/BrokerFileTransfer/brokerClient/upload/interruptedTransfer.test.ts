@@ -51,17 +51,23 @@ describe('checkInterruptedTransfer', () => {
     });
   });
 
-  it('starts from nothing when Broker holds no upload for the transfer', async () => {
+  it('is gone when Broker holds no upload for the transfer, so the file is sent again', async () => {
     vi.mocked(getFileTransferOverview).mockResolvedValue({ fileTransferStatus: 'Initialized', fileName: 'report.pdf' });
     vi.mocked(findUploadPlan).mockResolvedValue(null);
 
-    await expect(checkInterruptedTransfer('transfer-1')).resolves.toEqual({
-      status: 'resumable',
-      fileName: 'report.pdf',
-      plan: null,
-      uploaded: 0,
-    });
+    await expect(checkInterruptedTransfer('transfer-1')).resolves.toEqual({ status: 'gone' });
     expect(readUploadedBytes).not.toHaveBeenCalled();
+  });
+
+  it('is gone when part of the upload has expired, with the parts that are left', async () => {
+    vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fileTransferStatus: 'UploadStarted',
+      fileName: 'report.pdf',
+    });
+    vi.mocked(findUploadPlan).mockResolvedValue(plan);
+    vi.mocked(readUploadedBytes).mockResolvedValue(null);
+
+    await expect(checkInterruptedTransfer('transfer-1')).resolves.toEqual({ status: 'gone', plan });
   });
 
   it('is received when Broker already has the whole file', async () => {
@@ -102,9 +108,5 @@ describe('isSameFile', () => {
     expect(isSameFile(transfer, new File(['abc'], 'report.pdf'))).toBe(true);
     expect(isSameFile(transfer, new File(['ab'], 'report.pdf'))).toBe(false);
     expect(isSameFile(transfer, new File(['abc'], 'other.pdf'))).toBe(false);
-  });
-
-  it('only compares the name when Broker holds none of the file', () => {
-    expect(isSameFile({ fileName: 'report.pdf', plan: null, uploaded: 0 }, new File(['ab'], 'report.pdf'))).toBe(true);
   });
 });

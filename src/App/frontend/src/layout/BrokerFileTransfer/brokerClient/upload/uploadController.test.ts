@@ -161,7 +161,7 @@ describe('createUploadController', () => {
     expect(onFailed).toHaveBeenCalledWith(error);
   });
 
-  it('keeps the transfer when it was created but its upload could not be prepared', async () => {
+  it('gives up the transfer when its upload could not be prepared, so the next try makes a new one', async () => {
     const { controller } = setUp();
     vi.mocked(createUploadPlan).mockRejectedValue(new ApiError('Server error', 500));
 
@@ -170,7 +170,7 @@ describe('createUploadController', () => {
     expect(error).toBeInstanceOf(UploadPlanError);
     expect(error).toMatchObject({ fileTransferId: 'transfer-1' });
     expect(controller.getActive()).toBeNull();
-    expect(controller.getTransfer()).toEqual({ ...transfer, status: 'Initialized' });
+    expect(controller.getTransfer()).toEqual({ ...transfer, status: null });
   });
 
   it('cancels without reporting a failure, and gives up the transfer', async () => {
@@ -233,30 +233,6 @@ describe('createUploadController', () => {
     expect(controller.getActive()).toMatchObject({ fileName: 'report.pdf', status: 'uploading' });
     expect(initializeFileTransfer).not.toHaveBeenCalled();
     expect(createUploadPlan).not.toHaveBeenCalled();
-  });
-
-  it('uploads an interrupted transfer from the start when Broker holds none of it', async () => {
-    const { controller } = setUp();
-    vi.mocked(startUpload).mockReturnValue(fakeRun().run);
-
-    void controller.continueTransfer({ ...transfer, file, plan: null, uploaded: 0 });
-
-    await vi.waitFor(() => expect(startUpload).toHaveBeenCalledOnce());
-    expect(createUploadPlan).toHaveBeenCalledWith('transfer-1', file, expect.any(AbortSignal));
-    expect(lastRunOptions().alreadySent).toBe(0);
-    expect(initializeFileTransfer).not.toHaveBeenCalled();
-  });
-
-  it('starts an interrupted transfer over when part of its upload has expired', async () => {
-    const { controller } = setUp();
-    vi.mocked(startUpload).mockReturnValue(fakeRun().run);
-    const expired: UploadPlan = { fileTransferId: 'transfer-1', parts: [{ path: '/tus/old', start: 0, length: 3 }] };
-
-    void controller.continueTransfer({ ...transfer, file, plan: expired, uploaded: null });
-
-    await vi.waitFor(() => expect(startUpload).toHaveBeenCalledOnce());
-    expect(discardUpload).toHaveBeenCalledWith(expired);
-    expect(vi.mocked(startUpload).mock.lastCall![0]).toBe(plan);
   });
 
   it('records what the form learns about a transfer it holds', () => {

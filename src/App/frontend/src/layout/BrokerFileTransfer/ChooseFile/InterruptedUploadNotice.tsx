@@ -8,8 +8,8 @@ import { Lang } from 'src/features/language/Lang';
 
 type InterruptedUploadNoticeProps = {
   fileName: string;
-  uploaded: number | null;
-  size: number | null;
+  uploaded: number;
+  size: number;
 };
 
 export function InterruptedUploadNotice({ fileName, uploaded, size }: InterruptedUploadNoticeProps) {
@@ -21,7 +21,7 @@ export function InterruptedUploadNotice({ fileName, uploaded, size }: Interrupte
           params={[fileName]}
         />
       </Paragraph>
-      {uploaded !== null && !!size && (
+      {size > 0 && (
         <Paragraph data-size='sm'>
           <Lang
             id='broker_file_transfer.interrupted_progress'

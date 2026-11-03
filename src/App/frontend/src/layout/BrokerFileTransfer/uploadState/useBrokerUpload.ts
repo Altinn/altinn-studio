@@ -172,7 +172,7 @@ function useInterruptedTransfer(
         check.data.fileTransferStatus,
       );
     } else if (check.data.status === 'gone') {
-      controller.discard({ resourceId, sender, fileTransferId, fileName: fileName ?? '' }, null);
+      controller.discard({ resourceId, sender, fileTransferId, fileName: fileName ?? '' }, check.data.plan ?? null);
       reportUploadGone();
     }
   }, [check.data, controller, fileName, fileTransferId, isInterrupted, resourceId, sender]);
