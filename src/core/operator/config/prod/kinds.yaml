@@ -1,0 +1,18 @@
+# maxActive matches the KVM slots of the ResourceQuota in src/core/job-host/infra/kustomize, so the queue rather than
+# the quota holds runs back. maxActivePerCaller keeps a slot for the other caller, so neither the assistant chat nor the
+# Designer UI can take every slot.
+callers:
+  assistant:
+    kinds:
+      - upgrade-v9
+  designer:
+    kinds:
+      - upgrade-v9
+kinds:
+  upgrade-v9:
+    namespace: sandbox-runs
+    podTemplate: job-host
+    command: upgrade-v9
+    maxActive: 4
+    maxActivePerCaller: 3
+    runTimeout: 660s

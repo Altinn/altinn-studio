@@ -1,0 +1,51 @@
+# Leader election: the process that holds the lease runs the garbage collector. The Deployment runs one pod at a time,
+# so the lease matters only when two processes still overlap, such as a pod left running on an unreachable node.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: core-operator-leader-election
+  namespace: core-operator
+rules:
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: core-operator-leader-election
+  namespace: core-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: core-operator-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: core-operator
+    namespace: core-operator
+---
+# The operator checks the ServiceAccount tokens of its callers and of the engine with TokenReviews.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: core-operator-tokenreviews
+rules:
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: core-operator-tokenreviews
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: core-operator-tokenreviews
+subjects:
+  - kind: ServiceAccount
+    name: core-operator
+    namespace: core-operator

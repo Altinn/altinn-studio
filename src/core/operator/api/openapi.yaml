@@ -1,0 +1,560 @@
+openapi: 3.1.0
+info:
+  title: core-operator run API
+  version: 1.0.0
+  description: |
+    Runs code from an app repository in a sandbox Job on behalf of a Studio service. A caller names a kind from the
+    operator's catalog, with the arguments the kind accepts, and the commit of the app that the run is for. The kind
+    decides the command, so a caller never names one.
+
+    The operator keeps nothing of a run itself. The workflow engine keeps the run, and the run's Job keeps the archive
+    and the result:
+
+    1. Create the run. The operator queues it, and answers with the run that the caller already has in progress for
+       the same kind and commit, if there is one.
+    2. Follow the run until its status is `awaiting-archive`, then upload the archive of that commit. The operator
+       passes it on to the run's Job.
+    3. Follow the run until it has ended, then fetch the result within `resultTimeoutSeconds` of its kind. After that,
+       the operator deletes the Job, and the result with it.
+
+    A caller that restarted finds its runs again by their source with `GET /api/v1/runs`, so it needs no store of
+    its own.
+
+    Callers authenticate with a projected ServiceAccount token whose audience is `core-operator`. A caller sees
+    only its own runs and the kinds the operator allows it.
+
+    This file is the contract between the operator and its callers in Python and C#. Change it only in ways that
+    keep existing callers working.
+servers:
+  - url: http://core-operator.core-operator.svc.cluster.local:8080
+security:
+  - serviceAccountToken: []
+paths:
+  /api/v1/kinds:
+    get:
+      operationId: listKinds
+      summary: List the kinds the caller may run in this environment
+      responses:
+        '200':
+          description: The kinds. An empty list means that this environment runs no sandbox Jobs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kinds]
+                properties:
+                  kinds:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Kind'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /api/v1/runs:
+    get:
+      operationId: findRuns
+      summary: Find the caller's runs by their source
+      description: |
+        Lists the caller's runs whose source matches every filter that the request has, newest first, at most 20.
+        Names are compared without case. A caller that restarted finds its run again with `repoOwner`, `repo` and
+        `commit`.
+      parameters:
+        - name: org
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Name'
+        - name: app
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Name'
+        - name: repoOwner
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Name'
+        - name: repo
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Name'
+        - name: commit
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Commit'
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The runs, newest first. An empty list means that the caller has no such run.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runs]
+                properties:
+                  runs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Run'
+        '400':
+          description: The request has no filter, or a filter that is not valid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '503':
+          description: The operator cannot reach its engine. Retry after Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      operationId: createRun
+      summary: Create a run, or find the one in progress
+      description: |
+        Queues a run of the kind for the source. If the caller has a run of the same kind for the same source that has
+        not ended, the operator answers with that run and 200 instead, so a repeated create starts no second run. A
+        create after that run has ended starts a new one. A request without `args` and one with empty `args` are the
+        same.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRun'
+      responses:
+        '202':
+          description: The run was created and queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '200':
+          description: The caller has a run of this kind for this source in progress. This is it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: |
+            The request is not valid, such as a body that is not a CreateRun object, a source that is not valid, an
+            argument that the kind does not accept, or an argument over a limit of `args`. `detail` says what to
+            change.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          description: The caller may not run this kind.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: The kind is not in the catalog of this environment. Staging has no kinds.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: The caller has a run of this kind for this source in progress, with other arguments.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: The caller has as many queued runs as the kind allows.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: The operator cannot reach its engine, or the engine is at capacity. Retry after Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/runs/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      operationId: getRun
+      summary: Get the status of a run
+      parameters:
+        - name: wait
+          in: query
+          required: false
+          description: |
+            Seconds to wait for the status or the queue position to change from what they are when the request
+            arrives. 0 answers at once. The operator caps the wait at 30.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 30
+            default: 0
+      responses:
+        '200':
+          description: The run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          description: The operator cannot reach its engine. Retry after Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/runs/{runId}/archive:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    put:
+      operationId: uploadArchive
+      summary: Upload the archive of a run that awaits it
+      description: |
+        Sends the archive to the run's Job, which starts the command. Upload it once the status is
+        `awaiting-archive`, within `uploadTimeoutSeconds` of the kind, or the run fails. The operator passes the archive
+        on as it arrives and keeps no copy. An upload that broke off can be sent again. Once the Job has an archive, it
+        keeps it, and discards one that comes again.
+      requestBody:
+        required: true
+        content:
+          application/gzip:
+            schema:
+              type: string
+              format: binary
+              description: A gzip tar of the app at the run's commit, without `.git`, at most 50 MiB.
+      responses:
+        '202':
+          description: The Job has the archive, and the command starts. The status reads `running` within seconds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: The body is not a gzip archive.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: The run does not await its archive, because it is still queued or starting, or it has ended.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          description: The archive is larger than 50 MiB.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '415':
+          description: The content type is not `application/gzip`.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: The operator cannot reach its engine or the run's Job. Retry after Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/runs/{runId}/result:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      operationId: getRunResult
+      summary: Get the result of a completed run
+      description: |
+        Streams the result from the run's Job. Fetch it within `resultTimeoutSeconds` of the kind after the run has
+        ended. Once a caller has fetched it, the Job keeps it for 30 seconds more, for a fetch that broke off, and then
+        the operator deletes the Job.
+      responses:
+        '200':
+          description: The result of the command.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResult'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: The run has not finished, or it finished without a result, as a failed or canceled run does.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '410':
+          description: The result has expired, and the Job is gone. A new run gives the result again.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: The operator cannot reach its engine. Retry after Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/runs/{runId}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: cancelRun
+      summary: Cancel a run
+      responses:
+        '202':
+          description: The operator cancels the run and deletes its Job.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '200':
+          description: The run had already finished.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    serviceAccountToken:
+      type: http
+      scheme: bearer
+      description: A projected ServiceAccount token with the audience `core-operator`.
+  parameters:
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Problem:
+      description: An error, as RFC 9457 problem details.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Kind:
+      type: object
+      required:
+        [name, args, queueTimeoutSeconds, uploadTimeoutSeconds, runTimeoutSeconds, resultTimeoutSeconds, maxDurationSeconds]
+      properties:
+        name:
+          type: string
+          examples: [upgrade-v9]
+        args:
+          type: array
+          items:
+            type: string
+          description: The names of the arguments the kind accepts in `args` of CreateRun. Empty when it accepts none.
+          examples: [[]]
+        queueTimeoutSeconds:
+          type: integer
+          description: How long a run may wait in the queue before it expires.
+        uploadTimeoutSeconds:
+          type: integer
+          description: How long a run waits for its archive once its status is `awaiting-archive`. Then it fails.
+        runTimeoutSeconds:
+          type: integer
+          description: How long the command may run once it has started.
+        resultTimeoutSeconds:
+          type: integer
+          description: How long the result can be fetched after the run has ended. Then the operator deletes the Job.
+        maxDurationSeconds:
+          type: integer
+          description: |
+            The longest time from the create of a run until the operator gives it a final status: the queue timeout,
+            the time to start the Job, the upload timeout, the run timeout, and every retry the engine allows on the
+            way. A caller that has seen no final status by then can give up on the run.
+    Name:
+      type: string
+      pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'
+      maxLength: 100
+    Commit:
+      type: string
+      pattern: '^([0-9a-f]{40}|[0-9a-f]{64})$'
+      description: A full commit id in lowercase hexadecimal, SHA-1 or SHA-256.
+    Source:
+      type: object
+      required: [org, app, repoOwner, repo, commit]
+      additionalProperties: false
+      description: |
+        What the run is for. The operator puts each field on the run's workflow as a label, so a caller can find the
+        run again, and a dashboard can count runs by org. The organization of the app and the owner of the repository
+        are not always the same, such as for a copy of an app in a user's own repositories. Names are compared without
+        case, and a run returns them in lowercase.
+      properties:
+        org:
+          $ref: '#/components/schemas/Name'
+          description: The organization that owns the app, as in the app's id `org/app`.
+        app:
+          $ref: '#/components/schemas/Name'
+          description: The app's name, as in the app's id `org/app`.
+        repoOwner:
+          $ref: '#/components/schemas/Name'
+          description: The owner of the repository in Gitea.
+        repo:
+          $ref: '#/components/schemas/Name'
+          description: The name of the repository in Gitea.
+        commit:
+          $ref: '#/components/schemas/Commit'
+          description: The commit that the archive holds. The operator does not check the archive against it.
+    CreateRun:
+      type: object
+      required: [kind, source]
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          maxLength: 63
+          examples: [upgrade-v9]
+        source:
+          $ref: '#/components/schemas/Source'
+        args:
+          type: object
+          maxProperties: 16
+          propertyNames:
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            maxLength: 63
+          additionalProperties:
+            type: string
+            maxLength: 1024
+          description: |
+            The arguments of the run, by name. Each kind lists the names it accepts in `args` of Kind, and the
+            operator answers 400 to any other. An argument is a value that the kind's command takes: the kind decides
+            the command, and a caller never names one. Leave `args` out, or send an empty object, for a kind that
+            accepts none.
+    RunStatus:
+      type: string
+      enum: [queued, starting, awaiting-archive, running, completed, failed, canceled, expired]
+      description: |
+        - `queued`: the run waits for sandbox capacity.
+        - `starting`: the operator creates the Job and waits for its pod.
+        - `awaiting-archive`: the Job is ready. Upload the archive within `uploadTimeoutSeconds` of the kind.
+        - `running`: the command runs in the microVM.
+        - `completed`: the command ran and has a result, whatever its exit code. Whether it did what the caller wanted is
+          in the result, such as in its `report`. Fetch it by `resultExpiresAt`.
+        - `failed`: the run could not complete. `error` says why. A new run may succeed.
+        - `canceled`: the caller canceled the run.
+        - `expired`: the run waited longer in the queue than the kind allows.
+    Run:
+      type: object
+      required: [id, kind, source, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        source:
+          $ref: '#/components/schemas/Source'
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        queuePosition:
+          type: [integer, 'null']
+          minimum: 1
+          description: The position in the queue of the kind, 1 being next. Only set while the run is queued.
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: [string, 'null']
+          format: date-time
+          description: When the command started. Set from `running` on, unless the run ended before its command started.
+        finishedAt:
+          type: [string, 'null']
+          format: date-time
+        resultExpiresAt:
+          type: [string, 'null']
+          format: date-time
+          description: Until when the result can be fetched. Set only when the status is `completed`.
+        error:
+          oneOf:
+            - $ref: '#/components/schemas/RunError'
+            - type: 'null'
+    RunError:
+      type: object
+      required: [reason, detail]
+      properties:
+        reason:
+          type: string
+          enum: [queue-timeout, start-failed, archive-timeout, run-failed, internal]
+          description: |
+            - `queue-timeout`: the run waited in the queue longer than its kind allows.
+            - `start-failed`: the Job or its pod did not start.
+            - `archive-timeout`: no archive arrived within `uploadTimeoutSeconds` of the kind.
+            - `run-failed`: the command could not run, such as for an archive that does not extract.
+            - `internal`: the operator failed.
+        detail:
+          type: string
+    RunResult:
+      type: object
+      required: [exitCode, timedOut, stdout, stderr, report, patch]
+      properties:
+        status:
+          type: string
+          const: completed
+          description: Always `completed`. The result of a run that did not complete is a 409 instead.
+        exitCode:
+          type: [integer, 'null']
+          description: The exit code of the command, or null when it timed out.
+        timedOut:
+          type: boolean
+        stdout:
+          type: string
+        stderr:
+          type: string
+        report:
+          type: [object, 'null']
+          description: |
+            The JSON object that the command wrote for the caller, or null when its kind has none or the command stopped
+            before it wrote one. The shape belongs to the kind: for `upgrade-v9` it is the report of
+            `studioctl app upgrade v9 --json`. The operator passes it on without reading it.
+        patch:
+          type: [string, 'null']
+          contentEncoding: base64
+          description: |
+            The changes the command made to the app, as a binary git patch in base64, or null when the kind does not
+            change the app or the command timed out. The job host refuses a patch with symbolic links, submodules, CI
+            workflows, `.gitattributes` or `.gitmodules`, and then the run fails. Apply it with `git apply`, which
+            refuses paths outside the repository.
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
