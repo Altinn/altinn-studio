@@ -149,6 +149,7 @@ export const renderHookWithProviders = (
     featureFlags = [],
     featureFlagMutations = defaultFeatureFlagMutations,
     uxEditorParams = defaultUxEditorParams,
+    search,
   }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
@@ -162,6 +163,7 @@ export const renderHookWithProviders = (
         featureFlags,
         featureFlagMutations,
         uxEditorParams,
+        search,
       })(children),
   });
 };

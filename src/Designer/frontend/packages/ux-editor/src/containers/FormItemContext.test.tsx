@@ -411,18 +411,24 @@ describe('FormItemContext with the app context and the properties panel', () => 
 
   it('reselects the component from the URL when the pages load after the layouts', async () => {
     // Until the pages load, the panel has no item, and ComponentConfigPanel clears the selection while rendering.
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    let resolvePages: (pages: PagesModel) => void;
-    const getPages = vi.fn(() => new Promise<PagesModel>((resolve) => (resolvePages = resolve)));
-    renderPropertiesAtComponentUrl(createQueryClientWithLayouts(), { getPages });
-    await waitFor(() => expect(getPages).toHaveBeenCalled());
+    const consoleError = console.error;
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation((message, ...args) => {
+      if (typeof message === 'string' && message.includes('Cannot update a component')) return;
+      consoleError(message, ...args);
+    });
+    try {
+      let resolvePages: (pages: PagesModel) => void;
+      const getPages = vi.fn(() => new Promise<PagesModel>((resolve) => (resolvePages = resolve)));
+      renderPropertiesAtComponentUrl(createQueryClientWithLayouts(), { getPages });
+      await waitFor(() => expect(getPages).toHaveBeenCalled());
 
-    resolvePages(pagesModelMock);
+      resolvePages(pagesModelMock);
 
-    expect(await componentHeading()).toBeInTheDocument();
-    expect(screen.getByTestId(selectedItemIdTestId)).toHaveTextContent(component1IdMock);
-    expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
-    expect(consoleErrorSpy.mock.calls.flat().join(' ')).toContain('Cannot update a component');
-    consoleErrorSpy.mockRestore();
+      expect(await componentHeading()).toBeInTheDocument();
+      expect(screen.getByTestId(selectedItemIdTestId)).toHaveTextContent(component1IdMock);
+      expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 });
