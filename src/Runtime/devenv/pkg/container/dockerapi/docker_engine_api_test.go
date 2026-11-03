@@ -2,6 +2,7 @@ package dockerapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/netip"
@@ -127,6 +128,7 @@ func TestBuildPortMappings(t *testing.T) {
 
 	portBindings, exposedPorts, err := buildPortMappings([]types.PortMapping{
 		{HostIP: "127.0.0.1", HostPort: "5005", ContainerPort: "5005"},
+		{HostIP: "::1", HostPort: "5005", ContainerPort: "5005"},
 		{HostPort: "5353", ContainerPort: "53", Protocol: "udp"},
 	})
 	if err != nil {
@@ -141,7 +143,10 @@ func TestBuildPortMappings(t *testing.T) {
 	if _, ok := exposedPorts[udpPort]; !ok {
 		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, udpPort)
 	}
-	wantTCP := []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: "5005"}}
+	wantTCP := []network.PortBinding{
+		{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: "5005"},
+		{HostIP: netip.MustParseAddr("::1"), HostPort: "5005"},
+	}
 	if !slices.Equal(portBindings[tcpPort], wantTCP) {
 		t.Fatalf("portBindings[%v] = %#v, want %#v", tcpPort, portBindings[tcpPort], wantTCP)
 	}
@@ -150,8 +155,23 @@ func TestBuildPortMappings(t *testing.T) {
 		t.Fatalf("portBindings[%v] = %#v, want %#v", udpPort, portBindings[udpPort], wantUDP)
 	}
 
-	if _, _, err := buildPortMappings([]types.PortMapping{{HostIP: "localhost", ContainerPort: "80"}}); err == nil {
-		t.Fatal("buildPortMappings() with host name error = nil, want error")
+	encoded, err := json.Marshal(portBindings)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	wantJSON := `{"5005/tcp":[{"HostIp":"127.0.0.1","HostPort":"5005"},{"HostIp":"::1","HostPort":"5005"}],"53/udp":[{"HostIp":"","HostPort":"5353"}]}`
+	if string(encoded) != wantJSON {
+		t.Fatalf("port bindings JSON = %s, want %s", encoded, wantJSON)
+	}
+
+	for _, port := range []types.PortMapping{
+		{HostIP: "localhost", ContainerPort: "80"},
+		{ContainerPort: "invalid"},
+		{ContainerPort: "65536"},
+	} {
+		if _, _, err := buildPortMappings([]types.PortMapping{port}); !errors.Is(err, errInvalidPortMapping) {
+			t.Fatalf("buildPortMappings(%+v) error = %v, want errInvalidPortMapping", port, err)
+		}
 	}
 }
 
