@@ -21,7 +21,7 @@ public class QueueBuildRequest
     public string Parameters { get; set; }
 
     // DEV ONLY - uncomment temporarily to trigger pipeline on a specific branch
-    [JsonPropertyName("sourceBranch")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string SourceBranch { get; set; } = "fix/apim-test-service-connection";
+    // [JsonPropertyName("sourceBranch")]
+    // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    // public string SourceBranch { get; set; } = "feat/test-deploy-pipeline-with-proxy";
 }
