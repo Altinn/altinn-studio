@@ -36,6 +36,15 @@ const (
 	maxErrorBodySize = 1 << 20
 )
 
+// userAgent is the User-Agent of requests to the daemon.
+var userAgent = "altinn-devenv"
+
+// SetUserAgent sets the User-Agent of requests to the daemon, such as studioctl/v1.2.3.
+// Clients created before the call keep the previous value.
+func SetUserAgent(value string) {
+	userAgent = value
+}
+
 // The error texts follow moby's client, since users read them in studioctl's output.
 var (
 	errInvalidHost       = errors.New("unable to parse docker host")
@@ -70,13 +79,14 @@ func hasStatus(err error, status int) bool {
 
 // engine is a minimal Docker Engine API client.
 type engine struct {
-	http     *http.Client
-	dial     func(context.Context) (net.Conn, error)
-	daemon   string // The host as configured, for error messages.
-	scheme   string
-	host     string
-	basePath string
-	version  string
+	http      *http.Client
+	dial      func(context.Context) (net.Conn, error)
+	daemon    string // The host as configured, for error messages.
+	scheme    string
+	host      string
+	basePath  string
+	version   string
+	userAgent string
 }
 
 // newEngineFromEnv reads DOCKER_HOST, DOCKER_API_VERSION, DOCKER_CERT_PATH and DOCKER_TLS_VERIFY.
@@ -109,7 +119,7 @@ func newEngine(host string, tlsConfig *tls.Config) (*engine, error) {
 	if !ok || address == "" {
 		return nil, fmt.Errorf("%w `%s`", errInvalidHost, host)
 	}
-	e := &engine{daemon: host, scheme: "http", host: dummyHost}
+	e := &engine{daemon: host, scheme: "http", host: dummyHost, userAgent: userAgent}
 	dialer := &net.Dialer{Timeout: dialTimeout}
 	transport := &http.Transport{MaxIdleConns: maxIdleConns, IdleConnTimeout: idleConnTimeout, DisableCompression: true}
 	transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) { return e.dial(ctx) }
@@ -273,6 +283,7 @@ func (e *engine) newRequest(
 	if err != nil {
 		return nil, fmt.Errorf("build %s request: %w", path, err)
 	}
+	req.Header.Set("User-Agent", e.userAgent)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

@@ -430,6 +430,48 @@ func TestExecWithIO_UpgradeRefused(t *testing.T) {
 	}
 }
 
+// TestUserAgent is not parallel, since it sets the package's User-Agent.
+func TestUserAgent(t *testing.T) {
+	tests := []struct {
+		name string
+		set  string
+		want string
+	}{
+		{name: "default", want: "altinn-devenv"},
+		{name: "set", set: "studioctl/v1.2.3", want: "studioctl/v1.2.3"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.set != "" {
+				previous := userAgent
+				SetUserAgent(tt.set)
+				t.Cleanup(func() { SetUserAgent(previous) })
+			}
+			var mu sync.Mutex
+			got := map[string]string{}
+			c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+				mu.Lock()
+				got[req.URL.Path] = req.Header.Get("User-Agent")
+				mu.Unlock()
+				if strings.HasSuffix(req.URL.Path, "/start") {
+					w.WriteHeader(http.StatusNotFound)
+					respond(t, w, `{"message":"no upgrade"}`)
+					return
+				}
+				respond(t, w, `{"Id":"exec1"}`)
+			})
+			if err := c.Exec(t.Context(), "ctr", []string{"true"}); !errors.Is(err, errUpgradeRefused) {
+				t.Fatalf("Exec() error = %v, want refused upgrade", err)
+			}
+			for _, path := range []string{"/v1.41/containers/ctr/exec", "/v1.41/exec/exec1/start"} {
+				if got[path] != tt.want {
+					t.Errorf("User-Agent of %s = %q, want %q", path, got[path], tt.want)
+				}
+			}
+		})
+	}
+}
+
 func respond(t *testing.T, w io.Writer, body string) {
 	t.Helper()
 	if _, err := io.WriteString(w, body); err != nil {
