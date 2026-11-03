@@ -127,25 +127,15 @@ jobs:
             sudo apt-get install --yes --no-install-recommends libcap-ng-dev
           fi
 
-      - name: Verify Rust toolchain
-        run: |
-          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
-          test -n "${RUST_VERSION}"
-          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
-            || ! rustfmt --version >/dev/null 2>&1 \
-            || ! cargo clippy --version >/dev/null 2>&1; then
-            rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
-            rustup default "${RUST_VERSION}"
-          fi
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust-cached
         with:
-          shared-key: rust
+          save-cache: 'true'
 
       - name: Build workspace
         run: |
           make -C src/ci/github-runner/coordinator build
+          make -C src/ci/sandbox-host build
 
   localtest-image-registry-cache:
     name: Warm LocalTest image registry cache

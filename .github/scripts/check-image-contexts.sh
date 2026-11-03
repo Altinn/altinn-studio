@@ -38,8 +38,13 @@ load_context() {
   root)
     context_dir="${repo_root}" prefix="" header="${header_root}"
     max_context_bytes=$((64 * 1024 * 1024)) max_shared_context_bytes=$((96 * 1024 * 1024))
+    excludes=("${common_excludes[@]}" '**/dist') keeps=()
     # Rust keeps binaries' sources in src/bin/, which the .NET build output exclusion would leave out.
-    excludes=("${common_excludes[@]}" '**/dist') keeps=('!src/ci/github-runner/coordinator/src/bin/**')
+    while IFS= read -r member; do
+      if [ -d "${repo_root}/${member}/src/bin" ]; then
+        keeps+=("!${member}/src/bin/**")
+      fi
+    done < <(sed -n '/^members = \[/,/^\]/s/^ *"\([^"]*\)".*/\1/p' "${repo_root}/Cargo.toml")
     ;;
   esac
   images=()

@@ -10,6 +10,7 @@ on:
       - 'src/.containerignore'
       - 'src/**/*Dockerfile*'
       - 'src/**/*dockerfile*'
+      - 'Cargo.toml'
       - '.github/scripts/check-image-contexts.sh'
       - '.github/workflows/image-contexts-check.yaml'
   workflow_dispatch:

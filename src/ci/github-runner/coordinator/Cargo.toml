@@ -13,12 +13,9 @@ futures-util.workspace = true
 jsonwebtoken.workspace = true
 reqwest.workspace = true
 sandbox.workspace = true
-sandbox-microsandbox.workspace = true
+sandbox-host.workspace = true
 serde.workspace = true
 tokio.workspace = true
-
-[dev-dependencies]
-tempfile.workspace = true
 
 [lints]
 workspace = true
