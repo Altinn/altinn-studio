@@ -2201,27 +2201,35 @@ namespace Altinn.App.Core.Features.Process
         public OnProcessEndedContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskAbandoningContext
     {
         public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class PipelineBuilder
     {
