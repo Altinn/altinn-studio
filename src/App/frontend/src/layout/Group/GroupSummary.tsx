@@ -6,8 +6,10 @@ import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import {
   ComponentSummary,
@@ -67,6 +69,7 @@ function NestedGroupSummary(props: GroupComponentSummaryProps) {
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
   const config = useComponentConfig(targetBaseComponentId, 'Group');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Group.textResourceBindings.summaryTitle,
@@ -76,7 +79,7 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
     Expressions.Group.textResourceBindings.title,
   );
 
-  const title = summaryTitle || resolvedTitle;
+  const title = summaryTitle ?? resolvedTitle;
   const headingLevel = config.headingLevel ?? getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
@@ -90,13 +93,20 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
         className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
         data-testid={dataTestId}
       >
-        {(summaryTitle || title) && (
-          <Heading
-            data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
-            level={headingLevel}
-          >
-            <Lang id={summaryTitle ?? title} />
-          </Heading>
+        {(title || labelProps.description || labelProps.help) && (
+          <LabelContent
+            {...labelProps}
+            label={
+              title ? (
+                <Heading
+                  data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
+                  level={headingLevel}
+                >
+                  <Lang id={title} />
+                </Heading>
+              ) : undefined
+            }
+          />
         )}
         <Flex
           container

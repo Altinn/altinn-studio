@@ -193,6 +193,7 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+        returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
@@ -276,11 +277,22 @@ internal static class V8Tov9Upgrade
             );
         }
 
+        // After the layout-set conversion, so a subform PDF task's folder is ui/<taskId> and the subform's folder is
+        // named after its layout set, and before the service task page step, which deals with what the task's folder
+        // holds once the Subform component copy is gone.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSubformPdfConfig(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
+
+        // After the layout migrations and the layout-set conversion, so a service task's folder is ui/<taskId> and
+        // holds v9 layouts.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
@@ -964,6 +976,33 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gives app implementations of <c>IProcessTask</c> the <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c>
+    /// members v9 runs instead of the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>, each running the v8 method
+    /// as one stage, and makes an explicit implementation of a removed member the type's own method.
+    /// </summary>
+    static int MigrateProcessTaskLifecycle(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessTask lifecycle stages");
+        try
+        {
+            var result = new ProcessTaskLifecycleMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IProcessTask lifecycle members to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IProcessTask lifecycle members", ex);
         }
     }
 
@@ -1861,6 +1900,28 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the Subform
+    /// component copy from the task's own UI folder.
+    /// </summary>
+    static async Task<int> MigrateSubformPdfConfig(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Subform PDF tasks");
+        try
+        {
+            var result = await SubformPdfConfigMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No subform PDF tasks to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating subform PDF tasks", ex);
+        }
+    }
+
     static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
     {
         UpgradeConsole.BeginStep("Invalid input validation lists");
@@ -1888,6 +1949,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Index.cshtml", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the page Altinn Studio generated and empty pages from each service task's UI folder, and a folder
+    /// left with nothing the app reads, and reports the other pages the folders list, which v9 shows while the task
+    /// runs.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskPages(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task pages");
+        try
+        {
+            var result = await ServiceTaskPageMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No service task lists a page",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the pages of service tasks", ex);
         }
     }
 

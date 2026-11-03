@@ -8,6 +8,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { CompExternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
@@ -20,10 +21,13 @@ vi.mock('react-router');
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
   useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+  useEvalOptionalTrb: (config: { textResourceBindings?: Record<string, unknown> }, key: string) =>
+    config.textResourceBindings?.[key],
   useEvalOptionalText: (value: unknown, descriptor: { defaultValue: unknown }) =>
     value === undefined ? undefined : (value ?? descriptor.defaultValue),
 }));
 vi.mock('src/features/language/Lang');
+vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/formBootstrap/FormBootstrap');
 vi.mock('src/utils/layout/hidden');
 vi.mock('src/core/contexts/TaskOverrides');
@@ -93,6 +97,9 @@ describe('SigneeListSummary', () => {
     });
     mockNodeItem();
     vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(useLanguage).mockReturnValue({
+      elementAsString: () => 'title',
+    } as unknown as ReturnType<typeof useLanguage>);
     vi.mocked(mockedUseIsHidden).mockReturnValue(false);
     mockedUseTaskOverrides.mockReturnValue({});
   });

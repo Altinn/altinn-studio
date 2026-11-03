@@ -173,6 +173,7 @@ internal sealed partial class EngineRepository
                                 setters
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
+                                    .SetProperty(t => t.FirstFailedAt, step.FirstFailedAt)
                                     .SetProperty(t => t.StateOut, step.StateOut)
                                     .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
                                     .SetProperty(t => t.ExecutionStartedAt, step.ExecutionStartedAt)
@@ -1737,6 +1738,7 @@ internal sealed partial class EngineRepository
                         var stepIds = new Guid[allSteps.Count];
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
+                        var stepFirstFailedAt = new object[allSteps.Count];
                         var stepDeferCounts = new int[allSteps.Count];
                         var stepFirstDeferredAt = new object[allSteps.Count];
                         var stepLastDeferredAt = new object[allSteps.Count];
@@ -1752,6 +1754,7 @@ internal sealed partial class EngineRepository
                             stepIds[i] = s.DatabaseId;
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
+                            stepFirstFailedAt[i] = s.FirstFailedAt.HasValue ? s.FirstFailedAt.Value : DBNull.Value;
                             stepDeferCounts[i] = s.DeferCount;
                             stepFirstDeferredAt[i] = s.FirstDeferredAt.HasValue
                                 ? s.FirstDeferredAt.Value
@@ -1773,6 +1776,7 @@ internal sealed partial class EngineRepository
                             UPDATE engine.steps AS s
                             SET status               = v.status,
                                 requeue_count        = v.requeue_count,
+                                first_failed_at      = v.first_failed_at,
                                 defer_count          = v.defer_count,
                                 first_deferred_at    = v.first_deferred_at,
                                 last_deferred_at     = v.last_deferred_at,
@@ -1784,8 +1788,8 @@ internal sealed partial class EngineRepository
                                 updated_at           = @now
                             FROM (
                                 SELECT *
-                                FROM unnest(@ids, @statuses, @requeue_counts, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @execution_started_at, @error_histories, @engine_trace_contexts, @state_outs)
-                                    AS t(id, status, requeue_count, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, execution_started_at, error_history, engine_trace_context, state_out)
+                                FROM unnest(@ids, @statuses, @requeue_counts, @first_failed_at, @defer_counts, @first_deferred_at, @last_deferred_at, @last_defer_reasons, @execution_started_at, @error_histories, @engine_trace_contexts, @state_outs)
+                                    AS t(id, status, requeue_count, first_failed_at, defer_count, first_deferred_at, last_deferred_at, last_defer_reason, execution_started_at, error_history, engine_trace_context, state_out)
                                 ORDER BY t.id
                             ) AS v
                             WHERE s.id = v.id
@@ -1795,6 +1799,12 @@ internal sealed partial class EngineRepository
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("first_failed_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepFirstFailedAt,
+                            }
+                        );
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("defer_counts", stepDeferCounts));
                         cmd.Parameters.Add(
                             new NpgsqlParameter("first_deferred_at", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
@@ -2012,6 +2022,7 @@ internal sealed partial class EngineRepository
                         UPDATE engine.steps
                         SET status = @enqueued,
                             requeue_count = 0,
+                            first_failed_at = NULL,
                             defer_count = 0,
                             first_deferred_at = NULL,
                             last_deferred_at = NULL,

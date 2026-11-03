@@ -27,7 +27,8 @@ internal abstract record MailboxContinuation
             string serviceTaskType,
             int handlerItemIndex,
             long position,
-            ProcessStepOptions? handlerStepOptions = null
+            ProcessStepOptions? handlerStepOptions = null,
+            string? handlerStepName = null
         )
         {
             MailboxId = mailboxId;
@@ -35,6 +36,7 @@ internal abstract record MailboxContinuation
             HandlerItemIndex = handlerItemIndex;
             Position = position;
             HandlerStepOptions = handlerStepOptions;
+            HandlerStepName = handlerStepName;
         }
 
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
@@ -58,6 +60,12 @@ internal abstract record MailboxContinuation
         /// theirs; read off the pipeline by the hop that decided the continuation.
         /// </summary>
         public ProcessStepOptions? HandlerStepOptions { get; }
+
+        /// <summary>
+        /// The handler's step name, so the successor's step reads the same as this one. Worked out where the
+        /// pipeline was resolved, since nothing is resolved here.
+        /// </summary>
+        public string? HandlerStepName { get; }
     }
 
     /// <summary>

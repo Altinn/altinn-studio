@@ -6,5 +6,6 @@
     ],
     "pdfLayoutName": "PdfLayout"
   },
-  "defaultDataType": "SubformModel"
+  "defaultDataType": "SubformModel",
+  "type": "subform"
 }

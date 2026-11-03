@@ -5,6 +5,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 
 import type { PropsFromGenericComponent } from '..';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { useIsSubformPage } from 'src/hooks/navigation';
@@ -24,6 +25,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
   const { innerGrid } = useComponentStructureData(baseComponentId);
   const { mutate: processNext, isPending: isPerformingProcessNext } = useProcessNext({ action: config.action });
   const isAuthorized = useIsAuthorized();
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
@@ -34,7 +36,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
       componentId={componentId}
       title={title ?? `actions.${config.action}`}
       buttonStyle={config.buttonStyle}
-      disabled={!isAuthorized(config.action)}
+      disabled={instanceLocked || !isAuthorized(config.action)}
       isLoading={isPerformingProcessNext}
       onClick={() => processNext()}
       innerGrid={innerGrid}

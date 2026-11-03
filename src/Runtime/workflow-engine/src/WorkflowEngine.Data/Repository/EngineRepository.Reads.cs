@@ -276,6 +276,11 @@ internal sealed partial class EngineRepository
                                     .Select(s => (int?)s.RequeueCount)
                                     .FirstOrDefault()
                                 ?? 0,
+                            FirstFailedAt = w
+                                .Steps.Where(s => s.Status != PersistentItemStatus.Completed)
+                                .OrderBy(s => s.ProcessingOrder)
+                                .Select(s => s.FirstFailedAt)
+                                .FirstOrDefault(),
                         })
                         .ToListAsync(cancellationToken)
                     : [];

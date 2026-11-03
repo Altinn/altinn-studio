@@ -74,7 +74,7 @@ stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the sam
 task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
 them as a single stage. Each stage runs as its own workflow
 step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
-stages run inside the transition, before it commits, and never advance the process, so the pipeline ends with
+stages run inside the transition and never advance the process, so the pipeline ends with
 `Build()`. The built-in signing task resolves, delegates and notifies its signees this way. A lifecycle stage that
 defers holds the transition: the instance stays `processing` until the stage
 completes, the way a waiting service task holds it. Stages are dispatched by position too, so the rules in
@@ -133,6 +133,16 @@ stage's on `Stage`, a reply handler's on its `HandleReplies`, the conclusion's o
 carries exactly what its own call declared; a field left unset falls back to the command's default and then
 the engine's, never to another step's. A task that wants the same options on several steps passes the same
 object to each call.
+
+### Step names
+
+Where people follow a task's progress, such as Studio's admin panel, a step goes by the name of the method you
+passed as its work, written out as words: `SendToArchive` reads "Send to archive", `GeneratePDFReceipt` reads
+"Generate PDF receipt". A reply handler runs one of two methods depending on what arrives, so it goes by both,
+`OnDecision / OnClosed`. A lambda leaves the step unnamed, and so does a one-step task's own `Execute`, which says
+nothing the task type does not. The name travels as the step label `stepName`, on lifecycle stages and service task
+steps alike; the step that mints a mailbox carries none. Names are display only: renaming a method changes nothing
+about how the step runs, in-flight workflows included, because a step's identity is its index.
 
 ## Mailboxes: work answered by a message
 

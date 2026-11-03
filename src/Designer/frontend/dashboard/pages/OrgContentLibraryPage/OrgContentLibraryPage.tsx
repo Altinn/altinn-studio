@@ -35,7 +35,6 @@ import {
 } from './utils';
 import { isOrg } from '../../utils/orgUtils';
 import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
-import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
@@ -80,7 +79,6 @@ function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
   const { t } = useTranslation();
   const orgRepoName = useOrgRepoName();
   const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
-  useListenToMergeConflictInRepo(orgName, orgRepoName);
 
   if (isLoading) return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
 

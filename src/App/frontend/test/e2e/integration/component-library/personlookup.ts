@@ -22,8 +22,10 @@ describe('Person lookup component', () => {
     cy.gotoNavPage('PersonLookupPage');
 
     // Check that the component is rendered
-    cy.findByText(/Her legger du inn etternavn og fødselsnummer/i).should('exist');
-    cy.findByRole('button', { name: /Hjelpetekst for legg til person/i }).should('exist');
+    cy.get('[data-componentid="personLookup"]').within(() => {
+      cy.findByText(/Her legger du inn etternavn og fødselsnummer/i).should('exist');
+      cy.findByRole('button', { name: /Hjelpetekst for legg til person/i }).should('exist');
+    });
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).should('exist');
     cy.findByRole('textbox', { name: /Etternavn/i }).should('exist');
     cy.findByRole('button', { name: /Hent opplysninger/i }).should('exist');

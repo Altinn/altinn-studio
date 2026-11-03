@@ -1,23 +1,8 @@
-import { appendFileSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
-import { gzipSync } from 'node:zlib';
-
-// A separate CDP client keeps working when Cypress's renderer/event loop stops.
-// Scheduler history must be recorded before the hang; post-hang stacks alone
-// cannot explain why a commit failed to complete.
+// Probe Chrome from outside Cypress so a blocked renderer cannot stop recovery.
+// Keep this client read-only until the watchdog confirms a stall.
 export class BrowserDiagnostics {
   pending = new Map();
   nextId = 1;
-  traceEvents = 0;
-  traceBytes = 0;
-  compressedBytes = 0;
-
-  constructor(directory) {
-    this.directory = directory;
-    this.traceComplete = new Promise((resolve) => {
-      this.resolveTrace = resolve;
-    });
-  }
 
   async connect(port) {
     const response = await fetch(`http://127.0.0.1:${port}/json/version`, {
@@ -34,26 +19,6 @@ export class BrowserDiagnostics {
         clearTimeout(pending.timer);
         if (message.error) pending.reject(new Error(message.error.message));
         else pending.resolve(message.result);
-      } else if (message.method === 'Tracing.dataCollected' && this.traceFile) {
-        const chunk = message.params.value.map((event) => JSON.stringify(event)).join('\n') + '\n';
-        // Concatenated gzip members preserve complete JSONL batches, with bounded
-        // memory and much smaller artifacts than scheduler-state JSON. Compress
-        // only after detecting a stall, outside the browser and Cypress.
-        try {
-          const compressed = gzipSync(chunk, { level: 1 });
-          if (this.compressedBytes + compressed.length <= 32 * 1024 * 1024) {
-            appendFileSync(this.traceFile, compressed);
-            this.compressedBytes += compressed.length;
-            this.traceBytes += Buffer.byteLength(chunk);
-            this.traceEvents += message.params.value.length;
-          } else this.traceTruncated = true;
-        } catch (error) {
-          this.traceError = error.message;
-        }
-      } else if (message.method === 'Tracing.tracingComplete') {
-        this.traceFinished = true;
-        this.resolveTrace(true);
-        this.writeTraceStatus();
       }
     });
     this.socket.addEventListener('error', () => {});
@@ -80,31 +45,6 @@ export class BrowserDiagnostics {
         { once: true },
       );
     });
-    this.version = await this.send('Browser.getVersion');
-    this.tracingStartedAt = Date.now();
-    try {
-      await this.send(
-        'Tracing.start',
-        {
-          traceConfig: {
-            recordMode: 'recordContinuously',
-            traceBufferSizeInKb: 32768,
-            includedCategories: ['cc', 'disabled-by-default-cc.debug.scheduler'],
-            excludedCategories: ['*'],
-          },
-          transferMode: 'ReportEvents',
-        },
-        undefined,
-        10000,
-      );
-      this.tracing = true;
-    } catch (error) {
-      // In particular, never stop a tracing session owned by another client.
-      this.traceError = error.message;
-      // A timed-out start can already be recording while waiting for a blocked
-      // renderer to acknowledge it. Still try to retrieve our partial trace.
-      this.tracing = error.message === 'CDP timeout: Tracing.start';
-    }
   }
 
   send(method, params = {}, sessionId, timeout = 3000) {
@@ -135,8 +75,13 @@ export class BrowserDiagnostics {
             targetId: target.targetId,
             flatten: true,
           }));
-          await this.send('Runtime.evaluate', { expression: '1', returnByValue: true }, sessionId);
+          const { result } = await this.send(
+            'Runtime.evaluate',
+            { expression: 'globalThis.__cypressDiagnosticsProgressAt || 0', returnByValue: true },
+            sessionId,
+          );
           sample.responsive = true;
+          if (Number.isFinite(result.value)) sample.progressAt = result.value;
         } catch (error) {
           sample.error = error.message;
         } finally {
@@ -155,53 +100,7 @@ export class BrowserDiagnostics {
     return result;
   }
 
-  async saveTrace() {
-    this.traceFile ||= path.join(
-      this.directory,
-      `chrome-scheduler-${this.tracingStartedAt || Date.now()}.jsonl.gz`,
-    );
-    if (this.tracing) {
-      writeFileSync(this.traceFile, '');
-      try {
-        await this.send('Tracing.end', {}, undefined, 10000);
-        this.traceFinished = await Promise.race([
-          this.traceComplete,
-          new Promise((resolve) => {
-            const timer = setTimeout(() => resolve(false), 10000);
-            timer.unref();
-          }),
-        ]);
-      } catch (error) {
-        this.traceError = error.message;
-      }
-      this.tracing = false;
-    }
-    this.writeTraceStatus();
-  }
-
-  writeTraceStatus() {
-    if (!this.traceFile) return;
-    writeFileSync(
-      this.traceFile.replace('.jsonl.gz', '.status.json'),
-      JSON.stringify(
-        {
-          version: this.version,
-          startedAt: this.tracingStartedAt,
-          events: this.traceEvents,
-          bytes: this.traceBytes,
-          compressedBytes: this.compressedBytes,
-          complete: Boolean(this.traceFinished),
-          truncated: Boolean(this.traceTruncated),
-          error: this.traceError,
-        },
-        null,
-        2,
-      ),
-    );
-  }
-
   close() {
-    this.writeTraceStatus();
     for (const { reject, timer } of this.pending.values()) {
       clearTimeout(timer);
       reject(new Error('CDP disconnected'));

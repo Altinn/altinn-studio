@@ -117,7 +117,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
             // collection heads as dependencies. A DependsOnHeads=false root (e.g. an auxiliary
-            // workflow enqueued at the commit boundary) starts independently.
+            // workflow enqueued after the task start) starts independently.
             if (isCollectionRoot && workflow.DependsOnHeads)
             {
                 foreach (Guid headId in currentCollectionHeads)
@@ -849,7 +849,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdatedAt = workflow.UpdatedAt,
             Labels = workflow.Labels is null ? null : new Dictionary<string, string>(workflow.Labels),
             OverallStatus = workflow.Status,
-            IsHead = workflow.IsHead,
+            // Mirrors the engine's derivation of the role from the stored IsHead directive.
+            Role = workflow.IsHead == false ? WorkflowRole.Auxiliary : WorkflowRole.Primary,
             Dependencies =
                 workflow.DependencyIds.Count == 0
                     ? null

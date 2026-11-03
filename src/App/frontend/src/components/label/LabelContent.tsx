@@ -17,16 +17,33 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 
 export type LabelContentProps = Readonly<{
   id: string;
+  wrapperId?: string;
   label?: React.ReactNode;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
   help?: string;
+  helpTitle?: string;
   labelSettings?: ILabelSettings;
+  summary?: boolean;
+  isCompact?: boolean;
 }> & { className?: string };
 
 export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(function LabelContent(
-  { id, label, description, required, readOnly, help, labelSettings, className },
+  {
+    id,
+    wrapperId,
+    label,
+    description,
+    required,
+    readOnly,
+    help,
+    helpTitle,
+    labelSettings,
+    summary,
+    isCompact,
+    className,
+  },
   ref,
 ) {
   const { overrideDisplay } = useFormComponentCtx() ?? {};
@@ -36,13 +53,11 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
     return null;
   }
 
-  return (
-    <span
-      className={cn(classes.labelWrapper, className)}
-      ref={ref}
-    >
-      <span className={classes.labelContainer}>
-        <span className={classes.labelContent}>
+  const ContentTag = summary ? 'div' : 'span';
+  const content = (
+    <>
+      <ContentTag className={classes.labelContainer}>
+        <ContentTag className={classes.labelContent}>
           {typeof label === 'string' ? <Lang id={label} /> : label}
           <RequiredIndicator required={required} />
           <OptionalIndicator
@@ -50,15 +65,15 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
             required={required}
             showOptionalMarking={labelSettings?.optionalIndicator !== false}
           />
-        </span>
+        </ContentTag>
         {help && (
           <HelpTextContainer
             id={id}
             helpText={<Lang id={help} />}
-            title={typeof label === 'string' ? label : elementAsString(label)}
+            title={helpTitle ?? (typeof label === 'string' ? label : elementAsString(label))}
           />
         )}
-      </span>
+      </ContentTag>
       {description && (
         <Description
           className={classes.description}
@@ -67,6 +82,29 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
           description={<Lang id={description} />}
         />
       )}
+    </>
+  );
+  const combinedClassName = cn(
+    classes.labelWrapper,
+    summary && classes.summary,
+    isCompact && classes.compact,
+    className,
+  );
+
+  return summary ? (
+    <div
+      id={wrapperId}
+      className={combinedClassName}
+    >
+      {content}
+    </div>
+  ) : (
+    <span
+      id={wrapperId}
+      className={combinedClassName}
+      ref={ref}
+    >
+      {content}
     </span>
   );
 });

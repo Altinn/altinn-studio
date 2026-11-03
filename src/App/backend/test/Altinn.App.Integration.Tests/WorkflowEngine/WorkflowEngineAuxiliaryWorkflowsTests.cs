@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
-/// Verifies the process-next primary/auxiliary split: auxiliary post-commit commands (Altinn event
+/// Verifies the process-next primary/auxiliary split: auxiliary post-commit steps (Altinn event
 /// registrations) each run in their own single-step auxiliary workflow (<c>IsHead=false</c>) that
 /// never gates the ProcessNext response or the next transition, while primary post-commit
 /// commands (ExecuteServiceTask) stay in the primary workflow and are waited on. The scenario's

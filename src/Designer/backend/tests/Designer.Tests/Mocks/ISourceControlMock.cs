@@ -107,6 +107,44 @@ public class ISourceControlMock : ISourceControl
         throw new NotImplementedException();
     }
 
+    public void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    {
+        string remotePath = TestDataHelper.GetTestDataRemoteRepository(
+            authenticatedContext.Org,
+            authenticatedContext.Repo
+        );
+        if (!Directory.Exists(remotePath))
+        {
+            // As fetching from a remote that does not exist fails.
+            throw new LibGit2Sharp.LibGit2SharpException($"Remote repository not found: {remotePath}");
+        }
+
+        string localPath = TestDataHelper.GetTestDataRepositoryDirectory(
+            authenticatedContext.Org,
+            authenticatedContext.Repo,
+            _developer
+        );
+        // A reset keeps the clone's .git folder and replaces the rest with the remote's content.
+        foreach (string entry in Directory.EnumerateFileSystemEntries(localPath))
+        {
+            if (Path.GetFileName(entry) == ".git")
+            {
+                continue;
+            }
+
+            if (Directory.Exists(entry))
+            {
+                Directory.Delete(entry, true);
+            }
+            else
+            {
+                File.Delete(entry);
+            }
+        }
+
+        CloneRemoteRepository(authenticatedContext);
+    }
+
     public Task<string> GetDeployToken()
     {
         throw new NotImplementedException();
@@ -197,6 +235,11 @@ public class ISourceControlMock : ISourceControl
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
         throw new NotImplementedException();
 
+    public CombineResult CombineWithRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    ) => throw new NotImplementedException();
+
     public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) =>
         throw new NotImplementedException();
 
@@ -229,8 +272,5 @@ public class ISourceControlMock : ISourceControl
     ) => throw new NotImplementedException();
 
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) =>
-        throw new NotImplementedException();
-
-    public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) =>
         throw new NotImplementedException();
 }

@@ -69,7 +69,7 @@ export function Fieldset({
         >
           <DesignsystemetFieldset.Legend id={legendId} className={labelClasses.legend}>
             <span className={cn(labelClasses.labelAndHelpWrapper)}>
-              <DesignsystemetLabel weight='medium' data-size={legendSize} style={style} asChild>
+              <DesignsystemetLabel data-size={legendSize} style={style} asChild>
                 <span>
                   {legend}
                   {required && requiredIndicator}

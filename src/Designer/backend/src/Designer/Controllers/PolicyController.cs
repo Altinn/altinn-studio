@@ -174,15 +174,6 @@ public class PolicyController : ControllerBase
     }
 
     [HttpGet]
-    [Route("actionoptions")]
-    public async Task<ActionResult> GetActionOptions(string org, string app, CancellationToken cancellationToken)
-    {
-        List<ActionOption> actionOptions = await _policyOptions.GetActionOptions(cancellationToken);
-
-        return Ok(actionOptions);
-    }
-
-    [HttpGet]
     [Route("accesspackageoptions")]
     public async Task<ActionResult> GetAccessPackageOptions(string org, string app, CancellationToken cancellationToken)
     {

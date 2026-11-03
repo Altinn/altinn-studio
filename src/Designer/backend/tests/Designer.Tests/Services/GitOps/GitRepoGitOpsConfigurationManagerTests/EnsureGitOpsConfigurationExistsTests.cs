@@ -78,12 +78,33 @@ public class EnsureGitOpsConfigurationExistsTests
     [InlineData("tt02")]
     [InlineData("prod")]
     [InlineData("at22")]
-    public async Task WhenLocalRepositoryExists_ShouldDeleteLocalRepository_AndRecreateManifests(string environment)
+    public async Task WhenLocalRepositoryCannotBeUpdated_ShouldCloneItAgain_AndRecreateManifests(string environment)
     {
-        await And.When.EnsureGitOpsConfigurationExistsCalled(environment);
+        await Given.That.RemoteRepositoryDoesNotExist().And.When.EnsureGitOpsConfigurationExistsCalled(environment);
 
         await Then.BaseManifestsShouldExist()
             .And.EnvironmentManifestsShouldExist(environment)
+            .And.EnvironmentKustomizationManifestShouldContainBaseResource(environment);
+    }
+
+    [Theory]
+    [InlineData("tt02")]
+    [InlineData("prod")]
+    [InlineData("at22")]
+    public async Task WhenLocalRepositoryExists_ShouldResetItToTheRemoteInPlace_AndCreateManifests(string environment)
+    {
+        await Given
+            .That.RemoteRepositoryExists()
+            .And.RemoteRepositoryContainsFile(RemoteOnlyFile)
+            .And.LocalRepositoryContainsFile(LocalOnlyFile)
+            .And.LocalCloneHasMarker()
+            .And.When.EnsureGitOpsConfigurationExistsCalled(environment);
+
+        await Then.BaseManifestsShouldExist()
+            .And.EnvironmentManifestsShouldExist(environment)
+            .And.LocalRepositoryShouldContainFile(RemoteOnlyFile)
+            .And.LocalRepositoryShouldNotContainFile(LocalOnlyFile)
+            .And.LocalCloneShouldBeKept()
             .And.EnvironmentKustomizationManifestShouldContainBaseResource(environment);
     }
 
@@ -121,12 +142,83 @@ public class EnsureGitOpsConfigurationExistsTests
             .And.EnvironmentKustomizationManifestShouldContainBaseResource(environment);
     }
 
+    [Fact]
+    public async Task WhenLocalRepositoryHasTooManyPackFiles_ShouldCloneItAgain()
+    {
+        await Given
+            .That.RemoteRepositoryExists()
+            .And.LocalCloneHasMarker()
+            .And.LocalCloneHasPackFiles(51)
+            .And.When.EnsureGitOpsConfigurationExistsCalled("tt02");
+
+        Then.LocalCloneShouldNotBeKept();
+    }
+
     private async Task EnsureGitOpsConfigurationExistsCalled(string environment)
     {
         await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(
             OrgEditingContext,
             AltinnEnvironment.FromName(environment)
         );
+    }
+
+    private const string RemoteOnlyFile = "remote-only.txt";
+    private const string LocalOnlyFile = "local-only.txt";
+
+    private EnsureGitOpsConfigurationExistsTests RemoteRepositoryContainsFile(string fileName)
+    {
+        File.WriteAllText(Path.Join(GetRemoteRepositoryPath(), fileName), fileName);
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalRepositoryContainsFile(string fileName)
+    {
+        File.WriteAllText(Path.Join(AltinnGitRepository.RepositoryDirectory, fileName), fileName);
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalRepositoryShouldContainFile(string fileName)
+    {
+        Assert.True(AltinnGitRepository.FileExistsByRelativePath(fileName), $"{fileName} should exist");
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalRepositoryShouldNotContainFile(string fileName)
+    {
+        Assert.False(AltinnGitRepository.FileExistsByRelativePath(fileName), $"{fileName} should not exist");
+        return this;
+    }
+
+    private string CloneMarkerPath => Path.Join(AltinnGitRepository.RepositoryDirectory, ".git", "clone-marker");
+
+    private EnsureGitOpsConfigurationExistsTests LocalCloneHasMarker()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(CloneMarkerPath)!);
+        File.WriteAllText(CloneMarkerPath, string.Empty);
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalCloneHasPackFiles(int count)
+    {
+        string packDirectory = Path.Join(AltinnGitRepository.RepositoryDirectory, ".git", "objects", "pack");
+        Directory.CreateDirectory(packDirectory);
+        for (int i = 0; i < count; i++)
+        {
+            File.WriteAllText(Path.Join(packDirectory, $"pack-{i}.pack"), string.Empty);
+        }
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalCloneShouldNotBeKept()
+    {
+        Assert.False(File.Exists(CloneMarkerPath), "The local clone should be cloned again");
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests LocalCloneShouldBeKept()
+    {
+        Assert.True(File.Exists(CloneMarkerPath), "The local clone should be reused, not cloned again");
+        return this;
     }
 
     private EnsureGitOpsConfigurationExistsTests LocalRepositoryDoesNotExist()
@@ -185,5 +277,11 @@ public class EnsureGitOpsConfigurationExistsTests
     private string GetRemoteRepositoryPath()
     {
         return TestDataHelper.GetTestDataRemoteRepository(OrgEditingContext.Org, TestRepoName);
+    }
+
+    public override async Task DisposeAsync()
+    {
+        RemoteRepositoryDoesNotExist();
+        await base.DisposeAsync();
     }
 }

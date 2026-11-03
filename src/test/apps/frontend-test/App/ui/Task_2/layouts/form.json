@@ -23,6 +23,8 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "PersonNyttFornavn",
+          "summaryTitle": "Fornavnet som skal vises i oppsummeringen av navneendringen",
+          "description": "Dette fornavnet blir registrert etter innsending",
           "help": "PersonNyttFornavn.helptext"
         },
         "dataModelBindings": {

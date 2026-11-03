@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
-using Altinn.Studio.Designer.Hubs.Preview;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -20,7 +19,6 @@ public static class HubsEndpointExtensions
     public static void MapHubs(this IEndpointRouteBuilder endpoints)
     {
         // all hubs should have /hubs prefix
-        endpoints.MapHub<PreviewHub>("/hubs/preview");
         endpoints.MapHub<Sync.SyncHub>("/hubs/sync");
         endpoints.MapHub<EntityUpdatedHub>("/hubs/entity-updated");
         endpoints.MapHub<AlertsUpdatedHub>("/hubs/alerts-updated");

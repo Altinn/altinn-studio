@@ -153,19 +153,27 @@ describe('InstanceWorkflows', () => {
           workflowOf(
             'wf-acquire',
             'Process next: Mark instance as processing',
-            { processNextSourceId: 'Form:2' },
+            {
+              processNextSourceTask: 'Form',
+              processNextSourceFlow: '2',
+              processNextTargetTask: 'Approval',
+            },
             [stepOf('AcquireProcessingStatus', 0)],
           ),
           workflowOf(
             'wf-transition',
             'Process next: Form -> Approval',
-            { processNextSourceId: 'Form:2', processNextTargetId: 'Approval:4' },
+            {
+              processNextSourceTask: 'Form',
+              processNextSourceFlow: '2',
+              processNextTargetTask: 'Approval',
+            },
             [stepOf('EndTask', 0), stepOf('StartTask', 1), stepOf('ExecuteServiceTask: 0', 2)],
           ),
           workflowOf(
             'wf-receive',
             'Mailbox receive: Approval · 0',
-            { processNextTargetId: 'Approval:4' },
+            { processNextTargetTask: 'Approval' },
             [stepOf('ExecuteServiceTask: 1', 0, 'Held')],
             'Held',
           ),
@@ -182,9 +190,12 @@ describe('InstanceWorkflows', () => {
       within(row).getAllByText(textMock('admin.workflows.status.held')).length,
     ).toBeGreaterThan(0);
     expect(within(row).getByText('AcquireProcessingStatus')).toBeInTheDocument();
-    // A service task's steps are named by their position, the one in its own workflow as answering.
+    // A service task's steps are named by their position in the task the transition entered, the one
+    // in its own workflow as answering.
     expect(
-      within(row).getByText(textMock('admin.workflows.step.position.stage', { number: 1 })),
+      within(row).getByText(
+        textMock('admin.workflows.step.position.stage_in_task', { number: 1, task: 'Approval' }),
+      ),
     ).toBeInTheDocument();
     expect(
       within(row).getAllByText(textMock('admin.workflows.step.position.replies', { number: 2 }))
@@ -199,7 +210,11 @@ describe('InstanceWorkflows', () => {
       operationId: 'Process next: Form -> Verify',
       overallStatus: 'Completed',
       createdAt: '2026-08-02T09:00:00Z',
-      labels: { processNextTargetId: 'Verify:3' },
+      labels: {
+        processNextSourceTask: 'Form',
+        processNextSourceFlow: '2',
+        processNextTargetTask: 'Verify',
+      },
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed', errorHistory: [] }],
     };
     const failedAuxiliaryWorkflow = {
@@ -208,7 +223,11 @@ describe('InstanceWorkflows', () => {
       operationId: 'Process next side-effects: Form -> Verify \u00b7 MovedToAltinnEvent',
       overallStatus: 'Failed',
       createdAt: '2026-08-02T09:00:05Z',
-      labels: { processNextTargetId: 'Verify:3' },
+      labels: {
+        processNextSourceTask: 'Form',
+        processNextSourceFlow: '2',
+        processNextTargetTask: 'Verify',
+      },
       steps: [{ ...failedPrimaryWorkflow.steps[0], databaseId: 'auxiliary-step' }],
     };
     vi.mocked(axios.get).mockResolvedValue({
@@ -240,15 +259,15 @@ describe('InstanceWorkflows', () => {
       operationId: `Process next: ${target}`,
       overallStatus: 'Completed',
       createdAt,
-      labels: { processNextTargetId: target },
+      labels: { processNextTargetTask: target },
       steps: [],
     });
     const lateAuxiliaryWorkflow = {
       ...settledAuxiliaryWorkflow,
       databaseId: 'wf-auxiliary-late',
-      operationId: 'Process next side-effects: Form:2 · MovedToAltinnEvent',
+      operationId: 'Process next auxiliary: start -> Form · MovedToAltinnEvent',
       createdAt: '2026-08-01T10:03:00Z',
-      labels: { processNextTargetId: 'Form:2' },
+      labels: { processNextTargetTask: 'Form' },
     };
     vi.mocked(axios.get).mockResolvedValue({
       status: 200,
@@ -256,8 +275,8 @@ describe('InstanceWorkflows', () => {
         ...workflowsResponse,
         data: [
           lateAuxiliaryWorkflow,
-          transition('wf-verify', 'Verify:3', '2026-08-01T10:02:00Z'),
-          transition('wf-form', 'Form:2', '2026-08-01T10:01:00Z'),
+          transition('wf-verify', 'Verify', '2026-08-01T10:02:00Z'),
+          transition('wf-form', 'Form', '2026-08-01T10:01:00Z'),
         ],
       },
     } as AxiosResponse);
@@ -265,8 +284,8 @@ describe('InstanceWorkflows', () => {
 
     const rows = await screen.findAllByTestId('workflow-row');
     expect(rows.map((row) => within(row).getByTitle(/^Process next: /).title)).toEqual([
-      'Process next: Form:2',
-      'Process next: Verify:3',
+      'Process next: Form',
+      'Process next: Verify',
     ]);
     // The late auxiliary workflow is filed behind its own transition, not the one that came after
     // it.
@@ -302,7 +321,11 @@ describe('InstanceWorkflows', () => {
       operationId: 'Process next: Form -> Verify',
       overallStatus: 'Completed',
       createdAt: '2026-08-02T09:00:00Z',
-      labels: { processNextTargetId: 'Verify:3' },
+      labels: {
+        processNextSourceTask: 'Form',
+        processNextSourceFlow: '2',
+        processNextTargetTask: 'Verify',
+      },
       steps: [],
     };
     const stepOf = (operationId: string, processingOrder: number, status = 'Completed') => ({

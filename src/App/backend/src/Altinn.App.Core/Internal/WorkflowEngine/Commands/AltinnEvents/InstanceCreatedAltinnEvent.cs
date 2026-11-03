@@ -19,7 +19,7 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
         _telemetry = telemetry;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         Instance instance = parameters.InstanceDataMutator.Instance;
 
@@ -38,11 +38,11 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
                 );
             }
 
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

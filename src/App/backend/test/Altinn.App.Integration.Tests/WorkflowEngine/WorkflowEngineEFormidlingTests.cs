@@ -68,14 +68,17 @@ public class WorkflowEngineEFormidlingTests(ITestOutputHelper output, AppFixture
         Assert.Equal(HttpStatusCode.OK, readPatchResponse.Response.StatusCode);
 
         // The delivery wait parks the workflow in Waiting, which releases the synchronous
-        // process/next early with the ordinary success shape — so this response may show either the
-        // committed eFormidling task (released while parked) or the end event (delivery confirmed
+        // process/next early with 202 Accepted — so this response is either 202 with the committed
+        // eFormidling task (released while parked) or 200 with the end event (delivery confirmed
         // before the release). Both are correct; the settled state is asserted by polling below.
         try
         {
             using var processNextResponse = await fixture.Instances.ProcessNext(token, instance);
             using var processState = await processNextResponse.Read<AppProcessState>();
-            Assert.Equal(HttpStatusCode.OK, processState.Response.StatusCode);
+            Assert.Equal(
+                processState.Data.Model!.Ended is null ? HttpStatusCode.Accepted : HttpStatusCode.OK,
+                processState.Response.StatusCode
+            );
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {

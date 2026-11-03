@@ -11,6 +11,14 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
+import { createPreviewInstance } from 'app-shared/api/mutations';
+
+const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
+vi.mock('app-shared/utils/previewAvailability', () => ({
+  get isPreviewDisabled() {
+    return previewAvailability.isPreviewDisabled;
+  },
+}));
 
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
@@ -31,6 +39,19 @@ vi.mock('app-shared/api/mutations', () => ({
 describe('LandingPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    previewAvailability.isPreviewDisabled = false;
+  });
+
+  it('should inform that preview is temporarily disabled instead of loading it', async () => {
+    previewAvailability.isPreviewDisabled = true;
+    vi.mocked(createPreviewInstance).mockClear();
+    renderLandingPage();
+
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
+
+    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(screen.queryByTitle(textMock('preview.title'))).not.toBeInTheDocument();
+    expect(createPreviewInstance).not.toHaveBeenCalled();
   });
 
   it('should display a spinner initially when loading user', () => {

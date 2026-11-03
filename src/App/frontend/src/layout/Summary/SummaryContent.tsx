@@ -5,6 +5,7 @@ import cn from 'classnames';
 
 import { getComponentDef } from '..';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -38,7 +39,9 @@ export function SummaryContent({
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
   const display = overrides?.display;
-  const readOnlyComponent = 'readOnly' in config && readOnly === true;
+  // While the instance is locked, components without a readOnly setting are read-only too
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const readOnlyComponent = instanceLocked || ('readOnly' in config && readOnly === true);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const hasErrors = hasValidationErrors(validations);
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;

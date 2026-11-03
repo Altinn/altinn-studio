@@ -315,11 +315,12 @@ public class ProcessStepOptionsResolverTests
     {
         ProcessStepOptionsResolver resolver = CreateResolver();
 
-        StepRequest resolved = WorkflowCommandSet
+        StepRequest resolved = WorkflowStepSet
             .CreateItemStep(
                 "pipeline",
                 itemIndex: 1,
-                new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+                new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) },
+                stepName: null
             )
             .ToStepRequest(resolver, taskId: null);
 

@@ -2069,6 +2069,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
                     OverallStatus = PersistentItemStatus.Failed,
+                    Role = WorkflowRole.Primary,
                     Steps =
                     [
                         new StepStatusResponse

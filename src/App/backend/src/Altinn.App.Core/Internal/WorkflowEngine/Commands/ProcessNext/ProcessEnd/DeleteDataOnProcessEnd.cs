@@ -15,12 +15,12 @@ internal sealed class DeleteDataOnProcessEnd(IAppMetadata appMetadata) : IWorkfl
 
     public string GetKey() => Key;
 
-    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         if (parameters.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     "Deleting data on process end requires callback state restored into an InstanceDataUnitOfWork.",
                     nameof(InvalidOperationException)
                 )
@@ -29,8 +29,8 @@ internal sealed class DeleteDataOnProcessEnd(IAppMetadata appMetadata) : IWorkfl
 
         if (unitOfWork.Instance.Process?.Ended is null)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     "Deleting data on process end requires an ended process state.",
                     nameof(InvalidOperationException)
                 )
@@ -60,11 +60,11 @@ internal sealed class DeleteDataOnProcessEnd(IAppMetadata appMetadata) : IWorkfl
                 }
             }
 
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
         catch (Exception ex)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(FailedProcessEngineCommandResult.Retryable(ex));
+            return Task.FromResult<WorkflowEngineCommandResult>(FailedWorkflowEngineCommandResult.Retryable(ex));
         }
     }
 }

@@ -68,9 +68,8 @@ describe('Map component', () => {
         }
         cy.get(map).click(x, y);
       });
-      // complete polygon by clicking last point twice (without waiting, so it counts as a double click)
-      const [lastX, lastY] = points[points.length - 1];
-      cy.get(map).click(lastX, lastY);
+      // Close through the first vertex so completion does not depend on double-click timing.
+      cy.get(`${map} .leaflet-editing-icon`).first().click();
       cy.get(`${map} .leaflet-editing-icon`).should('not.exist');
       // wait for map to zoom to fit the new geometry
       // eslint-disable-next-line cypress/no-unnecessary-waiting

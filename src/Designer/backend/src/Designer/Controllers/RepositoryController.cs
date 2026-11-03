@@ -36,6 +36,8 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route("designer/api/repos")]
 public class RepositoryController : ControllerBase
 {
+    private const int MaxPublishAttempts = 3;
+
     private readonly IGiteaClient _giteaClient;
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
@@ -419,14 +421,52 @@ public class RepositoryController : ControllerBase
         }
         catch (LibGit2Sharp.NonFastForwardException)
         {
-            RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
-            _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
+            // Someone else pushed first. Combining puts the new commit on top of theirs and keeps the history
+            // linear, where pulling would add a merge commit.
+            string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
+                ? commitInfo.BranchName
+                : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
+            List<RepositoryContent> changedFiles = CombineAndPublish(authenticatedContext, branchName);
+            await NotifyFileSyncSuccesses(developer, changedFiles);
+        }
+    }
+
+    private List<RepositoryContent> CombineAndPublish(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        List<RepositoryContent> changedFiles = [];
+        for (int attempt = 1; ; attempt++)
+        {
+            CombineResult combineResult = _sourceControl.CombineWithRemoteBranch(authenticatedContext, branchName);
+            if (combineResult.HasConflicts)
             {
-                Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                SyncSuccess syncSuccess = new(source);
-                await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+                throw new LibGit2Sharp.NonFastForwardException(
+                    $"Combining with remote branch '{branchName}' met conflicts."
+                );
             }
+
+            changedFiles.AddRange(combineResult.ContentStatus);
+            try
+            {
+                _sourceControl.PublishBranch(authenticatedContext, branchName);
+                return changedFiles;
+            }
+            catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxPublishAttempts)
+            {
+                // Someone pushed again while this combined.
+            }
+        }
+    }
+
+    private async Task NotifyFileSyncSuccesses(string developer, IEnumerable<RepositoryContent> contentStatuses)
+    {
+        foreach (RepositoryContent repoContent in contentStatuses)
+        {
+            Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+            SyncSuccess syncSuccess = new(source);
+            await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
         }
     }
 
@@ -764,22 +804,25 @@ public class RepositoryController : ControllerBase
         var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
         var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
         Directory.CreateDirectory(tempAltinnFolderPath);
-        var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
+        var zipFilePath = Path.Combine(tempAltinnFolderPath, Path.GetRandomFileName());
 
         var fileStream = new FileStream(
             zipFilePath,
-            FileMode.Create,
+            FileMode.CreateNew,
             FileAccess.ReadWrite,
             FileShare.Read,
             512,
             FileOptions.DeleteOnClose
         );
-        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true))
+        try
         {
+            using var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true);
             IEnumerable<string> changedFiles;
             if (full)
             {
-                changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
+                changedFiles = RepositoryFileAccess
+                    .GetFiles(appRoot, appRoot, recursive: true)
+                    .Select(file => Path.GetRelativePath(appRoot, file));
             }
             else
             {
@@ -791,33 +834,18 @@ public class RepositoryController : ControllerBase
 
             foreach (var changedFile in changedFiles)
             {
-                archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
+                string filePath = RepositoryFileAccess.Validate(appRoot, Path.Join(appRoot, changedFile));
+                archive.CreateEntryFromFile(filePath, changedFile);
             }
+        }
+        catch
+        {
+            fileStream.Dispose();
+            throw;
         }
 
         fileStream.Seek(0, SeekOrigin.Begin);
 
         return File(fileStream, "application/zip", zipFileName);
-    }
-
-    private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
-    {
-        var ret = new List<string>();
-        foreach (var directory in currentDir.EnumerateDirectories())
-        {
-            if (directory.Name == ".git")
-            {
-                continue;
-            }
-
-            ret.AddRange(GetFilesInDirectory(appRoot, directory));
-        }
-
-        foreach (var file in currentDir.GetFiles())
-        {
-            ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
-        }
-
-        return ret;
     }
 }
