@@ -7,6 +7,8 @@ import {
   createUpload,
   getUploadLength,
   getUploadOffset,
+  partialUploadPath,
+  tusUploadPath,
 } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusProtocol';
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -22,6 +24,13 @@ afterEach(() => {
   fetchMock.mockReset();
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+describe('tusUploadPath and partialUploadPath', () => {
+  it('keep an id from the form inside its own part of the path', () => {
+    expect(tusUploadPath('../../resource/x')).toBe(`${TUS_PATH}/..%2F..%2Fresource%2Fx`);
+    expect(partialUploadPath('id', 'a/b?c')).toBe(`${TUS_PATH}/id/partial/a%2Fb%3Fc`);
+  });
 });
 
 describe('createUpload', () => {

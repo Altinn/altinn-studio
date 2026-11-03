@@ -6,12 +6,13 @@ const TUS_HEADERS = { 'Tus-Resumable': '1.0.0' };
 
 export const RETRY_DELAYS = [1000, 2000, 4000, 8000, 15000, 15000, 15000];
 
+// The id can come from the form's data, so it is encoded to stay in its place in the path
 export function tusUploadPath(fileTransferId: string): string {
-  return `${TUS_PATH}/${fileTransferId}`;
+  return `${TUS_PATH}/${encodeURIComponent(fileTransferId)}`;
 }
 
 export function partialUploadPath(fileTransferId: string, partialUploadId: string): string {
-  return `${tusUploadPath(fileTransferId)}/partial/${partialUploadId}`;
+  return `${tusUploadPath(fileTransferId)}/partial/${encodeURIComponent(partialUploadId)}`;
 }
 
 export async function createUpload(fileTransferId: string, length: number, signal?: AbortSignal): Promise<string> {

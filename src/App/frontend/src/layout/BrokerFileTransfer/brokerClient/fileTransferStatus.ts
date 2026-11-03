@@ -29,7 +29,9 @@ export async function getFileTransferOverview(
   fileTransferId: string,
   signal?: AbortSignal,
 ): Promise<FileTransferOverview> {
-  return apiFetch<FileTransferOverview>(`${BROKER_API_PREFIX}/filetransfer/${fileTransferId}`, { signal });
+  return apiFetch<FileTransferOverview>(`${BROKER_API_PREFIX}/filetransfer/${encodeURIComponent(fileTransferId)}`, {
+    signal,
+  });
 }
 
 export async function hasReceivedFile(fileTransferId: string): Promise<boolean> {

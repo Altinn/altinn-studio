@@ -9,7 +9,7 @@ export type PartialUpload = {
 // In the order they were created, which is their order in the file
 export async function getPartialUploads(fileTransferId: string, signal?: AbortSignal): Promise<PartialUpload[]> {
   const response = await apiFetch<{ partialUploads: PartialUpload[] }>(
-    `${BROKER_API_PREFIX}/filetransfer/${fileTransferId}/partialuploads`,
+    `${BROKER_API_PREFIX}/filetransfer/${encodeURIComponent(fileTransferId)}/partialuploads`,
     { signal },
   );
 
