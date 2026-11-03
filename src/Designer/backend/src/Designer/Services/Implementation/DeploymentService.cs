@@ -211,10 +211,6 @@ public class DeploymentService : IDeploymentService
             orgContext.Developer
         );
 
-        // The cleanup of inactive repositories must not delete the clone between the reset and the push.
-        await using IAsyncDisposable gitOpsLock = await _gitOpsConfigurationManager.LockLocalRepositoryAsync(
-            orgContext
-        );
         await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
         bool appAlreadyExists = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
@@ -440,10 +436,6 @@ public class DeploymentService : IDeploymentService
             return;
         }
         var environment = AltinnEnvironment.FromName(env);
-        // The cleanup of inactive repositories must not delete the clone between the reset and the push.
-        await using IAsyncDisposable gitOpsLock = await _gitOpsConfigurationManager.LockLocalRepositoryAsync(
-            orgContext
-        );
         await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
         var appName = AltinnRepoName.FromName(editingContext.Repo);
