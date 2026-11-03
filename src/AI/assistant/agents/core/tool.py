@@ -49,6 +49,10 @@ class LoopContext:
     # True (granted) or False (declined/timeout).  Wired by the loop node
     # in read-only sessions; None means denials are final.
     permission_requester: Callable[[str], Awaitable[bool]] | None = None
+    # Shows a status line in the user's chat while a tool still runs.
+    report_status: Callable[[str], None] = lambda message: None
+    # True when the user has cancelled the session.  The loop stops, and a tool that waits for minutes stops waiting.
+    is_cancelled: Callable[[], bool] = lambda: False
     app_version_profile: AppVersionProfile = V8_PROFILE
     # The commit that the session started from, or None if it is unknown.
     # `verify_changes` compares the app with this commit.

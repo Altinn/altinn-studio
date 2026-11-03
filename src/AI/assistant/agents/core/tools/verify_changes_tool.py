@@ -44,6 +44,8 @@ from agents.services.git import git_ops
 from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
 
+from .utils.repo_files import mark_verified
+
 _TEXTS_DIR = "App/config/texts"
 _MAX_LISTED_ERRORS = 10
 _MAX_LISTED_WARNINGS = 5
@@ -108,8 +110,8 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
         if passed:
-            verified_set: set[str] = ctx.extras.setdefault("verified_files", set())
-            verified_set.update(changed)
+            for file_path in changed:
+                mark_verified(ctx, file_path)
 
         old_errors = [error for result in results for error in result.old_errors]
         body = {
@@ -193,10 +195,9 @@ def _verify_one(ctx: LoopContext, file_path: str) -> _Result:
     """Check a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # `discard_file_changes` removes the entry from `changed_files`,
-        # so reaching this branch means the file was deleted some other
-        # way — flag it rather than crash.
-        return _Result(False, [f"{file_path}: file does not exist on disk"])
+        # Only the v9 upgrade deletes files.  The model has no delete tool, and
+        # `discard_file_changes` removes the entry from `changed_files`.
+        return _Result(True, [f"{file_path}: deleted, nothing to validate"])
 
     if _is_layout_file(file_path):
         return _Result(*_validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location))

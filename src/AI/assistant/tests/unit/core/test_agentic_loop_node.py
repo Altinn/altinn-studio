@@ -13,12 +13,14 @@ from typing import Any
 
 import pytest
 
+from agents.altinn.app_version import V9_PROFILE
 from agents.core import (
     CommitSessionBranchTool,
     DiscardFileChangesTool,
     LoopContext,
     LoopResult,
     PreviewRenderCheckTool,
+    SessionContext,
     TerminationReason,
     ToolRegistry,
     ToolResult,
@@ -95,6 +97,10 @@ class TestBuildRegistry:
 
         monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
         assert "preview_render_check" in _build_registry([])
+
+    def test_upgrade_app_tool_registered(self):
+        registry = _build_registry([])
+        assert "upgrade_app_to_v9" in registry
 
 
 class TestEventBridge:
@@ -1275,6 +1281,12 @@ def _committed_ctx(tmp_path):
     return ctx
 
 
+def _session():
+    return SessionContext(
+        session_id="sess-1", repo_path="/tmp/repo", user_goal="add a date field", allow_app_changes=True
+    )
+
+
 def _loop_result():
     return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
 
@@ -1295,7 +1307,8 @@ async def _repair(
         ctx,
         registry=_registry_with_check() if registry is None else registry,
         adapter=None,
-        system_prompt="",
+        session=_session(),
+        skill_listing="",
         on_event=None,
     )
 
@@ -1369,6 +1382,16 @@ class TestEnforcedRenderCheck:
 
         assert len(reran) == 1
         assert check.calls == 2
+
+    async def test_a_repair_after_an_upgrade_uses_the_system_prompt_of_the_new_version(self, tmp_path, monkeypatch):
+        self._use_check(monkeypatch, _outcome(is_error=True), _outcome(is_error=False))
+        reran = self._use_loop(monkeypatch)
+        ctx = _committed_ctx(tmp_path)
+        ctx.app_version_profile = V9_PROFILE
+
+        await _repair(_state(), ctx)
+
+        assert "- App version: v9" in reran[0]["system_prompt"]
 
     async def test_a_repair_that_never_commits_still_runs_the_bounded_check(self, repo, monkeypatch):
         check = self._use_check(monkeypatch, _outcome(is_error=True), _outcome(is_error=True))
