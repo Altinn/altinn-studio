@@ -57,7 +57,7 @@ export type FormItemConfig<T extends ComponentType | ComponentPreset = Component
     RefAttributes<SVGSVGElement>;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-// Optional, so that a component can be added to the app before Designer has a config for it.
+// A config per component type is optional, so that a component can be added to the app before Designer has one.
 // Look configs up with getFormItemConfig, which falls back to a generic config.
 export type FormItemConfigs = {
   [T in ComponentType]?: FormItemConfig<T>;
