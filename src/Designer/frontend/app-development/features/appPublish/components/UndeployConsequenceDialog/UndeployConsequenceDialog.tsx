@@ -25,7 +25,8 @@ export const UndeployConsequenceDialog = ({
         </StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block>
-        <DialogContent environment={environment} />
+        {/* Once the app is undeployed, there is nothing left to consider. */}
+        <DialogContent environment={environment} onUndeployed={onClose} />
       </StudioDialog.Block>
     </StudioDialog>
   );

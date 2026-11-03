@@ -8,9 +8,10 @@ import { ConfirmUndeployDialog } from '../../ConfirmUndeployDialog';
 
 type DialogContentProps = {
   environment: string;
+  onUndeployed?: () => void;
 };
 
-export const DialogContent = ({ environment }: DialogContentProps) => {
+export const DialogContent = ({ environment, onUndeployed }: DialogContentProps) => {
   const { t } = useTranslation();
   return (
     <>
@@ -25,7 +26,7 @@ export const DialogContent = ({ environment }: DialogContentProps) => {
           )}
         </Section>
       ))}
-      <ConfirmUndeployDialog environment={environment} />
+      <ConfirmUndeployDialog environment={environment} onUndeployed={onUndeployed} />
     </>
   );
 };
