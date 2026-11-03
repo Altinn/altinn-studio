@@ -4,12 +4,7 @@ import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
-import {
-  allComponents,
-  defaultComponents,
-  formItemConfigs,
-  getFormItemConfig,
-} from '../../../data/formItemConfig';
+import { allComponents, defaultComponents, getFormItemConfig } from '../../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../../utils/formLayoutUtils';
 import { ElementsUtils } from '../../../components/Elements/ElementsUtils';
 import type { ConfPageType } from '../../../components/Elements/types/ConfigPageType';
@@ -174,5 +169,5 @@ const getContainerValidChildTypes = (
   containerId: string,
 ): ComponentType[] | undefined => {
   if (containerId === BASE_CONTAINER_ID) return undefined;
-  return formItemConfigs[layout.containers[containerId].type]?.validChildTypes;
+  return getFormItemConfig(layout.containers[containerId].type).validChildTypes;
 };

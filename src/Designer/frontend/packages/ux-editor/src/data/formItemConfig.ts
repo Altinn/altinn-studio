@@ -57,8 +57,10 @@ export type FormItemConfig<T extends ComponentType | ComponentPreset = Component
     RefAttributes<SVGSVGElement>;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
+// Optional, so that a component can be added to the app before Designer has a config for it.
+// Look configs up with getFormItemConfig, which falls back to a generic config.
 export type FormItemConfigs = {
-  [T in ComponentType]: FormItemConfig<T>;
+  [T in ComponentType]?: FormItemConfig<T>;
 };
 
 export type ComponentPresetConfigs = {
@@ -67,7 +69,7 @@ export type ComponentPresetConfigs = {
 
 export type FormItemConfigEntry = NonNullable<FormItemConfigs[keyof FormItemConfigs]>;
 
-export const formItemConfigs: FormItemConfigs = {
+export const formItemConfigs = {
   [ComponentType.Alert]: {
     name: ComponentType.Alert,
     defaultProperties: {
@@ -507,7 +509,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {},
     icon: MinusIcon,
   },
-};
+} satisfies FormItemConfigs;
 
 export const componentPresetConfigs: ComponentPresetConfigs = {
   [ComponentPreset.CloseSubformButton]: {
@@ -523,14 +525,15 @@ export const componentPresetConfigs: ComponentPresetConfigs = {
 export function getFormItemConfig<T extends ComponentType | ComponentPreset>(
   type: T,
 ): FormItemConfig<T> {
-  return (
+  const configs: FormItemConfigs = formItemConfigs;
+  const config =
     type in componentPresetConfigs
       ? componentPresetConfigs[type as ComponentPreset]
-      : formItemConfigs[type as ComponentType]
-  ) as FormItemConfig<T>;
+      : configs[type as ComponentType];
+  return (config ?? { name: type, defaultProperties: {}, icon: ElementIcon }) as FormItemConfig<T>;
 }
 
-export const advancedItems: FormItemConfigs[ComponentType][] = [
+export const advancedItems: FormItemConfigEntry[] = [
   formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],

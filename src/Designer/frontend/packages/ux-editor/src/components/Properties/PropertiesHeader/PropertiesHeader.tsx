@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
-import { formItemConfigs } from '../../../data/formItemConfig';
+import { getFormItemConfig } from '../../../data/formItemConfig';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,
@@ -41,7 +41,7 @@ export const PropertiesHeader = ({
           .map(([key]) => key)
       : [];
 
-  const Icon = formItemConfigs[formItem.type]?.icon;
+  const Icon = getFormItemConfig(formItem.type).icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 
