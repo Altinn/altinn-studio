@@ -402,11 +402,11 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Test
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
+      ConnectedServiceNameARM: 610b89d4-a06f-448d-876b-8e2aaef817a8
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
