@@ -366,11 +366,7 @@ func (r *KindContainerRuntime) Executor() (*executor.Executor, error) {
 	if registerErr := exec.RegisterBackend(kubernetesbackend.New()); registerErr != nil {
 		return nil, fmt.Errorf("register Kubernetes backend: %w", registerErr)
 	}
-	ociBackend, err := ocibackend.New()
-	if err != nil {
-		return nil, fmt.Errorf("create OCI backend: %w", err)
-	}
-	if registerErr := exec.RegisterBackend(ociBackend); registerErr != nil {
+	if registerErr := exec.RegisterBackend(ocibackend.New()); registerErr != nil {
 		return nil, fmt.Errorf("register OCI backend: %w", registerErr)
 	}
 	exec.SetObserver(graphObserver(r))
@@ -514,21 +510,13 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
 	}
 
-	// plainHTTP for local registry without TLS
-	helmClient, err := helm.NewClient(true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create helm client: %w", err)
-	}
-
-	ociClient := oci.NewClient()
-
 	return &KindContainerRuntime{
 		cachePath: cachePath,
 
 		ContainerClient: containerClient,
-		HelmClient:      helmClient,
+		HelmClient:      helm.NewClient(),
 		KindClient:      kindClient,
-		OCIClient:       ociClient,
+		OCIClient:       oci.NewClient(),
 	}, clusters, nil
 }
 
