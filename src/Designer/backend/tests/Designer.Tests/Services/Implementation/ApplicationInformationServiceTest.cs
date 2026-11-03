@@ -102,6 +102,7 @@ public class ApplicationInformationServiceTest
     [Fact]
     public async Task UpdateAndPublish_ForOneDeploy_ReadEachFileFromGiteaOnce()
     {
+        await _service.GetAppStatusAsync(Org, App, Commit);
         await _service.UpdateApplicationMetadataAndPoliciesAsync(Org, App, Commit, Environment, AppStatus.Completed);
         ResourceRegistryPublishResult result = await _service.PublishToResourceRegistryAsync(
             Org,
