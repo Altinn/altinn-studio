@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	pathpkg "path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -43,6 +44,7 @@ var (
 	errMinimumAPIVersion = errors.New("the minimum supported API version is")
 	errNoCertificates    = errors.New("failed to append certificates from PEM file")
 	errPermissionDenied  = errors.New("permission denied while trying to connect to the docker API")
+	errRedirect          = errors.New("unexpected redirect in response")
 	//nolint:staticcheck // ST1005: moby's capitalized text.
 	errDaemonNotListening = errors.New("Cannot connect to the Docker daemon")
 )
@@ -120,8 +122,8 @@ func newEngine(host string, tlsConfig *tls.Config) (*engine, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w `%s`: %w", errInvalidHost, host, err)
 		}
-		e.host, e.basePath = parsed.Host, strings.TrimSuffix(parsed.Path, "/")
-		// Requests go through the proxy that HTTPS_PROXY names, and upgrades go direct, as with moby's client.
+		e.host, e.basePath = parsed.Host, parsed.Path
+		// HTTP(S)_PROXY applies to requests; upgrades go direct, as with moby's client.
 		transport.DialContext, transport.Proxy, transport.TLSClientConfig = dialer.DialContext, http.ProxyFromEnvironment, tlsConfig
 		transport.DisableCompression = false
 		e.dial = func(ctx context.Context) (net.Conn, error) { return dialer.DialContext(ctx, proto, e.host) }
@@ -133,7 +135,12 @@ func newEngine(host string, tlsConfig *tls.Config) (*engine, error) {
 	default:
 		return nil, fmt.Errorf("%w `%s`: unsupported protocol %q", errInvalidHost, host, proto)
 	}
-	e.http = &http.Client{Transport: transport}
+	e.http = &http.Client{Transport: transport, CheckRedirect: func(_ *http.Request, via []*http.Request) error {
+		if via[0].Method == http.MethodGet {
+			return http.ErrUseLastResponse
+		}
+		return errRedirect
+	}}
 	return e, nil
 }
 
@@ -234,11 +241,11 @@ func compareNumbers(a, b string) int {
 	return cmp.Or(cmp.Compare(len(a), len(b)), strings.Compare(a, b))
 }
 
-func (e *engine) url(path string, query url.Values) string {
-	if path != "/_ping" {
-		path = "/v" + e.version + path
+func (e *engine) url(apiPath string, query url.Values) string {
+	if apiPath != "/_ping" {
+		apiPath = "/v" + e.version + apiPath
 	}
-	u := url.URL{Scheme: e.scheme, Host: e.host, Path: e.basePath + path, RawQuery: query.Encode()}
+	u := url.URL{Scheme: e.scheme, Host: e.host, Path: pathpkg.Join(e.basePath, apiPath), RawQuery: query.Encode()}
 	return u.String()
 }
 
@@ -338,21 +345,36 @@ func checkStatus(resp *http.Response) error {
 }
 
 func responseError(resp *http.Response) error {
+	return &apiError{StatusCode: resp.StatusCode, Message: responseErrorMessage(resp)}
+}
+
+func responseErrorMessage(resp *http.Response) string {
 	data, err := io.ReadAll(io.LimitReader(resp.Body, maxErrorBodySize))
-	message := strings.TrimSpace(string(data))
+	if err != nil {
+		return err.Error()
+	}
+	if len(data) == maxErrorBodySize {
+		return fmt.Sprintf("request returned %s with a message (> %d bytes) for API route and version %s, "+
+			"check if the server supports the requested API version", resp.Status, maxErrorBodySize, resp.Request.URL)
+	}
+	if len(data) == 0 {
+		return fmt.Sprintf("request returned %s for API route and version %s, "+
+			"check if the server supports the requested API version", resp.Status, resp.Request.URL)
+	}
+	if resp.Header.Get("Content-Type") != "application/json" {
+		return "Error response from daemon: " + strings.TrimSpace(string(data))
+	}
 	var body struct {
 		Message string `json:"message"`
 	}
-	if json.Unmarshal(data, &body) == nil && body.Message != "" {
-		message = strings.TrimSpace(body.Message)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return "error reading JSON: " + err.Error()
 	}
-	if message == "" || err != nil {
-		message = fmt.Sprintf("request returned %s for API route and version %s, "+
-			"check if the server supports the requested API version", resp.Status, resp.Request.URL)
-	} else {
-		message = "Error response from daemon: " + message
+	if body.Message == "" {
+		return fmt.Sprintf("Error response from daemon: API returned a %d (%s) but provided no error-message",
+			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
-	return &apiError{StatusCode: resp.StatusCode, Message: message}
+	return "Error response from daemon: " + strings.TrimSpace(body.Message)
 }
 
 //nolint:errcheck,gosec // Draining lets the transport reuse the connection; errors are irrelevant.

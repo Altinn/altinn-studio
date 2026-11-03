@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -574,10 +575,7 @@ func (c *Client) ExecWithIO(
 
 	// Handle stdin in a goroutine if provided
 	if stdin != nil {
-		go func() {
-			copyToConnBestEffort(conn, stdin)
-			closeWriteBestEffort(conn)
-		}()
+		go copyExecInput(conn, stdin)
 	}
 
 	stdoutWriter := stdout
@@ -923,10 +921,12 @@ func (c *Client) ContainerLogs(ctx context.Context, nameOrID string, follow bool
 // demuxDockerLogs merges stdout and stderr into one reader. Closing it closes the response.
 func demuxDockerLogs(logs io.ReadCloser) io.ReadCloser {
 	pr, pw := io.Pipe()
-	reader := &dockerLogReader{PipeReader: pr, source: logs}
+	reader := &dockerLogReader{PipeReader: pr, closeSource: sync.OnceValue(logs.Close), writer: pw}
 	go func() {
 		err := demux(pw, pw, logs)
-		closeBestEffort(logs)
+		if closeErr := reader.closeSource(); err == nil {
+			err = closeErr
+		}
 		if err != nil && !reader.closed.Load() {
 			pw.CloseWithError(fmt.Errorf("demux docker logs: %w", err))
 			return
@@ -939,15 +939,18 @@ func demuxDockerLogs(logs io.ReadCloser) io.ReadCloser {
 type dockerLogReader struct {
 	*io.PipeReader
 
-	source io.Closer
-	closed atomic.Bool
+	closeSource func() error
+	writer      *io.PipeWriter
+	closed      atomic.Bool
 }
 
 func (r *dockerLogReader) Close() error {
 	if r.closed.Swap(true) {
 		return nil
 	}
-	if err := r.source.Close(); err != nil {
+	// Unblock both a caller reading logs and a demux goroutine writing a pending frame.
+	closeBestEffort(r.writer)
+	if err := r.closeSource(); err != nil {
 		return fmt.Errorf("close docker log reader: %w", err)
 	}
 	return nil
@@ -1023,14 +1026,10 @@ func closeBestEffort(closer interface{ Close() error }) {
 	closer.Close()
 }
 
-//nolint:errcheck,gosec // Cleanup is best-effort after a failed exec attach.
-func closeWriteBestEffort(conn interface{ CloseWrite() error }) {
+//nolint:errcheck,gosec // Exec stdin is best-effort; CloseWrite delivers EOF to the process.
+func copyExecInput(conn *hijackedConn, stdin io.Reader) {
+	io.Copy(conn, stdin)
 	conn.CloseWrite()
-}
-
-//nolint:errcheck,gosec // Copying stdin into the exec session is best-effort.
-func copyToConnBestEffort(dst io.Writer, src io.Reader) {
-	io.Copy(dst, src)
 }
 
 func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpdate) {

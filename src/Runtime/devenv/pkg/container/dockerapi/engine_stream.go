@@ -2,6 +2,7 @@ package dockerapi
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/binary"
 	"errors"
@@ -80,14 +81,10 @@ func (c *hijackedConn) upgrade(req *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("read upgrade response: %w", err)
 	}
-	switch {
-	case resp.StatusCode == http.StatusSwitchingProtocols:
-		return nil
-	case resp.StatusCode >= http.StatusBadRequest:
-		return responseError(resp)
-	default:
+	if resp.StatusCode != http.StatusSwitchingProtocols {
 		return fmt.Errorf("%w, received %d", errUpgradeRefused, resp.StatusCode)
 	}
+	return nil
 }
 
 const (
@@ -102,11 +99,13 @@ const (
 // within a frame ends the copy without an error.
 func demux(stdout, stderr io.Writer, src io.Reader) error {
 	var header [8]byte
+	var payload bytes.Buffer
 	for {
 		if _, err := io.ReadFull(src, header[:]); err != nil {
 			return endOfStream(err)
 		}
 		size := int64(binary.BigEndian.Uint32(header[4:]))
+		payload.Reset()
 		var dst io.Writer
 		switch header[0] {
 		case streamStdin, streamStdout:
@@ -114,16 +113,17 @@ func demux(stdout, stderr io.Writer, src io.Reader) error {
 		case streamStderr:
 			dst = stderr
 		case streamSystemErr:
-			message, err := io.ReadAll(io.LimitReader(src, size))
-			if err != nil || int64(len(message)) < size {
-				return endOfStream(err)
-			}
-			return fmt.Errorf("%w: %s", errDaemonStream, message)
 		default:
 			return fmt.Errorf("%w: %d", errUnknownStream, header[0])
 		}
-		if _, err := io.CopyN(dst, src, size); err != nil {
+		if _, err := io.CopyN(&payload, src, size); err != nil {
 			return endOfStream(err)
+		}
+		if header[0] == streamSystemErr {
+			return fmt.Errorf("%w: %s", errDaemonStream, payload.Bytes())
+		}
+		if _, err := payload.WriteTo(dst); err != nil {
+			return fmt.Errorf("write multiplexed stream: %w", err)
 		}
 	}
 }

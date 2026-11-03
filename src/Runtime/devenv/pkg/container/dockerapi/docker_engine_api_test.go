@@ -404,6 +404,18 @@ func dockerLogFrame(stream byte, payload string) string {
 	return string([]byte{stream, 0, 0, 0, 0, 0, 0, byte(len(payload))}) + payload
 }
 
+func TestDemuxDockerLogs_CloseWithUnreadOutput(t *testing.T) {
+	t.Parallel()
+	logs := demuxDockerLogs(io.NopCloser(strings.NewReader(dockerLogFrame(1, "unread"))))
+	if err := logs.Close(); err != nil {
+		t.Fatal(err)
+	}
+	output, err := io.ReadAll(logs)
+	if err != nil || len(output) != 0 {
+		t.Fatalf("closed log stream returned %q, %v; want EOF", output, err)
+	}
+}
+
 func TestDockerBuildArgs_IncludesRegistryCache(t *testing.T) {
 	t.Parallel()
 

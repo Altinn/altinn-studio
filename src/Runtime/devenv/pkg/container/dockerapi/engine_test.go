@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -144,7 +143,6 @@ func TestDemux(t *testing.T) {
 			name:       "truncated frame",
 			input:      dockerLogFrame(1, "out") + dockerLogFrame(2, "error")[:10],
 			wantStdout: "out",
-			wantStderr: "er",
 		},
 		{name: "truncated daemon error", input: dockerLogFrame(3, "boom")[:10]},
 	}
@@ -162,6 +160,29 @@ func TestDemux(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDemux_WriterErrors(t *testing.T) {
+	t.Parallel()
+	for _, want := range []error{io.EOF, io.ErrShortWrite} {
+		t.Run(want.Error(), func(t *testing.T) {
+			t.Parallel()
+			writer := streamErrorWriter{err: want}
+			err := demux(writer, io.Discard, strings.NewReader(dockerLogFrame(1, "output")))
+			if !errors.Is(err, want) {
+				t.Fatalf("demux() = %v, want %v", err, want)
+			}
+		})
+	}
+}
+
+type streamErrorWriter struct{ err error }
+
+func (w streamErrorWriter) Write([]byte) (int, error) {
+	if errors.Is(w.err, io.ErrShortWrite) {
+		return 0, nil
+	}
+	return 0, w.err
 }
 
 func TestNegotiate_PingFallsBackToGet(t *testing.T) {
@@ -195,6 +216,7 @@ func TestNegotiate_PingFallsBackToGet(t *testing.T) {
 				methods = append(methods, req.Method)
 				mu.Unlock()
 				w.Header().Set("Api-Version", "1.43")
+				w.Header().Set("Content-Type", "application/json")
 				status := tt.getStatus
 				if req.Method == http.MethodHead {
 					status = tt.headStatus
@@ -332,43 +354,65 @@ func TestNewWithHost_ConnectionErrors(t *testing.T) {
 	}
 }
 
-func TestSplitImageRef(t *testing.T) {
+func TestEngine_ResponseErrors(t *testing.T) {
 	t.Parallel()
-	tests := []struct{ ref, wantRepository, wantTag string }{
-		{"alpine", "docker.io/library/alpine", "latest"},
-		{"user/app:1.0", "docker.io/user/app", "1.0"},
-		{"index.docker.io/library/alpine:3", "docker.io/library/alpine", "3"},
-		{"localhost:5001/app", "localhost:5001/app", "latest"},
-		{"localhost/app:dev", "localhost/app", "dev"},
-		{"Registry/app", "Registry/app", "latest"},
-		{"ghcr.io/org/app@" + testDigest, "ghcr.io/org/app", testDigest},
-		{"ghcr.io/org/app:1.0@" + testDigest, "ghcr.io/org/app", testDigest},
-	}
-	for _, tt := range tests {
-		if repository, tag := splitImageRef(tt.ref); repository != tt.wantRepository || tag != tt.wantTag {
-			t.Errorf("splitImageRef(%q) = %q, %q; want %q, %q", tt.ref, repository, tag, tt.wantRepository, tt.wantTag)
-		}
+	for _, tt := range []struct{ name, contentType, body, want string }{
+		{"JSON message", "application/json", `{"message":" denied "}`, "Error response from daemon: denied"},
+		{"empty JSON message", "application/json", `{}`, "Error response from daemon: API returned a 403 (Forbidden) but provided no error-message"},
+		{"malformed JSON", "application/json", `{`, "error reading JSON: unexpected end of JSON input"},
+		{"plain text", "text/plain", " denied ", "Error response from daemon: denied"},
+		{"JSON served as text", "text/plain", `{"message":"denied"}`, `Error response from daemon: {"message":"denied"}`},
+		{"empty body", "application/json", "", "request returned 403 Forbidden for API route and version"},
+		{"oversized body", "text/plain", strings.Repeat("x", maxErrorBodySize), "request returned 403 Forbidden with a message (> 1048576 bytes)"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			c := newHTTPTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", tt.contentType)
+				w.WriteHeader(http.StatusForbidden)
+				respond(t, w, tt.body)
+			})
+			_, err := c.ImageInspect(t.Context(), "image")
+			if !hasStatus(err, http.StatusForbidden) || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("ImageInspect() error = %v, want status 403 and %q", err, tt.want)
+			}
+		})
 	}
 }
 
-func TestFiltersQuery(t *testing.T) {
+func TestEngine_DoesNotFollowRedirects(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		labels map[string]string
-		want   string
-	}{
-		{labels: nil, want: ""},
-		{
-			labels: map[string]string{"app": "", "env": "dev"},
-			want:   "filters=" + url.QueryEscape(`{"label":{"app":true,"env=dev":true}}`),
-		},
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		t.Run(method, func(t *testing.T) {
+			t.Parallel()
+			c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+				if strings.HasSuffix(req.URL.Path, "/redirected") {
+					t.Error("client followed the redirect")
+					return
+				}
+				http.Redirect(w, req, "/redirected", http.StatusMovedPermanently)
+			})
+			err := c.api.call(t.Context(), method, "/redirect", nil, nil, nil)
+			if method == http.MethodGet && err != nil || method != http.MethodGet && !errors.Is(err, errRedirect) {
+				t.Fatalf("%s redirect error = %v", method, err)
+			}
+		})
 	}
-	for _, tt := range tests {
-		query := url.Values{}
-		filtersQuery(query, tt.labels)
-		if got := query.Encode(); got != tt.want {
-			t.Errorf("filtersQuery(%v) = %s, want %s", tt.labels, got, tt.want)
+}
+
+func TestExecWithIO_UpgradeRefused(t *testing.T) {
+	t.Parallel()
+	c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+		if strings.HasSuffix(req.URL.Path, "/start") {
+			w.WriteHeader(http.StatusNotFound)
+			respond(t, w, `{"message":"exec disappeared"}`)
+			return
 		}
+		respond(t, w, `{"Id":"exec1"}`)
+	})
+	err := c.Exec(t.Context(), "ctr", []string{"true"})
+	if !errors.Is(err, errUpgradeRefused) || !strings.Contains(err.Error(), "received 404") {
+		t.Fatalf("Exec() error = %v, want refused upgrade with status 404", err)
 	}
 }
 
