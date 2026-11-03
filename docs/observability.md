@@ -158,7 +158,7 @@ in its own attribute on the entry span.
 The gateway keeps every trace that has an error span, takes longer than a second, or is marked to be kept. It keeps a
 share of the rest. The [gateway's configuration](../infra/observability/base/gateway.yaml) has the numbers.
 
-- A service marks a trace to be kept with `altinn.studio.sampling=always` on any span. Mark only units of work that are
+- A service marks a trace to be kept with `altinn.sampling=always` on any span. Mark only units of work that are
   rare and where each one matters, such as a deploy, an alert or a notification. Never mark a service's ordinary
   traffic.
 - The sampler decides per trace, so a link can point to a trace it dropped. Mark the producer side when the linked
@@ -180,7 +180,7 @@ its current names. Our own `altinn.` names are only for what the conventions don
   `altinn.<service>.…`, where `<service>` is the service's name in snake_case: `altinn.designer`, `altinn.pdf3`,
   `altinn.workflow_engine`. All the processes of a service share it.
 - There is no `studio` segment. Every service here is the team's, and which product a service belongs to changes more
-  often than its name. `altinn.studio.sampling` is the one exception, as a key the pipeline acts on.
+  often than its name.
 - When a second service needs a concept with the same meaning, the concept moves to the shared vocabulary.
 - No name is both a value and a prefix of another name. With `altinn.pdf3.panic` as a value,
   `altinn.pdf3.panic.stack` is not allowed.
@@ -222,8 +222,12 @@ its current names. Our own `altinn.` names are only for what the conventions don
 Every combination of metric attribute values is a series, in each process, for each histogram bucket. VictoriaMetrics
 limits how many new series it accepts per hour and per day, and everything we store shares that limit.
 
-- A metric attribute takes values from a bounded set. IDs, URLs, paths, free text, error messages and user names
-  never go on metrics. `service.instance.id` is the one ID allowed, since it changes only when a process starts.
+- A metric attribute takes values from a small, bounded set. What counts is how many values an attribute has, not
+  whether it is an ID.
+  - An ID with few values may go on a metric, such as `service.instance.id`, which changes only when a process
+    starts, or a process task ID within an app.
+  - An ID whose values grow with traffic or data never does, such as an instance GUID, a party ID or a user ID.
+  - Neither do URLs, paths, free text, error messages and usernames.
 - Resource attributes become labels on every metric the process emits. Keep them to the ones listed here and the ones
   the pipeline adds.
 - `altinn.service_owner` and `altinn.app` are allowed on metrics. There are 500 to 1000 apps, so a shared service that
@@ -277,7 +281,7 @@ These never go in telemetry, whether in an attribute, a URL, a span name or a lo
 - query strings
 
 Identifiers that our systems assign, such as party IDs, user IDs, instance GUIDs, organization numbers and Studio
-usernames, may be on spans and logs. They never go on metrics.
+usernames, may be on spans and logs. Their values grow with use, so they never go on metrics.
 
 - Record a URL without its query string, fragment and user info. When a URL's path can carry a secret or a national
   identity number, record its route template instead, or redact it.
@@ -300,7 +304,7 @@ section.
   namespaces that our services emit, such as `http.*`, `signalr.server.*` and the language runtimes' `dotnet.*` and
   `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
   process.
-- The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.studio.sampling` only to mark a
+- The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.
 
 The pipeline doesn't derive metrics from spans. A service emits the metrics it needs itself.

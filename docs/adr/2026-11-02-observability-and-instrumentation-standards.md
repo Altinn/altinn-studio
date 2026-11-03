@@ -25,8 +25,9 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
    log attribute where it varies.
 6. **Environments.** `deployment.environment.name` and `altinn.environment` use Altinn's environment names, such as
    `prod` and `tt02`, not the semantic conventions' tiers (A4.1). The router sets `deployment.environment.name`.
-7. **Cardinality.** Metric attributes take bounded values. IDs never go on metrics, except `service.instance.id`.
-   `altinn.service_owner` and `altinn.app` may go on metrics.
+7. **Cardinality.** Metric attributes take values from a small, bounded set. Whether an ID may go on a metric depends
+   on how many values it has. An ID whose values grow with traffic or data, such as an instance, party or user ID,
+   never does. `altinn.service_owner` and `altinn.app` may go on metrics.
 8. **Sensitive data.** Identifiers that our systems assign, such as party IDs, user IDs and GUIDs, may be on spans
    and logs. National identity numbers, contact details, secrets, payloads, text that users write and query strings
    never go in telemetry. The service that emits telemetry keeps them out.
@@ -41,8 +42,8 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
     each one matters.
 12. **Dashboards and alerts.** They live as code in `Altinn/altinn-dashboards-grafana`, with fixed datasource UIDs
     (A7.1). Each service has one dashboard. Alerts fire on metrics only (A8.1), on symptoms rather than causes.
-13. **Local work and review.** Before merging, developers check telemetry against a local copy of the production
-    pipeline, and test the telemetry that dashboards and alerts use. The team decides exceptions in review and records
+13. **Local work and review.** Before merging, developers look at their telemetry in a local stack, and test the
+    telemetry that dashboards and alerts use. The team decides exceptions in review and records
     them in the guide.
 
 ## Problem context
