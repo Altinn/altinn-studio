@@ -1,5 +1,4 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { AppStatus } from 'app-shared/types/AppStatus';
 
 export interface ApplicationMetadata {
   autoDeleteOnProcessEnd?: boolean;
@@ -22,7 +21,7 @@ export interface ApplicationMetadata {
   validFrom?: string;
   validTo?: string;
   versionId?: string;
-  status?: AppStatus;
+  status?: StatusOption;
 
   keywords?: Keyword[];
   description?: SupportedLanguage;

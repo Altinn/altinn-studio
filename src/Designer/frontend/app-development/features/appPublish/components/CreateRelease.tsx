@@ -27,9 +27,9 @@ import { useAppMetadataQuery, useAppVersionQuery } from 'app-shared/hooks/querie
 import {
   buildAppStatuses,
   isBuildAppStatus,
-  type AppStatus,
   type BuildAppStatus,
 } from 'app-shared/types/AppStatus';
+import type { StatusOption } from 'app-shared/types/ApplicationMetadata';
 import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
@@ -42,7 +42,7 @@ const appStatusTextKeys: Record<BuildAppStatus, string> = {
   Completed: 'app_create_release.app_status_completed',
 };
 
-const getDefaultAppStatus = (committedAppStatus: AppStatus | undefined): BuildAppStatus =>
+const getDefaultAppStatus = (committedAppStatus: StatusOption | undefined): BuildAppStatus =>
   isBuildAppStatus(committedAppStatus) ? committedAppStatus : 'UnderDevelopment';
 
 export function CreateRelease({ branchName }: CreateReleaseProps) {
@@ -53,6 +53,8 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
   const [isStartingBuild, setIsStartingBuild] = useState<boolean>(false);
   const appStatusRadioGroupName = useId();
   const { data: appMetadata } = useAppMetadataQuery(org, app);
+  // Until the metadata has loaded, the status the app already has is unknown, and building would send the default
+  const appStatusIsLoaded = appMetadata !== undefined;
   const appStatus = selectedAppStatus ?? getDefaultAppStatus(appMetadata?.status);
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: appVersion } = useAppVersionQuery(org, app);
@@ -76,7 +78,7 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
   };
 
   const handleBuildVersionClick = async () => {
-    if (!versionNameValid(releases, tagName) || tagName === '') return;
+    if (!versionNameValid(releases, tagName) || tagName === '' || !appStatusIsLoaded) return;
 
     // Keep the form hidden until the server answers, so it does not show stale values while the build starts
     setIsStartingBuild(true);
@@ -105,7 +107,7 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
     Object.keys(appValidationResult?.errors ?? {}),
   );
   const validVersionName = tagName && versionNameValid(releases, tagName);
-  const canBuild = validVersionName;
+  const canBuild = validVersionName && appStatusIsLoaded;
   const shouldShowMaskinportenScopesNotice =
     appVersion !== undefined &&
     repoOwnerIsServiceOwner &&
@@ -196,7 +198,8 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
             name={appStatusRadioGroupName}
             value={status}
             label={t(appStatusTextKeys[status])}
-            checked={appStatus === status}
+            checked={appStatusIsLoaded && appStatus === status}
+            disabled={!appStatusIsLoaded}
             onChange={() => setSelectedAppStatus(status)}
           />
         ))}

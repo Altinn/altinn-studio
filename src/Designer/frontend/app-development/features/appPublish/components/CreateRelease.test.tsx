@@ -218,14 +218,35 @@ describe('CreateRelease', () => {
   it('selects under development when the app has no status', async () => {
     renderCreateRelease();
 
-    expect(
-      await screen.findByRole('radio', {
-        name: textMock('app_create_release.app_status_under_development'),
-      }),
-    ).toBeChecked();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('radio', {
+          name: textMock('app_create_release.app_status_under_development'),
+        }),
+      ).toBeChecked(),
+    );
     expect(
       screen.getByRole('radio', { name: textMock('app_create_release.app_status_completed') }),
     ).not.toBeChecked();
+  });
+
+  it('disables the status and the build button until the app metadata has loaded', async () => {
+    const user = userEvent.setup();
+    renderCreateRelease({ getAppMetadata: () => new Promise(() => {}) });
+
+    await user.type(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+      'v2',
+    );
+
+    const statusRadios = screen.getAllByRole('radio');
+    statusRadios.forEach((radio) => {
+      expect(radio).toBeDisabled();
+      expect(radio).not.toBeChecked();
+    });
+    expect(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    ).toBeDisabled();
   });
 
   it('selects the status the app already has', async () => {
