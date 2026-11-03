@@ -50,8 +50,8 @@ type imageFile struct {
 
 // ReadImageFile returns the regular file at filePath, relative to the root, in the file system of the image
 // ref (host/repository:tag). It reads the image from its registry over plain HTTP without credentials, as the
-// local runtime fixture's registry at localhost:5001 serves it. The fixture publishes a single-platform
-// manifest; indexes and link resolution are deliberately unsupported.
+// local runtime fixture's registry at localhost:5001 serves it. It reads an image manifest but not an index,
+// as devenv builds the fixture's images for one platform and without attestations. It does not follow links.
 func ReadImageFile(ctx context.Context, ref, filePath string) ([]byte, error) {
 	filePath = strings.TrimPrefix(path.Clean("/"+filePath), "/")
 	host, name, _ := strings.Cut(ref, "/")
@@ -156,7 +156,7 @@ func applyLayer(below imageFile, layer *tar.Reader, target string) (imageFile, e
 	return below, nil
 }
 
-// fetch streams from the fixture's trusted local registry; content integrity is the registry's concern.
+// fetch GETs url from the fixture's local registry. It does not check digests, as the registry is the fixture's own.
 func fetch(ctx context.Context, url, accept string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
