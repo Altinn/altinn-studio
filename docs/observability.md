@@ -153,6 +153,16 @@ An expected outcome is not an error. A 4xx response leaves a server span's statu
 the semantic conventions say. When the reason matters, such as the error code a client gets, the service records it
 in its own attribute on the entry span.
 
+### 404 responses
+
+Our APIs use 404 as little as possible. The semantic conventions make every 4xx an error on the caller's client span,
+so a 404 counts as a failed call in the caller's error rates and the sampler keeps its trace. The caller also can't
+tell a 404 for a missing route from one for a valid request that found nothing.
+
+- When a valid request finds nothing, such as a lookup or a search without a match, the API answers with a 2xx and an
+  empty result.
+- 404 is for a route that doesn't exist.
+
 ### Sampling
 
 The gateway keeps every trace that has an error span, takes longer than a second, or is marked to be kept. It keeps a
