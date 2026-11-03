@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -8,6 +8,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { useQueryClient } from 'src/core/queries/reactQuery';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
@@ -17,6 +18,7 @@ import { createUploadController } from 'src/layout/BrokerFileTransfer/brokerClie
 import { BrokerFileTransferComponent } from 'src/layout/BrokerFileTransfer/BrokerFileTransferComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { QueryClient } from 'src/core/queries/reactQuery';
 import type { ResourceConfiguration } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
 import type { UploadPlan, UploadProgress } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import type {
@@ -109,6 +111,16 @@ const findFileInput = () => screen.findByLabelText(/Last opp rapporten/, { selec
 const findWholeText = (text: string) =>
   screen.findByText((_, element) => element?.tagName === 'SPAN' && element.textContent === text);
 
+// Lets a test refresh the component's queries, as coming back to the page later would
+let queryClient: QueryClient;
+function CaptureQueryClient() {
+  const client = useQueryClient();
+  useEffect(() => {
+    queryClient = client;
+  }, [client]);
+  return null;
+}
+
 async function render({
   owner = ORGANIZATION,
   formData = { id: '', status: '', name: '' },
@@ -119,7 +131,12 @@ async function render({
   componentCount += 1;
   return renderGenericComponentTest({
     type: 'BrokerFileTransfer',
-    renderer: (props) => <BrokerFileTransferComponent {...props} />,
+    renderer: (props) => (
+      <>
+        <CaptureQueryClient />
+        <BrokerFileTransferComponent {...props} />
+      </>
+    ),
     component: {
       id: `broker-file-transfer-${componentCount}`,
       resourceId: 'broker-resource',
@@ -578,6 +595,33 @@ describe('BrokerFileTransferComponent', () => {
       expect(await screen.findByText(/Laster opp – 50 %/)).toBeInTheDocument();
       await userEvent.click(screen.getByRole('button', { name: 'Pause' }));
       expect(fake.controller.pause).toHaveBeenCalled();
+    });
+
+    it('keeps showing the upload when reading the settings again fails', async () => {
+      await render();
+      await findFileInput();
+      fake.update({
+        active: {
+          resourceId: 'broker-resource',
+          sender: ORGANIZATION,
+          fileName: 'rapport.pdf',
+          fileSize: 2000,
+          status: 'uploading',
+          error: null,
+        },
+        progress: { loaded: 1000, total: 2000, percent: 50, bytesPerSecond: null, secondsRemaining: null },
+      });
+      expect(await screen.findByText(/Laster opp – 50 %/)).toBeInTheDocument();
+
+      const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
+      vi.mocked(getResourceConfiguration).mockRejectedValue(new ApiError('Request failed: 503', 503));
+      await queryClient.refetchQueries({ queryKey: ['brokerFileTransfer', 'resourceConfiguration'] });
+
+      // The component logs the failure once it has rendered with it
+      await waitFor(() => expect(logError).toHaveBeenCalled());
+      expect(screen.getByText(/Laster opp – 50 %/)).toBeInTheDocument();
+      expect(fake.controller.pause).not.toHaveBeenCalled();
+      logError.mockRestore();
     });
 
     it('clears the data model when the file transfer is given up', async () => {

@@ -96,11 +96,9 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   if (!sender) {
     return { kind: 'problem', message: { key: 'broker_file_transfer.sender_not_organization' } };
   }
-  if (resource.isPending) {
-    return { kind: 'loading' };
-  }
-  if (resource.isError) {
-    return resourceProblem(resource.error, resourceId);
+  // A failed refresh keeps the settings read before, so a running upload isn't replaced by an error
+  if (!resource.data) {
+    return resource.isError ? resourceProblem(resource.error, resourceId) : { kind: 'loading' };
   }
   if (disableVirusScan && !resource.data.approvedForDisabledVirusScan) {
     return {
