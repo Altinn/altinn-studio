@@ -115,6 +115,21 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 	}
 }
 
+func TestBuildCreateRequest_DockerCapAddHasNoPodmanDefaults(t *testing.T) {
+	t.Parallel()
+
+	request, err := buildCreateRequest(
+		types.ContainerConfig{Image: "alpine", CapAdd: []string{"net_admin"}},
+		types.PlatformDocker,
+	)
+	if err != nil {
+		t.Fatalf("buildCreateRequest() error = %v", err)
+	}
+	if want := []string{"CAP_NET_ADMIN"}; !slices.Equal(request.HostConfig.CapAdd, want) {
+		t.Fatalf("hostCfg.CapAdd = %#v, want %#v", request.HostConfig.CapAdd, want)
+	}
+}
+
 func TestBuildPortMappings(t *testing.T) {
 	t.Parallel()
 
