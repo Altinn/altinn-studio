@@ -31,6 +31,7 @@
   min-width: 0;
   padding: var(--ds-size-3);
   font: inherit;
+  font-size: var(--ds-body-sm-font-size);
   text-align: start;
   color: var(--ds-color-neutral-text-default);
   cursor: pointer;

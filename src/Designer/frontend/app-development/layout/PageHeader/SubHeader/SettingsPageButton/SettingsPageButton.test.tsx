@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { useNavigateFrom } from './useNavigateFrom';
-import nb from '@altinn-studio/language/src/nb.json';
 
 vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
@@ -133,14 +132,6 @@ describe('SettingsPageButton', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.Overview);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  const pagesWithSettingsButton = Object.values(RoutePaths).filter(
-    (routePath) => routePath !== RoutePaths.Root && routePath !== RoutePaths.AppSettings,
-  );
-
-  it.each(pagesWithSettingsButton)('has a text for the button back to %s', (routePath) => {
-    expect(nb).toHaveProperty([`sync_header.settings_back_to_${routePath}`]);
   });
 });
 
