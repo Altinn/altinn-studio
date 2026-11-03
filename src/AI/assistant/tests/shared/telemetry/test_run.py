@@ -42,7 +42,9 @@ def test_a_run_starts_its_own_trace_linked_to_the_request(service_tracer, servic
     assert run_span.parent is None
     assert run_span.context.trace_id != request.context.trace_id
     assert [link.context.span_id for link in run_span.links] == [request.context.span_id]
+    assert run_span.attributes["enduser.id"] == "developer"
     for span in (request, run_span):
+        assert span.attributes["altinn.repo_type"] == "app"
         assert span.attributes["altinn.service_owner"] == "ttd"
         assert span.attributes["altinn.app"] == "my-app"
         assert span.attributes["gen_ai.conversation.id"] == "session-1"

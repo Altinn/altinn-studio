@@ -117,7 +117,7 @@ def test_the_process_reports_its_start_time():
     assert point.value == _PROCESS_START_TIME
 
 
-def test_the_app_continues_the_callers_trace_and_leaves_out_probes(monkeypatch, service_spans):
+def test_the_app_continues_the_callers_trace_for_the_developer_and_leaves_out_probes(monkeypatch, service_spans):
     monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-router.observability.svc.cluster.local:4318")
     app = FastAPI()
 
@@ -134,7 +134,10 @@ def test_the_app_continues_the_callers_trace_and_leaves_out_probes(monkeypatch, 
     client.get("/health")
     client.post(
         "/api/agent/cancel/session-1",
-        headers={"traceparent": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01"},
+        headers={
+            "traceparent": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+            "X-Developer": "developer",
+        },
     )
 
     (span,) = service_spans.get_finished_spans()
@@ -142,3 +145,4 @@ def test_the_app_continues_the_callers_trace_and_leaves_out_probes(monkeypatch, 
     assert span.context.trace_id == 0x0AF7651916CD43DD8448EB211C80319C
     assert span.parent.span_id == 0xB7AD6B7169203331
     assert span.attributes["http.route"] == "/api/agent/cancel/{session_id}"
+    assert span.attributes["enduser.id"] == "developer"

@@ -10,6 +10,7 @@ import os
 import time
 import traceback
 import uuid
+from typing import Any
 
 import httpx
 from fastapi import FastAPI
@@ -43,6 +44,9 @@ _PROCESS_INSTANCE_ID = str(uuid.uuid4())
 
 # Probes are not traffic, and the WebSocket connection is no unit of work.
 _EXCLUDED_URLS = "/health$,/ws$"
+
+# The header in which Designer names the developer a request acts for, as ASGI gives header names.
+_DEVELOPER_HEADER = b"x-developer"
 
 
 def is_enabled() -> bool:
@@ -84,7 +88,22 @@ def instrument_app(app: FastAPI) -> None:
     """Trace the app's requests, continuing the trace context the caller sends, such as Designer's."""
     if not is_enabled():
         return
-    FastAPIInstrumentor.instrument_app(app, excluded_urls=_EXCLUDED_URLS, exclude_spans=["receive", "send"])
+    FastAPIInstrumentor.instrument_app(
+        app,
+        excluded_urls=_EXCLUDED_URLS,
+        exclude_spans=["receive", "send"],
+        server_request_hook=_record_developer,
+    )
+
+
+def _record_developer(span: trace.Span, scope: dict[str, Any]) -> None:
+    """Put the developer the request acts for on its span as enduser.id."""
+    if not span.is_recording():
+        return
+    for name, value in scope.get("headers", []):
+        if name == _DEVELOPER_HEADER:
+            span.set_attribute(names.ENDUSER_ID, value.decode("latin-1"))
+            return
 
 
 def _resource() -> Resource:

@@ -31,8 +31,9 @@ Designer's requests. The deployment turns this on with `OTEL_EXPORTER_OTLP_ENDPO
 - Each model call is a `chat {model}` span with the GenAI semantic conventions' attributes, and records the metrics
   `gen_ai.client.operation.duration` and `gen_ai.client.token.usage`. `altinn.assistant.run.duration` counts runs
   by outcome.
-- Nothing in this telemetry holds prompts, model output, file content or usernames. Log records describe errors by
-  their type, and exported exceptions keep their stack frames but not their messages.
+- Request spans and run spans carry the developer's username as `enduser.id`, so a search finds what a developer
+  did. Nothing in this telemetry holds prompts, model output or file content, and log records hold no usernames.
+  They describe errors by their type, and exported exceptions keep their stack frames but not their messages.
 
 Langfuse and the service each have a tracer provider, but OpenTelemetry has one current span. The
 [isolation](../../shared/telemetry/isolation.py) makes each provider take parents only from its own spans. Langfuse's

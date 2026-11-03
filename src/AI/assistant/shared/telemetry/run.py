@@ -183,7 +183,11 @@ _current_run: ContextVar[AgentRun | None] = ContextVar("altinn_assistant_run", d
 
 
 def _correlation_keys(*, repo_owner: str, developer: str, app: str, conversation_id: str) -> dict[str, AttributeValue]:
-    keys: dict[str, AttributeValue] = {names.APP: app, names.GEN_AI_CONVERSATION_ID: conversation_id}
+    keys: dict[str, AttributeValue] = {
+        names.REPO_TYPE: names.REPO_TYPE_APP,  # The assistant only works in app repositories.
+        names.APP: app,
+        names.GEN_AI_CONVERSATION_ID: conversation_id,
+    }
     # The developer's own repository has the developer's username as its owner, and no service owner.
     if repo_owner != developer:
         keys[names.SERVICE_OWNER] = repo_owner
@@ -215,6 +219,8 @@ def start_run(
         kind=SpanKind.INTERNAL,
         attributes={
             **_correlation_keys(repo_owner=repo_owner, developer=developer, app=app, conversation_id=conversation_id),
+            # Request spans get it from the X-Developer header, which no run span has.
+            names.ENDUSER_ID: developer,
             names.RUN_MODE: mode,
             names.RUN_ATTACHMENTS: attachments,
         },

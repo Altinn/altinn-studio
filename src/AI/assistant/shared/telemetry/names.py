@@ -8,6 +8,7 @@ vocabulary's `altinn.` names, and `altinn.assistant.` for what only this service
 SCOPE = "altinn.assistant"
 
 # Semantic conventions
+ENDUSER_ID = "enduser.id"
 ERROR_TYPE = "error.type"
 GEN_AI_CONVERSATION_ID = "gen_ai.conversation.id"
 GEN_AI_OPERATION_NAME = "gen_ai.operation.name"
@@ -35,6 +36,8 @@ GEN_AI_CLIENT_TOKEN_USAGE = "gen_ai.client.token.usage"
 # Shared vocabulary
 SERVICE_OWNER = "altinn.service_owner"
 APP = "altinn.app"
+REPO_TYPE = "altinn.repo_type"
+REPO_TYPE_APP = "app"
 SAMPLING = "altinn.studio.sampling"
 SAMPLING_ALWAYS = "always"
 
