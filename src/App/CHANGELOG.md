@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Apps can confirm an instance as complete for the service owner: set `autoConfirmCompleteOnProcessEnd` in `applicationmetadata.json` to confirm when the process ends, or return `ServiceTaskResult.Success(confirmComplete: true)` from the service task that delivers the instance. The policy must grant the app owner `complete`. Hooks cannot confirm. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+- Apps can confirm an instance as complete for the service owner: set `autoConfirmCompleteOnProcessEnd` in `applicationmetadata.json` to confirm when the process ends, or return `ServiceTaskResult.Success(confirmComplete: true)` from the service task that delivers the instance. The policy must grant the app owner `complete`. Hooks cannot confirm. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Changed
 
