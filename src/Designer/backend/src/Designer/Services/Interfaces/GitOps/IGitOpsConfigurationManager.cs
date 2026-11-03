@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
@@ -15,6 +16,16 @@ public interface IGitOpsConfigurationManager
     /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
     /// <returns>True if the GitOps configuration repository exists; otherwise, false.</returns>
     Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context);
+
+    /// <summary>
+    /// Takes the lock on the developer's local clone of the organization's GitOps configuration repository, which the
+    /// cleanup of inactive repositories also takes before it deletes one. Hold it from
+    /// <see cref="EnsureGitOpsConfigurationExistsAsync"/> through <see cref="PersistGitOpsConfiguration"/>.
+    /// </summary>
+    /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
+    /// <returns>The lock, released when disposed.</returns>
+    /// <exception cref="TimeoutException">The lock was not released in time.</exception>
+    Task<IAsyncDisposable> LockLocalRepositoryAsync(AltinnOrgEditingContext context);
 
     /// <summary>
     /// Ensures that the GitOps configuration exists for the specified organization.

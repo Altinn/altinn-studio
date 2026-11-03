@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -25,6 +26,7 @@ public class GitRepoGitOpsConfigurationManager(
     [FromKeyedServices("bot-auth")] IGiteaClient giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
+    ILockService lockService,
     IAltinnGitRepositoryFactory gitRepositoryFactory,
     TimeProvider timeProvider,
     GitOpsSettings gitOpsSettings,
@@ -35,12 +37,24 @@ public class GitRepoGitOpsConfigurationManager(
     // Git's default gc.autoPackLimit.
     private const int MaxPackFilesToReuse = 50;
 
+    private static readonly TimeSpan s_lockWaitTimeout = TimeSpan.FromSeconds(30);
+
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
     public async Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context)
     {
         var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
         return repo is not null;
+    }
+
+    public async Task<IAsyncDisposable> LockLocalRepositoryAsync(AltinnOrgEditingContext context)
+    {
+        AltinnRepoEditingContext gitOpsRepoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            gitOpsSettings.GitOpsOrg,
+            GitOpsRepoName(context.Org),
+            context.Developer
+        );
+        return await lockService.AcquireRepoUserWideLockAsync(gitOpsRepoContext, s_lockWaitTimeout);
     }
 
     public async Task EnsureGitOpsConfigurationExistsAsync(
