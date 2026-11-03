@@ -11,7 +11,11 @@ import {
 } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import {
+  runningAppProblems,
+  wasRestartedAfterPublish,
+  type RunningApp,
+} from 'app-shared/types/api/RunningApp';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
@@ -99,6 +103,39 @@ export const DeploymentStatus = ({
     );
   }
   const isDeploy = deploymentType === 'Deploy';
+  const goToPublish = (
+    <Trans i18nKey='overview.go_to_publish'>
+      <a href={publishPath(org, app)} />
+    </Trans>
+  );
+
+  if (runningApp.status === 'updating') {
+    const isRestart = wasRestartedAfterPublish(runningApp, lastPublishedDate);
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
+            {t(isRestart ? 'app_deployment.status.restarting' : 'app_deployment.status.inProgress')}
+          </div>
+        }
+        footer={goToPublish}
+      />
+    );
+  }
+
+  const problem = runningApp.status && runningAppProblems[runningApp.status];
+  if (problem) {
+    return (
+      <DeploymentStatusAlert
+        severity={problem.severity}
+        content={<StudioParagraph spacing>{t(problem.textKey)}</StudioParagraph>}
+        footer={goToPublish}
+      />
+    );
+  }
+
   if (!runningApp?.version && isDeploy) {
     return (
       <DeploymentStatusAlert
@@ -137,13 +174,22 @@ export const DeploymentStatus = ({
         </StudioParagraph>
       }
       footer={
-        lastPublishedDate && (
+        wasRestartedAfterPublish(runningApp, lastPublishedDate) ? (
           <Trans
-            i18nKey={'app_deployment.last_published'}
+            i18nKey={'app_deployment.last_restarted'}
             values={{
-              lastPublishedDate: formatDateTime(lastPublishedDate),
+              lastRestartedDate: formatDateTime(runningApp.restartedAt),
             }}
           />
+        ) : (
+          lastPublishedDate && (
+            <Trans
+              i18nKey={'app_deployment.last_published'}
+              values={{
+                lastPublishedDate: formatDateTime(lastPublishedDate),
+              }}
+            />
+          )
         )
       }
     />
