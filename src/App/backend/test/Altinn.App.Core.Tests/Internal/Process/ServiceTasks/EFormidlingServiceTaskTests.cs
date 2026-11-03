@@ -636,8 +636,9 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        // Nothing was sent, so there is nothing to wait for.
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
+        // Nothing was sent, so there is nothing to wait for, and nothing the service owner has received.
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
+        Assert.False(success.ConfirmComplete);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.GetEFormidlingShipmentStatus(
@@ -713,14 +714,15 @@ public class EFormidlingServiceTaskTests
 
         // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
         );
 
-        // Staged, not written: the confirmation commits with the callback's version-fenced save.
-        Assert.True(unitOfWork.StagedCompleteConfirmation);
+        // Asked of the conclusion, which stages it for the callback's save; the task stages nothing itself.
+        Assert.True(success.ConfirmComplete);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]

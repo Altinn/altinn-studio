@@ -4,6 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -112,6 +113,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
+    private readonly IAppMetadata _appMetadata;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -119,7 +121,8 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        ProcessStepOptionsResolver stepOptionsResolver
+        ProcessStepOptionsResolver stepOptionsResolver,
+        IAppMetadata appMetadata
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -128,6 +131,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _callbackTokenGenerator = callbackTokenGenerator;
         _stepOptionsResolver = stepOptionsResolver;
+        _appMetadata = appMetadata;
     }
 
     /// <summary>
@@ -545,7 +549,11 @@ internal sealed class ProcessNextRequestFactory
                 );
             case InstanceEventType.process_EndEvent:
                 return WorkflowStepSet.GetProcessEndSteps(
-                    new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
+                    new ProcessEndContext
+                    {
+                        RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
+                        ConfirmComplete = _appMetadata.ApplicationMetadata.AutoConfirmCompleteOnProcessEnd,
+                    }
                 );
             default:
                 return null;

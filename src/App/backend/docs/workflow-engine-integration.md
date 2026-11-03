@@ -88,6 +88,10 @@ the same decision.
   separate keys. Values that other systems set, such as `dialog.id`, reach the callback state with the next save.
 - With `autoDeleteOnProcessEnd`, the release save also hard-deletes the instance. Storage accepts that only together
   with the ended state and the move to `idle`.
+- Storage records a complete confirmation for the organization that sends it, so the app confirms only in a
+  callback's save, as the service owner. With `autoConfirmCompleteOnProcessEnd` a process end confirms in a step
+  before the release, because Storage refuses a confirmation in the save that hard-deletes the instance. A service
+  task confirms in the save that concludes it, when its result sets `confirmComplete`. Hooks cannot confirm.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)

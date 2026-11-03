@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -228,7 +229,8 @@ public class ExecuteServiceTaskReplyTests
 
     private static WorkflowEngineCommandContext CreateContext(
         AppCallbackMailbox? mailbox = null,
-        WorkflowCallbackStateCarry? carry = null
+        WorkflowCallbackStateCarry? carry = null,
+        bool withUnitOfWork = false
     )
     {
         var instance = new Instance
@@ -238,6 +240,7 @@ public class ExecuteServiceTaskReplyTests
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+            Data = [],
         };
         var mutator = new Mock<IInstanceDataMutator>();
         mutator.Setup(x => x.Instance).Returns(instance);
@@ -246,7 +249,7 @@ public class ExecuteServiceTaskReplyTests
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, _instanceGuid),
-            InstanceDataMutator = mutator.Object,
+            InstanceDataMutator = withUnitOfWork ? TestInstanceDataUnitOfWork.Create(instance) : mutator.Object,
             CancellationToken = CancellationToken.None,
             StateCarry = carry ?? new WorkflowCallbackStateCarry(),
             Payload = new AppCallbackPayload
@@ -605,6 +608,21 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
         Assert.Null(carry.Mailboxes);
+    }
+
+    [Fact]
+    public async Task OnMessage_ThatSucceedsWithConfirmComplete_StagesTheConfirmationWithTheConclusion()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningIndex, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
+        var task = new ArchivingTask { MessageVerdict = ServiceTaskResult.Success(confirmComplete: true) };
+        WorkflowEngineCommandContext context = CreateContext(Delivered(), carry, withUnitOfWork: true);
+
+        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(context, ReceiveStep());
+
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
+        Assert.True(((InstanceDataUnitOfWork)context.InstanceDataMutator).StagedCompleteConfirmation);
     }
 
     [Fact]

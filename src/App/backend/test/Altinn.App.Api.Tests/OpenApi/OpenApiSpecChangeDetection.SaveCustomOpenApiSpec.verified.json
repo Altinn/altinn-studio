@@ -4287,6 +4287,9 @@
               "type": "string"
             },
             "nullable": true
+          },
+          "autoConfirmCompleteOnProcessEnd": {
+            "type": "boolean"
           }
         },
         "additionalProperties": {}

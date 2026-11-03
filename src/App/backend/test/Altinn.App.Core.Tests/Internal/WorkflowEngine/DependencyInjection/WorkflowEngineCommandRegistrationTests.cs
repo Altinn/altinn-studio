@@ -107,7 +107,10 @@ public class WorkflowEngineCommandRegistrationTests
         );
         CollectCommandKeys(WorkflowStepSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
         CollectCommandKeys(WorkflowStepSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }), keys);
+        CollectCommandKeys(
+            WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true, ConfirmComplete = true }),
+            keys
+        );
 
         // ProcessNextRequestFactory adds these around the step sets.
         keys.Add(CommitProcessState.Key);

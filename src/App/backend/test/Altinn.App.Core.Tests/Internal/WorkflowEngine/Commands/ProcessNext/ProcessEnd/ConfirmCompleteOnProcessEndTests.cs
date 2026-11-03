@@ -1,0 +1,102 @@
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
+using Moq;
+
+namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
+
+public class ConfirmCompleteOnProcessEndTests
+{
+    private static Instance CreateInstance(DateTime? ended) =>
+        new()
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            Org = "ttd",
+            AppId = "ttd/test-app",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                Status = ProcessStatus.Processing,
+                Ended = ended,
+                EndEvent = ended is null ? null : "EndEvent_1",
+                CurrentTask = ended is null ? new ProcessElementInfo { ElementId = "Task_1" } : null,
+            },
+            Data = [],
+        };
+
+    private static WorkflowEngineCommandContext CreateContext(IInstanceDataMutator mutator) =>
+        new()
+        {
+            StateCarry = new(),
+            AppId = new AppIdentifier("ttd", "test-app"),
+            InstanceId = new InstanceIdentifier(mutator.Instance),
+            InstanceDataMutator = mutator,
+            CancellationToken = CancellationToken.None,
+            Payload = new AppCallbackPayload
+            {
+                CommandKey = ConfirmCompleteOnProcessEnd.Key,
+                Actor = new Actor { UserId = 1337 },
+                State = "{}",
+                WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2026, 11, 3, 9, 0, 0, TimeSpan.Zero),
+            },
+        };
+
+    private static readonly DateTime _ended = new(2026, 11, 3, 8, 59, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public async Task Execute_OnAnEndedProcess_StagesTheConfirmationForTheStepsSave()
+    {
+        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(CreateInstance(_ended));
+
+        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
+
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.True(unitOfWork.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task Execute_WhenTheServiceOwnerHasAlreadyConfirmed_StagesNothingAndSucceeds()
+    {
+        Instance instance = CreateInstance(_ended);
+        instance.CompleteConfirmations = [new CompleteConfirmation { StakeholderId = "ttd", ConfirmedOn = _ended }];
+        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(instance);
+
+        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
+
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task Execute_BeforeTheProcessHasEnded_FailsPermanentlyWithoutStaging()
+    {
+        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(CreateInstance(ended: null));
+
+        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
+    }
+
+    [Fact]
+    public async Task Execute_WithoutAUnitOfWork_FailsPermanently()
+    {
+        var mutator = new Mock<IInstanceDataMutator>();
+        mutator.Setup(x => x.Instance).Returns(CreateInstance(_ended));
+
+        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(
+            CreateContext(mutator.Object)
+        );
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+    }
+}
