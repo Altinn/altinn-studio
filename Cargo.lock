@@ -1784,9 +1784,8 @@ dependencies = [
  "jsonwebtoken",
  "reqwest",
  "sandbox",
- "sandbox-microsandbox",
+ "sandbox-host",
  "serde",
- "tempfile",
  "tokio",
 ]
 
@@ -4405,6 +4404,17 @@ source = "git+https://github.com/digdir/digdir-agents.git?rev=a58229f7f9125784b8
 dependencies = [
  "serde",
  "thiserror 2.0.20",
+]
+
+[[package]]
+name = "sandbox-host"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "sandbox",
+ "sandbox-microsandbox",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]

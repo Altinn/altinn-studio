@@ -89,6 +89,25 @@ impl ProviderArguments {
         Ok(())
     }
 
+    /// Runs `work`, then clears the Provider home with [`Self::clear_home`], also when `work` failed.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error of `work` or of the clear. When both fail, the error has both messages.
+    pub async fn run_then_clear_home<T>(&self, work: impl Future<Output = Result<T, AnyError>>) -> Result<T, AnyError> {
+        let result = work.await;
+        let cleared = self.clear_home().await;
+        match (result, cleared) {
+            (Ok(value), Ok(())) => Ok(value),
+            (Err(error), Ok(())) => Err(error),
+            (Ok(_), Err(clear_error)) => Err(clear_error.into()),
+            (Err(error), Err(clear_error)) => Err(io::Error::other(format!(
+                "{error}; clearing the Sandbox Provider home also failed: {clear_error}"
+            ))
+            .into()),
+        }
+    }
+
     fn provider_builder(
         &self,
         registry_authentication: Option<RegistryAuthentication>,
@@ -158,7 +177,17 @@ fn parse_runtime_bundle_sha256(contents: &str, filename: &str) -> Result<String,
 #[cfg(test)]
 mod tests {
     use super::{ProviderArguments, parse_runtime_bundle_sha256};
-    use std::path::PathBuf;
+    use crate::AnyError;
+    use std::{io, path::Path, path::PathBuf};
+
+    fn arguments(provider_home: &Path) -> ProviderArguments {
+        ProviderArguments {
+            provider_home: provider_home.to_path_buf(),
+            cache_directory: PathBuf::from("/cache"),
+            runtime_bundle: PathBuf::from("/runtime"),
+            runtime_bundle_checksums: PathBuf::from("/checksums"),
+        }
+    }
 
     #[test]
     fn selects_the_runtime_bundle_published_checksum() {
@@ -185,17 +214,30 @@ mod tests {
         std::fs::create_dir(directory.path().join("nested"))?;
         std::fs::write(directory.path().join("nested/file"), "state")?;
         std::fs::write(directory.path().join(".hidden"), "state")?;
-        let arguments = ProviderArguments {
-            provider_home: directory.path().to_path_buf(),
-            cache_directory: PathBuf::from("/cache"),
-            runtime_bundle: PathBuf::from("/runtime"),
-            runtime_bundle_checksums: PathBuf::from("/checksums"),
-        };
 
-        arguments.clear_home().await?;
+        arguments(directory.path()).clear_home().await?;
 
         assert!(directory.path().is_dir());
         assert_eq!(std::fs::read_dir(directory.path())?.count(), 0);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn clears_provider_home_also_when_the_run_fails() -> Result<(), AnyError> {
+        let directory = tempfile::tempdir()?;
+        let home = directory.path().to_path_buf();
+        let run = async {
+            std::fs::write(home.join("state"), "state")?;
+            Err::<(), AnyError>(io::Error::other("the run failed").into())
+        };
+
+        let result = arguments(&home).run_then_clear_home(run).await;
+
+        assert_eq!(
+            result.map_err(|error| error.to_string()),
+            Err("the run failed".to_string())
+        );
+        assert_eq!(std::fs::read_dir(&home)?.count(), 0);
         Ok(())
     }
 }

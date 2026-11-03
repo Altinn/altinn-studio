@@ -16,12 +16,13 @@ use sandbox::{
     init::InitSystem,
     progress::{Progress, ProgressCursor, Update},
 };
-use tokio::signal::unix::{Signal, SignalKind, signal};
+use sandbox_host::{
+    ShutdownSignals, delete_sandbox, delete_sandbox_of, native_linux_platform, validate_immutable_image_reference,
+};
 
 use crate::{
     AnyError,
     github::{GithubClient, GithubConfig},
-    provider::native_linux_platform,
 };
 
 const DEFAULT_RUNNER_HOME: &str = "/home/runner";
@@ -29,8 +30,6 @@ const DEFAULT_RUNNER_LABELS: &str = "self-hosted-ubuntu";
 const RUNNER_ENTRYPOINT: &str = "/usr/local/bin/altinn-github-runner";
 const CLEANUP_TIMEOUT: Duration = Duration::from_mins(1);
 const RUNNER_CLAIM_POLL_INTERVAL: Duration = Duration::from_secs(5);
-// Conventional shell exit status: 128 + SIGTERM (15).
-const SIGTERM_EXIT_CODE: u8 = 143;
 
 #[derive(Clone, Copy, ValueEnum)]
 enum RunnerScope {
@@ -133,27 +132,6 @@ enum RunnerOutcome {
     Unclaimed,
 }
 
-struct ShutdownSignals {
-    interrupt: Signal,
-    terminate: Signal,
-}
-
-impl ShutdownSignals {
-    fn new() -> Result<Self, io::Error> {
-        Ok(Self {
-            interrupt: signal(SignalKind::interrupt())?,
-            terminate: signal(SignalKind::terminate())?,
-        })
-    }
-
-    async fn receive(&mut self) {
-        tokio::select! {
-            _ = self.interrupt.recv() => {}
-            _ = self.terminate.recv() => {}
-        }
-    }
-}
-
 /// Runs one ephemeral GitHub Actions runner through the supplied Sandbox service.
 ///
 /// # Errors
@@ -186,11 +164,11 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
         Ok(EnsureOutcome::Ready(sandbox)) => *sandbox,
         Ok(EnsureOutcome::Interrupted) => {
             eprintln!("shutdown requested while creating Sandbox");
-            cleanup_named_sandbox(&service, &sandbox_name).await?;
-            return Ok(ExitCode::from(SIGTERM_EXIT_CODE));
+            delete_sandbox(&service, &sandbox_name).await?;
+            return Ok(ExitCode::from(ShutdownSignals::EXIT_CODE));
         }
         Err(error) => {
-            let cleanup = cleanup_named_sandbox(&service, &sandbox_name).await;
+            let cleanup = delete_sandbox(&service, &sandbox_name).await;
             return Err(combine_errors(error, cleanup));
         }
     };
@@ -198,14 +176,14 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
     let github = match GithubClient::authenticate(github_config.clone()).await {
         Ok(client) => client,
         Err(error) => {
-            let cleanup = cleanup_sandbox(sandbox).await;
+            let cleanup = delete_sandbox_of(sandbox).await;
             return Err(combine_errors(error, cleanup));
         }
     };
     let registration_token = match github.registration_token().await {
         Ok(token) => token,
         Err(error) => {
-            let cleanup = cleanup_sandbox(sandbox).await;
+            let cleanup = delete_sandbox_of(sandbox).await;
             return Err(combine_errors(error, cleanup));
         }
     };
@@ -224,7 +202,7 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
 
     let cleanup_started = Instant::now();
     let (sandbox_cleanup, registration_cleanup) = tokio::join!(
-        cleanup_sandbox(sandbox),
+        delete_sandbox_of(sandbox),
         cleanup_runner_registration(github_config, &runner_name),
     );
     let cleanup = combine_cleanup(sandbox_cleanup, registration_cleanup);
@@ -233,7 +211,7 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
 
     match (runner, cleanup) {
         (Ok(RunnerOutcome::Exited(status)), Ok(())) => Ok(exit_code(status.code)),
-        (Ok(RunnerOutcome::Interrupted), Ok(())) => Ok(ExitCode::from(SIGTERM_EXIT_CODE)),
+        (Ok(RunnerOutcome::Interrupted), Ok(())) => Ok(ExitCode::from(ShutdownSignals::EXIT_CODE)),
         (Ok(RunnerOutcome::Unclaimed), Ok(())) => Ok(ExitCode::SUCCESS),
         (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
         (Err(error), Err(cleanup_error)) => {
@@ -272,22 +250,6 @@ fn runner_target(arguments: &CoordinatorArguments) -> Result<RunnerTarget, io::E
         }
         RunnerScope::Org => Ok(RunnerTarget::Org { owner }),
     }
-}
-
-fn validate_immutable_image_reference(reference: &str) -> Result<(), io::Error> {
-    let Some((repository, digest)) = reference.rsplit_once("@sha256:") else {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "SANDBOX_IMAGE must be pinned by sha256 digest",
-        ));
-    };
-    if repository.is_empty() || digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "SANDBOX_IMAGE must contain a repository and a 64-character sha256 digest",
-        ));
-    }
-    Ok(())
 }
 
 fn require_nonempty(name: &str, value: &str) -> Result<(), io::Error> {
@@ -567,18 +529,6 @@ fn write_output(mut writer: impl io::Write, bytes: &[u8]) -> Result<(), io::Erro
     writer.flush()
 }
 
-async fn cleanup_sandbox(sandbox: SandboxHandle) -> Result<(), AnyError> {
-    tokio::time::timeout(CLEANUP_TIMEOUT, sandbox.delete())
-        .await
-        .map_or_else(|_| Err(cleanup_timeout_error()), |result| result.map_err(Into::into))
-}
-
-async fn cleanup_named_sandbox(service: &SandboxService, name: &SandboxName) -> Result<(), AnyError> {
-    tokio::time::timeout(CLEANUP_TIMEOUT, service.delete(name))
-        .await
-        .map_or_else(|_| Err(cleanup_timeout_error()), |result| result.map_err(Into::into))
-}
-
 async fn cleanup_runner_registration(config: GithubConfig, runner_name: &str) -> Result<(), AnyError> {
     let removed = tokio::time::timeout(CLEANUP_TIMEOUT, async {
         // Installation tokens expire after one hour, while runner Jobs may last for two hours.
@@ -593,10 +543,6 @@ async fn cleanup_runner_registration(config: GithubConfig, runner_name: &str) ->
         println!("GitHub runner registration already absent");
     }
     Ok(())
-}
-
-fn cleanup_timeout_error() -> AnyError {
-    io::Error::new(io::ErrorKind::TimedOut, "Sandbox deletion timed out").into()
 }
 
 fn combine_errors(primary: AnyError, cleanup: Result<(), AnyError>) -> AnyError {
@@ -625,7 +571,7 @@ fn exit_code(code: i32) -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{ProgressLog, RunnerTarget, exit_code, github_config, runner_url, validate_immutable_image_reference};
+    use super::{ProgressLog, RunnerTarget, exit_code, github_config, runner_url};
     use sandbox::{Outcome, ProgressEvent, SandboxPhase, StepId};
     use std::{num::NonZeroU64, process::ExitCode, time::Duration};
 
@@ -665,24 +611,6 @@ mod tests {
                 "completed: Resolve Sandbox Image; outcome=Completed; elapsed_ms=50",
             ]
         );
-    }
-
-    #[test]
-    fn accepts_digest_pinned_image() {
-        let reference = format!("registry.example/runner@sha256:{}", "a".repeat(64));
-        assert!(validate_immutable_image_reference(&reference).is_ok());
-    }
-
-    #[test]
-    fn rejects_tagged_or_malformed_image() {
-        for reference in [
-            "registry.example/runner:latest",
-            "registry.example/runner@sha256:abc",
-            "@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "registry.example/runner@sha256:gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-        ] {
-            assert!(validate_immutable_image_reference(reference).is_err());
-        }
     }
 
     #[test]

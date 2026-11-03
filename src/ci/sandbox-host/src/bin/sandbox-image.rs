@@ -1,14 +1,11 @@
 use std::{io, path::PathBuf, time::Instant};
 
 use clap::{Parser, Subcommand};
-use github_runner_coordinator::{
-    AnyError,
-    provider::{ProviderArguments, native_linux_platform},
-};
 use sandbox::{
     RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
 };
+use sandbox_host::{AnyError, ProviderArguments, native_linux_platform};
 
 #[derive(Parser)]
 #[command(about = "Export or import a prepared Sandbox image")]

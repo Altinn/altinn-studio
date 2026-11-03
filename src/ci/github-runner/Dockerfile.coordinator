@@ -11,11 +11,14 @@ COPY rust-toolchain.toml ./
 RUN rustup toolchain install --no-self-update \
     && rustc --version
 COPY Cargo.toml Cargo.lock ./
-COPY src/ci/github-runner/coordinator src/ci/github-runner/coordinator
+# The build context contains the Rust sources of all workspace members, because Cargo reads all of them.
+COPY src src
 RUN cargo build \
     --locked \
     --release \
-    --manifest-path src/ci/github-runner/coordinator/Cargo.toml \
+    --bins \
+    --package github-runner-coordinator \
+    --package sandbox-host \
     && strip --strip-unneeded \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image

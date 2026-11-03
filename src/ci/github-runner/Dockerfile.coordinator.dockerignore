@@ -1,7 +1,9 @@
 # Build context: repository root
+# Cargo reads all workspace members. Add each member of the root Cargo.toml to this file.
 **
 !Cargo.lock
 !Cargo.toml
 !rust-toolchain.toml
 !src/ci/github-runner/coordinator/**
+!src/ci/sandbox-host/**
 **/target/
