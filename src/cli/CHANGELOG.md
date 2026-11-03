@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - With Podman, `studioctl app build` and `studioctl run` leave out the files an app's `Dockerfile.dockerignore` excludes, as they do with Docker. ([#21584](https://github.com/Altinn/altinn-studio/issues/21584))
+- `studioctl doctor` shows the Docker API version studioctl uses with your container runtime as _Client_, such as 1.41 with Podman, instead of 1.51 for every runtime.
 
 ## [0.1.0-preview.30] - 2026-10-29
 

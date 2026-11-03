@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/netip"
 	"slices"
 	"strings"
 	"testing"
@@ -11,10 +12,11 @@ import (
 
 	"altinn.studio/devenv/pkg/container/types"
 
-	dockertypes "github.com/docker/docker/api/types"
-	dockermount "github.com/docker/docker/api/types/mount"
-	systemtypes "github.com/docker/docker/api/types/system"
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/moby/moby/api/types/jsonstream"
+	dockermount "github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	systemtypes "github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 )
 
 var errNetworkActiveEndpoints = errors.New(
@@ -98,7 +100,10 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 		},
 	}
 
-	_, hostCfg, _ := buildDockerConfigs(cfg, types.PlatformPodman)
+	_, hostCfg, _, err := buildDockerConfigs(cfg, types.PlatformPodman)
+	if err != nil {
+		t.Fatalf("buildDockerConfigs() error = %v", err)
+	}
 
 	if got := string(hostCfg.UsernsMode); got != "keep-id" {
 		t.Fatalf("hostCfg.UsernsMode = %q, want keep-id", got)
@@ -117,6 +122,52 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 	}
 }
 
+func TestBuildPortMappings(t *testing.T) {
+	t.Parallel()
+
+	portBindings, exposedPorts, err := buildPortMappings([]types.PortMapping{
+		{HostIP: "127.0.0.1", HostPort: "5005", ContainerPort: "5005"},
+		{HostPort: "5353", ContainerPort: "53", Protocol: "udp"},
+	})
+	if err != nil {
+		t.Fatalf("buildPortMappings() error = %v", err)
+	}
+
+	tcpPort := network.MustParsePort("5005/tcp")
+	udpPort := network.MustParsePort("53/udp")
+	if _, ok := exposedPorts[tcpPort]; !ok {
+		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, tcpPort)
+	}
+	if _, ok := exposedPorts[udpPort]; !ok {
+		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, udpPort)
+	}
+	wantTCP := []network.PortBinding{{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: "5005"}}
+	if !slices.Equal(portBindings[tcpPort], wantTCP) {
+		t.Fatalf("portBindings[%v] = %#v, want %#v", tcpPort, portBindings[tcpPort], wantTCP)
+	}
+	wantUDP := []network.PortBinding{{HostPort: "5353"}}
+	if !slices.Equal(portBindings[udpPort], wantUDP) {
+		t.Fatalf("portBindings[%v] = %#v, want %#v", udpPort, portBindings[udpPort], wantUDP)
+	}
+
+	if _, _, err := buildPortMappings([]types.PortMapping{{HostIP: "localhost", ContainerPort: "80"}}); err == nil {
+		t.Fatal("buildPortMappings() with host name error = nil, want error")
+	}
+}
+
+func TestPublishedPortsFromPortMap_UnsetHostIPIsEmpty(t *testing.T) {
+	t.Parallel()
+
+	got := publishedPortsFromPortMap(network.PortMap{
+		network.MustParsePort("5005/tcp"): {{HostPort: "5005"}},
+	})
+
+	want := []types.PublishedPort{{HostIP: "", HostPort: "5005", ContainerPort: "5005", Protocol: "tcp"}}
+	if !slices.Equal(got, want) {
+		t.Fatalf("publishedPortsFromPortMap() = %#v, want %#v", got, want)
+	}
+}
+
 func TestIsNetworkInUseError_ActiveEndpoints(t *testing.T) {
 	t.Parallel()
 
@@ -130,20 +181,20 @@ func TestPlatformFromVersion(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		version dockertypes.Version
+		version client.ServerVersionResult
 		want    types.ContainerPlatform
 	}{
 		{
 			name: "podman platform wins",
-			version: dockertypes.Version{
-				Platform: struct{ Name string }{Name: "Podman Engine"},
+			version: client.ServerVersionResult{
+				Platform: client.PlatformInfo{Name: "Podman Engine"},
 			},
 			want: types.PlatformPodman,
 		},
 		{
 			name: "docker component name",
-			version: dockertypes.Version{
-				Components: []dockertypes.ComponentVersion{
+			version: client.ServerVersionResult{
+				Components: []systemtypes.ComponentVersion{
 					{Name: "Docker Engine - Community", Version: "28.0.0"},
 				},
 			},
@@ -252,7 +303,7 @@ func TestWithVersionMetadata(t *testing.T) {
 		t.Context(),
 		fakeVersionClient{
 			clientVersion: "1.51",
-			serverVersion: dockertypes.Version{
+			serverVersion: client.ServerVersionResult{
 				Version: "28.2.2",
 			},
 		},
@@ -540,10 +591,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 
 	aggregator := newPullProgressAggregator()
 
-	first := aggregator.Update(jsonmessage.JSONMessage{
+	first := aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 25,
 			Total:   100,
 		},
@@ -552,10 +603,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("first progress = %+v, want current=25 total=100 determinate", first)
 	}
 
-	second := aggregator.Update(jsonmessage.JSONMessage{
+	second := aggregator.Update(jsonstream.Message{
 		ID:     "layer-b",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 10,
 			Total:   50,
 		},
@@ -564,10 +615,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("second progress = %+v, want current=35 total=150 determinate", second)
 	}
 
-	third := aggregator.Update(jsonmessage.JSONMessage{
+	third := aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 100,
 			Total:   100,
 		},
@@ -581,16 +632,16 @@ func TestPullProgressAggregator_IgnoresProgresslessUpdates(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	aggregator.Update(jsonmessage.JSONMessage{
+	aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 25,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Verifying Checksum",
 	})
@@ -607,19 +658,19 @@ func TestPullProgressAggregator_ResetsLayerProgressWhenPhaseChanges(t *testing.T
 
 	aggregator := newPullProgressAggregator()
 
-	aggregator.Update(jsonmessage.JSONMessage{
+	aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 100,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &jsonstream.Progress{
 			Current: 10,
 			Total:   100,
 		},
@@ -637,7 +688,7 @@ func TestPullProgressAggregator_IndeterminateWithoutLayerTotals(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(jsonstream.Message{
 		ID:     "layer-a",
 		Status: "Waiting",
 	})
@@ -686,14 +737,17 @@ func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 
 type fakeVersionClient struct {
 	err           error
-	serverVersion dockertypes.Version
 	clientVersion string
+	serverVersion client.ServerVersionResult
 }
 
 func (c fakeVersionClient) ClientVersion() string {
 	return c.clientVersion
 }
 
-func (c fakeVersionClient) ServerVersion(context.Context) (dockertypes.Version, error) {
+func (c fakeVersionClient) ServerVersion(
+	context.Context,
+	client.ServerVersionOptions,
+) (client.ServerVersionResult, error) {
 	return c.serverVersion, c.err
 }
