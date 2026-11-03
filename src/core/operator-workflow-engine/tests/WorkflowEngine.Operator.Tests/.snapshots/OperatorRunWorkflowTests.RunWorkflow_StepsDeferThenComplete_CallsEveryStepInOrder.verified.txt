@@ -1,0 +1,107 @@
+﻿{
+  databaseId: {Scrubbed},
+  operationId: run-Guid_1,
+  idempotencyKey: assistant:upgrade-1,
+  namespace: runs-assistant,
+  createdAt: {Scrubbed},
+  updatedAt: {Scrubbed},
+  executionStartedAt: {Scrubbed},
+  backoffUntil: {Scrubbed},
+  labels: {
+    kind: upgrade-v9,
+    runId: Guid_1,
+    caller: assistant
+  },
+  overallStatus: Completed,
+  role: Primary,
+  steps: [
+    {
+      databaseId: {Scrubbed},
+      operationId: run.admit,
+      processingOrder: 0,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 1,
+      firstDeferredAt: {Scrubbed},
+      lastDeferReason: waiting,
+      stateOut: run.admit:2
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: run.create-job,
+      processingOrder: 1,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 0,
+      stateOut: run.create-job:1
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: run.await-pod,
+      processingOrder: 2,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 0,
+      stateOut: run.await-pod:1
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: run.await-archive,
+      processingOrder: 3,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 0,
+      stateOut: run.await-archive:1
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: run.await-result,
+      processingOrder: 4,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 2,
+      firstDeferredAt: {Scrubbed},
+      lastDeferReason: waiting,
+      stateOut: run.await-result:3
+    },
+    {
+      databaseId: {Scrubbed},
+      operationId: run.cleanup,
+      processingOrder: 5,
+      updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
+      command: {
+        type: operator
+      },
+      status: Completed,
+      retryCount: 0,
+      deferCount: 0,
+      stateOut: run.cleanup:1
+    }
+  ]
+}
