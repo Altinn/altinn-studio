@@ -1,5 +1,4 @@
 import { BuildResult, type Build } from '../Build';
-import type { AppStatus } from '../AppStatus';
 
 export interface PipelineDeployment {
   id: string;
@@ -8,7 +7,6 @@ export interface PipelineDeployment {
   app: string;
   org: string;
   envName: string;
-  appStatus?: AppStatus;
   createdBy: string;
   created: string;
   build?: Build;

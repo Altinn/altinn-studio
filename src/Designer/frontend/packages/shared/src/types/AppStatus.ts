@@ -1,8 +1,8 @@
-export type AppStatus = 'UnderDevelopment' | 'Completed' | 'Deprecated';
+import type { StatusOption } from 'app-shared/types/ApplicationMetadata';
 
-export type BuildAppStatus = Exclude<AppStatus, 'Deprecated'>;
+export type BuildAppStatus = Extract<StatusOption, 'UnderDevelopment' | 'Completed'>;
 
 export const buildAppStatuses: readonly BuildAppStatus[] = ['UnderDevelopment', 'Completed'];
 
-export const isBuildAppStatus = (status: AppStatus | undefined): status is BuildAppStatus =>
+export const isBuildAppStatus = (status: StatusOption | undefined): status is BuildAppStatus =>
   buildAppStatuses.includes(status as BuildAppStatus);
