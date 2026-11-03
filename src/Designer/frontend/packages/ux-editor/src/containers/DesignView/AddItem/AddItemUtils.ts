@@ -169,5 +169,6 @@ const getContainerValidChildTypes = (
   containerId: string,
 ): ComponentType[] | undefined => {
   if (containerId === BASE_CONTAINER_ID) return undefined;
-  return getFormItemConfig(layout.containers[containerId].type).validChildTypes;
+  // Without a Designer config, Designer does not know which children the container allows.
+  return getFormItemConfig(layout.containers[containerId].type).validChildTypes ?? [];
 };
