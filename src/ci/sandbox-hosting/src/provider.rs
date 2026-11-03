@@ -75,8 +75,13 @@ impl ProviderArguments {
         self.open_builder(self.provider_builder(registry_authentication)).await
     }
 
-    /// Removes all state inside the per-process Provider home while preserving its mount point.
-    async fn clear_home(&self) -> Result<(), io::Error> {
+    /// Removes all state inside the per-process Provider home while preserving its mount point. `run_with_service`
+    /// calls it when the run ends. A workload calls it itself only to remove what an earlier container left there.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the directory cannot be read or one of its entries cannot be removed.
+    pub async fn clear_home(&self) -> Result<(), io::Error> {
         let mut entries = match tokio::fs::read_dir(&self.provider_home).await {
             Ok(entries) => entries,
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),

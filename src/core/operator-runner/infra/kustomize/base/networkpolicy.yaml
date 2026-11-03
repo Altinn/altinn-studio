@@ -1,0 +1,58 @@
+# The namespace denies all traffic, because the operator runner runs app code in a microVM. These are the exceptions:
+#
+# - Ingress from the core operator, which sends the archive and fetches the result. This rule is the only check of
+#   the caller, because the pod has no token.
+# - Egress to cluster DNS, and to the internet on port 443 for NuGet. The ipBlock does not include the private ranges.
+#   Because of this, a job cannot reach other pods or Services (Designer, Gitea), the Azure instance metadata service or
+#   the Azure host. The operator runner checks only the host names and not the addresses, so only this rule blocks these
+#   addresses.
+#
+# A rule for the kubelet probes is not necessary, because Azure Network Policy Manager filters only forwarded traffic.
+# The kubelet connects from the node itself.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sandbox-runs
+  namespace: sandbox-runs
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: core-operator
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: core-operator
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+              - 168.63.129.16/32
+      ports:
+        - protocol: TCP
+          port: 443

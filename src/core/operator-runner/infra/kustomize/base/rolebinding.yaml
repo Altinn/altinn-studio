@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: core-operator-runs
+  namespace: sandbox-runs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: core-operator-runs
+subjects:
+  # The ServiceAccount of the core operator. Its manifest is in src/core/operator/config.
+  - kind: ServiceAccount
+    name: core-operator
+    namespace: core-operator
