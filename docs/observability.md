@@ -154,7 +154,8 @@ the semantic conventions say. When the reason matters, such as the error code a 
 in its own attribute on the entry span.
 
 The caller's client span still marks every 4xx as an error, and can't tell a missing route from a valid request that
-found nothing. So an API answers such a request with a 2xx and an empty result, and keeps 404 for missing routes.
+found nothing. So an API answers such a request with a 2xx and an empty result, and keeps 404 for missing routes or
+other cases where the request really is an error.
 
 ### Sampling
 
