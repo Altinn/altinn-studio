@@ -16,6 +16,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
@@ -109,7 +113,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Apps owned by `ttd` now act as `ttd`, not `digdir`, when they call Altinn as the service owner, so the `[org]` rules in `policy.xml` apply to them. A separate rule for `digdir` is no longer needed. ([#21474](https://github.com/Altinn/altinn-studio/pull/21474))
 - The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Delegated signing retries the step that failed when Access Management, Correspondence or Register is briefly unavailable, instead of leaving signees without signing rights or a notification. A retry does not notify anyone twice. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182))
-- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 
 ### Removed
 
