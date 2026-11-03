@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -33,7 +32,6 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
     protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
     protected GitOpsManifestsRenderer GitOpsManifestsRenderer { get; private set; }
     protected Mock<ILogger<GitRepoGitOpsConfigurationManager>> MockLogger { get; private set; }
-    protected Mock<ILockService> MockLockService { get; private set; }
     protected string TestRepoName { get; private set; }
     protected AltinnOrgEditingContext OrgEditingContext { get; }
 
@@ -56,7 +54,6 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         AltinnGitRepositoryFactory = new AltinnGitRepositoryFactory(testRepoPath);
         GitOpsManifestsRenderer = new GitOpsManifestsRenderer();
         MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
-        MockLockService = new Mock<ILockService>();
         GitOpsConfigurationManager = CreateGitOpsConfigurationManager(testRepoPath);
     }
 
@@ -65,7 +62,6 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             new IGiteaClientMock(),
             GitOpsManifestsRenderer,
             new ISourceControlMock(),
-            MockLockService.Object,
             new FakeTimeProvider(),
             new GitOpsSettings
             {
