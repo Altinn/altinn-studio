@@ -29,21 +29,31 @@ internal sealed class PdpRetryDelegatingHandler : DelegatingHandler
         CancellationToken cancellationToken
     )
     {
+        HttpResponseMessage? response = null;
         try
         {
-            HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
+            response = await base.SendAsync(request, cancellationToken);
             if (!IsTransientStatusCode(response.StatusCode))
             {
+                // HttpClient reads the body only after this handler has returned, too late to retry
+                // when the connection drops while the body is read
+                await response.Content.LoadIntoBufferAsync(cancellationToken);
                 return response;
             }
 
             _logger.LogWarning("PDP returned {StatusCode}, retrying once", (int)response.StatusCode);
-            response.Dispose();
         }
         catch (HttpRequestException e)
         {
             _logger.LogWarning(e, "Request to PDP failed, retrying once");
         }
+        catch
+        {
+            response?.Dispose();
+            throw;
+        }
+
+        response?.Dispose();
 
         // When the caller has canceled or HttpClient.Timeout has run out, nobody waits for a second attempt
         cancellationToken.ThrowIfCancellationRequested();

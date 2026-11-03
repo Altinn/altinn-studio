@@ -8,6 +8,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Authorization;
 public class PdpRetryDelegatingHandlerTests
 {
     private const string RequestBody = """{"Request":{}}""";
+    private const string ResponseBody = """{"Response":[]}""";
 
     [Theory]
     [InlineData(HttpStatusCode.BadGateway)]
@@ -57,6 +58,60 @@ public class PdpRetryDelegatingHandlerTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal([RequestBody, RequestBody], receivedBodies);
+    }
+
+    [Fact]
+    public async Task SendAsync_RetriesOnce_WhenReadingFirstResponseBodyFails()
+    {
+        List<string> receivedBodies = [];
+        using HttpClient client = CreateClient(
+            receivedBodies,
+            () => new HttpResponseMessage(HttpStatusCode.OK) { Content = new BodyReadFailingContent() },
+            () => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(ResponseBody) }
+        );
+
+        using HttpResponseMessage response = await client.PostAsync("decision", new StringContent(RequestBody));
+
+        Assert.Equal(ResponseBody, await response.Content.ReadAsStringAsync());
+        Assert.Equal([RequestBody, RequestBody], receivedBodies);
+    }
+
+    [Fact]
+    public async Task SendAsync_DisposesFirstResponse_WhenReadingItsBodyFails()
+    {
+        var firstResponse = new DisposeTrackingResponse(HttpStatusCode.OK) { Content = new BodyReadFailingContent() };
+        using HttpClient client = CreateClient(
+            [],
+            () => firstResponse,
+            () => new HttpResponseMessage(HttpStatusCode.OK)
+        );
+
+        using HttpResponseMessage response = await client.PostAsync("decision", new StringContent(RequestBody));
+
+        Assert.True(firstResponse.IsDisposed);
+    }
+
+    [Fact]
+    public async Task SendAsync_DisposesResponse_WhenRequestIsCanceledWhileBodyIsRead()
+    {
+        List<string> receivedBodies = [];
+        using var cancellation = new CancellationTokenSource();
+        var firstResponse = new DisposeTrackingResponse(HttpStatusCode.OK)
+        {
+            Content = new BodyReadCanceledContent(cancellation),
+        };
+        using HttpClient client = CreateClient(
+            receivedBodies,
+            () => firstResponse,
+            () => new HttpResponseMessage(HttpStatusCode.OK)
+        );
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.PostAsync("decision", new StringContent(RequestBody), cancellation.Token)
+        );
+
+        Assert.True(firstResponse.IsDisposed);
+        Assert.Single(receivedBodies);
     }
 
     [Fact]
@@ -205,6 +260,42 @@ public class PdpRetryDelegatingHandlerTests
         {
             IsDisposed = true;
             base.Dispose(disposing);
+        }
+    }
+
+    // A body whose connection drops while it is read, as SocketsHttpHandler reports it
+    private sealed class BodyReadFailingContent : HttpContent
+    {
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
+            Task.FromException(new HttpIOException(HttpRequestError.ResponseEnded, "The response ended prematurely."));
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+    }
+
+    // A body whose read is canceled with the request, through the token the read was given
+    private sealed class BodyReadCanceledContent(CancellationTokenSource cancellation) : HttpContent
+    {
+        protected override async Task SerializeToStreamAsync(
+            Stream stream,
+            TransportContext? context,
+            CancellationToken cancellationToken
+        )
+        {
+            await cancellation.CancelAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
+            SerializeToStreamAsync(stream, context, CancellationToken.None);
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
         }
     }
 }
