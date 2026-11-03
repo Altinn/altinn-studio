@@ -27,10 +27,16 @@ describe('BrokerFileTransferMetadata', () => {
     });
 
     expect(screen.getByRole('button', { name: 'caseNumber' })).toHaveTextContent(
-      textMock('ux_editor.component_properties.metadata.field_summary', { field: 'field1' }),
+      textMock('ux_editor.component_properties.metadata.field_summary', {
+        field: 'field1',
+        interpolation: { escapeValue: false },
+      }),
     );
     expect(screen.getByRole('button', { name: 'category' })).toHaveTextContent(
-      textMock('ux_editor.component_properties.metadata.text_summary', { text: 'invoice' }),
+      textMock('ux_editor.component_properties.metadata.text_summary', {
+        text: 'invoice',
+        interpolation: { escapeValue: false },
+      }),
     );
     expect(screen.getByRole('button', { name: 'combined' })).toHaveTextContent(
       text('expression_summary'),
