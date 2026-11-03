@@ -51,9 +51,8 @@ public sealed class OnTaskEndingContext
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 
     /// <summary>
-    /// The engine-assigned id of the workflow running this hook. Stable across retries of the same process
-    /// transition; a new visit to the task runs under a new workflow id. A hook with external side effects can use it to tell
-    /// a retried attempt apart from a genuinely new pass.
+    /// The engine-assigned id of the workflow running this hook, which every step of the process transition
+    /// shares. It does not tell one call apart from another; use <see cref="StepId"/> as the idempotency key.
     /// </summary>
     public required Guid WorkflowId { get; init; }
 
