@@ -17,6 +17,7 @@ import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebS
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { renderHookWithProviders } from '../../../../test/mocks';
 import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
+import type { ChatMessage } from 'app-shared/types/api';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 vi.mock('../useAssistantWebSocket/useAssistantWebSocket');
@@ -1734,6 +1735,87 @@ describe('deleteThread', () => {
     await act(async () => emitEvent(busyEvent('thread-a')));
 
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+  });
+
+  it('deletes a thread only once when the user deletes it again during the deletion', async () => {
+    let finishDeletion: () => void = () => {};
+    const deletion = new Promise<void>((resolve) => (finishDeletion = resolve));
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      deleteThread: vi.fn(() => deletion),
+    });
+    mockWebSocket();
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => {
+      const deletions = [
+        result.current.deleteThread('thread-a'),
+        result.current.deleteThread('thread-a'),
+      ];
+      finishDeletion();
+      await Promise.all(deletions);
+    });
+
+    expect(threads.deleteThread).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends a message to a new thread when the app deletes the open thread', async () => {
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      deleteThread: vi.fn(() => new Promise<void>(() => {})),
+    });
+    const startWorkflow = vi
+      .fn<(request: WorkflowRequest) => Promise<AgentResponse>>()
+      .mockResolvedValue({ accepted: true, session_id: 'new-thread-id', message: '' });
+    mockWebSocket({ startWorkflow });
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => {
+      void result.current.deleteThread('thread-a');
+    });
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Hei',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    expect(threads.createThread).toHaveBeenCalledWith('Hei');
+    expect(startWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({ session_id: 'new-thread-id' }),
+    );
+  });
+
+  it('does not reset the repository when the user deletes the thread while the app saves the answer', async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    let finishSave: () => void = () => {};
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      createMessage: vi.fn(
+        () =>
+          new Promise<ChatMessage>((resolve) => {
+            finishSave = () => resolve({ id: 'persisted-message-id' } as ChatMessage);
+          }),
+      ),
+    });
+    const emitEvent = mockWebSocket();
+
+    const { result } = renderUseAssistantWorkflow(threads, { resetRepoChanges });
+    await act(async () =>
+      emitEvent({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', mode: 'edit' },
+      }),
+    );
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+    await act(async () => finishSave());
+
+    expect(resetRepoChanges).not.toHaveBeenCalled();
   });
 });
 

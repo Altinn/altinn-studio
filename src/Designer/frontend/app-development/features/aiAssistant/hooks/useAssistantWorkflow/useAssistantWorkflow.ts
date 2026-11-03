@@ -332,7 +332,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      if (!shouldSkipBranchOps(assistantMessage)) {
+      // The user can delete the thread while the app saves the message.
+      if (!shouldSkipBranchOps(assistantMessage) && !deletingThreadIdsRef.current.has(threadId)) {
         resetRepoForSession(threadId);
       }
     },
@@ -507,7 +508,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!message.content) return;
 
       let threadId = selectedThreadId;
-      if (!threadId) {
+      // When the app deletes the open thread, the message goes to a new thread.
+      if (!threadId || deletingThreadIdsRef.current.has(threadId)) {
         try {
           threadId = await createThread(createThreadTitle(message.content));
           selectThread(threadId);
@@ -609,6 +611,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const deleteThread = useCallback(
     async (threadId: string): Promise<void> => {
       const deletingThreadIds = deletingThreadIdsRef.current;
+      if (deletingThreadIds.has(threadId)) return;
       deletingThreadIds.add(threadId);
       const statusBeforeCancel = workflowStatusByThread[threadId];
       if (statusBeforeCancel?.isActive) {
