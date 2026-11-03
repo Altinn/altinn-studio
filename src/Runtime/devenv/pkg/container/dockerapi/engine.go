@@ -356,9 +356,12 @@ func (e *engine) call(ctx context.Context, method, path string, query url.Values
 	return nil
 }
 
-// checkStatus returns the daemon's error for a 4xx or 5xx status.
+// checkStatus returns the daemon's error for a status other than 2xx or 304. Redirects are not followed,
+// so a 3xx would otherwise read as an empty success. Docker and Podman answer 304 when a container is
+// already started or stopped, which moby's client also treats as success.
 func checkStatus(resp *http.Response) error {
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusBadRequest {
+	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices ||
+		resp.StatusCode == http.StatusNotModified {
 		return nil
 	}
 	return &apiError{StatusCode: resp.StatusCode, Message: responseErrorMessage(resp)}

@@ -407,10 +407,24 @@ func TestEngine_DoesNotFollowRedirects(t *testing.T) {
 				http.Redirect(w, req, "/redirected", http.StatusMovedPermanently)
 			})
 			err := c.api.call(t.Context(), method, "/redirect", nil, nil, nil)
-			if method == http.MethodGet && err != nil || method != http.MethodGet && !errors.Is(err, errRedirect) {
+			if method == http.MethodGet && !hasStatus(err, http.StatusMovedPermanently) ||
+				method != http.MethodGet && !errors.Is(err, errRedirect) {
 				t.Fatalf("%s redirect error = %v", method, err)
 			}
 		})
+	}
+}
+
+func TestEngine_NotModifiedIsSuccess(t *testing.T) {
+	t.Parallel()
+	c := newHTTPTestClient(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotModified)
+	})
+	if err := c.ContainerStart(t.Context(), "ctr"); err != nil {
+		t.Fatalf("ContainerStart() error = %v, want nil for 304", err)
+	}
+	if err := c.ContainerStop(t.Context(), "ctr", nil); err != nil {
+		t.Fatalf("ContainerStop() error = %v, want nil for 304", err)
 	}
 }
 
