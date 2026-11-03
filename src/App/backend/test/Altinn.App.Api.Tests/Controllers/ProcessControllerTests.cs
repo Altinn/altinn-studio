@@ -433,11 +433,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         Assert.Equal("2026-1", instance.DataValues?["caseNumber"]);
         Assert.Equal("Name change", instance.PresentationTexts?["caseTitle"]);
         Assert.Equal("Kari Nordmann", instance.PresentationTexts?["Navn"]);
-        Assert.Equal(
-            ("submitted", "Sent to the case worker"),
-            (instance.Status?.Substatus?.Label, instance.Status?.Substatus?.Description)
-        );
-        Assert.Contains(instance.CompleteConfirmations ?? [], confirmation => confirmation.StakeholderId == Org);
         DataElement formElement = JsonSerializer.Deserialize<DataElement>(
             await File.ReadAllTextAsync(
                 TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid)
@@ -478,8 +473,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             );
             mutator.SetDataValue("caseNumber", "2026-1");
             mutator.SetPresentationText("caseTitle", "Name change");
-            mutator.SetSubstatus(new Substatus { Label = "submitted", Description = "Sent to the case worker" });
-            mutator.AddCompleteConfirmation();
             return HandlerResult.Success();
         }
     }

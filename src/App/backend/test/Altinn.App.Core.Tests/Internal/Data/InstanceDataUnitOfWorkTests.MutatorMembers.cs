@@ -497,41 +497,8 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SetSubstatus_IsShownOnTheInstanceAndSentWithUserAndWorkflowSaves(bool workflowOwned)
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
-            "initial"u8.ToArray(),
-            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true
-        );
-
-        setup.DataMutator.SetSubstatus(new Substatus { Label = "awaiting-payment", Description = "Waiting" });
-        Substatus? shown = setup.DataMutator.Instance.Status?.Substatus;
-        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        if (workflowOwned)
-        {
-            await setup.DataMutator.SaveWorkflowOwnedAggregate(
-                changes,
-                "workflow-substatus-key",
-                CancellationToken.None
-            );
-        }
-        else
-        {
-            await setup.DataMutator.SaveChanges(changes);
-        }
-
-        Assert.Equal(("awaiting-payment", "Waiting"), (shown?.Label, shown?.Description));
-        Substatus? sent = GetSingleMutation(setup).Substatus;
-        Assert.Equal(("awaiting-payment", "Waiting"), (sent?.Label, sent?.Description));
-    }
-
-    [Theory]
     [InlineData("metadata")]
     [InlineData("presentationText")]
-    [InlineData("substatus")]
     public async Task SaveChanges_CalledTwice_SendsAStagedInstanceChangeOnce(string member)
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
@@ -545,9 +512,6 @@ public sealed partial class InstanceDataUnitOfWorkTests
                 break;
             case "presentationText":
                 setup.DataMutator.SetPresentationText("title", "Application");
-                break;
-            case "substatus":
-                setup.DataMutator.SetSubstatus(new Substatus { Label = "awaiting-payment" });
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(member));

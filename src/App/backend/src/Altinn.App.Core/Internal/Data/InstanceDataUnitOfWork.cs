@@ -94,9 +94,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly ConcurrentDictionary<string, string?> _stagedInstancePresentationTexts = new(
         StringComparer.Ordinal
     );
-    private Substatus? _stagedSubstatus;
 
-    // The instance's data values, presentation texts and status are plain objects that the setters change in place.
+    // The instance's data values and presentation texts are plain dictionaries that the setters change in place.
     private readonly Lock _instanceFieldsLock = new();
 
     // Metadata changes per data element, existing or staged for creation, merged per property.
@@ -716,15 +715,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedInstanceDeletion = true;
     }
 
-    /// <inheritdoc />
-    /// <remarks>
-    /// Storage records the confirmation for the calling organization, which for an app is the instance's
-    /// own org, so a confirmation this instance already carries is not requested again: the mutation
-    /// would bump the instance version for a write that changes nothing, and every fence held elsewhere
-    /// with it. A confirmation added after this snapshot was captured is still requested, and Storage
-    /// keeps that from duplicating.
-    /// </remarks>
-    public void AddCompleteConfirmation()
+    /// <summary>
+    /// Stages a complete confirmation for the service owner. Storage records it for the calling
+    /// organization, which for an app is the instance's own org, so a confirmation this instance
+    /// already carries is not requested again: the mutation would bump the instance version for a
+    /// write that changes nothing, and every fence held elsewhere with it. A confirmation added after
+    /// this snapshot was captured is still requested, and Storage keeps that from duplicating.
+    /// </summary>
+    internal void AddCompleteConfirmation()
     {
         if (
             _instance.CompleteConfirmations?.Exists(confirmation => confirmation.StakeholderId == _instance.Org) is true
@@ -802,33 +800,19 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return fields;
     }
 
-    /// <inheritdoc />
-    public void SetSubstatus(Substatus substatus)
-    {
-        ArgumentNullException.ThrowIfNull(substatus);
-
-        lock (_instanceFieldsLock)
-        {
-            _stagedSubstatus = new Substatus { Label = substatus.Label, Description = substatus.Description };
-            Instance.Status ??= new InstanceStatus();
-            Instance.Status.Substatus = new Substatus { Label = substatus.Label, Description = substatus.Description };
-        }
-    }
-
     internal IReadOnlyDictionary<string, string?> StagedInstanceDataValues => _stagedInstanceDataValues;
 
     internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
 
     /// <summary>
-    /// Whether a save would write something that app code staged: the element changes, or a change to element
-    /// metadata, data values, presentation texts, the substatus or the complete confirmation.
+    /// Whether a save would write something a command or app code staged: the element changes, or a change to
+    /// element metadata, data values, presentation texts or the complete confirmation.
     /// </summary>
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0
         || !_stagedMetadataUpdates.IsEmpty
         || !_stagedInstanceDataValues.IsEmpty
         || !_stagedInstancePresentationTexts.IsEmpty
-        || _stagedSubstatus is not null
         || _stagedCompleteConfirmation;
 
     /// <summary>
@@ -1072,7 +1056,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ApplyStagedCompleteConfirmation(mutationPlan.Request);
         ApplyStagedInstanceDataValues(mutationPlan.Request);
         ApplyStagedInstancePresentationTexts(mutationPlan.Request);
-        ApplyStagedSubstatus(mutationPlan.Request);
         if (!mutationPlan.HasMutations)
         {
             return WorkflowAggregateSaveOutcome.NothingToSave;
@@ -1423,11 +1406,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
-    private void ApplyStagedSubstatus(StorageInstanceMutationRequest request)
-    {
-        request.Substatus = _stagedSubstatus;
-    }
-
     private async Task RebuildFromStorageAfterReplay(CancellationToken cancellationToken)
     {
         var appIdentifier = GetAppIdentifierForStorageLookup();
@@ -1459,7 +1437,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedCompleteConfirmation = false;
         _stagedInstanceDataValues.Clear();
         _stagedInstancePresentationTexts.Clear();
-        _stagedSubstatus = null;
         _stagedMetadataUpdates.Clear();
     }
 
@@ -1890,7 +1867,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.DeleteDataElements.Count > 0
             || Request.DeleteInstance is not null
             || Request.AddCompleteConfirmation
-            || Request.Substatus is not null
             || Request.DataValues.Count > 0
             || Request.PresentationTexts.Count > 0
             || Request.ProcessState?.State is not null

@@ -825,12 +825,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             values => instance.PresentationTexts = values
         );
 
-        if (mutation.Substatus is not null)
-        {
-            instance.Status ??= new InstanceStatus();
-            instance.Status.Substatus = mutation.Substatus;
-        }
-
         if (mutation.AddCompleteConfirmation)
         {
             instance.CompleteConfirmations ??= [];
