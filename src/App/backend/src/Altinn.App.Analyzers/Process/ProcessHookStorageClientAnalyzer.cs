@@ -101,12 +101,21 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
             IMethodReferenceOperation methodReference => methodReference.Method,
             _ => null,
         };
-        if (target is null || !clients.Contains(target.ContainingType.OriginalDefinition))
+        if (target is null)
+            return;
+
+        // An extension method on a client, such as IDataClientExtensions.GetFormData<T>, is a call to that client.
+        var definition = target.ReducedFrom ?? target;
+        var client =
+            definition.IsExtensionMethod && definition.Parameters.Length > 0
+                ? definition.Parameters[0].Type as INamedTypeSymbol
+                : target.ContainingType;
+        if (client is null || !clients.Contains(client.OriginalDefinition))
             return;
 
         if (
             target.Name == GetInstancesMethodName
-            && SymbolEqualityComparer.Default.Equals(target.ContainingType.OriginalDefinition, instanceClient)
+            && SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
         )
             return;
 
@@ -143,7 +152,7 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
             Diagnostic.Create(
                 Diagnostics.CodeSmells.StorageClientInProcessHook,
                 context.Operation.Syntax.GetLocation(),
-                target.ContainingType.Name,
+                client.Name,
                 target.Name,
                 hook
             )
