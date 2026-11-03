@@ -11,7 +11,7 @@ on:
       environments:
         description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
         required: false
-        default: 'prod'
+        default: 'dev,prod'
 
 permissions:
   id-token: write
@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
-      override-default-studio-environments: prod
+      override-default-studio-environments: dev,prod
 
   push-artifact:
     name: Push Sandbox node as OCI artifact
