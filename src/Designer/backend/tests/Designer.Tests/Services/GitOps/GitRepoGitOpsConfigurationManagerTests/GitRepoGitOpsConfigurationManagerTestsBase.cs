@@ -57,23 +57,25 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         GitOpsManifestsRenderer = new GitOpsManifestsRenderer();
         MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
         MockLockService = new Mock<ILockService>();
-        GitOpsConfigurationManager = new GitRepoGitOpsConfigurationManager(
+        GitOpsConfigurationManager = CreateGitOpsConfigurationManager(testRepoPath);
+    }
+
+    protected GitRepoGitOpsConfigurationManager CreateGitOpsConfigurationManager(string localRepositoryLocation) =>
+        new(
             new IGiteaClientMock(),
             GitOpsManifestsRenderer,
             new ISourceControlMock(),
             MockLockService.Object,
-            AltinnGitRepositoryFactory,
             new FakeTimeProvider(),
             new GitOpsSettings
             {
                 GitOpsOrg = OrgEditingContext.Org,
                 GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}"),
                 BotPersonalAccessToken = "test-bot-token",
+                LocalRepositoryLocation = localRepositoryLocation,
             },
-            new ServiceRepositorySettings { RepositoryLocation = testRepoPath },
             MockLogger.Object
         );
-    }
 
     protected async Task AppDirectoryExists(string app)
     {

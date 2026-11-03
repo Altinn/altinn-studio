@@ -107,7 +107,11 @@ public class ISourceControlMock : ISourceControl
         throw new NotImplementedException();
     }
 
-    public void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    public void ResetToRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName,
+        string localPath
+    )
     {
         string remotePath = TestDataHelper.GetTestDataRemoteRepository(
             authenticatedContext.Org,
@@ -119,11 +123,6 @@ public class ISourceControlMock : ISourceControl
             throw new LibGit2Sharp.LibGit2SharpException($"Remote repository not found: {remotePath}");
         }
 
-        string localPath = TestDataHelper.GetTestDataRepositoryDirectory(
-            authenticatedContext.Org,
-            authenticatedContext.Repo,
-            _developer
-        );
         // A reset keeps the clone's .git folder and replaces the rest with the remote's content.
         foreach (string entry in Directory.EnumerateFileSystemEntries(localPath))
         {
@@ -142,7 +141,7 @@ public class ISourceControlMock : ISourceControl
             }
         }
 
-        CloneRemoteRepository(authenticatedContext);
+        CloneRemoteRepository(authenticatedContext, localPath);
     }
 
     public Task<string> GetDeployToken()

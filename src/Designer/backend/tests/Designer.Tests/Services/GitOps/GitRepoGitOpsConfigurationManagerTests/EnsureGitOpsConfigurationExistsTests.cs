@@ -1,5 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Designer.Tests.Utils;
@@ -152,6 +154,35 @@ public class EnsureGitOpsConfigurationExistsTests
             .And.When.EnsureGitOpsConfigurationExistsCalled("tt02");
 
         Then.LocalCloneShouldNotBeKept();
+    }
+
+    [Fact]
+    public async Task ShouldCloneIntoTheLocalRepositoryLocation_NotTheSharedRepositoryLocation()
+    {
+        string localRepositoryLocation = Path.Join(Path.GetTempPath(), Path.GetRandomFileName());
+        string sharedRepositoryPath = AltinnGitRepository.RepositoryDirectory;
+        try
+        {
+            Given.That.RemoteRepositoryExists().And.LocalRepositoryDoesNotExist();
+
+            await CreateGitOpsConfigurationManager(localRepositoryLocation)
+                .EnsureGitOpsConfigurationExistsAsync(OrgEditingContext, AltinnEnvironment.FromName("tt02"));
+
+            AltinnGitRepository localClone = new AltinnGitRepositoryFactory(
+                localRepositoryLocation
+            ).GetAltinnGitRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
+            Assert.True(localClone.FileExistsByRelativePath(ManifestsPathHelper.BaseManifests.KustomizationPath));
+            Assert.False(Directory.Exists(sharedRepositoryPath), "Nothing should be cloned to the shared location");
+        }
+        finally
+        {
+            if (Directory.Exists(localRepositoryLocation))
+            {
+                Directory.Delete(localRepositoryLocation, true);
+            }
+            // The base class deletes the shared copy after each test.
+            Directory.CreateDirectory(sharedRepositoryPath);
+        }
     }
 
     private async Task EnsureGitOpsConfigurationExistsCalled(string environment)
