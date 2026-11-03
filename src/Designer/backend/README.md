@@ -10,6 +10,8 @@ It uses:
   developer who edits it.
 - PostgreSQL. Designer does not migrate its database itself. The [migrations image](Migrations.Dockerfile) applies
   the Entity Framework migrations.
+- Gitea's database, read-only, to find the Gitea user of an Ansattporten login and to count the service owners'
+  apps, including the private repositories that Gitea's API would hide from it.
 - Redis outside Development and Test. Designer's replicas share their cache, SignalR messages and studioctl's auth
   codes through it.
 - Azure DevOps pipelines and the service owners' GitOps repositories in Gitea to deploy apps, as
@@ -23,6 +25,12 @@ It uses:
 A v8 app lists its layout sets in `layout-sets.json`, and a v9 app has [UI folders](../../../GLOSSARY.md) instead.
 Where the formats differ, the backend checks `IAppVersionService.IsV9App`. `AppDevelopmentService` writes the v8
 format and `UiFoldersService` the v9 format. [Designer](../README.md#v8-and-v9-apps) says when we change the v8 code.
+
+## Telemetry
+
+The dashboards in [altinn-dashboards-grafana](https://github.com/Altinn/altinn-dashboards-grafana) query Designer's
+metric and attribute names, so a change to them needs a change to the dashboards too. The app statistics come from
+[AppMetrics](src/Designer/Telemetry/AppMetrics.cs).
 
 ## Development
 

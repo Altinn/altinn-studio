@@ -9,8 +9,10 @@ using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using Designer.Tests.Telemetry;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -24,6 +26,7 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
 {
     private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
     private readonly Mock<IAppTemplateCatalog> _appTemplateCatalogMock = new Mock<IAppTemplateCatalog>();
+    private readonly MetricsRecorder<AppMetrics> _appMetrics = new(meterFactory => new AppMetrics(meterFactory));
 
     private static readonly AppTemplate s_defaultAppTemplate = new()
     {
@@ -45,6 +48,16 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
         _appTemplateCatalogMock.Setup(c => c.GetAppTemplates()).Returns([s_defaultAppTemplate]);
         _appTemplateCatalogMock.Setup(c => c.GetDefaultAppTemplate()).Returns(s_defaultAppTemplate);
         services.AddSingleton(_ => _appTemplateCatalogMock.Object);
+        services.AddSingleton(_appMetrics.Metrics);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _appMetrics.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     [Fact]
@@ -71,10 +84,30 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
     [Fact]
     public async Task CreateApp_ValidRepoName_Created()
     {
-        // Arrange
+        // Act
+        using HttpResponseMessage res = await CreateApp("ttd");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        RecordedMeasurement creation = Assert.Single(_appMetrics.Measurements(AppMetrics.CreationsMetricName));
+        Assert.Equal("ttd", creation.Tags["altinn.service_owner"]);
+        Assert.Equal("template", creation.Tags["altinn.designer.app.creation.source"]);
+    }
+
+    [Fact]
+    public async Task CreateApp_InTheDevelopersOwnAccount_IsNotCountedAsAServiceOwnersApp()
+    {
+        using HttpResponseMessage res = await CreateApp("testUser");
+
+        Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        Assert.Empty(_appMetrics.Measurements(AppMetrics.CreationsMetricName));
+    }
+
+    private async Task<HttpResponseMessage> CreateApp(string owner)
+    {
         string uri = $"{VersionPrefix}/create-app";
         var content = new StringContent(
-            JsonSerializer.Serialize(new CreateAppRequest { Org = "ttd", Repository = "test" }),
+            JsonSerializer.Serialize(new CreateAppRequest { Org = owner, Repository = "test" }),
             System.Text.Encoding.UTF8,
             "application/json"
         );
@@ -99,11 +132,7 @@ public class CreateAppTests : DesignerEndpointsTestsBase<CreateAppTests>, IClass
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
         httpRequestMessage.Content = content;
 
-        // Act
-        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        return await HttpClient.SendAsync(httpRequestMessage);
     }
 
     [Fact]

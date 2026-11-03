@@ -37,6 +37,9 @@ using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
 using AltinnEnvironment = Altinn.Studio.Designer.Models.AltinnEnvironment;
+using DeployedAppCount = Altinn.Studio.Designer.Repository.Models.DeployedAppCount;
+using DeployEventType = Altinn.Studio.Designer.Repository.Models.DeployEventType;
+using DeploymentType = Altinn.Studio.Designer.Repository.Models.DeploymentType;
 using NotificationKind = Altinn.Studio.Designer.Models.NotificationKind;
 
 namespace Designer.Tests.Hosting;
@@ -226,6 +229,36 @@ public class OpenTelemetryTests
             Assert.Equal(AggregationTemporality.Cumulative, metric.Temporality);
             Assert.Equal(1, Assert.Single(MetricPoints(name)).GetSumLong());
         }
+    }
+
+    [Fact]
+    public async Task AppMetrics_AreExportedAsCumulativeCountersAndGauges()
+    {
+        await StartAsync();
+        AppMetrics appMetrics = Services.GetRequiredService<AppMetrics>();
+        appMetrics.RecordCreation("ttd", AppCreationSource.Template);
+        appMetrics.RecordDeployment(
+            "ttd",
+            "tt02",
+            DeploymentType.Deploy,
+            DeployEventType.InstallSucceeded,
+            first: true
+        );
+        appMetrics.SetAppCounts(new Dictionary<string, int> { ["ttd"] = 3 });
+        appMetrics.SetDeployedAppCounts([new DeployedAppCount("ttd", "tt02", 2)]);
+
+        _metrics.Clear();
+        Services.GetRequiredService<MeterProvider>().ForceFlush();
+
+        foreach (string name in new[] { AppMetrics.CreationsMetricName, AppMetrics.DeploymentsMetricName })
+        {
+            Metric metric = Assert.Single(_metrics, metric => metric.Name == name);
+            Assert.Equal(MetricType.LongSum, metric.MetricType);
+            Assert.Equal(AggregationTemporality.Cumulative, metric.Temporality);
+            Assert.Equal(1, Assert.Single(MetricPoints(name)).GetSumLong());
+        }
+        Assert.Equal(3, Assert.Single(MetricPoints(AppMetrics.AppCountMetricName)).GetGaugeLastValueLong());
+        Assert.Equal(2, Assert.Single(MetricPoints(AppMetrics.DeployedAppCountMetricName)).GetGaugeLastValueLong());
     }
 
     [Fact]

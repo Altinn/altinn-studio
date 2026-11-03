@@ -10,9 +10,11 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Scheduling;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Designer.Tests.Telemetry;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -125,11 +127,57 @@ public class DeploymentPipelinePollingJobTest
         fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345", It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Execute_FailedPipeline_RecordsTheDeploymentAsFailed()
+    {
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Deploy);
+
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Failed });
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.InProgress } });
+
+        await fixture.Service.Execute(jobExecutionContext);
+
+        RecordedMeasurement deployment = Assert.Single(
+            fixture.AppMetrics.Measurements(AppMetrics.DeploymentsMetricName)
+        );
+        Assert.Equal("testorg", deployment.Tags["altinn.service_owner"]);
+        Assert.Equal("tt02", deployment.Tags["altinn.environment"]);
+        Assert.Equal("deploy", deployment.Tags["altinn.designer.app.deployment.type"]);
+        Assert.Equal("pipeline_failed", deployment.Tags["error.type"]);
+        Assert.False(deployment.Tags.ContainsKey("altinn.designer.app.deployment.first"));
+    }
+
+    [Fact]
+    public async Task Execute_SucceededPipeline_LeavesTheOutcomeToTheRuntimeCluster()
+    {
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Deploy);
+
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded });
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.InProgress } });
+
+        await fixture.Service.Execute(jobExecutionContext);
+
+        Assert.Empty(fixture.AppMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+    }
+
     private sealed record Fixture(
         DeploymentPipelinePollingJob DeploymentPipelinePollingJob,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
         Mock<IDeploymentRepository> MockDeploymentRepository,
-        Mock<IAzureDevOpsBuildClient> MockAzureDevOpsBuildClient
+        Mock<IAzureDevOpsBuildClient> MockAzureDevOpsBuildClient,
+        MetricsRecorder<AppMetrics> AppMetrics
     )
     {
         public DeploymentPipelinePollingJob Service => DeploymentPipelinePollingJob;
@@ -141,6 +189,7 @@ public class DeploymentPipelinePollingJobTest
             var mockDeployEventRepository = new Mock<IDeployEventRepository>();
             var mockAzureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             var mockHubContext = MockHubContextFactory<EntityUpdatedHub, IEntityUpdateClient>();
+            var appMetrics = new MetricsRecorder<AppMetrics>(meterFactory => new AppMetrics(meterFactory));
 
             var service = new DeploymentPipelinePollingJob(
                 mockAzureDevOpsBuildClient.Object,
@@ -150,14 +199,16 @@ public class DeploymentPipelinePollingJobTest
                 mockHubContext.Object,
                 Mock.Of<IPublisher>(),
                 NullLogger<DeploymentPipelinePollingJob>.Instance,
-                TimeProvider.System
+                TimeProvider.System,
+                appMetrics.Metrics
             );
 
             return new Fixture(
                 service,
                 mockStorageAppMetadataClient,
                 mockDeploymentRepository,
-                mockAzureDevOpsBuildClient
+                mockAzureDevOpsBuildClient,
+                appMetrics
             );
         }
     }
