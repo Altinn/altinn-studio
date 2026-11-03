@@ -1,0 +1,12 @@
+[
+{"query":{"fromImage":["docker.io/library/alpine"],"tag":["latest"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["docker.io/library/alpine"],"tag":["3.20"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["docker.io/user/app"],"tag":["1.0"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["docker.io/user/app"],"tag":["latest"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["ghcr.io/altinn/studio"],"tag":["v1"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["localhost:5001/runtime/app"],"tag":["dev"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["localhost/app"],"tag":["latest"]},"method":"POST","path":"/images/create"},
+{"query":{"fromImage":["docker.io/library/alpine"],"tag":["sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"]},"method":"POST","path":"/images/create"},
+{"query":{"repo":["localhost:5001/app"],"tag":["dev"]},"method":"POST","path":"/images/app:build/tag"},
+{"query":{"repo":["docker.io/library/app"],"tag":["latest"]},"method":"POST","path":"/images/app:build/tag"}
+]
