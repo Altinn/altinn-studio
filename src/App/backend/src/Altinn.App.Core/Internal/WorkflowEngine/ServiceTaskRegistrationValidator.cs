@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Features.Process;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,8 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates service task pipelines, the sealed forwarding implementation of <see cref="IServiceTask"/>, and that
-/// no app service task reuses a built-in task type.
+/// Validates that every registered service task composes a pipeline and that no app service task reuses a built-in
+/// task type.
 /// <see cref="Process.ProcessTaskConfigurationValidationService"/> validates BPMN task configuration.
 /// </summary>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
@@ -39,7 +40,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             ValidatePipeline(task, errors);
         }
 
-        ValidateNoBuiltInTypeReused([.. simpleTasks, .. pipelineTasks], errors);
+        ValidateNoBuiltInTypeReused(tasks, errors);
 
         if (errors.Count > 0)
         {
@@ -73,39 +74,10 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
     }
 
     /// <summary>
-    /// An <see cref="IServiceTask"/> must keep the forwarding default of
-    /// <see cref="IPipelineServiceTask.Define"/> (<c>Finally(Execute)</c>) — a class providing its
-    /// own would silently turn its <c>Execute</c> into dead code. Backstop for the compile-time
-    /// analyzer diagnostic.
+    /// Which of two tasks with the same type runs depends on registration order, so an app task may not share a type
+    /// with a built-in (a task declared in this assembly).
     /// </summary>
-    private static void ValidateSealedDefine(IPipelineServiceTask task, List<string> errors)
-    {
-        Type taskType = task.GetType();
-        InterfaceMapping map = taskType.GetInterfaceMap(typeof(IPipelineServiceTask));
-        for (int i = 0; i < map.InterfaceMethods.Length; i++)
-        {
-            if (map.InterfaceMethods[i].Name != nameof(IPipelineServiceTask.Define))
-                continue;
-
-            // The forwarding default lives on the IServiceTask interface; any non-interface
-            // target means the class re-implemented Define.
-            if (map.TargetMethods[i].DeclaringType is { IsInterface: false })
-            {
-                errors.Add(
-                    $"  - {taskType.FullName}: implements {nameof(IServiceTask)} but replaces "
-                        + $"{nameof(IPipelineServiceTask)}.{nameof(IPipelineServiceTask.Define)}, whose forwarding "
-                        + $"default is the contract — its {nameof(IServiceTask.Execute)} would never run. Implement "
-                        + $"{nameof(IPipelineServiceTask)} directly instead."
-                );
-            }
-        }
-    }
-
-    /// <summary>
-    /// Which of two tasks with the same type runs depends on their interfaces and registration order, so an app
-    /// task may not share a type with a built-in (a task declared in this assembly).
-    /// </summary>
-    private static void ValidateNoBuiltInTypeReused(List<IPipelineServiceTask> tasks, List<string> errors)
+    private static void ValidateNoBuiltInTypeReused(List<IServiceTask> tasks, List<string> errors)
     {
         Assembly builtInAssembly = typeof(ServiceTaskRegistrationValidator).Assembly;
         IEnumerable<IGrouping<string, Type>> byType = tasks.GroupBy(

@@ -197,32 +197,7 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
     }
 
-    private sealed class ReplacedDefineTask : IServiceTask
-    {
-        public string Type => "replacedDefine";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
-
-        // The violation: an IServiceTask providing its own Define, silently turning Execute into
-        // dead code. (Suppressing the compile-time diagnostic here would be circular — this test
-        // project doesn't run the app-facing analyzer.)
-        ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline.Finally(NoopFinally);
-    }
-
-    [Fact]
-    public async Task ServiceTaskReplacingTheForwardingDefine_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, ReplacedDefineTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("replaces", exception.Message);
-        Assert.Contains("would never run", exception.Message);
-        Assert.Contains(nameof(IPipelineServiceTask), exception.Message);
-    }
-
     // ── Built-in task types ──────────────────────────────────────────────────────────────────
-    // App services are registered before AddAltinnAppServices in the v9 template, so the app task comes first.
 
     private static PdfServiceTask BuiltInPdfTask() =>
         new(
@@ -236,25 +211,19 @@ public class ServiceTaskRegistrationValidatorTests
     private static EFormidlingServiceTask BuiltInEFormidlingTask() =>
         new(NullLogger<EFormidlingServiceTask>.Instance, Mock.Of<IProcessReader>(), Mock.Of<IHostEnvironment>());
 
-    private sealed class AppPipelinePdfTask : IPipelineServiceTask
+    private sealed class AppPdfTask : IServiceTask
     {
         public string Type => "pdf";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(NoopFinally);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(NoopFinally);
     }
 
-    private sealed class AppServicePdfTask : IServiceTask
-    {
-        public string Type => "pdf";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
-    }
-
-    private sealed class AppServiceEFormidlingTask : IServiceTask
+    private sealed class AppEFormidlingTask : IServiceTask
     {
         public string Type => "eFormidling";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline.Stage(NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -263,54 +232,36 @@ public class ServiceTaskRegistrationValidatorTests
         var exception = await Validate(s =>
         {
             s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
-            s.AddSingleton<IPipelineServiceTask>(_ => BuiltInEFormidlingTask());
+            s.AddSingleton<IServiceTask>(_ => BuiltInEFormidlingTask());
         });
 
         Assert.Null(exception);
     }
 
     [Fact]
-    public async Task AppPipelineTaskWithBuiltInServiceTaskType_FailsStartup()
+    public async Task AppTaskRegisteredBeforeTheBuiltIn_FailsStartup()
     {
-        // Without the check the app task would win, because pipeline tasks are listed after service tasks.
+        // The v9 template registers app services before AddAltinnAppServices, so without the check the built-in wins.
         var exception = await Validate(s =>
         {
-            s.AddSingleton<IPipelineServiceTask, AppPipelinePdfTask>();
+            s.AddSingleton<IServiceTask, AppPdfTask>();
             s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
         });
 
-        AssertBuiltInTypeReused(exception, typeof(AppPipelinePdfTask), "pdf", nameof(PdfServiceTask));
+        AssertBuiltInTypeReused(exception, typeof(AppPdfTask), "pdf", nameof(PdfServiceTask));
     }
 
     [Fact]
-    public async Task AppServiceTaskWithBuiltInPipelineTaskType_FailsStartup()
+    public async Task AppTaskRegisteredAfterTheBuiltIn_FailsStartup()
     {
-        // Without the check the built-in would win, because pipeline tasks are listed after service tasks.
+        // Without the check the app task would win, because it is registered last.
         var exception = await Validate(s =>
         {
-            s.AddSingleton<IServiceTask, AppServiceEFormidlingTask>();
-            s.AddSingleton<IPipelineServiceTask>(_ => BuiltInEFormidlingTask());
+            s.AddSingleton<IServiceTask>(_ => BuiltInEFormidlingTask());
+            s.AddSingleton<IServiceTask, AppEFormidlingTask>();
         });
 
-        AssertBuiltInTypeReused(
-            exception,
-            typeof(AppServiceEFormidlingTask),
-            "eFormidling",
-            nameof(EFormidlingServiceTask)
-        );
-    }
-
-    [Fact]
-    public async Task AppTaskWithBuiltInTypeOnTheSameInterface_FailsStartup()
-    {
-        // Without the check the built-in would win, because it is registered last.
-        var exception = await Validate(s =>
-        {
-            s.AddSingleton<IServiceTask, AppServicePdfTask>();
-            s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
-        });
-
-        AssertBuiltInTypeReused(exception, typeof(AppServicePdfTask), "pdf", nameof(PdfServiceTask));
+        AssertBuiltInTypeReused(exception, typeof(AppEFormidlingTask), "eFormidling", nameof(EFormidlingServiceTask));
     }
 
     private static void AssertBuiltInTypeReused(
