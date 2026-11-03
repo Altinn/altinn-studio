@@ -797,7 +797,9 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Null(mutation.ProcessState);
         Assert.Null(mutation.DeleteInstance);
-        Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(response.State!).Instance.Process?.Status);
+        Instance confirmed = setup.DeserializeState(response.State!).Instance;
+        Assert.Equal(ProcessStatus.Processing, confirmed.Process?.Status);
+        Assert.Equal(MockedServiceCollection.Org, Assert.Single(confirmed.CompleteConfirmations).StakeholderId);
     }
 
     [Fact]
