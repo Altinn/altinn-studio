@@ -162,12 +162,16 @@ public class ApplicationMetadataServiceTest
         Assert.Equal(expectedJson.ReplaceLineEndings("\n"), committedJson?.ReplaceLineEndings("\n"));
     }
 
-    [Fact]
-    public async Task CommitAppStatusAsync_WhenStatusIsAlreadyCommitted_ReturnsBaseCommitWithoutCommitting()
+    [Theory]
+    [InlineData("Completed")]
+    [InlineData("completed")]
+    public async Task CommitAppStatusAsync_WhenStatusIsAlreadyCommitted_ReturnsBaseCommitWithoutCommitting(
+        string committedStatus
+    )
     {
         // Arrange
         var fixture = Fixture.Create();
-        SetupAppMetadataFile(fixture, """{ "id": "ttd/app", "status": "Completed" }""");
+        SetupAppMetadataFile(fixture, $$"""{ "id": "ttd/app", "status": "{{committedStatus}}" }""");
 
         // Act
         string commitId = await fixture.Service.CommitAppStatusAsync(
