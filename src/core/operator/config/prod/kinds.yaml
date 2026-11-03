@@ -1,0 +1,22 @@
+# maxActive matches the KVM slots of the ResourceQuota in src/core/operator-runner/infra/kustomize, so the queue rather
+# than the quota holds runs back. maxActivePerCaller keeps a slot for the other caller, so neither the assistant chat
+# nor the Designer UI can take every slot.
+callers:
+  assistant:
+    kinds:
+      - upgrade-v9
+  designer:
+    kinds:
+      - upgrade-v9
+kinds:
+  upgrade-v9:
+    namespace: sandbox-runs
+    podTemplate: operator-runner
+    command: upgrade-v9
+    # The command runs on the files of the app, which the caller uploads.
+    requiresArchive: true
+    # What a run is for. Callers find their runs again by these, and a dashboard can count runs by org.
+    labels: [org, app, repoOwner, repo, commit]
+    maxActive: 4
+    maxActivePerCaller: 3
+    runTimeout: 660s

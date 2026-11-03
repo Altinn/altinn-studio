@@ -1,0 +1,5 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Staging has no sandbox nodes, so it runs no kinds. The run API answers with an empty catalog.
+resources:
+  - ../base
