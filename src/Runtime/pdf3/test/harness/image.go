@@ -2,6 +2,7 @@ package harness
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -169,7 +170,10 @@ func fetch(ctx context.Context, url, accept string) (*http.Response, error) {
 		return nil, fmt.Errorf("GET %s: %w", url, err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: GET %s: %s", errors.Join(errRegistryResponse, resp.Body.Close()), url, resp.Status)
+		// The body says why, such as that the tag names an index, which the registry answers with 404.
+		body, readErr := io.ReadAll(resp.Body)
+		err = errors.Join(errRegistryResponse, readErr, resp.Body.Close())
+		return nil, fmt.Errorf("%w: GET %s: %s: %s", err, url, resp.Status, bytes.TrimSpace(body))
 	}
 	return resp, nil
 }
