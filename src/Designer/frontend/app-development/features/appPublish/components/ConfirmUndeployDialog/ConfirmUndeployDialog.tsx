@@ -16,9 +16,11 @@ import { useUndeployMutation } from '../../../../hooks/mutations/useUndeployMuta
 
 type ConfirmUndeployDialogProps = {
   environment: string;
+  onUndeployed?: () => void;
 };
 export const ConfirmUndeployDialog = ({
   environment,
+  onUndeployed,
 }: ConfirmUndeployDialogProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app: appName } = useStudioEnvironmentParams();
@@ -45,6 +47,7 @@ export const ConfirmUndeployDialog = ({
       {
         onSuccess: (): void => {
           closeDialog();
+          onUndeployed?.();
         },
       },
     );

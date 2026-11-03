@@ -82,6 +82,40 @@ describe('DeployMoreOptionsMenu', () => {
     expect(getMenuTrigger()).toHaveFocus();
   });
 
+  it('closes both unpublish dialogs once the app is undeployed', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await openMenu();
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
+    );
+    await user.click(
+      within(getConsequenceDialog()).getByRole('button', {
+        name: textMock('app_deployment.undeploy_button'),
+      }),
+    );
+    await user.type(
+      screen.getByLabelText(textMock('app_deployment.undeploy_confirmation_input_label')),
+      app,
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.undeploy_confirmation_button') }),
+    );
+
+    expect(
+      screen.queryByRole('dialog', {
+        name: textMock('app_deployment.undeploy_confirmation_dialog_title'),
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('dialog', {
+        name: textMock('app_deployment.unpublish_consequence_dialog_title'),
+      }),
+    ).not.toBeInTheDocument();
+    expect(getMenuTrigger()).toHaveFocus();
+  });
+
   it('should have a link to app within the env', async () => {
     renderMenu();
     await openMenu();
@@ -201,6 +235,11 @@ const getRestartButton = () =>
 
 const queryRestartButton = () =>
   screen.queryByRole('button', { name: textMock('app_deployment.restart_button') });
+
+const getConsequenceDialog = () =>
+  screen.getByRole('dialog', {
+    name: textMock('app_deployment.unpublish_consequence_dialog_title'),
+  });
 
 function getMenuTrigger(): HTMLElement {
   return screen.getByRole('button', {
