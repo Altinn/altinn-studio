@@ -41,13 +41,12 @@ public class AuthorizationPolicyService : IAuthorizationPolicyService
     public async Task UpdateApplicationAuthorizationPolicyAsync(
         string org,
         string app,
-        string shortCommitId,
+        string policyFileContent,
         string envName,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string policyFileContent = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
         policyFileContent = ReplacePolicyPlaceholderTokens(policyFileContent, org, app);
         await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, envName);
     }

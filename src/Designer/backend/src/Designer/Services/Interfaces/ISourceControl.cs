@@ -80,6 +80,15 @@ public interface ISourceControl
     void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 
     /// <summary>
+    /// Fetches the remote and makes the local repository match a remote branch, with that branch checked out. Local
+    /// commits, changes and untracked files are discarded.
+    /// </summary>
+    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+    /// <param name="branchName">The name of the branch</param>
+    /// <exception cref="Exceptions.SourceControl.BranchNotFoundException">The remote has no such branch.</exception>
+    void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+
+    /// <summary>
     /// List Git status for an app repo
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>

@@ -279,13 +279,13 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task UpdateApplicationMetadataInStorageAsync(
         string org,
         string app,
+        string appMetadataJson,
         string shortCommitId,
         string envName,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
         await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId);
     }
 

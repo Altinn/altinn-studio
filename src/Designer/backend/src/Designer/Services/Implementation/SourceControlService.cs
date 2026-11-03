@@ -233,6 +233,69 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
+    public void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    {
+        using var activity = StartActivity(authenticatedContext);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
+        ExecuteWithTelemetry(
+            activity,
+            (authenticatedContext, branchName),
+            static (self, ctx) =>
+            {
+                using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(ctx.authenticatedContext));
+                Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
+                // A clone made against another server would otherwise fetch from it and push its history here.
+                self.PointOriginAtRemote(repo, ctx.authenticatedContext);
+                // Without pruning, a branch the remote deleted is still found and would be pushed again.
+                self.FetchRemoteChanges(repo, ctx.authenticatedContext, prune: true);
+                LibGit2Sharp.Commit remoteTip =
+                    repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]?.Tip
+                    ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found.");
+
+                Branch branch = repo.Branches[ctx.branchName] ?? repo.CreateBranch(ctx.branchName, remoteTip);
+                Commands.Checkout(
+                    repo,
+                    EnsureLocalBranchTracksOrigin(repo, branch),
+                    new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force }
+                );
+                repo.Reset(ResetMode.Hard, remoteTip);
+                RemoveUntrackedAndIgnoredFiles(repo);
+            }
+        );
+    }
+
+    /// <summary>
+    /// Leaves only the tracked files, as a fresh clone has. RemoveUntrackedFiles keeps ignored files, and when it
+    /// removes the untracked .gitignore that ignored them, a later commit of all changes would include them.
+    /// </summary>
+    /// <exception cref="IOException">An entry cannot be found under its name, so it cannot be removed.</exception>
+    private static void RemoveUntrackedAndIgnoredFiles(LibGit2Sharp.Repository repo)
+    {
+        // Without recursion, libgit2 leaves out ignored files in an ignored folder that also holds tracked files.
+        // It still lists a nested repository as one entry.
+        RepositoryStatus status = repo.RetrieveStatus(
+            new StatusOptions { RecurseIgnoredDirs = true, RecurseUntrackedDirs = true }
+        );
+        foreach (StatusEntry entry in status.Untracked.Concat(status.Ignored))
+        {
+            string path = Path.Join(repo.Info.WorkingDirectory, entry.FilePath);
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
+            else if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            else
+            {
+                // Such as a name that is not valid UTF-8. Staging all changes would fail on it later.
+                throw new IOException($"Could not remove '{entry.FilePath}' from the working directory.");
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public void CommitAndPushChanges(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName,
@@ -1570,13 +1633,15 @@ public class SourceControlService(
     private void FetchRemoteChanges(
         LibGit2Sharp.Repository repo,
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        string logMessage = ""
+        string logMessage = "",
+        bool prune = false
     )
     {
         FetchOptions fetchOptions = new()
         {
             CredentialsProvider = GetCredentialsHandler(authenticatedContext),
             CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+            Prune = prune ? true : null,
         };
 
         foreach (Remote remote in repo.Network.Remotes)
@@ -1625,20 +1690,35 @@ public class SourceControlService(
         }
     }
 
+    private void PointOriginAtRemote(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext
+    )
+    {
+        string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
+        Remote remote = repo.Network.Remotes["origin"];
+        if (!remote.Url.Equals(remoteUrl) || !remote.PushUrl.Equals(remoteUrl))
+        {
+            // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+            // Requires administrator access to update files.
+            repo.Network.Remotes.Update(
+                "origin",
+                r =>
+                {
+                    r.Url = remoteUrl;
+                    r.PushUrl = remoteUrl;
+                }
+            );
+        }
+    }
+
     private void PushBranch(
         LibGit2Sharp.Repository repo,
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
     {
-        string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
-        Remote remote = repo.Network.Remotes["origin"];
-        if (!remote.PushUrl.Equals(remoteUrl))
-        {
-            // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
-            // Requires administrator access to update files.
-            repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-        }
+        PointOriginAtRemote(repo, authenticatedContext);
 
         Branch branch =
             repo.Branches[branchName]
