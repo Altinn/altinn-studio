@@ -205,15 +205,15 @@ async def run_loop(
     ctx: LoopContext,
     max_turns: int = 20,
     compaction: CompactionConfig | None = None,
-    is_cancelled: Callable[[], bool] | None = None,
     on_event: EventCallback | None = None,
     history: list[Message] | None = None,
 ) -> LoopResult:
     """Drive a conversation to termination.
 
-    `is_cancelled` is polled at the top of every turn so external
-    cancellation (e.g. the existing session cancel flag) takes effect
-    without forcing the adapter to abort an in-flight call.
+    `ctx.is_cancelled` is polled at the top of every turn and after each
+    model call, so external cancellation (e.g. the existing session cancel
+    flag) takes effect without forcing the adapter to abort an in-flight
+    call.
 
     `history` carries prior conversation turns (alternating user/assistant
     messages from earlier runs in the same session) so follow-up requests
@@ -234,7 +234,7 @@ async def run_loop(
     consecutive_truncations = 0
 
     for turn in range(1, max_turns + 1):
-        if is_cancelled and is_cancelled():
+        if ctx.is_cancelled():
             await _emit(on_event, "terminated", {"reason": "cancelled", "turn": turn})
             return LoopResult(
                 reason=TerminationReason.CANCELLED,
@@ -307,7 +307,7 @@ async def run_loop(
             {"turn": turn, "stop_reason": response.stop_reason, "text": extract_text(response)},
         )
 
-        if is_cancelled and is_cancelled():
+        if ctx.is_cancelled():
             await _emit(on_event, "terminated", {"reason": "cancelled", "turn": turn})
             return LoopResult(
                 reason=TerminationReason.CANCELLED,
