@@ -350,10 +350,6 @@ func checkStatus(resp *http.Response) error {
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusBadRequest {
 		return nil
 	}
-	return responseError(resp)
-}
-
-func responseError(resp *http.Response) error {
 	return &apiError{StatusCode: resp.StatusCode, Message: responseErrorMessage(resp)}
 }
 
