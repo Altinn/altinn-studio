@@ -62,6 +62,7 @@ public static class ApplicationMetadataJsonHelper
         return jsonObj.ToJsonString(serializationOptions);
     }
 
+    // Ignores the case of the value, as the typed ApplicationMetadata model does
     public static AppStatus? GetStatus(string json)
     {
         var jsonObj = ParseAndEnsureJsonObject(json);
@@ -70,7 +71,7 @@ public static class ApplicationMetadataJsonHelper
         return
             jsonObj[key] is JsonValue value
             && value.TryGetValue(out string? status)
-            && Enum.TryParse(status, ignoreCase: false, out AppStatus appStatus)
+            && Enum.TryParse(status, ignoreCase: true, out AppStatus appStatus)
             && Enum.IsDefined(appStatus)
             ? appStatus
             : null;
