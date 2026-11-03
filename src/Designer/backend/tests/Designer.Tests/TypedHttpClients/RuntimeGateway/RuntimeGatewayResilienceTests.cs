@@ -104,6 +104,23 @@ public class RuntimeGatewayResilienceTests : IDisposable
         Assert.Equal(1, handler.Invocations);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    [InlineData(HttpStatusCode.GatewayTimeout)]
+    public async Task TransientStatus_OnRestart_IsNotRetried(HttpStatusCode statusCode)
+    {
+        var handler = CountingHandler.Returning(statusCode);
+        using HttpClient client = CreateRestartClient(handler);
+
+        using HttpResponseMessage response = await client.PostAsync(
+            "http://runtime-gateway.test/deploy/apps/my-app/restart",
+            content: null
+        );
+
+        Assert.Equal(statusCode, response.StatusCode);
+        Assert.Equal(1, handler.Invocations);
+    }
+
     [Fact]
     public async Task BadGateway_OnRead_IsNotRetried()
     {
@@ -293,6 +310,9 @@ public class RuntimeGatewayResilienceTests : IDisposable
     private HttpClient CreateWorkflowsClient(CountingHandler handler, int? circuitBreakerMinimumThroughput = null) =>
         CreateClient(RuntimeGatewayServices.WorkflowsHttpClientName, handler, circuitBreakerMinimumThroughput);
 
+    private HttpClient CreateRestartClient(CountingHandler handler) =>
+        CreateClient(RuntimeGatewayServices.RestartHttpClientName, handler, circuitBreakerMinimumThroughput: null);
+
     private HttpClient CreateSharedClient(CountingHandler handler) =>
         CreateClient(RuntimeGatewayServices.HttpClientName, handler, circuitBreakerMinimumThroughput: null);
 
@@ -315,6 +335,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
             {
                 RuntimeGatewayServices.HttpClientName,
                 RuntimeGatewayServices.WorkflowsHttpClientName,
+                RuntimeGatewayServices.RestartHttpClientName,
             }
         )
         {

@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Services.Runtime;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Designer.Tests.Controllers.ApiTests;
@@ -60,8 +61,8 @@ public class GetDeployments
     {
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
-        SetupRunning("at22", new RunningAppDeployment("6.1", null));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod", "updating", null));
+        SetupRunning("at22", new RunningAppDeployment("6.1", null, null, "ready", null));
         SetupRunning("production", null);
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
@@ -81,8 +82,16 @@ public class GetDeployments
                     Environment = "tt02",
                     Version = "8",
                     BuildId = "1234",
+                    Status = AppStatus.Updating,
+                    CanRestart = true,
                 },
-                new RunningApp { Environment = "at22", Version = "6.1" },
+                new RunningApp
+                {
+                    Environment = "at22",
+                    Version = "6.1",
+                    Status = AppStatus.Ready,
+                    CanRestart = true,
+                },
             },
             actual.RunningAppList,
             strict: true
@@ -92,7 +101,7 @@ public class GetDeployments
     [Fact]
     public async Task GetDeployments_LeavesOutEnvironmentsWhereTheAppIsNotKnownToRun()
     {
-        SetupRunning("tt02", new RunningAppDeployment("8", null));
+        SetupRunning("tt02", new RunningAppDeployment("8", null, null, "ready", null));
         SetupRunning("at22", null);
         SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 
@@ -104,7 +113,7 @@ public class GetDeployments
     [Fact]
     public async Task GetDeployments_StillServesWhatOlderFrontendsRead()
     {
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod", "ready", null));
         SetupRunning("at22", null);
         SetupRunning("production", null);
 
