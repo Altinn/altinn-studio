@@ -653,6 +653,8 @@ public class RepositoryService : IRepository
                         _serializerOptions,
                         cancellationToken
                     );
+                    result.Identifier ??= Path.GetFileNameWithoutExtension(resourceFile.Name)
+                        .Replace("_resource", string.Empty);
 
                     sw.Stop();
                     // Structured log: file path, file name and elapsed ms
@@ -675,7 +677,15 @@ public class RepositoryService : IRepository
                         resourceFile.Name,
                         sw.ElapsedMilliseconds
                     );
-                    throw;
+                    return new ServiceResource()
+                    {
+                        Title = new Dictionary<string, string>()
+                        {
+                            { "nb", $"Kunne ikke lese ressursfil {resourceFile.Name}" },
+                        },
+                        Identifier = Path.GetFileNameWithoutExtension(resourceFile.Name)
+                            .Replace("_resource", string.Empty),
+                    };
                 }
             }
             finally
