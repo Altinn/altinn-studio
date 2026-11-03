@@ -26,8 +26,8 @@ format and `UiFoldersService` the v9 format. [Designer](../README.md#v8-and-v9-a
 
 ## API consumers
 
-These clients call the API. A client that does not ship with the backend keeps reading a response as it was, so change
-it before you remove or rename a field it reads.
+The clients below call the API. Most are released separately from the backend, so keep each field until no client
+reads it.
 
 - The [Designer frontend](../frontend/README.md). A tab loaded before a deployment calls the new backend until it
   reloads.
