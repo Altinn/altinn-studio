@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 /// <remarks>
 /// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
+/// Use <see cref="OnTaskStartingContext.StepId"/> as the idempotency key for an outbound call it must not repeat.
 /// </remarks>
 [ImplementableByApps]
 public interface IOnTaskStartingHandler : IProcessStepConfigurable
@@ -48,4 +49,32 @@ public sealed class OnTaskStartingContext
     /// Cancellation token for the hook execution.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// The engine-assigned id of the workflow running this hook, which every step of the process transition
+    /// shares. It does not tell one call apart from another; use <see cref="StepId"/> as the idempotency key.
+    /// </summary>
+    public required Guid WorkflowId { get; init; }
+
+    /// <summary>
+    /// The engine's identity for the step running this hook. Stable across every attempt of the step, which makes
+    /// it a ready-made idempotency key for an outbound call the hook must not repeat. A new visit to the task
+    /// runs under a new step id.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The key covers the whole hook, which runs as one step. A hook that makes several outbound calls derives one
+    /// key per call, for example from the step id and a name for the call, so that the receivers tell the calls
+    /// apart. A retry runs the whole hook again, including the calls that succeeded before the one that failed.
+    /// Work that needs each call to run once, such as sending and then polling, belongs in pipeline stages, which
+    /// never run again once they complete; see
+    /// <a href="https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/docs/service-task-pipelines.md#stages-durability-and-idempotency">service task pipelines</a>.
+    /// </para>
+    /// <para>
+    /// An idempotency key alone does not decide whether a <em>superseding</em> workflow may repeat the call; that is
+    /// a business rule, guarded by durable evidence the hook records in instance data via
+    /// <see cref="InstanceDataMutator"/>.
+    /// </para>
+    /// </remarks>
+    public required Guid StepId { get; init; }
 }
