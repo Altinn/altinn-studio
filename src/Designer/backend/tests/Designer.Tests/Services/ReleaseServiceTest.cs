@@ -319,8 +319,13 @@ public class ReleaseServiceTest
         );
     }
 
-    [Fact]
-    public async Task CreateAsync_WithAppStatus_BuildsTheCommitWithTheStatus()
+    [Theory]
+    [InlineData(null, "master")]
+    [InlineData("feature/new-layout", "feature/new-layout")]
+    public async Task CreateAsync_WithAppStatus_CommitsTheStatusToTheBuiltBranch_AndBuildsThatCommit(
+        string branch,
+        string expectedBranch
+    )
     {
         // Arrange
         const string BaseCommitId = "eec136ac2d31cf984d2053df79f181b99c3b4db5";
@@ -331,13 +336,21 @@ public class ReleaseServiceTest
             Name = "1",
             Body = "test-app",
             TargetCommitish = BaseCommitId,
+            Branch = branch,
             Org = _org,
             App = _app,
         };
         SetupSuccessfulBuild();
         _applicationMetadataService
             .Setup(s =>
-                s.CommitAppStatusAsync(_org, _app, BaseCommitId, AppStatus.Completed, It.IsAny<CancellationToken>())
+                s.CommitAppStatusAsync(
+                    _org,
+                    _app,
+                    expectedBranch,
+                    BaseCommitId,
+                    AppStatus.Completed,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(StatusCommitId);
 
@@ -348,7 +361,15 @@ public class ReleaseServiceTest
 
         // Assert
         _applicationMetadataService.Verify(
-            s => s.CommitAppStatusAsync(_org, _app, BaseCommitId, AppStatus.Completed, It.IsAny<CancellationToken>()),
+            s =>
+                s.CommitAppStatusAsync(
+                    _org,
+                    _app,
+                    expectedBranch,
+                    BaseCommitId,
+                    AppStatus.Completed,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         _azureDevOpsBuildClient.Verify(

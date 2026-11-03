@@ -11,7 +11,6 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -336,6 +335,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task<string> CommitAppStatusAsync(
         string org,
         string app,
+        string branch,
         string baseCommitId,
         AppStatus appStatus,
         CancellationToken cancellationToken = default
@@ -353,16 +353,11 @@ public class ApplicationMetadataService : IApplicationMetadataService
             return baseCommitId;
         }
 
-        string latestCommitId = await _giteaClient.GetLatestCommitOnBranch(
-            org,
-            app,
-            General.DefaultBranch,
-            cancellationToken
-        );
+        string latestCommitId = await _giteaClient.GetLatestCommitOnBranch(org, app, branch, cancellationToken);
         if (!string.Equals(latestCommitId, baseCommitId, StringComparison.OrdinalIgnoreCase))
         {
             throw new HttpRequestWithStatusException(
-                $"The app status can only be set on the latest commit on {General.DefaultBranch}."
+                $"The app status can only be set on the latest commit on {branch}."
             )
             {
                 StatusCode = HttpStatusCode.Conflict,
@@ -385,7 +380,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
             ApplicationMetadataFilePath,
             updatedAppMetadataJson,
             file.Sha,
-            General.DefaultBranch,
+            branch,
             $"Set app status to {appStatus}",
             cancellationToken
         );
