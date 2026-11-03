@@ -8,6 +8,12 @@ serviceAccount:
   name: "altinn-designer"
   useWorkloadIdentity: true
 
+# The core-operator's run API, which runs app code in sandbox Jobs. When enabled, the pod gets a ServiceAccount token
+# with the audience core-operator, and Designer registers its client for the run API.
+coreOperator:
+  enabled: false
+  baseUrl: http://core-operator.core-operator.svc.cluster.local:8080
+
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
   containerPort: 5000

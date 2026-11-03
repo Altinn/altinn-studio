@@ -121,4 +121,8 @@
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The report of a real upgrade, which the operator runner keeps as the example of what upgrade-v9 returns. -->
+    <None Include="..\..\..\..\core\operator-runner\examples\upgrade-v9-report.json" Link="TypedHttpClients\Operator\upgrade-v9-report.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -1,3 +1,5 @@
+{{- /* Where the projected token for the core-operator's run API is mounted. */}}
+{{- $coreOperatorTokenDirectory := "/var/run/secrets/core-operator" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,6 +27,9 @@ spec:
       {{- if .Values.serviceAccount.enabled }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
+      # Designer does not call the Kubernetes API. Cluster work goes through the core operator, and workload identity
+      # mounts its own token.
+      automountServiceAccountToken: false
       # The app user of the .NET container images. No fsGroup: kubelet could then try to change the group of every file
       # on the repository share, which the share's mount options already present as owned by this user.
       securityContext:
@@ -55,6 +60,12 @@ spec:
               value: "k8s.pod.uid=$(POD_UID)"
             - name: OTEL_METRIC_EXPORT_INTERVAL
               value: "15000"
+            {{- if .Values.coreOperator.enabled }}
+            - name: OperatorSettings__BaseUrl
+              value: {{ required "coreOperator.baseUrl not set" .Values.coreOperator.baseUrl | quote }}
+            - name: OperatorSettings__TokenPath
+              value: "{{ $coreOperatorTokenDirectory }}/token"
+            {{- end }}
             {{- if not (hasKey .Values.environmentVariables .Values.environment) }}
               {{ fail "the chosen environment does not exist" }}
             {{- end }}
@@ -103,6 +114,11 @@ spec:
             - name: {{ $mount.name }}
               mountPath: {{ $mount.mountPath }}
             {{- end }}
+            {{- if .Values.coreOperator.enabled }}
+            - name: core-operator-token
+              mountPath: {{ $coreOperatorTokenDirectory }}
+              readOnly: true
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}
@@ -116,6 +132,16 @@ spec:
           secret:
             secretName: {{ $volume.secret.secretName }}
           {{- end }}
+      {{- end }}
+      {{- if .Values.coreOperator.enabled }}
+        # The operator checks this token with a TokenReview. The kubelet replaces it before it expires.
+        - name: core-operator-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: core-operator
+                  expirationSeconds: 3600
+                  path: token
       {{- end }}
       {{- if .Values.image.imagePullSecret }}
       imagePullSecrets:
