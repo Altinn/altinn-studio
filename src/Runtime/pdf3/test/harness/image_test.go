@@ -16,14 +16,36 @@ func TestApplyLayer(t *testing.T) {
 	}{
 		{"untouched", []tar.Header{{Name: "etc/passwd"}}, lower},
 		{"replaced", []tar.Header{{Name: "./" + target, Size: 5}}, imageFile{[]byte("upper"), true, true}},
+		{"absolute path", []tar.Header{{Name: "/" + target, Size: 5}}, imageFile{[]byte("upper"), true, true}},
 		{"not regular", []tar.Header{{Name: target, Typeflag: tar.TypeSymlink}}, imageFile{present: true}},
+		{
+			"hard link",
+			[]tar.Header{{Name: target, Typeflag: tar.TypeLink, Linkname: "other"}},
+			imageFile{present: true},
+		},
+		{"directory", []tar.Header{{Name: target, Typeflag: tar.TypeDir}}, imageFile{present: true}},
+		{"ancestor replaced by file", []tar.Header{{Name: "etc/ssl", Size: 5}}, imageFile{}},
+		{"ancestor replaced by symlink", []tar.Header{{Name: "etc/ssl", Typeflag: tar.TypeSymlink}}, imageFile{}},
+		{"ancestor directory retained", []tar.Header{{Name: "etc/ssl/", Typeflag: tar.TypeDir}}, lower},
 		{"whiteout", []tar.Header{{Name: "etc/ssl/certs/.wh.ca-certificates.crt"}}, imageFile{}},
 		{"directory whiteout", []tar.Header{{Name: "etc/.wh.ssl"}}, imageFile{}},
 		{"sibling whiteout", []tar.Header{{Name: "etc/.wh.ss"}}, lower},
 		{"opaque directory", []tar.Header{{Name: "etc/ssl/.wh..wh..opq"}}, imageFile{}},
+		{"opaque root", []tar.Header{{Name: ".wh..wh..opq"}}, imageFile{}},
+		{"opaque sibling", []tar.Header{{Name: "etc/ssl/other/.wh..wh..opq"}}, lower},
+		{
+			"recreated before whiteout",
+			[]tar.Header{{Name: target, Size: 5}, {Name: "etc/ssl/certs/.wh.ca-certificates.crt"}},
+			imageFile{[]byte("upper"), true, true},
+		},
 		{
 			"recreated in opaque directory",
 			[]tar.Header{{Name: "etc/.wh..wh..opq"}, {Name: target, Size: 5}},
+			imageFile{[]byte("upper"), true, true},
+		},
+		{
+			"recreated before opaque whiteout",
+			[]tar.Header{{Name: target, Size: 5}, {Name: "etc/.wh..wh..opq"}},
 			imageFile{[]byte("upper"), true, true},
 		},
 	}

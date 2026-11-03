@@ -165,7 +165,7 @@ func applyLayer(below imageFile, layer *tar.Reader, target string) (imageFile, e
 		if err != nil {
 			return imageFile{}, fmt.Errorf("read tar: %w", err)
 		}
-		name := path.Clean(strings.TrimPrefix(header.Name, "/"))
+		name := strings.TrimPrefix(path.Clean("/"+header.Name), "/")
 		dir, base := path.Split(name)
 		hidden, isWhiteout := strings.CutPrefix(base, whiteoutPrefix)
 		switch {
@@ -179,6 +179,9 @@ func applyLayer(below imageFile, layer *tar.Reader, target string) (imageFile, e
 			deleted = deleted || strings.HasPrefix(target, dir)
 		case isWhiteout:
 			deleted = deleted || target == dir+hidden || strings.HasPrefix(target, dir+hidden+"/")
+		case header.Typeflag != tar.TypeDir && strings.HasPrefix(target, name+"/"):
+			// Replacing an ancestor directory also removes its contents from lower layers.
+			deleted = true
 		}
 	}
 	switch {
