@@ -84,8 +84,8 @@ describe('DeploymentEnvironmentStatus', () => {
         version: '1',
         status: 'updating',
         restartedAt: '2026-10-31T10:42:00+00:00',
+        publishedAt: '2026-10-30T10:00:00+00:00',
       },
-      lastPublishedDate: '2026-10-30T10:00:00+00:00',
     });
 
     expect(screen.getByText(textMock('app_deployment.status.restarting'))).toBeInTheDocument();
@@ -98,11 +98,17 @@ describe('DeploymentEnvironmentStatus', () => {
         version: '1',
         status: 'updating',
         restartedAt: '2026-10-30T10:00:00+00:00',
+        publishedAt: '2026-10-31T10:42:00+00:00',
       },
-      lastPublishedDate: '2026-10-31T10:42:00+00:00',
     });
 
     expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
+  });
+
+  it('says that it cannot see the status when the environment could not tell', async () => {
+    render({ isStatusUnknown: true });
+
+    expect(screen.getByText(textMock('app_deployment.status.unavailable'))).toBeInTheDocument();
   });
 
   it.each([
@@ -122,8 +128,8 @@ describe('DeploymentEnvironmentStatus', () => {
         version: '1',
         status: 'ready',
         restartedAt: '2026-10-31T10:42:00+00:00',
+        publishedAt: '2026-10-30T10:00:00+00:00',
       },
-      lastPublishedDate: '2026-10-30T10:00:00+00:00',
     });
 
     expect(screen.getByText(/app_deployment\.last_restarted/)).toBeInTheDocument();
@@ -136,8 +142,8 @@ describe('DeploymentEnvironmentStatus', () => {
         version: '1',
         status: 'ready',
         restartedAt: '2026-10-30T10:00:00+00:00',
+        publishedAt: '2026-10-31T10:42:00+00:00',
       },
-      lastPublishedDate: '2026-10-31T10:42:00+00:00',
     });
 
     expect(screen.getByText(/app_deployment\.last_published/)).toBeInTheDocument();

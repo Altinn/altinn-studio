@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import type { AppInEnvironment } from 'app-shared/types/api/RunningApp';
 import { app, org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
@@ -35,16 +35,16 @@ describe('DeploymentContainer', () => {
     expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
   });
 
-  it.each<{ runningAppList?: RunningApp[] }>([
-    { runningAppList: undefined },
-    { runningAppList: [] },
-  ])('renders page when the running apps are $runningAppList', async ({ runningAppList }) => {
+  it.each<{ environmentList?: AppInEnvironment[] }>([
+    { environmentList: undefined },
+    { environmentList: [] },
+  ])('renders page when the environment list is $environmentList', async ({ environmentList }) => {
     const envName = 'tt02';
     render({
       getDeployments: vi
         .fn()
         .mockImplementation(() =>
-          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], runningAppList }),
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList }),
         ),
       getEnvironments: vi.fn().mockImplementation(() =>
         Promise.resolve([

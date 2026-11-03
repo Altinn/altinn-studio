@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import { environmentsOf, type DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { AppInEnvironment, RunningApp } from 'app-shared/types/api/RunningApp';
 
 type UseRestartAppMutation = {
   environment: string;
@@ -28,21 +28,26 @@ export const useRestartAppMutation = (org: string, app: string) => {
   });
 };
 
-// A refetch can have left the environment out, such as when its gateway did not answer, so the restart adds it back.
+// A refetch can have found the environment unknown, such as when its gateway did not answer, which the restart settles.
 const replaceRunningApp = (
   deployments: DeploymentsResponse,
   restarted: RunningApp,
 ): DeploymentsResponse => {
-  const runningAppList = deployments.runningAppList ?? [];
-  const isListed = runningAppList.some(
-    (runningApp) => runningApp.environment === restarted.environment,
+  const restartedEnvironment: AppInEnvironment = {
+    environment: restarted.environment,
+    state: 'running',
+    runningApp: restarted,
+  };
+  const environmentList = environmentsOf(deployments);
+  const isListed = environmentList.some(
+    (environment) => environment.environment === restarted.environment,
   );
   return {
     ...deployments,
-    runningAppList: isListed
-      ? runningAppList.map((runningApp) =>
-          runningApp.environment === restarted.environment ? restarted : runningApp,
+    environmentList: isListed
+      ? environmentList.map((environment) =>
+          environment.environment === restarted.environment ? restartedEnvironment : environment,
         )
-      : [...runningAppList, restarted],
+      : [...environmentList, restartedEnvironment],
   };
 };

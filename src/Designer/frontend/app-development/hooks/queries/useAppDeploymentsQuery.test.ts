@@ -5,21 +5,34 @@ import { app, org } from '@studio/testing/testids';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RunningAppStatus } from 'app-shared/types/api/RunningApp';
 import { renderHookWithProviders } from '../../test/mocks';
-import { UPDATING_APP_POLL_INTERVAL_MS, useAppDeploymentsQuery } from './useAppDeploymentsQuery';
+import {
+  UNKNOWN_ENVIRONMENT_POLL_INTERVAL_MS,
+  UPDATING_APP_POLL_INTERVAL_MS,
+  useAppDeploymentsQuery,
+} from './useAppDeploymentsQuery';
 
 const deployments = (status: RunningAppStatus): DeploymentsResponse => ({
   pipelineDeploymentList: [],
-  runningAppList: [
+  environmentList: [
     {
       environment: 'tt02',
-      version: '1',
-      buildId: null,
-      status,
-      restartedAt: null,
-      canRestart: true,
+      state: 'running',
+      runningApp: {
+        environment: 'tt02',
+        version: '1',
+        buildId: null,
+        status,
+        restartedAt: null,
+        canRestart: true,
+      },
     },
   ],
 });
+
+const unknown: DeploymentsResponse = {
+  pipelineDeploymentList: [],
+  environmentList: [{ environment: 'tt02', state: 'unknown' }],
+};
 
 describe('useAppDeploymentsQuery', () => {
   beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
@@ -50,6 +63,41 @@ describe('useAppDeploymentsQuery', () => {
     });
 
     await waitFor(() => expect(getDeployments).toHaveBeenCalledTimes(2));
+  });
+
+  it('polls less often while an environment cannot tell what runs, and stops once it can', async () => {
+    const getDeployments = vi
+      .fn()
+      .mockResolvedValueOnce(unknown)
+      .mockResolvedValueOnce(unknown)
+      .mockResolvedValue(deployments('ready'));
+    await renderAndLoad(getDeployments);
+
+    await advanceTime(UPDATING_APP_POLL_INTERVAL_MS);
+    expect(getDeployments).toHaveBeenCalledTimes(1);
+
+    await advanceTime(UNKNOWN_ENVIRONMENT_POLL_INTERVAL_MS);
+    await advanceTime(UNKNOWN_ENVIRONMENT_POLL_INTERVAL_MS);
+    await advanceTime(3 * UNKNOWN_ENVIRONMENT_POLL_INTERVAL_MS);
+
+    expect(getDeployments).toHaveBeenCalledTimes(3);
+  });
+
+  it('polls while an app is updating, though the backend is older and sends only running apps', async () => {
+    const olderBackend = (status: RunningAppStatus): DeploymentsResponse => ({
+      pipelineDeploymentList: [],
+      runningAppList: deployments(status).environmentList.map(({ runningApp }) => runningApp),
+    });
+    const getDeployments = vi
+      .fn()
+      .mockResolvedValueOnce(olderBackend('updating'))
+      .mockResolvedValue(olderBackend('ready'));
+    await renderAndLoad(getDeployments);
+
+    await advanceTime(UPDATING_APP_POLL_INTERVAL_MS);
+    await advanceTime(3 * UPDATING_APP_POLL_INTERVAL_MS);
+
+    expect(getDeployments).toHaveBeenCalledTimes(2);
   });
 
   it('does not poll when no app is updating', async () => {

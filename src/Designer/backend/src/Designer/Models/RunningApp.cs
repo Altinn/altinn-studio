@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Runtime;
 
 namespace Altinn.Studio.Designer.Models;
@@ -37,7 +40,15 @@ public sealed class RunningApp
     /// </summary>
     public bool CanRestart { get; init; }
 
-    public static RunningApp From(AppRunState.Running running) =>
+    /// <summary>
+    /// When the deploy that runs finished, or null when this Studio environment has no record of it, such as when
+    /// another Studio environment deployed the app.
+    /// </summary>
+    public DateTime? PublishedAt { get; init; }
+
+    /// <param name="running">The app as it runs.</param>
+    /// <param name="deployments">This Studio environment's deploys of the app to the environment, in any order.</param>
+    public static RunningApp From(AppRunState.Running running, IEnumerable<DeploymentEntity> deployments) =>
         new()
         {
             Environment = running.Environment,
@@ -46,5 +57,27 @@ public sealed class RunningApp
             Status = running.Status,
             RestartedAt = running.RestartedAt,
             CanRestart = running.CanRestart,
+            PublishedAt = DeployThatRuns(running, deployments)?.Build?.Finished,
         };
+
+    /// <summary>
+    /// Every Studio environment queues its deploys in the same Azure DevOps organization, whose build ids are unique,
+    /// so another Studio environment's deploy matches none. Without a build id, the latest deploy of the tag is the
+    /// best match there is, though the same tag can have been deployed more than once.
+    /// </summary>
+    private static DeploymentEntity? DeployThatRuns(
+        AppRunState.Running running,
+        IEnumerable<DeploymentEntity> deployments
+    )
+    {
+        IEnumerable<DeploymentEntity> deploys = deployments.Where(deployment =>
+            deployment.DeploymentType == DeploymentType.Deploy
+            && string.Equals(deployment.EnvName, running.Environment, StringComparison.OrdinalIgnoreCase)
+        );
+        return running.BuildId is { } buildId
+            ? deploys.FirstOrDefault(deployment => deployment.Build?.Id == buildId)
+            : deploys
+                .Where(deployment => deployment.TagName == running.Version)
+                .MaxBy(deployment => deployment.Created);
+    }
 }
