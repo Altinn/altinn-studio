@@ -22,7 +22,6 @@ const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
 export const threadSelectorTexts: ThreadSelectorTexts = {
   deleteThread: 'deleteThread',
   deleteThreadConfirm: 'deleteThreadConfirm',
-  deleteBusyThreadConfirm: 'deleteBusyThreadConfirm',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {

@@ -51,7 +51,7 @@ describe('useAssistantThreads', () => {
     mockUseCreateChatThreadMutation.mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue({ id: 'new-thread-id' }),
     } as any);
-    mockUseDeleteChatThreadMutation.mockReturnValue({ mutateAsync: vi.fn() } as any);
+    mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: vi.fn() } as any);
     mockUseChatMessagesQuery.mockReturnValue({ data: [], isLoading: false } as any);
     mockUseCreateChatMessageMutation.mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue({ id: 'persisted-id' }),
@@ -177,87 +177,24 @@ describe('useAssistantThreads', () => {
     });
   });
 
-  it('deletes the thread with the mutation', async () => {
-    const deleteChatThread = vi.fn().mockResolvedValue(undefined);
-    mockUseDeleteChatThreadMutation.mockReturnValue({ mutateAsync: deleteChatThread } as any);
+  it('clears current session when deleting active thread succeeds', () => {
+    const deleteThreadMutate = vi.fn().mockImplementation((_id, options) => options?.onSuccess?.());
+    mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
+
     const { result } = renderUseAssistantThreads();
 
-    await act(() => result.current.deleteThread('thread-b'));
+    act(() => {
+      result.current.selectThread(threadId);
+    });
 
-    expect(deleteChatThread).toHaveBeenCalledWith('thread-b');
-  });
+    act(() => {
+      result.current.deleteThread(threadId);
+    });
 
-  it('opens the next thread when the open thread goes from the list', () => {
-    const { result, rerender } = renderWithThreads(threeThreads);
-    act(() => result.current.selectThread('thread-b'));
-
-    rerenderWithThreads(rerender, [threadA, threadC]);
-
-    expect(result.current.selectedThreadId).toBe('thread-c');
-  });
-
-  it('opens the previous thread when the open last thread goes from the list', () => {
-    const { result, rerender } = renderWithThreads(threeThreads);
-    act(() => result.current.selectThread('thread-c'));
-
-    rerenderWithThreads(rerender, [threadA, threadB]);
-
-    expect(result.current.selectedThreadId).toBe('thread-b');
-  });
-
-  it('opens the nearest remaining thread when the list removes several threads', () => {
-    const { result, rerender } = renderWithThreads(threeThreads);
-    act(() => result.current.selectThread('thread-a'));
-
-    rerenderWithThreads(rerender, [threadC]);
-
-    expect(result.current.selectedThreadId).toBe('thread-c');
-  });
-
-  it('clears the open thread when the list removes the only thread', () => {
-    const { result, rerender } = renderWithThreads([threadA]);
-    act(() => result.current.selectThread('thread-a'));
-
-    rerenderWithThreads(rerender, []);
-
+    expect(deleteThreadMutate).toHaveBeenCalledWith(threadId, expect.any(Object));
     expect(result.current.selectedThreadId).toBeNull();
   });
-
-  it('keeps the open thread when the list removes another thread', () => {
-    const { result, rerender } = renderWithThreads(threeThreads);
-    act(() => result.current.selectThread('thread-a'));
-
-    rerenderWithThreads(rerender, [threadA, threadC]);
-
-    expect(result.current.selectedThreadId).toBe('thread-a');
-  });
-
-  it('keeps a new thread open before the list contains it', () => {
-    const { result, rerender } = renderWithThreads(threeThreads);
-    act(() => result.current.selectThread('new-thread-id'));
-
-    rerenderWithThreads(rerender, [threadA]);
-
-    expect(result.current.selectedThreadId).toBe('new-thread-id');
-  });
 });
-
-const [threadA, threadB, threadC] = ['thread-a', 'thread-b', 'thread-c'].map((id) => ({
-  id,
-  title: id,
-  createdAt: '2026-01-01T00:00:00Z',
-}));
-const threeThreads = [threadA, threadB, threadC];
-
-const renderWithThreads = (threads: typeof threeThreads) => {
-  mockUseChatThreadsQuery.mockReturnValue({ data: threads } as any);
-  return renderUseAssistantThreads();
-};
-
-const rerenderWithThreads = (rerender: () => void, threads: typeof threeThreads): void => {
-  mockUseChatThreadsQuery.mockReturnValue({ data: threads } as any);
-  rerender();
-};
 
 const renderUseAssistantThreads = (queryClient: QueryClient = new QueryClient()) =>
   renderHook(() => useAssistantThreads(), {

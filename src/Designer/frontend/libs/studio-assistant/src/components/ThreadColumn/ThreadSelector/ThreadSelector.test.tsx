@@ -186,14 +186,6 @@ describe('ThreadSelector', () => {
     expect(onDeleteThread).toHaveBeenCalledWith(secondThread.id);
   });
 
-  it('warns that the assistant stops when the user deletes a thread where it is working', async () => {
-    const user = userEvent.setup();
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    renderThreadSelector({ workflowStatusByThread: { [secondThread.id]: { isActive: true } } });
-    await user.click(getDeleteButton(secondThread));
-    expect(confirm).toHaveBeenCalledWith(threadSelectorTexts.deleteBusyThreadConfirm);
-  });
-
   it('moves the focus to the next thread when the deleted thread disappears', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);

@@ -4,7 +4,6 @@ import cn from 'classnames';
 import { StudioDeleteButton } from '@studio/components';
 import type { ChatThread } from '../../../types/ChatThread';
 import type { ThreadSelectorTexts } from '../../../types/AssistantTexts';
-import type { WorkflowStatus } from '../../../types/WorkflowStatus';
 import { findNearestRemainingThreadId } from '../../../utils/threadUtils';
 import { findFocusTargetForKey } from './utils';
 import type { FocusTarget, ThreadPart } from './utils';
@@ -14,7 +13,6 @@ export type ThreadSelectorProps = {
   texts: ThreadSelectorTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
-  workflowStatusByThread?: Record<string, WorkflowStatus>;
   headingId: string;
   onSelectThread: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
@@ -25,7 +23,6 @@ export function ThreadSelector({
   texts,
   chatThreads,
   selectedThreadId,
-  workflowStatusByThread,
   headingId,
   onSelectThread,
   onDeleteThread,
@@ -101,7 +98,6 @@ export function ThreadSelector({
             thread={thread}
             texts={texts}
             isSelected={thread.id === selectedThreadId}
-            isBusy={workflowStatusByThread?.[thread.id]?.isActive === true}
             getButtonProps={(part) => getButtonProps({ threadId: thread.id, part })}
             onSelect={() => onSelectThread(thread.id)}
             onDelete={onDeleteThread && ((): void => onDeleteThread(thread.id))}
@@ -149,7 +145,6 @@ type ThreadItemProps = {
   thread: ChatThread;
   texts: ThreadSelectorTexts;
   isSelected: boolean;
-  isBusy: boolean;
   getButtonProps: (part: ThreadPart) => ThreadButtonProps;
   onSelect: () => void;
   onDelete?: () => void;
@@ -159,7 +154,6 @@ function ThreadItem({
   thread,
   texts,
   isSelected,
-  isBusy,
   getButtonProps,
   onSelect,
   onDelete,
@@ -186,7 +180,7 @@ function ThreadItem({
           className={classes.deleteButton}
           aria-label={deleteLabel}
           title={deleteLabel}
-          confirmMessage={isBusy ? texts.deleteBusyThreadConfirm : texts.deleteThreadConfirm}
+          confirmMessage={texts.deleteThreadConfirm}
           onDelete={onDelete}
         />
       )}

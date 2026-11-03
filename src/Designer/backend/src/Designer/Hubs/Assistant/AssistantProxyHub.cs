@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -30,8 +29,6 @@ namespace Altinn.Studio.Designer.Hubs.Assistant;
 [Authorize]
 public class AssistantProxyHub : Hub<IAssistantClient>
 {
-    private const string UnknownSessionDetail = "Session not found";
-
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AssistantProxyHub> _logger;
@@ -471,43 +468,25 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             $"{_assistantSettings.AgentUrl}/api/agent/cancel/{sessionId}"
         );
         httpRequest.Headers.Add("X-Developer", developer);
-        var (statusCode, content) = await SendToAssistantAsync(httpRequest);
+        var response = await SendRequestToAssistantAsync(httpRequest);
 
-        // The assistant service keeps its sessions in memory and forgets them when it restarts. A session that it does
-        // not know does not run, so there is nothing to cancel.
-        if (statusCode == HttpStatusCode.NotFound && content.Contains(UnknownSessionDetail, StringComparison.Ordinal))
-        {
-            _logger.LogInformation("Session {SessionId} is not known by the assistant service", sessionId);
-            return new { session_id = sessionId, status = "unknown" };
-        }
-
-        var response = ParseAssistantResponse(statusCode, content);
         _logger.LogInformation("Session {SessionId} cancelled successfully", sessionId);
         return response;
     }
 
     private async Task<JsonElement> SendRequestToAssistantAsync(HttpRequestMessage httpRequest)
     {
-        var (statusCode, content) = await SendToAssistantAsync(httpRequest);
-        return ParseAssistantResponse(statusCode, content);
-    }
-
-    private async Task<(HttpStatusCode StatusCode, string Content)> SendToAssistantAsync(HttpRequestMessage httpRequest)
-    {
         var httpClient = _httpClientFactory.CreateClient();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds));
         using var response = await httpClient.SendAsync(httpRequest, cts.Token);
-        return (response.StatusCode, await response.Content.ReadAsStringAsync(cts.Token));
-    }
+        string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
 
-    private JsonElement ParseAssistantResponse(HttpStatusCode statusCode, string content)
-    {
-        if ((int)statusCode is < 200 or > 299)
+        if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Assistant agent returned error: {StatusCode}", statusCode);
-            throw new HubException($"Agent returned {statusCode}: {content}");
+            _logger.LogError("Assistant agent returned error: {StatusCode}", response.StatusCode);
+            throw new HubException($"Agent returned {response.StatusCode}: {responseContent}");
         }
 
-        return JsonSerializer.Deserialize<JsonElement>(content);
+        return JsonSerializer.Deserialize<JsonElement>(responseContent);
     }
 }

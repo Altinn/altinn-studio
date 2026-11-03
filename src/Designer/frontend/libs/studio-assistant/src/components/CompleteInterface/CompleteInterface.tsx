@@ -79,7 +79,6 @@ export function CompleteInterface({
               texts={texts}
               chatThreads={chatThreads}
               selectedThreadId={activeThreadId || undefined}
-              workflowStatusByThread={workflowStatusByThread}
               onSelectThread={onSelectThread}
               onDeleteThread={onDeleteThread}
               onCreateThread={handleCreateThread}

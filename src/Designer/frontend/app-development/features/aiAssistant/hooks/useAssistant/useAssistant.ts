@@ -20,7 +20,7 @@ export interface UseAssistantResult {
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   selectThread: (threadId: string | null) => void;
-  deleteThread: (threadId: string) => Promise<void>;
+  deleteThread: (threadId: string) => void;
 }
 
 /**
@@ -34,7 +34,6 @@ export const useAssistant = (): UseAssistantResult => {
     workflowStatusByThread,
     onSubmitMessage,
     cancelCurrentWorkflow,
-    deleteThread,
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
@@ -53,6 +52,6 @@ export const useAssistant = (): UseAssistantResult => {
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread: threads.selectThread,
-    deleteThread,
+    deleteThread: threads.deleteThread,
   };
 };

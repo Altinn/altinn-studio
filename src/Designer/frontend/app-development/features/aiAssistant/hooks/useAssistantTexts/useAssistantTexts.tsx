@@ -16,7 +16,6 @@ export const useAssistantTexts = (): AssistantTexts => {
     threadSelector: {
       deleteThread: t('ai_assistant.delete_thread'),
       deleteThreadConfirm: t('ai_assistant.delete_thread_confirm'),
-      deleteBusyThreadConfirm: t('ai_assistant.delete_busy_thread_confirm'),
     },
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),

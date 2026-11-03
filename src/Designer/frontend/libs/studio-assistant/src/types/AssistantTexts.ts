@@ -27,7 +27,6 @@ export type AssistantTexts = {
 export type ThreadSelectorTexts = {
   deleteThread: string;
   deleteThreadConfirm: string;
-  deleteBusyThreadConfirm: string;
 };
 
 export type PermissionPromptTexts = {

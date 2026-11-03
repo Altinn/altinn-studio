@@ -7,13 +7,11 @@ import { AboutAssistantDialog } from './AboutAssistantDialog';
 import { ThreadSelector } from './ThreadSelector';
 import type { ChatThread } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
-import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
 export type ThreadColumnProps = {
   texts: AssistantTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
-  workflowStatusByThread?: Record<string, WorkflowStatus>;
   onToggleCollapse?: () => void;
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
@@ -24,7 +22,6 @@ export function ThreadColumn({
   texts,
   chatThreads,
   selectedThreadId,
-  workflowStatusByThread,
   onToggleCollapse,
   onSelectThread = (): void => {},
   onDeleteThread,
@@ -54,7 +51,6 @@ export function ThreadColumn({
           texts={texts.threadSelector}
           chatThreads={chatThreads}
           selectedThreadId={selectedThreadId}
-          workflowStatusByThread={workflowStatusByThread}
           headingId={headingId}
           onSelectThread={onSelectThread}
           onDeleteThread={onDeleteThread}

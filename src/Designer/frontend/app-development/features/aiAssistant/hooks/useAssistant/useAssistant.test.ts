@@ -24,7 +24,6 @@ describe('useAssistant', () => {
       workflowStatusByThread: {},
       onSubmitMessage: vi.fn(),
       cancelCurrentWorkflow: vi.fn(),
-      deleteThread: vi.fn(),
       respondToPermission: vi.fn(),
       cancelledMessageContent: null,
       clearCancelledMessageContent: vi.fn(),

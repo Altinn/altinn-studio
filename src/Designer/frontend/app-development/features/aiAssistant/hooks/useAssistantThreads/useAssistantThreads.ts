@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
-import { MessageAuthor, findNearestRemainingThreadId } from '@studio/assistant';
+import { MessageAuthor } from '@studio/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -18,7 +18,7 @@ export interface AssistantThreadState {
   chatMessages: Message[];
   selectThread: (threadId: string | null) => void;
   createThread: (title: string) => Promise<string>;
-  deleteThread: (threadId: string) => Promise<void>;
+  deleteThread: (threadId: string) => void;
   deleteMessage: (threadId: string, messageId: string) => Promise<void>;
   createMessage: (
     threadId: string,
@@ -34,17 +34,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
 
   const { data: chatThreads } = useChatThreadsQuery();
   const { mutateAsync: createChatThread } = useCreateChatThreadMutation();
-  const { mutateAsync: deleteChatThread } = useDeleteChatThreadMutation();
-
-  // The open thread can go from the list: this tab or another tab deletes it, or it expires. Then the nearest thread
-  // opens. React runs this during the render, so the deleted thread does not show for one render.
-  const [previousChatThreads, setPreviousChatThreads] = useState(chatThreads);
-  if (chatThreads !== previousChatThreads) {
-    setPreviousChatThreads(chatThreads);
-    setSelectedThreadId(
-      findOpenThreadAfterChange(previousChatThreads, chatThreads, selectedThreadId),
-    );
-  }
+  const { mutate: deleteChatThread } = useDeleteChatThreadMutation();
 
   const { data: chatMessages } = useChatMessagesQuery(selectedThreadId);
   const { mutateAsync: createChatMessage } = useCreateChatMessageMutation();
@@ -56,6 +46,19 @@ export const useAssistantThreads = (): AssistantThreadState => {
       return result.id;
     },
     [createChatThread],
+  );
+
+  const deleteThread = useCallback(
+    (threadId: string) => {
+      deleteChatThread(threadId, {
+        onSuccess: () => {
+          if (selectedThreadId === threadId) {
+            setSelectedThreadId(null);
+          }
+        },
+      });
+    },
+    [deleteChatThread, selectedThreadId],
   );
 
   const createMessage = useCallback(
@@ -100,27 +103,9 @@ export const useAssistantThreads = (): AssistantThreadState => {
     selectedThreadId,
     selectThread: setSelectedThreadId,
     createThread,
-    deleteThread: deleteChatThread,
+    deleteThread,
     deleteMessage,
     createMessage,
     refreshMessages,
   };
 };
-
-/** Gives the thread to open after the list changes. If the list removed the open thread, gives the nearest thread. */
-function findOpenThreadAfterChange(
-  previousThreads: ChatThread[] = [],
-  currentThreads: ChatThread[] = [],
-  openThreadId: string | null,
-): string | null {
-  const previousThreadIds = previousThreads.map((thread) => thread.id);
-  const currentThreadIds = currentThreads.map((thread) => thread.id);
-  // A new thread can be open before the list contains it. Thus, the open thread is removed only when the previous
-  // list contains it.
-  const isOpenThreadRemoved =
-    !!openThreadId &&
-    previousThreadIds.includes(openThreadId) &&
-    !currentThreadIds.includes(openThreadId);
-  if (!isOpenThreadRemoved) return openThreadId;
-  return findNearestRemainingThreadId(previousThreadIds, currentThreadIds, openThreadId) ?? null;
-}

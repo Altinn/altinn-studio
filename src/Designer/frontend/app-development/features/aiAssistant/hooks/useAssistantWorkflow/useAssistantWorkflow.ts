@@ -43,7 +43,6 @@ export interface UseAssistantWorkflowResult {
   workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
-  deleteThread: (threadId: string) => Promise<void>;
   respondToPermission: (requestId: string, granted: boolean) => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -84,8 +83,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
   // Threads whose messages are already fetched for the current run.
   const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
-  // Threads that the user deletes. The events of their runs must not write to them or fetch them.
-  const deletingThreadIdsRef = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -95,7 +92,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     createMessage,
     refreshMessages,
     chatMessages,
-    deleteThread: deleteThreadWithoutCancelling,
   } = threads;
 
   const setWorkflowStatus = useCallback((threadId: string, status: WorkflowStatus) => {
@@ -332,8 +328,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      // The user can delete the thread while the app saves the message.
-      if (!shouldSkipBranchOps(assistantMessage) && !deletingThreadIdsRef.current.has(threadId)) {
+      if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
       }
     },
@@ -343,7 +338,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       const threadId = event.session_id;
-      if (!threadId || !ownsThread(threadId) || deletingThreadIdsRef.current.has(threadId)) return;
+      if (!threadId || !ownsThread(threadId)) return;
 
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
@@ -508,8 +503,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!message.content) return;
 
       let threadId = selectedThreadId;
-      // When the app deletes the open thread, the message goes to a new thread.
-      if (!threadId || deletingThreadIdsRef.current.has(threadId)) {
+      if (!threadId) {
         try {
           threadId = await createThread(createThreadTitle(message.content));
           selectThread(threadId);
@@ -553,24 +547,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [createMessage],
   );
 
-  // Sends the cancellation of a run that the tab already shows as stopped. Gives false when the run continues.
-  const sendCancel = useCallback(
-    async (threadId: string, statusBeforeCancel: WorkflowStatus | undefined): Promise<boolean> => {
-      try {
-        // The hub rejects commands for sessions not registered on this connection.
-        await registerSession(org, app, threadId);
-        await cancelWorkflow(threadId);
-        return true;
-      } catch (error) {
-        // The run is still going, so stop showing it as stopped.
-        markThreadStillRunning(threadId, statusBeforeCancel);
-        console.error('Cancel workflow request failed:', error);
-        return false;
-      }
-    },
-    [registerSession, org, app, cancelWorkflow, markThreadStillRunning],
-  );
-
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
     const threadId = selectedThreadId;
     if (!selectedThreadId) return;
@@ -594,50 +570,31 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       }
     }
 
-    const isCancelled = await sendCancel(threadId, statusBeforeCancel);
-    // The run continues, so the answer needs its prompt above it.
-    if (!isCancelled && deletedMessage) await restoreCancelledMessage(threadId, deletedMessage);
+    try {
+      // The hub rejects commands for sessions not registered on this connection.
+      await registerSession(org, app, threadId);
+      await cancelWorkflow(threadId);
+    } catch (error) {
+      // The run is still going, so stop showing it as stopped.
+      markThreadStillRunning(threadId, statusBeforeCancel);
+      // The run continues, so the answer needs its prompt above it.
+      if (deletedMessage) await restoreCancelledMessage(threadId, deletedMessage);
+      console.error('Cancel workflow request failed:', error);
+    }
   }, [
-    sendCancel,
+    cancelWorkflow,
+    registerSession,
+    org,
+    app,
     selectedThreadId,
     deleteMessage,
     chatMessages,
     setWorkflowStatus,
+    markThreadStillRunning,
     restoreCancelledMessage,
     workflowStatusByThread,
     markThreadTerminated,
   ]);
-
-  const deleteThread = useCallback(
-    async (threadId: string): Promise<void> => {
-      const deletingThreadIds = deletingThreadIdsRef.current;
-      if (deletingThreadIds.has(threadId)) return;
-      deletingThreadIds.add(threadId);
-      const statusBeforeCancel = workflowStatusByThread[threadId];
-      if (statusBeforeCancel?.isActive) {
-        markThreadTerminated(threadId);
-        setWorkflowStatus(threadId, { isActive: false });
-        // The run continues and can write to the thread. Thus, do not delete the thread.
-        if (!(await sendCancel(threadId, statusBeforeCancel))) {
-          deletingThreadIds.delete(threadId);
-          return;
-        }
-      }
-      try {
-        await deleteThreadWithoutCancelling(threadId);
-      } catch {
-        // The services context shows the error. The thread stays, so its events count again.
-        deletingThreadIds.delete(threadId);
-      }
-    },
-    [
-      workflowStatusByThread,
-      markThreadTerminated,
-      setWorkflowStatus,
-      sendCancel,
-      deleteThreadWithoutCancelling,
-    ],
-  );
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
@@ -653,7 +610,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     workflowStatusByThread,
     onSubmitMessage,
     cancelCurrentWorkflow,
-    deleteThread,
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
