@@ -465,11 +465,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Staging
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
+      ConnectedServiceNameARM: 1f0ab441-0bb3-4658-8aba-c06e4fb737fd
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
@@ -529,11 +529,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Production
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))"
     inputs:
-      ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
+      ConnectedServiceNameARM: c244af33-d252-4ca6-a250-bd070baec9d9
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
