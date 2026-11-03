@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { StudioDropdown, StudioLinkButton } from '@studio/components';
+import { StudioDropdown } from '@studio/components';
 import {
   ArrowsCirclepathIcon,
   CloudSlashIcon,
@@ -58,16 +58,15 @@ export const DeployMoreOptionsMenu = ({
             </StudioDropdown.Item>
           )}
           <StudioDropdown.Item>
-            <StudioLinkButton
-              className={classes.linkButton}
-              href={linkToEnv}
-              icon={<ExternalLinkIcon />}
-              rel='noopener noreferrer'
-              variant='tertiary'
-              data-color='neutral'
-            >
-              {t('app_deployment.more_options_menu')}
-            </StudioLinkButton>
+            {/* A button-styled link, so a visited link keeps the color of the other items. */}
+            <StudioDropdown.Button asChild data-color='neutral'>
+              <a href={linkToEnv} rel='noopener noreferrer'>
+                <span className={classes.linkContent}>
+                  <ExternalLinkIcon aria-hidden />
+                  {t('app_deployment.more_options_menu')}
+                </span>
+              </a>
+            </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>
         <StudioDropdown.List>

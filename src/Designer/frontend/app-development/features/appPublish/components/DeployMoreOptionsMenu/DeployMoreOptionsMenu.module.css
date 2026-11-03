@@ -4,9 +4,8 @@
   right: var(--ds-size-3);
 }
 
-.linkButton {
-  width: 100%;
-  box-sizing: border-box;
-  justify-content: flex-start;
-  font-weight: var(--ds-font-weight-regular);
+.linkContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
 }
