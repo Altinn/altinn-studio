@@ -1,8 +1,8 @@
 # Designer backend
 
-The ASP.NET Core API behind [Designer](../README.md). The [frontend](../frontend/README.md) and
-[studioctl](../../cli/README.md) call it. It reads and changes app repositories, converts data models between JSON
-Schema, XSD and C#, edits access policies, and starts app deployments.
+The ASP.NET Core API behind [Designer](../README.md). The clients under [API consumers](#api-consumers) call it. It
+reads and changes app repositories, converts data models between JSON Schema, XSD and C#, edits access policies, and
+starts app deployments.
 
 It uses:
 
@@ -23,6 +23,20 @@ It uses:
 A v8 app lists its layout sets in `layout-sets.json`, and a v9 app has [UI folders](../../../GLOSSARY.md) instead.
 Where the formats differ, the backend checks `IAppVersionService.IsV9App`. `AppDevelopmentService` writes the v8
 format and `UiFoldersService` the v9 format. [Designer](../README.md#v8-and-v9-apps) says when we change the v8 code.
+
+## API consumers
+
+These clients call the API. A client that does not ship with the backend keeps reading a response as it was, so change
+it before you remove or rename a field it reads.
+
+- The [Designer frontend](../frontend/README.md). A tab loaded before a deployment calls the new backend until it
+  reloads.
+- [studioctl](../../cli/README.md), which searches for apps and logs in and out with an API key.
+- The [deploy actions](https://altinn.studio/repos/als/actions) that service owners release and deploy apps with,
+  which call the releases and deployments endpoints with an API key.
+- Apps, whose JSON files point `$schema` at the app-dist endpoints. Designer and `studioctl app upgrade v9` write
+  these URLs.
+- [gitea-proxy](../../gitea-proxy), which authenticates Git and Gitea requests through the userinfo endpoint.
 
 ## Development
 
