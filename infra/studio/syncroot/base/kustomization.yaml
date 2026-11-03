@@ -15,3 +15,4 @@ resources:
   - keda.yaml
   - runner-org-sync.yaml
   - core-operator.yaml
+  - operator-workflow-engine.yaml
