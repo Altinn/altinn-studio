@@ -1,0 +1,33 @@
+# The job host Jobs of the core operator: the sandbox-runs namespace, its PodTemplate, quota, network policy and the
+# admission policy that limits what the operator may create. See src/core/job-host/README.md. Only the environments
+# with sandbox nodes include this file.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: studio-job-host
+  namespace: default
+spec:
+  interval: 5m
+  # The deploy-core-job-host workflow pushes one artifact per build SHA and tags it with the environment name.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/studio-job-host-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: studio-job-host
+  namespace: default
+spec:
+  # No targetNamespace: each namespaced object in the artifact sets its namespace, and the admission policy in the
+  # artifact is cluster-scoped.
+  interval: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: studio-job-host
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  wait: true
+  timeout: 5m
