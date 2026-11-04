@@ -1,30 +1,24 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using LocalTest.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace LocalTest.Services.AccessManagement.RolePackages;
 
 /// <summary>
 /// The access packages Access Management derives from a role, generated from its static data into
-/// <c>role-packages.json</c> by <c>generate_role_packages.py</c>. A role is found by its code (<c>daglig-leder</c>) or
-/// its Altinn 2 code (<c>DAGL</c>), ignoring case.
+/// <c>authorization/role-packages.json</c> in the static test data by <c>scripts/generate_role_packages.py</c>. A role
+/// is found by its code (<c>daglig-leder</c>) or its Altinn 2 code (<c>DAGL</c>), ignoring case.
 /// </summary>
 public sealed class RoleAccessPackages
 {
-    private const string ResourceName = "LocalTest.RolePackages.role-packages.json";
+    private readonly Lazy<Dictionary<string, RolePackagesEntry>> _byCode;
 
-    private static readonly Lazy<RoleAccessPackages> _embedded = new(Load);
-
-    private readonly Dictionary<string, RolePackagesEntry> _byCode;
-
-    private RoleAccessPackages(RolePackagesFile file)
+    public RoleAccessPackages(IOptions<LocalPlatformSettings> settings)
     {
-        _byCode = file.Roles
-            .SelectMany(entry => entry.Codes.Select(code => (Code: code, Entry: entry)))
-            .ToDictionary(r => r.Code, r => r.Entry, StringComparer.OrdinalIgnoreCase);
+        string path = Path.Join(settings.Value.LocalTestingStaticTestDataPath, "authorization", "role-packages.json");
+        _byCode = new(() => Load(path));
     }
-
-    /// <summary>The mapping that ships with Localtest.</summary>
-    public static RoleAccessPackages Embedded => _embedded.Value;
 
     /// <summary>
     /// The packages the role gives for an organization of the unit type (such as <c>AS</c> or <c>VPFO</c>). Some
@@ -32,7 +26,7 @@ public sealed class RoleAccessPackages
     /// </summary>
     public IEnumerable<string> GetPackages(string roleCode, string? unitType)
     {
-        if (!_byCode.TryGetValue(roleCode, out var entry))
+        if (!_byCode.Value.TryGetValue(roleCode, out var entry))
         {
             return [];
         }
@@ -49,13 +43,14 @@ public sealed class RoleAccessPackages
         return packages;
     }
 
-    private static RoleAccessPackages Load()
+    private static Dictionary<string, RolePackagesEntry> Load(string path)
     {
-        using var stream = typeof(RoleAccessPackages).Assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"Missing embedded resource {ResourceName}");
+        using var stream = File.OpenRead(path);
         var file = JsonSerializer.Deserialize<RolePackagesFile>(stream)
-            ?? throw new InvalidOperationException($"Empty embedded resource {ResourceName}");
-        return new RoleAccessPackages(file);
+            ?? throw new InvalidOperationException($"{path} did not contain the role packages");
+        return file.Roles
+            .SelectMany(entry => entry.Codes.Select(code => (Code: code, Entry: entry)))
+            .ToDictionary(r => r.Code, r => r.Entry, StringComparer.OrdinalIgnoreCase);
     }
 
     private sealed record RolePackagesFile([property: JsonPropertyName("roles")] List<RolePackagesEntry> Roles);

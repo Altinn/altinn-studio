@@ -11,10 +11,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class AccessPackagesWrapper : IAccessPackages
     {
         private readonly TestDataService _testDataService;
+        private readonly RoleAccessPackages _roleAccessPackages;
 
-        public AccessPackagesWrapper(TestDataService testDataService)
+        public AccessPackagesWrapper(TestDataService testDataService, RoleAccessPackages roleAccessPackages)
         {
             _testDataService = testDataService;
+            _roleAccessPackages = roleAccessPackages;
         }
 
         /// <inheritdoc />
@@ -48,7 +50,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return systemUser.AccessPackages.ToList();
         }
 
-        private static IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId)
+        private IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId)
         {
             var user = userId.ToString();
             var party = partyId.ToString();
@@ -63,7 +65,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 var unitType = data.GetUnitType(partyId);
                 packages = packages.Concat(roles
                     .Where(role => !string.IsNullOrEmpty(role.Value))
-                    .SelectMany(role => RoleAccessPackages.Embedded.GetPackages(role.Value, unitType)));
+                    .SelectMany(role => _roleAccessPackages.GetPackages(role.Value, unitType)));
             }
 
             return packages;

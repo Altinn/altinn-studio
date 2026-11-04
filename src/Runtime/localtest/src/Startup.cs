@@ -35,6 +35,7 @@ using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
+using LocalTest.Services.AccessManagement.RolePackages;
 using LocalTest.Services.Correspondence;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
@@ -123,6 +124,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
+            services.AddSingleton<RoleAccessPackages>();
             services.AddSingleton<IAccessPackages, AccessPackagesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
             services.AddSingleton<IOnDemandClient, OnDemandClient>();

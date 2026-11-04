@@ -13,6 +13,7 @@ using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.Constants;
 using LocalTest.Configuration;
 using LocalTest.Services.AccessManagement;
+using LocalTest.Services.AccessManagement.RolePackages;
 using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.LocalApp.Implementation;
@@ -122,6 +123,11 @@ internal sealed class AccessPackageHarness : IDisposable
         {
             Directory.CreateDirectory(Path.Join(_root, "testdata", folder));
         }
+        // except for the role to package mapping, which is the one Localtest ships
+        File.Copy(
+            Path.Join(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "testdata", "authorization", "role-packages.json"),
+            Path.Join(_root, "testdata", "authorization", "role-packages.json")
+        );
 
         var appData = System.Text.Json.JsonSerializer.Deserialize<AppTestDataModel>(TestData, LocalAppHttp.JSON_OPTIONS)!;
         var localApp = new Mock<ILocalApp>();
@@ -141,7 +147,7 @@ internal sealed class AccessPackageHarness : IDisposable
         prp.Setup(p => p.GetPolicyAsync(It.IsAny<XacmlContextRequest>())).ReturnsAsync(policy);
 
         var roles = new RolesWrapper(testDataService);
-        AccessPackages = new AccessPackagesWrapper(testDataService);
+        AccessPackages = new AccessPackagesWrapper(testDataService, new RoleAccessPackages(settings));
         var contextHandler = new ContextHandler(
             Mock.Of<IPolicyInformationRepository>(),
             roles,

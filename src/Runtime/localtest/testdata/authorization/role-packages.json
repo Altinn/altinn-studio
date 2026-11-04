@@ -1,6 +1,6 @@
 {
   "source": "Altinn/altinn-auth@3d51810374b255aeaa179993e53864d122586a65 src/apps/Altinn.AccessManagement/src/Altinn.AccessMgmt.PersistenceEF/Data/IngestRolePackage.cs",
-  "generator": "generate_role_packages.py",
+  "generator": "scripts/generate_role_packages.py",
   "roles": [
     {
       "codes": [

@@ -1,4 +1,4 @@
-"""Generates role-packages.json: the access packages Access Management derives from a role.
+"""Generates testdata/authorization/role-packages.json: the access packages Access Management derives from a role.
 
 Source: the static data of Access Management in Altinn/altinn-auth, commit
 3d51810374b255aeaa179993e53864d122586a65, directory
@@ -9,9 +9,9 @@ EntityVariantConstants.cs (what the rows refer to).
 Only rows with HasAccess = true are kept: the others let a role delegate a package without holding it. A row with
 an entity variant applies only when the organization's unit type is that variant's name (such as VPFO).
 
-To regenerate, check out altinn-auth at the commit you want and run, from this directory:
+To regenerate, check out altinn-auth at the commit you want and run, from src/Runtime/localtest:
 
-    python3 -I generate_role_packages.py <altinn-auth>/src/apps/Altinn.AccessManagement/src/Altinn.AccessMgmt.PersistenceEF
+    python3 -I scripts/generate_role_packages.py <altinn-auth>/src/apps/Altinn.AccessManagement/src/Altinn.AccessMgmt.PersistenceEF
 
 Then update the commit above and in the output's "source".
 """
@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 SOURCE_COMMIT = "3d51810374b255aeaa179993e53864d122586a65"
-OUTPUT = Path(__file__).resolve().parent / "role-packages.json"
+OUTPUT = Path(__file__).resolve().parent.parent / "testdata" / "authorization" / "role-packages.json"
 
 DEFINITION = re.compile(
     r"public static ConstantDefinition<(?P<type>\w+)> (?P<name>\w+) \{ get; \} = new ConstantDefinition<\w+>\(\"(?P<id>[0-9a-f-]+)\"\)"
@@ -113,7 +113,7 @@ def main():
 
     output = {
         "source": f"Altinn/altinn-auth@{SOURCE_COMMIT} src/apps/Altinn.AccessManagement/src/Altinn.AccessMgmt.PersistenceEF/Data/IngestRolePackage.cs",
-        "generator": "generate_role_packages.py",
+        "generator": "scripts/generate_role_packages.py",
         "roles": entries,
     }
     OUTPUT.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

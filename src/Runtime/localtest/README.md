@@ -36,7 +36,7 @@ so does the system user of Oslos Vakreste Borettslag. A user's packages are in `
 A role also gives the packages Access Management gives for it in the platform, so daglig leder (`DAGL`) of an
 organization holds most of its packages, and privatperson (`PRIV`) the `innbygger-*` packages for the person's own
 party. The mapping is generated from the static data of Access Management, as
-[`generate_role_packages.py`](src/Services/AccessManagement/RolePackages/generate_role_packages.py) describes, and it
+[`scripts/generate_role_packages.py`](scripts/generate_role_packages.py) describes, and it
 differs from the platform in these ways:
 
 - It is a copy, so it goes stale when Access Management changes its mapping until someone regenerates it.
