@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 
@@ -20,8 +19,7 @@ public static partial class EntityGenerationUtils
             BuildStatus buildStatus = BuildStatus.Completed,
             BuildResult buildResult = BuildResult.Succeeded,
             string envName = null,
-            DeploymentType deploymentType = DeploymentType.Deploy,
-            AppStatus? appStatus = null
+            DeploymentType deploymentType = DeploymentType.Deploy
         )
         {
             BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
@@ -36,7 +34,6 @@ public static partial class EntityGenerationUtils
                 Created = DateTime.UtcNow,
                 CreatedBy = "testUser",
                 DeploymentType = deploymentType,
-                AppStatus = appStatus,
             };
         }
 

@@ -116,8 +116,9 @@ public class DeploymentService : IDeploymentService
         );
 
         // The status is committed to applicationmetadata.json when the release is built, so the app image has it.
-        // Releases built before that have no status, and fall back to a default. A status that a release cannot
-        // carry, such as a hand-written Deprecated, also falls back, since only an undeploy may deprecate the app.
+        // Releases built before that have no status, and fall back to the environment's default. A status that a
+        // release cannot carry, such as a hand-written Deprecated, also falls back, since only an undeploy may
+        // deprecate the app.
         AppStatus? committedAppStatus = await _applicationInformationService.GetAppStatusAsync(
             authenticatedContext.Org,
             authenticatedContext.Repo,
@@ -126,12 +127,7 @@ public class DeploymentService : IDeploymentService
         AppStatus appStatus =
             committedAppStatus?.IsReleaseStatus() == true
                 ? committedAppStatus.Value
-                : await GetDefaultAppStatusAsync(
-                    authenticatedContext.Org,
-                    authenticatedContext.Repo,
-                    deployment.EnvName
-                );
-        deploymentEntity.AppStatus = appStatus;
+                : GetDefaultAppStatus(deployment.EnvName);
 
         await _applicationInformationService.UpdateApplicationMetadataAndPoliciesAsync(
             authenticatedContext.Org,
@@ -219,16 +215,8 @@ public class DeploymentService : IDeploymentService
         return deploymentEntity;
     }
 
-    private async Task<AppStatus> GetDefaultAppStatusAsync(string org, string app, string envName)
-    {
-        DeploymentEntity latestDeploy = await _deploymentRepository.GetLatestDeploy(org, app, envName);
-        if (latestDeploy?.AppStatus?.IsReleaseStatus() == true)
-        {
-            return latestDeploy.AppStatus.Value;
-        }
-
-        return IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
-    }
+    private static AppStatus GetDefaultAppStatus(string envName) =>
+        IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
 
     // Designer names the production environment "production", while AltinnEnvironment expects "prod"
     private static bool IsProductionEnvironment(string envName) =>
@@ -380,7 +368,6 @@ public class DeploymentService : IDeploymentService
         {
             EnvName = env,
             DeploymentType = DeploymentType.Decommission,
-            AppStatus = AppStatus.Deprecated,
             TagName = lastDeployed.TagName,
             Build = new BuildEntity
             {

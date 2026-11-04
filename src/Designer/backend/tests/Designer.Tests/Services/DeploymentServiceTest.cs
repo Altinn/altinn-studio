@@ -1164,34 +1164,25 @@ public class DeploymentServiceTest
         };
     }
 
-    public static TheoryData<string, bool, AppStatus?, AppStatus?, AppStatus> AppStatusCases =>
+    public static TheoryData<string, AppStatus?, AppStatus> AppStatusCases =>
         new()
         {
-            // env, has previous deploy, previous deploy status, status committed in the release, expected status
-            { "at23", false, null, null, AppStatus.UnderDevelopment },
-            { "tt02", false, null, null, AppStatus.UnderDevelopment },
-            { "production", false, null, null, AppStatus.Completed },
-            { "tt02", false, null, AppStatus.Completed, AppStatus.Completed },
-            { "production", false, null, AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
-            { "tt02", true, AppStatus.Completed, null, AppStatus.Completed },
-            { "production", true, AppStatus.UnderDevelopment, null, AppStatus.UnderDevelopment },
-            { "tt02", true, null, null, AppStatus.UnderDevelopment },
-            { "production", true, null, null, AppStatus.Completed },
-            { "tt02", true, AppStatus.Completed, AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
-            { "production", true, AppStatus.UnderDevelopment, AppStatus.Completed, AppStatus.Completed },
+            // env, status committed in the release, expected status
+            { "at23", null, AppStatus.UnderDevelopment },
+            { "tt02", null, AppStatus.UnderDevelopment },
+            { "production", null, AppStatus.Completed },
+            { "tt02", AppStatus.Completed, AppStatus.Completed },
+            { "production", AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
             // A release cannot carry Deprecated or Withdrawn, so a hand-written one falls back to the default
-            { "tt02", false, null, AppStatus.Deprecated, AppStatus.UnderDevelopment },
-            { "production", false, null, AppStatus.Deprecated, AppStatus.Completed },
-            { "production", false, null, AppStatus.Withdrawn, AppStatus.Completed },
-            { "tt02", true, AppStatus.Completed, AppStatus.Deprecated, AppStatus.Completed },
+            { "tt02", AppStatus.Deprecated, AppStatus.UnderDevelopment },
+            { "production", AppStatus.Deprecated, AppStatus.Completed },
+            { "production", AppStatus.Withdrawn, AppStatus.Completed },
         };
 
     [Theory]
     [MemberData(nameof(AppStatusCases))]
-    public async Task CreateAsync_SetsCommittedOrDefaultAppStatusInStorageResourceRegistryAndDeployment(
+    public async Task CreateAsync_SetsCommittedOrDefaultAppStatusInStorageAndResourceRegistry(
         string env,
-        bool hasPreviousDeploy,
-        AppStatus? previousAppStatus,
         AppStatus? committedAppStatus,
         AppStatus expectedAppStatus
     )
@@ -1225,19 +1216,6 @@ public class DeploymentServiceTest
         _deploymentRepository
             .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
             .ReturnsAsync((DeploymentEntity entity) => entity);
-        _deploymentRepository
-            .Setup(r => r.GetLatestDeploy(org, app, env))
-            .ReturnsAsync(
-                hasPreviousDeploy
-                    ? new DeploymentEntity
-                    {
-                        Org = org,
-                        App = app,
-                        EnvName = env,
-                        AppStatus = previousAppStatus,
-                    }
-                    : null
-            );
 
         DeploymentService deploymentService = new(
             GetAzureDevOpsSettings(),
@@ -1261,14 +1239,9 @@ public class DeploymentServiceTest
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
         // Act
-        DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
         // Assert
-        Assert.Equal(expectedAppStatus, deploymentEntity.AppStatus);
-        _deploymentRepository.Verify(
-            r => r.Create(It.Is<DeploymentEntity>(d => d.AppStatus == expectedAppStatus)),
-            Times.Once
-        );
         _applicationInformationService.Verify(
             ais =>
                 ais.UpdateApplicationMetadataAndPoliciesAsync(
@@ -1379,12 +1352,7 @@ public class DeploymentServiceTest
         );
 
         _deploymentRepository.Verify(
-            r =>
-                r.Create(
-                    It.Is<DeploymentEntity>(d =>
-                        d.DeploymentType == DeploymentType.Decommission && d.AppStatus == AppStatus.Deprecated
-                    )
-                ),
+            r => r.Create(It.Is<DeploymentEntity>(d => d.DeploymentType == DeploymentType.Decommission)),
             Times.Once
         );
 
