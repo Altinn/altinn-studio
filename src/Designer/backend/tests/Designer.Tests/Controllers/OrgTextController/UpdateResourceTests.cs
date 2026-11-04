@@ -36,6 +36,7 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
 
         string file = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
         TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
+        expectedResource.Schema = TextResource.SchemaUrl;
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         string apiUrl = ApiUrl(targetOrg, lang);
