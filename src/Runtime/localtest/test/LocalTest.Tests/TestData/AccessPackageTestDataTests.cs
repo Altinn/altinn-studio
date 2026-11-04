@@ -45,6 +45,28 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
+    public void AppTestData_UrnPrefixWithoutIdentifierIsNoPackage()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [
+                {
+                  "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                  "accessPackages": { "500000": ["urn:altinn:accesspackage:", "URN:ALTINN:ACCESSPACKAGE: ", "urn:altinn:accesspackage: lonn"] }
+                }
+              ],
+              "orgs": [],
+              "systems": [{ "id": "s", "name": "S", "systemUsers": [{ "id": "su", "orgNumber": "1", "actions": [], "accessPackages": ["urn:altinn:accesspackage:"] }] }]
+            }
+            """
+        ).Authorization;
+
+        Assert.Equal(["lonn"], authorization.AccessPackages["1"]["500000"]);
+        Assert.Empty(authorization.SystemUsers["su"].AccessPackages);
+    }
+
+    [Fact]
     public void AppTestData_PartiesWithOnlyPackagesAreInThePartyList()
     {
         var partyList = Read().Authorization.PartyList["1001"];
