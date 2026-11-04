@@ -267,6 +267,10 @@ namespace Altinn.Platform.Authorization.Controllers
             if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
                 return appPolicyResponse;
 
+            // A rule without actions in its target would permit every action
+            if (systemUser.Actions?.Any() != true)
+                return appPolicyResponse;
+
             var orgNo = systemUser.OrgNumber;
             var org = testData.Register.Party.Single(p => p.Value.OrgNumber == orgNo).Value;
             var partyId = org.PartyId;

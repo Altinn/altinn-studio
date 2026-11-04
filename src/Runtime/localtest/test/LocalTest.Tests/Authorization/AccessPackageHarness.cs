@@ -75,7 +75,10 @@ internal sealed class AccessPackageHarness : IDisposable
               "name": "Sluttbrukersystem",
               "systemUsers": [
                 { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0001", "orgNumber": "910000000", "actions": ["delete"], "accessPackages": ["lonn"] },
-                { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0002", "orgNumber": "910000000", "actions": ["delete"], "accessPackages": null }
+                { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0002", "orgNumber": "910000000", "actions": ["delete"], "accessPackages": null },
+                { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0003", "orgNumber": "910000000", "actions": [] },
+                { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0004", "orgNumber": "910000000", "actions": ["read"] },
+                { "id": "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0005", "orgNumber": "910000000", "actions": ["read", "write"] }
               ]
             }
           ]
@@ -84,6 +87,9 @@ internal sealed class AccessPackageHarness : IDisposable
 
     public const string SystemUserWithPackage = "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0001";
     public const string SystemUserWithoutPackage = "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0002";
+    public const string SystemUserWithoutActions = "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0003";
+    public const string SystemUserWithRead = "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0004";
+    public const string SystemUserWithReadAndWrite = "6b1b6c22-0d5c-4bd5-9a8e-1f6f1a2c0005";
 
     private readonly string _root = Path.Join(Path.GetTempPath(), $"localtest-accesspackages-{Guid.NewGuid():N}");
     private readonly LocalInstanceDelegationsRepository _delegations;
