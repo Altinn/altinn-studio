@@ -656,8 +656,11 @@ public class RepositoryService : IRepository
 
                     if (string.IsNullOrWhiteSpace(result.Identifier))
                     {
-                        result.Identifier = Path.GetFileNameWithoutExtension(resourceFile.Name)
-                            .Replace("_resource", string.Empty);
+                        result.Identifier = Regex.Replace(
+                            Path.GetFileNameWithoutExtension(resourceFile.Name),
+                            "_resource$",
+                            string.Empty
+                        );
                     }
 
                     sw.Stop();
