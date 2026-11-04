@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -237,6 +238,30 @@ public class WorkflowEngineCallbackController : ControllerBase
                         StatusCodes.Status422UnprocessableEntity
                     );
                 }
+                catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(ex))
+                {
+                    const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
+                    _logger.LogError(
+                        ex,
+                        rejection + " CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        command.GetKey(),
+                        instanceId,
+                        currentTaskId
+                    );
+                    ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
+                    activity?.SetStatus(ActivityStatusCode.Error, rejection);
+
+                    // Retryable, like a 403 inside a command. Storage authorizes before it commits anything and
+                    // checks the policy on every attempt, so once a policy fix is deployed the same step saves and
+                    // the transition goes on by itself. A permanent failure would instead leave each affected
+                    // instance stuck until someone resumes it. The answer is a 500 and not Storage's 403 because the
+                    // engine's default retry strategy does not retry a 403.
+                    return Problem(
+                        title: ex.GetType().Name,
+                        detail: rejection,
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
 
                 string updatedState = await _workflowCallbackStateService.CaptureState(
                     instanceDataUnitOfWork,
@@ -362,23 +387,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                     failed.ExceptionType
                 );
 
-                // A service-owner 403 reads as a platform failure but is a policy gap; logged and tagged
-                // separately so ops can tell a policy change from a redrive. The app's own metadata names the
-                // app — route values are caller-supplied.
                 if (failed.ServiceOwnerAuthorizationDenied)
                 {
-                    activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
-
-                    ApplicationMetadata appMetadata = _serviceProvider
-                        .GetRequiredService<IAppMetadata>()
-                        .ApplicationMetadata;
-
-                    _logger.LogError(
-                        "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                        ServiceOwnerAuthorizationDiagnostics.Describe(appMetadata),
-                        command.GetKey(),
-                        instanceId
-                    );
+                    ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
                 }
 
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
@@ -407,6 +418,23 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
+    }
+
+    // A service-owner 403 reads as a platform failure but is a policy gap. It is logged and tagged separately so
+    // ops can tell a policy change from a redrive. The app's own metadata names the app, because route values are
+    // caller-supplied.
+    private void ReportServiceOwnerDenial(string commandKey, InstanceIdentifier instanceId, Activity? activity)
+    {
+        activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
+
+        ApplicationMetadata appMetadata = _serviceProvider.GetRequiredService<IAppMetadata>().ApplicationMetadata;
+
+        _logger.LogError(
+            "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
+            ServiceOwnerAuthorizationDiagnostics.Describe(appMetadata),
+            commandKey,
+            instanceId
+        );
     }
 
     private async Task<IActionResult> AcquireProcessingStatus(

@@ -20,6 +20,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
