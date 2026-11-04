@@ -22,7 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
 
 ## [9.0.0-preview.9] - 2026-10-28
 
