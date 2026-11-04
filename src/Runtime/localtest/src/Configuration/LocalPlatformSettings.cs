@@ -69,11 +69,5 @@ namespace LocalTest.Configuration
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
 
         public string CorrespondenceDataFolder { get; set; } = "correspondence";
-
-        /// <summary>
-        /// Whether a user's roles for a party also give the access packages Access Management derives from those
-        /// roles, in addition to the packages the test data gives.
-        /// </summary>
-        public bool AccessPackagesFromRoles { get; set; } = false;
     }
 }

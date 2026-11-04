@@ -33,9 +33,9 @@ In the built-in data, Pengelens Partner holds `regnskapsforer-med-signeringsrett
 so does the system user of Oslos Vakreste Borettslag. A user's packages are in `accesspackages.json` next to their
 `roles.json`, and a system user's are in its `AccessPackages`.
 
-In the platform, Access Management also gives packages for roles, such as daglig leder (`DAGL`). Localtest does that
-only with `LocalPlatformSettings__AccessPackagesFromRoles=true`, because it changes what the existing test users may
-do. The mapping is generated from the static data of Access Management, as
+A role also gives the packages Access Management gives for it in the platform, so daglig leder (`DAGL`) of an
+organization holds most of its packages, and privatperson (`PRIV`) the `innbygger-*` packages for the person's own
+party. The mapping is generated from the static data of Access Management, as
 [`generate_role_packages.py`](src/Services/AccessManagement/RolePackages/generate_role_packages.py) describes, and it
 differs from the platform in these ways:
 

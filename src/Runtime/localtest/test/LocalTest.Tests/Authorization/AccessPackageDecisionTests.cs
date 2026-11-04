@@ -82,19 +82,11 @@ public sealed class AccessPackageDecisionTests
     }
 
     [Fact]
-    public async Task RolesWithoutMapping_GiveNoPackages()
+    public async Task Roles_GiveThePackagesAccessManagementDerives()
     {
         using var harness = new AccessPackageHarness();
 
         // Gjentagende Forelder is daglig leder of DDG Fitness, which gives lonn in Access Management
-        Assert.Equal("NotApplicable", await harness.DecideForUser(1002, 500000));
-        Assert.Empty(await harness.AccessPackages.GetAccessPackagesForUser(1002, 500000));
-    }
-
-    [Fact]
-    public async Task RolesWithMapping_GiveThePackagesAccessManagementDerives()
-    {
-        using var harness = new AccessPackageHarness(accessPackagesFromRoles: true);
 
         Assert.Equal("Permit", await harness.DecideForUser(1002, 500000));
         Assert.Equal("Permit", await harness.DecideForUser(1002, 500001));
@@ -103,9 +95,9 @@ public sealed class AccessPackageDecisionTests
     }
 
     [Fact]
-    public async Task RolesWithMapping_GivePackagesForAUnitTypeOnlyToThatUnitType()
+    public async Task Roles_GivePackagesForAUnitTypeOnlyToThatUnitType()
     {
-        using var harness = new AccessPackageHarness(accessPackagesFromRoles: true);
+        using var harness = new AccessPackageHarness();
 
         // Forretningsfører (FFØR) gives packages only for securities funds (VPFO)
         Assert.Equal("Permit", await harness.DecideForUser(1002, 500100));
@@ -122,7 +114,9 @@ public sealed class AccessPackageDecisionTests
 
         Assert.Equal([510001, 500000], parties.Select(p => p.PartyId));
         var own = parties[0];
-        Assert.Equal(["skattegrunnlag"], own.AuthorizedAccessPackages);
+        // The test data's own package first, then those privatperson (PRIV) gives
+        Assert.Equal("skattegrunnlag", own.AuthorizedAccessPackages[0]);
+        Assert.Contains("innbygger-arbeidsliv", own.AuthorizedAccessPackages);
         Assert.Equal(["priv"], own.AuthorizedRoles);
         var org = parties[1];
         Assert.Equal(["regnskapsforer-lonn", "lonn"], org.AuthorizedAccessPackages);
@@ -141,14 +135,13 @@ public sealed class AccessPackageDecisionTests
 
         var org = parties.Single(p => p.PartyId == 500000);
         Assert.Equal(["DAGL"], org.AuthorizedRoles);
-        Assert.Empty(org.AuthorizedAccessPackages);
         Assert.Equal(["DAGL"], Assert.Single(org.Subunits).AuthorizedRoles);
     }
 
     [Fact]
-    public async Task AuthorizedParties_WithMapping_ListTheDerivedPackages()
+    public async Task AuthorizedParties_ListThePackagesDerivedFromRoles()
     {
-        using var harness = new AccessPackageHarness(accessPackagesFromRoles: true);
+        using var harness = new AccessPackageHarness();
 
         var parties = await harness.AuthorizedParties(1002);
 

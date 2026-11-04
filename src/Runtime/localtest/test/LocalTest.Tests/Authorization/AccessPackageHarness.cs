@@ -96,14 +96,13 @@ internal sealed class AccessPackageHarness : IDisposable
     private readonly DecisionController _decisionController;
     private readonly AuthorizedPartiesController _authorizedPartiesController;
 
-    public AccessPackageHarness(string requiredPackage = "lonn", bool accessPackagesFromRoles = false)
+    public AccessPackageHarness(string requiredPackage = "lonn")
     {
         var settings = Options.Create(
             new LocalPlatformSettings
             {
                 LocalTestingStorageBasePath = Path.Join(_root, "storage") + "/",
                 LocalTestingStaticTestDataPath = Path.Join(_root, "testdata"),
-                AccessPackagesFromRoles = accessPackagesFromRoles,
             }
         );
         // The built-in test data, empty
@@ -142,7 +141,7 @@ internal sealed class AccessPackageHarness : IDisposable
         prp.Setup(p => p.GetPolicyAsync(It.IsAny<XacmlContextRequest>())).ReturnsAsync(policy);
 
         var roles = new RolesWrapper(testDataService);
-        AccessPackages = new AccessPackagesWrapper(testDataService, settings);
+        AccessPackages = new AccessPackagesWrapper(testDataService);
         var contextHandler = new ContextHandler(
             Mock.Of<IPolicyInformationRepository>(),
             roles,

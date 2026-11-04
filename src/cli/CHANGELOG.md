@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Localtest gives persons and system users the access packages (`accessPackages`) in `testData.json`, so app policy rules on access packages decide as in the platform. The built-in user Pengelens Partner holds `lonn` and `regnskapsforer-med-signeringsrettighet` for DDG Fitness.
+- Localtest gives persons and system users the access packages (`accessPackages`) in `testData.json`, so app policy rules on access packages decide as in the platform. Roles also give the packages Access Management gives for them, such as most packages for daglig leder (`DAGL`). The built-in user Pengelens Partner holds `lonn` and `regnskapsforer-med-signeringsrettighet` for DDG Fitness.
 
 ### Changed
 

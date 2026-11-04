@@ -1,24 +1,20 @@
 using Altinn.Platform.Authorization.Services.Interface;
-using LocalTest.Configuration;
 using LocalTest.Services.AccessManagement.RolePackages;
 using LocalTest.Services.TestData;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
     /// <summary>
-    /// Reads the access packages from the test data. When <see cref="LocalPlatformSettings.AccessPackagesFromRoles"/>
-    /// is set, a user's roles for a party also give the packages Access Management derives from them.
+    /// Reads the access packages from the test data. A user's roles for a party also give the packages Access
+    /// Management derives from them.
     /// </summary>
     public class AccessPackagesWrapper : IAccessPackages
     {
         private readonly TestDataService _testDataService;
-        private readonly LocalPlatformSettings _settings;
 
-        public AccessPackagesWrapper(TestDataService testDataService, IOptions<LocalPlatformSettings> settings)
+        public AccessPackagesWrapper(TestDataService testDataService)
         {
             _testDataService = testDataService;
-            _settings = settings.Value;
         }
 
         /// <inheritdoc />
@@ -52,7 +48,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return systemUser.AccessPackages.ToList();
         }
 
-        private IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId)
+        private static IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId)
         {
             var user = userId.ToString();
             var party = partyId.ToString();
@@ -61,8 +57,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     ? given
                     : [];
 
-            if (_settings.AccessPackagesFromRoles
-                && data.Authorization.Roles.TryGetValue(user, out var rolesByParty)
+            if (data.Authorization.Roles.TryGetValue(user, out var rolesByParty)
                 && rolesByParty.TryGetValue(party, out var roles))
             {
                 var unitType = data.GetUnitType(partyId);
