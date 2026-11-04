@@ -202,6 +202,30 @@ public class PdpRetryDelegatingHandlerTests
         Assert.Single(receivedBodies);
     }
 
+    [Fact]
+    public async Task SendAsync_DoesNotRetry_WhenRequestIsCanceledAfterFirstResponseIsTransient()
+    {
+        List<string> receivedBodies = [];
+        using var cancellation = new CancellationTokenSource();
+        var firstResponse = new DisposeTrackingResponse(HttpStatusCode.ServiceUnavailable);
+        using HttpClient client = CreateClient(
+            receivedBodies,
+            () =>
+            {
+                cancellation.Cancel();
+                return firstResponse;
+            },
+            () => new HttpResponseMessage(HttpStatusCode.OK)
+        );
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.PostAsync("decision", new StringContent(RequestBody), cancellation.Token)
+        );
+
+        Assert.True(firstResponse.IsDisposed);
+        Assert.Single(receivedBodies);
+    }
+
     [Theory]
     [InlineData(HttpStatusCode.OK)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
