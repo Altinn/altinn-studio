@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -11,9 +11,18 @@ import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../FormItemContext';
 import { formItemContextProviderMock } from '../../../../../testing/formItemContextMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { layout1NameMock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import {
+  component1IdMock,
+  componentWithOptionsMock,
+  container1IdMock,
+  layout1NameMock,
+  layoutMock,
+} from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
+import { appContextMock } from '../../../../../testing/appContextMock';
 
 const mockHandleDiscard = vi.fn();
 
@@ -58,9 +67,6 @@ describe('FormItemTitle', () => {
         }),
       },
     );
-    await waitFor(() => {
-      expect(mockHandleDiscard).toHaveBeenCalledTimes(1);
-    });
   });
 
   it('Does not call deleteItem when delete button is clicked, but deletion is not confirmed', async () => {
@@ -104,14 +110,61 @@ describe('FormItemTitle', () => {
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedConfirm).toHaveBeenCalledWith(textMock('ux_editor.component_group_deletion_text'));
   });
+
+  describe('When a component is selected', () => {
+    const selectedComponentId = component1IdMock;
+
+    beforeEach(() => {
+      queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
+        [layout1NameMock]: layoutMock,
+      });
+      vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
+    });
+
+    afterEach(() => {
+      queryClientMock.clear();
+    });
+
+    it('Discards the selection when the selected component is deleted', async () => {
+      const user = userEvent.setup();
+      render(layoutMock.components[selectedComponentId], 'Test label', selectedComponentId);
+
+      await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+
+      await waitFor(() => expect(mockHandleDiscard).toHaveBeenCalledTimes(1));
+    });
+
+    it('Discards the selection when the container of the selected component is deleted', async () => {
+      const user = userEvent.setup();
+      render(layoutMock.containers[container1IdMock], 'Test label', selectedComponentId);
+
+      await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+
+      await waitFor(() => expect(mockHandleDiscard).toHaveBeenCalledTimes(1));
+    });
+
+    it('Keeps the selection when another component is deleted', async () => {
+      const user = userEvent.setup();
+      render(componentWithOptionsMock, 'Test label', selectedComponentId);
+
+      await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+
+      await waitFor(() => expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1));
+      expect(mockHandleDiscard).not.toHaveBeenCalled();
+    });
+  });
 });
 
-const render = (formItem: FormComponent | FormContainer, label: string) =>
+const render = (
+  formItem: FormComponent | FormContainer,
+  label: string,
+  selectedItemId: string = null,
+) =>
   renderWithProviders(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,
-        ...{ handleDiscard: mockHandleDiscard },
+        ...{ formItemId: selectedItemId, handleDiscard: mockHandleDiscard },
       }}
     >
       <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
