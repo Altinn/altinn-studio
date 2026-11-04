@@ -11,6 +11,10 @@ public sealed class AccessPackageTestDataTests : IDisposable
 {
     private readonly string _root = Path.Join(Path.GetTempPath(), $"localtest-testdata-{Guid.NewGuid():N}");
 
+    private static readonly string BuiltInTestData = Path.GetFullPath(
+        Path.Join(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "testdata")
+    );
+
     private static TestDataModel Read(string json = AccessPackageHarness.TestData) =>
         JsonSerializer.Deserialize<AppTestDataModel>(json, LocalAppHttp.JSON_OPTIONS)!.GetTestDataModel();
 
@@ -226,13 +230,61 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
-    public async Task BuiltInTestData_GivesPengelensPartnerAndTheSystemUserPackages()
+    public async Task DiskTestData_TheHierarchyAndUnitTypesComeFromTheRegisterAndThePartyLists()
     {
-        var testData = Path.GetFullPath(
-            Path.Join(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "testdata")
+        foreach (var folder in new[] { "authorization/claims", "authorization/roles", "authorization/systems", "Profile/User", "Register/Person" })
+        {
+            Directory.CreateDirectory(Path.Join(_root, folder));
+        }
+        Directory.CreateDirectory(Path.Join(_root, "Register", "Org"));
+        Directory.CreateDirectory(Path.Join(_root, "Register", "Party"));
+        Directory.CreateDirectory(Path.Join(_root, "authorization", "partylist"));
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Org", "910000000.json"), """{ "OrgNumber": "910000000", "UnitType": "AS" }""");
+        // The unit type is on the organization only
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Party", "500000.json"), """{ "partyId": 500000, "orgNumber": "910000000", "partyTypeName": 2 }""");
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Party", "510001.json"), """{ "partyId": 510001, "ssn": "01017000001", "partyTypeName": 1 }""");
+        // The sub-unit is only a child party in a party list
+        await File.WriteAllTextAsync(
+            Path.Join(_root, "authorization", "partylist", "1001.json"),
+            """
+            [
+              { "partyId": 510001, "ssn": "01017000001", "partyTypeName": 1 },
+              {
+                "partyId": 500000, "orgNumber": "910000000", "partyTypeName": 2,
+                "childParties": [{ "partyId": 500100, "orgNumber": "910000100", "partyTypeName": 2, "unitType": "VPFO" }]
+              }
+            ]
+            """
         );
 
-        var authorization = (await TestDataDiskReader.ReadFromDisk(testData)).Authorization;
+        var data = await TestDataDiskReader.ReadFromDisk(_root);
+
+        Assert.Equal("AS", data.GetUnitType(500000));
+        Assert.Null(data.GetParentPartyId(500000));
+        Assert.Equal("VPFO", data.GetUnitType(500100));
+        Assert.Equal(500000, data.GetParentPartyId(500100));
+        Assert.Null(data.GetUnitType(510001));
+        Assert.Equal(500000, data.GetOrgUnit("910000000")?.PartyId);
+        // Kept when Localtest merges the data of several apps
+        var roundTripped = AppTestDataModel.FromTestDataModel(data).GetTestDataModel();
+        Assert.Equal("AS", roundTripped.GetUnitType(500000));
+    }
+
+    [Fact]
+    public async Task BuiltInTestData_DDGFitnessHasItsSubUnits()
+    {
+        var data = await TestDataDiskReader.ReadFromDisk(BuiltInTestData);
+
+        Assert.Equal("AS", data.GetUnitType(500000));
+        Assert.All([500001, 500002, 500003], subUnit => Assert.Equal(500000, data.GetParentPartyId(subUnit)));
+        Assert.Equal("BEDR", data.GetUnitType(500001));
+        Assert.Equal(500700, data.GetOrgUnit("950474084")?.PartyId);
+    }
+
+    [Fact]
+    public async Task BuiltInTestData_GivesPengelensPartnerAndTheSystemUserPackages()
+    {
+        var authorization = (await TestDataDiskReader.ReadFromDisk(BuiltInTestData)).Authorization;
 
         string[] packages = ["regnskapsforer-med-signeringsrettighet", "lonn"];
         Assert.Equal(packages, authorization.AccessPackages["1001"]["500000"]);

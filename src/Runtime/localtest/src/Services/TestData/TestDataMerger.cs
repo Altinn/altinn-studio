@@ -83,6 +83,17 @@ public static class TestDataMerger
             }
         }
 
+        if (source.Register?.OrgUnits != null)
+        {
+            foreach (var (partyId, unit) in source.Register.OrgUnits)
+            {
+                if (!target.Register.OrgUnits.TryAdd(partyId, unit) && unit != target.Register.OrgUnits[partyId])
+                {
+                    conflicts.Add($"Organization party ID {partyId}");
+                }
+            }
+        }
+
         if (source.Authorization?.PartyList != null)
         {
             foreach (var (userId, parties) in source.Authorization.PartyList)

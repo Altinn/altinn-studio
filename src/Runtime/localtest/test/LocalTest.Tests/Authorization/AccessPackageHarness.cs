@@ -97,7 +97,7 @@ internal sealed class AccessPackageHarness : IDisposable
     private readonly DecisionController _decisionController;
     private readonly AuthorizedPartiesController _authorizedPartiesController;
 
-    public AccessPackageHarness(string requiredPackage = "lonn")
+    public AccessPackageHarness(string requiredPackage = "lonn", string testData = TestData)
     {
         var settings = Options.Create(
             new LocalPlatformSettings
@@ -129,7 +129,7 @@ internal sealed class AccessPackageHarness : IDisposable
             Path.Join(_root, "testdata", "authorization", "role-packages.json")
         );
 
-        var appData = System.Text.Json.JsonSerializer.Deserialize<AppTestDataModel>(TestData, LocalAppHttp.JSON_OPTIONS)!;
+        var appData = System.Text.Json.JsonSerializer.Deserialize<AppTestDataModel>(testData, LocalAppHttp.JSON_OPTIONS)!;
         var localApp = new Mock<ILocalApp>();
         localApp
             .Setup(app => app.GetTestDataWithMetadata(It.IsAny<CancellationToken>()))

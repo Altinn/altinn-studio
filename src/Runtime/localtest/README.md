@@ -26,8 +26,9 @@ Persons in `testData.json` can hold access packages ("tilgangspakker") for a par
 party id, and system users can hold them for their own organization. A package is its identifier, such as `lonn`, or
 its URN, `urn:altinn:accesspackage:lonn`. When an app policy has rules on `urn:altinn:accesspackage`, the PDP adds
 the packages the subject holds for the resource party, as the platform does, so those rules decide the same way
-locally. A sub-unit gets the packages held for its main unit. Packages held for the person's own party give no
-access to other parties. `enduser/authorizedparties` lists the packages and role codes per party.
+locally. A sub-unit, an organization with a `parentPartyId`, gets the packages held for its main unit. Packages held
+for the person's own party give no access to other parties. `enduser/authorizedparties` lists the packages and role
+codes per party.
 
 In the built-in data, Pengelens Partner holds `regnskapsforer-med-signeringsrettighet` and `lonn` for DDG Fitness, and
 so does the system user of Oslos Vakreste Borettslag. A user's packages are in `accesspackages.json` next to their

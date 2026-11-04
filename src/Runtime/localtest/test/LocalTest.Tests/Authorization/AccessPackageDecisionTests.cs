@@ -60,6 +60,32 @@ public sealed class AccessPackageDecisionTests
     }
 
     [Fact]
+    public async Task SystemUser_IsPermittedForTheSubUnitsWhenNoPersonCanActForTheOrganization()
+    {
+        using var harness = new AccessPackageHarness(
+            testData: """
+                {
+                  "persons": [],
+                  "orgs": [
+                    { "partyId": 500000, "orgNumber": "910000000", "name": "DDG Fitness", "unitType": "AS" },
+                    { "partyId": 500001, "orgNumber": "910000001", "name": "DDG Fitness Oslo", "unitType": "BEDR", "parentPartyId": 500000 }
+                  ],
+                  "systems": [
+                    {
+                      "id": "910000000_sbs",
+                      "name": "Sluttbrukersystem",
+                      "systemUsers": [{ "id": "su", "orgNumber": "910000000", "actions": [], "accessPackages": ["lonn"] }]
+                    }
+                  ]
+                }
+                """
+        );
+
+        Assert.Equal("Permit", await harness.DecideForSystemUser("su", 500000));
+        Assert.Equal("Permit", await harness.DecideForSystemUser("su", 500001));
+    }
+
+    [Fact]
     public async Task SystemUser_ForAnotherOrganization_IsNotApplicable()
     {
         using var harness = new AccessPackageHarness();

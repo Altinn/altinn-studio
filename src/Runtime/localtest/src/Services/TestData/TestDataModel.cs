@@ -15,29 +15,15 @@ public class TestDataModel
     public TestDataProfile Profile { get; set; } = new();
     public TestDataRegister Register { get; set; } = new();
 
-    /// <summary>The main unit of an organization that is a sub-unit, as the party lists give it.</summary>
-    public int? GetParentPartyId(int partyId) =>
-        Authorization.PartyList.Values
-            .SelectMany(parties => parties)
-            .Concat(Register.Party.Values)
-            .FirstOrDefault(party => party.ChildParties?.Any(child => child.PartyId == partyId) == true)
-            ?.PartyId;
+    /// <summary>The main unit of an organization that is a sub-unit.</summary>
+    public int? GetParentPartyId(int partyId) => Register.OrgUnits.GetValueOrDefault(partyId.ToString())?.ParentPartyId;
 
     /// <summary>The unit type of an organization (such as <c>AS</c> or <c>BEDR</c>), if the test data has one.</summary>
-    public string? GetUnitType(int partyId)
-    {
-        if (!Register.Party.TryGetValue(partyId.ToString(), out var party))
-        {
-            return null;
-        }
+    public string? GetUnitType(int partyId) => Register.OrgUnits.GetValueOrDefault(partyId.ToString())?.UnitType;
 
-        if (!string.IsNullOrEmpty(party.UnitType))
-        {
-            return party.UnitType;
-        }
-
-        return party.OrgNumber is not null && Register.Org.TryGetValue(party.OrgNumber, out var org) ? org.UnitType : null;
-    }
+    /// <summary>The organization with the organization number, if the test data has its party.</summary>
+    public TestDataOrgUnit? GetOrgUnit(string orgNumber) =>
+        Register.OrgUnits.Values.FirstOrDefault(unit => unit.OrgNumber == orgNumber);
 }
 
 public class TestDataAuthorization
@@ -76,4 +62,55 @@ public class TestDataRegister
     public Dictionary<string, Organization> Org { get; set; } = new();
     public Dictionary<string, Party> Party { get; set; } = new();
     public Dictionary<string, Person> Person { get; set; } = new();
+    /// <summary>
+    /// The organizations by party id, with their main unit and unit type, so that the hierarchy does not depend on
+    /// which persons can act for them.
+    /// </summary>
+    public Dictionary<string, TestDataOrgUnit> OrgUnits { get; set; } = new();
+}
+
+/// <summary>An organization's party, with its main unit if it is a sub-unit, and its unit type.</summary>
+public sealed record TestDataOrgUnit(int PartyId, string OrgNumber, int? ParentPartyId, string? UnitType)
+{
+    /// <summary>
+    /// The organizations among the parties and their child parties (sub-units), as the built-in test data on disk holds
+    /// them. A unit type missing on the party is read from the organization.
+    /// </summary>
+    public static Dictionary<string, TestDataOrgUnit> FromParties(
+        IEnumerable<Party> parties,
+        IReadOnlyDictionary<string, Organization> orgs
+    )
+    {
+        var units = new Dictionary<string, TestDataOrgUnit>();
+
+        void Add(Party party, int? parentPartyId)
+        {
+            if (!string.IsNullOrEmpty(party.OrgNumber))
+            {
+                var unitType = !string.IsNullOrEmpty(party.UnitType)
+                    ? party.UnitType
+                    : orgs.GetValueOrDefault(party.OrgNumber)?.UnitType;
+                var key = party.PartyId.ToString();
+                units[key] = units.TryGetValue(key, out var known)
+                    ? known with
+                    {
+                        ParentPartyId = known.ParentPartyId ?? parentPartyId,
+                        UnitType = known.UnitType ?? unitType,
+                    }
+                    : new TestDataOrgUnit(party.PartyId, party.OrgNumber, parentPartyId, unitType);
+            }
+
+            foreach (var child in party.ChildParties ?? [])
+            {
+                Add(child, party.PartyId);
+            }
+        }
+
+        foreach (var party in parties)
+        {
+            Add(party, parentPartyId: null);
+        }
+
+        return units;
+    }
 }

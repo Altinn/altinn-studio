@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return [];
             }
 
-            var ownParty = data.Register.Party.Values.FirstOrDefault(party => party.OrgNumber == systemUser.OrgNumber);
+            var ownParty = data.GetOrgUnit(systemUser.OrgNumber);
             if (ownParty is null || (ownParty.PartyId != partyId && data.GetParentPartyId(partyId) != ownParty.PartyId))
             {
                 return [];

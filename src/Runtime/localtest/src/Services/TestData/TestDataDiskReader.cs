@@ -22,6 +22,11 @@ public static class TestDataDiskReader
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Org"), testData.Register.Org);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Party"), testData.Register.Party);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Person"), testData.Register.Person);
+        // On disk, the sub-units are the child parties of their main unit, in the register or in the party lists
+        testData.Register.OrgUnits = TestDataOrgUnit.FromParties(
+            testData.Register.Party.Values.Concat(testData.Authorization.PartyList.Values.SelectMany(parties => parties)),
+            testData.Register.Org
+        );
 
         return testData;
     }

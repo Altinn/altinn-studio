@@ -41,6 +41,9 @@ public class AppTestDataModel
             Org = org,
             Party = party,
             Person = person,
+            OrgUnits = Orgs.ToDictionary(
+                o => o.PartyId.ToString(),
+                o => new TestDataOrgUnit(o.PartyId, o.OrgNumber, o.ParentPartyId, o.UnitType)),
         };
     }
 
@@ -122,15 +125,15 @@ public class AppTestDataModel
             Orgs = localData.Register.Org.Values.Select(org =>
             {
                 var party = localData.Register.Party.Values.FirstOrDefault(p => p.OrgNumber == org.OrgNumber);
-                var parentParty = localData.Authorization.PartyList.Values.SelectMany(l => l).FirstOrDefault(p => p.ChildParties?.Any(cp => cp.PartyId == party?.PartyId) == true);
+                var unit = party is null ? null : localData.Register.OrgUnits.GetValueOrDefault(party.PartyId.ToString());
                 return new AppTestOrg()
                 {
                     PartyId = party?.PartyId ?? negativePartyId--,
                     PartyUuid = party?.PartyUuid,
-                    ParentPartyId = parentParty?.PartyId,
+                    ParentPartyId = unit?.ParentPartyId,
                     TelephoneNumber = org.TelephoneNumber,
                     UnitStatus = org.UnitStatus,
-                    UnitType = party?.UnitType ?? org.UnitType, // These are inconsistent in the original TestData folder
+                    UnitType = unit?.UnitType ?? party?.UnitType ?? org.UnitType, // These are inconsistent in the original TestData folder
                     BusinessAddress = org.BusinessAddress,
                     BusinessPostalCity = org.BusinessPostalCity,
                     BusinessPostalCode = org.BusinessPostalCode,
