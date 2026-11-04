@@ -67,6 +67,24 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
+    public void AppTestData_SystemWithoutSystemUsersHasNone()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [],
+              "orgs": [],
+              "systems": [{ "id": "a", "name": "A", "systemUsers": null }, { "id": "b", "name": "B" }]
+            }
+            """
+        ).Authorization;
+
+        Assert.Empty(authorization.Systems["a"].SystemUsers);
+        Assert.Empty(authorization.Systems["b"].SystemUsers);
+        Assert.Empty(authorization.SystemUsers);
+    }
+
+    [Fact]
     public void AppTestData_PartiesWithOnlyPackagesAreInThePartyList()
     {
         var partyList = Read().Authorization.PartyList["1001"];

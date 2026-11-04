@@ -78,7 +78,7 @@ public class AppTestDataModel
         var systems = Systems?.ToDictionary(s => s.Id, s => new TestDataSystem(
             s.Id,
             s.Name,
-            s.SystemUsers?.ToDictionary(su => su.Id, su => su.ToTestDataSystemUser(s.Id)) ?? new()
+            s.SystemUsers.ToDictionary(su => su.Id, su => su.ToTestDataSystemUser(s.Id))
         ));
 
         return new TestDataAuthorization
@@ -429,8 +429,14 @@ public class AppTestSystem
     public string Id { get; set; } = default!;
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
+    private IEnumerable<AppTestSystemUser> _systemUsers = [];
+    /// <summary>The system users of the system. A missing list or JSON <c>null</c> is read as empty.</summary>
     [JsonPropertyName("systemUsers")]
-    public IEnumerable<AppTestSystemUser> SystemUsers { get; set; } = default!;
+    public IEnumerable<AppTestSystemUser> SystemUsers
+    {
+        get => _systemUsers;
+        set => _systemUsers = value ?? [];
+    }
 }
 
 public class AppTestSystemUser
