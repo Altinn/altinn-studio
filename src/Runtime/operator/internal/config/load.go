@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"altinn.studio/operator/internal/telemetry"
 )
@@ -16,7 +18,8 @@ import (
 var errConfigFilePathNotSet = errors.New("no config file path provided and OPERATOR_CONFIG_FILE not set")
 var errConfigFileDoesNotExist = errors.New("config file does not exist")
 var errInvalidDotenvKey = errors.New("expected KEY=VALUE with a key of letters, digits, '_' and '.'")
-var errUnsupportedDotenvValue = errors.New("unsupported value, use single quotes for a literal value")
+var errUnsupportedDotenvValue = errors.New("expected an unquoted token or a single-quoted literal")
+var dotenvKey = regexp.MustCompile(`^[a-zA-Z0-9_.]+$`)
 
 // resolveConfigFilePath resolves the config file path from:
 // 1. The provided configFilePath parameter if non-empty
@@ -112,17 +115,11 @@ func decodeConfig(values map[string]string) (*Config, error) {
 	return &cfg, nil
 }
 
-// parseDotenv reads KEY=VALUE lines, skipping blank lines and # comments. A later key replaces an earlier one.
-//
-// It reads the subset of godotenv's syntax that config files use, with the same result, and rejects the rest rather
-// than read it differently. An unquoted value ends at a # that follows whitespace. A value in single quotes is
-// literal. A value in double quotes must not need escapes. A $ outside single quotes is rejected, since godotenv
-// expands it, and so is a lone carriage return in an unquoted value, where godotenv starts a new line. Errors name
-// the line but not its contents, which can be secret.
+// parseDotenv reads the godotenv subset used by our files: KEY=TOKEN or KEY='literal', blank lines and # comment lines.
+// Later keys replace earlier ones. Other syntax fails without echoing potentially secret contents.
 func parseDotenv(contents string) (map[string]string, error) {
 	values := make(map[string]string)
-	lines := strings.Split(strings.ReplaceAll(contents, "\r\n", "\n"), "\n")
-	for i, line := range lines {
+	for i, line := range strings.Split(contents, "\n") {
 		line = strings.TrimLeftFunc(line, unicode.IsSpace)
 		if line == "" || line[0] == '#' {
 			continue
@@ -130,48 +127,22 @@ func parseDotenv(contents string) (map[string]string, error) {
 
 		key, value, found := strings.Cut(line, "=")
 		key = strings.TrimRight(key, " \t\v\f\r")
-		// godotenv reads "export KEY=VALUE" as KEY.
-		if !found || key == "" || key == "export" || strings.ContainsFunc(key, isInvalidKeyRune) {
+		if !found || key == "export" || !dotenvKey.MatchString(key) {
 			return nil, fmt.Errorf("line %d: %w", i+1, errInvalidDotenvKey)
 		}
 
-		value, err := parseDotenvValue(strings.Trim(value, dotenvSpace))
-		if err != nil {
-			return nil, fmt.Errorf("line %d: %w", i+1, err)
+		value = strings.Trim(value, " \t\v\f\r\u0085\u00a0") // godotenv's value whitespace.
+		if strings.HasPrefix(value, "'") {
+			literal, closed := strings.CutSuffix(value[1:], "'")
+			if !closed || strings.ContainsAny(literal, "'\r") || strings.HasSuffix(literal, `\`) {
+				return nil, fmt.Errorf("line %d: %w", i+1, errUnsupportedDotenvValue)
+			}
+			value = literal
+		} else if strings.HasPrefix(value, `"`) || strings.ContainsAny(value, `$\`) ||
+			!utf8.ValidString(value) || strings.ContainsFunc(value, unicode.IsSpace) {
+			return nil, fmt.Errorf("line %d: %w", i+1, errUnsupportedDotenvValue)
 		}
 		values[key] = value
 	}
 	return values, nil
-}
-
-// dotenvSpace is the whitespace godotenv trims from values.
-const dotenvSpace = " \t\v\f\r\u0085\u00a0"
-
-func parseDotenvValue(value string) (string, error) {
-	if value != "" && (value[0] == '\'' || value[0] == '"') {
-		quote := value[:1]
-		inner, closed := strings.CutSuffix(value[1:], quote)
-		escaped := strings.HasSuffix(inner, `\`) || quote == `"` && strings.ContainsAny(inner, `\$`)
-		if !closed || escaped || strings.Contains(inner, quote) {
-			return "", errUnsupportedDotenvValue
-		}
-		return inner, nil
-	}
-
-	if strings.ContainsAny(value, "$\r") {
-		return "", errUnsupportedDotenvValue
-	}
-	runes := []rune(value)
-	end := len(runes)
-	for i := end - 1; i > 0; i-- {
-		if runes[i] == '#' && strings.ContainsRune(dotenvSpace, runes[i-1]) {
-			end = i
-			break
-		}
-	}
-	return strings.Trim(string(runes[:end]), dotenvSpace), nil
-}
-
-func isInvalidKeyRune(r rune) bool {
-	return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '_' && r != '.'
 }

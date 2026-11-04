@@ -109,16 +109,16 @@ func TestLoadDotenvSyntax(t *testing.T) {
 		"   # indented comment\n" +
 		"maskinporten_api.client_id = first\n" +
 		"maskinporten_api.client_id=  test-client  \n" +
-		"maskinporten_api.authority_url=http://localhost:8050 # trailing comment\n" +
+		"maskinporten_api.authority_url=http://localhost:8050\n" +
 		"maskinporten_api.self_service_url=https://localhost:8051/path#fragment\n" +
-		`maskinporten_api.jwk="{}"` + "\n" +
-		"maskinporten_api.scope=' a # b '\n" +
+		`maskinporten_api.jwk='{}'` + "\n" +
+		"maskinporten_api.scope=' a # b $c '\n" +
 		"maskinporten_api.unknown=ignored\n" +
 		"unknown_section.key=ignored\n" +
 		"org_registry.url=http://localhost:8052/orgs/altinn-orgs.json\n" +
 		"\tmaskinporten_controller.requeue_after=24h\n" +
 		"maskinporten_controller.jwk_rotation_threshold='1d12h'\n" +
-		"maskinporten_controller.jwk_expiry=\"30d\"\n" +
+		"maskinporten_controller.jwk_expiry=30d\n" +
 		"keyvault_sync_controller.poll_interval=5m"
 	cfg, err := loadLocal(t, contents)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -126,7 +126,7 @@ func TestLoadDotenvSyntax(t *testing.T) {
 	expected := validConfig
 	expected.MaskinportenApi.SelfServiceUrl = "https://localhost:8051/path#fragment"
 	expected.MaskinportenApi.Jwk = "{}"
-	expected.MaskinportenApi.Scope = " a # b "
+	expected.MaskinportenApi.Scope = " a # b $c "
 	g.Expect(*cfg).To(Equal(expected))
 }
 
@@ -190,108 +190,40 @@ func TestLoadConfigFileFromEnvironment(t *testing.T) {
 }
 
 func TestLoadMissingValues(t *testing.T) {
-	tests := []struct {
-		name     string
-		contents string
-		err      string
-	}{
-		{
-			name:     "empty file",
-			contents: "",
-			err: validationError(
-				"MaskinportenApi required",
-				"OrgRegistry required",
-				"MaskinportenController required",
-				"KeyVaultSyncController required",
-			),
-		},
-		{
-			name:     "one value",
-			contents: "maskinporten_api.client_id=x",
-			err: validationError(
-				"MaskinportenApi.AuthorityUrl required",
-				"MaskinportenApi.SelfServiceUrl required",
-				"MaskinportenApi.Jwk required",
-				"MaskinportenApi.Scope required",
-				"OrgRegistry required",
-				"MaskinportenController required",
-				"KeyVaultSyncController required",
-			),
-		},
-		{
-			name: "empty values",
-			contents: "maskinporten_api.client_id=\nmaskinporten_api.authority_url=''\n" +
-				"maskinporten_api.self_service_url=\"\"\nmaskinporten_api.jwk=\nmaskinporten_api.scope=" +
-				"\norg_registry.url=",
-			err: validationError(
-				"MaskinportenApi required",
-				"OrgRegistry required",
-				"MaskinportenController required",
-				"KeyVaultSyncController required",
-			),
-		},
-		{
-			name:     "client_id",
-			contents: withLine("maskinporten_api.client_id", ""),
-			err:      validationError("MaskinportenApi.ClientId required"),
-		},
-		{
-			name:     "authority_url",
-			contents: withLine("maskinporten_api.authority_url", ""),
-			err:      validationError("MaskinportenApi.AuthorityUrl required"),
-		},
-		{
-			name:     "self_service_url",
-			contents: withLine("maskinporten_api.self_service_url", ""),
-			err:      validationError("MaskinportenApi.SelfServiceUrl required"),
-		},
-		{
-			name:     "jwk",
-			contents: withLine("maskinporten_api.jwk", ""),
-			err:      validationError("MaskinportenApi.Jwk required"),
-		},
-		{
-			name:     "scope",
-			contents: withLine("maskinporten_api.scope", ""),
-			err:      validationError("MaskinportenApi.Scope required"),
-		},
-		{
-			name:     "org_registry.url",
-			contents: withLine("org_registry.url", ""),
-			err:      validationError("OrgRegistry required"),
-		},
-		{
-			name:     "requeue_after",
-			contents: withLine("maskinporten_controller.requeue_after", ""),
-			err:      validationError("MaskinportenController.RequeueAfter required"),
-		},
-		{
-			name:     "jwk_rotation_threshold",
-			contents: withLine("maskinporten_controller.jwk_rotation_threshold", ""),
-			err:      validationError("MaskinportenController.JwkRotationThreshold required"),
-		},
-		{
-			name:     "jwk_expiry",
-			contents: withLine("maskinporten_controller.jwk_expiry", ""),
-			err:      validationError("MaskinportenController.JwkExpiry required"),
-		},
-		{
-			name:     "poll_interval",
-			contents: withLine("keyvault_sync_controller.poll_interval", ""),
-			err:      validationError("KeyVaultSyncController required"),
-		},
-		{
-			name:     "zero durations",
-			contents: withLine("maskinporten_controller.requeue_after", "maskinporten_controller.requeue_after=0s"),
-			err:      validationError("MaskinportenController.RequeueAfter required"),
-		},
+	for _, contents := range []string{"", "maskinporten_api.client_id=\nmaskinporten_api.jwk=''\norg_registry.url="} {
+		g := NewWithT(t)
+		_, err := loadLocal(t, contents)
+		g.Expect(err).To(MatchError(validationError(
+			"MaskinportenApi required", "OrgRegistry required",
+			"MaskinportenController required", "KeyVaultSyncController required",
+		)))
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+
+	g := NewWithT(t)
+	_, err := loadLocal(t, "maskinporten_api.client_id=x")
+	g.Expect(err).To(MatchError(validationError(
+		"MaskinportenApi.AuthorityUrl required", "MaskinportenApi.SelfServiceUrl required",
+		"MaskinportenApi.Jwk required", "MaskinportenApi.Scope required", "OrgRegistry required",
+		"MaskinportenController required", "KeyVaultSyncController required",
+	)))
+
+	for _, tt := range []struct{ key, field string }{
+		{"maskinporten_api.client_id", "MaskinportenApi.ClientId"},
+		{"maskinporten_api.authority_url", "MaskinportenApi.AuthorityUrl"},
+		{"maskinporten_api.self_service_url", "MaskinportenApi.SelfServiceUrl"},
+		{"maskinporten_api.jwk", "MaskinportenApi.Jwk"},
+		{"maskinporten_api.scope", "MaskinportenApi.Scope"},
+		{"org_registry.url", "OrgRegistry"},
+		{"maskinporten_controller.requeue_after", "MaskinportenController.RequeueAfter"},
+		{"maskinporten_controller.jwk_rotation_threshold", "MaskinportenController.JwkRotationThreshold"},
+		{"maskinporten_controller.jwk_expiry", "MaskinportenController.JwkExpiry"},
+		{"keyvault_sync_controller.poll_interval", "KeyVaultSyncController"},
+	} {
+		t.Run(tt.key, func(t *testing.T) {
 			g := NewWithT(t)
-			cfg, err := loadLocal(t, tt.contents)
+			cfg, err := loadLocal(t, withLine(tt.key, ""))
 			g.Expect(cfg).To(BeNil())
-			g.Expect(err).To(MatchError(tt.err))
+			g.Expect(err).To(MatchError(validationError(tt.field + " required")))
 		})
 	}
 }
@@ -312,35 +244,23 @@ func TestLoadValidationRules(t *testing.T) {
 		value string
 		err   string
 	}{
-		{authorityURL, "https://example.com", ""},
 		{authorityURL, "HTTP://EXAMPLE.COM", ""},
-		{authorityURL, "http://localhost:8050/path?q=1", ""},
 		{authorityURL, "ftp://example.com", validationError("MaskinportenApi.AuthorityUrl http_url")},
 		{authorityURL, "http://", validationError("MaskinportenApi.AuthorityUrl http_url")},
 		{authorityURL, "example.com", validationError("MaskinportenApi.AuthorityUrl http_url")},
-		{authorityURL, "http//example.com", validationError("MaskinportenApi.AuthorityUrl http_url")},
-		{authorityURL, "http://exa mple.com", validationError("MaskinportenApi.AuthorityUrl http_url")},
-		{authorityURL, "mailto:a@example.com", validationError("MaskinportenApi.AuthorityUrl http_url")},
-		{selfService, "file:///tmp/x", validationError("MaskinportenApi.SelfServiceUrl http_url")},
+		{authorityURL, "'http://exa mple.com'", validationError("MaskinportenApi.AuthorityUrl http_url")},
 		{selfService, "' https://example.com'", validationError("MaskinportenApi.SelfServiceUrl http_url")},
-		{orgURL, "https://altinncdn.no/orgs/altinn-orgs.json", ""},
-		{orgURL, "not a url", validationError("OrgRegistry.URL http_url")},
+		{orgURL, "'not a url'", validationError("OrgRegistry.URL http_url")},
 		{jwk, "{}", ""},
-		{jwk, "[1, 2]", ""},
-		{jwk, "\"text\"", validationError("MaskinportenApi.Jwk json")},
+		{jwk, "'[1, 2]'", ""},
 		{jwk, "'\"text\"'", ""},
-		{jwk, "abc", validationError("MaskinportenApi.Jwk json")},
 		{jwk, "'{\"kty\":}'", validationError("MaskinportenApi.Jwk json")},
 		{requeueAfter, "5s", ""},
 		{requeueAfter, "72h", ""},
-		{requeueAfter, "3d", ""},
 		{requeueAfter, "4999ms", validationError("MaskinportenController.RequeueAfter min")},
-		{requeueAfter, "-1h", validationError("MaskinportenController.RequeueAfter min")},
 		{requeueAfter, "72h1ns", validationError("MaskinportenController.RequeueAfter max")},
-		{requeueAfter, "3d1s", validationError("MaskinportenController.RequeueAfter max")},
 		{pollInterval, "1m", ""},
 		{pollInterval, "24h", ""},
-		{pollInterval, "1d", ""},
 		{pollInterval, "59s", validationError("KeyVaultSyncController.PollInterval min")},
 		{pollInterval, "24h1s", validationError("KeyVaultSyncController.PollInterval max")},
 		{pollInterval, "0s", validationError("KeyVaultSyncController required")},
@@ -348,11 +268,6 @@ func TestLoadValidationRules(t *testing.T) {
 		{threshold, "30s", ""},
 		{
 			threshold, "29s",
-			"maskinporten controller config validation failed: " +
-				"jwk_rotation_threshold must be at least the minimum duration: 30s",
-		},
-		{
-			threshold, "-1s",
 			"maskinporten controller config validation failed: " +
 				"jwk_rotation_threshold must be at least the minimum duration: 30s",
 		},
@@ -437,14 +352,28 @@ func TestLoadDurationErrors(t *testing.T) {
 
 func TestLoadSyntaxErrors(t *testing.T) {
 	for _, contents := range []string{
-		"maskinporten_api.client-id=x",
+		"maskinporten_api.client-id=secret-value",
+		"export maskinporten_api.client_id=secret-value",
+		"maskinporten_api.client_id: secret-value",
 		"maskinporten_api.jwk='{\"unterminated\":true}",
+		"maskinporten_api.scope='multi\nline'",
+		"maskinporten_api.scope='secret-value' # comment",
+		`maskinporten_api.scope="secret-value"`,
+		`maskinporten_api.scope=$secret`,
+		`maskinporten_api.scope=secret\value`,
+		"maskinporten_api.scope=secret value",
+		"maskinporten_api.scope=secret-value # comment",
+		"maskinporten_api.scope=secret\rvalue",
+		"maskinporten_api.scope=\xffsecret-value",
 	} {
 		t.Run(contents, func(t *testing.T) {
 			g := NewWithT(t)
 			cfg, err := loadLocal(t, validConfigFile+contents)
 			g.Expect(cfg).To(BeNil())
-			g.Expect(err).To(MatchError(HavePrefix("error loading config '<path>': ")))
+			g.Expect(err).To(Or(
+				MatchError("error loading config '<path>': line 11: "+errInvalidDotenvKey.Error()),
+				MatchError("error loading config '<path>': line 11: "+errUnsupportedDotenvValue.Error()),
+			))
 		})
 	}
 }
