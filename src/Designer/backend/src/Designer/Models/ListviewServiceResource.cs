@@ -34,4 +34,9 @@ public class ListviewServiceResource
     /// A list of environments the resource is deployed in
     /// </summary>
     public IList<string>? Environments { get; set; }
+
+    /// <summary>
+    /// The status of the resource, e.g. Completed, Deprecated or Withdrawn
+    /// </summary>
+    public string? Status { get; set; }
 }

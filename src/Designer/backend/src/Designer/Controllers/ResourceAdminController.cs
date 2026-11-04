@@ -467,6 +467,7 @@ public class ResourceAdminController : ControllerBase
             {
                 Identifier = resource.Identifier,
                 Title = resource.Title,
+                Status = resource.Status,
             });
         }
         else
@@ -533,8 +534,13 @@ public class ResourceAdminController : ControllerBase
                             CreatedBy = "",
                             LastChanged = null,
                             Environments = [],
+                            Status = resource.Status,
                         };
                         listviewServiceResources.Add(listResource);
+                    }
+                    else if (string.IsNullOrEmpty(listResource.Status))
+                    {
+                        listResource.Status = resource.Status;
                     }
                     listResource.Environments!.Add(environment);
                 }
@@ -590,6 +596,7 @@ public class ResourceAdminController : ControllerBase
             {
                 Identifier = resourceWithHistory.Resource.Identifier,
                 Title = resourceWithHistory.Resource.Title,
+                Status = resourceWithHistory.Resource.Status,
                 CreatedBy = resourceWithHistory.History is null
                     ? null
                     : fullNameByAuthorName[resourceWithHistory.History.FirstCommitAuthorName],

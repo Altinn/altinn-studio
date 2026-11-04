@@ -55,7 +55,6 @@
   "resourceadm.dashboard_create_modal_title": "Create new resource",
   "resourceadm.dashboard_create_resource": "Create new resource",
   "resourceadm.dashboard_error_message_info": "If the problem persists, contact our help service at +47 75 00 60 00.",
-  "resourceadm.dashboard_num_resources": "All resources ({{num}})",
   "resourceadm.dashboard_organizationdata_error_body": "We are sorry, but an error occurred when loading organisations required to run this application.",
   "resourceadm.dashboard_organizationdata_error_header": "Error occurred when loading organisations",
   "resourceadm.dashboard_resource_name_and_id_checkmark_icon": "Use new {{objectType}}",
