@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` grants the app owner `complete` in any process state when the process has an eFormidling or Fiks Arkiv task, including one the upgrade inserts. Those tasks confirm the instance while they run, when a grant scoped to the end event does not apply, so they kept retrying. ([#00000](https://github.com/Altinn/altinn-studio/pull/00000))
 - With Podman, `studioctl app build` and `studioctl run` leave out the files an app's `Dockerfile.dockerignore` excludes, as they do with Docker. ([#21584](https://github.com/Altinn/altinn-studio/issues/21584))
 - `studioctl doctor` shows the Docker API version in use as _Client_, such as 1.41 with Podman, instead of an incorrectly reported 1.51. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
 

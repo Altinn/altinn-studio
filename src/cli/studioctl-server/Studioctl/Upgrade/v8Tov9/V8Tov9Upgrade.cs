@@ -298,10 +298,10 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateInsertedServiceTaskPolicy(projectFolder));
@@ -1997,8 +1997,28 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 9: Ensure the policy grants the service owner the process-transition rights the v9 workflow
-    /// engine needs (it persists transitions to Storage out-of-band as the service owner)
+    /// Job 9: Migrate the deprecated eFormidling block in applicationmetadata.json to an eFormidling
+    /// process service task
+    /// </summary>
+    static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("eFormidling service tasks");
+        try
+        {
+            var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(result, cleanText: "No legacy eFormidling configuration remains");
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating eFormidling service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 10: Ensure the policy grants the service owner the process-transition rights the v9 workflow
+    /// engine needs (it persists transitions to Storage out-of-band as the service owner). After job 9,
+    /// since an eFormidling task needs a grant of its own and job 9 can insert one.
     /// </summary>
     static async Task<int> MigrateServiceOwnerPolicy(string projectFolder)
     {
@@ -2019,26 +2039,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 10: Migrate the deprecated eFormidling block in applicationmetadata.json to an eFormidling
-    /// process service task
-    /// </summary>
-    static async Task<int> MigrateEFormidlingServiceTasks(string projectFolder)
-    {
-        UpgradeConsole.BeginStep("eFormidling service tasks");
-        try
-        {
-            var migrator = new EFormidlingServiceTaskMigration.EFormidlingServiceTaskMigrator(projectFolder);
-            var result = await migrator.Migrate();
-            return ReportMigrationResult(result, cleanText: "No legacy eFormidling configuration remains");
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating eFormidling service tasks", ex);
-        }
-    }
-
-    /// <summary>
-    /// Job 11: give users read/write on the PDF and eFormidling service tasks jobs 8 and 10 insert, where
+    /// Job 11: give users read/write on the PDF and eFormidling service tasks jobs 8 and 9 insert, where
     /// the policy grants them those actions only in the task each service task follows. Runs after both,
     /// so it sees every service task they insert.
     /// </summary>

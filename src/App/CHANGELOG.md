@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Build check `ALTINNAPP0800` no longer accepts a `complete` grant scoped to an end event for an app with an eFormidling or Fiks Arkiv task. Those tasks confirm the instance while they run, when such a grant does not apply, so they kept retrying. Grant the app owner `complete` in any process state. ([#00000](https://github.com/Altinn/altinn-studio/pull/00000))
 - A Fiks Arkiv service task with `markInstanceComplete`, the default, no longer stays stuck retrying the archive's receipt. Storage refused its confirmation while the instance was processing. The confirmation is now saved together with the receipt. ([#21737](https://github.com/Altinn/altinn-studio/pull/21737))
 
 ## [9.0.0-preview.9] - 2026-10-28
