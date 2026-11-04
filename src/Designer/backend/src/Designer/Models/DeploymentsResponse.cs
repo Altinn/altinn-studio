@@ -1,24 +1,14 @@
-#nullable disable
 using System.Collections.Generic;
-using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Models;
 
 /// <summary>
-/// Deployments response
+/// The app's deploys through this Studio environment, and what runs of it in each of the org's environments.
 /// </summary>
-public class DeploymentsResponse
+public sealed class DeploymentsResponse
 {
-    public List<DeploymentEntity> PipelineDeploymentList { get; set; }
+    public required IReadOnlyList<DeploymentEntity> PipelineDeploymentList { get; init; }
 
-    public List<RunningApp> RunningAppList { get; set; }
-
-    /// <summary>
-    /// <see cref="RunningAppList"/> as frontends loaded before it existed read it. Remove once they have all reloaded.
-    /// </summary>
-    [JsonProperty("kubernetesDeploymentList")]
-    public IEnumerable<object> RunningAppListForOlderFrontends =>
-        RunningAppList?.Select(app => new { envName = app.Environment, version = app.Version });
+    public required IReadOnlyList<AppInEnvironment> EnvironmentList { get; init; }
 }

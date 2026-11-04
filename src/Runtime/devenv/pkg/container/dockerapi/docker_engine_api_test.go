@@ -1,7 +1,7 @@
 package dockerapi
 
 import (
-	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"slices"
@@ -10,22 +10,16 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
-
-	dockertypes "github.com/docker/docker/api/types"
-	dockermount "github.com/docker/docker/api/types/mount"
-	systemtypes "github.com/docker/docker/api/types/system"
-	"github.com/docker/docker/pkg/jsonmessage"
 )
 
 var errNetworkActiveEndpoints = errors.New(
 	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
-var errServerVersionUnavailable = errors.New("server version unavailable")
 
 func TestBuildMounts(t *testing.T) {
 	t.Parallel()
 
-	got := buildMounts([]types.VolumeMount{
+	got, _ := buildMounts([]types.VolumeMount{
 		{
 			HostPath:      "/Users/someuser/Library/Application Support/altinn-studio/data/testdata",
 			ContainerPath: "/testdata",
@@ -43,21 +37,21 @@ func TestBuildMounts(t *testing.T) {
 		},
 	})
 
-	want := []dockermount.Mount{
+	want := []mount{
 		{
-			Type:     dockermount.TypeBind,
+			Type:     "bind",
 			Source:   "/Users/someuser/Library/Application Support/altinn-studio/data/testdata",
 			Target:   "/testdata",
 			ReadOnly: false,
 		},
 		{
-			Type:     dockermount.TypeBind,
+			Type:     "bind",
 			Source:   "/tmp/config.yaml",
 			Target:   "/etc/config.yaml",
 			ReadOnly: true,
 		},
 		{
-			Type:     dockermount.TypeVolume,
+			Type:     "volume",
 			Source:   "localtest-workflow-engine-db-data",
 			Target:   "/var/lib/postgresql",
 			ReadOnly: false,
@@ -98,22 +92,106 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 		},
 	}
 
-	_, hostCfg, _ := buildDockerConfigs(cfg, types.PlatformPodman)
+	request, err := buildCreateRequest(cfg, types.PlatformPodman)
+	hostCfg := request.HostConfig
+	if err != nil {
+		t.Fatalf("buildCreateRequest() error = %v", err)
+	}
 
-	if got := string(hostCfg.UsernsMode); got != "keep-id" {
+	if got := hostCfg.UsernsMode; got != "keep-id" {
 		t.Fatalf("hostCfg.UsernsMode = %q, want keep-id", got)
 	}
 	wantBinds := []string{"/tmp/config.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro,z"}
 	if !slices.Equal(hostCfg.Binds, wantBinds) {
 		t.Fatalf("hostCfg.Binds = %#v, want %#v", hostCfg.Binds, wantBinds)
 	}
-	wantMounts := []dockermount.Mount{{
-		Type:   dockermount.TypeVolume,
+	wantMounts := []mount{{
+		Type:   "volume",
 		Source: "postgres-data",
 		Target: "/var/lib/postgresql",
 	}}
 	if !slices.Equal(hostCfg.Mounts, wantMounts) {
 		t.Fatalf("hostCfg.Mounts = %#v, want %#v", hostCfg.Mounts, wantMounts)
+	}
+}
+
+func TestBuildCreateRequest_DockerCapAddHasNoPodmanDefaults(t *testing.T) {
+	t.Parallel()
+
+	request, err := buildCreateRequest(
+		types.ContainerConfig{Image: "alpine", CapAdd: []string{"net_admin"}},
+		types.PlatformDocker,
+	)
+	if err != nil {
+		t.Fatalf("buildCreateRequest() error = %v", err)
+	}
+	if want := []string{"CAP_NET_ADMIN"}; !slices.Equal(request.HostConfig.CapAdd, want) {
+		t.Fatalf("hostCfg.CapAdd = %#v, want %#v", request.HostConfig.CapAdd, want)
+	}
+}
+
+func TestBuildPortMappings(t *testing.T) {
+	t.Parallel()
+
+	portBindings, exposedPorts, err := buildPortMappings([]types.PortMapping{
+		{HostIP: "127.0.0.1", HostPort: "5005", ContainerPort: "5005"},
+		{HostIP: "::1", HostPort: "5005", ContainerPort: "5005"},
+		{HostPort: "5353", ContainerPort: "53", Protocol: "udp"},
+	})
+	if err != nil {
+		t.Fatalf("buildPortMappings() error = %v", err)
+	}
+
+	tcpPort := "5005/tcp"
+	udpPort := "53/udp"
+	if _, ok := exposedPorts[tcpPort]; !ok {
+		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, tcpPort)
+	}
+	if _, ok := exposedPorts[udpPort]; !ok {
+		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, udpPort)
+	}
+	wantTCP := []portBinding{
+		{HostIP: "127.0.0.1", HostPort: "5005"},
+		{HostIP: "::1", HostPort: "5005"},
+	}
+	if !slices.Equal(portBindings[tcpPort], wantTCP) {
+		t.Fatalf("portBindings[%v] = %#v, want %#v", tcpPort, portBindings[tcpPort], wantTCP)
+	}
+	wantUDP := []portBinding{{HostPort: "5353"}}
+	if !slices.Equal(portBindings[udpPort], wantUDP) {
+		t.Fatalf("portBindings[%v] = %#v, want %#v", udpPort, portBindings[udpPort], wantUDP)
+	}
+
+	encoded, err := json.Marshal(portBindings)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	wantJSON := `{"5005/tcp":[{"HostIp":"127.0.0.1","HostPort":"5005"},{"HostIp":"::1","HostPort":"5005"}],"53/udp":[{"HostIp":"","HostPort":"5353"}]}`
+	if string(encoded) != wantJSON {
+		t.Fatalf("port bindings JSON = %s, want %s", encoded, wantJSON)
+	}
+
+	for _, port := range []types.PortMapping{
+		{HostIP: "localhost", ContainerPort: "80"},
+		{ContainerPort: "invalid"},
+		{ContainerPort: "65536"},
+	} {
+		if _, _, err := buildPortMappings([]types.PortMapping{port}); !errors.Is(err, errInvalidPortMapping) {
+			t.Fatalf("buildPortMappings(%+v) error = %v, want errInvalidPortMapping", port, err)
+		}
+	}
+}
+
+func TestPublishedPortsFromPortMap_UnsetHostIPIsEmpty(t *testing.T) {
+	t.Parallel()
+
+	got := publishedPortsFromPortMap(map[string][]portBinding{
+		"5005/tcp": {{HostPort: "5005"}},
+	})
+
+	want := []types.PublishedPort{{HostIP: "", HostPort: "5005", ContainerPort: "5005", Protocol: "tcp"}}
+	if !slices.Equal(got, want) {
+		t.Fatalf("publishedPortsFromPortMap() = %#v, want %#v", got, want)
 	}
 }
 
@@ -130,20 +208,20 @@ func TestPlatformFromVersion(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		version dockertypes.Version
+		version versionResponse
 		want    types.ContainerPlatform
 	}{
 		{
 			name: "podman platform wins",
-			version: dockertypes.Version{
-				Platform: struct{ Name string }{Name: "Podman Engine"},
+			version: versionResponse{
+				Platform: versionPlatform{Name: "Podman Engine"},
 			},
 			want: types.PlatformPodman,
 		},
 		{
 			name: "docker component name",
-			version: dockertypes.Version{
-				Components: []dockertypes.ComponentVersion{
+			version: versionResponse{
+				Components: []versionComponent{
 					{Name: "Docker Engine - Community", Version: "28.0.0"},
 				},
 			},
@@ -169,7 +247,7 @@ func TestPlatformFromVersion(t *testing.T) {
 func TestPlatformFromInfo(t *testing.T) {
 	t.Parallel()
 
-	info := systemtypes.Info{
+	info := infoResponse{
 		OperatingSystem: "Podman Machine",
 		ServerVersion:   "5.4.0",
 	}
@@ -216,19 +294,19 @@ func TestInfoHasSELinux(t *testing.T) {
 
 	tests := []struct {
 		name string
-		info systemtypes.Info
+		info infoResponse
 		want bool
 	}{
 		{
 			name: "selinux enabled",
-			info: systemtypes.Info{
+			info: infoResponse{
 				SecurityOptions: []string{"name=seccomp,profile=default", "name=selinux"},
 			},
 			want: true,
 		},
 		{
 			name: "selinux absent",
-			info: systemtypes.Info{
+			info: infoResponse{
 				SecurityOptions: []string{"name=seccomp,profile=default", "name=rootless"},
 			},
 			want: false,
@@ -242,52 +320,6 @@ func TestInfoHasSELinux(t *testing.T) {
 				t.Fatalf("infoHasSELinux() = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestWithVersionMetadata(t *testing.T) {
-	t.Parallel()
-
-	toolchain := withVersionMetadata(
-		t.Context(),
-		fakeVersionClient{
-			clientVersion: "1.51",
-			serverVersion: dockertypes.Version{
-				Version: "28.2.2",
-			},
-		},
-		types.ContainerToolchain{
-			Platform:   types.PlatformDocker,
-			AccessMode: types.AccessDockerEngineAPI,
-			Source:     types.SourceDefault,
-		},
-	)
-
-	if toolchain.ClientVersion != "1.51" {
-		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
-	}
-	if toolchain.ServerVersion != "28.2.2" {
-		t.Fatalf("withVersionMetadata() ServerVersion = %q, want 28.2.2", toolchain.ServerVersion)
-	}
-}
-
-func TestWithVersionMetadataIgnoresServerVersionError(t *testing.T) {
-	t.Parallel()
-
-	toolchain := withVersionMetadata(
-		t.Context(),
-		fakeVersionClient{
-			clientVersion: "1.51",
-			err:           errServerVersionUnavailable,
-		},
-		types.ContainerToolchain{},
-	)
-
-	if toolchain.ClientVersion != "1.51" {
-		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
-	}
-	if toolchain.ServerVersion != "" {
-		t.Fatalf("withVersionMetadata() ServerVersion = %q, want empty", toolchain.ServerVersion)
 	}
 }
 
@@ -385,6 +417,18 @@ func TestDemuxDockerLogs_CloseStopsReaderCleanly(t *testing.T) {
 
 func dockerLogFrame(stream byte, payload string) string {
 	return string([]byte{stream, 0, 0, 0, 0, 0, 0, byte(len(payload))}) + payload
+}
+
+func TestDemuxDockerLogs_CloseWithUnreadOutput(t *testing.T) {
+	t.Parallel()
+	logs := demuxDockerLogs(io.NopCloser(strings.NewReader(dockerLogFrame(1, "unread"))))
+	if err := logs.Close(); err != nil {
+		t.Fatal(err)
+	}
+	output, err := io.ReadAll(logs)
+	if err != nil || len(output) != 0 {
+		t.Fatalf("closed log stream returned %q, %v; want EOF", output, err)
+	}
 }
 
 func TestDockerBuildArgs_IncludesRegistryCache(t *testing.T) {
@@ -540,10 +584,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 
 	aggregator := newPullProgressAggregator()
 
-	first := aggregator.Update(jsonmessage.JSONMessage{
+	first := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 25,
 			Total:   100,
 		},
@@ -552,10 +596,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("first progress = %+v, want current=25 total=100 determinate", first)
 	}
 
-	second := aggregator.Update(jsonmessage.JSONMessage{
+	second := aggregator.Update(pullMessage{
 		ID:     "layer-b",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 10,
 			Total:   50,
 		},
@@ -564,10 +608,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("second progress = %+v, want current=35 total=150 determinate", second)
 	}
 
-	third := aggregator.Update(jsonmessage.JSONMessage{
+	third := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 100,
 			Total:   100,
 		},
@@ -581,16 +625,16 @@ func TestPullProgressAggregator_IgnoresProgresslessUpdates(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	aggregator.Update(jsonmessage.JSONMessage{
+	aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 25,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Verifying Checksum",
 	})
@@ -607,19 +651,19 @@ func TestPullProgressAggregator_ResetsLayerProgressWhenPhaseChanges(t *testing.T
 
 	aggregator := newPullProgressAggregator()
 
-	aggregator.Update(jsonmessage.JSONMessage{
+	aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 100,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonmessage.JSONProgress{
+		Progress: &pullProgress{
 			Current: 10,
 			Total:   100,
 		},
@@ -637,7 +681,7 @@ func TestPullProgressAggregator_IndeterminateWithoutLayerTotals(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	progress := aggregator.Update(jsonmessage.JSONMessage{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Waiting",
 	})
@@ -682,18 +726,4 @@ func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 	if got.phase != "Extracting" || got.current != 10 || got.total != 100 {
 		t.Fatalf("tracked progress = %+v, want phase=Extracting current=10 total=100", got)
 	}
-}
-
-type fakeVersionClient struct {
-	err           error
-	serverVersion dockertypes.Version
-	clientVersion string
-}
-
-func (c fakeVersionClient) ClientVersion() string {
-	return c.clientVersion
-}
-
-func (c fakeVersionClient) ServerVersion(context.Context) (dockertypes.Version, error) {
-	return c.serverVersion, c.err
 }

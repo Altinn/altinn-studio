@@ -31,8 +31,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
 
-// Temporary, while testing the switch to Inter: ?font=inter loads the app in another font, so it can be
-// checked with ?pdf=1 and in screenshots. Consider to remove later (step 10 of the
+// Temporary, while we collect feedback on Inter: ?font=altinn-din loads the app in the old font, so the two can be
+// compared, also with ?pdf=1 and in screenshots. Consider to remove later (step 10 of the
 // plan in #19944).
 applyFontFromUrl();
 
