@@ -12,6 +12,7 @@ internal static class ProcessHookUtils
     /// <summary>Appends the diagnostics for <paramref name="registrations"/>.</summary>
     /// <param name="additionalFiles">The analysis's additional files, which hold the process.</param>
     /// <param name="registrations">The hook registrations the app makes, in source order.</param>
+    /// <param name="removals">The hooks that code in the app may remove or replace.</param>
     /// <param name="processEndedHook">The <c>IOnProcessEndedHandler</c> interface.</param>
     /// <param name="taskHooks">The task hook interfaces, which each have a <c>ShouldRunForTask</c>.</param>
     /// <param name="conditionOf">
@@ -23,6 +24,7 @@ internal static class ProcessHookUtils
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
         IReadOnlyList<HookRegistration> registrations,
+        HookRemovals removals,
         INamedTypeSymbol processEndedHook,
         ImmutableArray<INamedTypeSymbol> taskHooks,
         Func<HookRegistration, IMethodSymbol, TaskIdCondition?> conditionOf,
@@ -30,19 +32,25 @@ internal static class ProcessHookUtils
         List<Diagnostic> diagnostics
     )
     {
-        var processEndedHooks = registrations
-            .Where(registration => SymbolEqualityComparer.Default.Equals(registration.Hook, processEndedHook))
-            .ToList();
-        if (processEndedHooks.Count > 1)
+        if (!removals.MayRemove(processEndedHook))
         {
-            diagnostics.Add(
-                Diagnostic.Create(
-                    Diagnostics.Process.SeveralProcessEndedHooks,
-                    processEndedHooks[1].Location,
-                    OtherLocations(processEndedHooks, 1),
-                    Names(processEndedHooks)
-                )
+            var processEndedHooks = registrations.Where(registration =>
+                SymbolEqualityComparer.Default.Equals(registration.Hook, processEndedHook)
             );
+            foreach (var together in RunningTogether(processEndedHooks))
+            {
+                if (together.Count > 1)
+                {
+                    diagnostics.Add(
+                        Diagnostic.Create(
+                            Diagnostics.Process.SeveralProcessEndedHooks,
+                            together[1].Location,
+                            OtherLocations(together, 1),
+                            Names(together)
+                        )
+                    );
+                }
+            }
         }
 
         var processFile = ProcessFile.FindSingle(additionalFiles);
@@ -76,24 +84,26 @@ internal static class ProcessHookUtils
                 }
             }
 
-            foreach (var taskId in taskIds)
+            foreach (var taskId in removals.MayRemove(hook) ? [] : taskIds)
             {
                 var running = known
                     .Where(hookRun => hookRun.Condition.Holds(taskId))
-                    .Select(hookRun => hookRun.Registration)
-                    .ToList();
-                if (running.Count > 1)
+                    .Select(hookRun => hookRun.Registration);
+                foreach (var together in RunningTogether(running))
                 {
-                    diagnostics.Add(
-                        Diagnostic.Create(
-                            Diagnostics.Process.TaskHooksOverlap,
-                            running[1].Location,
-                            OtherLocations(running, 1),
-                            taskId,
-                            hook.Name,
-                            Names(running)
-                        )
-                    );
+                    if (together.Count > 1)
+                    {
+                        diagnostics.Add(
+                            Diagnostic.Create(
+                                Diagnostics.Process.TaskHooksOverlap,
+                                together[1].Location,
+                                OtherLocations(together, 1),
+                                taskId,
+                                hook.Name,
+                                Names(together)
+                            )
+                        );
+                    }
                 }
             }
 
@@ -122,6 +132,15 @@ internal static class ProcessHookUtils
             }
         }
     }
+
+    /// <summary>
+    /// Groups the registrations that run together, in source order: those in one method, on one service collection.
+    /// </summary>
+    private static IEnumerable<List<HookRegistration>> RunningTogether(IEnumerable<HookRegistration> registrations) =>
+        registrations
+            .GroupBy(registration => registration.Method, SymbolEqualityComparer.Default)
+            .SelectMany(inMethod => inMethod.GroupBy(registration => registration.Collection, StringComparer.Ordinal))
+            .Select(onCollection => onCollection.ToList());
 
     private static IEnumerable<Location> OtherLocations(List<HookRegistration> registrations, int primary) =>
         registrations.Where((_, index) => index != primary).Select(registration => registration.Location);

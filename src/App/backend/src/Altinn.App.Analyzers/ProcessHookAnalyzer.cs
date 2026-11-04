@@ -14,12 +14,19 @@ namespace Altinn.App.Analyzers;
 /// A hook counts when the app registers it, the way the runtime counts: an app adds its hooks with calls such as
 /// <c>services.AddTransient&lt;IOnTaskStartingHandler, MyHook&gt;()</c> in <c>Program.cs</c>, nothing scans for
 /// them, and a class that is not registered never runs. So a class registered twice counts twice, and one that is
-/// never registered does not count. <see cref="HookRegistration"/> says which registrations are read. The analyzer
-/// does not follow calls, so a registration in a method that runs only sometimes still counts.
+/// never registered does not count. <see cref="HookRegistration"/> says which registrations are read.
+/// </para>
+/// <para>
+/// The two errors fail the build of an app that may run fine, so they add up only registrations that run together: in
+/// one method or local function, on one service collection. The analyzer does not follow calls, so registrations in
+/// different methods may be alternatives, or one may never run. A hook that code in the app may remove or replace does
+/// not count either; see <see cref="HookRemovals"/>. What the errors miss is left to the startup check in
+/// <c>ProcessTaskConfigurationValidationService</c> and the hook step. The warning looks at every registration that
+/// counts, since a misspelled id is wrong wherever the hook is registered.
 /// </para>
 /// <para>
 /// For a task hook, the rules also need its class and a <c>ShouldRunForTask</c> that <see cref="TaskIdCondition"/>
-/// can reduce. Every other hook is left to the startup check in <c>ProcessTaskConfigurationValidationService</c>.
+/// can reduce. Every other hook is left to the same checks.
 /// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -62,15 +69,21 @@ public sealed class ProcessHookAnalyzer : DiagnosticAnalyzer
                 return;
 
             var hooks = taskHooks.Add(processEndedHook);
+            if (HookRemovals.TryCreate(compilation, hooks) is not { } removals)
+                return;
+
             var registrations = new ConcurrentBag<HookRegistration>();
             var conditions = new ConcurrentDictionary<IMethodSymbol, TaskIdCondition>(SymbolEqualityComparer.Default);
 
             startContext.RegisterOperationAction(
                 operationContext =>
                 {
+                    var invocation = (IInvocationOperation)operationContext.Operation;
+                    removals.Read(invocation);
                     if (
                         HookRegistration.TryRead(
-                            (IInvocationOperation)operationContext.Operation,
+                            invocation,
+                            operationContext.ContainingSymbol,
                             registrationMethods,
                             hooks
                         ) is
@@ -81,6 +94,10 @@ public sealed class ProcessHookAnalyzer : DiagnosticAnalyzer
                     }
                 },
                 OperationKind.Invocation
+            );
+            startContext.RegisterOperationAction(
+                operationContext => removals.Read((ISimpleAssignmentOperation)operationContext.Operation),
+                OperationKind.SimpleAssignment
             );
             startContext.RegisterOperationBlockAction(blockContext =>
             {
@@ -106,6 +123,7 @@ public sealed class ProcessHookAnalyzer : DiagnosticAnalyzer
                 ProcessHookUtils.CollectDiagnostics(
                     endContext.Options.AdditionalFiles,
                     ordered,
+                    removals,
                     processEndedHook,
                     taskHooks,
                     (registration, interfaceMethod) =>

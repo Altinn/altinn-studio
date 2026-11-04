@@ -412,7 +412,7 @@ public static class Diagnostics
         );
 
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which counts registrations
-        // without creating them, so the app never starts.
+        // without creating them, so the app never starts. This rule adds up fewer of them; see ProcessHookAnalyzer.
         public static readonly DiagnosticDescriptor SeveralProcessEndedHooks = Error(
             "ALTINNAPP1028",
             Category.Process,

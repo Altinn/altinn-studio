@@ -12,11 +12,20 @@ internal sealed class HookRegistration
     internal const string RegistrationMethods =
         "Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions";
 
-    private HookRegistration(INamedTypeSymbol hook, INamedTypeSymbol? implementation, string name, Location location)
+    private HookRegistration(
+        INamedTypeSymbol hook,
+        INamedTypeSymbol? implementation,
+        string name,
+        ISymbol method,
+        string collection,
+        Location location
+    )
     {
         Hook = hook;
         Implementation = implementation;
         Name = name;
+        Method = method;
+        Collection = collection;
         Location = location;
     }
 
@@ -32,6 +41,12 @@ internal sealed class HookRegistration
     /// <summary>How a message names the registration: like the runtime, by its class when it is known.</summary>
     internal string Name { get; }
 
+    /// <summary>The method or local function that runs the registration every time it runs.</summary>
+    internal ISymbol Method { get; }
+
+    /// <summary>The service collection the registration adds to, as the code writes it.</summary>
+    internal string Collection { get; }
+
     /// <summary>The registration call, from the method name on.</summary>
     internal Location Location { get; }
 
@@ -43,10 +58,12 @@ internal sealed class HookRegistration
     /// A registration counts only when it runs whenever the method it is in runs: one behind a condition, in a loop or
     /// in a lambda may not run, or may run instead of another. A registration whose class is a type parameter is in a
     /// generic helper, which may run any number of times. Keyed registrations, which the runtime does not ask for, and
-    /// the <c>TryAdd</c> methods, which add nothing when the hook is already registered, are not read.
+    /// the <c>TryAdd</c> methods, which add nothing when the hook is already registered, are not read. Registrations
+    /// that count do not all add up: see <c>ProcessHookAnalyzer</c>.
     /// </remarks>
     internal static HookRegistration? TryRead(
         IInvocationOperation invocation,
+        ISymbol containingMember,
         INamedTypeSymbol registrationMethods,
         ImmutableArray<INamedTypeSymbol> hooks
     )
@@ -72,12 +89,14 @@ internal sealed class HookRegistration
             {
                 implementationTypeArgument = method.TypeArguments[1];
             }
-            implementationArgument = Argument(invocation, 1);
+            implementationArgument = Argument(invocation.Arguments, 1);
         }
         else
         {
-            service = Argument(invocation, 1) is ITypeOfOperation { TypeOperand: var serviceType } ? serviceType : null;
-            implementationArgument = Argument(invocation, 2);
+            service = Argument(invocation.Arguments, 1) is ITypeOfOperation { TypeOperand: var serviceType }
+                ? serviceType
+                : null;
+            implementationArgument = Argument(invocation.Arguments, 2);
         }
 
         if (
@@ -85,7 +104,7 @@ internal sealed class HookRegistration
             || !hooks.Contains(hook, SymbolEqualityComparer.Default)
             // The hook interface registered as itself, which the runtime cannot create.
             || (implementationArgument is null && implementationTypeArgument is null)
-            || !IsUnconditional(invocation)
+            || MethodThatAlwaysRuns(invocation, containingMember) is not { } containingMethod
         )
         {
             return null;
@@ -111,13 +130,32 @@ internal sealed class HookRegistration
                     ? $"a factory registration of {hook.Name}"
                     : $"an instance registration of {hook.Name}"
             );
-        return new HookRegistration(hook, knownImplementation, name, LocationOf(invocation));
+        return new HookRegistration(
+            hook,
+            knownImplementation,
+            name,
+            containingMethod,
+            CollectionOf(invocation),
+            LocationOf(invocation)
+        );
     }
 
-    private static IOperation? Argument(IInvocationOperation invocation, int ordinal) =>
-        invocation.Arguments.FirstOrDefault(argument => argument.Parameter?.Ordinal == ordinal)?.Value is { } value
+    /// <summary>The argument for the parameter at <paramref name="ordinal"/>, without its conversions.</summary>
+    internal static IOperation? Argument(ImmutableArray<IArgumentOperation> arguments, int ordinal) =>
+        arguments.FirstOrDefault(argument => argument.Parameter?.Ordinal == ordinal)?.Value is { } value
             ? Unwrap(value)
             : null;
+
+    /// <summary>The collection a registration adds to, past any calls chained in front of it.</summary>
+    private static string CollectionOf(IInvocationOperation invocation)
+    {
+        var receiver = Argument(invocation.Arguments, 0);
+        while (receiver is IInvocationOperation { TargetMethod.IsExtensionMethod: true } chained)
+        {
+            receiver = Argument(chained.Arguments, 0);
+        }
+        return receiver?.Syntax.ToString() ?? string.Empty;
+    }
 
     /// <summary>
     /// The class a <c>typeof</c>, a <c>new</c> expression or a lambda that returns one names, or null for any other
@@ -137,7 +175,7 @@ internal sealed class HookRegistration
             _ => null,
         };
 
-    private static IOperation Unwrap(IOperation operation)
+    internal static IOperation Unwrap(IOperation operation)
     {
         while (operation is IConversionOperation { Operand: var operand })
         {
@@ -147,18 +185,19 @@ internal sealed class HookRegistration
     }
 
     /// <summary>
-    /// Whether nothing between <paramref name="invocation"/> and the body of the method or local function it is in
-    /// decides whether it runs.
+    /// The method or local function that runs <paramref name="invocation"/> every time it runs, or null when something
+    /// between them decides whether it runs.
     /// </summary>
-    private static bool IsUnconditional(IInvocationOperation invocation)
+    private static ISymbol? MethodThatAlwaysRuns(IInvocationOperation invocation, ISymbol containingMember)
     {
         for (var parent = invocation.Parent; parent is not null; parent = parent.Parent)
         {
             switch (parent)
             {
-                case ILocalFunctionOperation:
+                case ILocalFunctionOperation localFunction:
+                    return localFunction.Symbol;
                 case IMethodBodyOperation:
-                    return true;
+                    return containingMember;
                 case IBlockOperation:
                 case IExpressionStatementOperation:
                 case IArgumentOperation:
@@ -175,10 +214,10 @@ internal sealed class HookRegistration
                 case ILockOperation:
                     continue;
                 default:
-                    return false;
+                    return null;
             }
         }
-        return true;
+        return containingMember;
     }
 
     private static Location LocationOf(IInvocationOperation invocation) =>

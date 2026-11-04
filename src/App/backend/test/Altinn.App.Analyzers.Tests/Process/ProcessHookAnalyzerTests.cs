@@ -210,25 +210,221 @@ public class ProcessHookAnalyzerTests
     }
 
     [Fact]
-    public async Task A_Local_Function_Registers_Like_A_Method()
+    public async Task Registrations_In_One_Local_Function_Add_Up()
     {
         // Program.cs registers in the local function RegisterCustomAppServices.
         var diagnostics = await Analyze(
             TaskHook("Everywhere", "=> true;")
                 + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + ProcessEndedHook("Archive")
+                + ProcessEndedHook("Notify")
                 + Registrations(
                     """
                     void RegisterCustomAppServices(IServiceCollection appServices)
                     {
                         appServices.AddTransient<IOnTaskStartingHandler, Everywhere>();
                         appServices.AddTransient<IOnTaskStartingHandler, Second>();
+                        appServices.AddTransient<IOnProcessEndedHandler, Archive>();
+                        appServices.AddTransient<IOnProcessEndedHandler, Notify>();
                     }
                     RegisterCustomAppServices(services);
                     """
                 )
         );
 
+        Assert.Equal(["ALTINNAPP1027", "ALTINNAPP1028"], diagnostics.Select(d => d.Id));
         Assert.Equal(["Task_1"], OverlappingTasks(diagnostics));
+    }
+
+    [Fact]
+    public async Task Alternative_Helpers_Do_Not_Add_Up()
+    {
+        var diagnostics = await Analyze(
+            TaskHook("Dev", "=> taskId == \"Task_1\";")
+                + TaskHook("Prod", "=> taskId == \"Task_1\";")
+                + ProcessEndedHook("DevEnd")
+                + ProcessEndedHook("ProdEnd")
+                + """
+                public static class Helpers
+                {
+                    public static void AddDev(IServiceCollection services)
+                    {
+                        services.AddTransient<IOnTaskStartingHandler, Dev>();
+                        services.AddTransient<IOnProcessEndedHandler, DevEnd>();
+                    }
+
+                    public static void AddProd(IServiceCollection services)
+                    {
+                        services.AddTransient<IOnTaskStartingHandler, Prod>();
+                        services.AddTransient<IOnProcessEndedHandler, ProdEnd>();
+                    }
+                }
+
+                """
+                + Registrations("if (enabled) Helpers.AddDev(services); else Helpers.AddProd(services);")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task A_Helper_Nothing_Calls_Does_Not_Add_Up()
+    {
+        var diagnostics = await Analyze(
+            TaskHook("Everywhere", "=> true;")
+                + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + """
+                public static class Helpers
+                {
+                    public static void NeverCalled(IServiceCollection services)
+                    {
+                        services.AddTransient<IOnTaskStartingHandler, Second>();
+                    }
+                }
+
+                """
+                + Registrations("services.AddTransient<IOnTaskStartingHandler, Everywhere>();")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task A_Local_Function_And_The_Method_Around_It_Do_Not_Add_Up()
+    {
+        // The local function may never be called, or run only sometimes.
+        var diagnostics = await Analyze(
+            TaskHook("Everywhere", "=> true;")
+                + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + Registrations(
+                    """
+                    void Register() => services.AddTransient<IOnTaskStartingHandler, Second>();
+                    services.AddTransient<IOnTaskStartingHandler, Everywhere>();
+                    if (enabled) Register();
+                    """
+                )
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Registrations_On_Different_Collections_Do_Not_Add_Up()
+    {
+        var diagnostics = await Analyze(
+            TaskHook("Everywhere", "=> true;")
+                + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + Registrations(
+                    "services.AddTransient<IOnTaskStartingHandler, Everywhere>();",
+                    "var other = new ServiceCollection();",
+                    "other.AddTransient<IOnTaskStartingHandler, Second>();"
+                )
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Theory]
+    [InlineData("services.RemoveAll<IOnTaskStartingHandler>();")]
+    [InlineData("services.RemoveAll(typeof(IOnTaskStartingHandler));")]
+    [InlineData("services.Replace(ServiceDescriptor.Transient<IOnTaskStartingHandler, Second>());")]
+    [InlineData("services.Replace(ServiceDescriptor.Transient(typeof(IOnTaskStartingHandler), typeof(Second)));")]
+    [InlineData(
+        "services.Replace(new ServiceDescriptor(typeof(IOnTaskStartingHandler), typeof(Second), ServiceLifetime.Transient));"
+    )]
+    [InlineData("var descriptor = services[0]; services.Remove(descriptor);")]
+    [InlineData("var descriptor = services[0]; services.Replace(descriptor);")]
+    [InlineData("services.RemoveAt(0);")]
+    [InlineData("services.Clear();")]
+    [InlineData("services[0] = ServiceDescriptor.Transient<Unrelated, Unrelated>();")]
+    [InlineData("if (enabled) services.RemoveAll<IOnTaskStartingHandler>();")]
+    [InlineData("Action<ServiceDescriptor> remove = d => services.Remove(d); remove(services[0]);")]
+    [InlineData("Helpers.Cleanup(services);")]
+    [InlineData("Helpers.RemoveDefaults(services);")]
+    public async Task A_Hook_The_App_May_Remove_Or_Replace_Does_Not_Add_Up(string removal)
+    {
+        var diagnostics = await Analyze(
+            TaskHook("Everywhere", "=> true;")
+                + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + """
+                public sealed class Unrelated { }
+
+                public static class Helpers
+                {
+                    public static void Cleanup(IServiceCollection services) => services.RemoveAll<IOnTaskStartingHandler>();
+
+                    public static void RemoveDefaults(IServiceCollection services) { }
+                }
+
+                """
+                + Registrations(
+                    "services.AddTransient<IOnTaskStartingHandler, Everywhere>();",
+                    removal,
+                    "services.AddTransient<IOnTaskStartingHandler, Second>();"
+                )
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Theory]
+    [InlineData("services.RemoveAll<Unrelated>();")]
+    [InlineData("services.RemoveAll<IOnTaskEndingHandler>();")]
+    [InlineData("services.RemoveAll(typeof(Unrelated));")]
+    [InlineData("services.Replace(ServiceDescriptor.Transient<Unrelated, Unrelated>());")]
+    [InlineData("_ = \"a\".Replace(\"a\", \"b\");")]
+    public async Task Removing_Something_Else_Keeps_The_Overlap(string removal)
+    {
+        var diagnostics = await Analyze(
+            TaskHook("Everywhere", "=> true;")
+                + TaskHook("Second", "=> taskId == \"Task_1\";")
+                + "public sealed class Unrelated { }\n"
+                + Registrations(
+                    "services.AddTransient<IOnTaskStartingHandler, Everywhere>();",
+                    removal,
+                    "services.AddTransient<IOnTaskStartingHandler, Second>();"
+                )
+        );
+
+        Assert.Equal(["Task_1"], OverlappingTasks(diagnostics));
+    }
+
+    [Fact]
+    public async Task A_Removed_Process_Ended_Hook_Does_Not_Add_Up()
+    {
+        var diagnostics = await Analyze(
+            ProcessEndedHook("Archive")
+                + ProcessEndedHook("Notify")
+                + Registrations(
+                    "services.AddTransient<IOnProcessEndedHandler, Archive>();",
+                    "services.RemoveAll<IOnProcessEndedHandler>();",
+                    "services.AddTransient<IOnProcessEndedHandler, Notify>();"
+                )
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task A_Misspelled_Id_Is_Reported_However_The_Hook_Is_Registered()
+    {
+        // Unlike the errors, the warning does not depend on which registrations run together.
+        var diagnostics = await Analyze(
+            TaskHook("Misspelled", "=> taskId == \"Task_l\";")
+                + """
+                public static class Helpers
+                {
+                    public static void NeverCalled(IServiceCollection services)
+                    {
+                        services.AddTransient<IOnTaskStartingHandler, Misspelled>();
+                    }
+                }
+
+                """
+                + Registrations("services.RemoveAll<IOnTaskStartingHandler>();")
+        );
+
+        Assert.Equal(["ALTINNAPP1029"], diagnostics.Select(d => d.Id));
     }
 
     [Fact]
