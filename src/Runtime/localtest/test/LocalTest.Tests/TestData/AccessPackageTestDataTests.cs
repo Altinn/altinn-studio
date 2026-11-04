@@ -291,6 +291,18 @@ public sealed class AccessPackageTestDataTests : IDisposable
         Assert.Equal(packages, authorization.SystemUsers["d111dbab-d619-4f15-bf29-58fe570a9ae6"].AccessPackages);
     }
 
+    [Fact]
+    public async Task BuiltInTestData_NoPersonIsDagligLederOfTheirOwnParty()
+    {
+        var data = await TestDataDiskReader.ReadFromDisk(BuiltInTestData);
+
+        foreach (var (userId, profile) in data.Profile.User)
+        {
+            var ownRoles = data.Authorization.Roles.GetValueOrDefault(userId)?.GetValueOrDefault(profile.PartyId.ToString()) ?? [];
+            Assert.DoesNotContain(ownRoles, role => string.Equals(role.Value, "dagl", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))

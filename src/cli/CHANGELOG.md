@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: The built-in Localtest users no longer hold daglig leder (`DAGL`) for themselves, as a person cannot. They keep `REGNA` and `PRIV`, so an app policy that grants only `DAGL` no longer lets them act for themselves.
 - Breaking: Container runtimes must support Docker API 1.40 or newer for automatic version selection. Upgrade Docker Engine installations older than 19.03. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
 - Set `DOCKER_API_VERSION` as `major.minor`, such as `1.41`. Malformed values such as `1.41.0` now prevent connections configured with `DOCKER_HOST`. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
 
