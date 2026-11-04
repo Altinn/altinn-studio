@@ -34,7 +34,6 @@ internal static class RuntimeHealthRegistration
         services
             .AddOptions<RuntimeHealthSettings>()
             .Bind(section)
-            .Validate(settings => settings.Pdf3Url.IsAbsoluteUri, "RuntimeHealth.Pdf3Url must be an absolute URI.")
             .Validate(
                 settings => settings.Period >= TimeSpan.FromSeconds(1) && settings.Timeout > TimeSpan.Zero,
                 "RuntimeHealth.Period must be at least a second, and RuntimeHealth.Timeout positive."

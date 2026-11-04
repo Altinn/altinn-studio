@@ -11,21 +11,12 @@ The [operator](../operator/README.md) supplies the gateway's credentials and can
 
 ## Health
 
-`GET /runtime/gateway/api/v1/health` reports whether the runtime cluster's services are available, for the platform
-team's uptime monitoring. It answers without authentication, so it shows each check's status and duration, but no
-details. The format follows [altinn-aspnet-healthchecks](https://github.com/Altinn/altinn-aspnet-healthchecks), the
-convention proposed for Altinn's products, without depending on it.
+`GET /runtime/gateway/api/v1/health` is for the platform team's uptime monitoring,
+[Altinn-Uptime](https://github.com/dis-way/gitops-manifests/tree/main/oci/altinn-uptime). It cannot authenticate, and
+it counts a cluster as up only on a 200 whose body starts with `{"status":"healthy"`.
 
-The checks run every 30 seconds in the background, and the endpoint answers with their latest result. A check that
-takes more than 10 seconds counts as unhealthy. The endpoint answers 503 until the checks have run, and if they stop
-running. A new gateway is not ready until they have run once, so a rollout does
-not show as downtime. The kubelet's probes do not run them, so an unavailable dependency does not take the gateway out
-of rotation.
-
-- **pdf3** calls the relay's `/pdf/health` at the address apps call for PDFs, so the request takes the same HTTPRoute
-  as theirs. Without the route, the Service behind the address has no endpoints and Linkerd fails the request.
-  It is off in the local kind cluster, which has no relay. Its requests are left out of traces, but not out of the
-  gateway's HTTP client metrics, where `server.address` is `pdf-generator.pdf.svc.cluster.local`.
+The checks call services at the addresses apps get from [apps-config](../../../infra/runtime/apps-config), so a cluster
+fault that breaks apps also fails them, as in [altinn-platform#4358](https://github.com/Altinn/altinn-platform/issues/4358).
 
 ## Telemetry
 

@@ -1,6 +1,8 @@
 using System.Net;
+using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Health;
 using Altinn.Studio.Gateway.Api.Settings;
+using k8s;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -189,20 +191,29 @@ public sealed class RuntimeHealthTests : IDisposable
     [InlineData(HttpStatusCode.GatewayTimeout, HealthStatus.Unhealthy)]
     // What an older relay answers, before it had the health endpoint.
     [InlineData(HttpStatusCode.NotFound, HealthStatus.Unhealthy)]
-    public async Task Pdf3Check_CallsTheAddressAppsCall(HttpStatusCode answer, HealthStatus expected)
+    public async Task Pdf3Check_CallsTheAddressAppsGetFromAppsConfig(HttpStatusCode answer, HealthStatus expected)
     {
-        using var handler = new FakeWorkflowEngineHandler { ResponseFactory = _ => new HttpResponseMessage(answer) };
-        var services = new ServiceCollection();
-        services.AddHttpClient(Pdf3HealthCheck.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => handler);
-        using var provider = services.BuildServiceProvider();
-        var settings = new RuntimeHealthSettings();
-        var check = new Pdf3HealthCheck(provider.GetRequiredService<IHttpClientFactory>(), Options.Create(settings));
+        using var pdf = new FakeWorkflowEngineHandler { ResponseFactory = _ => new HttpResponseMessage(answer) };
 
-        var result = await check.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+        var result = await RunPdf3Check(
+            """{"PdfGeneratorSettings__ServiceEndpointUri":"http://pdf-generator.example/pdf"}""",
+            pdf
+        );
 
         Assert.Equal(expected, result.Status);
-        var request = Assert.Single(handler.Requests);
-        Assert.Equal(new Uri("http://pdf-generator.pdf.svc.cluster.local/pdf/health"), request.Uri);
+        var request = Assert.Single(pdf.Requests);
+        Assert.Equal(new Uri("http://pdf-generator.example/pdf/health"), request.Uri);
+    }
+
+    [Fact]
+    public async Task Pdf3Check_IsUnhealthyWhenAppsConfigHasNoPdfAddress()
+    {
+        using var pdf = new FakeWorkflowEngineHandler();
+
+        var result = await RunPdf3Check("{}", pdf);
+
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        Assert.Empty(pdf.Requests);
     }
 
     [Theory]
@@ -240,6 +251,49 @@ public sealed class RuntimeHealthTests : IDisposable
             status,
             pdf3?.Duration ?? TimeSpan.Zero
         );
+
+    private static async Task<HealthCheckResult> RunPdf3Check(string appsConfigData, HttpMessageHandler pdf)
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient(Pdf3HealthCheck.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => pdf);
+        using var provider = services.BuildServiceProvider();
+        using var kubernetes = new Kubernetes(
+            new KubernetesClientConfiguration { Host = "http://kubernetes.example" },
+            new FakeConfigMapHandler(appsConfigData)
+        );
+        var check = new Pdf3HealthCheck(
+            provider.GetRequiredService<IHttpClientFactory>(),
+            new AppsConfigClient(kubernetes)
+        );
+
+        return await check.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Answers the Kubernetes API's read of apps-config's ConfigMap.
+    /// </summary>
+    private sealed class FakeConfigMapHandler(string data) : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            Assert.Equal(
+                $"/api/v1/namespaces/default/configmaps/{AppsConfigClient.ConfigMapName}",
+                request.RequestUri?.AbsolutePath
+            );
+            var body =
+                $$"""{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"{{AppsConfigClient.ConfigMapName}}"},"data":{{data}}}""";
+            return Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json"),
+                    RequestMessage = request,
+                }
+            );
+        }
+    }
 
     private static RuntimeHealthReport CreateReport(TimeProvider time) =>
         new(time, Options.Create(new RuntimeHealthSettings()));

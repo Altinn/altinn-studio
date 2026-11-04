@@ -14,14 +14,6 @@ internal sealed class RuntimeHealthSettings
     public bool CheckPdf3 { get; set; } = true;
 
     /// <summary>
-    /// The relay's health endpoint at the address apps call for PDFs, so the check takes the route their requests
-    /// take.
-    /// </summary>
-#pragma warning disable S5332 // In-cluster service URL; transport security is provided by the Linkerd mesh (mTLS)
-    public Uri Pdf3Url { get; set; } = new("http://pdf-generator.pdf.svc.cluster.local/pdf/health");
-#pragma warning restore S5332
-
-    /// <summary>
     /// How often the checks run.
     /// </summary>
     public TimeSpan Period { get; set; } = TimeSpan.FromSeconds(30);
