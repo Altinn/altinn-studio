@@ -30,7 +30,8 @@ internal static class ServiceOwnerActions
     /// requires the <c>complete</c> action. eFormidling always does this; fiks arkiv does it when
     /// configured to (<c>FiksArkivSettings.SuccessHandling.MarkInstanceComplete</c>), and that
     /// configuration is not visible at build time - it can come from appsettings, environment
-    /// variables or code - so the requirement is unconditional for both.
+    /// variables or code - so the requirement is unconditional for both. The task does it while it
+    /// runs, when Storage's check names the task, so a grant scoped to an end event does not apply.
     /// </summary>
     internal static bool MarksInstanceComplete(string taskType) => taskType is "eFormidling" or "fiksArkiv";
 }

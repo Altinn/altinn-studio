@@ -126,6 +126,13 @@ internal sealed class XacmlPolicy
     /// Whether the app owner is permitted at least one of <paramref name="anyOfActions"/>. Storage
     /// permits an operation when any single candidate action is permitted, so this mirrors that.
     /// </summary>
+    /// <param name="org">The app owner.</param>
+    /// <param name="app">The app.</param>
+    /// <param name="anyOfActions">The candidate actions.</param>
+    /// <param name="endEventIds">
+    /// The end events the request can name: the process's when the app needs the grant at an end event, none
+    /// when it needs it before the process ends, and null when the process could not be read.
+    /// </param>
     internal GrantResult Evaluate(
         string org,
         string app,
@@ -271,20 +278,15 @@ internal sealed class XacmlPolicy
 
         if (category == ResourceCategory && attributeId == EndEventAttributeId)
         {
-            // 'complete' only ever happens at an end event, so end-event scoping does not narrow it
-            // - but only when the match names an end event the process actually has. Without a
-            // process to check against, the answer is unknown.
-            if (!string.Equals(action, "complete", StringComparison.OrdinalIgnoreCase))
-            {
-                return MatchOutcome.Unsatisfied;
-            }
-
+            // A request names an end event only once the process has ended there. Before that it names
+            // the current task, so whatever the match says, it cannot apply. Without a process to check
+            // against, the answer is unknown.
             if (endEventIds is null)
             {
                 return MatchOutcome.Unknown;
             }
 
-            return ValueIsOneOf(match, endEventIds);
+            return endEventIds.Count == 0 ? MatchOutcome.Unsatisfied : ValueIsOneOf(match, endEventIds);
         }
 
         // Some resource or environment attribute this analysis does not model. Whether the app's

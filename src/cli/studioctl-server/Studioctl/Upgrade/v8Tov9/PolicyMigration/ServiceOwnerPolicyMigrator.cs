@@ -17,7 +17,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PolicyMigration;
 /// the app deletes its instances at process end. The standard Studio policy template has rules for
 /// this ("org can write ... for any states" / "org can complete ..."); this migrator detects apps
 /// whose policy lacks the equivalent grants and inserts a single rule with the missing actions,
-/// using a minimal textual diff.
+/// using a minimal textual diff. An eFormidling or Fiks Arkiv task confirms the instance while it
+/// runs, so with one of those in the process, a <c>complete</c> grant scoped to the end event is not
+/// enough either.
 ///
 /// Process transitions need nothing task-specific: Storage always allows the app owner to commit
 /// them, whatever the task's type and including a transition that abandons the task.
@@ -42,6 +44,12 @@ internal sealed class ServiceOwnerPolicyMigrator
     /// v9 app has - and service owners generally want to confirm received instances anyway.
     /// </summary>
     private static readonly string[] _requiredActions = ["read", "write", "complete"];
+
+    /// <summary>
+    /// The task types that mark the instance complete while the task runs, the same as
+    /// <c>ServiceOwnerActions.MarksInstanceComplete</c> in Altinn.App.Analyzers.
+    /// </summary>
+    private static bool MarksInstanceComplete(string taskType) => taskType is "eFormidling" or "fiksArkiv";
 
     private readonly string _projectFolder;
     private readonly List<UpgradeMessage> _messages = new();
@@ -133,10 +141,12 @@ internal sealed class ServiceOwnerPolicyMigrator
             );
         }
 
+        // A task that marks the instance complete does so before the process ends, when Storage's check
+        // names the task, so a grant scoped to an end event does not apply to it.
+        var endEventIds = processInfo is { HasTaskMarkingComplete: false } ? processInfo.EndEventIds : null;
+
         var missingActions = RequiredActions
-            .Where(action =>
-                !IsActionGrantedToOrg(root, orgValue, appValue, action, endEventIds: processInfo?.EndEventIds)
-            )
+            .Where(action => !IsActionGrantedToOrg(root, orgValue, appValue, action, endEventIds))
             .ToList();
 
         if (missingActions.Count > 0)
@@ -260,9 +270,9 @@ internal sealed class ServiceOwnerPolicyMigrator
     /// app's resources, by evaluating each rule's Target with proper XACML semantics against a
     /// simulated engine request (AND over AnyOf, OR over AllOf, AND over Match). Rules scoped to a
     /// specific task (<c>urn:altinn:task</c>) never count: the engine needs every required action
-    /// in any process state. End-event scoping counts for <c>complete</c> when the Match names an end event that actually
-    /// exists in the process (<paramref name="endEventIds"/>), since that action is only used at end
-    /// events (this is how the standard template grants it).
+    /// in any process state. End-event scoping counts for <c>complete</c> when the Match names one of
+    /// <paramref name="endEventIds"/>, which is null when such a grant must not count. This is how the
+    /// standard template grants it.
     /// </summary>
     private static bool IsActionGrantedToOrg(
         XElement root,
@@ -336,8 +346,8 @@ internal sealed class ServiceOwnerPolicyMigrator
             (ResourceCategory, OrgAttributeId) => ValueIs(orgValue),
             (ResourceCategory, AppAttributeId) => ValueIs(appValue),
             (ActionCategory, ActionAttributeId) => ValueIs(action),
-            // 'complete' only happens at an end event, so end-event scoping does not narrow it -
-            // but only when the Match names an end event the process actually has.
+            // Without a task that marks the instance complete, 'complete' only happens at an end event,
+            // so end-event scoping does not narrow it - but only when the Match names one the process has.
             (ResourceCategory, EndEventAttributeId) => string.Equals(
                 action,
                 "complete",
@@ -548,8 +558,8 @@ internal sealed class ServiceOwnerPolicyMigrator
 
     /// <summary>
     /// Loads the facts about the process that the grant evaluation needs: the end-event ids, to
-    /// verify end-event-scoped 'complete' grants against real end events. Returns null when the
-    /// process file is missing or unreadable.
+    /// verify end-event-scoped 'complete' grants against real end events, and whether a task marks
+    /// the instance complete. Returns null when the process file is missing or unreadable.
     /// </summary>
     private ProcessInfo? TryLoadProcessInfo()
     {
@@ -574,9 +584,14 @@ internal sealed class ServiceOwnerPolicyMigrator
             .OfType<string>()
             .ToHashSet(StringComparer.Ordinal);
 
-        return new ProcessInfo(endEventIds);
+        var hasTaskMarkingComplete = processDoc
+            .Descendants()
+            .Where(e => e.Name.LocalName == "taskType")
+            .Any(e => MarksInstanceComplete(e.Value.Trim()));
+
+        return new ProcessInfo(endEventIds, hasTaskMarkingComplete);
     }
 
     /// <summary>Facts from process.bpmn needed to evaluate end-event-scoped grants.</summary>
-    private sealed record ProcessInfo(IReadOnlySet<string> EndEventIds);
+    private sealed record ProcessInfo(IReadOnlySet<string> EndEventIds, bool HasTaskMarkingComplete);
 }

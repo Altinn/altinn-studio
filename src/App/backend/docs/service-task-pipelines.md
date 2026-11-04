@@ -108,7 +108,8 @@ is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 
 A task that delivers the instance to the service owner returns `Success(confirmComplete: true)` once the
 delivery has succeeded. The app then confirms the instance as complete in the save that concludes the task,
-so a failed or deferred attempt confirms nothing.
+so a failed or deferred attempt confirms nothing. The app owner's policy must grant `complete` during the task,
+since Storage checks the grant against the current task and a grant scoped to an end event does not apply.
 
 ## Waiting: Defer and wait budgets
 

@@ -122,7 +122,8 @@ public sealed record SuccessfulServiceTaskResult : ServiceTaskResult
     /// the task's conclusion, and only then: a failed or deferred attempt saves nothing, so it confirms nothing.
     /// A confirmation the instance already carries is not requested again. Set it in the task that delivers the
     /// instance to the service owner, once the delivery has succeeded. The app owner's policy must grant the
-    /// <c>complete</c> action.
+    /// <c>complete</c> action during the task: a grant scoped to an end event does not apply, and the step then
+    /// fails its save and retries. The build check cannot see this option, so it does not report that.
     /// </summary>
     public bool ConfirmComplete { get; init; }
 }

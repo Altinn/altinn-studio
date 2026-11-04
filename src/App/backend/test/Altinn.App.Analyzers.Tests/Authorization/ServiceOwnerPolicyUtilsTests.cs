@@ -68,26 +68,40 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
-    public void An_End_Event_Scoped_Complete_Grant_Covers_A_Shipping_Task()
+    public void An_End_Event_Scoped_Complete_Grant_Does_Not_Cover_A_Shipping_Task()
     {
-        // How the standard policy template grants it: 'complete' only happens at an end event.
+        // The task confirms while it runs, when Storage's check names the task rather than an end event.
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
             ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+        );
+
+        Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
+    }
+
+    [Theory]
+    [InlineData("eFormidling")]
+    [InlineData("fiksArkiv")]
+    public void A_Complete_Grant_In_Any_State_Covers_A_Shipping_Task(string taskType)
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write", "complete"])),
+            ProcessFixtures.Process(new ProcessTask("Task_2", taskType))
         );
 
         Assert.Empty(diagnostics);
     }
 
     [Fact]
-    public void A_Complete_Grant_Scoped_To_A_Nonexistent_End_Event_Does_Not()
+    public void A_Complete_Grant_Scoped_To_A_Nonexistent_End_Event_Does_Not_Cover_The_Process_End_Setting()
     {
         var diagnostics = Collect(
             PolicyFixtures.Policy(
                 PolicyFixtures.OrgRule(["read", "write"]),
                 PolicyFixtures.OrgRule(["complete"], endEvent: "RenamedEndEvent")
             ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(autoConfirmCompleteOnProcessEnd: true)
         );
 
         Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
@@ -310,7 +324,8 @@ public class ServiceOwnerPolicyUtilsTests
                     endEventMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
                 )
             ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(autoConfirmCompleteOnProcessEnd: true)
         );
 
         Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));

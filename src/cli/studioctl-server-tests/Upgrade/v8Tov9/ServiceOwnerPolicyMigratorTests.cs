@@ -460,6 +460,69 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
         Assert.Equal(policy, PolicyAfter());
     }
 
+    private static string PolicyWithComplete(string completeResource) =>
+        Policy(
+            Rule(
+                "1",
+                AnyOf(AllOf(SubjectOrg("ttd"))),
+                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
+                AnyOf(AllOf(Action("read")), AllOf(Action("write")))
+            ),
+            Rule("2", AnyOf(AllOf(SubjectOrg("ttd"))), completeResource, AnyOf(AllOf(Action("complete"))))
+        );
+
+    private void WriteProcessWithServiceTask(string taskType) =>
+        _app.Write(
+            "config/process/process.bpmn",
+            BpmnBuilder.Process(
+                BpmnBuilder.ServiceTask("Task_1", taskType),
+                BpmnBuilder.Flow("Flow_end", "Task_1", "EndEvent_1"),
+                BpmnBuilder.EndEvent("EndEvent_1")
+            )
+        );
+
+    [Theory]
+    [InlineData("eFormidling")]
+    [InlineData("fiksArkiv")]
+    public async Task TaskMarkingComplete_EndEventScopedComplete_DoesNotCount(string taskType)
+    {
+        // The task marks the instance complete while it runs, when Storage's check names the task.
+        WriteProcessWithServiceTask(taskType);
+        var policy = PolicyWithComplete(
+            AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceEndEvent("EndEvent_1")))
+        );
+
+        var warnings = await Migrate(policy);
+
+        Assert.Contains(
+            warnings,
+            w =>
+                w.Contains("Added a policy rule", StringComparison.Ordinal)
+                && w.Contains("[complete]", StringComparison.Ordinal)
+                && w.Contains("in any process state", StringComparison.Ordinal)
+        );
+
+        // The inserted rule is enough: a second run changes nothing.
+        var migrated = PolicyAfter();
+        Assert.Empty((await new ServiceOwnerPolicyMigrator(_app.Root).Migrate()).Warnings);
+        Assert.Equal(migrated, PolicyAfter());
+    }
+
+    [Theory]
+    [InlineData("eFormidling")]
+    [InlineData("fiksArkiv")]
+    public async Task TaskMarkingComplete_CompleteInAnyState_InsertsNothing(string taskType)
+    {
+        WriteProcessWithServiceTask(taskType);
+        var policy = PolicyWithComplete(AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))));
+
+        var result = await MigrateResult(policy);
+
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+        Assert.Equal(policy, PolicyAfter());
+    }
+
     [Fact]
     public async Task EndEventScopedComplete_NamingAnUnknownEndEvent_DoesNotCount()
     {

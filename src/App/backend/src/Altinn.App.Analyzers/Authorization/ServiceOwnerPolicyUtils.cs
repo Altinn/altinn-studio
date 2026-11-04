@@ -11,6 +11,8 @@ internal static class ServiceOwnerPolicyUtils
 {
     private const string PolicyPath = "config/authorization/policy.xml";
 
+    private static readonly HashSet<string> _noEndEvents = new(StringComparer.Ordinal);
+
     private const string InconclusiveRule =
         "the policy grants it only through a rule this analysis cannot decide statically (a condition, "
         + "a grant scoped to a single task, or an attribute or match function it does not model)";
@@ -109,7 +111,12 @@ internal static class ServiceOwnerPolicyUtils
         var endEventIds = process?.EndEventIds;
         foreach (var requirement in requirements)
         {
-            var result = policy.Evaluate(org, app, requirement.AnyOfActions, endEventIds);
+            var result = policy.Evaluate(
+                org,
+                app,
+                requirement.AnyOfActions,
+                requirement.AtEndEvent ? endEventIds : _noEndEvents
+            );
             switch (result)
             {
                 case GrantResult.Missing:
@@ -159,13 +166,14 @@ internal static class ServiceOwnerPolicyUtils
             new(ServiceOwnerActions.Write, "writes instance data"),
         };
 
-        // One requirement for both reasons, so a missing grant is reported once.
+        // One requirement for both reasons, so a missing grant is reported once. The task's is the stricter.
         if (process?.TaskTypes.Any(ServiceOwnerActions.MarksInstanceComplete) == true)
         {
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
-                    "can mark the instance complete after shipping it to eFormidling or fiks arkiv"
+                    "marks the instance complete during an eFormidling or fiks arkiv task (a grant scoped to an "
+                        + "end event does not apply there)"
                 )
             );
         }
@@ -174,7 +182,8 @@ internal static class ServiceOwnerPolicyUtils
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
-                    "marks the instance complete at process end (autoConfirmCompleteOnProcessEnd)"
+                    "marks the instance complete at process end (autoConfirmCompleteOnProcessEnd)",
+                    AtEndEvent: true
                 )
             );
         }
@@ -260,5 +269,8 @@ internal static class ServiceOwnerPolicyUtils
 
     /// <param name="AnyOfActions">The app owner needs at least one of these.</param>
     /// <param name="Reason">What the app does as the service owner, phrased to follow "the app ...".</param>
-    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, string Reason);
+    /// <param name="AtEndEvent">
+    /// Whether the app needs the grant only once the process has ended, so one scoped to an end event counts.
+    /// </param>
+    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, string Reason, bool AtEndEvent = false);
 }
