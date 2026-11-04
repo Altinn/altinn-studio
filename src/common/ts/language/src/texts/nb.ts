@@ -149,6 +149,7 @@ export function nb() {
     'form_filler.orgnr': 'organisasjonsnummer',
     'form_filler.name': 'organisasjonsnavn',
     'form_filler.fileTransferId': 'fil',
+    'form_filler.checksum': 'sjekksum',
     'navigation.main': 'Overordnet',
     'navigation.form': 'Skjemasider',
     'navigation.to_main_content': 'Hopp til hovedinnholdet',
@@ -426,6 +427,8 @@ export function nb() {
       'Filen kan bare sendes til organisasjonsnummer med ni siffer, ikke til {0}.',
     'broker_file_transfer.error_recipients_not_allowed':
       'Filen kan bare sendes til virksomheter som har tilgang til denne tjenesten.',
+    'broker_file_transfer.error_checksum_invalid':
+      'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.',
     'broker_file_transfer.error_no_access':
       'Du har ikke tilgang til å sende filer i denne tjenesten på vegne av virksomheten.',
     'broker_file_transfer.error_login':

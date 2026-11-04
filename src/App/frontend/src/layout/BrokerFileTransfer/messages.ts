@@ -7,10 +7,11 @@ import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import { FileChangedError } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import { UploadPlanError } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
+import type { ValidLangParam } from 'src/features/language/useLanguage';
 
 // Texts for file problems and Broker errors
 
-export type Message = { key: ValidLanguageKey; params?: (string | number)[] };
+export type Message = { key: ValidLanguageKey; params?: ValidLangParam[] };
 
 // Broker refuses longer file names
 const MAX_FILE_NAME_LENGTH = 255;

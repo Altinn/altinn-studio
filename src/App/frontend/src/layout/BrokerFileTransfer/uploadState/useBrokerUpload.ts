@@ -23,7 +23,7 @@ import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSe
 export type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ kind: 'resumable' } & ResumableTransfer);
 
 export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
-  const { baseUrl, instanceId, resourceId, sender, recipients, disableVirusScan } = setup;
+  const { baseUrl, instanceId, resourceId, sender, recipients, checksum, disableVirusScan } = setup;
   const uploadsKey = useUploadsKey(baseComponentId);
   const controller = useMemo(() => getUploadController(baseUrl, uploadsKey), [baseUrl, uploadsKey]);
   const active = useSyncExternalStore(controller.subscribe, controller.getActive);
@@ -50,6 +50,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
           recipients,
           file,
           reference: instanceId,
+          checksum,
           disableVirusScan,
           propertyList,
         });
@@ -58,7 +59,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
         setSendError(error);
       }
     },
-    [controller, disableVirusScan, instanceId, propertyList, recipients, resourceId, sender],
+    [checksum, controller, disableVirusScan, instanceId, propertyList, recipients, resourceId, sender],
   );
 
   const { state: interruptedState, fileTransferId: interruptedId } = interrupted;

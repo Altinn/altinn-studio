@@ -2613,6 +2613,7 @@
   "ux_editor.modal_properties_data_model_label.answer": "Svar",
   "ux_editor.modal_properties_data_model_label.careOf": "C/O",
   "ux_editor.modal_properties_data_model_label.checked": "Avkrysset verdi",
+  "ux_editor.modal_properties_data_model_label.checksum": "Sjekksum",
   "ux_editor.modal_properties_data_model_label.data": "Data",
   "ux_editor.modal_properties_data_model_label.fileName": "Filnavn",
   "ux_editor.modal_properties_data_model_label.fileTransferId": "Formidlings-ID",

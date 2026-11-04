@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
+import type { JSONSchema7 } from 'json-schema';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -124,8 +125,9 @@ function CaptureQueryClient() {
 async function render({
   owner = ORGANIZATION,
   formData = { id: '', status: '', name: '' },
+  schema,
   ...component
-}: { owner?: string | null; formData?: Record<string, string> } & Partial<
+}: { owner?: string | null; formData?: Record<string, string>; schema?: JSONSchema7 } & Partial<
   RenderGenericComponentTestProps<'BrokerFileTransfer'>['component']
 > = {}) {
   componentCount += 1;
@@ -146,6 +148,7 @@ async function render({
         fileTransferId: { dataType: defaultDataTypeMock, field: 'broker.id' },
         fileTransferStatus: { dataType: defaultDataTypeMock, field: 'broker.status' },
         fileName: { dataType: defaultDataTypeMock, field: 'broker.name' },
+        checksum: { dataType: defaultDataTypeMock, field: 'broker.checksum' },
       },
       textResourceBindings: { title: 'Last opp rapporten' },
       ...component,
@@ -154,6 +157,9 @@ async function render({
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((bootstrap) => {
           bootstrap.dataModels[defaultDataTypeMock].initialData = { broker: formData };
+          if (schema) {
+            bootstrap.dataModels[defaultDataTypeMock].schema = schema;
+          }
         }),
     },
     apis: {
@@ -526,6 +532,56 @@ describe('BrokerFileTransferComponent', () => {
       ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
     });
+
+    it('sends the checksum from the data model in lower case', async () => {
+      const checksum = 'D41D8CD98F00B204E9800998ECF8427E';
+      await render({ formData: { id: '', status: '', name: '', checksum } });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+      await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
+
+      expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ checksum: checksum.toLowerCase() }));
+    });
+
+    it('sends without a checksum when the data model leaves it out', async () => {
+      await render();
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+      await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
+
+      expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ checksum: undefined }));
+    });
+
+    it('asks for the checksum when the data model requires it', async () => {
+      await render({
+        schema: {
+          type: 'object',
+          properties: {
+            broker: {
+              type: 'object',
+              properties: { checksum: { type: 'string' } },
+              required: ['checksum'],
+            },
+          },
+        },
+      });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+
+      expect(screen.getByText('Du må fylle ut sjekksum')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+    });
+
+    it('refuses a checksum that is neither MD5 nor SHA256', async () => {
+      await render({ formData: { id: '', status: '', name: '', checksum: 'abc123' } });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+
+      expect(
+        screen.getByText('Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.'),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+    });
   });
 
   describe('uploading', () => {
@@ -681,6 +737,16 @@ describe('BrokerFileTransferComponent', () => {
       expect(
         screen.queryByText('Du må oppgi hvem som skal motta filen, før du kan sende den.'),
       ).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Fortsett opplastingen' })).toBeEnabled();
+    });
+
+    it('continues an interrupted upload with the checksum it was started with', async () => {
+      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      await render({ formData: { ...interruptedFormData, checksum: 'abc123' } });
+
+      await userEvent.upload(await findFileInput(), new File(['rapporten'], 'rapport.pdf'));
+
+      expect(screen.queryByText(/^Sjekksummen må være/)).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Fortsett opplastingen' })).toBeEnabled();
     });
 

@@ -21,6 +21,7 @@ export type CompBrokerFileTransferSerialized = {
     fileTransferId: IRawDataModelBinding;
     fileTransferStatus: IRawDataModelBinding;
     fileName?: IRawDataModelBinding;
+    checksum?: IRawDataModelBinding;
   };
   resourceId: string;
   hasCustomRecipients?: boolean;
@@ -34,4 +35,4 @@ export type CompBrokerFileTransferSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: e34e8e7204a0fc29b0d59784724a216d0a7d32f43e0452f47f1faeeaba7343c9
+// Source hash: cd2cc4f940296191d3a2a73c62fa8cc0f4f4ca03b6535250eb519df0e0f15169

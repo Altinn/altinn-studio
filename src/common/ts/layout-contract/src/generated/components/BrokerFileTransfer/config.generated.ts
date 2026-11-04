@@ -31,6 +31,7 @@ export interface CompBrokerFileTransferExternal
     fileTransferId: IDataModelReference;
     fileTransferStatus: IDataModelReference;
     fileName?: IDataModelReference;
+    checksum?: IDataModelReference;
   };
   resourceId: string;
   hasCustomRecipients?: boolean;
@@ -70,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: BrokerFileTransferSummaryOverridesWithRef;
 };
 
-// Source hash: c6c35c8fd1aa57424102ae1e85cfc100b5ac2cd378528bef129d67159af5483e
+// Source hash: 48feed5480c5561ab021bf05ee37964753eee02508db0634a0db3e6823ea7dab

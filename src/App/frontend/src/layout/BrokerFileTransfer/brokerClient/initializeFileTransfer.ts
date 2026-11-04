@@ -11,6 +11,7 @@ export type InitializeFileTransferInput = {
   file: File;
   reference?: string;
   propertyList?: Record<string, string>;
+  checksum?: string;
   disableVirusScan?: boolean;
 };
 
@@ -36,6 +37,9 @@ function buildRequestBody(input: InitializeFileTransferInput): FileTransferIniti
     recipients: input.recipients.map((recipient) => requireOrgIdentifier(recipient)),
     sendersFileTransferReference: input.reference?.trim() || undefined,
     propertyList: input.propertyList ?? {},
+    checksum: input.checksum || undefined,
+    // An MD5 checksum has 32 hex characters and a SHA256 checksum 64
+    checksumAlgorithm: input.checksum ? (input.checksum.length === 64 ? 'SHA256' : 'MD5') : undefined,
     disableVirusScan: input.disableVirusScan ?? false,
   };
 }
@@ -48,5 +52,6 @@ type FileTransferInitializeRequestBody = {
   sendersFileTransferReference?: string;
   propertyList?: Record<string, string>;
   checksum?: string;
+  checksumAlgorithm?: 'MD5' | 'SHA256';
   disableVirusScan?: boolean;
 };

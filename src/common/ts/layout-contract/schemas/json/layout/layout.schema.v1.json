@@ -2662,6 +2662,9 @@
                 },
                 "fileName": {
                   "$ref": "#/definitions/IRawDataModelBinding"
+                },
+                "checksum": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
                 }
               },
               "required": [

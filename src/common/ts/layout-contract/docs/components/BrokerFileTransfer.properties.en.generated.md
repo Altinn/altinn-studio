@@ -273,6 +273,18 @@ The component also supports the [common component properties](../common-properti
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component stores the name of the file it sends. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
       </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.checksum">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="dataModelBindings.checksum">dataModelBindings.checksum</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="data model binding">Type: <span class="component-property-value"><a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">data model binding</a></span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component reads the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. When the field is required in the data model, the file cannot be sent without it. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
+      </details>
     </div>
 
   </div>

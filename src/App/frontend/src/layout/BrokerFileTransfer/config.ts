@@ -63,6 +63,16 @@ export const Config = new CG.component({
           )
           .optional(),
       ),
+      new CG.prop(
+        'checksum',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for the checksum', 'Datamodellbinding for sjekksum')
+          .setDescription(
+            "Where in the data model the component reads the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. When the field is required in the data model, the file cannot be sent without it.",
+            'Angir hvor i datamodellen komponenten leser sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Når feltet er påkrevd i datamodellen, kan ikke filen sendes uten den.',
+          )
+          .optional(),
+      ),
     ),
   )
   .addProperty(

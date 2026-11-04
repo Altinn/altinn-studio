@@ -148,6 +148,7 @@ export function en() {
     'form_filler.orgnr': 'organisation number',
     'form_filler.name': 'organisation name',
     'form_filler.fileTransferId': 'file',
+    'form_filler.checksum': 'checksum',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -425,6 +426,8 @@ export function en() {
       'The file can only be sent to nine-digit organisation numbers, not to {0}.',
     'broker_file_transfer.error_recipients_not_allowed':
       'The file can only be sent to organisations that have access to this service.',
+    'broker_file_transfer.error_checksum_invalid':
+      'The checksum must be 32 or 64 characters, using only the digits 0–9 and the letters a–f.',
     'broker_file_transfer.error_no_access':
       'You do not have access to send files on this service on behalf of the organisation.',
     'broker_file_transfer.error_login':

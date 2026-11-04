@@ -106,7 +106,21 @@ export class BrokerFileTransfer extends BrokerFileTransferDef {
       ['string'],
       false,
     );
-    return [...(fileTransferIdErrors ?? []), ...(fileTransferStatusErrors ?? []), ...(fileNameErrors ?? [])];
+    const [checksumErrors] = validateDataModelBindingsAny(
+      baseComponentId,
+      bindings,
+      lookupBinding,
+      layoutLookups,
+      'checksum',
+      ['string'],
+      false,
+    );
+    return [
+      ...(fileTransferIdErrors ?? []),
+      ...(fileTransferStatusErrors ?? []),
+      ...(fileNameErrors ?? []),
+      ...(checksumErrors ?? []),
+    ];
   }
 }
 

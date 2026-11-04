@@ -2,8 +2,11 @@ import { useEffect, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { useQuery } from 'src/core/queries/reactQuery';
+import { FormStore } from 'src/features/form/FormContext';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { GlobalData } from 'src/GlobalData';
@@ -15,7 +18,7 @@ import { effectiveMaxFileTransferSize } from 'src/layout/BrokerFileTransfer/brok
 import { brokerProblem, unauthorizedMessage } from 'src/layout/BrokerFileTransfer/messages';
 import { configProblems, invalidRecipients, splitRecipients } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
@@ -29,6 +32,9 @@ export type ReadySetup = {
   recipients: string[];
   // Why a new file transfer can't be sent to the recipients yet, such as a field the user hasn't filled in
   recipientsProblem: Message | undefined;
+  // In lower case, or undefined to let Broker calculate it after upload
+  checksum: string | undefined;
+  checksumProblem: Message | undefined;
   disableVirusScan: boolean;
   maxFileSize: number | null;
 };
@@ -42,6 +48,9 @@ type BrokerSetup =
 
 const BYTES_IN_MB = 1000 * 1000;
 
+// MD5 or SHA256, the algorithms Broker accepts
+const CHECKSUM_PATTERN = /^([0-9a-f]{32}|[0-9a-f]{64})$/;
+
 export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const config = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
   const { resourceId, disableVirusScan = false, maxFileTransferSizeInMB } = config;
@@ -54,6 +63,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const instanceId = useLaxInstanceId();
   const owner = useInstanceDataQuery({ select: (instance) => instance.instanceOwner }).data;
   const configuredRecipients = useConfiguredRecipients(baseComponentId);
+  const checksum = useChecksum(baseComponentId);
   const resource = useQuery(brokerQueries.resourceConfiguration(baseUrl, resourceId));
 
   useEffect(() => {
@@ -126,6 +136,8 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
     sender,
     recipients: recipients.map((recipient) => toOrgNumber(recipient) ?? recipient),
     recipientsProblem: recipientsProblem(recipients),
+    checksum: checksum.value,
+    checksumProblem: checksum.problem,
     disableVirusScan,
     maxFileSize: lowerLimit(
       effectiveMaxFileTransferSize(resource.data.maxFileTransferSize, !disableVirusScan),
@@ -179,4 +191,37 @@ function useConfiguredRecipients(baseComponentId: string): string[] | null {
   const { hasCustomRecipients, recipients } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
   const evaluated = useEvalExpression(recipients, Expressions.BrokerFileTransfer.recipients);
   return useMemo(() => (hasCustomRecipients ? splitRecipients(evaluated) : null), [evaluated, hasCustomRecipients]);
+}
+
+function useChecksum(baseComponentId: string): { value?: string; problem?: Message } {
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
+  const { formData } = useDataModelBindings(dataModelBindings);
+  const required = useIsRequiredInDataModel(dataModelBindings.checksum);
+
+  const value = typeof formData.checksum === 'string' ? formData.checksum.trim().toLowerCase() : '';
+  if (!value) {
+    return required
+      ? {
+          problem: {
+            key: 'form_filler.error_required',
+            params: [{ key: 'form_filler.checksum', makeLowerCase: true }],
+          },
+        }
+      : {};
+  }
+  return CHECKSUM_PATTERN.test(value) ? { value } : { problem: { key: 'broker_file_transfer.error_checksum_invalid' } };
+}
+
+// The data model schema lists a required field on the object that holds it
+function useIsRequiredInDataModel(reference: IDataModelReference | undefined): boolean {
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+  return useMemo(() => {
+    if (!reference || !lookupBinding) {
+      return false;
+    }
+    const path = reference.field.split('.');
+    const field = path.pop();
+    const [parent] = lookupBinding({ ...reference, field: path.join('.') });
+    return !!field && !!parent?.required?.includes(field);
+  }, [lookupBinding, reference]);
 }

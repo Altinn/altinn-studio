@@ -734,6 +734,7 @@
   "ux_editor.modal_properties_data_model_label.answer": "Answer",
   "ux_editor.modal_properties_data_model_label.careOf": "C/O",
   "ux_editor.modal_properties_data_model_label.checked": "Checked value",
+  "ux_editor.modal_properties_data_model_label.checksum": "Checksum",
   "ux_editor.modal_properties_data_model_label.data": "Data",
   "ux_editor.modal_properties_data_model_label.fileName": "File name",
   "ux_editor.modal_properties_data_model_label.fileTransferId": "File transfer ID",
