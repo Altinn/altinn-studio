@@ -10,11 +10,12 @@ namespace Altinn.AccessManagement.Controllers;
 
 /// <summary>
 /// Emulates the Access Management end user API for listing the parties the authenticated user can act on behalf of.
-/// The parties come from the same test data as <c>authorization/api/v1/parties</c>.
+/// The parties come from the same test data as <c>authorization/api/v1/parties</c>, with the roles and access packages
+/// the user holds for each. Sub-units inherit the roles and access packages held for their main unit.
 /// </summary>
 [ApiController]
 [Route("accessmanagement/api/v1/enduser/authorizedparties")]
-public class AuthorizedPartiesController(IParties parties) : ControllerBase
+public class AuthorizedPartiesController(IParties parties, IRoles roles, IAccessPackages accessPackages) : ControllerBase
 {
     [HttpGet]
     [Authorize]
@@ -27,11 +28,31 @@ public class AuthorizedPartiesController(IParties parties) : ControllerBase
         }
 
         List<Party> partyList = await parties.GetParties(userId) ?? [];
-        return Ok(new AuthorizedPartiesResponseDto(new AuthorizedPartiesLinksDto(null), partyList.Select(ToDto).ToList()));
+        var authorizedParties = new List<AuthorizedPartyDto>();
+        foreach (var party in partyList)
+        {
+            authorizedParties.Add(await ToDto(userId, party, mainUnitRoles: []));
+        }
+
+        return Ok(new AuthorizedPartiesResponseDto(new AuthorizedPartiesLinksDto(null), authorizedParties));
     }
 
-    private static AuthorizedPartyDto ToDto(Party party) =>
-        new(
+    private async Task<AuthorizedPartyDto> ToDto(int userId, Party party, List<string> mainUnitRoles)
+    {
+        var roleCodes = (await roles.GetDecisionPointRolesForUser(userId, party.PartyId))
+            .Select(role => role.Value)
+            .Where(code => !string.IsNullOrEmpty(code))
+            .Concat(mainUnitRoles)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var packages = await accessPackages.GetAccessPackagesForUser(userId, party.PartyId);
+        var subunits = new List<AuthorizedPartyDto>();
+        foreach (var subunit in party.ChildParties ?? [])
+        {
+            subunits.Add(await ToDto(userId, subunit, roleCodes));
+        }
+
+        return new(
             PartyUuid: party.PartyUuid ?? Guid.Empty,
             PartyId: party.PartyId,
             Name: party.Name,
@@ -47,12 +68,13 @@ public class AuthorizedPartiesController(IParties parties) : ControllerBase
             UnitType: party.UnitType,
             IsDeleted: party.IsDeleted,
             OnlyHierarchyElementWithNoAccess: party.OnlyHierarchyElementWithNoAccess,
-            AuthorizedAccessPackages: [],
+            AuthorizedAccessPackages: packages,
             AuthorizedResources: [],
-            AuthorizedRoles: [],
+            AuthorizedRoles: roleCodes,
             AuthorizedInstances: [],
-            Subunits: party.ChildParties?.Select(ToDto).ToList() ?? []
+            Subunits: subunits
         );
+    }
 }
 
 public sealed record AuthorizedPartiesResponseDto(AuthorizedPartiesLinksDto Links, List<AuthorizedPartyDto> Data);

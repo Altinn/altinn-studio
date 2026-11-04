@@ -33,6 +33,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     {
         private readonly IPolicyInformationRepository _policyInformationRepository;
         private readonly IRoles _rolesWrapper;
+        private readonly IAccessPackages _accessPackagesWrapper;
         private readonly IUserProfiles _profilesWrapper;
         private readonly LocalTest.Services.Register.Interface.IParties _partiesWrapper;
         protected readonly IPolicyRetrievalPoint _prp;
@@ -42,9 +43,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// </summary>
         /// <param name="policyInformationRepository">the policy information repository handler</param>
         /// <param name="rolesWrapper">the roles handler</param>
+        /// <param name="accessPackagesWrapper">the access packages handler</param>
         public ContextHandler(
             IPolicyInformationRepository policyInformationRepository, 
             IRoles rolesWrapper,
+            IAccessPackages accessPackagesWrapper,
             IUserProfiles profilesWrapper,
             LocalTest.Services.Register.Interface.IParties partiesWrapper,
             IPolicyRetrievalPoint prp
@@ -52,6 +55,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             _policyInformationRepository = policyInformationRepository;
             _rolesWrapper = rolesWrapper;
+            _accessPackagesWrapper = accessPackagesWrapper;
             _profilesWrapper = profilesWrapper;
             _partiesWrapper = partiesWrapper;
             _prp = prp;
@@ -280,6 +284,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             int subjectUserId = 0;
             int resourcePartyId = Convert.ToInt32(resourceParty);
+            string subjectSystemUserId = null;
             string subjectSsn = string.Empty;
             string subjectOrgnNo = string.Empty;
             bool foundLegacyOrgNoAttribute = false;
@@ -299,6 +304,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 if (xacmlAttribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PersonIdAttribute))
                 {
                     subjectSsn = xacmlAttribute.AttributeValues.First().Value;
+                }
+
+                if (xacmlAttribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.SystemUserIdAttribute))
+                {
+                    subjectSystemUserId = xacmlAttribute.AttributeValues.First().Value;
                 }
 
                 if (xacmlAttribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.LegacyOrganizationNumberAttribute))
@@ -351,8 +361,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
             }
 
-            // No need for further enrichment of roles of no user subject exists
-            if (subjectUserId == 0)
+            // No need for further enrichment of roles or access packages if no user or system user subject exists
+            if (subjectUserId == 0 && string.IsNullOrEmpty(subjectSystemUserId))
             {
                 return;
             }
@@ -364,6 +374,24 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             IDictionary<string, ICollection<string>> policySubjectAttributes = xacmlPolicy.GetAttributeDictionaryByCategory(XacmlConstants.MatchAttributeCategory.Subject);
+
+            // Enrich with access package attributes if the policy has rules for access packages
+            if (policySubjectAttributes.ContainsKey(AltinnXacmlConstants.MatchAttributeIdentifiers.AccessPackageAttribute))
+            {
+                List<string> accessPackages = !string.IsNullOrEmpty(subjectSystemUserId)
+                    ? await _accessPackagesWrapper.GetAccessPackagesForSystemUser(subjectSystemUserId, resourcePartyId)
+                    : await _accessPackagesWrapper.GetAccessPackagesForUser(subjectUserId, resourcePartyId);
+                foreach (string accessPackage in accessPackages)
+                {
+                    subjectContextAttributes.Attributes.Add(GetAccessPackageAttribute(accessPackage));
+                }
+            }
+
+            // Roles are only enriched for users
+            if (subjectUserId == 0)
+            {
+                return;
+            }
             if (policySubjectAttributes.ContainsKey(AltinnXacmlConstants.MatchAttributeIdentifiers.OedRoleAttribute))
             {
                 if (string.IsNullOrEmpty(subjectSsn))
@@ -401,6 +429,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
             }
 
+            return attribute;
+        }
+
+        private static XacmlAttribute GetAccessPackageAttribute(string accessPackage)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(AltinnXacmlConstants.MatchAttributeIdentifiers.AccessPackageAttribute), false);
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), accessPackage));
             return attribute;
         }
 

@@ -105,6 +105,33 @@ public static class TestDataMerger
             }
         }
 
+        if (source.Authorization?.AccessPackages != null)
+        {
+            foreach (var (userId, accessPackages) in source.Authorization.AccessPackages)
+            {
+                if (!target.Authorization.AccessPackages.ContainsKey(userId))
+                {
+                    target.Authorization.AccessPackages[userId] = accessPackages;
+                }
+            }
+        }
+
+        if (source.Authorization?.Systems != null)
+        {
+            foreach (var (systemId, system) in source.Authorization.Systems)
+            {
+                target.Authorization.Systems.TryAdd(systemId, system);
+            }
+        }
+
+        if (source.Authorization?.SystemUsers != null)
+        {
+            foreach (var (systemUserId, systemUser) in source.Authorization.SystemUsers)
+            {
+                target.Authorization.SystemUsers.TryAdd(systemUserId, systemUser);
+            }
+        }
+
         if (conflicts.Count > 0)
         {
             var sourceName = sourceIdentifier ?? "source";

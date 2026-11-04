@@ -123,6 +123,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
+            services.AddSingleton<IAccessPackages, AccessPackagesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
             services.AddSingleton<IOnDemandClient, OnDemandClient>();
             services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
