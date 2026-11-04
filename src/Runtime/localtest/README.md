@@ -19,3 +19,31 @@ the users their app needs in its
 [`testData.json`](https://docs.altinn.studio/altinn-studio/v8/reference/testing/local/testusers/#app-specific-users).
 Change `testdata/` only for what applies to everyone, then rebuild the image with
 `STUDIOCTL_INTERNAL_DEV=true studioctl env up` from your checkout.
+
+### Access packages
+
+Persons in `testData.json` can hold access packages ("tilgangspakker") for a party, under `accessPackages` keyed by
+party id, and system users can hold them for their own organization. A package is its identifier, such as `lonn`, or
+its URN, `urn:altinn:accesspackage:lonn`. When an app policy has rules on `urn:altinn:accesspackage`, the PDP adds
+the packages the subject holds for the resource party, as the platform does, so those rules decide the same way
+locally. A sub-unit gets the packages held for its main unit. Packages held for the person's own party give no
+access to other parties. `enduser/authorizedparties` lists the packages and role codes per party.
+
+In the built-in data, Pengelens Partner holds `regnskapsforer-med-signeringsrettighet` and `lonn` for DDG Fitness, and
+so does the system user of Oslos Vakreste Borettslag. A user's packages are in `accesspackages.json` next to their
+`roles.json`, and a system user's are in its `AccessPackages`.
+
+In the platform, Access Management also gives packages for roles, such as daglig leder (`DAGL`). Localtest does that
+only with `LocalPlatformSettings__AccessPackagesFromRoles=true`, because it changes what the existing test users may
+do. The mapping is generated from the static data of Access Management, as
+[`generate_role_packages.py`](src/Services/AccessManagement/RolePackages/generate_role_packages.py) describes, and it
+differs from the platform in these ways:
+
+- It is a copy, so it goes stale when Access Management changes its mapping until someone regenerates it.
+- A role is matched by its code or Altinn 2 code. Altinn 2 roles such as `A0239` give no packages, as in the
+  platform, where the CCR role `REGN` gives the accountant packages.
+- Packages that a role gives only for some kinds of organization need the organization's `unitType` in the test data.
+- Packages that come through client delegation or from another party are not emulated.
+
+When the app policy does not apply to a system user, Localtest still permits the actions the test data gives it,
+whatever the resource party, so that apps without system user rules can be tested with one.
