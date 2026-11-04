@@ -24,7 +24,6 @@ export const BrokerFileTransferMainConfig = ({
 }: BrokerFileTransferMainConfigProps): React.ReactElement => {
   const properties = getComponentDefinition(component.type)?.properties ?? {};
 
-  // Like the allowed file types: switching off removes the recipients the switch let you enter
   const handleRecipientsSwitch = (updatedComponent: FormItem<ComponentType.BrokerFileTransfer>) =>
     handleComponentChange(
       updatedComponent.hasCustomRecipients

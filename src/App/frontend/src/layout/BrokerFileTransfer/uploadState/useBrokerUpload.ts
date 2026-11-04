@@ -34,7 +34,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
 
   useRecordedTransfer(baseComponentId, uploadsKey, controller, setup);
 
-  // Pause rather than abort, so nothing is left locked on the server
+  // Leaving the page pauses rather than aborts, so the chunks already on their way finish instead of being sent again
   const hasActive = active !== null;
   useEffect(() => (hasActive ? controller.pause : undefined), [controller, hasActive]);
 

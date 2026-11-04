@@ -13,7 +13,6 @@ export type MetadataDraft = {
   source: 'field' | 'text' | 'expression';
   field: string;
   text: string;
-  // Kept as it is, since Studio only edits fields and fixed texts
   expression: MetadataValue;
 };
 
@@ -59,7 +58,6 @@ export function hasMetadataValue({ source, field, text }: MetadataDraft): boolea
   return true;
 }
 
-// Puts the entry at the index, or last when the index is past the end, keeping the order of the others
 export function withMetadataEntry(
   metadata: BrokerMetadata | undefined,
   index: number,
