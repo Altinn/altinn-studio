@@ -101,14 +101,21 @@ func TestExecWithIO_Cancellation(t *testing.T) {
 				}
 				defer closeBestEffort(conn)
 				if tt.upgraded {
-					respond(t, conn, "HTTP/1.1 101 UPGRADED\r\nConnection: Upgrade\r\nUpgrade: tcp\r\n\r\n")
+					// The client cancels when it writes the frame, so the cancellation reaches the read loop.
+					respond(t, conn, "HTTP/1.1 101 UPGRADED\r\nConnection: Upgrade\r\nUpgrade: tcp\r\n\r\n"+
+						dockerLogFrame(1, "started"))
+				} else {
+					cancel()
 				}
-				cancel()
 				holdUntilClosed(buffered)
 			})
 
+			stdout := io.Discard
+			if tt.upgraded {
+				stdout = cancelOnWrite(cancel)
+			}
 			done := make(chan error, 1)
-			go func() { done <- c.ExecWithIO(ctx, "ctr", []string{"sleep", "60"}, nil, io.Discard, io.Discard) }()
+			go func() { done <- c.ExecWithIO(ctx, "ctr", []string{"sleep", "60"}, nil, stdout, io.Discard) }()
 			select {
 			case err := <-done:
 				if !errors.Is(err, context.Canceled) {
@@ -119,6 +126,14 @@ func TestExecWithIO_Cancellation(t *testing.T) {
 			}
 		})
 	}
+}
+
+// cancelOnWrite cancels a context when the exec writes output.
+type cancelOnWrite context.CancelFunc
+
+func (cancel cancelOnWrite) Write(p []byte) (int, error) {
+	cancel()
+	return len(p), nil
 }
 
 func TestDemux(t *testing.T) {
