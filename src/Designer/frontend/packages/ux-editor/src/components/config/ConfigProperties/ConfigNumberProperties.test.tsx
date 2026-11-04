@@ -1,7 +1,13 @@
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigNumberProperties, type ConfigNumberPropertiesProps } from './ConfigNumberProperties';
 import { componentMocks } from '../../../testing/componentMocks';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { FormItem } from '../../../types/FormItem';
+import { getComponentDefinition } from '../../../data/componentCatalog';
 import type { PropertyDefinition } from '@app/layout-contract';
 import userEvent from '@testing-library/user-event';
 import {
@@ -61,6 +67,24 @@ describe('ConfigNumberProperties', () => {
     });
   });
 
+  it('disables save when the other count has been saved with a value the pending value breaks', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NumberOfAttachmentsConfig />, {});
+
+    await openConfigAndVerify({ user, property: 'minNumberOfAttachments' });
+    const minTextBox = getPropertyByRole('textbox', 'minNumberOfAttachments');
+    await user.clear(minTextBox);
+    await user.type(minTextBox, '3');
+    await user.click(getPropertyByRole('button', 'maxNumberOfAttachments'));
+    const maxTextBox = getPropertyByRole('textbox', 'maxNumberOfAttachments');
+    await user.clear(maxTextBox);
+    await user.type(maxTextBox, '1');
+    const [saveMaxButton] = screen.getAllByRole('button', { name: textMock('general.save') });
+    await user.click(saveMaxButton);
+
+    expect(screen.getByRole('button', { name: textMock('general.save') })).toBeDisabled();
+  });
+
   const defaultProps: ConfigNumberPropertiesProps = {
     numberPropertyKeys: [defaultProperty],
     properties,
@@ -71,3 +95,19 @@ describe('ConfigNumberProperties', () => {
     return renderWithProviders(<ConfigNumberProperties {...defaultProps} {...props} />, {});
   };
 });
+
+const NumberOfAttachmentsConfig = () => {
+  const [component, setComponent] = useState<FormItem>({
+    ...componentMocks[ComponentType.FileUpload],
+    minNumberOfAttachments: 1,
+    maxNumberOfAttachments: 3,
+  });
+  return (
+    <ConfigNumberProperties
+      component={component}
+      properties={getComponentDefinition(ComponentType.FileUpload).properties}
+      numberPropertyKeys={['maxNumberOfAttachments', 'minNumberOfAttachments']}
+      handleComponentUpdate={setComponent}
+    />
+  );
+};

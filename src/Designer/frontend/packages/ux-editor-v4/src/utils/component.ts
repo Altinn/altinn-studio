@@ -162,3 +162,43 @@ export const isComponentDeprecated = (type: ComponentType) => {
   const deprecatedComponents = [ComponentType.Summary];
   return deprecatedComponents.includes(type);
 };
+
+export enum NumberOfAttachmentsErrorCode {
+  MinAboveMax = 'minNumberOfAttachments_above_max',
+  MaxBelowMin = 'maxNumberOfAttachments_below_min',
+}
+
+export const numberOfAttachmentsErrorCodes: string[] = Object.values(NumberOfAttachmentsErrorCode);
+
+/**
+ * Validates a new minimum or maximum number of attachments against the other one,
+ * so that the minimum cannot be set above the maximum.
+ * @param component The component the property belongs to.
+ * @param propertyKey The property being edited.
+ * @param value The new value of the property.
+ * @returns One of numberOfAttachmentsErrorCodes, or an empty string if the value is valid.
+ */
+export const validateNumberOfAttachments = (
+  component: FormItem,
+  propertyKey: string,
+  value: unknown,
+): string => {
+  if (typeof value !== 'number') return '';
+  if (
+    propertyKey === 'minNumberOfAttachments' &&
+    'maxNumberOfAttachments' in component &&
+    typeof component.maxNumberOfAttachments === 'number' &&
+    value > component.maxNumberOfAttachments
+  ) {
+    return NumberOfAttachmentsErrorCode.MinAboveMax;
+  }
+  if (
+    propertyKey === 'maxNumberOfAttachments' &&
+    'minNumberOfAttachments' in component &&
+    typeof component.minNumberOfAttachments === 'number' &&
+    value < component.minNumberOfAttachments
+  ) {
+    return NumberOfAttachmentsErrorCode.MaxBelowMin;
+  }
+  return '';
+};
