@@ -1,9 +1,12 @@
 package kind
 
 import (
+	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -61,6 +64,51 @@ func TestLoadGrafanaContent(t *testing.T) {
 	}
 	if content.Digest == "" {
 		t.Error("digest is empty")
+	}
+}
+
+func TestResolveDashboardsRepository_CancelledUpdateUsesCachedCheckout(t *testing.T) {
+	t.Setenv(EnvDashboardsRepository, "")
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	cachePath := t.TempDir()
+	if _, err := resolveDashboardsRepository(ctx, "", cachePath); err == nil {
+		t.Fatal("resolveDashboardsRepository() without a cached checkout error = nil, want the cancelled clone")
+	}
+
+	cached := filepath.Join(cachePath, "altinn-dashboards-grafana")
+	if err := os.MkdirAll(filepath.Join(cached, ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	got, err := resolveDashboardsRepository(ctx, "", cachePath)
+	if err != nil {
+		t.Fatalf("resolveDashboardsRepository() with a cached checkout error = %v", err)
+	}
+	if got != cached {
+		t.Fatalf("resolveDashboardsRepository() = %q, want the cached checkout %q", got, cached)
+	}
+}
+
+func TestResolveDashboardsRepository_FailedCloneIsNotCached(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("the git wrapper is a shell script")
+	}
+	t.Setenv(EnvDashboardsRepository, "")
+	// A clone killed partway, which leaves its .git behind, without reaching the network.
+	bin := t.TempDir()
+	wrapper := "#!/bin/sh\nfor last; do :; done\nmkdir -p \"$last/.git\"\nexit 1\n"
+	if err := os.WriteFile(filepath.Join(bin, "git"), []byte(wrapper), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	cachePath := t.TempDir()
+	if _, err := resolveDashboardsRepository(t.Context(), "", cachePath); err == nil {
+		t.Fatal("resolveDashboardsRepository() error = nil, want the failed clone")
+	}
+	if _, err := os.Stat(filepath.Join(cachePath, "altinn-dashboards-grafana")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat() error = %v, want the failed clone removed", err)
 	}
 }
 
