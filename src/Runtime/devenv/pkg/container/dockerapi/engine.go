@@ -369,11 +369,11 @@ func checkStatus(resp *http.Response) error {
 }
 
 func responseErrorMessage(resp *http.Response) string {
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxErrorBodySize))
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxErrorBodySize+1))
 	if err != nil {
 		return err.Error()
 	}
-	if len(data) == maxErrorBodySize {
+	if len(data) > maxErrorBodySize {
 		return fmt.Sprintf("request returned %s with a message (> %d bytes) for API route and version %s, "+
 			"check if the server supports the requested API version", resp.Status, maxErrorBodySize, resp.Request.URL)
 	}

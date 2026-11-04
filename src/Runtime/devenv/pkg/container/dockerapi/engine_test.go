@@ -378,7 +378,8 @@ func TestEngine_ResponseErrors(t *testing.T) {
 		{"plain text", "text/plain", " denied ", "Error response from daemon: denied"},
 		{"JSON served as text", "text/plain", `{"message":"denied"}`, `Error response from daemon: {"message":"denied"}`},
 		{"empty body", "application/json", "", "request returned 403 Forbidden for API route and version"},
-		{"oversized body", "text/plain", strings.Repeat("x", maxErrorBodySize), "request returned 403 Forbidden with a message (> 1048576 bytes)"},
+		{"body at the limit", "text/plain", strings.Repeat("x", maxErrorBodySize), "Error response from daemon: xxx"},
+		{"oversized body", "text/plain", strings.Repeat("x", maxErrorBodySize+1), "request returned 403 Forbidden with a message (> 1048576 bytes)"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
