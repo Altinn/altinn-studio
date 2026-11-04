@@ -119,6 +119,21 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
+    public void Merge_AddsThePackagesOfAUserForOtherParties()
+    {
+        var source = Read();
+        var target = new TestDataModel();
+        target.Authorization.AccessPackages["1001"] = new() { ["500000"] = ["skattegrunnlag"] };
+
+        TestDataMerger.MergeTestData(source, target);
+
+        var packages = target.Authorization.AccessPackages["1001"];
+        Assert.Equal(["skattegrunnlag"], packages["500000"]);
+        Assert.Equal(["skattegrunnlag"], packages["510001"]);
+        Assert.Equal(["500000", "510001"], packages.Keys.Order());
+    }
+
+    [Fact]
     public void FromTestDataModel_RoundTripsPackages()
     {
         var model = Read();

@@ -109,10 +109,19 @@ public static class TestDataMerger
         {
             foreach (var (userId, accessPackages) in source.Authorization.AccessPackages)
             {
-                if (!target.Authorization.AccessPackages.ContainsKey(userId))
+                if (!target.Authorization.AccessPackages.TryGetValue(userId, out var targetPackages))
                 {
                     target.Authorization.AccessPackages[userId] = accessPackages;
+                    continue;
                 }
+
+                // The target's packages for a party win; the source adds the parties the target has none for
+                var merged = new Dictionary<string, List<string>>(targetPackages);
+                foreach (var (partyId, packages) in accessPackages)
+                {
+                    merged.TryAdd(partyId, packages);
+                }
+                target.Authorization.AccessPackages[userId] = merged;
             }
         }
 
