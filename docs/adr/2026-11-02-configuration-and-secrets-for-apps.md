@@ -52,12 +52,13 @@ Provisioned secrets are not part of the app's configuration.
   - Key Vault
 - A local run that needs a different value, such as a `tt02` endpoint, gets it from studioctl.
 - Runtime configuration never arrives as an environment variable. Environment variables carry only startup values.
-- The deploy pipeline adds no runtime configuration. The values it adds today move:
+- The deploy pipeline adds no runtime configuration and looks up no values for an app. The values it adds today
+  move:
   - the Application Insights connection string to runtime configuration from the runtime cluster
   - the subscription key to provisioned secrets
   - the app's version to startup values
-- v8 apps keep getting runtime configuration as environment variables, including the Application Insights values
-  that the deploy pipeline adds.
+- v8 apps keep getting runtime configuration as environment variables. For v8 apps, the runtime cluster also
+  provides the Application Insights connection string and instrumentation key as environment variables.
 
 ### Local runs
 
@@ -205,6 +206,8 @@ change them.
   redeploying them.
 - v8 apps keep their environment variables, since this decision does not change how v8 apps read configuration.
   App libraries before 8.11 read neither the files nor the collector settings.
+- The runtime cluster provides the Application Insights values for v8 apps too, so the deploy pipeline no longer
+  needs access to the service owners' subscriptions to look them up.
 
 A4 protects runtime configuration best, but apps have good reasons to read it. Putting our values last gives the
 same result for overrides and keeps reading simple.
@@ -223,8 +226,8 @@ same result for overrides and keeps reading simple.
 - A change that adds runtime configuration adds it to its source and to studioctl together, and the contract test
   fails until both have it.
 - The runtime cluster has to provide the service owner's Application Insights connection string
-  ([altinn-platform#4392](https://github.com/Altinn/altinn-platform/issues/4392)) before the deploy pipeline stops
-  adding it to v9 apps.
+  ([altinn-platform#4392](https://github.com/Altinn/altinn-platform/issues/4392)) in every runtime cluster before the
+  deploy pipeline stops looking it up, for v8 and v9 apps alike.
 - We take on workload identity for apps, and a vault per app, when the platform team offers them in the runtime
   clusters.
 - As the work lands, [`src/App/README.md`](../../src/App/README.md) describes how configuration reaches an app and
