@@ -10,6 +10,7 @@ import { FormProvider } from 'src/features/form/FormProvider';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { FormStoreApi } from 'src/features/form/FormContext';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const jsonAttributeValue = { customKey: 'customValue' };
@@ -79,9 +80,20 @@ describe('CustomWebComponent', () => {
   });
 
   it('tells the element which data element each data type in the form has', async () => {
-    await render({ component: { tagName: 'test-component' } });
+    await render({
+      component: { tagName: 'test-component' },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels['other-data'] = getDataModelBootstrapMock({ dataElementId: 'other-data-element' });
+          }),
+      },
+    });
     const element = screen.getByTestId('test-component');
-    expect(Reflect.get(element, 'dataElementIds')).toEqual({ [defaultDataTypeMock]: defaultMockDataElementId });
+    expect(Reflect.get(element, 'dataElementIds')).toEqual({
+      [defaultDataTypeMock]: defaultMockDataElementId,
+      'other-data': 'other-data-element',
+    });
   });
 
   it('tells a mounted element when the data element IDs change', async () => {
@@ -105,6 +117,35 @@ describe('CustomWebComponent', () => {
     act(() => {
       dataElementIds = { [defaultDataTypeMock]: 'replaced-data-element' };
       listeners.forEach((listener) => listener());
+    });
+
+    expect(screen.getByTestId('test-component')).toBe(element);
+    expect(Reflect.get(element, 'dataElementIds')).toEqual({ [defaultDataTypeMock]: 'replaced-data-element' });
+  });
+
+  it('tells a mounted element when the data element IDs in the form store change', async () => {
+    let formStore: FormStoreApi | undefined;
+    function CaptureFormStore() {
+      formStore = FormStore.raw.useStore();
+      return null;
+    }
+    await render({
+      component: { tagName: 'test-component' },
+      renderer: (props) => (
+        <>
+          <CaptureFormStore />
+          <CustomWebComponent {...props} />
+        </>
+      ),
+    });
+    const element = screen.getByTestId('test-component');
+
+    act(() => {
+      formStore!.setState((state) => {
+        const dataModels = state.bootstrap.dataModels;
+        const replaced = { ...dataModels[defaultDataTypeMock], dataElementId: 'replaced-data-element' };
+        return { bootstrap: { ...state.bootstrap, dataModels: { ...dataModels, [defaultDataTypeMock]: replaced } } };
+      });
     });
 
     expect(screen.getByTestId('test-component')).toBe(element);
@@ -183,10 +224,15 @@ describe('CustomWebComponent', () => {
     expect(element).not.toBeInTheDocument();
   });
 
-  const render = async ({ component }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) =>
+  const render = async ({
+    component,
+    renderer = (props) => <CustomWebComponent {...props} />,
+    queries,
+  }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Custom',
-      renderer: (props) => <CustomWebComponent {...props} />,
+      renderer,
+      queries,
       component: {
         id: 'test-component',
         tagName: '',
