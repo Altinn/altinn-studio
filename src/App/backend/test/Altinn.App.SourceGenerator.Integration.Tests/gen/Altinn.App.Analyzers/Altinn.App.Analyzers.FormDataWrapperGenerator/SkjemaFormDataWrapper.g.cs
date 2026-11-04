@@ -1814,6 +1814,100 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     }
 
     #endregion AltinnRowIds
+    #region FixedValues
+
+    /// <inheritdoc />
+    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues()
+    {
+        var errors =
+            new global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError>();
+        RestoreFixedValues(_dataModel, "", errors);
+        return errors;
+    }
+
+    private static void RestoreFixedValues(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.Skjemainnhold is not null)
+        {
+            int index = 0;
+            foreach (var item in dataModel.Skjemainnhold)
+            {
+                if (item is not null)
+                {
+                    RestoreFixedValues(item, $"{path}skjemainnhold[{index}].", errors);
+                }
+                index++;
+            }
+        }
+    }
+
+    private static void RestoreFixedValues(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.OldXmlValue is not null)
+        {
+            RestoreFixedValues(dataModel.OldXmlValue, path + "oldXmlValue.", errors);
+        }
+    }
+
+    private static void RestoreFixedValues(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.OldXmlValue dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.orid != "7117")
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "orid",
+                    "7117",
+                    global::System.Convert.ToString(
+                        dataModel.orid,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+            dataModel.orid = "7117";
+        }
+        if (dataModel.dataFormatVersion != "46317")
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "dataFormatVersion",
+                    "46317",
+                    global::System.Convert.ToString(
+                        dataModel.dataFormatVersion,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+            dataModel.dataFormatVersion = "46317";
+        }
+        if (dataModel.fixedInt != -42)
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "fixedInt",
+                    "-42",
+                    global::System.Convert.ToString(
+                        dataModel.fixedInt,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+            dataModel.fixedInt = -42;
+        }
+    }
+
+    #endregion FixedValues
     public static global::System.ReadOnlySpan<char> ParseSegment(
         global::System.ReadOnlySpan<char> path,
         int offset,
