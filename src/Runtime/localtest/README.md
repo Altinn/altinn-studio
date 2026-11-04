@@ -28,7 +28,7 @@ its URN, `urn:altinn:accesspackage:lonn`. When an app policy has rules on `urn:a
 the packages the subject holds for the resource party, as the platform does, so those rules decide the same way
 locally. A sub-unit, an organization with a `parentPartyId`, gets the packages held for its main unit. Packages held
 for the person's own party give no access to other parties. `enduser/authorizedparties` lists the packages and role
-codes per party.
+codes per party. Caller-supplied `urn:altinn:accesspackage` subject attributes are ignored.
 
 In the built-in data, Pengelens Partner holds `regnskapsforer-med-signeringsrettighet` and `lonn` for DDG Fitness, and
 so does the system user of Oslos Vakreste Borettslag. A user's packages are in `accesspackages.json` next to their
