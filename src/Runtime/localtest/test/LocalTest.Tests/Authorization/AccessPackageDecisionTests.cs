@@ -82,6 +82,44 @@ public sealed class AccessPackageDecisionTests
     }
 
     [Fact]
+    public async Task User_PackageInTheRequest_IsIgnored()
+    {
+        using var harness = new AccessPackageHarness();
+
+        // Pengelens Partner holds no package for Andre AS
+        Assert.Equal(
+            "NotApplicable",
+            await harness.Decide([("urn:altinn:userid", "1001"), ("urn:altinn:accesspackage", "lonn")], 500002)
+        );
+    }
+
+    [Fact]
+    public async Task SubjectWithOnlyAPackageInTheRequest_IsNotApplicable()
+    {
+        using var harness = new AccessPackageHarness();
+
+        // Without a user or system user, the subject is not enriched
+        Assert.Equal("NotApplicable", await harness.Decide([("urn:altinn:accesspackage", "lonn")], 500000));
+    }
+
+    [Fact]
+    public async Task SystemUser_PackageInTheRequest_IsIgnored()
+    {
+        using var harness = new AccessPackageHarness();
+
+        Assert.Equal(
+            "NotApplicable",
+            await harness.Decide(
+                [
+                    ("urn:altinn:systemuser:uuid", AccessPackageHarness.SystemUserWithoutPackage),
+                    ("urn:altinn:accesspackage", "lonn"),
+                ],
+                500000
+            )
+        );
+    }
+
+    [Fact]
     public async Task Roles_GiveThePackagesAccessManagementDerives()
     {
         using var harness = new AccessPackageHarness();

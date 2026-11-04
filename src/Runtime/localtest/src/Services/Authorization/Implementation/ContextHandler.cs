@@ -274,6 +274,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
         {
+            RemoveRequestedAccessPackages(request);
+
             // If there is no resource party then it is impossible to enrich roles
             if (string.IsNullOrEmpty(resourceParty))
             {
@@ -430,6 +432,21 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return attribute;
+        }
+
+        /// <summary>
+        /// Removes the access packages the caller put on the subject, so that the subject holds only those the test data
+        /// gives it, as in the platform, where the PIP adds them.
+        /// </summary>
+        private static void RemoveRequestedAccessPackages(XacmlContextRequest request)
+        {
+            foreach (XacmlContextAttributes subject in request.Attributes.Where(a => a.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
+            {
+                foreach (XacmlAttribute accessPackage in subject.Attributes.Where(a => a.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.AccessPackageAttribute)).ToList())
+                {
+                    subject.Attributes.Remove(accessPackage);
+                }
+            }
         }
 
         private static XacmlAttribute GetAccessPackageAttribute(string accessPackage)

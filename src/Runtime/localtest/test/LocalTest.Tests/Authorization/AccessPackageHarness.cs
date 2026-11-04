@@ -182,13 +182,17 @@ internal sealed class AccessPackageHarness : IDisposable
     public AccessPackagesWrapper AccessPackages { get; }
 
     /// <summary>Asks for the action (<c>read</c> by default) on the app for the party, as the user or system user.</summary>
-    public async Task<string> Decide(string subjectAttributeId, string subjectValue, int partyId, string action = "read")
+    public Task<string> Decide(string subjectAttributeId, string subjectValue, int partyId, string action = "read") =>
+        Decide([("urn:altinn:" + subjectAttributeId, subjectValue)], partyId, action);
+
+    /// <summary>Asks for the action on the app for the party, with the subject attributes as the caller gives them.</summary>
+    public async Task<string> Decide((string Id, string Value)[] subject, int partyId, string action = "read")
     {
         var request = new XacmlJsonRequestRoot
         {
             Request = new XacmlJsonRequest
             {
-                AccessSubject = [Category(("urn:altinn:" + subjectAttributeId, subjectValue))],
+                AccessSubject = [Category(subject)],
                 Action = [Category(("urn:oasis:names:tc:xacml:1.0:action:action-id", action))],
                 Resource =
                 [
