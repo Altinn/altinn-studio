@@ -18,6 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - With Podman, `studioctl app build` and `studioctl run` leave out the files an app's `Dockerfile.dockerignore` excludes, as they do with Docker. ([#21584](https://github.com/Altinn/altinn-studio/issues/21584))
 - `studioctl doctor` shows the Docker API version in use as _Client_, such as 1.41 with Podman, instead of an incorrectly reported 1.51. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
+- With app-localtest running, an app started with `dotnet run` or from an IDE reaches it again instead of reporting `Localtest API could not be reached` because studioctl is installed. ([#21731](https://github.com/Altinn/altinn-studio/pull/21731))
 
 ## [0.1.0-preview.30] - 2026-10-29
 
