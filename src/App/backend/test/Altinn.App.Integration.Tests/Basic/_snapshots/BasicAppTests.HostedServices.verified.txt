@@ -70,11 +70,11 @@
     materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenWellKnownRefreshService
   },
   {
-    isImplementationFactory: true,
-    isImplementationType: false,
+    isImplementationFactory: false,
+    isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
-    materializedType: Altinn.App.Core.Internal.App.AppFilesPoller
+    materializedType: Altinn.App.Core.Internal.App.AppFilesHostedService
   },
   {
     isImplementationFactory: false,
