@@ -21,7 +21,7 @@ public class AdminPanelLabelsTests
             ["sourceFlow"] = ProcessNextRequestFactory.ProcessNextSourceFlowLabel,
             ["targetTask"] = ProcessNextRequestFactory.ProcessNextTargetTaskLabel,
             ["element"] = ProcessNextRequestFactory.ProcessNextElementLabel,
-            ["stepName"] = WorkflowCommandSet.StepNameLabel,
+            ["stepName"] = WorkflowStepSet.StepNameLabel,
         };
 
         Assert.Equal(appLabels, ReadAdminPanelLabels());
