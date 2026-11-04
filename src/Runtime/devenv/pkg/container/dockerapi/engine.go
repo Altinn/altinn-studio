@@ -188,7 +188,7 @@ func (e *engine) negotiate(ctx context.Context) error {
 		return err
 	}
 	e.version = maxAPIVersion
-	if daemonVersion == "" {
+	if daemonVersion == "" { // As moby's client does, a ping without Api-Version is not checked against the minimum.
 		return nil
 	}
 	if daemonVersion, err = parseAPIVersion(daemonVersion); err != nil {

@@ -28,9 +28,13 @@ func TestNew_APIVersionNegotiation(t *testing.T) {
 		{name: "environment host", daemonAPI: "1.41", wantAPI: "1.41"},
 		{name: "minimum API", daemonAPI: "1.40", wantAPI: "1.40"},
 		{name: "newer daemon", daemonAPI: "99.99", wantAPI: maxAPIVersion},
+		// As with moby's client, a ping with an empty or no Api-Version negotiates maxAPIVersion.
+		{name: "daemon without an API version", wantAPI: maxAPIVersion},
 		{name: "environment API pin", daemonAPI: "1.41", envAPI: "1.40", wantAPI: "1.40"},
 		{name: "old daemon", daemonAPI: "1.39", wantError: "minimum supported API version"},
 		{name: "malformed environment API", daemonAPI: "1.41", envAPI: "1.41.0", wantError: "invalid API version"},
+		// As with moby's client, a lone v counts as unset.
+		{name: "environment API without a number", daemonAPI: "1.41", envAPI: "v", wantAPI: "1.41"},
 		{name: "explicit host", daemonAPI: "1.41", wantAPI: "1.41", explicitHost: true},
 		{
 			name: "explicit host ignores environment API", daemonAPI: "1.41", envAPI: "1.41.0",
