@@ -5,7 +5,7 @@ import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByCon
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '@altinn/ux-editor/hooks/usePdf/usePdf';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useDeleteLayoutMutation } from '@altinn/ux-editor/hooks/mutations/useDeleteLayoutMutation';
+import { useDeletePageMutation } from '@altinn/ux-editor/hooks/mutations/useDeletePageMutation';
 import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
@@ -17,7 +17,7 @@ export const ConvertChoicesModal = forwardRef<HTMLDialogElement, ConvertChoicesM
     const { org, app } = useStudioEnvironmentParams();
     const { layoutSet } = useUxEditorParams();
     const { t } = useTranslation();
-    const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, layoutSet);
+    const { mutateAsync: deletePage } = useDeletePageMutation(org, app, layoutSet);
     const { getPdfLayoutName, convertCurrentPageToPdf, convertExistingPdfToPage } = usePdf();
     const savableLayoutSettings = useSavableFormLayoutSettings();
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
@@ -30,13 +30,14 @@ export const ConvertChoicesModal = forwardRef<HTMLDialogElement, ConvertChoicesM
       dialogRef.current?.close();
     };
 
-    const handleConvertPageToPdfAndDeleteCurrent = () => {
-      const currentPdfLayoutName = getPdfLayoutName();
+    const handleConvertPageToPdfAndDeleteCurrent = async () => {
+      dialogRef.current?.close();
+      // The server deletes a page only while the settings name it, so the current PDF page is
+      // deleted before this page takes its place.
+      await deletePage(getPdfLayoutName());
       convertCurrentPageToPdf();
-      deleteLayout(currentPdfLayoutName);
       savableLayoutSettings.save();
       handleModalAction();
-      dialogRef.current?.close();
     };
 
     return (

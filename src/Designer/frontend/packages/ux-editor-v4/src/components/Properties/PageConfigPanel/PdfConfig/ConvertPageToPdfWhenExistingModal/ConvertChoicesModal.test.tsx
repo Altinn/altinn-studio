@@ -5,14 +5,15 @@ import { ConvertChoicesModal } from '@altinn/ux-editor-v4/components/Properties/
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { layout1NameMock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import userEvent from '@testing-library/user-event';
-import { screen } from '@testing-library/react';
-import type { ILayoutSettings } from 'app-shared/types/global';
+import { screen, waitFor } from '@testing-library/react';
+import type { ILayoutSettings, IPagesSettings } from 'app-shared/types/global';
 import type { AppContextProps } from '@altinn/ux-editor-v4/AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const selectedLayoutSet = layoutSet1NameMock;
 const handleModalActionMock = vi.fn();
@@ -37,26 +38,51 @@ describe('ConvertChoicesModal', () => {
     });
   });
 
-  it('deletes existing pdf when clicking delete in conversion choices modal', async () => {
+  it.each<[string, IPagesSettings, IPagesSettings]>([
+    ['an order', { order: [layout1NameMock, layout2NameMock] }, { order: [layout2NameMock] }],
+    [
+      'groups',
+      { groups: [{ order: [layout1NameMock, layout2NameMock] }] },
+      { groups: [{ order: [layout2NameMock] }] },
+    ],
+  ])(
+    'deletes the existing pdf and converts the page to pdf when the pages are in %s',
+    async (_, pagesBefore, pagesAfter) => {
+      const user = userEvent.setup();
+      const pdfLayoutNameMock = 'pdfLayoutNameMock';
+      await renderConvertChoicesModal({
+        pages: { ...pagesBefore, pdfLayoutName: pdfLayoutNameMock },
+      });
+      await user.click(getDeleteExistingPdfButton());
+      await waitFor(() => expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1));
+      expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(org, app, selectedLayoutSet, {
+        pages: { ...pagesAfter, pdfLayoutName: layout1NameMock },
+      });
+      expect(queriesMock.deletePage).toHaveBeenCalledTimes(1);
+      expect(queriesMock.deletePage).toHaveBeenCalledWith(
+        org,
+        app,
+        selectedLayoutSet,
+        pdfLayoutNameMock,
+      );
+    },
+  );
+
+  it('saves the layout settings only after the existing pdf is deleted', async () => {
     const user = userEvent.setup();
-    const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    const mutateLayoutSettingsMock = vi.fn();
-    const deleteLayoutMock = vi.fn();
+    let resolveDeletePage: () => void;
+    const deletePage = vi.fn(() => new Promise<void>((resolve) => (resolveDeletePage = resolve)));
     await renderConvertChoicesModal(
-      { pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock } },
+      { pages: { order: [layout1NameMock], pdfLayoutName: 'pdfLayoutNameMock' } },
       {},
-      { saveFormLayoutSettings: mutateLayoutSettingsMock, deleteFormLayout: deleteLayoutMock },
+      { deletePage },
     );
-    const deleteExistingPdf = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_delete_existing_pdf'),
-    });
-    await user.click(deleteExistingPdf);
-    expect(mutateLayoutSettingsMock).toHaveBeenCalledTimes(2); // Once from pdfConfig and another from deleteLayout
-    expect(mutateLayoutSettingsMock).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      pages: { order: [], pdfLayoutName: layout1NameMock },
-    });
-    expect(deleteLayoutMock).toHaveBeenCalledTimes(1);
-    expect(deleteLayoutMock).toHaveBeenCalledWith(org, app, pdfLayoutNameMock, selectedLayoutSet);
+    await user.click(getDeleteExistingPdfButton());
+    await waitFor(() => expect(deletePage).toHaveBeenCalledTimes(1));
+    expect(queriesMock.saveFormLayoutSettings).not.toHaveBeenCalled();
+
+    resolveDeletePage();
+    await waitFor(() => expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1));
   });
 
   it('calls handleModalAction when converting existing pdf', async () => {
@@ -78,13 +104,13 @@ describe('ConvertChoicesModal', () => {
     await renderConvertChoicesModal({
       pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock },
     });
-    const deleteExistingPdf = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_delete_existing_pdf'),
-    });
-    await user.click(deleteExistingPdf);
-    expect(handleModalActionMock).toHaveBeenCalledTimes(1);
+    await user.click(getDeleteExistingPdfButton());
+    await waitFor(() => expect(handleModalActionMock).toHaveBeenCalledTimes(1));
   });
 });
+
+const getDeleteExistingPdfButton = (): HTMLButtonElement =>
+  screen.getByRole('button', { name: textMock('ux_editor.page_config_pdf_delete_existing_pdf') });
 
 const renderConvertChoicesModal = async (
   layoutSettings: Partial<ILayoutSettings> = {},
