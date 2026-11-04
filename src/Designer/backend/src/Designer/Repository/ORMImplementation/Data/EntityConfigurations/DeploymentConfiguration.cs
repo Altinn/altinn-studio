@@ -1,4 +1,3 @@
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -52,7 +51,5 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<DeploymentDbMode
             .HasColumnType("integer")
             .HasColumnName("deployment_type")
             .HasDefaultValue(DeploymentType.Deploy);
-
-        builder.Property(e => e.AppStatus).HasColumnType("character varying").HasColumnName("app_status");
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.Fixtures;
@@ -20,26 +19,15 @@ public class GetLatestDeployTests : DbIntegrationTestsBase
         // Arrange
         string app = Guid.NewGuid().ToString();
         DateTime now = DateTime.UtcNow;
-        var olderDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org,
-            app,
-            envName: envName,
-            appStatus: AppStatus.UnderDevelopment
-        );
+        var olderDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: envName);
         olderDeploy.Created = now.AddMinutes(-20);
-        var latestDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org,
-            app,
-            envName: envName,
-            appStatus: AppStatus.Completed
-        );
+        var latestDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: envName);
         latestDeploy.Created = now.AddMinutes(-10);
         var decommission = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,
             app,
             envName: envName,
-            deploymentType: DeploymentType.Decommission,
-            appStatus: AppStatus.Deprecated
+            deploymentType: DeploymentType.Decommission
         );
         decommission.Created = now;
         await DbFixture.PrepareEntitiesInDatabase([olderDeploy, latestDeploy, decommission]);
@@ -50,7 +38,6 @@ public class GetLatestDeployTests : DbIntegrationTestsBase
 
         // Assert
         EntityAssertions.AssertEqual(latestDeploy, result, TimeSpan.FromMilliseconds(200));
-        Assert.Equal(AppStatus.Completed, result.AppStatus);
     }
 
     [Theory]
@@ -62,8 +49,7 @@ public class GetLatestDeployTests : DbIntegrationTestsBase
         var deployToOtherEnvironment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,
             app,
-            envName: "production",
-            appStatus: AppStatus.Completed
+            envName: "production"
         );
         await DbFixture.PrepareEntityInDatabase(deployToOtherEnvironment);
 
