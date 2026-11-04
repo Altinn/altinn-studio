@@ -5,7 +5,7 @@ import { Tag } from '@digdir/designsystemet-react';
 import { Lang } from 'src/features/language/Lang';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 
-// Shows the sent file with its reference, and whether it's fully sent
+// Shows the sent file with its file transfer ID, and whether it's fully sent
 
 type SentFileProps = {
   fileTransferId: string;
@@ -19,7 +19,7 @@ export function SentFile({ fileTransferId, fileName, isSent }: SentFileProps) {
       name={fileName || <Lang id={isSent ? 'broker_file_transfer.sent_file' : 'broker_file_transfer.unsent_file'} />}
       details={
         <Lang
-          id='broker_file_transfer.sent_reference'
+          id='broker_file_transfer.file_transfer_id'
           params={[fileTransferId]}
         />
       }

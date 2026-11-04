@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 describe('getFileTransferOverview', () => {
-  it('asks for the file transfer the id names, even when the id from the form holds a path', async () => {
+  it('encodes the id, so slashes in it cannot change which Broker endpoint is called', async () => {
     fetchMock.mockResolvedValue(Response.json({ fileTransferStatus: 'Initialized', fileName: 'report.pdf' }));
 
     await getFileTransferOverview('../resource/x');

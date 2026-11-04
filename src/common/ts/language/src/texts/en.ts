@@ -479,7 +479,7 @@ export function en() {
     'broker_file_transfer.not_fully_sent': 'Not fully sent',
     'broker_file_transfer.not_sent': 'Not sent',
     'broker_file_transfer.unsent_file': 'File being sent',
-    'broker_file_transfer.sent_reference': 'File transfer ID: {0}',
+    'broker_file_transfer.file_transfer_id': 'File transfer ID: {0}',
     'helptext.button_title': 'Help',
     'helptext.button_title_prefix': 'Help text for',
     'receipt.attachments': 'Attachments',

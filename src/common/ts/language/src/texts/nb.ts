@@ -480,7 +480,7 @@ export function nb() {
     'broker_file_transfer.not_fully_sent': 'Ikke ferdig sendt',
     'broker_file_transfer.not_sent': 'Ikke sendt',
     'broker_file_transfer.unsent_file': 'Filen som sendes',
-    'broker_file_transfer.sent_reference': 'Formidlings-ID: {0}',
+    'broker_file_transfer.file_transfer_id': 'Formidlings-ID: {0}',
     'helptext.button_title': 'Hjelp',
     'helptext.button_title_prefix': 'Hjelpetekst for',
     'receipt.attachments': 'Vedlegg',

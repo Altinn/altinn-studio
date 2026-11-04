@@ -394,7 +394,6 @@ function trackProgress(total: number, alreadySent: number, onProgress?: (progres
   };
 }
 
-// tus-js-client can't pause, so requests are held here; aborting them would leave the server holding locks
 function pausableHttpStack(onRequestDone: () => void) {
   const stack = new DefaultHttpStack({});
   const inFlight = new Set<Promise<HttpResponse>>();
@@ -475,7 +474,7 @@ function shouldRetry(error: DetailedError): boolean {
     return false;
   }
 
-  // On a PATCH, 409 is an offset mismatch the next HEAD resolves; elsewhere Broker no longer takes uploads
+  // On a PATCH, 409 is an offset mismatch the next HEAD resolves
   if (status === 409) {
     return error.originalRequest?.getMethod() === 'PATCH';
   }
