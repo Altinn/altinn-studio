@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
-import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-
 import { useQuery } from 'src/core/queries/reactQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
@@ -12,8 +10,7 @@ import {
   reportUploadGone,
   useUploadsKey,
 } from 'src/layout/BrokerFileTransfer/uploadState/uploadStore';
-import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { ResumableTransfer } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 import type { UploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
@@ -23,14 +20,12 @@ import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSe
 export type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ kind: 'resumable' } & ResumableTransfer);
 
 export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
-  const { baseUrl, instanceId, resourceId, sender, recipients, checksum, disableVirusScan } = setup;
+  const { baseUrl, instanceId, resourceId, sender, recipients, checksum, propertyList, disableVirusScan } = setup;
   const uploadsKey = useUploadsKey(baseComponentId);
   const controller = useMemo(() => getUploadController(baseUrl, uploadsKey), [baseUrl, uploadsKey]);
   const active = useSyncExternalStore(controller.subscribe, controller.getActive);
   const progress = useSyncExternalStore(controller.subscribe, controller.getProgress);
   const [sendError, setSendError] = useState<unknown>(null);
-
-  const propertyList = usePropertyList(baseComponentId);
 
   useRecordedTransfer(baseComponentId, uploadsKey, controller, setup);
 
@@ -98,15 +93,6 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
     resume: controller.resume,
     cancel: controller.cancel,
   };
-}
-
-function usePropertyList(baseComponentId: string): Record<string, string> {
-  const { metadata } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
-  const values = useEvalExpressionDictionary(metadata, Expressions.BrokerFileTransfer.metadata.additionalProperties);
-  return useMemo(
-    () => Object.fromEntries(Object.entries(values ?? {}).filter(([, value]) => value.trim() !== '')),
-    [values],
-  );
 }
 
 // The form records the transfer, also when it changed while the user was on another page

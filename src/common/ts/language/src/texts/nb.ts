@@ -429,6 +429,8 @@ export function nb() {
       'Filen kan bare sendes til virksomheter som har tilgang til denne tjenesten.',
     'broker_file_transfer.error_checksum_invalid':
       'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.',
+    'broker_file_transfer.error_metadata_required':
+      'Fyll ut de påkrevde feltene før du sender filen.',
     'broker_file_transfer.error_no_access':
       'Du har ikke tilgang til å sende filer i denne tjenesten på vegne av virksomheten.',
     'broker_file_transfer.error_login':

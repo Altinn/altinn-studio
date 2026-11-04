@@ -459,6 +459,28 @@ describe('BrokerFileTransferComponent', () => {
       );
     });
 
+    it.each([
+      ['an empty required metadata field blocks sending', '', true],
+      ['a filled required metadata field lets the file be sent', '2024/17', false],
+    ])('%s', async (_, caseNumber, blocked) => {
+      await render({
+        formData: { id: '', status: '', name: '', case: caseNumber },
+        metadata: { caseNumber: ['dataModel', 'broker.case'] },
+        schema: {
+          type: 'object',
+          properties: {
+            broker: { type: 'object', properties: { case: { type: 'string' } }, required: ['case'] },
+          },
+        },
+      });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+
+      const message = screen.queryByText('Fyll ut de påkrevde feltene før du sender filen.');
+      expect(message !== null).toBe(blocked);
+      expect(screen.getByRole('button', { name: 'Send filen' })).toHaveProperty('disabled', blocked);
+    });
+
     it('sends without virus scan when the resource is approved for it', async () => {
       vi.mocked(getResourceConfiguration).mockResolvedValue({
         ...resourceConfiguration,

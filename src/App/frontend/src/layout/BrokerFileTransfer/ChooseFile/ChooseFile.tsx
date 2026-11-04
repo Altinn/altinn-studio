@@ -67,8 +67,10 @@ export function ChooseFile({
     interrupted && file && !isSameFile(interrupted, file)
       ? { key: 'broker_file_transfer.wrong_file', params: [interrupted.fileName] }
       : undefined;
-  // An interrupted file transfer already has its recipients and checksum
-  const transferProblem = interrupted ? undefined : (setup.recipientsProblem ?? setup.checksumProblem);
+  // An interrupted file transfer already has its recipients, checksum and metadata
+  const transferProblem = interrupted
+    ? undefined
+    : (setup.recipientsProblem ?? setup.checksumProblem ?? setup.metadataProblem);
   const problem =
     pickError ?? wrongFile ?? (file ? (fileProblem(file, setup.maxFileSize, language) ?? transferProblem) : undefined);
   const error = sendError !== null ? sendErrorMessage(sendError) : undefined;

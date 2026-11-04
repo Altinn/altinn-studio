@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -6,6 +6,7 @@ import type { IDataModelReference } from '@app/layout-contract/generated/common.
 
 import { useQuery } from 'src/core/queries/reactQuery';
 import { FormStore } from 'src/features/form/FormContext';
+import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -19,7 +20,7 @@ import { brokerProblem, unauthorizedMessage } from 'src/layout/BrokerFileTransfe
 import { configProblems, invalidRecipients, splitRecipients } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
 // Works out whether the component can send, and with which Broker settings and recipients
@@ -35,6 +36,8 @@ export type ReadySetup = {
   // In lower case, or undefined to let Broker calculate it after upload
   checksum: string | undefined;
   checksumProblem: Message | undefined;
+  propertyList: Record<string, string>;
+  metadataProblem: Message | undefined;
   disableVirusScan: boolean;
   maxFileSize: number | null;
 };
@@ -63,7 +66,9 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const instanceId = useLaxInstanceId();
   const owner = useInstanceDataQuery({ select: (instance) => instance.instanceOwner }).data;
   const configuredRecipients = useConfiguredRecipients(baseComponentId);
-  const checksum = useChecksum(baseComponentId);
+  const isRequired = useIsRequiredInDataModel();
+  const checksum = useChecksum(baseComponentId, isRequired);
+  const metadata = useMetadata(baseComponentId, isRequired);
   const resource = useQuery(brokerQueries.resourceConfiguration(baseUrl, resourceId));
 
   useEffect(() => {
@@ -138,6 +143,8 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
     recipientsProblem: recipientsProblem(recipients),
     checksum: checksum.value,
     checksumProblem: checksum.problem,
+    propertyList: metadata.propertyList,
+    metadataProblem: metadata.problem,
     disableVirusScan,
     maxFileSize: lowerLimit(
       effectiveMaxFileTransferSize(resource.data.maxFileTransferSize, !disableVirusScan),
@@ -193,10 +200,10 @@ function useConfiguredRecipients(baseComponentId: string): string[] | null {
   return useMemo(() => (hasCustomRecipients ? splitRecipients(evaluated) : null), [evaluated, hasCustomRecipients]);
 }
 
-function useChecksum(baseComponentId: string): { value?: string; problem?: Message } {
+function useChecksum(baseComponentId: string, isRequired: IsRequired): { value?: string; problem?: Message } {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
   const { formData } = useDataModelBindings(dataModelBindings);
-  const required = useIsRequiredInDataModel(dataModelBindings.checksum);
+  const required = isRequired(dataModelBindings.checksum);
 
   const value = typeof formData.checksum === 'string' ? formData.checksum.trim().toLowerCase() : '';
   if (!value) {
@@ -212,16 +219,48 @@ function useChecksum(baseComponentId: string): { value?: string; problem?: Messa
   return CHECKSUM_PATTERN.test(value) ? { value } : { problem: { key: 'broker_file_transfer.error_checksum_invalid' } };
 }
 
-// The data model schema lists a required field on the object that holds it
-function useIsRequiredInDataModel(reference: IDataModelReference | undefined): boolean {
-  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+// Entries without a value are left out of the property list
+function useMetadata(
+  baseComponentId: string,
+  isRequired: IsRequired,
+): { propertyList: Record<string, string>; problem?: Message } {
+  const { metadata } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
+  const values = useEvalExpressionDictionary(metadata, Expressions.BrokerFileTransfer.metadata.additionalProperties);
+  const defaultDataType = useCurrentUiFolderSettings()?.defaultDataType;
   return useMemo(() => {
-    if (!reference || !lookupBinding) {
-      return false;
-    }
-    const path = reference.field.split('.');
-    const field = path.pop();
-    const [parent] = lookupBinding({ ...reference, field: path.join('.') });
-    return !!field && !!parent?.required?.includes(field);
-  }, [lookupBinding, reference]);
+    const propertyList = Object.fromEntries(Object.entries(values ?? {}).filter(([, value]) => value.trim() !== ''));
+    const requiredMissing = Object.entries(metadata ?? {}).some(
+      ([key, value]) => !(key in propertyList) && isRequired(dataModelReference(value, defaultDataType)),
+    );
+    return requiredMissing
+      ? { propertyList, problem: { key: 'broker_file_transfer.error_metadata_required' } }
+      : { propertyList };
+  }, [defaultDataType, isRequired, metadata, values]);
+}
+
+function dataModelReference(value: unknown, defaultDataType: string | undefined): IDataModelReference | undefined {
+  if (!Array.isArray(value) || value[0] !== 'dataModel' || typeof value[1] !== 'string') {
+    return undefined;
+  }
+  const dataType = typeof value[2] === 'string' ? value[2] : defaultDataType;
+  return dataType ? { dataType, field: value[1] } : undefined;
+}
+
+type IsRequired = (reference: IDataModelReference | undefined) => boolean;
+
+// The data model schema lists a required field on the object that holds it
+function useIsRequiredInDataModel(): IsRequired {
+  const lookupBinding = FormStore.bootstrap.useLookupBinding();
+  return useCallback(
+    (reference) => {
+      if (!reference || !lookupBinding) {
+        return false;
+      }
+      const path = reference.field.split('.');
+      const field = path.pop();
+      const [parent] = lookupBinding({ ...reference, field: path.join('.') });
+      return !!field && !!parent?.required?.includes(field);
+    },
+    [lookupBinding],
+  );
 }

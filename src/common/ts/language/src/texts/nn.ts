@@ -427,6 +427,8 @@ export function nn() {
       'Fila kan berre sendast til verksemder som har tilgang til denne tenesta.',
     'broker_file_transfer.error_checksum_invalid':
       'Sjekksummen må vere 32 eller 64 teikn, med berre tala 0–9 og bokstavane a–f.',
+    'broker_file_transfer.error_metadata_required':
+      'Fyll ut dei påkravde felta før du sender fila.',
     'broker_file_transfer.error_no_access':
       'Du har ikkje tilgang til å sende filer i denne tenesta på vegner av verksemda.',
     'broker_file_transfer.error_login':
