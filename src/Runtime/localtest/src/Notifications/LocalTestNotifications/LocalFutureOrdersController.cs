@@ -71,21 +71,27 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 : "delivered";
             string[] channels = Channels(recipient);
             string? sendersReference = request["sendersReference"]?.GetValue<string>();
+            DateTimeOffset sendTime = request["requestedSendTime"]?.GetValue<DateTimeOffset>() ?? DateTimeOffset.UtcNow;
 
             var shipments = new List<StoredShipment>
             {
-                new(Guid.NewGuid(), "Notification", sendersReference, SendTime(request), channels, outcome),
+                new(Guid.NewGuid(), "Notification", sendersReference, sendTime, channels, outcome),
             };
             var shipmentRecipients = new List<JsonObject> { recipient };
             foreach (JsonNode? reminder in request["reminders"]?.AsArray() ?? [])
             {
+                if (ReminderSendTime(reminder, sendTime) is not { } reminderSendTime)
+                {
+                    return BadRequest("A reminder needs either delayDays of at least 1 or requestedSendTime, not both.");
+                }
+
                 JsonObject reminderRecipient = reminder?["recipient"] as JsonObject ?? recipient;
                 shipments.Add(
                     new(
                         Guid.NewGuid(),
                         "Reminder",
                         reminder?["sendersReference"]?.GetValue<string>(),
-                        SendTime(reminder!),
+                        reminderSendTime,
                         Channels(reminderRecipient),
                         outcome
                     )
@@ -262,8 +268,18 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             null => null,
         };
 
-    private static DateTimeOffset SendTime(JsonNode order) =>
-        order["requestedSendTime"]?.GetValue<DateTimeOffset>() ?? DateTimeOffset.UtcNow;
+    /// <summary>
+    /// When a reminder goes out, as Notifications works it out: <c>delayDays</c> counts from the order's send time,
+    /// and <c>requestedSendTime</c> stands on its own. Notifications refuses a reminder with both, with neither, or
+    /// with less than a day's delay, which is <c>null</c> here.
+    /// </summary>
+    private static DateTimeOffset? ReminderSendTime(JsonNode? reminder, DateTimeOffset orderSendTime) =>
+        (reminder?["delayDays"]?.GetValue<int>(), reminder?["requestedSendTime"]?.GetValue<DateTimeOffset>()) switch
+        {
+            (int delayDays and >= 1, null) => orderSendTime.AddDays(delayDays),
+            (null, DateTimeOffset sendTime) => sendTime,
+            _ => null,
+        };
 
     private static async Task Write<T>(FileInfo file, T value)
     {
