@@ -176,7 +176,9 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
                 ? $"person {nationalIdentityNumber}"
                 : String(recipient, "organizationNumber") is { } org
                     ? $"organization {org}"
-                    : null;
+                    : String(recipient, "externalIdentity") is { } externalIdentity
+                        ? $"external identity {externalIdentity}"
+                        : null;
             var addresses = Array(recipient, "addressInfo")
                 .Select(address => String(address, "emailAddress") ?? String(address, "mobileNumber"))
                 .OfType<string>()

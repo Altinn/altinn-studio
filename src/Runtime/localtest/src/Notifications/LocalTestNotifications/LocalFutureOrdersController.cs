@@ -187,8 +187,15 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
         };
 
     /// <summary>
-    /// The channels an order's recipient asked for: the channel schema of a person or organization, or the address
-    /// given directly. A preferred channel counts as the one used.
+    /// A recipient Notifications looks the address up for, which carries its own channel schema and texts. The other
+    /// kinds of recipient are given by their address.
+    /// </summary>
+    private static JsonNode? Owner(JsonObject recipient) =>
+        recipient["recipientPerson"] ?? recipient["recipientOrganization"] ?? recipient["recipientExternalIdentity"];
+
+    /// <summary>
+    /// The channels an order's recipient asked for: the channel schema of a person, organization or external
+    /// identity, or the address given directly. A preferred channel counts as the one used.
     /// </summary>
     private static string[] Channels(JsonObject recipient)
     {
@@ -202,7 +209,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             return ["SMS"];
         }
 
-        return ChannelSchema(recipient["recipientPerson"] ?? recipient["recipientOrganization"]) switch
+        return ChannelSchema(Owner(recipient)) switch
         {
             "Sms" or "SmsPreferred" => ["SMS"],
             "EmailAndSms" => ["Email", "SMS"],
@@ -216,7 +223,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
     /// </summary>
     private static object MessagesPageOrder(StoredShipment shipment, JsonObject recipient, DateTimeOffset created)
     {
-        JsonNode? owner = recipient["recipientPerson"] ?? recipient["recipientOrganization"];
+        JsonNode? owner = Owner(recipient);
         string? address =
             recipient["recipientEmail"]?["emailAddress"]?.ToString() ?? recipient["recipientSms"]?["phoneNumber"]?.ToString();
         JsonNode? email = owner?["emailSettings"] ?? recipient["recipientEmail"]?["emailSettings"];
@@ -246,6 +253,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 {
                     nationalIdentityNumber = owner?["nationalIdentityNumber"]?.ToString(),
                     organizationNumber = owner?["orgNumber"]?.ToString(),
+                    externalIdentity = owner?["externalIdentity"]?.ToString(),
                     addressInfo = address is null ? [] : new[] { new { emailAddress = address } },
                 },
             },
@@ -256,8 +264,8 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
     private static readonly string[] _channelSchemas = ["Email", "Sms", "EmailPreferred", "SmsPreferred", "EmailAndSms"];
 
     /// <summary>
-    /// A person's or organization's channel schema by name. The app libraries send it as a number, which
-    /// Notifications reads as the position in its <c>NotificationChannelExt</c>, so this does the same.
+    /// A recipient's channel schema by name. The app libraries send it as a number, which Notifications reads as the
+    /// position in its <c>NotificationChannelExt</c>, so this does the same.
     /// </summary>
     private static string? ChannelSchema(JsonNode? owner) =>
         owner?["channelSchema"] switch

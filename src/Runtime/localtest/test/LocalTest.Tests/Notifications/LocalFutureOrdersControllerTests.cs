@@ -14,6 +14,8 @@ namespace LocalTest.Tests.Notifications;
 
 public sealed class LocalFutureOrdersControllerTests : IDisposable
 {
+    private const string ExternalIdentity = "urn:altinn:person:idporten-email:ola@example.com";
+
     private readonly string _storagePath = Path.Join(Path.GetTempPath(), $"localtest-future-orders-{Guid.NewGuid():N}");
     private readonly LocalFutureOrdersController _controller;
 
@@ -80,6 +82,41 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
         )!;
 
     private const string SevenDaysLater = "\"delayDays\": 7,";
+
+    private static string ExternalIdentityRecipient(int channelSchema, string text) =>
+        $$"""
+        {
+          "recipientExternalIdentity": {
+            "externalIdentity": "{{ExternalIdentity}}",
+            "resourceId": "urn:altinn:resource:app_ttd_app",
+            "channelSchema": {{channelSchema}},
+            "emailSettings": { "subject": "{{text}} subject", "body": "{{text}} email", "contentType": 0 },
+            "smsSettings": { "sender": "Altinn", "body": "{{text}} sms", "sendingTimePolicy": 1 }
+          }
+        }
+        """;
+
+    /// <summary>
+    /// An order as NotificationService places it for an instance owner with an external identity, with a reminder
+    /// that has texts of its own.
+    /// </summary>
+    private static JsonObject ExternalIdentityOrder(DateTimeOffset sendTime, int channelSchema) =>
+        JsonNode
+            .Parse(
+                $$"""
+                {
+                  "idempotencyId": "{{Guid.NewGuid()}}",
+                  "sendersReference": "app-1337/abc",
+                  "requestedSendTime": "{{sendTime:O}}",
+                  "conditionEndpoint": "http://local.altinn.cloud/ttd/app/api/v1/notification-webhook-listener/1337/abc?code=token",
+                  "recipient": {{ExternalIdentityRecipient(channelSchema, "Notification")}},
+                  "reminders": [
+                    { "delayDays": 7, "recipient": {{ExternalIdentityRecipient(channelSchema, "Reminder")}} }
+                  ]
+                }
+                """
+            )!
+            .AsObject();
 
     private static JsonElement Body(IActionResult result) =>
         JsonSerializer.SerializeToElement(Assert.IsAssignableFrom<ObjectResult>(result).Value);
@@ -271,6 +308,57 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
         var retried = Order("order-8", DateTimeOffset.UtcNow, "4");
         retried["reminders"] = new JsonArray(Reminder(SevenDaysLater));
         Assert.IsType<CreatedResult>(await _controller.Post(retried));
+    }
+
+    [Theory]
+    // NotificationService always asks for EmailPreferred (2) for an external identity. Notifications takes any schema.
+    [InlineData(2, "EmailPreferred", "Email")]
+    [InlineData(1, "Sms", "SMS")]
+    [InlineData(4, "EmailAndSms", "Email", "SMS")]
+    public async Task Post_ExternalIdentity_ListsTheIdentityWithItsChannelAndTexts(
+        int channelSchema,
+        string expectedChannel,
+        params string[] expectedKinds
+    )
+    {
+        await _controller.Post(ExternalIdentityOrder(DateTimeOffset.UtcNow.AddMinutes(5), channelSchema));
+
+        var listed = await MessagesPageOrdersBySendTime();
+
+        Assert.Equal(2, listed.Count);
+        foreach (var (listedOrder, text) in listed.Zip(["Notification", "Reminder"]))
+        {
+            Assert.Equal(expectedChannel, listedOrder.Channel);
+            Assert.Equal([$"external identity {ExternalIdentity}"], listedOrder.Recipients);
+            Assert.Equal("urn:altinn:resource:app_ttd_app", listedOrder.ResourceId);
+            Assert.Equal(expectedKinds, listedOrder.Templates.Select(t => t.Kind));
+            foreach (var template in listedOrder.Templates)
+            {
+                Assert.Equal(template.Kind == "Email" ? $"{text} subject" : null, template.Subject);
+                Assert.Equal($"{text} {template.Kind.ToLowerInvariant()}", template.Body);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(2, "Email_Delivered")]
+    [InlineData(1, "SMS_Delivered")]
+    [InlineData(4, "Email_Delivered", "SMS_Delivered")]
+    public async Task GetShipment_ExternalIdentity_ReportsEachChannelItAskedFor(
+        int channelSchema,
+        params string[] expectedChannelStatuses
+    )
+    {
+        var order = Body(
+            await _controller.Post(ExternalIdentityOrder(DateTimeOffset.UtcNow.AddMinutes(-1), channelSchema))
+        );
+
+        var shipment = await Shipment(ShipmentId(order));
+
+        Assert.Equal(
+            expectedChannelStatuses,
+            shipment.GetProperty("recipients").EnumerateArray().Select(r => r.GetProperty("status").GetString())
+        );
     }
 
     [Fact]
