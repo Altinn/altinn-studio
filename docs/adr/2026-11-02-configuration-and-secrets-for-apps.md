@@ -14,14 +14,14 @@ error names the value and who supplies it.
 
 ### Kinds of values
 
-| Kind                  | Examples                                                                                              | Owner              | Deployed app                                                                    | Local run                                              | App can override |
-| --------------------- | ----------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------- |
-| Provisioned secrets   | The app's Maskinporten client, app codes, the Key Vault connection                                    | Team Altinn Studio | Files the runtime cluster mounts into the runtime directory                     | Files studioctl writes into the runtime directory      | No               |
-| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services, telemetry export | Team Altinn Studio | JSON files from `infra/runtime/apps-config`, mounted into the runtime directory | JSON files studioctl writes into the runtime directory | No               |
-| Startup values        | The environment name, where the runtime directory is and what its files are called, the app's version | Team Altinn Studio | Environment variables                                                           | Environment variables studioctl sets                   | No               |
-| Contracts             | The validation message prefixes that app code writes and the app libraries parse                      | Team Altinn Studio | Constants in the app libraries                                                  | The same                                               | No               |
-| App configuration     | Which validations run, PDF settings, the app's own integrations                                       | The app            | `appsettings*.json`, over defaults in the app libraries                         | The same, plus `appsettings.Local.json`                | Yes              |
-| App secrets           | API keys for the app's own integrations                                                               | The service owner  | The service owner's Key Vault                                                   | User secrets or `appsettings.Local.json`               | Yes              |
+| Kind                  | Examples                                                                                              | Owner              | Deployed app                                                                                                 | Local run                                              | App can override |
+| --------------------- | ----------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | ---------------- |
+| Provisioned secrets   | The app's Maskinporten client, app codes, the Key Vault connection                                    | Team Altinn Studio | Files the runtime cluster mounts into the runtime directory                                                  | Files studioctl writes into the runtime directory      | No               |
+| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services, telemetry export | Team Altinn Studio | JSON files from `infra/runtime/apps-config` and from the runtime cluster, mounted into the runtime directory | JSON files studioctl writes into the runtime directory | No               |
+| Startup values        | The environment name, where the runtime directory is and what its files are called, the app's version | Team Altinn Studio | Environment variables                                                                                        | Environment variables studioctl sets                   | No               |
+| Contracts             | The validation message prefixes that app code writes and the app libraries parse                      | Team Altinn Studio | Constants in the app libraries                                                                               | The same                                               | No               |
+| App configuration     | Which validations run, PDF settings, the app's own integrations                                       | The app            | `appsettings*.json`, over defaults in the app libraries                                                      | The same, plus `appsettings.Local.json`                | Yes              |
+| App secrets           | API keys for the app's own integrations                                                               | The service owner  | The service owner's Key Vault                                                                                | User secrets or `appsettings.Local.json`               | Yes              |
 
 The app's configuration is layered from lowest to highest:
 
@@ -34,7 +34,13 @@ Provisioned secrets are not part of the app's configuration.
 
 ### Runtime configuration
 
-- We define it once per environment in [`infra/runtime/apps-config`](../../infra/runtime/apps-config).
+- Runtime configuration comes from two sources, and the runtime cluster mounts both as files in the runtime
+  directory:
+  - values that are the same for every service owner in an environment, which we define in
+    [`infra/runtime/apps-config`](../../infra/runtime/apps-config)
+  - values that differ per service owner, such as the connection string of the service owner's Application
+    Insights, which the runtime cluster provides
+- The app libraries read both sources the same way.
 - The app libraries reload the files. Code that reads runtime configuration picks up a change without a restart,
   where a change should apply while the app runs.
 - The app libraries have no defaults for it, and the app template has no keys for it.
@@ -46,8 +52,12 @@ Provisioned secrets are not part of the app's configuration.
   - Key Vault
 - A local run that needs a different value, such as a `tt02` endpoint, gets it from studioctl.
 - Runtime configuration never arrives as an environment variable. Environment variables carry only startup values.
-- The deploy pipeline adds no runtime configuration. The values it adds today move to the kinds above.
-- v8 apps keep getting runtime configuration as environment variables.
+- The deploy pipeline adds no runtime configuration. The values it adds today move:
+  - the Application Insights connection string to runtime configuration from the runtime cluster
+  - the subscription key to provisioned secrets
+  - the app's version to startup values
+- v8 apps keep getting runtime configuration as environment variables, including the Application Insights values
+  that the deploy pipeline adds.
 
 ### Local runs
 
@@ -80,15 +90,19 @@ app.
 
 ### Telemetry
 
-OpenTelemetry is the only telemetry path in v9. Where an app exports telemetry is runtime configuration.
-[Monitoring telemetry collection and distribution](2026-01-07-monitoring-telemetry-collection-distribution.md)
-decides which backend the telemetry goes to.
+- OpenTelemetry is the only telemetry path in v9.
+- Where an app exports telemetry is runtime configuration.
+- Until there are collectors for apps, a v9 app exports directly to its service owner's Application Insights, with
+  the connection string from the runtime cluster. v9 apps do not use the instrumentation key.
+- When collectors for apps exist, the app gets the collector's address instead.
+  [Monitoring telemetry collection and distribution](2026-01-07-monitoring-telemetry-collection-distribution.md)
+  describes the collectors.
 
 ## Problem context
 
 An app depends on values it does not own, such as Altinn Platform addresses, host names and cookie names. They
-differ per environment, and we need to change them without waiting for every service owner to change and redeploy
-their apps. We have seen what happens otherwise:
+differ per environment, some also per service owner, and we need to change them without waiting for every service
+owner to change and redeploy their apps. We have seen what happens otherwise:
 
 - The app frontend hardcoded a logout URL, and we had to patch it by hand on the CDN.
 - When a Maskinporten environment was deprecated, apps needed source changes.
@@ -184,7 +198,13 @@ change them.
 - A shared contract and tests keep studioctl, the app libraries and the config map from drifting apart.
 - Key Vault as a provisioned secret keeps its credentials out of app code. A move to workload identity, or to a
   vault per app, then changes only the runtime cluster.
+- Values that differ per service owner are runtime configuration too. They depend on where the app runs, the app
+  does not set them, and none of them is a credential. The Key Vault connection holds a client secret, so it is a
+  provisioned secret instead.
+- Telemetry export is runtime configuration, so we can move apps from direct export to collectors without
+  redeploying them.
 - v8 apps keep their environment variables, since this decision does not change how v8 apps read configuration.
+  App libraries before 8.11 read neither the files nor the collector settings.
 
 A4 protects runtime configuration best, but apps have good reasons to read it. Putting our values last gives the
 same result for overrides and keeps reading simple.
@@ -200,8 +220,11 @@ same result for overrides and keeps reading simple.
   upgrade tells the developer that it no longer applies.
 - The deploy pipeline mounts the runtime configuration files into v9 apps, and stops adding the same values as
   environment variables.
-- A change that adds runtime configuration adds it to `infra/runtime/apps-config` and studioctl together, and the
-  contract test fails until both have it.
+- A change that adds runtime configuration adds it to its source and to studioctl together, and the contract test
+  fails until both have it.
+- The runtime cluster has to provide the service owner's Application Insights connection string
+  ([altinn-platform#4392](https://github.com/Altinn/altinn-platform/issues/4392)) before the deploy pipeline stops
+  adding it to v9 apps.
 - We take on workload identity for apps, and a vault per app, when the platform team offers them in the runtime
   clusters.
 - As the work lands, [`src/App/README.md`](../../src/App/README.md) describes how configuration reaches an app and
