@@ -97,11 +97,6 @@ public class ISourceControlMock : ISourceControl
         return Task.FromResult(true);
     }
 
-    public Task DeleteRepository(AltinnRepoEditingContext editingContext)
-    {
-        return Task.CompletedTask;
-    }
-
     public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext)
     {
         throw new NotImplementedException();
