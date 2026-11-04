@@ -260,8 +260,8 @@ public sealed record FiksArkivSuccessHandlingSettings
     /// Defaults to <c>true</c>.
     /// </summary>
     /// <remarks>
-    /// The confirmation is sent before the process advances, because advancing can end the process and
-    /// an ended process can take the instance with it.
+    /// The confirmation is saved with the archive's receipt, before the process advances, because advancing
+    /// can end the process and an ended process can take the instance with it.
     /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
     public bool MarkInstanceComplete { get; set; } = DefaultMarkInstanceComplete;
