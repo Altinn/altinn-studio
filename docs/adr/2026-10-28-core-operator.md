@@ -1,4 +1,4 @@
-# A studio operator does all cluster work in a Studio cluster
+# A core operator does all cluster work in a Studio cluster
 
 - Status: Proposed
 - Deciders: Team
@@ -6,7 +6,7 @@
 
 ## Result
 
-A3: We add a studio operator to the Studio cluster. The studio operator is the one Studio component that has a
+A3: We add a core operator to the Studio cluster. The core operator is the one Studio component that has a
 Kubernetes client. A service that starts cluster work, for example a sandbox run of app code, sends a request to
 the operator through an API. The services have no Kubernetes permission. The conditions in "Conditions for operator
 work" tell you which work the operator does and which work stays in the service.
@@ -57,7 +57,7 @@ different quota.
 
 - A1: Each service creates its Jobs. This is the model of the accepted ADR and of the proof of concept.
 - A2: Designer creates all the Jobs and reconciles the cluster. The assistant sends its requests to Designer.
-- A3: A studio operator creates all the Jobs and reconciles the cluster resources. The operator has an HTTP API and
+- A3: A core operator creates all the Jobs and reconciles the cluster resources. The operator has an HTTP API and
   conditions that tell you which work it does.
 
 ## Pros and cons
@@ -95,7 +95,7 @@ different quota.
 - Bad, because Designer has two replicas in staging and prod. Quartz clustering divides the triggers between the
   replicas, but a Job watcher in the web API must have leader election (D4, D7).
 
-### A3: A studio operator with conditions for its work
+### A3: A core operator with conditions for its work
 
 - Good, because one service has the Role for the runner namespace and the cluster-scoped permission that
   TokenReview uses. Designer and the assistant have no Kubernetes permission (D1).
@@ -124,7 +124,7 @@ different quota.
 
 ## Conditions for operator work
 
-A feature that must use something in the Studio cluster goes in the studio operator when one of these conditions
+A feature that must use something in the Studio cluster goes in the core operator when one of these conditions
 applies:
 
 - It must use the Kubernetes API, for example to create, watch or delete pods, Jobs, secrets, config or scaled
@@ -143,8 +143,10 @@ record. The operator controls the run and the resources. The run API is the inte
 The design is in the code. The README of the operator shows the current condition. This section records only what
 this decision specifies.
 
-- **Name.** The name is `studio-operator`, next to the `runtime-operator` that exists. The image, the module, the
-  workflow and the syncroot entry use the full name.
+- **Name.** The name is `core-operator`. The code is in `src/core/operator`, as
+  [Organize `src/` by the cluster that runs each component](2026-10-27-src-folder-organization.md) specifies. The
+  runtime operator stays in its folder. The Go module, the image, the workflow and the syncroot entry use the
+  name `core-operator`.
 - **Language.** The language is Go with controller-runtime, as
   [Adopt Go for cloud-native runtime services and tooling](2025-10-17-using-go.md) specifies. The job host stays in
   Rust, because the Sandbox SDK is in Rust. This ADR does not make the language decision again.
@@ -162,7 +164,7 @@ flowchart LR
     assistant["Assistant"]
     k8s["Kubernetes API"]
 
-    subgraph operator["studio-operator"]
+    subgraph operator["core-operator"]
         api["Run API"]
         rec["Job reconciler"]
     end
@@ -187,9 +189,9 @@ This is a list of the Studio components in this repository that have a Role in a
 components in the clusters now and components in an open pull request at the date of this ADR. A3 replaces this
 condition.
 
-| Component                     | Permission                                    | Purpose                                      | After A3                            |
-| ----------------------------- | --------------------------------------------- | -------------------------------------------- | ----------------------------------- |
-| Assistant, proposed in #21410 | Create, watch, delete Jobs; read PodTemplate  | Do app upgrades in a sandbox                 | Removed. Sends requests to the operator |
-| `runner-org-sync`             | Secrets and ConfigMap in `studio-runners`     | Gitea runner registration for each organization | Moves into the operator          |
-| Designer                      | None. Deploys through Azure DevOps            | Releases and deployments                     | No change until the builds move     |
-| Flux                          | Cluster admin                                 | Apply the syncroot                           | No change                           |
+| Component                     | Permission                                   | Purpose                                         | After A3                                |
+| ----------------------------- | -------------------------------------------- | ----------------------------------------------- | --------------------------------------- |
+| Assistant, proposed in #21410 | Create, watch, delete Jobs; read PodTemplate | Do app upgrades in a sandbox                    | Removed. Sends requests to the operator |
+| `runner-org-sync`             | Secrets and ConfigMap in `studio-runners`    | Gitea runner registration for each organization | Moves into the operator                 |
+| Designer                      | None. Deploys through Azure DevOps           | Releases and deployments                        | No change until the builds move         |
+| Flux                          | Cluster admin                                | Apply the syncroot                              | No change                               |
