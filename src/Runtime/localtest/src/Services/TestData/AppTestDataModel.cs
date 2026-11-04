@@ -57,16 +57,22 @@ public class AppTestDataModel
     public TestDataAuthorization GetTestDataAuthorization()
     {
         var claims = Persons.Where(p => p.CustomClaims.Count > 0).ToDictionary(p => p.UserId.ToString(), p => p.CustomClaims);
+        // The parties a person can be given roles or access packages for: organizations and other persons
         var parties = GetOrgPartiesWithChildren();
+        foreach (var person in Persons)
+        {
+            parties.TryAdd(person.PartyId.ToString(), person.ToParty());
+        }
         var partyList = Persons
             .ToDictionary(
                 p => p.UserId.ToString(),
                 p => {
                     var partiesForUser = new List<Party>{p.ToParty()};
-                    partiesForUser.AddRange(p.PartyRoles.Keys.Union(p.AccessPackages.Keys).Select(partyId =>
-                        parties.TryGetValue(partyId.ToString(), out var value) ? value! : null!
-                    ));
-                    return partiesForUser.Where(p=>p is not null).ToList();
+                    partiesForUser.AddRange(p.PartyRoles.Keys.Union(p.AccessPackages.Keys)
+                        .Where(partyId => partyId != p.PartyId)
+                        .Select(partyId => parties.GetValueOrDefault(partyId.ToString()))
+                        .OfType<Party>());
+                    return partiesForUser;
                 });
         var roles = Persons.ToDictionary(p => p.UserId.ToString(), p => p.PartyRoles.ToDictionary(r => r.Key.ToString(), r => r.Value));
         var accessPackages = Persons

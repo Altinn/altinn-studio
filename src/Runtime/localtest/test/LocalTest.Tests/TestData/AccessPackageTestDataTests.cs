@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.Platform.Register.Enums;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.TestData;
 using LocalTest.Tests.Authorization;
@@ -91,6 +92,33 @@ public sealed class AccessPackageTestDataTests : IDisposable
 
         Assert.Equal([510001, 500000], partyList.Select(p => p.PartyId));
         Assert.Equal(500001, Assert.Single(partyList[1].ChildParties).PartyId);
+    }
+
+    [Fact]
+    public void AppTestData_OtherPersonsWithRolesOrPackagesAreInThePartyList()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [
+                {
+                  "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                  "partyRoles": { "1": [{ "type": "altinn", "value": "priv" }], "3": [{ "type": "altinn", "value": "regna" }] },
+                  "accessPackages": { "1": ["skattegrunnlag"], "2": ["innbygger-helsetjenester"] }
+                },
+                { "partyId": 2, "ssn": "01017000002", "lastName": "B", "userId": 2 },
+                { "partyId": 3, "ssn": "01017000003", "lastName": "C", "userId": 3 }
+              ],
+              "orgs": [],
+              "systems": []
+            }
+            """
+        ).Authorization;
+
+        // The own party once, first
+        var partyList = authorization.PartyList["1"];
+        Assert.Equal([1, 3, 2], partyList.Select(p => p.PartyId));
+        Assert.All(partyList, p => Assert.Equal(PartyType.Person, p.PartyTypeName));
     }
 
     [Fact]
