@@ -1,4 +1,4 @@
-# A core operator does all cluster work in a Studio cluster
+# A core operator does all cluster work in a Core cluster
 
 - Status: Proposed
 - Deciders: Team
@@ -6,8 +6,8 @@
 
 ## Result
 
-A3: We add a core operator to the Studio cluster. The core operator is the one Studio component that has a
-Kubernetes client. A service that starts cluster work, for example a sandbox run of app code, sends a request to
+A3: We add a core operator to the Core cluster. The core operator is the one component in the Core cluster that has
+a Kubernetes client. A service that starts cluster work, for example a sandbox run of app code, sends a request to
 the operator through an API. The services have no Kubernetes permission. The conditions in "Conditions for operator
 work" tell you which work the operator does and which work stays in the service.
 
@@ -17,11 +17,13 @@ different.
 
 ## Problem context
 
-A Studio cluster operates the control plane of Altinn Studio. The control plane includes Designer, Gitea with the
-app repositories, the assistant and the support services in the [Studio syncroot](../../infra/studio/syncroot).
+A Core cluster operates the control plane of Altinn Studio. The name Core comes from
+[Organize `src/` by the cluster that runs each component](2026-10-27-src-folder-organization.md). The control plane
+includes Designer, Gitea with the app repositories, the assistant and the support services in the
+[syncroot](../../infra/studio/syncroot).
 The runtime clusters, where the apps operate, have a structure for cluster work.
 
-Cluster work comes to the Studio cluster from more than one direction:
+Cluster work comes to the Core cluster from more than one direction:
 
 - The assistant and Designer run code from app repositories. This code must run on a sandbox node in a microVM.
   The accepted ADR for the assistant gives the assistant the permission to create the Jobs.
@@ -34,7 +36,7 @@ sessions and the Gitea credentials. The assistant keeps the model key, the Langf
 each active session. Each Role that these services get is a Role next to those secrets.
 
 Without this decision, the next feature puts its Kubernetes client in the component where the person who writes it
-works. The Studio cluster then gets many components that create pods. Each component has a different policy and a
+works. The Core cluster then gets many components that create pods. Each component has a different policy and a
 different quota.
 
 ## Decision drivers
@@ -124,7 +126,7 @@ different quota.
 
 ## Conditions for operator work
 
-A feature that must use something in the Studio cluster goes in the core operator when one of these conditions
+A feature that must use something in the Core cluster goes in the core operator when one of these conditions
 applies:
 
 - It must use the Kubernetes API, for example to create, watch or delete pods, Jobs, secrets, config or scaled
@@ -183,9 +185,9 @@ flowchart LR
     host --> vm
 ```
 
-## Appendix A: The components that have a Kubernetes client in the Studio cluster now
+## Appendix A: The components that have a Kubernetes client in the Core cluster now
 
-This is a list of the Studio components in this repository that have a Role in a Studio cluster. The list includes
+This is a list of the Studio components in this repository that have a Role in a Core cluster. The list includes
 components in the clusters now and components in an open pull request at the date of this ADR. A3 replaces this
 condition.
 
