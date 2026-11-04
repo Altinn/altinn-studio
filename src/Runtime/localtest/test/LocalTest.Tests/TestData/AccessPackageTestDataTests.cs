@@ -134,6 +134,30 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
+    public void Merge_TheSameSystemFromTwoSourcesHasTheSystemUsersOfBoth()
+    {
+        static TestDataModel App(string systemUserId) =>
+            Read(
+                $$"""
+                {
+                  "persons": [],
+                  "orgs": [],
+                  "systems": [{ "id": "s", "name": "S", "systemUsers": [{ "id": "{{systemUserId}}", "orgNumber": "1", "actions": [] }] }]
+                }
+                """
+            );
+        var target = new TestDataModel();
+
+        TestDataMerger.MergeTestData(App("su-1"), target);
+        TestDataMerger.MergeTestData(App("su-2"), target);
+
+        Assert.Equal(["su-1", "su-2"], target.Authorization.Systems["s"].SystemUsers.Keys.Order());
+        // The app test data the merged apps give, as Localtest builds it from the merged data
+        var roundTripped = AppTestDataModel.FromTestDataModel(target).GetTestDataModel().Authorization;
+        Assert.Equal(["su-1", "su-2"], roundTripped.SystemUsers.Keys.Order());
+    }
+
+    [Fact]
     public void FromTestDataModel_RoundTripsPackages()
     {
         var model = Read();

@@ -129,7 +129,19 @@ public static class TestDataMerger
         {
             foreach (var (systemId, system) in source.Authorization.Systems)
             {
-                target.Authorization.Systems.TryAdd(systemId, system);
+                if (!target.Authorization.Systems.TryGetValue(systemId, out var targetSystem))
+                {
+                    target.Authorization.Systems[systemId] = system;
+                    continue;
+                }
+
+                // The same system in both: keep the target's system users and add the source's other ones
+                var systemUsers = new Dictionary<string, TestDataSystemUser>(targetSystem.SystemUsers);
+                foreach (var (systemUserId, systemUser) in system.SystemUsers)
+                {
+                    systemUsers.TryAdd(systemUserId, systemUser);
+                }
+                target.Authorization.Systems[systemId] = targetSystem with { SystemUsers = systemUsers };
             }
         }
 
