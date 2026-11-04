@@ -452,7 +452,7 @@ func TestUserAgent(t *testing.T) {
 		set  string
 		want string
 	}{
-		{name: "default", want: "altinn-devenv"},
+		{name: "default", want: "altinn-studio-devenv"},
 		{name: "set", set: "studioctl/v1.2.3", want: "studioctl/v1.2.3"},
 	}
 	for _, tt := range tests {

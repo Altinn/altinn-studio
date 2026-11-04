@@ -38,7 +38,7 @@ const (
 )
 
 // userAgent is the User-Agent of requests to the daemon.
-var userAgent = "altinn-devenv"
+var userAgent = "altinn-studio-devenv"
 
 // SetUserAgent sets the User-Agent of requests to the daemon, such as studioctl/v1.2.3.
 // Clients created before the call keep the previous value.
