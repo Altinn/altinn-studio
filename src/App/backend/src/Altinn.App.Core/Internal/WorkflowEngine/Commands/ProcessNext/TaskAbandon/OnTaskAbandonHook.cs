@@ -17,7 +17,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
@@ -27,7 +27,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
 
         if (applicableHooks.Count > 1)
         {
-            return FailedProcessEngineCommandResult.Permanent(
+            return FailedWorkflowEngineCommandResult.Permanent(
                 $"Multiple {nameof(IOnTaskAbandoningHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
                 nameof(InvalidOperationException)
             );
@@ -36,7 +36,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         IOnTaskAbandoningHandler? hook = applicableHooks.FirstOrDefault();
         if (hook == null)
         {
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
 
         var hookParameters = new OnTaskAbandoningContext
@@ -44,6 +44,8 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
             TaskId = taskId,
             InstanceDataMutator = dataMutator,
             CancellationToken = parameters.CancellationToken,
+            WorkflowId = parameters.Payload.WorkflowId,
+            StepId = parameters.Payload.StepId,
         };
 
         try
@@ -52,10 +54,10 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
 
             return result switch
             {
-                SuccessfulHandlerResult => new SuccessfulProcessEngineCommandResult(),
+                SuccessfulHandlerResult => new SuccessfulWorkflowEngineCommandResult(),
                 FailedHandlerResult failed => failed.Kind == FailureKind.Permanent
-                    ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
-                    : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
+                    ? FailedWorkflowEngineCommandResult.Permanent(failed.ErrorMessage)
+                    : FailedWorkflowEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
                     $"Unexpected {nameof(HandlerResult)} type: {result.GetType().Name}"
                 ),
@@ -63,7 +65,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

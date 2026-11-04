@@ -69,6 +69,13 @@ public sealed record StepStatusResponse
     public required int RetryCount { get; init; }
 
     /// <summary>
+    /// When the failed attempts that <see cref="RetryCount"/> counts began. Omitted when the count is zero.
+    /// </summary>
+    [JsonPropertyName("firstFailedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstFailedAt { get; init; }
+
+    /// <summary>
     /// The number of times this step has deferred (parked in Waiting because the awaited outcome
     /// was not available yet).
     /// </summary>
@@ -124,6 +131,7 @@ public sealed record StepStatusResponse
             ExecutionStartedAt = step.ExecutionStartedAt,
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
+            FirstFailedAt = step.FirstFailedAt,
             DeferCount = step.DeferCount,
             FirstDeferredAt = step.FirstDeferredAt,
             LastDeferReason = step.LastDeferReason,

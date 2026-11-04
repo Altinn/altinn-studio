@@ -80,6 +80,20 @@ public interface ISourceControl
     void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 
     /// <summary>
+    /// Fetches the remote and makes the local repository match a remote branch, with that branch checked out. Local
+    /// commits, changes and untracked files are discarded.
+    /// </summary>
+    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+    /// <param name="branchName">The name of the branch</param>
+    /// <param name="localPath">Path to local clone of repository</param>
+    /// <exception cref="Exceptions.SourceControl.BranchNotFoundException">The remote has no such branch.</exception>
+    void ResetToRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName,
+        string localPath
+    );
+
+    /// <summary>
     /// List Git status for an app repo
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
@@ -185,6 +199,19 @@ public interface ISourceControl
     RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
     /// <summary>
+    /// Puts the local commits on a branch on top of the same branch on origin, as one commit with the merged files, so
+    /// that pushing them does not need a merge commit. It merges as pulling does, so conflicts stay in the working
+    /// directory, and it throws <see cref="LibGit2Sharp.CheckoutConflictException"/> when uncommitted changes are in the
+    /// way.
+    /// </summary>
+    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+    /// <param name="branchName">The checked-out branch, which has the same name on origin</param>
+    CombineResult CombineWithRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    );
+
+    /// <summary>
     /// Deletes a local branch based on the specified name.
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
@@ -254,10 +281,4 @@ public interface ISourceControl
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The name of the branch</param>
     void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
-
-    /// <summary>
-    /// Fetches git notes.
-    /// </summary>
-    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-    void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 }

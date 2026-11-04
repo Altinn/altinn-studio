@@ -302,6 +302,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("first_deferred_at");
 
+                    b.Property<DateTimeOffset?>("FirstFailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_failed_at");
+
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid")
                         .HasColumnName("job_id");

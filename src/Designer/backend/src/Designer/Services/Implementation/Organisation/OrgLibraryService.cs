@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -24,9 +25,12 @@ public class OrgLibraryService(
     IGiteaClient giteaClient,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    ISharedContentClient sharedContentClient
+    ISharedContentClient sharedContentClient,
+    ILockService lockService
 ) : IOrgLibraryService
 {
+    private static readonly TimeSpan s_lockWaitTimeout = TimeSpan.FromSeconds(30);
+
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
 
@@ -126,6 +130,12 @@ public class OrgLibraryService(
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
         ValidateCommitMessage(request.CommitMessage);
+        // The route names no repository, so the request middleware doesn't take the clone's lock.
+        await using var _ = await lockService.AcquireRepoUserWideLockAsync(
+            authenticatedContext.RepoEditingContext,
+            s_lockWaitTimeout,
+            cancellationToken
+        );
         sourceControl.CloneIfNotExists(authenticatedContext);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(
@@ -136,8 +146,14 @@ public class OrgLibraryService(
         );
 
         sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
-        sourceControl.PullRemoteChanges(authenticatedContext);
-        sourceControl.FetchGitNotes(authenticatedContext);
+        RepoStatus pullStatus = sourceControl.PullRemoteChanges(authenticatedContext);
+        if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+        {
+            // Committing now would build on an outdated clone, or commit conflict markers.
+            throw new NonFastForwardException(
+                $"Could not update {authenticatedContext.Org}/{authenticatedContext.Repo} from Gitea: {pullStatus.RepositoryStatus}."
+            );
+        }
 
         if (latestCommitSha == request.BaseCommitSha)
         {

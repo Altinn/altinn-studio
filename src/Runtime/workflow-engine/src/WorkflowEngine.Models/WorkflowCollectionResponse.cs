@@ -266,4 +266,15 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("failedAttempts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? FailedAttempts { get; init; }
+
+    /// <summary>
+    /// Gets when the failed attempts that <see cref="FailedAttempts"/> counts began: the head's current step's
+    /// <see cref="Step.FirstFailedAt"/>. With the collection's <see cref="WorkflowCollectionDetailResponse.CurrentTime"/>
+    /// it tells a consumer how long the step has been failing on the engine's clock. Null when
+    /// <see cref="FailedAttempts"/> is zero, so it resets with the count when the step defers or is resumed. Also null
+    /// from an older engine, and for a run of failures that began before the engine recorded it.
+    /// </summary>
+    [JsonPropertyName("firstFailedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstFailedAt { get; init; }
 }

@@ -16,6 +16,7 @@ export const useEditResourcePolicyMutation = (org: string, repo: string, id: str
 
   return useMutation({
     mutationFn: (payload: Policy) => updatePolicy(org, repo, id, payload),
+    meta: { refreshesRepoStatus: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourcePolicy, org, repo, id] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, repo] });

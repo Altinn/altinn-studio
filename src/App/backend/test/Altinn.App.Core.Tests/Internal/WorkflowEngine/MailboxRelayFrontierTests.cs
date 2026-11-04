@@ -258,7 +258,7 @@ public class MailboxRelayFrontierTests
     /// pass an item the plan after which is an ordinary continuation, so no target rides along.
     /// </summary>
     private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
+        new(afterItemIndex, WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
 
     private static Instance CreateInstance() =>
         new()
@@ -332,7 +332,7 @@ public class MailboxRelayFrontierTests
                 g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
                 == "callback-token"
             ),
-            new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
+            new ProcessStepOptionsResolver([]),
             processEngine.Object
         );
     }

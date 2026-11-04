@@ -24,6 +24,10 @@ internal sealed class UiFolderFiles
                 .Select(file => KeyValuePair.Create(RelativePath(folder, file), File.ReadAllBytes(file)))
         );
 
+    /// <summary>These files, with <paramref name="path"/> holding <paramref name="content"/> instead.</summary>
+    public UiFolderFiles With(string path, byte[] content) =>
+        new(_files.Where(file => file.Key != path).Append(KeyValuePair.Create(path, content)));
+
     /// <summary>
     /// Whether the files can be written to <paramref name="folder"/> without overwriting anything: it does
     /// not exist, or holds only files identical to planned ones.

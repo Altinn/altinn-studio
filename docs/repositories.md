@@ -9,6 +9,7 @@ into it, so read a repository's own README and recent history before you change 
 | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [altinn-studio-docs](https://github.com/Altinn/altinn-studio-docs)                            | The source of [docs.altinn.studio](https://docs.altinn.studio), for service owners, app developers and other Altinn products                                |
 | [altinn-studio-charts](https://github.com/Altinn/altinn-studio-charts)                        | The Helm chart that [`deploy-app.yaml`](../src/App/azure-pipelines/deploy-app.yaml) deploys apps with                                                       |
+| [als/actions](https://altinn.studio/repos/als/actions)                                        | The Gitea Actions that service owners deploy apps with. They call [Designer's API](../src/Designer/backend/README.md#api-consumers)                         |
 | [altinn-studio-infra](https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra) | Infrastructure for the Studio clusters, in Azure DevOps                                                                                                     |
 | [altinn-cdn](https://github.com/Altinn/altinn-cdn)                                            | Files on the Altinn CDN, such as the [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json)                       |
 | [app-lib-dotnet](https://github.com/Altinn/app-lib-dotnet)                                    | The app backend libraries for v8 apps. Fixes land there first and are merged into `src/App/backend` by an [upstream sync](../src/App/docs/upstream-sync.md) |
@@ -26,7 +27,7 @@ The platform services that apps call each have their own repository:
 [altinn-storage](https://github.com/Altinn/altinn-storage),
 [altinn-file-scan](https://github.com/Altinn/altinn-file-scan),
 [altinn-receipt](https://github.com/Altinn/altinn-receipt),
-[altinn-auth](https://github.com/Altinn/altinn-auth) for authentication and authorization,
+[altinn-auth](https://github.com/Altinn/altinn-auth) for authentication, authorization and access management,
 [altinn-register](https://github.com/Altinn/altinn-register),
 [altinn-profile](https://github.com/Altinn/altinn-profile),
 [altinn-notifications](https://github.com/Altinn/altinn-notifications),

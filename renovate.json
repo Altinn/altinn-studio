@@ -53,6 +53,14 @@
       "matchStrings": ["ARG GO_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "description": "Update versions that Go code pins below a renovate comment, as customManagers:makefileVersions does for Makefiles",
+      "managerFilePatterns": ["/\\.go$/"],
+      "matchStrings": [
+        "// renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)\\s+\\w+\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ]
     }
   ],
   "separateMultipleMajor": true,
@@ -74,19 +82,14 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["helm.sh/helm/v3"],
-      "dependencyDashboardApproval": true
-    },
-    {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
       "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["patch"],
       "groupName": "Kubernetes, Flux, and cluster tooling Go dependency patches",
@@ -99,7 +102,8 @@
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["minor", "major"],
       "dependencyDashboardApproval": true
@@ -229,11 +233,20 @@
       "automerge": true
     },
     {
-      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
-      "matchManagers": ["nuget"],
-      "matchFileNames": ["src/App/template/v8/global.json"],
-      "matchPackageNames": ["dotnet-sdk"],
-      "allowedVersions": "<9"
+      "description": "Keep the v8 app template on .NET 10: it targets net10.0, so its SDK and both Dockerfile images stay on 10.x. The src/App/** rule further down excludes the v8 template, since it would hold them at 8",
+      "matchFileNames": ["src/App/template/v8/global.json", "src/App/template/v8/src/Dockerfile"],
+      "matchPackageNames": [
+        "dotnet-sdk",
+        "mcr.microsoft.com/dotnet/sdk",
+        "mcr.microsoft.com/dotnet/aspnet"
+      ],
+      "allowedVersions": "<11"
+    },
+    {
+      "description": "Don't pin digests in the app templates' Dockerfiles: Designer copies the Dockerfile into each new app once, so a pinned digest would keep that app on the base image from the day it was created",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/App/template/*/src/Dockerfile"],
+      "pinDigests": false
     },
     {
       "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",
@@ -264,7 +277,7 @@
       "commitMessageSuffix": ""
     },
     {
-      "matchFileNames": ["src/App/**"],
+      "matchFileNames": ["src/App/**", "!src/App/template/v8/**"],
       "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
         "/^Microsoft\\.AspNetCore/",

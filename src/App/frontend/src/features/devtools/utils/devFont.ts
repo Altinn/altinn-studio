@@ -1,8 +1,8 @@
 /**
  * Fonts that can be tried out from DevTools. The value is set as the data-font attribute on <html>, which
- * selects --font-family in global.css. Without the attribute, the app uses Altinn-DIN.
+ * selects --font-family in global.css. Without the attribute, the app uses Inter.
  */
-export const fontKeys = ['altinn-din', 'inter'] as const;
+export const fontKeys = ['inter', 'altinn-din'] as const;
 export type Font = (typeof fontKeys)[number];
 
 const fontSearchParam = 'font';
@@ -21,7 +21,7 @@ export function isFont(value: string | null | undefined): value is Font {
 
 export function getCurrentFont(): Font {
   const font = document.documentElement.dataset.font;
-  return isFont(font) ? font : 'altinn-din';
+  return isFont(font) ? font : 'inter';
 }
 
 export function setFont(font: Font) {
@@ -29,7 +29,7 @@ export function setFont(font: Font) {
 }
 
 /**
- * Sets the font from the ?font= search param, for example ?font=inter. Call before the first render.
+ * Sets the font from the ?font= search param, for example ?font=altinn-din. Call before the first render.
  */
 export function applyFontFromUrl() {
   const font = new URLSearchParams(window.location.search).get(fontSearchParam);

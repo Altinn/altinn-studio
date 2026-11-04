@@ -10,7 +10,7 @@ on:
       - main
       - 'release/app/v*'
     paths:
-      - 'src/App/backend/CHANGELOG.md'
+      - 'src/App/CHANGELOG.md'
   workflow_dispatch: {}
 
 permissions:
@@ -177,7 +177,7 @@ jobs:
             echo "- **Base branch**: ${BASE_BRANCH}"
             echo "- **Version**: ${RELEASE_VERSION}"
             echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
-            echo "- **Version source**: latest released section in src/App/backend/CHANGELOG.md"
+            echo "- **Version source**: latest released section in src/App/CHANGELOG.md"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 

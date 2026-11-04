@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { EditButton, EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -51,6 +52,38 @@ describe('EditButton', () => {
     });
 
     expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  test("should return null on a service task's page, also for components without readOnly", async () => {
+    await renderWithInstanceAndLayout({
+      renderer: <EditButton targetBaseComponentId='TestGroup' />,
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'TestGroup',
+                      type: 'RepeatingGroup',
+                      dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'group' } },
+                      children: [],
+                    },
+                  ],
+                },
+              },
+            };
+          }),
+      },
+      apis: {
+        instanceApi: {
+          getInstance: async () => getInstanceAtServiceTaskMock(),
+        },
+      },
+    });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
 

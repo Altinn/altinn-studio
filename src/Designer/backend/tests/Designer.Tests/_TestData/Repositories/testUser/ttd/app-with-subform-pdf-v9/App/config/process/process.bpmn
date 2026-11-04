@@ -13,52 +13,23 @@
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow_2</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:serviceTask id="PdfWithStaleCopy" name="PDF per kjøretøy">
+    <bpmn:serviceTask id="SubformPdf" name="PDF per kjøretøy">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>subformPdf</altinn:taskType>
           <altinn:subformPdfConfig>
-            <altinn:subformComponentId>vehicles</altinn:subformComponentId>
-            <altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>
+            <altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>
           </altinn:subformPdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_2</bpmn:incoming>
       <bpmn:outgoing>Flow_3</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="PdfWithCopy" name="PDF per kjøretøy">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>subformPdf</altinn:taskType>
-          <altinn:subformPdfConfig>
-            <altinn:subformComponentId>vehicles</altinn:subformComponentId>
-            <altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>
-          </altinn:subformPdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_3</bpmn:incoming>
-      <bpmn:outgoing>Flow_4</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="PdfWithoutPages" name="PDF per kjøretøy">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>subformPdf</altinn:taskType>
-          <altinn:subformPdfConfig>
-            <altinn:subformComponentId>vehicles</altinn:subformComponentId>
-            <altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>
-          </altinn:subformPdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_4</bpmn:incoming>
-      <bpmn:outgoing>Flow_5</bpmn:outgoing>
-    </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="PdfWithStaleCopy" />
-    <bpmn:sequenceFlow id="Flow_3" sourceRef="PdfWithStaleCopy" targetRef="PdfWithCopy" />
-    <bpmn:sequenceFlow id="Flow_4" sourceRef="PdfWithCopy" targetRef="PdfWithoutPages" />
-    <bpmn:sequenceFlow id="Flow_5" sourceRef="PdfWithoutPages" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="SubformPdf" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="SubformPdf" targetRef="EndEvent_1" />
   </bpmn:process>
 </bpmn:definitions>

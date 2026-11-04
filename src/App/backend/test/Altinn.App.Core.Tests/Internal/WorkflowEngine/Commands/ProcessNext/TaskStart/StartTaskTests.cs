@@ -15,12 +15,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class StartTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance, int? stageIndex = 0)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance, int? stageIndex = 0)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -96,7 +96,7 @@ public class StartTaskTests
 
         var result = await command.Execute(context);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         StageContext stage = Assert.Single(seen);
         Assert.Same(context.InstanceDataMutator, stage.InstanceDataMutator);
         Assert.Equal(context.CancellationToken, stage.CancellationToken);
@@ -110,7 +110,7 @@ public class StartTaskTests
 
         var result = await command.Execute(context);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Start failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }
@@ -143,7 +143,7 @@ public class StartTaskTests
 
         var result = await command.Execute(context);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal([$"second:{context.Payload.StepId}"], ran);
     }
 
@@ -160,8 +160,8 @@ public class StartTaskTests
         var result = await command.Execute(context);
         var secondAttempt = await command.Execute(context);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(secondAttempt);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(secondAttempt);
         Guid stepId = context.Payload.StepId;
         Guid secondStageId = StageExecution.StepIdForStage(stepId, 1);
         Assert.NotEqual(stepId, secondStageId);
@@ -188,7 +188,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: null));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal(StageExecution.DeferredAfterOtherStagesReasonCode, failed.ExceptionType);
         Assert.Contains("start stage 1 deferred", failed.ErrorMessage);
@@ -202,7 +202,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: null));
 
-        Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Single(ran);
     }
 
@@ -214,7 +214,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: 2));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ProcessTaskStageNotFound", failed.ExceptionType);
         Assert.Empty(ran);
@@ -235,7 +235,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance()));
 
-        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        var deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(1), deferred.Delay);
         Assert.Equal("not yet", deferred.Reason);
     }
@@ -262,7 +262,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance()));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal(StageExecution.UnknownResultReasonCode, failed.ExceptionType);
         Assert.Contains(nameof(HomemadeResult), failed.ErrorMessage);
@@ -275,7 +275,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance()));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal(StageExecution.UnknownResultReasonCode, failed.ExceptionType);
         Assert.Contains("returned null", failed.ErrorMessage);
@@ -294,7 +294,7 @@ public class StartTaskTests
 
         var result = await command.Execute(CreateContext(CreateInstance()));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal(permanent, failed.NonRetryable);
         Assert.Equal(StageExecution.FailedReasonCode, failed.ExceptionType);
         Assert.Contains(permanent ? "no signee provider" : "busy", failed.ErrorMessage);

@@ -66,6 +66,63 @@ public class ApiKeyAuthStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<Api
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Create_WithApiKey_ShouldNotCreateAnotherKey(bool forBotAccount)
+    {
+        using var createContent = CreateTokenRequestContent(
+            $"parent-key-{forBotAccount}",
+            DateTimeOffset.UtcNow.AddDays(30)
+        );
+        using HttpResponseMessage createResponse = await HttpClient.PostAsync(BaseUrl, createContent);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = JsonSerializer.Deserialize<CreateApiKeyResponse>(
+            await createResponse.Content.ReadAsStringAsync(),
+            s_jsonOptions
+        );
+        Assert.NotNull(created);
+
+        string targetUrl = BaseUrl;
+        if (forBotAccount)
+        {
+            const string BotAccountsUrl = "designer/api/v1/orgs/ttd/bot-accounts";
+            using var botContent = new StringContent(
+                JsonSerializer.Serialize(new { name = "key_creation_guard" }),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage botResponse = await HttpClient.PostAsync(BotAccountsUrl, botContent);
+            Assert.Equal(HttpStatusCode.Created, botResponse.StatusCode);
+            var bot = JsonSerializer.Deserialize<CreateBotAccountResponse>(
+                await botResponse.Content.ReadAsStringAsync(),
+                s_jsonOptions
+            );
+            Assert.NotNull(bot);
+            targetUrl = $"{BotAccountsUrl}/{bot.Id}/api-keys";
+        }
+
+        using var apiKeyClient = new HttpClient { BaseAddress = new Uri(GiteaFixture.DesignerUrl) };
+        apiKeyClient.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, created.Key);
+
+        // Prove that the parent key is valid before checking its creation restrictions.
+        using HttpResponseMessage listResponse = await apiKeyClient.GetAsync(BaseUrl);
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+
+        using var childContent = CreateTokenRequestContent("forbidden-child-key", DateTimeOffset.UtcNow.AddDays(60));
+        using HttpResponseMessage response = await apiKeyClient.PostAsync(targetUrl, childContent);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+
+        using HttpResponseMessage keysResponse = await HttpClient.GetAsync(targetUrl);
+        Assert.Equal(HttpStatusCode.OK, keysResponse.StatusCode);
+        var keys = JsonSerializer.Deserialize<List<ApiKeyResponse>>(
+            await keysResponse.Content.ReadAsStringAsync(),
+            s_jsonOptions
+        );
+        Assert.NotNull(keys);
+        Assert.DoesNotContain(keys, key => key.Name == "forbidden-child-key");
+    }
+
     private static StringContent CreateTokenRequestContent(string name, DateTimeOffset expiresAt)
     {
         string json = JsonSerializer.Serialize(new { name, expiresAt });

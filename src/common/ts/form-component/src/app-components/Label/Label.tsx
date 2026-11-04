@@ -52,7 +52,6 @@ export function Label({
             <DesignsystemetLabel
               id={id}
               ref={ref}
-              weight='medium'
               data-size={size}
               htmlFor={htmlFor}
               className={cn(className, {

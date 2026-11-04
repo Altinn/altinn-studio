@@ -47,7 +47,7 @@ export interface IRepeatingGroupTableRowProps {
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
   useVerticalButtonLayout: boolean;
-  hiddenColumns: string[];
+  tableIds: string[];
 }
 
 function getEditButtonText(
@@ -68,7 +68,7 @@ export function RepeatingGroupTableRow({
   displayEditColumn,
   displayDeleteColumn,
   useVerticalButtonLayout,
-  hiddenColumns,
+  tableIds,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -93,15 +93,13 @@ export function RepeatingGroupTableRow({
   );
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const rawTableIds = useTableComponentIds(baseComponentId);
-  const tableItems = rawTableIds
-    .filter((id) => !hiddenColumns.includes(id))
-    .map((baseId) => ({
-      baseId,
-      type: layoutLookups.getComponent(baseId).type,
-    }));
+  const tableItems = tableIds.map((baseId) => ({
+    baseId,
+    type: layoutLookups.getComponent(baseId).type,
+  }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const [rowHasErrors, setRowHasErrors] = React.useState(false);
   const editButtonText = rowHasErrors
@@ -208,6 +206,7 @@ export function RepeatingGroupTableRow({
                       indexedId={indexedId}
                       uuid={uuid}
                       onClick={() => toggleEditing({ index, uuid })}
+                      disabled={instanceLocked}
                       editButtonText={editButtonText}
                       rowHasErrors={rowHasErrors}
                       compactButtons={compactButtons}
@@ -219,6 +218,7 @@ export function RepeatingGroupTableRow({
                       index={index}
                       uuid={uuid}
                       isDeletingRow={isDeletingRow}
+                      disabled={instanceLocked}
                       deleteButtonText={deleteButtonText}
                       langAsString={langAsString}
                     >
@@ -250,6 +250,7 @@ export function RepeatingGroupTableRow({
                     indexedId={indexedId}
                     uuid={uuid}
                     onClick={() => toggleEditing({ index, uuid })}
+                    disabled={instanceLocked}
                     editButtonText={editButtonText}
                     rowHasErrors={rowHasErrors}
                     compactButtons={compactButtons}
@@ -269,6 +270,7 @@ export function RepeatingGroupTableRow({
                     index={index}
                     uuid={uuid}
                     isDeletingRow={isDeletingRow}
+                    disabled={instanceLocked}
                     deleteButtonText={deleteButtonText}
                     langAsString={langAsString}
                   >
@@ -292,6 +294,7 @@ export function RepeatingGroupTableRow({
                 uuid={uuid}
                 mobileViewSmall={mobileViewSmall}
                 onClick={() => toggleEditing({ index, uuid })}
+                disabled={instanceLocked}
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
                 compactButtons={compactButtons}
@@ -305,6 +308,7 @@ export function RepeatingGroupTableRow({
                   index={index}
                   uuid={uuid}
                   isDeletingRow={isDeletingRow}
+                  disabled={instanceLocked}
                   deleteButtonText={deleteButtonText}
                   langAsString={langAsString}
                 >
@@ -348,6 +352,7 @@ function EditElement({
   uuid,
   compactButtons,
   buttonRef,
+  disabled,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -358,6 +363,7 @@ function EditElement({
   rowHasErrors: boolean;
   compactButtons: boolean;
   buttonRef?: (node: HTMLButtonElement | null) => void;
+  disabled?: boolean;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
@@ -369,6 +375,7 @@ function EditElement({
       variant='tertiary'
       color='second'
       icon={!ariaExpanded && (compactButtons || mobileViewSmall)}
+      disabled={disabled}
       onClick={onClick}
       aria-label={ariaLabel}
       className={classes.tableButton}

@@ -1,5 +1,7 @@
+@value standardPageMaxWidth from '../../../styles/pageLayout.module.css';
+
 .container {
-  --page-max-width: 1056px;
+  --page-max-width: standardPageMaxWidth;
   --page-padding-x: 24px;
   --footer-padding: var(--page-padding-x);
 

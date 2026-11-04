@@ -96,15 +96,15 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Registers a command with the engine.
         /// </summary>
-        public IServiceCollection AddCommand<TDescriptor>()
-            where TDescriptor : class, ICommand
+        public IServiceCollection AddCommand<TCommand>()
+            where TCommand : class, ICommand
         {
-            services.AddSingleton<ICommand, TDescriptor>();
+            services.AddSingleton<ICommand, TCommand>();
             return services;
         }
 
         /// <summary>
-        /// Configures the process engine settings by binding to a configuration section.
+        /// Configures the workflow engine settings by binding to a configuration section.
         /// </summary>
         public IServiceCollection ConfigureEngine(string configSectionPath)
         {
@@ -118,7 +118,7 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Configures the process engine settings using a delegate.
+        /// Configures the workflow engine settings using a delegate.
         /// </summary>
         public IServiceCollection ConfigureEngine(Action<EngineSettings> configureOptions)
         {

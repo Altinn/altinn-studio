@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -12,6 +13,7 @@ using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
@@ -22,6 +24,9 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     // queries and multiply their load.
     internal const string ActivitySignalsHttpClientName = "runtime-gateway-activity-signals";
     internal static readonly TimeSpan ActivitySignalsTimeout = TimeSpan.FromMinutes(2);
+
+    // The gateway's answer to a restart of a paused app. Its other 409 means the app is updating.
+    internal const string AppPausedProblemType = "urn:altinn:studio:gateway:app-paused";
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly GeneralSettings _generalSettings;
@@ -74,6 +79,35 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         return response
             ?? throw new InvalidOperationException(
                 "Received empty or null response body when deserializing AppDeployment."
+            );
+    }
+
+    /// <inheritdoc />
+    public async Task<RunningAppDeployment?> GetRunningAppDeployment(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/running";
+
+        using var response = await client.GetAsync(requestUrl, cancellationToken);
+        // Gateways answer 204 when the app does not run, so that telemetry does not count it as a failed request.
+        // Those not yet updated answer 404.
+        if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RunningAppDeployment>(cancellationToken)
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing RunningAppDeployment."
             );
     }
 
@@ -222,6 +256,40 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             ?? throw new InvalidOperationException(
                 "Received empty or null response body when deserializing AppActivitySignalsResponse."
             );
+    }
+
+    public async Task<GatewayAppRestart> RestartApp(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.RestartHttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/restart";
+
+        using var response = await client.PostAsync(requestUrl, content: null, cancellationToken);
+        switch (response.StatusCode)
+        {
+            case HttpStatusCode.NotFound:
+                return new GatewayAppRestart.NotFound();
+            case HttpStatusCode.Conflict:
+                var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+                return problem?.Type == AppPausedProblemType
+                    ? new GatewayAppRestart.Paused()
+                    : new GatewayAppRestart.Updating();
+            default:
+                response.EnsureSuccessStatusCode();
+                var deployment =
+                    await response.Content.ReadFromJsonAsync<RunningAppDeployment>(cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        "Received empty or null response body when deserializing RunningAppDeployment."
+                    );
+                return new GatewayAppRestart.Started(deployment);
+        }
     }
 
     public async Task TriggerReconcileAsync(

@@ -48,9 +48,33 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
+
+    expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
+  });
+
+  it('renders org environments when the backend is older and sends no environment list', async () => {
+    const envName = 'tt02';
+    render({
+      getEnvironments: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
+      getOrgList: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
+        ),
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList: [] }),
+        ),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -96,7 +120,7 @@ describe('DeploymentContainer', () => {
             secondDeploymentWithNone,
             thirdDeploymentWithSuccess,
           ],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });
@@ -136,7 +160,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [firstDeployment, secondDeployment],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });

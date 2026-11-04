@@ -24,4 +24,10 @@ public static class General
     /// The name of the default branch used by Gitea
     /// </summary>
     public const string DefaultBranch = "master";
+
+    /// <summary>
+    /// The domain of the address that Studio commits with, in the developer's name. It tells the commits made in Studio
+    /// apart from commits made elsewhere.
+    /// </summary>
+    public const string StudioCommitEmailDomain = "noreply.altinn.studio";
 }

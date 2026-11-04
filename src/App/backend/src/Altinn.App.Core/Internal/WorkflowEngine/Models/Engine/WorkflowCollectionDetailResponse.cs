@@ -124,4 +124,12 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("failedAttempts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? FailedAttempts { get; init; }
+
+    /// <summary>
+    /// Gets when the first of the <see cref="FailedAttempts"/> failed, on the engine's clock. Null when no attempt of
+    /// the head's current step has failed, or the engine predates the field.
+    /// </summary>
+    [JsonPropertyName("firstFailedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstFailedAt { get; init; }
 }

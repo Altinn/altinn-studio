@@ -14,6 +14,17 @@ spec:
       labels:
         run: altinn-loadbalancer
     spec:
+      # Nodes with this label are kept out of the Azure load balancer's backend pool, so
+      # nginx on one of them would receive no traffic. altinn-studio-infra sets it on the
+      # autoscaled node pools.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node.kubernetes.io/exclude-from-external-load-balancers
+                    operator: NotIn
+                    values: ["true"]
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

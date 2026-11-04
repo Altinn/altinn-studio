@@ -89,7 +89,9 @@ engine's `DefaultStepRetryStrategy`.
 
 A collection head reports `failedAttempts`: how many consecutive attempts of its current step have failed and been
 scheduled for retry. It holds steady while a retry runs, so a consumer can tell a failing head from a slow one without
-reading each workflow.
+reading each workflow. With it comes `firstFailedAt`, when the first of those failures happened, which the step keeps
+as `FirstFailedAt`. Against the collection's `currentTime` it says how long the step has been failing on the engine's
+clock. Both reset when the step defers or is resumed.
 
 When a step exhausts its retries, the engine records the error in the step's `ErrorHistory`, marks the step and the
 workflow `Failed`, and marks the workflows that depend on it `DependencyFailed`.
@@ -833,8 +835,8 @@ and lists the requested keys with no collection in `unmatchedKeys`, since retent
 ### Get collection
 
 `GET /api/v1/{namespace}/collections/{key}` returns one collection with the status of each head, and each head's
-`failedAttempts` and `waitingReason` as [retry](#retry--error-handling) and [deferral](#deferral-durable-yield)
-describe. `404 Not Found` means the namespace has no collection with that key.
+`failedAttempts`, `firstFailedAt` and `waitingReason` as [retry](#retry--error-handling) and
+[deferral](#deferral-durable-yield) describe. `404 Not Found` means the namespace has no collection with that key.
 
 It is a frontier view by contract: auxiliary workflows never appear in it, and it carries no `workflowCounts` rollup,
 since it sits on the app's hot path. Read health from [list collections](#list-collections), and a collection's

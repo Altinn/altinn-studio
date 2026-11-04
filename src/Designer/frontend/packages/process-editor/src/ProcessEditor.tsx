@@ -39,11 +39,14 @@ export const ProcessEditor = (): JSX.Element => {
 
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
+  // The editor imports the process once, when it opens. Renaming or deleting a subform's UI folder changes the saved
+  // process outside the editor, so open on the saved process, not a cached copy that a save would write back.
   const {
     data: bpmnXml,
     isError: hasBpmnQueryError,
+    isFetchedAfterMount: hasFetchedSavedBpmn,
     refetch: refetchBpmn,
-  } = useBpmnQuery(org, app);
+  } = useBpmnQuery(org, app, true, { refetchOnMount: 'always' });
   const { mutateAsync: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
     useUpdateLayoutSetIdMutation(org, app);
@@ -91,7 +94,7 @@ export const ProcessEditor = (): JSX.Element => {
     formData.append('metadata', JSON.stringify(metadata));
 
     await mutateBpmn(
-      { form: formData, metadata },
+      { form: formData },
       {
         onError: () => {
           toast.error(t('process_editor.save_bpmn_xml_error'));
@@ -130,6 +133,10 @@ export const ProcessEditor = (): JSX.Element => {
 
   if (appMetadataPending) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
+  }
+
+  if (!hasFetchedSavedBpmn) {
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   if (hasBpmnQueryError || bpmnXml === null) {

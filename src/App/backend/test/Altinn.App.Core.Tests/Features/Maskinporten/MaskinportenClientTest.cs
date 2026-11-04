@@ -1056,7 +1056,6 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
-        var shouldFail = false;
         var fetches = 0;
         var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -1064,14 +1063,14 @@ public class MaskinportenClientTests
             fixture,
             (_, _) =>
             {
+                // The fetch number decides the response, not a flag the test flips: the test resumes as
+                // soon as a round signals, which can be before this handler has built its response.
                 var n = Interlocked.Increment(ref fetches);
                 if (n == 1)
                     firstRound.TrySetResult();
                 if (n == 2)
                     secondRound.TrySetResult();
-                return Task.FromResult(
-                    shouldFail ? WellKnownErrorResponse() : WellKnownSuccessResponse(expectedIssuer)
-                );
+                return Task.FromResult(n == 1 ? WellKnownSuccessResponse(expectedIssuer) : WellKnownErrorResponse());
             }
         );
         var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
@@ -1080,7 +1079,6 @@ public class MaskinportenClientTests
         // Act - resolve, then the next tick's refresh fails
         await service.StartAsync(CancellationToken.None);
         await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        shouldFail = true;
         fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
         await secondRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var result = await fixture.Client().GetAudienceFromWellKnown();
