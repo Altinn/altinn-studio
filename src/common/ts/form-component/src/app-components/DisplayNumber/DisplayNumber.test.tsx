@@ -15,6 +15,17 @@ describe('DisplayNumber', () => {
     expect(screen.getByText('1 234 567')).toBeInTheDocument();
   });
 
+  it('formats a very small value as plain decimals', () => {
+    render(
+      <DisplayNumber
+        value={1.270667891713e-16}
+        formatting={{ number: { decimalSeparator: ',', decimalScale: 2, suffix: ' kr' } }}
+      />,
+    );
+
+    expect(screen.getByText('0,00 kr')).toBeInTheDocument();
+  });
+
   it('formats the value using pattern formatting', () => {
     render(<DisplayNumber value={12345678} formatting={{ number: { format: '### ## ###' } }} />);
 
