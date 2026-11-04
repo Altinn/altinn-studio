@@ -252,7 +252,7 @@ export const restoreUrl = () => {
     const qrole = p.get('qrole');
     if (qrole === 'Primary' || qrole === 'Auxiliary') {
         const [primary, auxiliary] = roleCheckIds.map(
-            (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id)),
+            (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
         );
         if (primary) primary.checked = qrole === 'Primary';
         if (auxiliary) auxiliary.checked = qrole === 'Auxiliary';

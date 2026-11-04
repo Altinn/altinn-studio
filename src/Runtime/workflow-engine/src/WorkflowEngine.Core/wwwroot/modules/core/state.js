@@ -173,7 +173,7 @@ export const roleCheckIds = ['primary-check', 'auxiliary-check'];
  */
 export const roleParam = () => {
     const [primary, auxiliary] = roleCheckIds.map(
-        (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id)),
+        (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
     );
     if (!primary || !auxiliary || primary.checked === auxiliary.checked) return null;
     return primary.checked ? 'Primary' : 'Auxiliary';
