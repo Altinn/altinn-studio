@@ -79,7 +79,7 @@ export const dataModelMetadataResponse: DataModelMetadataResponse = {
 
 export const deploymentsResponse: DeploymentsResponse = {
   pipelineDeploymentList: [],
-  runningAppList: [],
+  environmentList: [],
 };
 
 export const pipelineDeployment: PipelineDeployment = {

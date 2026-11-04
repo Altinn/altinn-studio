@@ -7,6 +7,7 @@ import type {
   SecurityNoticeAlertTexts,
   TextAreaTexts,
   PermissionPromptTexts,
+  ThreadSelectorTexts,
 } from '../types/AssistantTexts';
 
 const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
@@ -16,6 +17,11 @@ const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
   assistantDocsLink: 'aboutAssistantDocsLink',
   disclaimer: 'aboutAssistantDisclaimer',
   privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
+};
+
+export const threadSelectorTexts: ThreadSelectorTexts = {
+  deleteThread: 'deleteThread',
+  deleteThreadConfirm: 'deleteThreadConfirm',
 };
 
 const emptyThreadTexts: EmptyThreadTexts = {
@@ -63,6 +69,7 @@ export const mockTexts: AssistantTexts = {
   showThreads: 'showThreads',
   newThread: 'newThread',
   previousThreads: 'previousThreads',
+  threadSelector: threadSelectorTexts,
   aboutAssistantDialog: aboutAssistantDialogTexts,
   emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,

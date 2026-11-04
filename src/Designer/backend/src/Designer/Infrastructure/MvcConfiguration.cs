@@ -44,7 +44,7 @@ public static class MvcConfiguration
                 options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());
             });
 
-        services.AddMvc(options => options.EnableEndpointRouting = false);
+        services.AddMvc();
 
         services.AddRazorPages();
 
