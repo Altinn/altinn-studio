@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { StudioContentMenu } from '@studio/components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RobotSmileIcon, BellIcon } from '@studio/icons';
+import { RobotSmileIcon, BellIcon, PlayFillIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 
@@ -20,6 +20,11 @@ export function Menu(): ReactElement {
       tabId: RoutePaths.ContactPoints,
       tabName: t('settings.orgs.contact_points.menu.contact_points'),
       icon: <BellIcon />,
+    },
+    {
+      tabId: RoutePaths.Run,
+      tabName: t('settings.orgs.run.menu.run'),
+      icon: <PlayFillIcon />,
     },
   ];
   return (

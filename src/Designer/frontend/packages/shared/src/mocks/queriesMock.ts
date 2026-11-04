@@ -94,6 +94,7 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { OrgInactivityUndeploySettings } from 'app-shared/types/OrgInactivityUndeploySettings';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -278,9 +279,14 @@ export const queriesMock: ServicesContextProps = {
   getProcessTaskType: vi.fn().mockImplementation(() => Promise.resolve<string>('')),
   getMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
   getSelectedMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
-  getAppSettings: vi
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppSettings>({ undeployOnInactivity: false })),
+  getAppSettings: vi.fn().mockImplementation(() =>
+    Promise.resolve<AppSettings>({
+      undeployOnInactivity: null,
+      inactivityPeriodDays: null,
+      orgUndeployOnInactivity: true,
+      orgInactivityPeriodDays: 30,
+    }),
+  ),
   updateSelectedMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve()),
   updateAppSettings: vi.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: vi.fn().mockImplementation(() => Promise.resolve([])),
@@ -307,6 +313,14 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - Org settings - Contact points
   getContactPoints: vi.fn().mockImplementation(() => Promise.resolve([])),
+
+  // Queries - Org settings - Inactivity undeploy
+  getOrgInactivityUndeploySettings: vi.fn().mockImplementation(() =>
+    Promise.resolve<OrgInactivityUndeploySettings>({
+      undeployOnInactivity: true,
+      inactivityPeriodDays: 30,
+    }),
+  ),
 
   // Queries - Org settings - Bot accounts
   getBotAccounts: vi.fn().mockImplementation(() => Promise.resolve([])),
@@ -437,6 +451,9 @@ export const queriesMock: ServicesContextProps = {
   updateContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),
   toggleContactPointActive: vi.fn().mockImplementation(() => Promise.resolve()),
   deleteContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings - Inactivity undeploy
+  updateOrgInactivityUndeploySettings: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Bot accounts
   createBotAccount: vi.fn().mockImplementation(() => Promise.resolve({})),

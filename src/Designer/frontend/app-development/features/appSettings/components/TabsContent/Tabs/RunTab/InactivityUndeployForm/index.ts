@@ -1,0 +1,1 @@
+export { InactivityUndeployForm } from './InactivityUndeployForm';
