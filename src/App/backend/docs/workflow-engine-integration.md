@@ -95,7 +95,8 @@ lists. Storage always lets the app owner commit a process transition.
 
 A 403 on a callback's save usually means the policy lacks one of those rights, and Storage has committed nothing. The
 callback logs which policy to check and answers with a 500, because the engine's
-[default retry strategy](../../../Runtime/workflow-engine-app/src/WorkflowEngine.App/appsettings.json) does not retry a 403. A deployed policy fix therefore lets the same step save, and the transition goes on by itself.
+[default retry strategy](../../../Runtime/workflow-engine-app/src/WorkflowEngine.App/appsettings.json) stops on a 403.
+A deployed policy fix therefore lets the same step save, and the transition goes on by itself.
 
 The gateways also run as the service owner, through the data accessor they are given. A gateway that calls
 `IDataClient` directly acts as the caller, and the accessor does not see what it changes.
