@@ -3,11 +3,17 @@ package dockerapi
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"io"
+	"log"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -265,6 +271,7 @@ func TestNew_TLSFromCertPath(t *testing.T) {
 	recorder := &requestRecorder{t: t}
 	server := httptest.NewUnstartedServer(http.HandlerFunc(recorder.serve))
 	server.TLS = &tls.Config{ClientAuth: tls.RequireAnyClientCert, MinVersion: tls.VersionTLS12}
+	server.Config.ErrorLog = log.New(io.Discard, "", 0) // The untrusted CA case fails the handshake.
 	server.StartTLS()
 	t.Cleanup(server.Close)
 	t.Setenv("DOCKER_HOST", "tcp://"+server.Listener.Addr().String())
@@ -277,6 +284,12 @@ func TestNew_TLSFromCertPath(t *testing.T) {
 		files   []string
 	}{
 		{name: "verified", verify: "1", files: []string{"ca.pem", "cert.pem", "key.pem"}},
+		{
+			name:    "verified with another CA",
+			verify:  "1",
+			files:   []string{"other-ca.pem", "cert.pem", "key.pem"},
+			wantErr: "tls: failed to verify certificate",
+		},
 		{name: "unverified without a CA", files: []string{"cert.pem", "key.pem"}},
 		{
 			name:    "verified without a CA",
@@ -321,6 +334,7 @@ func TestNew_TLSFromCertPath(t *testing.T) {
 }
 
 // writeCertPath writes the server's certificate as ca.pem and, as the client's own, cert.pem and key.pem.
+// other-ca.pem is written as ca.pem with a certificate that did not sign the server's.
 func writeCertPath(t *testing.T, server *httptest.Server, files []string) string {
 	t.Helper()
 	cert := server.TLS.Certificates[0]
@@ -330,17 +344,41 @@ func writeCertPath(t *testing.T, server *httptest.Server, files []string) string
 	}
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Certificate[0]})
 	contents := map[string][]byte{
-		"ca.pem":   certPEM,
-		"cert.pem": certPEM,
-		"key.pem":  pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key}),
+		"ca.pem":       certPEM,
+		"other-ca.pem": selfSignedCertPEM(t),
+		"cert.pem":     certPEM,
+		"key.pem":      pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key}),
 	}
 	dir := t.TempDir()
 	for _, name := range files {
-		if err := os.WriteFile(filepath.Join(dir, name), contents[name], 0o600); err != nil {
+		path := filepath.Join(dir, strings.TrimPrefix(name, "other-"))
+		if err := os.WriteFile(path, contents[name], 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}
 	return dir
+}
+
+func selfSignedCertPEM(t *testing.T) []byte {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	template := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "other CA"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		KeyUsage:              x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
 }
 
 func TestNewWithHost_ConnectionErrors(t *testing.T) {
