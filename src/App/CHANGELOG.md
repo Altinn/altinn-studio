@@ -20,6 +20,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- A Fiks Arkiv service task with `markInstanceComplete`, the default, no longer stays stuck retrying the archive's receipt. Storage refused its confirmation while the instance was processing. The confirmation is now saved together with the receipt. ([#21737](https://github.com/Altinn/altinn-studio/pull/21737))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
