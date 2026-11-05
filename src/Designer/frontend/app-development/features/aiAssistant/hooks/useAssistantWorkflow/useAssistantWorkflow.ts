@@ -33,7 +33,7 @@ import type { RejectionTexts } from '../../utils/messageUtils';
 const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
-  'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
+  'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.';
 // Status events this soon after a terminal event are stragglers from the finished run.
 const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
 const MAX_HANDLED_ASSISTANT_EVENTS = 200;

@@ -906,7 +906,7 @@ describe('useAssistantWorkflow', () => {
       expect.objectContaining({
         role: MessageAuthor.Assistant,
         content:
-          'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
       }),
     );
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).not.toBe(true);
@@ -1169,7 +1169,7 @@ describe('useAssistantWorkflow', () => {
       expect.objectContaining({
         role: MessageAuthor.Assistant,
         content:
-          'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
       }),
     );
   });
