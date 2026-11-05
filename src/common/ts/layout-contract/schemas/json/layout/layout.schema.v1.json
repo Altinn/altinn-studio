@@ -5335,6 +5335,10 @@
             "validateOnNext": {
               "$ref": "#/definitions/PageValidation"
             },
+            "validateOnBackToSummary": {
+              "description": "Validation when returning to a summary or a linked page. Falls back to Next validation at each configuration level. Use an empty show array to skip validation.",
+              "$ref": "#/definitions/PageValidation"
+            },
             "validateOnPrevious": {
               "$ref": "#/definitions/PageValidation"
             }
@@ -5354,6 +5358,7 @@
             "textResourceBindings": true,
             "showBackButton": true,
             "validateOnNext": true,
+            "validateOnBackToSummary": true,
             "validateOnPrevious": true
           },
           "required": [
@@ -9926,6 +9931,9 @@
               "type": "boolean"
             },
             "validationOnNavigation": {
+              "$ref": "#/definitions/PageValidation"
+            },
+            "validateOnBackToSummary": {
               "$ref": "#/definitions/PageValidation"
             }
           },

@@ -9279,6 +9279,16 @@ const generatedContract = {
           additionalProperties: false,
           required: false,
         },
+        validateOnBackToSummary: {
+          type: 'object',
+          properties: PageValidation['properties'],
+          additionalProperties: false,
+          description: {
+            en: 'Validation when returning to a summary or a linked page. Falls back to Next validation at each configuration level. Use an empty show array to skip validation.',
+            nb: 'Validering ved retur til oppsummering eller en side med returlenke. Bruker ellers valideringen for Neste på hvert innstillingsnivå. Bruk en tom show-liste for å hoppe over valideringen.',
+          },
+          required: false,
+        },
         validateOnPrevious: {
           type: 'object',
           properties: PageValidation['properties'],

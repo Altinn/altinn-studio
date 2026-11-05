@@ -120,6 +120,7 @@ export interface GlobalPageSettingsFromSchema {
   navigationTitle?: ExprValToActualOrExpr<ExprVal.String>;
   taskNavigation?: (NavigationTaskFromSchema | NavigationReceiptFromSchema)[];
   validationOnNavigation?: PageValidation;
+  validateOnBackToSummary?: PageValidation;
   hideAppNameInPdf?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
 
@@ -476,6 +477,7 @@ export interface ILayoutFile {
     hidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
     expandedWidth?: boolean;
     validationOnNavigation?: PageValidation;
+    validateOnBackToSummary?: PageValidation;
   };
 }
 
@@ -663,4 +665,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 2bec1f33d6556538af9888bacfa8fa469fc9bd61e1626bef7671c028c26f5673
+// Source hash: 50a65cfb79472cac2d513320ec6114d9a6b96f968a06ad8e92108bd044cb1705
