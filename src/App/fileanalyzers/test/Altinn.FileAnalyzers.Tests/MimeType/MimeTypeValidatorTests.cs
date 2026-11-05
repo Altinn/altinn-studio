@@ -70,6 +70,102 @@ public class MimeTypeValidatorTests
         );
     }
 
+    [Theory]
+    // The content inspector names these types differently from the content types Studio writes
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.xls",
+        new[] { "application/vnd.ms-excel" },
+        true
+    )]
+    [InlineData(
+        "application/mspowerpoint",
+        new[] { "ppt" },
+        "slides.ppt",
+        new[] { "application/vnd.ms-powerpoint" },
+        true
+    )]
+    [InlineData("application/xml", new[] { "xml" }, "data.xml", new[] { "text/xml" }, true)]
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "BUDGET.XLS",
+        new[] { "application/vnd.ms-excel" },
+        true
+    )]
+    [InlineData("audio/midi", new[] { "midi", "mid" }, "song.mid", new[] { "audio/mid" }, true)]
+    // The content can have extensions of other types, so it doesn't show which type the file is
+    [InlineData(
+        "application/x-bzip2",
+        new[] { "bz2", "tar", "tbz2", "tb2" },
+        "archive.tar",
+        new[] { "application/x-tar" },
+        false
+    )]
+    [InlineData(
+        "video/mp4",
+        new[] { "mp4", "m4v", "m4a", "mp4a", "mov" },
+        "clip.mov",
+        new[] { "video/quicktime" },
+        false
+    )]
+    // The content is not what the extension says
+    [InlineData("image/webp", new[] { "webp" }, "photo.jpg", new[] { "image/jpeg" }, false)]
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.pdf",
+        new[] { "application/vnd.ms-excel", "application/pdf" },
+        false
+    )]
+    // The extension's content type is not allowed
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.xls",
+        new[] { "application/pdf" },
+        false
+    )]
+    // No filename, or content the inspector does not recognize
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        null,
+        new[] { "application/vnd.ms-excel" },
+        false
+    )]
+    [InlineData(null, new string[0], "document.pdf", new[] { "application/pdf" }, false)]
+    public async Task Validate_ChecksContentTypeOfFileExtension_OnlyWhenContentMatchesIt(
+        string? mimeType,
+        string[] extensions,
+        string? filename,
+        string[] allowedContentTypes,
+        bool expectedSuccess
+    )
+    {
+        var dataType = new DataType()
+        {
+            Id = "attachment",
+            EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
+            AllowedContentTypes = allowedContentTypes.ToList(),
+        };
+        IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>()
+        {
+            new FileAnalysisResult("mimeTypeAnalyser")
+            {
+                MimeType = mimeType,
+                Filename = filename,
+                Extensions = extensions.ToList(),
+            },
+        };
+
+        var validator = new MimeTypeValidator();
+        (bool success, _) = await validator.Validate(dataType, fileAnalysisResults);
+
+        Assert.Equal(expectedSuccess, success);
+    }
+
     [Fact]
     public async Task Validate_ContentTypeNotAllowed_SetsTextKeyAndParameters()
     {
