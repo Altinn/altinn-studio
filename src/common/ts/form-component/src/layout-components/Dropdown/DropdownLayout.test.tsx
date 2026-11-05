@@ -109,6 +109,20 @@ describe('Dropdown', () => {
     expect(screen.getByText('Du må fylle ut bostedsland')).toBeInTheDocument();
   });
 
+  it.each([false, true])(
+    'describes the input with its validation messages when renderedInTable=%s',
+    (renderedInTable) => {
+      const { container } = render({
+        title: 'dropdown.title',
+        renderedInTable,
+        validationMessages: <div id='country-validation'>Kontroller bostedslandet</div>,
+        validationMessagesId: 'country-validation',
+      });
+
+      expect(getInput(container)).toHaveAccessibleDescription('Kontroller bostedslandet');
+    },
+  );
+
   it('does not render a validation area when no validation messages are given', () => {
     render();
     expect(screen.queryByText('Du må fylle ut bostedsland')).not.toBeInTheDocument();
