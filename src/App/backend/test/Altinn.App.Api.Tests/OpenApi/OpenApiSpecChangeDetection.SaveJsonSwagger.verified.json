@@ -9565,7 +9565,7 @@
                   "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
                 },
                 "value": {
-                  "description": "The value of an add, replace or test operation; any JSON value"
+                  "description": "Required for add, replace and test operations; any JSON value, including null"
                 }
               },
               "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
@@ -11056,7 +11056,7 @@
                   "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
                 },
                 "value": {
-                  "description": "The value of an add, replace or test operation; any JSON value"
+                  "description": "Required for add, replace and test operations; any JSON value, including null"
                 }
               },
               "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."

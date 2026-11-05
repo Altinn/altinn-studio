@@ -308,7 +308,7 @@
                               },
                               "value": {
                                 "title": "the value",
-                                "description": "The value to add or replace"
+                                "description": "Required for add, replace and test operations; any JSON value, including null"
                               }
                             },
                             "additionalProperties": false

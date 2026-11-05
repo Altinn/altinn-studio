@@ -588,6 +588,27 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         _dataProcessorMock.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData("a")]
+    [InlineData("/a~2")]
+    public async Task MalformedJsonPointer_ReturnsBadRequest(string path)
+    {
+        // ParseList rejects these pointers, so send the request body as text to reach the endpoint
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}";
+        using var content = new StringContent(
+            $$$"""{"patch":[{"op":"replace","path":"{{{path}}}","value":1}]}""",
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var response = await GetClient().PatchAsync(url, content);
+
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString.Should().Contain("is not a valid JSON Pointer");
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task TestEmptyListAndInsertElement_ReturnsNewModel()
     {

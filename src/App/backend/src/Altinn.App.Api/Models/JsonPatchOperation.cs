@@ -265,6 +265,13 @@ internal sealed class JsonPatchOperationConverter : JsonConverter<JsonPatchOpera
 
     public override void Write(Utf8JsonWriter writer, JsonPatchOperation value, JsonSerializerOptions options)
     {
+        // HandleNull is true, so a null list entry reaches Write.
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
         writer.WriteStartObject();
         writer.WriteString("op", value.OpName);
         writer.WriteString("path", value.Path);

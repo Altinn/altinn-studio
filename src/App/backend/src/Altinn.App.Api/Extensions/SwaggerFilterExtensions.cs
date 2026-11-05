@@ -48,7 +48,7 @@ internal static class SwaggerFilterExtensions
                 },
                 ["value"] = new OpenApiSchema
                 {
-                    Description = "The value of an add, replace or test operation; any JSON value",
+                    Description = "Required for add, replace and test operations; any JSON value, including null",
                 },
             },
         };

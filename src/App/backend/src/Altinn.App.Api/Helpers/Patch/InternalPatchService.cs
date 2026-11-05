@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -122,31 +121,11 @@ internal class InternalPatchService
 
             var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
-            (JsonNode? patchedModelNode, DataPatchError? patchError) = JsonPatchApplier.Apply(
-                jsonPatch,
-                oldModelNode
-            ) switch
-            {
-                JsonPatchApplied applied => (applied.Document, (DataPatchError?)null),
-                JsonPatchFailed failed => (
-                    (JsonNode?)null,
-                    new DataPatchError()
-                    {
-                        Title = failed.IsTestFailure ? "Precondition in patch failed" : "Patch Operation Failed",
-                        Detail = failed.Message,
-                        Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
-                        Status = failed.IsTestFailure
-                            ? StatusCodes.Status409Conflict
-                            : StatusCodes.Status422UnprocessableEntity,
-                        PreviousModel = oldModel,
-                        DataElementId = dataElementGuid,
-                        PatchOperationIndex = failed.OperationIndex,
-                    }
-                ),
-                // The default value of the union holds no case. Apply never returns it, but the compiler requires
-                // the arm for exhaustiveness.
-                null => throw new UnreachableException("The patch outcome holds no case"),
-            };
+            var (patchedModelNode, patchError) = ToPatchedModel(
+                JsonPatchApplier.Apply(jsonPatch, oldModelNode),
+                oldModel,
+                dataElementGuid
+            );
             if (patchError is not null)
             {
                 return patchError;
@@ -328,6 +307,34 @@ internal class InternalPatchService
             }
         }
     }
+
+    /// <summary>
+    /// Maps the outcome of applying a patch to the patched model, or to the problem the API answers with.
+    /// </summary>
+    private static (JsonNode? PatchedModelNode, DataPatchError? Error) ToPatchedModel(
+        JsonPatchApplyResult outcome,
+        object oldModel,
+        Guid dataElementGuid
+    ) =>
+        outcome switch
+        {
+            JsonPatchApplied applied => (applied.Document, (DataPatchError?)null),
+            JsonPatchFailed failed => (
+                (JsonNode?)null,
+                new DataPatchError()
+                {
+                    Title = failed.IsTestFailure ? "Precondition in patch failed" : "Patch Operation Failed",
+                    Detail = failed.Message,
+                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
+                    Status = failed.IsTestFailure
+                        ? StatusCodes.Status409Conflict
+                        : StatusCodes.Status422UnprocessableEntity,
+                    PreviousModel = oldModel,
+                    DataElementId = dataElementGuid,
+                    PatchOperationIndex = failed.OperationIndex,
+                }
+            ),
+        };
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)
     {

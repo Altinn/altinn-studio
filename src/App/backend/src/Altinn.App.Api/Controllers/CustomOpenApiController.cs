@@ -1506,7 +1506,8 @@ file static class Snippets
                                         ["value"] = new OpenApiSchema
                                         {
                                             Title = "the value",
-                                            Description = "The value to add or replace",
+                                            Description =
+                                                "Required for add, replace and test operations; any JSON value, including null",
                                         },
                                     },
                                 },
