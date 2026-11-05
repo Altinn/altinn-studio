@@ -16,5 +16,5 @@ patches:
               - name: pdf3-relay
                 env:
                   # DIS Edge, which forwards to the environment's DIS Core
-                  - name: PDF3_UPSTREAM_URL
-                    value: https://studio.platform.prod.altinn.cloud/pdf/v3/generate
+                  - name: PDF3_UPSTREAM_BASE_URL
+                    value: https://studio.platform.prod.altinn.cloud/pdf/v3

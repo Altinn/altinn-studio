@@ -6,18 +6,6 @@ import (
 	"testing"
 )
 
-func TestHealthURLIsNextToThePdfEndpoint(t *testing.T) {
-	tests := map[string]string{
-		"https://studio.platform.tt02.altinn.cloud/pdf/v3/generate": "https://studio.platform.tt02.altinn.cloud/pdf/v3/health",
-		"http://pdf3-proxy.runtime-pdf3.svc.cluster.local/pdf":      "http://pdf3-proxy.runtime-pdf3.svc.cluster.local/pdf/health",
-	}
-	for upstream, want := range tests {
-		if got := healthURL(upstream); got != want {
-			t.Errorf("healthURL(%q) = %q, want %q", upstream, got, want)
-		}
-	}
-}
-
 func TestRelayHealthChecksTheSharedPdf3WithItsAPIKey(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -37,7 +25,7 @@ func TestRelayHealthChecksTheSharedPdf3WithItsAPIKey(t *testing.T) {
 				w.WriteHeader(tt.upstream)
 			}))
 			t.Cleanup(upstream.Close)
-			rl := newTestRelay(t, upstream.URL+"/pdf/v3/generate")
+			rl := newTestRelay(t, upstream.URL+"/pdf/v3")
 
 			w := httptest.NewRecorder()
 			rl.handleHealth(w, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/pdf/health", nil))
@@ -56,7 +44,7 @@ func TestRelayHealthIsUnavailableWhenTheSharedPdf3IsDown(t *testing.T) {
 	upstream := httptest.NewServer(http.NotFoundHandler())
 	url := upstream.URL
 	upstream.Close()
-	rl := newTestRelay(t, url+"/pdf/v3/generate")
+	rl := newTestRelay(t, url+"/pdf/v3")
 
 	w := httptest.NewRecorder()
 	rl.handleHealth(w, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/pdf/health", nil))
@@ -70,7 +58,7 @@ func TestRelayHealthIsUnavailableWhenShuttingDown(t *testing.T) {
 	called := false
 	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { called = true }))
 	t.Cleanup(upstream.Close)
-	rl := newTestRelay(t, upstream.URL+"/pdf/v3/generate")
+	rl := newTestRelay(t, upstream.URL+"/pdf/v3")
 	rl.shuttingDown = func() bool { return true }
 
 	w := httptest.NewRecorder()

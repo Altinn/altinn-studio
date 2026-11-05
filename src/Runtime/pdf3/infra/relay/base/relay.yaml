@@ -83,7 +83,7 @@ spec:
           kubernetes.io/metadata.name: kube-system # Azure Monitor Agent (envs)
 ---
 # Forwards apps' PDF requests to the shared pdf3 in DIS Core, see the pdf3 README. It runs the
-# proxy image's relay binary. The environment overlays set PDF3_UPSTREAM_URL.
+# proxy image's relay binary. The environment overlays set PDF3_UPSTREAM_BASE_URL.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

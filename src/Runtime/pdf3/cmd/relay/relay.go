@@ -71,9 +71,11 @@ type relay struct {
 	timeout      time.Duration
 }
 
+// newRelay makes a relay to the shared pdf3's API at baseURL, which takes PDF requests at /generate and answers
+// its health at /health.
 func newRelay(
 	logger *slog.Logger,
-	upstream string,
+	baseURL string,
 	keys *auth.KeyFile,
 	serviceOwner string,
 	shuttingDown func() bool,
@@ -105,8 +107,8 @@ func newRelay(
 			Timeout:       healthTimeout,
 			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 		},
-		healthURL:    healthURL(upstream),
-		upstream:     upstream,
+		healthURL:    baseURL + "/health",
+		upstream:     baseURL + "/generate",
 		serviceOwner: serviceOwner,
 		timeout:      upstreamTimeout,
 		shuttingDown: shuttingDown,

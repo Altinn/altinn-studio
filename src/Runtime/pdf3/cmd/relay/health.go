@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	ihttp "altinn.studio/pdf3/internal/http"
@@ -14,22 +12,6 @@ import (
 
 // healthTimeout bounds the check of the shared pdf3, below the gateway's 10 seconds for the whole check.
 const healthTimeout = 5 * time.Second
-
-// healthURL is the shared pdf3's health endpoint for its PDF endpoint upstream: /pdf/v3/health on DIS Edge for
-// /pdf/v3/generate, and the proxy's /pdf/health for its /pdf.
-func healthURL(upstream string) string {
-	u, err := url.Parse(upstream)
-	if err != nil {
-		return ""
-	}
-	if base, ok := strings.CutSuffix(u.Path, "/generate"); ok {
-		u.Path = base + "/health"
-	} else {
-		u.Path = strings.TrimSuffix(u.Path, "/") + "/health"
-	}
-	u.RawPath = ""
-	return u.String()
-}
 
 // handleHealth answers whether apps can get PDFs through the relay. The gateway calls it through the route apps'
 // requests take, and the relay checks the shared pdf3 the way it forwards their requests, with its API key. The

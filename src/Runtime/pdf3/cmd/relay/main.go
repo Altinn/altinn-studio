@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"altinn.studio/pdf3/internal/auth"
@@ -25,8 +26,8 @@ import (
 )
 
 const (
-	// upstreamURLEnv is the shared pdf3's PDF endpoint, e.g. https://platform.tt02.altinn.no/pdf/v3/generate.
-	upstreamURLEnv = "PDF3_UPSTREAM_URL"
+	// upstreamURLEnv is the shared pdf3's API on DIS Edge, e.g. https://studio.platform.tt02.altinn.cloud/pdf/v3.
+	upstreamURLEnv = "PDF3_UPSTREAM_BASE_URL"
 	// upstreamAPIKeyFileEnv points to a file whose first key is the API key to send, see auth.KeyFile.
 	// It is named apart from the proxy's PDF3_API_KEYS_FILE, the keys the proxy accepts.
 	//nolint:gosec // The name of an environment variable, not a credential.
@@ -128,7 +129,7 @@ func main() {
 	logger.Info("Server shut down gracefully")
 }
 
-// readUpstream returns the shared pdf3's PDF endpoint and the API key to send it, and checks that
+// readUpstream returns the shared pdf3's API base URL and the API key to send it, and checks that
 // the cluster's service owner is set. It exits if any of them is missing or invalid.
 func readUpstream(logger *slog.Logger, cfg *config.Config) (string, *auth.KeyFile) {
 	// The shared pdf3 decides on PDF/A conversion by the service owner the relay sends.
@@ -145,15 +146,17 @@ func readUpstream(logger *slog.Logger, cfg *config.Config) (string, *auth.KeyFil
 	upstreamURL, ok := parseUpstreamURL(upstream)
 	if !ok {
 		logger.Error(
-			"PDF3_UPSTREAM_URL must be an absolute http(s) URL without user information, query or fragment",
-			attr.ConfigEnvVar, upstreamURLEnv,
-			attr.ConfigValue, telemetry.RedactURL(upstream),
+			"PDF3_UPSTREAM_BASE_URL must be an absolute http(s) URL without user information, query, fragment or trailing slash",
+			attr.ConfigEnvVar,
+			upstreamURLEnv,
+			attr.ConfigValue,
+			telemetry.RedactURL(upstream),
 		)
 		os.Exit(1)
 	}
 	if upstreamURL.Scheme != "https" {
 		logger.Warn(
-			"PDF3_UPSTREAM_URL is not https, API keys and PDFs are sent unencrypted",
+			"PDF3_UPSTREAM_BASE_URL is not https, API keys and PDFs are sent unencrypted",
 			attr.UpstreamURL, telemetry.RedactURL(upstream),
 		)
 	}
@@ -172,7 +175,8 @@ func readUpstream(logger *slog.Logger, cfg *config.Config) (string, *auth.KeyFil
 	return upstream, keys
 }
 
-// parseUpstreamURL parses upstream, which must be an absolute http(s) URL. It is logged, so it must
+// parseUpstreamURL parses upstream, which must be an absolute http(s) URL without a trailing slash, since the
+// relay appends its paths. It is logged, so it must
 // not hold user information, a query or a fragment.
 func parseUpstreamURL(upstream string) (*url.URL, bool) {
 	u, err := url.Parse(upstream)
@@ -181,6 +185,7 @@ func parseUpstreamURL(upstream string) (*url.URL, bool) {
 		u.Host != "" &&
 		u.User == nil &&
 		u.RawQuery == "" && !u.ForceQuery &&
-		u.Fragment == ""
+		u.Fragment == "" &&
+		!strings.HasSuffix(u.Path, "/")
 	return u, ok
 }
