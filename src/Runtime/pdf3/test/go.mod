@@ -7,13 +7,13 @@ replace altinn.studio/devenv => ../../devenv
 replace altinn.studio/pdf3 => ..
 
 require (
+	altinn.studio/common v0.0.0
 	altinn.studio/devenv v0.0.0
 	altinn.studio/pdf3 v0.0.0
 )
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
-	altinn.studio/common v0.0.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
