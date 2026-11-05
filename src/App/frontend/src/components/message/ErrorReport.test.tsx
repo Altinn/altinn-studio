@@ -155,7 +155,7 @@ describe('ErrorReport', () => {
 
     expect(errorNode.parentElement?.tagName).toEqual('BUTTON');
 
-    expect(errorNode.parentElement?.parentElement?.tagName).toEqual('LI');
+    expect(errorNode.closest('li')).toBeInTheDocument();
   });
   function mockProcessNextValidationIssues(validationIssues: BackendValidationIssue[]) {
     vi.mocked(doProcessNext).mockImplementationOnce(async () => {
@@ -191,7 +191,10 @@ describe('ErrorReport', () => {
     await render([issue({ customTextKey: 'Check the value', componentId: 'input' })], 'Name');
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(await screen.findByRole('button', { name: 'Name: Check the value' })).toBeInTheDocument();
+    const label = await screen.findByRole('button', { name: 'Name' });
+    expect(label).toBeInTheDocument();
+    expect(label).not.toHaveTextContent('Check the value');
+    expect(label.parentElement).toHaveTextContent('Check the value');
   });
 
   it('should list an error linked to a missing component as unclickable', async () => {

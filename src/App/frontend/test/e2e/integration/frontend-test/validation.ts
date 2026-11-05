@@ -143,7 +143,8 @@ describe('Validation', () => {
     cy.findByRole('textbox', { name: newLastName }).should('not.be.focused');
 
     cy.get(appFrontend.errorReport)
-      .get(`button:contains("${texts.requiredFieldLastName}")`)
+      .find(`li:contains("${texts.requiredFieldLastName}")`)
+      .find('button')
       .should('be.inViewport')
       .click();
 
@@ -161,7 +162,7 @@ describe('Validation', () => {
     cy.get(lastNameError).should('not.exist');
 
     // Click the error text, which should lead us back to the change name form and focus the field
-    cy.get(appFrontend.errorReport).get(`button:contains("${texts.requiredFieldLastName}")`).click();
+    cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldLastName}")`).find('button').click();
 
     cy.get(lastNameError).should('exist').should('be.inViewport');
     cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
@@ -252,7 +253,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).find('li').should('have.length', expectedErrors.length);
     for (const { text, elementIdToFocus } of expectedErrors) {
       cy.get(appFrontend.errorReport).should('contain.text', text);
-      cy.get(`button:contains("${text}")`).click();
+      cy.get(appFrontend.errorReport).find(`li:contains("${text}")`).find('button').click();
       cy.focused().closest('[data-componentid]').should('have.attr', 'data-componentid', elementIdToFocus);
     }
   });
@@ -380,7 +381,11 @@ describe('Validation', () => {
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
-    cy.get(appFrontend.errorReport).findByText(texts.requiredOpenRepGroup).click();
+    cy.get(appFrontend.errorReport)
+      .findByText(texts.requiredOpenRepGroup)
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').should('be.focused');
 
     // Check that clicking the error focuses a component inside a group
@@ -393,11 +398,19 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 1. endre fra')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).currentValue).should('exist').and('be.focused');
     cy.get(appFrontend.group.row(2).currentValue).type('123');
 
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 2. endre verdi 123 til')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).newValue).should('exist').and('be.focused');
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
@@ -423,7 +436,11 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.findByRole('button', { name: 'Se innhold NOK 1 233' }).click();
-    cy.get(appFrontend.errorReport).findByText(texts.requiredComment).click();
+    cy.get(appFrontend.errorReport)
+      .findByText(texts.requiredComment)
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.focused');
 
     // Check that switching page works
@@ -432,7 +449,11 @@ describe('Validation', () => {
     cy.gotoNavPage('summary');
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
-    cy.get(appFrontend.errorReport).findByText(texts.requiredSendersName).click();
+    cy.get(appFrontend.errorReport)
+      .findByText(texts.requiredSendersName)
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.sendersName).should('be.focused');
     cy.get(appFrontend.group.sendersName).type('hello world');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -458,7 +479,11 @@ describe('Validation', () => {
     cy.get(appFrontend.navButtons).findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.group.editContainer).should('be.visible');
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 2. endre verdi til')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).newValue).should('exist').and('be.focused');
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
 
@@ -518,10 +543,18 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 1. endre fra')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).currentValue).should('be.focused');
     cy.get(appFrontend.group.editContainer).should('not.exist');
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 2. endre verdi til')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -540,7 +573,11 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
+    cy.get(appFrontend.errorReport)
+      .findByText('Du må fylle ut 2. endre verdi til')
+      .closest('li')
+      .find('button[data-target-node]')
+      .click();
     cy.get(appFrontend.group.row(2).newValue).should('be.focused');
 
     cy.changeLayout((component) => {
@@ -718,7 +755,9 @@ describe('Validation', () => {
     cy.gotoNavPage('grid');
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 6);
-    cy.findByText('Du må fylle ut dato for navneendring').click();
+    cy.get(appFrontend.errorReport)
+      .findByRole('button', { name: /når vil du at navnendringen skal skje/i })
+      .click();
     cy.findByRole('textbox', { name: /når vil du at navnendringen skal skje\?\s*må fylles ut/i }).should('be.visible');
   });
 
@@ -762,7 +801,7 @@ describe('Validation', () => {
       cy.findByRole('radio', { name: /Alltid/ }).should('not.be.focused');
     });
 
-    cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
+    cy.findByRole('button', { name: /hører skolen på elevenes forslag/i }).click();
 
     cy.findByRole('row', {
       name: /Hører skolen på elevenes forslag\?\s*må fylles ut/i,
