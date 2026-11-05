@@ -107,7 +107,7 @@ export const ResourceDeployEnvCard = ({
               </>
             )}
           </div>
-          <StudioButton disabled={!isDeployPossible || !!publishError} onClick={handlePublish}>
+          <StudioButton disabled={!isDeployPossible} onClick={handlePublish}>
             {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
           {publishError && (
