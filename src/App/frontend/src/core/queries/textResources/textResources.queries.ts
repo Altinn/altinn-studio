@@ -49,9 +49,12 @@ export function resourcesAsMap(resources: IRawTextResource[]): TextResourceMap {
   return Object.fromEntries(resources.flatMap(({ id, ...resource }) => [[id, resource]]));
 }
 
-export function createTextResourcesQueries(queryClient: QueryClient): TextResourcesQueries {
+export function createTextResourcesQueries(
+  queryClient: QueryClient,
+  textResourcesApi: TextResourcesApi,
+): TextResourcesQueries {
   return {
-    ensureLoaded: ({ selectedLanguage, textResourcesFromWindow, textResourcesApi }) => {
+    ensureLoaded: ({ selectedLanguage, textResourcesFromWindow }) => {
       if (queryClient.getQueryData(textResourcesQueryKeys.textResources(selectedLanguage))) {
         return;
       }

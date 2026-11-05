@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
+import { createExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders.queries';
 import { getQueryClient } from 'src/core/queries/queryClient.queries';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import type { ExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders';
 import type { AppQueryClient } from 'src/core/queries/queryClient';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/types';
 
@@ -16,6 +18,7 @@ interface ContextData {
   queryClient: AppQueryClient;
   queries: AppQueries;
   mutations: AppMutations;
+  expressionQueryReaders: ExpressionQueryReaders;
 }
 
 const { Provider, useCtx } = createContext<ContextData>({ name: 'AppQueriesContext', required: true });
@@ -41,11 +44,17 @@ export const AppQueriesProvider = ({
     window.queryClient = client;
   }, [client]);
 
-  // Expression readers cache against the request records; preserve their identity until a function changes.
+  const { fetchExternalApi, fetchTextResources } = queries;
+  // Share readers and their subscriptions within this provider, independent of unrelated request changes.
+  const expressionQueryReaders = useMemo(
+    () => createExpressionQueryReaders(client, { fetchExternalApi, fetchTextResources }),
+    [client, fetchExternalApi, fetchTextResources],
+  );
   const value = useShallowMemo({
     queryClient,
     queries: useShallowMemo(queries),
     mutations: useShallowMemo(mutations),
+    expressionQueryReaders,
   });
 
   return (
@@ -58,3 +67,4 @@ export const AppQueriesProvider = ({
 export const useAppQueries = () => useCtx().queries;
 export const useAppMutations = () => useCtx().mutations;
 export const useAppQueryClient = () => useCtx().queryClient;
+export const useExpressionQueryReaders = () => useCtx().expressionQueryReaders;

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { resourcesAsMap, textResourcesQuery } from 'src/core/queries/textResources/textResources.queries';
-import type { TextResourcesApi } from 'src/core/api-client/textResources.api';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
 
 export interface UseTextResourcesQueryParams {
@@ -17,7 +16,7 @@ function useTextResourcesQuery(params: UseTextResourcesQueryParams) {
 }
 
 export interface TextResourcesQueries {
-  ensureLoaded: (params: UseTextResourcesQueryParams & { textResourcesApi: TextResourcesApi }) => void;
+  ensureLoaded: (params: UseTextResourcesQueryParams) => void;
   getCached: (selectedLanguage: string) => TextResourceMap | undefined;
 }
 
