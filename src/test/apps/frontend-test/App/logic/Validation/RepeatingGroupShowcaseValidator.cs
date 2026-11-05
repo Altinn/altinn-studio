@@ -10,7 +10,6 @@ namespace Altinn.App.logic.Validation;
 internal sealed class RepeatingGroupShowcaseValidator : IValidator
 {
     private static readonly string[] Variants = ["default", "mixed", "table"];
-    private static readonly string[] Fields = ["name", "species", "age"];
 
     /// <inheritdoc />
     public string TaskId => "Task_3";
@@ -24,7 +23,7 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
     {
         var model = await dataAccessor.GetFormData<NestedGroup>();
         var pets = model?.Pets;
-        if (pets?.FirstOrDefault()?.UniqueId != "validation-showcase-balder")
+        if (pets?.Any(pet => pet.UniqueId?.StartsWith("validation-showcase-", StringComparison.Ordinal) == true) != true)
         {
             return [];
         }
@@ -69,48 +68,32 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
 
             for (var rowIndex = 0; rowIndex < pets.Count; rowIndex++)
             {
-                // Distribute selected severities across rows, retaining every selection even with fewer rows.
-                var rowSeverities = severities.Length <= pets.Count
-                    ? [severities[rowIndex % severities.Length]]
-                    : severities.Where((_, index) => index % pets.Count == rowIndex).ToArray();
-                foreach (var severity in rowSeverities)
+                var messages = GetFieldMessages(pets[rowIndex].UniqueId)
+                    .Where(message => severities.Contains(message.Severity)).ToArray();
+                if (selected.Contains("rows") && messages.Length > 0)
                 {
-                    if (selected.Contains("rows"))
+                    issues.Add(new ValidationIssue
+                    {
+                        DataElementId = dataElement.Id,
+                        ComponentId = $"{componentId}-row",
+                        RowIndexes = [rowIndex],
+                        Severity = messages[0].Severity,
+                        Description = "Denne meldingen gjelder opplysningene om kjæledyret samlet.",
+                    });
+                }
+
+                if (selected.Contains("fields"))
+                {
+                    foreach (var message in messages)
                     {
                         issues.Add(new ValidationIssue
                         {
                             DataElementId = dataElement.Id,
-                            ComponentId = $"{componentId}-row",
+                            ComponentId = $"{componentId}-{message.Field}",
                             RowIndexes = [rowIndex],
-                            Severity = severity,
-                            Description = severity switch
-                            {
-                                ValidationIssueSeverity.Success => "Opplysningene om dette kjæledyret er kontrollert samlet.",
-                                ValidationIssueSeverity.Informational => "Denne meldingen gjelder alle opplysningene om kjæledyret.",
-                                _ => "Kontroller opplysningene om dette kjæledyret samlet.",
-                            },
+                            Severity = message.Severity,
+                            Description = message.Description,
                         });
-                    }
-
-                    if (selected.Contains("fields"))
-                    {
-                        foreach (var field in Fields)
-                        {
-                            issues.Add(new ValidationIssue
-                            {
-                                DataElementId = dataElement.Id,
-                                ComponentId = $"{componentId}-{field}",
-                                RowIndexes = [rowIndex],
-                                Severity = severity,
-                                Description = severity switch
-                                {
-                                    ValidationIssueSeverity.Error => "Verdien må korrigeres.",
-                                    ValidationIssueSeverity.Warning => "Kontroller at verdien stemmer.",
-                                    ValidationIssueSeverity.Informational => "Verdien er hentet fra eksempeldata.",
-                                    _ => "Verdien er kontrollert.",
-                                },
-                            });
-                        }
                     }
                 }
             }
@@ -118,6 +101,20 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
 
         return issues;
     }
+
+    // Stable example identities keep each case intact when rows are edited, deleted or reordered.
+    private static (string Field, ValidationIssueSeverity Severity, string Description)[] GetFieldMessages(string? id) => id switch
+    {
+        "validation-showcase-balder" => [("name", ValidationIssueSeverity.Error, "Navnet stemmer ikke med opplysningene i registeret.")],
+        "validation-showcase-maja" => [("species", ValidationIssueSeverity.Warning, "Dyreslaget er endret siden forrige innrapportering. Kontroller at katt er riktig.")],
+        "validation-showcase-luna" => [("age", ValidationIssueSeverity.Informational, "Alderen er hentet fra registeret.")],
+        "validation-showcase-felix" => [("age", ValidationIssueSeverity.Success, "Alderen er kontrollert.")],
+        "validation-showcase-milo" => [
+            ("name", ValidationIssueSeverity.Error, "Oppgi navnet slik det står i registeret."),
+            ("age", ValidationIssueSeverity.Warning, "Alderen er høyere enn ved forrige innrapportering. Kontroller verdien.")
+        ],
+        _ => [],
+    };
 
     /// <inheritdoc />
     public Task<bool> HasRelevantChanges(
