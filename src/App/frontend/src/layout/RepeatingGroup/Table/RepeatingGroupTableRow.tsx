@@ -113,6 +113,13 @@ export function RepeatingGroupTableRow({
   const tableEditingIds = tableItems
     .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))
     .map((item) => item.baseId);
+  const mobileTableItems = tableItems.filter(
+    (item) =>
+      !isEditingRow ||
+      config.edit?.mode === 'onlyTable' ||
+      (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) &&
+        config.tableColumns?.[item.baseId]?.showInExpandedEdit === false),
+  );
   const rowHasErrors = rowValidations.some(
     (validation) => validation.severity === 'error' && !tableEditingIds.includes(validation.baseComponentId),
   );
@@ -167,52 +174,50 @@ export function RepeatingGroupTableRow({
               />
             ),
           )
-        ) : (
+        ) : mobileTableItems.length > 0 ? (
           <Table.Cell className={classes.mobileTableCell}>
             <Flex
               container
               spacing={6}
             >
-              {tableItems.map(
-                (item, i, { length }) =>
-                  !isEditingRow &&
-                  (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
-                    <Flex
-                      container
-                      item
-                      key={item.baseId}
-                      ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
-                    >
-                      <GenericComponent
+              {mobileTableItems.map((item, i, { length }) =>
+                shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
+                  <Flex
+                    container
+                    item
+                    key={item.baseId}
+                    ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
+                  >
+                    <GenericComponent
+                      baseComponentId={item.baseId}
+                      overrideItemProps={{
+                        grid: {},
+                      }}
+                    />
+                  </Flex>
+                ) : (
+                  <Flex
+                    container
+                    item
+                    key={item.baseId}
+                  >
+                    <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
+                      <TableTitle
                         baseComponentId={item.baseId}
-                        overrideItemProps={{
-                          grid: {},
-                        }}
+                        compType={item.type}
                       />
-                    </Flex>
-                  ) : (
-                    <Flex
-                      container
-                      item
-                      key={item.baseId}
-                    >
-                      <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                        <TableTitle
-                          baseComponentId={item.baseId}
-                          compType={item.type}
-                        />
-                        :
-                      </b>
-                      <span className={classes.contentFormatting}>
-                        <DisplayData baseComponentId={item.baseId} />
-                      </span>
-                      {i < length - 1 && <div style={{ height: 8 }} />}
-                    </Flex>
-                  )),
+                      :
+                    </b>
+                    <span className={classes.contentFormatting}>
+                      <DisplayData baseComponentId={item.baseId} />
+                    </span>
+                    {i < length - 1 && <div style={{ height: 8 }} />}
+                  </Flex>
+                ),
               )}
             </Flex>
           </Table.Cell>
-        )}
+        ) : null}
         {mobileView || useVerticalButtonLayout ? (
           <Table.Cell
             className={cn(classes.buttonCell, { [classes.mobileTableCell]: mobileView })}
