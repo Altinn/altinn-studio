@@ -8,12 +8,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/zapr"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
@@ -282,6 +286,42 @@ func TestReconciler_StopsSyncingWhenCanceled(t *testing.T) {
 			g.Expect(err.Error()).To(ContainSubstring(`get Key Vault secret "first-secret"`))
 		})
 	}
+}
+
+// keyVaultClientFunc is a Key Vault client that answers with a function.
+type keyVaultClientFunc func(name string) (string, error)
+
+func (f keyVaultClientFunc) GetSecret(_ context.Context, name, _ string) (string, error) {
+	return f(name)
+}
+
+func TestReconciler_LogsAFailureThatCoincidesWithCancellation(t *testing.T) {
+	g := NewWithT(t)
+	mappings := []KeyVaultSecretMapping{
+		{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+		{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+	}
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zapr.NewLogger(zap.New(core))
+	ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
+	defer cancel()
+	var requested []string
+	reconciler := NewReconcilerForTesting(
+		newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+		newFakeK8sClient(),
+		keyVaultClientFunc(func(name string) (string, error) {
+			requested = append(requested, name)
+			cancel()
+			return "", fakes.TransientError()
+		}),
+		mappings,
+	)
+	reconciler.logger = logger
+
+	err := reconciler.SyncAll(ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(requested).To(Equal([]string{"first-secret"}))
+	g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(1))
 }
 
 func TestReconciler_SyncsMultipleMappings(t *testing.T) {

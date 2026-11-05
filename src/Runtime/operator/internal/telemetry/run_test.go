@@ -106,21 +106,18 @@ func TestStartRunRecordsEachRunOnce(t *testing.T) {
 //nolint:paralleltest // StartRun records through the global providers, which this test replaces.
 func TestStartRunDoesNotCountACanceledRunAsFailed(t *testing.T) {
 	tests := map[string]struct {
-		stop       func(context.Context) (context.Context, context.CancelFunc)
+		// newContext returns the run's context, and a stop function the run calls after it starts.
+		newContext func(context.Context) (context.Context, context.CancelFunc)
 		wantCounts map[string]uint64
 		wantErrors int
 	}{
 		"canceled": {
-			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
-				ctx, cancel := context.WithCancel(ctx)
-				cancel()
-				return ctx, cancel
-			},
+			newContext: context.WithCancel,
 			wantCounts: map[string]uint64{},
 			wantErrors: 0,
 		},
 		"past its deadline": {
-			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
+			newContext: func(ctx context.Context) (context.Context, context.CancelFunc) {
 				return context.WithTimeout(ctx, 0)
 			},
 			wantCounts: map[string]uint64{"azurekeyvaultsync/sync_mappings": 1},
@@ -131,10 +128,10 @@ func TestStartRunDoesNotCountACanceledRunAsFailed(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			reader := useTestProviders(t, sdktrace.AlwaysSample())
 			console, logs := observer.New(zap.InfoLevel)
-			ctx, stop := tt.stop(log.IntoContext(context.Background(), zapr.NewLogger(zap.New(console))))
-			defer stop()
+			ctx, stop := tt.newContext(log.IntoContext(context.Background(), zapr.NewLogger(zap.New(console))))
 
 			ctx, run := StartRun(ctx, "azurekeyvaultsync", "keyvaultsync.SyncAll")
+			stop()
 			commontelemetry.SetError(run, "sync_mappings", ctx.Err())
 			run.End()
 

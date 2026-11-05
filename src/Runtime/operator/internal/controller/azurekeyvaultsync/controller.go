@@ -248,14 +248,16 @@ func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
 	for _, mapping := range c.mappings {
 		if err := c.syncMapping(ctx, mapping); err != nil {
 			syncErr = errors.Join(syncErr, err)
+			if !errors.Is(err, context.Canceled) {
+				c.logger.Error(err, "failed to sync mapping",
+					"secretName", mapping.Name,
+					"namespace", mapping.Namespace,
+				)
+			}
 			// The run was stopped, so the remaining mappings would fail the same way.
 			if ctx.Err() != nil {
 				break
 			}
-			c.logger.Error(err, "failed to sync mapping",
-				"secretName", mapping.Name,
-				"namespace", mapping.Namespace,
-			)
 		}
 	}
 

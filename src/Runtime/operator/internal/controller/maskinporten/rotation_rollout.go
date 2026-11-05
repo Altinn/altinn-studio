@@ -154,16 +154,19 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 			now,
 		); err != nil {
 			errs = append(errs, err)
+			if !errors.Is(err, context.Canceled) {
+				logger.Error(
+					err,
+					"failed processing Maskinporten rotation rollout",
+					"maskinportenClient", instance.Name,
+					"namespace", instance.Namespace,
+					"release", releaseName,
+				)
+			}
+			// The run was stopped, so the remaining clients would fail the same way.
 			if ctx.Err() != nil {
 				break
 			}
-			logger.Error(
-				err,
-				"failed processing Maskinporten rotation rollout",
-				"maskinportenClient", instance.Name,
-				"namespace", instance.Namespace,
-				"release", releaseName,
-			)
 		}
 	}
 

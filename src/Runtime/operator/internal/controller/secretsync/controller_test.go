@@ -831,3 +831,30 @@ func TestSyncAll_StopsOnCancellationAndKeepsPriorFailures(t *testing.T) {
 		})
 	}
 }
+
+func TestSyncAll_LogsAFailureThatCoincidesWithCancellation(t *testing.T) {
+	g := NewWithT(t)
+	mappings := []SecretSyncMapping{
+		{SourceName: "first", SourceNamespace: "default", DestName: "first", DestNamespace: "dest"},
+		{SourceName: "second", SourceNamespace: "default", DestName: "second", DestNamespace: "dest"},
+	}
+	h := newTestHarness(t, mappings)
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zapr.NewLogger(zap.New(core))
+	ctx, stop := context.WithCancel(log.IntoContext(context.Background(), logger))
+	defer stop()
+	h.reconciler.logger = logger
+	var requested []string
+	h.reconciler.k8sClient = fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+		Get: func(_ context.Context, _ client.WithWatch, key client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
+			requested = append(requested, key.Name)
+			stop()
+			return errTransformFailed
+		},
+	}).Build()
+
+	err := h.reconciler.SyncAll(ctx)
+	g.Expect(err).To(MatchError(errTransformFailed))
+	g.Expect(requested).To(Equal([]string{"first"}))
+	g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(1))
+}
