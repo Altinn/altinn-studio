@@ -27,9 +27,11 @@ export const validationSeverityPresentation = {
 export function ValidationMessage({
   validation,
   onNavigate,
+  showFieldLink = true,
 }: {
   validation: NodeRefValidation;
   onNavigate?: () => void;
+  showFieldLink?: boolean;
 }) {
   return (
     <DataModelLocationProviderFromNode
@@ -40,13 +42,22 @@ export function ValidationMessage({
         <MessageContent
           validation={validation}
           onNavigate={onNavigate}
+          showFieldLink={showFieldLink}
         />
       </FormComponentContextProvider>
     </DataModelLocationProviderFromNode>
   );
 }
 
-function MessageContent({ validation, onNavigate }: { validation: NodeRefValidation; onNavigate?: () => void }) {
+function MessageContent({
+  validation,
+  onNavigate,
+  showFieldLink,
+}: {
+  validation: NodeRefValidation;
+  onNavigate?: () => void;
+  showFieldLink: boolean;
+}) {
   const { title } = useLabelData({ baseComponentId: validation.baseComponentId, overrideDisplay: undefined });
   const rowContexts = useCurrentRowContexts();
   const { langAsString } = useLanguage();
@@ -66,19 +77,21 @@ function MessageContent({ validation, onNavigate }: { validation: NodeRefValidat
         </span>
       </span>
       <div>
-        <button
-          type='button'
-          className={classes.fieldLink}
-          onClick={() => {
-            onNavigate?.();
-            void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
-          }}
-          data-target-node={validation.nodeId}
-        >
-          {title ? <Lang id={title} /> : <LangReference reference={validation.message} />}
-          {rowContexts.length > 1 && <span className={classes.rowPath}> ({rowPath})</span>}
-        </button>
-        {title && (
+        {showFieldLink && (
+          <button
+            type='button'
+            className={classes.fieldLink}
+            onClick={() => {
+              onNavigate?.();
+              void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
+            }}
+            data-target-node={validation.nodeId}
+          >
+            {title ? <Lang id={title} /> : <LangReference reference={validation.message} />}
+            {rowContexts.length > 1 && <span className={classes.rowPath}> ({rowPath})</span>}
+          </button>
+        )}
+        {(!showFieldLink || title) && (
           <div>
             <LangReference reference={validation.message} />
           </div>

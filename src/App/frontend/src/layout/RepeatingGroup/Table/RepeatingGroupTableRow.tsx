@@ -273,6 +273,7 @@ export function RepeatingGroupTableRow({
       {!mobileView && (
         <RepeatingGroupTableErrors
           validations={rowValidations.filter((validation) => tableEditingIds.includes(validation.baseComponentId))}
+          tableIds={tableIds}
           columnSpan={tableItems.length + columnCount}
           index={index}
         />
@@ -428,10 +429,7 @@ function EditableCell({
         style={style}
         ref={(ref) => refSetter && refSetter(index, `component-${baseComponentId}`, ref)}
       >
-        <RepeatingGroupTableField
-          baseComponentId={baseComponentId}
-          index={index}
-        />
+        <RepeatingGroupTableField baseComponentId={baseComponentId} />
       </div>
     </Table.Cell>
   );
