@@ -10,10 +10,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
-### Added
-
-- `BrokerFileTransfer` (beta) lets the user choose a file in the form and send it with Altinn Broker, to recipients set on the component or taken from the data model. Turn it on with the feature toggle `brokerFileTransferEnabled`. ([#21593](https://github.com/Altinn/altinn-studio/pull/21593))
-
 ### Changed
 
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
