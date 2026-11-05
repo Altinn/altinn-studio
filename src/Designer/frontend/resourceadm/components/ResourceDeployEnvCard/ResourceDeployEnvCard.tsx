@@ -56,6 +56,7 @@ export const ResourceDeployEnvCard = ({
     usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
+    setPublishError(null);
     publishResource(env.id, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
