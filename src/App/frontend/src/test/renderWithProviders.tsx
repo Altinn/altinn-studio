@@ -196,21 +196,9 @@ function createQueryMocks({ queries, mutations }: QueryOverrides = {}) {
         (async (): Promise<Awaited<ReturnType<AppMutations['setSelectedParty']>>> => 'Party successfully updated'),
     ),
   };
-  const mutationFunctions = {
-    doProcessNext: mutationMocks.doProcessNext.mock,
-    doProcessResume: mutationMocks.doProcessResume.mock,
-    doAttachmentUpload: mutationMocks.doAttachmentUpload.mock,
-    doUpdateAttachmentTags: mutationMocks.doUpdateAttachmentTags.mock,
-    doAttachmentRemove: mutationMocks.doAttachmentRemove.mock,
-    doPerformAction: mutationMocks.doPerformAction.mock,
-    doSubformEntryAdd: mutationMocks.doSubformEntryAdd.mock,
-    doSubformEntryDelete: mutationMocks.doSubformEntryDelete.mock,
-    doPatchMultipleFormData: mutationMocks.doPatchMultipleFormData.mock,
-    doPostStatelessFormData: mutationMocks.doPostStatelessFormData.mock,
-    createInstance: mutationMocks.createInstance.mock,
-    createInstanceWithPrefill: mutationMocks.createInstanceWithPrefill.mock,
-    setSelectedParty: mutationMocks.setSelectedParty.mock,
-  };
+  const mutationFunctions = Object.fromEntries(
+    Object.entries(mutationMocks).map(([name, { mock }]) => [name, mock]),
+  ) as { [Name in keyof typeof mutationMocks]: (typeof mutationMocks)[Name]['mock'] };
   return {
     queries: { ...queryMocks, ...mutationFunctions },
     queriesOnly: queryMocks,
