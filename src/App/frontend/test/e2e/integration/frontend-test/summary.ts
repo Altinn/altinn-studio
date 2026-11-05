@@ -44,6 +44,7 @@ describe('Summary', () => {
   });
 
   it('uses overrides to show Next after editing and validates forward navigation', () => {
+    disableReturnValidation();
     cy.interceptLayout('Task_2', undefined, (layouts) => {
       layouts.summary!.data.layout = [
         {
@@ -125,6 +126,7 @@ describe('Summary', () => {
   });
 
   it('returns to Summary2 after editing and restores normal navigation when that page becomes hidden', () => {
+    disableReturnValidation();
     cy.interceptLayout('Task_2', undefined, (layouts) => {
       layouts.summary!.data.hidden = ['equals', ['component', 'newFirstName'], 'Hide'];
       layouts.summary!.data.layout = [
@@ -152,6 +154,7 @@ describe('Summary', () => {
   });
 
   it('Summary of change name form', () => {
+    disableReturnValidation();
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'changeNameFrom') {
         component.hidden = ['equals', ['component', 'newFirstName'], 'hidePrevName'];
@@ -205,8 +208,7 @@ describe('Summary', () => {
     cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
-    // This previously tested that the error report was visible here, and that it had 'texts.requiredFieldDateFrom'.
-    // However, we haven't clicked any buttons that should trigger that error report to be shown to the user yet.
+    // This scenario disables return validation, so the empty date has not triggered an error report yet.
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // However, if we go to the grid page and try to submit, the error report will appear and we can
@@ -704,6 +706,7 @@ describe('Summary', () => {
   });
 
   it('backToSummary should disappear when navigating away from the current page', () => {
+    disableReturnValidation();
     cy.goto('changename');
 
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
@@ -767,6 +770,14 @@ describe('Summary', () => {
     cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
   });
 });
+
+function disableReturnValidation() {
+  cy.interceptLayout('Task_2', (component) => {
+    if (component.type === 'NavigationButtons') {
+      component.validateOnBackToSummary = { page: 'current', show: [] };
+    }
+  });
+}
 
 /**
  * This function provides a tool for doing two things:
