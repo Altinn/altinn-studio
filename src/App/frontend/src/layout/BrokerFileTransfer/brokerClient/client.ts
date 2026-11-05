@@ -52,16 +52,7 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
     throw new ApiError(`Request failed: ${response.status}`, response.status, await readBody(response));
   }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = response.headers.get('Content-Type') ?? '';
-  if (contentType.includes('application/json')) {
-    return (await response.json()) as T;
-  }
-
-  return (await response.text()) as T;
+  return (await response.json()) as T;
 }
 
 export async function readBody(response: Response): Promise<unknown> {
