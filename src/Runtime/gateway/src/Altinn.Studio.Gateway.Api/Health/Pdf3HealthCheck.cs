@@ -36,5 +36,10 @@ internal sealed class Pdf3HealthCheck(IHttpClientFactory httpClientFactory, Apps
             : HealthCheckResult.Unhealthy($"The PDF address answered {(int)response.StatusCode}.");
     }
 
-    internal static Uri HealthUrl(Uri pdfEndpoint) => new(pdfEndpoint.AbsoluteUri.TrimEnd('/') + "/health");
+    internal static Uri HealthUrl(Uri pdfEndpoint)
+    {
+        var url = new UriBuilder(pdfEndpoint) { Fragment = "" };
+        url.Path = url.Path.TrimEnd('/') + "/health";
+        return url.Uri;
+    }
 }

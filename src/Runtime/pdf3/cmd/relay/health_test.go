@@ -7,9 +7,14 @@ import (
 )
 
 func TestHealthURLIsNextToThePdfEndpoint(t *testing.T) {
-	got := healthURL("https://studio.platform.tt02.altinn.cloud/pdf/v3/generate")
-	if want := "https://studio.platform.tt02.altinn.cloud/pdf/v3/health"; got != want {
-		t.Fatalf("healthURL() = %q, want %q", got, want)
+	tests := map[string]string{
+		"https://studio.platform.tt02.altinn.cloud/pdf/v3/generate": "https://studio.platform.tt02.altinn.cloud/pdf/v3/health",
+		"http://pdf3-proxy.runtime-pdf3.svc.cluster.local/pdf":      "http://pdf3-proxy.runtime-pdf3.svc.cluster.local/pdf/health",
+	}
+	for upstream, want := range tests {
+		if got := healthURL(upstream); got != want {
+			t.Errorf("healthURL(%q) = %q, want %q", upstream, got, want)
+		}
 	}
 }
 

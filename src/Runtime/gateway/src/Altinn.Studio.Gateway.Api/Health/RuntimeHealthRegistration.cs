@@ -34,9 +34,12 @@ internal static class RuntimeHealthRegistration
         services
             .AddOptions<RuntimeHealthSettings>()
             .Bind(section)
+            .Validate(settings => settings.Timeout > TimeSpan.Zero, "RuntimeHealth.Timeout must be positive.")
+            // The publisher starts a run every period, even while the last one runs, and an older run that finishes
+            // last would replace a newer result.
             .Validate(
-                settings => settings.Period >= TimeSpan.FromSeconds(1) && settings.Timeout > TimeSpan.Zero,
-                "RuntimeHealth.Period must be at least a second, and RuntimeHealth.Timeout positive."
+                settings => settings.Period > settings.Timeout + _runTimeoutMargin,
+                "RuntimeHealth.Period must be longer than RuntimeHealth.Timeout plus 5 seconds, so runs don't overlap."
             )
             .ValidateOnStart();
 

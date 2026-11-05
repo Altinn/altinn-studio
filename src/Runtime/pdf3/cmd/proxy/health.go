@@ -13,9 +13,9 @@ import (
 // workerHealthTimeout bounds the check of a worker, below the relay's 5 seconds for the whole check.
 const workerHealthTimeout = 3 * time.Second
 
-// workerHealth answers whether the proxy can generate PDFs, which takes a ready worker. The relays check pdf3
-// through it. A worker's readiness covers its browser, and the workers' Service only sends to ready workers. The
-// client has no telemetry, since a check isn't traffic.
+// workerHealth answers whether the proxy reaches a ready worker, one whose browser has started. The relays check
+// pdf3 through it. A worker that is busy is still ready, so this shows that pdf3 is available, not that it keeps up.
+// The client has no telemetry, since a check isn't traffic.
 func workerHealth(logger *slog.Logger, workerHTTPAddr string, shuttingDown func() bool) http.HandlerFunc {
 	client := &http.Client{Timeout: workerHealthTimeout}
 	return func(w http.ResponseWriter, r *http.Request) {

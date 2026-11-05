@@ -205,6 +205,41 @@ public sealed class RuntimeHealthTests : IDisposable
         Assert.Equal(new Uri("http://pdf-generator.example/pdf/health"), request.Uri);
     }
 
+    [Theory]
+    [InlineData(
+        "http://pdf-generator.pdf.svc.cluster.local/pdf",
+        "http://pdf-generator.pdf.svc.cluster.local/pdf/health"
+    )]
+    [InlineData("http://pdf-generator.example/pdf/", "http://pdf-generator.example/pdf/health")]
+    [InlineData("http://pdf-generator.example/pdf?tenant=ttd#x", "http://pdf-generator.example/pdf/health?tenant=ttd")]
+    public void Pdf3Check_HealthUrlIsUnderThePdfAddress(string pdfEndpoint, string expected)
+    {
+        Assert.Equal(new Uri(expected), Pdf3HealthCheck.HealthUrl(new Uri(pdfEndpoint)));
+    }
+
+    [Theory]
+    [InlineData("00:00:30", "00:00:10", true)]
+    [InlineData("00:00:15", "00:00:10", false)]
+    public void Settings_RejectAPeriodThatLetsRunsOverlap(string period, string timeout, bool valid)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["RuntimeHealth:Period"] = period,
+                    ["RuntimeHealth:Timeout"] = timeout,
+                }
+            )
+            .Build();
+        var services = new ServiceCollection();
+        services.AddRuntimeHealth(configuration);
+        using var provider = services.BuildServiceProvider();
+
+        var exception = Record.Exception(() => provider.GetRequiredService<IOptions<RuntimeHealthSettings>>().Value);
+
+        Assert.Equal(valid, exception is null);
+    }
+
     [Fact]
     public async Task Pdf3Check_IsUnhealthyWhenAppsConfigHasNoPdfAddress()
     {
