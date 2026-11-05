@@ -7,6 +7,7 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -30,6 +31,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
   const isValid = useIsValid(baseComponentId);
   const { options, isFetching, selectedValues, setData } = useGetOptions(baseComponentId, 'single');
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
+  const validations = useUnifiedValidationsForNode(baseComponentId);
 
   if (isFetching) {
     return <AltinnSpinner />;
@@ -61,6 +63,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
       validationMessages={
         showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
       }
+      validationMessagesId={showValidationMessages && validations.length > 0 ? `${componentId}-validations` : undefined}
     />
   );
 }
