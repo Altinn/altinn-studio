@@ -216,7 +216,12 @@ export const fetchFormBootstrapForStateless = (options: {
 };
 
 export const { fetchBackendValidations } = backendValidationApi;
-export const { getInstance, getActiveInstances, create, createWithPrefill } = instanceApi;
+export const {
+  getInstance,
+  getActiveInstances,
+  create: createInstance,
+  createWithPrefill: createInstanceWithPrefill,
+} = instanceApi;
 export const { getPartiesAllowedToInstantiateHierarchical, setSelectedParty } = partyApi;
 export const { fetchTextResources } = textResourcesApi;
 export { fetchPerson, fetchOrg };

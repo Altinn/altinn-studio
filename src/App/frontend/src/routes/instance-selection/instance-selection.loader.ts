@@ -38,7 +38,7 @@ export async function clientLoader({ context }: LoaderFunctionArgs): Promise<Ins
       if (reason) {
         return { error: 'instantiation-closed', reason };
       }
-      const instance = await queries.create({ instanceOwnerPartyId: party.partyId });
+      const instance = await queries.createInstance({ instanceOwnerPartyId: party.partyId });
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
       return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
     }

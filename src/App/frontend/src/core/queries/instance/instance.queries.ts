@@ -97,8 +97,8 @@ export function useCreateInstance(language: string) {
     mutationKey: ['instantiate'],
     mutationFn: (args: InstantiationArgs) =>
       typeof args === 'number'
-        ? instanceApi.create({ instanceOwnerPartyId: args, language })
-        : instanceApi.createWithPrefill({ data: args, language }),
+        ? instanceApi.createInstance({ instanceOwnerPartyId: args, language })
+        : instanceApi.createInstanceWithPrefill({ data: args, language }),
     onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
 

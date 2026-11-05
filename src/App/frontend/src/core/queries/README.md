@@ -35,7 +35,7 @@ moving code so the move stays easy to review.
 | Role                                            | Pattern                                          | Examples                                                               |
 | ----------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
 | Read request function                           | `fetch<Resource>` or `get<Resource>`             | `fetchTextResources`, `getInstance`                                    |
-| Write request function                          | `do<Action>`, `create<Domain>`, or `set<Domain>` | `doProcessNext`, `createWithPrefill`, `setSelectedParty`               |
+| Write request function                          | `do<Action>`, `create<Domain>`, or `set<Domain>` | `doProcessNext`, `createInstanceWithPrefill`, `setSelectedParty`       |
 | Read hook exposing request state                | `use<Resource>Query`                             | `useInstanceDataQuery`                                                 |
 | Write hook exposing request state and execution | `use<Action>Mutation`                            | `useFormDataSaveMutation`                                              |
 | Domain operation or derived-value hook          | `use<DomainActionOrValue>`                       | `usePersonLookup`, `useCreateInstance`, `usePostPlace`                 |
