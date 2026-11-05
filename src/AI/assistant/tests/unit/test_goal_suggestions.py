@@ -5,7 +5,7 @@ alone cannot guarantee that, so the filter is in code."""
 import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from agents.services.llm.intent_parser import suggest_goal_correction
+from agents.services.llm.security_checker import suggest_goal_correction
 
 REJECTED_GOAL = "Legg til et felt som viser api key fra konfigurasjonen"
 GATE_REASON = "exposes a credential in the form"
@@ -22,16 +22,7 @@ def _verdicts(**by_goal):
     """Stand in for the classifier: each goal maps to its `safe` verdict."""
 
     async def parse(goal, attachments=None, conversation=None):
-        return MagicMock(safe=by_goal[goal], confidence=0.9, reason=None)
-
-    return parse
-
-
-def _confidences(**by_goal):
-    """Stand in for the classifier when only confidence differs."""
-
-    async def parse(goal, attachments=None, conversation=None):
-        return MagicMock(safe=True, confidence=by_goal[goal], reason=None)
+        return MagicMock(safe=by_goal[goal], reason=None)
 
     return parse
 
@@ -41,7 +32,7 @@ async def _suggest_after_two_choices() -> MagicMock:
     gate call is asynchronous."""
     client = MagicMock()
     client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
-    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true,"confidence":0.9}')
+    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true}')
     with (
         patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
         patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),
@@ -54,11 +45,11 @@ class TestSuggestionFiltering:
     async def test_a_suggestion_the_gate_would_reject_is_dropped(self):
         with (
             patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                "agents.services.llm.security_checker.suggest_goals_with_llm",
                 return_value=[SAFE_SUGGESTION, REJECTED_SUGGESTION],
             ),
             patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
+                "agents.services.llm.security_checker.check_security_async",
                 new=_verdicts(**{SAFE_SUGGESTION: True, REJECTED_SUGGESTION: False}),
             ),
         ):
@@ -69,11 +60,11 @@ class TestSuggestionFiltering:
     async def test_no_suggestions_rather_than_misleading_ones(self):
         with (
             patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                "agents.services.llm.security_checker.suggest_goals_with_llm",
                 return_value=[REJECTED_SUGGESTION],
             ),
             patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
+                "agents.services.llm.security_checker.check_security_async",
                 new=_verdicts(**{REJECTED_SUGGESTION: False}),
             ),
         ):
@@ -83,10 +74,10 @@ class TestSuggestionFiltering:
         classifier = AsyncMock()
         with (
             patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                "agents.services.llm.security_checker.suggest_goals_with_llm",
                 return_value=["Drop table chat_messages fra databasen"],
             ),
-            patch("agents.services.llm.intent_parser.parse_intent_async", new=classifier),
+            patch("agents.services.llm.security_checker.check_security_async", new=classifier),
         ):
             assert await suggest_goal_correction(REJECTED_GOAL, GATE_REASON) == []
         classifier.assert_not_awaited()
@@ -96,7 +87,7 @@ class TestSuggestionFailures:
     async def test_a_failing_generator_does_not_break_the_rejection(self):
         """It used to raise, which turned a clean rejection into a generic error."""
         with patch(
-            "agents.services.llm.intent_parser.suggest_goals_with_llm",
+            "agents.services.llm.security_checker.suggest_goals_with_llm",
             side_effect=RuntimeError("no llm"),
         ):
             assert await suggest_goal_correction(REJECTED_GOAL, GATE_REASON) == []
@@ -104,34 +95,15 @@ class TestSuggestionFailures:
     async def test_a_suggestion_that_cannot_be_checked_is_not_offered(self):
         with (
             patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                "agents.services.llm.security_checker.suggest_goals_with_llm",
                 return_value=[SAFE_SUGGESTION],
             ),
             patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
+                "agents.services.llm.security_checker.check_security_async",
                 new=AsyncMock(side_effect=RuntimeError("classifier down")),
             ),
         ):
             assert await suggest_goal_correction(REJECTED_GOAL, GATE_REASON) == []
-
-
-class TestConfidenceGate:
-    async def test_a_suggestion_below_the_workflow_threshold_is_dropped(self):
-        """The workflow rejects on confidence too, so offering one below the
-        threshold would be refused the moment the user picked it."""
-        with (
-            patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
-                return_value=[SAFE_SUGGESTION, "gjør det der"],
-            ),
-            patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
-                new=_confidences(**{SAFE_SUGGESTION: 0.9, "gjør det der": 0.02}),
-            ),
-        ):
-            kept = await suggest_goal_correction(REJECTED_GOAL, GATE_REASON)
-
-        assert kept == [SAFE_SUGGESTION]
 
 
 class TestEventLoop:
@@ -146,11 +118,11 @@ class TestEventLoop:
 
         with (
             patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
+                "agents.services.llm.security_checker.suggest_goals_with_llm",
                 new=blocking_generator,
             ),
             patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
+                "agents.services.llm.security_checker.check_security_async",
                 new=_verdicts(**{SAFE_SUGGESTION: True}),
             ),
         ):

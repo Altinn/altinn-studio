@@ -10,9 +10,8 @@ from opentelemetry import trace as otel_trace
 from agents.services.events import AgentEvent, EventSink, sink
 from agents.services.llm import (
     GATE_FAILED_ACTION,
-    MINIMUM_INTENT_CONFIDENCE,
     check_scope_async,
-    parse_intent_async,
+    check_security_async,
     suggest_goal_correction,
 )
 from shared.utils.langfuse_utils import (
@@ -135,13 +134,10 @@ _GATE_UNAVAILABLE_MESSAGE = (
     "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
     "litt."
 )
-_UNCLEAR_GOAL_MESSAGE = (
-    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive endringen litt mer konkret?"
-)
 
 
 class GoalRejected(Exception):
-    """Raised when the intent parser rejects the user's goal."""
+    """Raised when a gate rejects the user's goal."""
 
     def __init__(self, message: str, suggestions: list[str] | None = None):
         super().__init__(message)
@@ -160,7 +156,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
       general-purpose chatbot on government infrastructure. An out-of-scope
       write request rejects like any other invalid goal; an out-of-scope
       chat question gets a polite decline delivered as a normal reply.
-    - Intent validation (write runs only): see _validate_intent.
+    - Security check (write runs only): see _check_security.
     """
     _raise_if_cancelled(state, event_sink)
     scope_result = await check_scope_async(state.user_goal, state.conversation_history)
@@ -180,7 +176,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
         return decline_text
 
     if state.allow_app_changes:
-        await _validate_intent(state)
+        await _check_security(state)
     return None
 
 
@@ -228,17 +224,21 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
     )
 
 
-async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals, for write runs only.
+async def _check_security(state: AgentState):
+    """Reject unsafe goals, for write runs only.
+
+    An unclear goal is not rejected here. It goes to the loop, which reads the
+    app to find what to change. When the loop cannot tell, its prompt has it end
+    with a message that says what it needs.
 
     Read-only runs are held back structurally rather than by this gate.
     """
-    parsed = await parse_intent_async(
+    parsed = await check_security_async(
         state.user_goal, attachments=state.attachments, conversation=state.conversation_history
     )
 
     if parsed.action == GATE_FAILED_ACTION:
-        _log.error("Intent gate could not run for session %s: %s", state.session_id, parsed.reason)
+        _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
@@ -248,17 +248,11 @@ async def _validate_intent(state: AgentState):
         )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
-    if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
-        _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = await suggest_goal_correction(state.user_goal, conversation=state.conversation_history)
-        raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
-
     _log.info(
-        "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
+        "Goal passed the security gate for session %s: action=%s, component=%s",
         state.session_id,
         parsed.action,
         parsed.component,
-        parsed.confidence,
     )
 
 

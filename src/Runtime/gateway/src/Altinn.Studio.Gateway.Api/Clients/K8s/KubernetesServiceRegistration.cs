@@ -6,11 +6,7 @@ internal static class KubernetesServiceRegistration
 {
     public static IServiceCollection AddKubernetesServices(this IServiceCollection services)
     {
-        services.AddSingleton<IKubernetes>(_ =>
-        {
-            var config = KubernetesClientConfiguration.InClusterConfig();
-            return new Kubernetes(config);
-        });
+        services.AddSingleton<IKubernetes>(_ => KubernetesClientFactory.CreateInCluster());
 
         services.AddSingleton<HelmReleaseClient>();
         services.AddSingleton<DeploymentsClient>();

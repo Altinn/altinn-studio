@@ -27,7 +27,7 @@ def config(monkeypatch):
 
 class TestTheDefaultRole:
     """The default role is what `get_llm_client()` with no role returns, which is
-    what serves the scope gate and the intent parser."""
+    what serves the scope gate and the security gate."""
 
     def test_an_azure_key_means_the_azure_deployment(self, config):
         """The .env.example marks AZURE_API_KEY required, so this is the real path.
