@@ -64,6 +64,26 @@ public sealed class KubernetesClientFactoryTests
     }
 
     [Fact]
+    public async Task Watch_ReturnsBeforeItsBodyEnds()
+    {
+        using var events = new OpenWatchStream("""{"type":"ADDED","object":{}}""" + "\n");
+        var apiServer = new FakeApiServer(() =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(events) }
+        );
+        using var kubernetes = KubernetesClientFactory.Create(Config(), apiServer);
+
+        using var response = await kubernetes
+            .CoreV1.ListNamespacedPodWithHttpMessagesAsync(
+                "default",
+                watch: true,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Read_IsNotRetriedWhenTheApiServerAnswers()
     {
         var apiServer = new FakeApiServer(() => new HttpResponseMessage(HttpStatusCode.InternalServerError));
@@ -178,6 +198,37 @@ public sealed class KubernetesClientFactoryTests
             var response = responses[Interlocked.Increment(ref _requests) - 1]();
             response.RequestMessage = request;
             return Task.FromResult(response);
+        }
+    }
+
+    /// <summary>
+    /// A watch's body: its first event, and then nothing until the watch is disposed.
+    /// </summary>
+    private sealed class OpenWatchStream(string firstEvent)
+        : MemoryStream(System.Text.Encoding.UTF8.GetBytes(firstEvent))
+    {
+        private readonly TaskCompletionSource<int> _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default
+        )
+        {
+            var read = await base.ReadAsync(buffer, cancellationToken);
+            return read > 0 ? read : await _closed.Task.WaitAsync(cancellationToken);
+        }
+
+        public override Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken
+        ) => ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+
+        protected override void Dispose(bool disposing)
+        {
+            _closed.TrySetResult(0);
+            base.Dispose(disposing);
         }
     }
 

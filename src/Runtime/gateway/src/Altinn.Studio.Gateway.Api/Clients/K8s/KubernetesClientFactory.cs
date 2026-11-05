@@ -141,7 +141,6 @@ internal static class KubernetesClientFactory
             }
         }
 
-        private static bool IsWatch(Uri? uri) =>
-            uri?.Query.Contains("watch=true", StringComparison.OrdinalIgnoreCase) == true;
+        private static bool IsWatch(Uri? uri) => uri?.Query.TrimStart('?').Split('&').Contains("watch=true") == true;
     }
 }
