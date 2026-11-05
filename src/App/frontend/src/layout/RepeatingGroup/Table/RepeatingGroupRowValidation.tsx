@@ -47,7 +47,7 @@ function RowValidationPopover({
   const getUniqueKey = useGetUniqueKeyFromObject();
   useEffect(() => {
     if (open) {
-      popoverRef.current?.focus();
+      popoverRef.current?.focus({ preventScroll: true });
     }
   }, [open]);
 
