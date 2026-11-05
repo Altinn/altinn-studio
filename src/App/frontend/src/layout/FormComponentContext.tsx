@@ -10,6 +10,7 @@ export interface GenericComponentOverrideDisplay {
   renderLabel?: false;
   renderLegend?: false;
   renderedInTable?: true;
+  compactTableValidations?: true;
   rowReadOnly?: boolean;
 }
 

@@ -32,6 +32,10 @@ import {
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepeatingGroupRowValidation } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
+import {
+  RepeatingGroupTableErrors,
+  RepeatingGroupTableField,
+} from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -49,6 +53,7 @@ export interface IRepeatingGroupTableRowProps {
   displayDeleteColumn: boolean;
   useVerticalButtonLayout: boolean;
   tableIds: string[];
+  columnCount: number;
 }
 
 function getEditButtonText(
@@ -70,6 +75,7 @@ export function RepeatingGroupTableRow({
   displayDeleteColumn,
   useVerticalButtonLayout,
   tableIds,
+  columnCount,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -135,134 +141,143 @@ export function RepeatingGroupTableRow({
   const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
-    <Table.Row
-      ref={(node) => refSetter(index, 'row', node)}
-      className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
-      data-row-num={index}
-      data-row-uuid={uuid}
-    >
-      {!mobileView ? (
-        tableItems.map((item) =>
-          shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
-            <EditableCell
-              key={item.baseId}
-              index={index}
-              refSetter={refSetter}
-              baseComponentId={item.baseId}
-              columnSettings={config.tableColumns}
-            />
-          ) : (
-            <NonEditableCell
-              key={item.baseId}
-              baseComponentId={item.baseId}
-              columnSettings={config.tableColumns}
-              rowUuid={uuid}
-            />
-          ),
-        )
-      ) : (
-        <Table.Cell className={classes.mobileTableCell}>
-          <Flex
-            container
-            spacing={6}
-          >
-            {tableItems.map(
-              (item, i, { length }) =>
-                !isEditingRow &&
-                (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
-                  <Flex
-                    container
-                    item
-                    key={item.baseId}
-                    ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
-                  >
-                    <GenericComponent
-                      baseComponentId={item.baseId}
-                      overrideItemProps={{
-                        grid: {},
-                      }}
-                    />
-                  </Flex>
-                ) : (
-                  <Flex
-                    container
-                    item
-                    key={item.baseId}
-                  >
-                    <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      <TableTitle
-                        baseComponentId={item.baseId}
-                        compType={item.type}
-                      />
-                      :
-                    </b>
-                    <span className={classes.contentFormatting}>
-                      <DisplayData baseComponentId={item.baseId} />
-                    </span>
-                    {i < length - 1 && <div style={{ height: 8 }} />}
-                  </Flex>
-                )),
-            )}
-          </Flex>
-        </Table.Cell>
-      )}
-      {mobileView || useVerticalButtonLayout ? (
-        <Table.Cell
-          className={cn(classes.buttonCell, { [classes.mobileTableCell]: mobileView })}
-          style={mobileView ? { verticalAlign: 'top' } : undefined}
-        >
-          <div className={classes.buttonInCellWrapper}>
-            {validationIndicator}
-            {editElement}
-            {deleteButton !== false && displayDeleteColumn && (
-              <DeleteElement
+    <>
+      <Table.Row
+        ref={(node) => refSetter(index, 'row', node)}
+        className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
+        data-row-num={index}
+        data-row-uuid={uuid}
+      >
+        {!mobileView ? (
+          tableItems.map((item) =>
+            shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
+              <EditableCell
+                key={item.baseId}
                 index={index}
-                uuid={uuid}
-                isDeletingRow={isDeletingRow}
-                disabled={instanceLocked}
-                deleteButtonText={deleteButtonText}
-                langAsString={langAsString}
-              >
-                {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
-              </DeleteElement>
+                refSetter={refSetter}
+                baseComponentId={item.baseId}
+                columnSettings={config.tableColumns}
+              />
+            ) : (
+              <NonEditableCell
+                key={item.baseId}
+                baseComponentId={item.baseId}
+                columnSettings={config.tableColumns}
+                rowUuid={uuid}
+              />
+            ),
+          )
+        ) : (
+          <Table.Cell className={classes.mobileTableCell}>
+            <Flex
+              container
+              spacing={6}
+            >
+              {tableItems.map(
+                (item, i, { length }) =>
+                  !isEditingRow &&
+                  (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
+                    <Flex
+                      container
+                      item
+                      key={item.baseId}
+                      ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
+                    >
+                      <GenericComponent
+                        baseComponentId={item.baseId}
+                        overrideItemProps={{
+                          grid: {},
+                        }}
+                      />
+                    </Flex>
+                  ) : (
+                    <Flex
+                      container
+                      item
+                      key={item.baseId}
+                    >
+                      <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
+                        <TableTitle
+                          baseComponentId={item.baseId}
+                          compType={item.type}
+                        />
+                        :
+                      </b>
+                      <span className={classes.contentFormatting}>
+                        <DisplayData baseComponentId={item.baseId} />
+                      </span>
+                      {i < length - 1 && <div style={{ height: 8 }} />}
+                    </Flex>
+                  )),
+              )}
+            </Flex>
+          </Table.Cell>
+        )}
+        {mobileView || useVerticalButtonLayout ? (
+          <Table.Cell
+            className={cn(classes.buttonCell, { [classes.mobileTableCell]: mobileView })}
+            style={mobileView ? { verticalAlign: 'top' } : undefined}
+          >
+            <div className={classes.buttonInCellWrapper}>
+              {validationIndicator}
+              {editElement}
+              {deleteButton !== false && displayDeleteColumn && (
+                <DeleteElement
+                  index={index}
+                  uuid={uuid}
+                  isDeletingRow={isDeletingRow}
+                  disabled={instanceLocked}
+                  deleteButtonText={deleteButtonText}
+                  langAsString={langAsString}
+                >
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
+                </DeleteElement>
+              )}
+            </div>
+          </Table.Cell>
+        ) : (
+          <>
+            {displayEditColumn && (
+              <Table.Cell className={classes.buttonCell}>
+                <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
+                  {validationIndicator}
+                  {editElement}
+                </div>
+              </Table.Cell>
             )}
-          </div>
-        </Table.Cell>
-      ) : (
-        <>
-          {displayEditColumn && (
-            <Table.Cell className={classes.buttonCell}>
-              <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
-                {validationIndicator}
-                {editElement}
-              </div>
-            </Table.Cell>
-          )}
-          {displayDeleteColumn && (
-            <Table.Cell className={classes.buttonCell}>
-              <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
-                {!displayEditColumn && validationIndicator}
-                {deleteButton !== false && (
-                  <DeleteElement
-                    index={index}
-                    uuid={uuid}
-                    isDeletingRow={isDeletingRow}
-                    disabled={instanceLocked}
-                    deleteButtonText={deleteButtonText}
-                    langAsString={langAsString}
-                  >
-                    {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
-                  </DeleteElement>
-                )}
-              </div>
-            </Table.Cell>
-          )}
-          {!displayEditColumn && !displayDeleteColumn && (
-            <Table.Cell className={classes.buttonCell}>{validationIndicator}</Table.Cell>
-          )}
-        </>
+            {displayDeleteColumn && (
+              <Table.Cell className={classes.buttonCell}>
+                <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
+                  {!displayEditColumn && validationIndicator}
+                  {deleteButton !== false && (
+                    <DeleteElement
+                      index={index}
+                      uuid={uuid}
+                      isDeletingRow={isDeletingRow}
+                      disabled={instanceLocked}
+                      deleteButtonText={deleteButtonText}
+                      langAsString={langAsString}
+                    >
+                      {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
+                    </DeleteElement>
+                  )}
+                </div>
+              </Table.Cell>
+            )}
+            {!displayEditColumn && !displayDeleteColumn && (
+              <Table.Cell className={classes.buttonCell}>{validationIndicator}</Table.Cell>
+            )}
+          </>
+        )}
+      </Table.Row>
+      {!mobileView && (
+        <RepeatingGroupTableErrors
+          validations={rowValidations.filter((validation) => tableEditingIds.includes(validation.baseComponentId))}
+          columnSpan={tableItems.length + columnCount}
+          index={index}
+        />
       )}
-    </Table.Row>
+    </>
   );
 }
 
@@ -413,16 +428,9 @@ function EditableCell({
         style={style}
         ref={(ref) => refSetter && refSetter(index, `component-${baseComponentId}`, ref)}
       >
-        <GenericComponent
+        <RepeatingGroupTableField
           baseComponentId={baseComponentId}
-          overrideDisplay={{
-            renderedInTable: true,
-            renderLabel: false,
-            renderLegend: false,
-          }}
-          overrideItemProps={{
-            grid: {},
-          }}
+          index={index}
         />
       </div>
     </Table.Cell>

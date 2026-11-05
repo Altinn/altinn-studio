@@ -268,6 +268,7 @@ function RowToDisplay({
         displayEditColumn={displayEditColumn}
         useVerticalButtonLayout={useVerticalButtonLayout}
         tableIds={tableIds}
+        columnCount={columnCount}
       />
       {isEditingRow && (
         <Table.Row

@@ -17,9 +17,11 @@ export function getRowValidationSeverity(validations: NodeRefValidation[]): Vali
 export function RepeatingGroupRowValidation({
   validations,
   index,
+  fieldLabel,
 }: {
   validations: NodeRefValidation[];
   index: number;
+  fieldLabel?: string;
 }) {
   const severity = getRowValidationSeverity(validations);
   return severity ? (
@@ -27,6 +29,7 @@ export function RepeatingGroupRowValidation({
       validations={validations}
       index={index}
       severity={severity}
+      fieldLabel={fieldLabel}
     />
   ) : null;
 }
@@ -35,10 +38,12 @@ function RowValidationPopover({
   validations,
   index,
   severity,
+  fieldLabel,
 }: {
   validations: NodeRefValidation[];
   index: number;
   severity: ValidationSeverity;
+  fieldLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -52,7 +57,9 @@ function RowValidationPopover({
   }, [open]);
 
   const { Icon, color } = validationSeverityPresentation[severity];
-  const label = langAsString(`group.row_validation_${severity}`, [index + 1]);
+  const rowLabel = langAsString(`group.row_validation_${severity}`, [index + 1]);
+  const label = fieldLabel ? `${fieldLabel}. ${rowLabel}` : rowLabel;
+  const isFieldIndicator = fieldLabel !== undefined;
 
   return (
     <Popover.TriggerContext>
@@ -66,7 +73,8 @@ function RowValidationPopover({
           aria-expanded={open}
           aria-haspopup='dialog'
           onClick={() => setOpen(!open)}
-          data-testid='row-validation-indicator'
+          data-size={isFieldIndicator ? 'sm' : undefined}
+          data-testid={isFieldIndicator ? 'table-field-validation-indicator' : 'row-validation-indicator'}
         >
           <Icon aria-hidden />
         </Button>
@@ -80,7 +88,8 @@ function RowValidationPopover({
         onClose={() => setOpen(false)}
         placement='bottom'
         className={classes.popover}
-        data-color='neutral'
+        data-color={isFieldIndicator ? color : 'neutral'}
+        variant={isFieldIndicator ? 'tinted' : undefined}
         data-testid='row-validation-messages'
       >
         {open && (

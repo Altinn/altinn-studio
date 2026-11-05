@@ -1,8 +1,6 @@
 .popover {
   --dsc-popover-max-width: min(28rem, calc(100vw - 2rem));
   width: min(28rem, calc(100vw - 2rem));
-  max-height: min(32rem, 75dvh);
-  overflow-y: auto;
   overflow-wrap: anywhere;
 }
 
@@ -16,6 +14,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  max-height: min(32rem, 75dvh);
+  overflow-y: auto;
 }
 
 .messages > li + li {
