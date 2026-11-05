@@ -30,7 +30,9 @@ import 'src/styles/shared.css';
 
 const isRedirectingFromHashRoute = executeHashRouterRedirect();
 
-// Temporary font switch for PDF and screenshot comparisons. See #19944.
+// Temporary, while we collect feedback on Inter: ?font=altinn-din loads the app in the old font, so the two can be
+// compared, also with ?pdf=1 and in screenshots. Consider to remove later (step 10 of the
+// plan in #19944).
 applyFontFromUrl();
 
 const queryClient = createAppQueryClient();

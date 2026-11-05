@@ -15,7 +15,8 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 - Start with the README of the component you change. The [root README](README.md) says how the parts fit
   together.
 - Follow the [coding standards](docs/coding-standards.md) and the [documentation rules](docs/documentation.md).
-  Workflows, builds and deployments follow the conventions in [docs/cicd.md](docs/cicd.md).
+  Workflows, builds and deployments follow the conventions in [docs/cicd.md](docs/cicd.md), and telemetry, dashboards
+  and alerts follow [docs/observability.md](docs/observability.md).
 - Before you push, run the checks of the component you changed with its Makefile or package scripts, which run the
   same checks as CI. Also run `yarn spell:quick`, and `yarn docs:validate` when you changed docs.
 - Update the docs your change affects in the same pull request. When service owners or app developers will notice the
@@ -38,7 +39,7 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 ### Changelogs
 
 The components with a `CHANGELOG.md`, such as [studioctl](src/cli/CHANGELOG.md) and the
-[app backend](src/App/backend/CHANGELOG.md), publish it as their release notes. A change their users will notice gets
+[app](src/App/CHANGELOG.md), publish it as their release notes. A change their users will notice gets
 an entry under `## [Unreleased]`, written for those users as the [changelog skill](agents/_skills/changelog/SKILL.md)
 describes. CI requires an entry for changes to studioctl. Label a pull request `skip-changelog` when users will not
 notice it.

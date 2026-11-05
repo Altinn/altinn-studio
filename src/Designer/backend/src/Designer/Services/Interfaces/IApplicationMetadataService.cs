@@ -27,16 +27,18 @@ public interface IApplicationMetadataService
     public Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration);
 
     /// <summary>
-    /// Registers the metadata connected to a specific GITEA repository on a certain commitId
+    /// Registers the metadata of an app at a certain commitId in Storage
     /// </summary>
     /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
+    /// <param name="appMetadataJson">The application metadata file at the commit</param>
     /// <param name="fullCommitId">Commit Id</param>
     /// <param name="envName">Environment Name</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task UpdateApplicationMetadataInStorageAsync(
         string org,
         string app,
+        string appMetadataJson,
         string fullCommitId,
         string envName,
         CancellationToken cancellationToken = default

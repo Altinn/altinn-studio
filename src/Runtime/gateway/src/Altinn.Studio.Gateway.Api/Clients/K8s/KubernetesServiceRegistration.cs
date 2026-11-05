@@ -17,6 +17,7 @@ internal static class KubernetesServiceRegistration
         services.AddSingleton<PodsClient>();
         services.AddSingleton<OciRepositoryClient>();
         services.AddSingleton<KustomizationClient>();
+        services.AddSingleton<AppsConfigClient>();
 
         return services;
     }

@@ -6,6 +6,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type {
   DataModelMetadataJson,
@@ -70,6 +71,7 @@ import {
   resource,
   resourceVersionStatus,
   ruleConfig,
+  runningApp,
   searchRepositoryResponse,
   textResourcesWithLanguage,
   user,
@@ -386,6 +388,7 @@ export const queriesMock: ServicesContextProps = {
     return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
   }),
   undeployAppFromEnv: vi.fn().mockImplementation(() => Promise.resolve()),
+  restartApp: vi.fn().mockImplementation(() => Promise.resolve<RunningApp>(runningApp)),
   deletePage: vi.fn().mockImplementation(() => Promise.resolve()),
   modifyPage: vi.fn().mockImplementation(() => Promise.resolve()),
   createPage: vi.fn().mockImplementation(() => Promise.resolve()),
