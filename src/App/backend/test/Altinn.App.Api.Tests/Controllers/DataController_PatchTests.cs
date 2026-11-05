@@ -21,8 +21,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Json.More;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -85,7 +83,7 @@ public class DataControllerPatchTests : ApiTestBase
         string responseString,
         TResponse parsedResponse
     )> CallPatchApi<TResponse>(
-        JsonPatch patch,
+        List<JsonPatchOperation> patch,
         List<string>? ignoredValidators,
         HttpStatusCode expectedStatus,
         string? language = null
@@ -153,8 +151,12 @@ public class DataControllerPatchTests : ApiTestBase
             new InstanceIdentifier(InstanceOwnerPartyId, _instanceGuid),
             _dataGuid
         );
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
 
         var (response, responseBody, problemDetails) = await CallPatchApi<ProblemDetails>(
@@ -200,8 +202,12 @@ public class DataControllerPatchTests : ApiTestBase
     {
         var storageMetadata = new ApiTestStorageMetadata();
         OverrideServicesForThisTest = services => services.Replace(ServiceDescriptor.Singleton(storageMetadata));
-        JsonPatch patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
         var request = new DataPatchRequestMultiple
         {
@@ -245,8 +251,12 @@ public class DataControllerPatchTests : ApiTestBase
 
         async Task<HttpResponseMessage> SendPatch(string name)
         {
-            var patch = new JsonPatch(
-                PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonValue.Create(name))
+            var patch = JsonPatchOperation.ParseList(
+                $$"""
+                [
+                    { "op": "replace", "path": "/melding/name", "value": "{{name}}" }
+                ]
+                """
             );
             var request = new DataPatchRequest { Patch = patch };
             using JsonContent content = JsonContent.Create(request, options: _jsonSerializerOptions);
@@ -291,8 +301,12 @@ public class DataControllerPatchTests : ApiTestBase
             );
 
         // Update data element
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
@@ -372,11 +386,19 @@ public class DataControllerPatchTests : ApiTestBase
         var extraDataGuid = Guid.Parse(extraDataId!);
 
         // Update data element
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
-        var patch2 = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Kari Olsen\""))
+        var patch2 = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Kari Olsen" }
+            ]
+            """
         );
         var request = new DataPatchRequestMultiple()
         {
@@ -433,9 +455,13 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
         // Update data element
-        var patch = new JsonPatch(
-            PatchOperation.Test(JsonPointer.Create("melding", "name"), JsonNode.Parse("null")),
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("null"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "test", "path": "/melding/name", "value": null },
+                { "op": "replace", "path": "/melding/name", "value": null }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
@@ -489,17 +515,20 @@ public class DataControllerPatchTests : ApiTestBase
         };
 
         // Update data element
-        var patch = new JsonPatch(
-            PatchOperation.Test(
-                JsonPointer.Create("melding", "name"),
-                JsonNode.Parse("\"Not correct previous value\"")
-            ),
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("null"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "test", "path": "/melding/name", "value": "Not correct previous value" },
+                { "op": "replace", "path": "/melding/name", "value": null }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.Conflict);
 
-        parsedResponse.Detail.Should().Be("Path `/melding/name` is not equal to the indicated value.");
+        parsedResponse
+            .Detail.Should()
+            .Be("Test operation 0 failed: the value at `/melding/name` is not equal to the expected value.");
 
         _dataProcessorMock.VerifyNoOtherCalls();
 
@@ -510,9 +539,13 @@ public class DataControllerPatchTests : ApiTestBase
     public async Task InvalidTestPath_ReturnsPreconditionFailed()
     {
         // Update data element
-        var patch = new JsonPatch(
-            PatchOperation.Test(JsonPointer.Create("melding", "name-error"), JsonNode.Parse("null")),
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("null"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "test", "path": "/melding/name-error", "value": null },
+                { "op": "replace", "path": "/melding/name", "value": null }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(
@@ -521,7 +554,9 @@ public class DataControllerPatchTests : ApiTestBase
             HttpStatusCode.UnprocessableContent
         );
 
-        parsedResponse.Detail.Should().Be("Path `/melding/name-error` could not be reached.");
+        parsedResponse
+            .Detail.Should()
+            .Be("Operation 0 (test `/melding/name-error`) failed: Path `/melding/name-error` could not be reached.");
 
         _dataProcessorMock.VerifyNoOtherCalls();
     }
@@ -530,10 +565,14 @@ public class DataControllerPatchTests : ApiTestBase
     public async Task InvalidJsonPointer_ReturnsUnprocessableContent()
     {
         // Update data element
-        var pointer = JsonPointer.Create("not", "a pointer");
-        var patch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Replace(pointer, JsonNode.Parse("\"Ivar\""))
+        var pointer = "/not/a pointer";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": null },
+                { "op": "replace", "path": "{{pointer}}", "value": "Ivar" }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(
@@ -542,8 +581,31 @@ public class DataControllerPatchTests : ApiTestBase
             HttpStatusCode.UnprocessableContent
         );
 
-        parsedResponse.Detail.Should().Be("Path `/not/a pointer` could not be reached.");
+        parsedResponse
+            .Detail.Should()
+            .Be("Operation 0 (test `/not/a pointer`) failed: Path `/not/a pointer` could not be reached.");
 
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData("a")]
+    [InlineData("/a~2")]
+    public async Task MalformedJsonPointer_ReturnsBadRequest(string path)
+    {
+        // ParseList rejects these pointers, so send the request body as text to reach the endpoint
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}";
+        using var content = new StringContent(
+            $$$"""{"patch":[{"op":"replace","path":"{{{path}}}","value":1}]}""",
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var response = await GetClient().PatchAsync(url, content);
+
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString.Should().Contain("is not a valid JSON Pointer");
         _dataProcessorMock.VerifyNoOtherCalls();
     }
 
@@ -566,10 +628,14 @@ public class DataControllerPatchTests : ApiTestBase
             );
 
         // Update data element
-        var pointer = JsonPointer.Create("melding", "nested_list");
-        var patch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("""[]""")),
-            PatchOperation.Add(pointer, JsonNode.Parse("""[{"key": "newKey"}]"""))
+        var pointer = "/melding/nested_list";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": [] },
+                { "op": "add", "path": "{{pointer}}", "value": [{"key": "newKey"}] }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
@@ -604,8 +670,14 @@ public class DataControllerPatchTests : ApiTestBase
         // This test fails to initialize the list, thus creating an error
         // Added this test to ensure that a change in behavior (when changing json patch library)
         // is detected
-        var pointer = JsonPointer.Create("melding", "nested_list", 0, "newKey");
-        var patch = new JsonPatch(PatchOperation.Add(pointer, JsonNode.Parse("\"newValue\"")));
+        var pointer = "/melding/nested_list/0/newKey";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "add", "path": "{{pointer}}", "value": "newValue" }
+            ]
+            """
+        );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(
             patch,
@@ -622,8 +694,14 @@ public class DataControllerPatchTests : ApiTestBase
     public async Task InsertNonExistingFieldWithoutTest_ReturnsUnprocessableContent()
     {
         // Update data element
-        var pointer = JsonPointer.Create("melding", "non_existing_field");
-        var patch = new JsonPatch(PatchOperation.Add(pointer, JsonNode.Parse("""[{"key": "newKey"}]""")));
+        var pointer = "/melding/non_existing_field";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "add", "path": "{{pointer}}", "value": [{"key": "newKey"}] }
+            ]
+            """
+        );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(
             patch,
@@ -656,10 +734,14 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var pointer = JsonPointer.Create("melding", "tag-with-attribute");
-        var createFirstElementPatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer, JsonNode.Parse("""{"value": "" }"""))
+        var pointer = "/melding/tag-with-attribute";
+        var createFirstElementPatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": null },
+                { "op": "add", "path": "{{pointer}}", "value": {"value": "" } }
+            ]
+            """
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -672,9 +754,13 @@ public class DataControllerPatchTests : ApiTestBase
         var emptyValue = firstData.GetProperty("melding").GetProperty("tag-with-attribute");
         emptyValue.ValueKind.Should().Be(JsonValueKind.Null);
 
-        var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, emptyValue.AsNode()),
-            PatchOperation.Replace(pointer, JsonNode.Parse("""{"value": "mySecondValue" }"""))
+        var addValuePatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": {{emptyValue.GetRawText()}} },
+                { "op": "replace", "path": "{{pointer}}", "value": {"value": "mySecondValue" } }
+            ]
+            """
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -700,10 +786,14 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var pointer = JsonPointer.Create("melding", "nested_list");
-        var createFirstElementPatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("[]")),
-            PatchOperation.Add(pointer.Combine("-"), JsonNode.Parse("""{"key": "myKey" }"""))
+        var pointer = "/melding/nested_list";
+        var createFirstElementPatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": [] },
+                { "op": "add", "path": "{{pointer}}/-", "value": {"key": "myKey" } }
+            ]
+            """
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -716,9 +806,13 @@ public class DataControllerPatchTests : ApiTestBase
         var firstListItem = firstData.GetProperty("melding").GetProperty("nested_list").EnumerateArray().First();
         firstListItem.GetProperty("values").GetArrayLength().Should().Be(0);
 
-        var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer.Combine("0"), firstListItem.AsNode()),
-            PatchOperation.Remove(pointer.Combine("0"))
+        var addValuePatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}/0", "value": {{firstListItem.GetRawText()}} },
+                { "op": "remove", "path": "{{pointer}}/0" }
+            ]
+            """
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -743,11 +837,15 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var pointer = JsonPointer.Create("melding", "name");
-        var createFirstElementPatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer, JsonNode.Parse("\"myValue\"")),
-            PatchOperation.Remove(pointer)
+        var pointer = "/melding/name";
+        var createFirstElementPatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": null },
+                { "op": "add", "path": "{{pointer}}", "value": "myValue" },
+                { "op": "remove", "path": "{{pointer}}" }
+            ]
+            """
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -760,9 +858,13 @@ public class DataControllerPatchTests : ApiTestBase
         var firstListItem = firstData.GetProperty("melding").GetProperty("name");
         firstListItem.ValueKind.Should().Be(JsonValueKind.Null);
 
-        var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, firstListItem.AsNode()),
-            PatchOperation.Replace(pointer, JsonNode.Parse("\"mySecondValue\""))
+        var addValuePatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": {{firstListItem.GetRawText()}} },
+                { "op": "replace", "path": "{{pointer}}", "value": "mySecondValue" }
+            ]
+            """
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -788,10 +890,14 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var pointer = JsonPointer.Create("melding", "name");
-        var createFirstElementPatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer, JsonNode.Parse("\"\""))
+        var pointer = "/melding/name";
+        var createFirstElementPatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": null },
+                { "op": "add", "path": "{{pointer}}", "value": "" }
+            ]
+            """
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -805,9 +911,13 @@ public class DataControllerPatchTests : ApiTestBase
         firstListItem.ValueKind.Should().Be(JsonValueKind.String);
         firstListItem.GetString().Should().BeEmpty();
 
-        var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, firstListItem.AsNode()),
-            PatchOperation.Replace(pointer, JsonNode.Parse("\"mySecondValue\""))
+        var addValuePatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": {{firstListItem.GetRawText()}} },
+                { "op": "replace", "path": "{{pointer}}", "value": "mySecondValue" }
+            ]
+            """
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -833,10 +943,14 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var pointer = JsonPointer.Create("melding", "tag-with-attribute");
-        var createFirstElementPatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer, JsonNode.Parse("""{"value": "test" }"""))
+        var pointer = "/melding/tag-with-attribute";
+        var createFirstElementPatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": null },
+                { "op": "add", "path": "{{pointer}}", "value": {"value": "test" } }
+            ]
+            """
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -850,9 +964,13 @@ public class DataControllerPatchTests : ApiTestBase
         firstListItem.ValueKind.Should().Be(JsonValueKind.String);
         firstListItem.GetString().Should().Be("test");
 
-        var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("""{"orid":34730,"value":"test"}""")),
-            PatchOperation.Add(pointer.Combine("value"), JsonNode.Parse("\"\""))
+        var addValuePatch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": {"orid":34730,"value":"test"} },
+                { "op": "add", "path": "{{pointer}}/value", "value": "" }
+            ]
+            """
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -897,27 +1015,12 @@ public class DataControllerPatchTests : ApiTestBase
                 }
             )
             .Verifiable(Times.Once);
-        var patch = new JsonPatch(
-            PatchOperation.Add(
-                JsonPointer.Create("melding", "simple_list"),
-                JsonNode.Parse(
-                    $$"""
-                    {
-                        "simple_keyvalues":[
-                            {
-                               "key": "KeyFromClient",
-                               "intValue": 123,
-                               "altinnRowId": "{{rowIdClient}}"
-                             },
-                             {
-                                  "key": "KeyFromClientNoRowId",
-                                  "intValue": 1234
-                             }
-                       ]
-                    }
-                    """
-                )
-            )
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "add", "path": "/melding/simple_list", "value": { "simple_keyvalues":[ { "key": "KeyFromClient", "intValue": 123, "altinnRowId": "{{rowIdClient}}" }, { "key": "KeyFromClientNoRowId", "intValue": 1234 } ] } }
+            ]
+            """
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
@@ -1008,9 +1111,13 @@ public class DataControllerPatchTests : ApiTestBase
         responseObject.Melding!.Random.Should().Be("randomFromDataRead");
 
         // Run a patch operation
-        var patch = new JsonPatch(
-            PatchOperation.Test(JsonPointer.Create("melding", "name"), JsonNode.Parse("null")),
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "test", "path": "/melding/name", "value": null },
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
         var (_, _, parsedResponsePatch) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
 
@@ -1041,8 +1148,12 @@ public class DataControllerPatchTests : ApiTestBase
             );
 
         // Update data element with language set to "es"
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
         );
 
         await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK, language: "es");
@@ -1079,7 +1190,7 @@ public class DataControllerPatchTests : ApiTestBase
                     Task.CompletedTask
             );
 
-        var patch = new JsonPatch();
+        List<JsonPatchOperation> patch = [];
         var (_, responseString, _) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
 
         responseString.Should().Contain("\"severity\":1");
@@ -1129,17 +1240,27 @@ public class DataControllerPatchTests : ApiTestBase
             .Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
             .Returns(true);
 
-        var path = JsonPointer.Create("melding", "name");
-        var patch = new JsonPatch(PatchOperation.Replace(path, JsonNode.Parse("\"Ola Olsen\"")));
+        var path = "/melding/name";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "replace", "path": "{{path}}", "value": "Ola Olsen" }
+            ]
+            """
+        );
 
         var (_, _, parsedResponse1) = await CallPatchApi<DataPatchResponse>(patch, ["ignored"], HttpStatusCode.OK);
 
         // Verify that no issues from the ignored validator are present
         parsedResponse1.ValidationIssues.Should().NotContainKey("ignored");
 
-        var patch2 = new JsonPatch(
-            PatchOperation.Test(path, JsonNode.Parse("\"Ola Olsen\"")),
-            PatchOperation.Replace(path, JsonNode.Parse("\"Ola Nielsen\""))
+        var patch2 = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{path}}", "value": "Ola Olsen" },
+                { "op": "replace", "path": "{{path}}", "value": "Ola Nielsen" }
+            ]
+            """
         );
 
         var (_, _, parsedResponse2) = await CallPatchApi<DataPatchResponse>(patch2, null, HttpStatusCode.OK);
@@ -1188,7 +1309,7 @@ public class DataControllerPatchTests : ApiTestBase
             Patches =
             [
                 // new DataPatchRequestMultiple.PatchListItem(_dataGuid,
-                //     new JsonPatch(PatchOperation.Replace(path, JsonNode.Parse("\"Ola Olsen\""))))
+                //     JsonPatchOperation.ParseList($$"""[{ "op": "replace", "path": "{{path}}", "value": "Ola Olsen" }]"""))
             ],
         };
 
@@ -1225,7 +1346,7 @@ public class DataControllerPatchTests : ApiTestBase
             )
             .Verifiable(Times.Once);
 
-        var path = JsonPointer.Create("melding", "name");
+        var path = "/melding/name";
         var patch = new DataPatchRequestMultiple()
         {
             IgnoredValidators = [],
@@ -1233,7 +1354,13 @@ public class DataControllerPatchTests : ApiTestBase
             [
                 new DataPatchRequestMultiple.PatchListItem(
                     _dataGuid,
-                    new JsonPatch(PatchOperation.Test(path, JsonNode.Parse("null")))
+                    JsonPatchOperation.ParseList(
+                        $$"""
+                        [
+                            { "op": "test", "path": "{{path}}", "value": null }
+                        ]
+                        """
+                    )
                 ),
             ],
         };
