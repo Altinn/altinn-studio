@@ -1,5 +1,5 @@
 ---
-name: Intent Security Parser System Prompt
+name: Security Check System Prompt
 role: security_parser
 version: '3.0'
 ---

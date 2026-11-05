@@ -1,16 +1,16 @@
 # Graph: gates, intake, spec and the loop node
 
-Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/intent_parser.py`
+Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/security_checker.py`
 
 ## Runner and gates
 
-`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The intent check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The intent check fails closed: if it cannot run, a write request stops.
+`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The security check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The security check fails closed: if it cannot run, a write request stops.
 
 ```mermaid
 flowchart TD
   S["Scope check, all runs"] --> Q{"In scope?"}
   Q -- No --> X["Chat: polite decline. Workflow: reject"]
-  Q -- Yes --> I["Intent check, workflow mode only"]
+  Q -- Yes --> I["Security check, workflow mode only"]
   I -- "safe" --> G["Run the graph"]
 ```
 

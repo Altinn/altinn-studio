@@ -51,7 +51,7 @@ class TestFallbackToTheLocalFile:
         prompt = _Prompt([{"role": "system", "content": SYSTEM}])
         monkeypatch.setattr(loader, "get_raw_langfuse_prompt", lambda name, **k: prompt)
 
-        content, raw = get_prompt_with_langfuse("intent_security")
+        content, raw = get_prompt_with_langfuse("security_check")
 
         assert content == SYSTEM
         assert raw is prompt
@@ -65,7 +65,7 @@ class TestFallbackToTheLocalFile:
             lambda name, **k: _Prompt([{"role": "user", "content": "x"}]),
         )
 
-        content, raw = get_prompt_with_langfuse("intent_security")
+        content, raw = get_prompt_with_langfuse("security_check")
 
         assert "safety gate for Altinity" in content
         assert raw is None
@@ -82,23 +82,8 @@ class TestFallbackToTheLocalFile:
         assert "scope classifier" in content
         assert raw is None
 
-
-class TestTheGatesFetchTheChatPrompts:
-    """Langfuse forbids changing a prompt's type, so the gate moved to a new name."""
-
-    def test_the_safety_gate_falls_back_to_the_file_it_still_has(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_raw_langfuse_prompt", lambda name, **k: None)
-
-        content, _ = get_prompt_with_langfuse("intent_check", local_path="intent_security")
-
-        assert "safety gate for Altinity" in content
-
-    def test_the_new_name_has_no_local_file_of_its_own(self):
-        """If someone adds intent_check.md the two would drift silently."""
-        assert not (loader.PROMPTS_DIR / "intent_check.md").exists()
-
     def test_a_missing_local_file_is_an_error_not_an_empty_prompt(self, monkeypatch):
         monkeypatch.setattr(loader, "get_raw_langfuse_prompt", lambda name, **k: None)
 
         with pytest.raises(FileNotFoundError):
-            get_prompt_with_langfuse("intent_check")
+            get_prompt_with_langfuse("no_such_prompt")

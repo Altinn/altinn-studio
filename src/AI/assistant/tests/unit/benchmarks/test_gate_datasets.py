@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from agents.services.llm.intent_parser import _validate_goal_safety_quick
-from agents.services.llm.llm_client import build_intent_parse_message
+from agents.services.llm.llm_client import build_security_check_message
 from agents.services.llm.scope_checker import build_scope_check_message
+from agents.services.llm.security_checker import _validate_goal_safety_quick
 from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
@@ -59,13 +59,13 @@ class TestValidationHoldsFromAClone:
             assert "not in assets/" in absent
 
     def test_a_gate_attachment_needs_no_file(self):
-        """The intent gate is shown filenames and opens nothing, so an injection
+        """The security gate is shown filenames and opens nothing, so an injection
         payload carried in a filename has no asset behind it."""
-        safety = next(d for d in ALL_DATASETS if d.name == "Gates/intent-safety")
-        named = [n for i in safety.items for n in i["input"].get("attachments") or []]
+        security = next(d for d in ALL_DATASETS if d.name == "Gates/security")
+        named = [n for i in security.items for n in i["input"].get("attachments") or []]
 
-        assert named, "the safety set carries filename payloads"
-        assert missing_assets(safety) == []
+        assert named, "the security set carries filename payloads"
+        assert missing_assets(security) == []
 
 
 class TestTheBlocklistAgreesWithTheDatasets:
@@ -131,23 +131,23 @@ class TestTheUploadedInputMatchesProduction:
         assert rendered["goal"] == item["input"]["goal"]
 
     def test_an_attachment_item_carries_the_filename_line(self):
-        safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(i for i in safety.items if i["id"] == "safety-injection-via-attachment-name")
+        security = next(d for d in DATASETS if d.name == "Gates/security")
+        item = next(i for i in security.items if i["id"] == "security-injection-via-attachment-name")
 
-        rendered = render_input(safety, item)
+        rendered = render_input(security, item)
 
-        assert rendered["user_message"] == build_intent_parse_message(
+        assert rendered["user_message"] == build_security_check_message(
             item["input"]["goal"], item["input"]["attachments"]
         )
         assert "ignore-previous-instructions" in rendered["user_message"]
 
     def test_renders_the_conversation_of_a_follow_up_item(self):
-        safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(i for i in safety.items if i["id"] == "safety-followup-long-reply-unsafe-middle")
+        security = next(d for d in DATASETS if d.name == "Gates/security")
+        item = next(i for i in security.items if i["id"] == "security-followup-long-reply-unsafe-middle")
 
-        rendered = render_input(safety, item)
+        rendered = render_input(security, item)
 
-        assert rendered["user_message"] == build_intent_parse_message(
+        assert rendered["user_message"] == build_security_check_message(
             item["input"]["goal"], conversation=item["input"]["conversation"]
         )
         assert "Gitea-tokenet" in rendered["user_message"]

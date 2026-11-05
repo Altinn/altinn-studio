@@ -16,8 +16,8 @@ from agents.graph.runner import (
     _UNSAFE_GOAL_MESSAGE,
     GoalRejected,
     WorkflowCancelled,
+    _check_security,
     _gate_goal,
-    _validate_intent,
 )
 from agents.graph.state import AgentState, ConversationMessage
 from agents.services.events.events import AgentEvent
@@ -198,7 +198,7 @@ class TestGateGoal:
         history = event_sink.get_conversation_history("sess-1")
         assert [entry["content"] for entry in history] == [decline]
 
-    async def test_in_scope_write_mode_runs_intent_validation(self):
+    async def test_in_scope_write_mode_runs_the_security_check(self):
         state = _state(allow_app_changes=True, user_goal="legg til et tekstfelt")
         in_scope = ScopeCheckResult(in_scope=True, reason="layout")
         with (
@@ -206,14 +206,14 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
+            patch("agents.graph.runner._check_security", new=AsyncMock()) as check_security,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
-        validate_intent.assert_awaited_once_with(state)
+        check_security.assert_awaited_once_with(state)
 
-    async def test_in_scope_read_only_skips_intent_validation(self):
+    async def test_in_scope_read_only_skips_the_security_check(self):
         state = _state(allow_app_changes=False, user_goal="hvordan fungerer uttrykk?")
         in_scope = ScopeCheckResult(in_scope=True, reason="Altinn concept question")
         with (
@@ -221,12 +221,12 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
+            patch("agents.graph.runner._check_security", new=AsyncMock()) as check_security,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
-        validate_intent.assert_not_awaited()
+        check_security.assert_not_awaited()
 
     async def test_cancelling_during_the_scope_check_stops_the_turn(self):
         state = _state(allow_app_changes=False)
@@ -317,20 +317,20 @@ REJECTION_SUGGESTION = "Prøv A"
 UNSAFE_GATE_REASON = "targets a database"
 
 
-class TestValidateIntentRejectionCopy:
+class TestSecurityCheckRejectionCopy:
     """The user-facing half of a rejection: Norwegian, and free of the gate's
     own reasoning, which names the rule that was tripped."""
 
     async def _reject(self, parsed) -> GoalRejected:
         with (
-            patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
+            patch("agents.graph.runner.check_security_async", AsyncMock(return_value=parsed)),
             patch(
                 "agents.graph.runner.suggest_goal_correction",
                 return_value=[REJECTION_SUGGESTION],
             ),
             pytest.raises(GoalRejected) as excinfo,
         ):
-            await _validate_intent(_state(allow_app_changes=True))
+            await _check_security(_state(allow_app_changes=True))
         return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):

@@ -97,11 +97,6 @@ class TestPromptsLangfuseHoldsAlone:
         while the prompt entity still held the old generic design."""
         assert sync_prompts._report_orphans(_Langfuse([_page([LOCAL_JUDGE])])) == [LOCAL_JUDGE]
 
-    def test_a_prompt_served_from_a_differently_named_file_is_not_orphaned(self):
-        """The intent gate loads Langfuse `intent_check` from `intent_security.md`, so
-        matching on filename alone told you to archive a prompt in active use."""
-        assert sync_prompts._report_orphans(_Langfuse([_page(["intent_check"])])) == []
-
     def test_labels_are_named_even_when_there_are_none(self, capsys):
         api = _Langfuse([_page([RETIRED])])
 
@@ -291,14 +286,6 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
     def test_a_chat_prompt_with_no_system_turn_is_not_comparable(self):
         assert sync_prompts._system_turn([{"role": "user", "content": "x"}]) is None
 
-    def test_a_file_served_under_another_name_is_compared_against_that_name(self):
-        """intent_security.md serves the Langfuse prompt intent_check, and comparing it
-        against the retired intent_security reported drift that was not there."""
-        assert sync_prompts._served_as("intent_security") == "intent_check"
-
-    def test_a_file_served_under_its_own_name_is_unchanged(self):
-        assert sync_prompts._served_as("scope_check") == "scope_check"
-
     def test_judges_are_not_treated_as_prompts(self):
         """They run as evaluator templates configured in the UI, so a repo file has no
         Langfuse prompt to drift against."""
@@ -315,57 +302,6 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
         assert "evaluators rather than prompts" in out
 
 
-class TestPushFollowsTheServedName:
-    """intent_security.md serves the Langfuse prompt intent_check. Publishing under the
-    filename would version a retired prompt and leave the live gate untouched."""
-
-    ALIAS_FILE = "intent_security"
-    SERVED = "intent_check"
-
-    def test_it_publishes_under_the_served_name(self):
-        api = _Langfuse(published={self.SERVED: {"type": "text", "version": 4, "prompt": "old"}})
-
-        sync_prompts._push(api, self.ALIAS_FILE, "why")
-
-        assert api.published[0]["name"] == self.SERVED
-
-    def test_it_reads_the_shape_of_the_served_prompt(self):
-        chat = {
-            "type": "chat",
-            "version": 5,
-            "prompt": [
-                {"type": "message", "role": "system", "content": "old system"},
-                {"type": "message", "role": "user", "content": "{{user_message}}"},
-            ],
-        }
-        api = _Langfuse(published={self.SERVED: chat})
-
-        sync_prompts._push(api, self.ALIAS_FILE, "why")
-
-        body = api.published[0]
-        assert body["type"] == "chat"
-        assert [turn["role"] for turn in body["prompt"]] == ["system", "user"]
-
-    def test_it_says_which_prompt_it_served(self, capsys):
-        api = _Langfuse(published={self.SERVED: {"type": "text", "version": 4, "prompt": "old"}})
-
-        sync_prompts._push(api, self.ALIAS_FILE, "why")
-
-        assert "serving intent_check" in capsys.readouterr().out
-
-    def test_an_unaliased_prompt_publishes_under_its_own_name(self, capsys):
-        api = _Langfuse(published={LOCAL: {"type": "text", "version": 1, "prompt": "old"}})
-
-        sync_prompts._push(api, LOCAL, "why")
-
-        assert api.published[0]["name"] == LOCAL
-        assert "serving" not in capsys.readouterr().out
-
-
-DECOY = "intent_security"
-SERVED = "intent_check"
-
-
 class TestTheFakeCannotOutrunTheRealClient:
     """`--promote` called `_patch`, which only this fake had, so it raised
     AttributeError against the real Langfuse for as long as it existed."""
@@ -374,16 +310,6 @@ class TestTheFakeCannotOutrunTheRealClient:
         called = {name for name in dir(_Langfuse) if name.startswith("_") and not name.startswith("__")}
 
         assert called <= set(dir(LangfuseApi))
-
-
-class TestAFileThatServesAnotherNameDoesNotShieldItsOwn:
-    def test_the_decoy_is_an_orphan_while_the_file_serves_the_other_name(self):
-        assert DECOY in sync_prompts._orphan_prompts(_Langfuse([_page([DECOY, SERVED])]))[0]["name"]
-
-    def test_the_name_the_file_serves_is_not_an_orphan(self):
-        orphans = sync_prompts._orphan_prompts(_Langfuse([_page([DECOY, SERVED])]))
-
-        assert [prompt["name"] for prompt in orphans] == [DECOY]
 
 
 class TestRetiringIsGated:
