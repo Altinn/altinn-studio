@@ -180,7 +180,7 @@ describe('Repeating group row validation', () => {
     cy.get('#group-validationGroup').screenshot('row-validation-desktop');
 
     cy.get(row(0)).find(indicator).click();
-    cy.findByRole('dialog', { name: 'Meldinger for rad 1' }).as('messages').should('be.focused');
+    cy.findByRole('dialog', { name: 'Meldinger' }).as('messages').should('be.focused');
     cy.get('@messages').findAllByRole('listitem').should('have.length', 2);
     cy.get('@messages').should('contain.text', 'Beløpet må korrigeres').and('contain.text', 'Kontroller beløpet 400.');
     cy.get('@messages').findByRole('link', { name: 'Les mer' }).should('have.attr', 'href', 'https://www.altinn.no/');
@@ -191,13 +191,13 @@ describe('Repeating group row validation', () => {
     cy.get(row(0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
 
     cy.press('Space');
-    cy.findByRole('dialog', { name: 'Meldinger for rad 1' }).should('have.focus');
+    cy.findByRole('dialog', { name: 'Meldinger' }).should('have.focus');
     cy.press('Tab');
     cy.focused().should('have.attr', 'aria-label', 'Lukk');
     cy.press('Space');
     cy.get(row(0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
     cy.press('Space');
-    cy.findByRole('dialog', { name: 'Meldinger for rad 1' })
+    cy.findByRole('dialog', { name: 'Meldinger' })
       .findAllByRole('button', { name: 'Opprinnelig beløp' })
       .first()
       .click();
@@ -208,9 +208,7 @@ describe('Repeating group row validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
     for (const index of [1, 2, 3]) {
       cy.get(row(index)).find(indicator).click();
-      cy.findByRole('dialog', { name: `Meldinger for rad ${index + 1}` })
-        .findByRole('button', { name: 'Opprinnelig beløp' })
-        .click();
+      cy.findByRole('dialog', { name: 'Meldinger' }).findByRole('button', { name: 'Opprinnelig beløp' }).click();
       cy.get(`#validationValue-${index}`).should('have.focus');
       cy.get(row(index)).find(indicator).should('have.attr', 'aria-expanded', 'false');
     }
@@ -225,10 +223,8 @@ describe('Repeating group row validation', () => {
     cy.get(row(0)).find(indicator).should('not.exist');
     checkIndicator(1, 'warning');
     cy.get(row(1)).find(indicator).click();
-    cy.findByRole('dialog', { name: 'Meldinger for rad 2' }).should('contain.text', 'Kontroller: Andre kommentar');
-    cy.findByRole('dialog', { name: 'Meldinger for rad 2' })
-      .findByRole('button', { name: 'Kommentar (Rad 2 / Rad 2)' })
-      .click();
+    cy.findByRole('dialog', { name: 'Meldinger' }).should('contain.text', 'Kontroller: Andre kommentar');
+    cy.findByRole('dialog', { name: 'Meldinger' }).findByRole('button', { name: 'Kommentar (Rad 2 / Rad 2)' }).click();
     cy.get('#validationComment-1-1').should('be.visible').and('have.focus');
     cy.get('#group-validationNested-1-table-body > tr[data-row-num="1"]').find(indicator).should('be.visible');
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
@@ -258,11 +254,11 @@ describe('Repeating group row validation', () => {
         cy.screenshot('row-validation-mobile-rows', { capture: 'viewport' });
       }
       cy.get(row(0)).find(indicator).click();
-      cy.findByRole('dialog', { name: 'Meldinger for rad 1' }).should('be.visible');
+      cy.findByRole('dialog', { name: 'Meldinger' }).should('be.visible');
       if (mobile) {
         cy.screenshot('row-validation-mobile', { capture: 'viewport' });
       }
-      cy.findByRole('dialog', { name: 'Meldinger for rad 1' })
+      cy.findByRole('dialog', { name: 'Meldinger' })
         .findAllByRole('button', { name: 'Opprinnelig beløp' })
         .first()
         .click();
