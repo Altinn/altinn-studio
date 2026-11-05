@@ -104,7 +104,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Api.Helpers.Patch.InternalPatchService patchService, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
+        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPost]
@@ -325,7 +325,6 @@ namespace Altinn.App.Api.Controllers
                     Altinn.App.Core.Internal.Registers.IOrganizationClient orgClient,
                     Microsoft.Extensions.Hosting.IHostEnvironment env,
                     Altinn.App.Core.Helpers.Serialization.ModelSerializationService serializationService,
-                    Altinn.App.Api.Helpers.Patch.InternalPatchService patchService,
                     Altinn.App.Core.Internal.Texts.ITranslationService translationService,
                     System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceComplete")]
@@ -777,23 +776,6 @@ namespace Altinn.App.Api.Extensions
         public static void ConfigureAppWebHost(this Microsoft.AspNetCore.Hosting.IWebHostBuilder builder, string[] args) { }
     }
 }
-namespace Altinn.App.Api.Helpers.Patch
-{
-    public class DataPatchResult
-    {
-        public DataPatchResult() { }
-        public required Altinn.App.Core.Models.DataElementChanges FormDataChanges { get; init; }
-        public required Altinn.Platform.Storage.Interface.Models.Instance Instance { get; init; }
-        public required System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair> ValidationIssues { get; init; }
-    }
-    public class InternalPatchService
-    {
-        public InternalPatchService(Altinn.App.Core.Internal.Validation.IValidationService validationService, Microsoft.Extensions.Hosting.IHostEnvironment hostingEnvironment, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Result.ServiceResult<Altinn.App.Api.Helpers.Patch.DataPatchResult, Microsoft.AspNetCore.Mvc.ProblemDetails>> ApplyPatches(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<System.Guid, Json.Patch.JsonPatch> patches, string? language, System.Collections.Generic.List<string>? ignoredValidators) { }
-        public System.Threading.Tasks.Task RunDataProcessors(Altinn.App.Core.Features.IInstanceDataMutator dataMutator, Altinn.App.Core.Models.DataElementChanges changes, string taskId, string? language) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair>> RunIncrementalValidation(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, Altinn.App.Core.Models.DataElementChanges changes, System.Collections.Generic.List<string>? ignoredValidators, string? language) { }
-    }
-}
 namespace Altinn.App.Api.Helpers.RequestHandling
 {
     public static class DataRestrictionValidation
@@ -952,7 +934,7 @@ namespace Altinn.App.Api.Models
         [System.Text.Json.Serialization.JsonPropertyName("ignoredValidators")]
         public System.Collections.Generic.List<string>? IgnoredValidators { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("patch")]
-        public required Json.Patch.JsonPatch Patch { get; init; }
+        public required System.Collections.Generic.List<Altinn.App.Api.Models.JsonPatchOperation> Patch { get; init; }
     }
     public class DataPatchRequestMultiple
     {
@@ -966,11 +948,11 @@ namespace Altinn.App.Api.Models
         public required System.Collections.Generic.List<Altinn.App.Api.Models.DataPatchRequestMultiple.PatchListItem> Patches { get; init; }
         public class PatchListItem : System.IEquatable<Altinn.App.Api.Models.DataPatchRequestMultiple.PatchListItem>
         {
-            public PatchListItem(System.Guid DataElementId, Json.Patch.JsonPatch Patch) { }
+            public PatchListItem(System.Guid DataElementId, System.Collections.Generic.List<Altinn.App.Api.Models.JsonPatchOperation> Patch) { }
             [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
             public System.Guid DataElementId { get; init; }
             [System.Text.Json.Serialization.JsonPropertyName("patch")]
-            public Json.Patch.JsonPatch Patch { get; init; }
+            public System.Collections.Generic.List<Altinn.App.Api.Models.JsonPatchOperation> Patch { get; init; }
         }
     }
     public class DataPatchResponse
@@ -1096,6 +1078,21 @@ namespace Altinn.App.Api.Models
         public string SourceInstanceId { get; set; }
         public System.DateTime? VisibleAfter { get; set; }
         public override string ToString() { }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Api.Models.JsonPatchOperationConverter))]
+    public sealed class JsonPatchOperation
+    {
+        public Altinn.App.Api.Models.JsonPatchOperationType Op { get; }
+        public string Path { get; }
+        public System.Text.Json.Nodes.JsonNode? Value { get; }
+        public static System.Collections.Generic.List<Altinn.App.Api.Models.JsonPatchOperation> ParseList([System.Diagnostics.CodeAnalysis.StringSyntax("Json")] string patch) { }
+    }
+    public enum JsonPatchOperationType
+    {
+        Add = 0,
+        Remove = 1,
+        Replace = 2,
+        Test = 3,
     }
     public class LookupOrganizationResponse
     {
