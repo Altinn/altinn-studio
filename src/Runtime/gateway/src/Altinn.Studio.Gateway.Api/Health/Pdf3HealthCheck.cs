@@ -5,9 +5,9 @@ using OpenTelemetry;
 namespace Altinn.Studio.Gateway.Api.Health;
 
 /// <summary>
-/// Checks that apps can reach pdf3. It calls the relay's health endpoint under the address apps call, so the request
-/// takes the HTTPRoute their requests take. Without the route, the Service behind the address has no endpoints, and
-/// Linkerd fails the request.
+/// Checks that apps can get PDFs. It calls the relay's health endpoint under the address apps call, so the request
+/// takes the HTTPRoute their requests take, and the relay checks the shared pdf3 in DIS Core as far as a ready
+/// worker. Without the route, the Service behind the address has no endpoints, and Linkerd fails the request.
 /// </summary>
 internal sealed class Pdf3HealthCheck(IHttpClientFactory httpClientFactory, AppsConfigClient appsConfig) : IHealthCheck
 {

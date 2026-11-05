@@ -16,7 +16,8 @@ The proxy and workers run as a shared service in every [DIS Core](../../../docs/
 environment. Runtime clusters call it through the [relay](cmd/relay) with an [API key](docs/api-keys.md), and the
 [HTTPRoute `pdf/pdf3`](infra/relay/base/httproute.yaml) routes all apps' PDF requests to the relay.
 The [environment overlays](infra/relay) set its upstream URL. at24's relay calls tt02's DIS Core.
-The [gateway's health check](../gateway/README.md#health) calls the relay's `/pdf/health` through the same route.
+The [gateway's health check](../gateway/README.md#health) calls the relay's `/pdf/health` through the same route, and
+the relay calls the proxy's with its API key, so the check fails wherever apps' PDF requests would.
 
 The DIS Core manifests live in [`infra/core`](infra/core). Tenant relay manifests live in
 [`infra/relay`](infra/relay), and local-test manifests in [`infra/local`](infra/local).

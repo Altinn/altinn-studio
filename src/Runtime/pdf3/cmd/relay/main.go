@@ -76,11 +76,8 @@ func main() {
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
-	// The gateway checks that apps can reach pdf3 by calling this at the address apps call. The HTTPRoute that
-	// sends their requests here matches only paths under /pdf, so a probe outside it would not take the route.
-	http.HandleFunc("/pdf/health", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown())
-	})
+	// Under /pdf, since the HTTPRoute that sends apps' requests here matches only paths under it.
+	http.HandleFunc("/pdf/health", rl.handleHealth)
 	http.Handle("/pdf", rl.handler())
 
 	server := &http.Server{
