@@ -21,7 +21,7 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 
-// Decides what the component shows, such as the file picker, the upload or the sent file
+// Lets the user upload a large file from the form and send it to other organizations with Altinn Broker (Altinn Formidling)
 
 export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGenericComponent<'BrokerFileTransfer'>) {
   const config = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
