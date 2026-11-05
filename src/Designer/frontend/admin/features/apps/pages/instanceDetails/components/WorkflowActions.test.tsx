@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { post } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,12 +11,19 @@ import type {
   PersistentItemStatus,
   WorkflowStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { renderWithProviders } from 'admin/testing/mocks';
 import { WorkflowActions } from './WorkflowActions';
 
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  post: vi.fn(),
-}));
+const resumeWorkflow = vi.fn();
+const nudgeWorkflow = vi.fn();
+const failWorkflow = vi.fn();
+
+/** Every verb call, in the order they were made, whichever verb it was. */
+const verbCalls = () => [
+  ...resumeWorkflow.mock.calls,
+  ...nudgeWorkflow.mock.calls,
+  ...failWorkflow.mock.calls,
+];
 
 const env = 'at23';
 const collectionKey = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
@@ -68,7 +72,9 @@ const confirmButton = (key: string) => screen.getByRole('button', { name: textMo
 
 describe('WorkflowActions', () => {
   beforeEach(() => {
-    vi.mocked(post).mockResolvedValue({});
+    resumeWorkflow.mockResolvedValue({});
+    nudgeWorkflow.mockResolvedValue({});
+    failWorkflow.mockResolvedValue({});
   });
 
   it.each<PersistentItemStatus>(['Failed', 'Canceled', 'DependencyFailed', 'Abandoned'])(
@@ -84,8 +90,8 @@ describe('WorkflowActions', () => {
   it.each<PersistentItemStatus>(['Completed', 'Enqueued', 'Processing', 'Held'])(
     'offers nothing on a %s workflow',
     (status) => {
-      const { container } = renderWorkflowActions(workflow(status));
-      expect(container).toBeEmptyDOMElement();
+      renderWorkflowActions(workflow(status));
+      expect(screen.getByTestId(actionsTestId)).toBeEmptyDOMElement();
     },
   );
 
@@ -106,10 +112,8 @@ describe('WorkflowActions', () => {
     await user.click(nudgeButton());
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(post).mock.calls[0][0]).toBe(
-      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/nudge`,
-    );
+    await waitFor(() => expect(verbCalls()).toHaveLength(1));
+    expect(nudgeWorkflow).toHaveBeenCalledWith(org, env, app, workflowId);
     rerenderWith(workflow('Processing'));
     expect(
       await screen.findByText(textMock('admin.workflows.actions.nudge.success')),
@@ -118,7 +122,8 @@ describe('WorkflowActions', () => {
 
   it('keeps the other verb out of reach while one is running', async () => {
     const user = userEvent.setup();
-    vi.mocked(post).mockReturnValue(new Promise(() => {}));
+    nudgeWorkflow.mockReturnValue(new Promise(() => {}));
+    failWorkflow.mockReturnValue(new Promise(() => {}));
     renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
@@ -128,7 +133,7 @@ describe('WorkflowActions', () => {
       await screen.findByRole('img', { name: textMock('general.loading') }),
     ).toBeInTheDocument();
     expect(failButton()).toBeDisabled();
-    expect(post).toHaveBeenCalledTimes(1);
+    expect(verbCalls()).toHaveLength(1);
   });
 
   it('gives up on a parked workflow only once confirmed, sending no reason of its own', async () => {
@@ -139,14 +144,12 @@ describe('WorkflowActions', () => {
     expect(
       screen.getByText(textMock('admin.workflows.actions.fail.description')),
     ).toBeInTheDocument();
-    expect(post).not.toHaveBeenCalled();
+    expect(verbCalls()).toHaveLength(0);
 
     await user.click(confirmButton('admin.workflows.actions.fail.confirm'));
 
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(post).mock.calls[0]).toEqual([
-      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/fail`,
-    ]);
+    await waitFor(() => expect(verbCalls()).toHaveLength(1));
+    expect(failWorkflow.mock.calls[0]).toEqual([org, env, app, workflowId]);
   });
 
   it('drops a run-now outcome once the workflow parks again', async () => {
@@ -178,14 +181,12 @@ describe('WorkflowActions', () => {
     expect(
       screen.getByText(textMock('admin.workflows.actions.retry.description')),
     ).toBeInTheDocument();
-    expect(post).not.toHaveBeenCalled();
+    expect(verbCalls()).toHaveLength(0);
 
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
 
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(post).mock.calls[0][0]).toBe(
-      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/resume?cascade=true`,
-    );
+    await waitFor(() => expect(verbCalls()).toHaveLength(1));
+    expect(resumeWorkflow).toHaveBeenCalledWith(org, env, app, workflowId, true);
   });
 
   it('gives the initial focus to Cancel, never to the confirm button', async () => {
@@ -222,7 +223,7 @@ describe('WorkflowActions', () => {
 
   it('surfaces a failed verb without a global toast', async () => {
     const user = userEvent.setup();
-    vi.mocked(post).mockRejectedValue(new Error('boom'));
+    resumeWorkflow.mockRejectedValue(new Error('boom'));
     renderWorkflowActions(workflow('Failed'));
 
     await user.click(retryButton());
@@ -259,7 +260,7 @@ describe('WorkflowActions', () => {
 
   it('says how many dependents the cascade resumed along with the workflow', async () => {
     const user = userEvent.setup();
-    vi.mocked(post).mockResolvedValue({
+    resumeWorkflow.mockResolvedValue({
       workflowId,
       resumedAt: '2026-08-02T10:10:00Z',
       cascadeResumed: ['dep-1', 'dep-2'],
@@ -296,7 +297,7 @@ describe('WorkflowActions', () => {
 
     await user.click(retryButton());
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(verbCalls()).toHaveLength(1));
 
     // Resuming enqueues the workflow, and the invalidated drill-down comes back with it in the
     // status the verb produced — so the verbs are gone by the time the outcome is known.
@@ -334,15 +335,22 @@ describe('WorkflowActions', () => {
   });
 });
 
+// The services provider renders a toast container next to the component, so the actions get a
+// wrapper of their own to tell whether they rendered anything.
+const actionsTestId = 'workflow-actions';
+
 const renderWorkflowActions = (
   workflowToRender: WorkflowStatus,
-  client: QueryClient = createQueryClientMock(),
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const actionsWith = (workflowToShow: WorkflowStatus) => (
-    <QueryClientProvider client={client}>
+    <div data-testid={actionsTestId}>
       <WorkflowActions context={context} workflow={workflowToShow} />
-    </QueryClientProvider>
+    </div>
   );
-  const { rerender, ...renderResult } = render(actionsWith(workflowToRender));
+  const { rerender, ...renderResult } = renderWithProviders(actionsWith(workflowToRender), {
+    queryClient,
+    queries: { resumeWorkflow, nudgeWorkflow, failWorkflow },
+  });
   return { ...renderResult, rerenderWith: (next: WorkflowStatus) => rerender(actionsWith(next)) };
 };

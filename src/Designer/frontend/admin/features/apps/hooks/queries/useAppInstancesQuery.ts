@@ -2,12 +2,8 @@ import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { isHttpError } from 'app-shared/utils/networking';
-import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
-import type {
-  InstancesResponse,
-  SimpleInstance,
-} from 'admin/features/apps/types/InstancesResponse';
-import { instancesListPath } from 'admin/features/apps/utils/apiPaths';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
 import { INSTANCE_LIST_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/workflowRefetch';
 
 export const useAppInstancesQuery = (
@@ -22,6 +18,7 @@ export const useAppInstancesQuery = (
   isHardDeleted?: boolean,
   createdBefore?: string,
 ): UseInfiniteQueryResult<SimpleInstance[][]> => {
+  const { getAppInstances } = useServicesContext();
   return useInfiniteQuery({
     initialPageParam: undefined,
     queryKey: [
@@ -38,12 +35,12 @@ export const useAppInstancesQuery = (
       createdBefore,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
-      await getAdminResource<InstancesResponse>(
-        instancesListPath(
-          org,
-          env,
-          app,
-          pageParam,
+      getAppInstances(
+        org,
+        env,
+        app,
+        pageParam,
+        {
           currentTask,
           isArchived,
           archiveReference,
@@ -51,8 +48,8 @@ export const useAppInstancesQuery = (
           isSoftDeleted,
           isHardDeleted,
           createdBefore,
-        ),
-        { signal },
+        },
+        signal,
       ),
     getNextPageParam: (lastPage) => lastPage.continuationToken,
     // New instances come from the app, not from this page, so the list reads again every so

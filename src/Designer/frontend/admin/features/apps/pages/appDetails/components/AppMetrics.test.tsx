@@ -1,18 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { AppMetrics, type AppMetricsProps } from './AppMetrics';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
-import { get } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
 import { OrgContext } from 'admin/contexts/OrgContext';
+import { renderWithProviders } from 'admin/testing/mocks';
 
 const env = 'test';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
@@ -37,10 +34,6 @@ vi.mock('react-chartjs-2');
 vi.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
   useRequiredRoutePathsParams: () => ({ owner: org, environment: env, app }),
 }));
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-}));
 vi.mock('admin/features/apps/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
@@ -48,10 +41,19 @@ const defaultProps: AppMetricsProps = {
   setRange: vi.fn(),
 };
 
+const getAppHealthMetrics = vi.fn();
+const getAppErrorMetrics = vi.fn();
+const getAppMetrics = vi.fn();
+const metricsQueries = { getAppHealthMetrics, getAppErrorMetrics, getAppMetrics };
+
+/** Answers every metrics request the same way, whichever endpoint it goes to. */
+const mockRequests = (respond: () => Promise<unknown>) =>
+  Object.values(metricsQueries).forEach((query) => query.mockImplementation(respond));
+
 describe('AppMetrics', () => {
   describe('app health metrics', () => {
     it('should render loading state', () => {
-      vi.mocked(get).mockReturnValue(new Promise(() => {}));
+      mockRequests(() => new Promise(() => {}));
       renderAppMetrics();
 
       expect(
@@ -61,7 +63,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const apiError = createApiErrorMock(ServerCodes.Forbidden);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -86,7 +88,7 @@ describe('AppMetrics', () => {
       'should use org username when full name is missing in %s missing rights alert',
       async (_section, missingRightsKey, loadingKey) => {
         const apiError = createApiErrorMock(ServerCodes.Forbidden);
-        vi.mocked(get).mockRejectedValue(apiError);
+        mockRequests(() => Promise.reject(apiError));
 
         renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
 
@@ -102,7 +104,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const apiError = createApiErrorMock(ServerCodes.InternalServerError);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -169,7 +171,7 @@ describe('AppMetrics', () => {
 
   describe('app error metrics', () => {
     it('should render loading state', () => {
-      vi.mocked(get).mockReturnValue(new Promise(() => {}));
+      mockRequests(() => new Promise(() => {}));
       renderAppMetrics();
 
       expect(
@@ -179,7 +181,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const apiError = createApiErrorMock(ServerCodes.Forbidden);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -198,7 +200,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const apiError = createApiErrorMock(ServerCodes.InternalServerError);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -291,7 +293,7 @@ describe('AppMetrics', () => {
 
   describe('app metrics', () => {
     it('should render loading state', () => {
-      vi.mocked(get).mockReturnValue(new Promise(() => {}));
+      mockRequests(() => new Promise(() => {}));
       renderAppMetrics();
 
       expect(screen.getByLabelText(textMock('admin.metrics.app.loading'))).toBeInTheDocument();
@@ -299,7 +301,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const apiError = createApiErrorMock(ServerCodes.Forbidden);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -318,7 +320,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const apiError = createApiErrorMock(ServerCodes.InternalServerError);
-      vi.mocked(get).mockRejectedValue(apiError);
+      mockRequests(() => Promise.reject(apiError));
 
       renderAppMetrics();
 
@@ -379,13 +381,10 @@ const renderAppMetrics = (
   props: AppMetricsProps = defaultProps,
   currentOrg = orgMock,
 ) => {
-  render(
-    <MemoryRouter>
-      <OrgContext.Provider value={currentOrg}>
-        <QueryClientProvider client={client}>
-          <AppMetrics {...props} />
-        </QueryClientProvider>
-      </OrgContext.Provider>
-    </MemoryRouter>,
+  renderWithProviders(
+    <OrgContext.Provider value={currentOrg}>
+      <AppMetrics {...props} />
+    </OrgContext.Provider>,
+    { queryClient: client, queries: metricsQueries },
   );
 };

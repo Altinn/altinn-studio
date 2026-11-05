@@ -1,23 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { get, HttpError } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
+import { HttpError } from 'app-shared/utils/networking';
+import type { WorkflowCollectionsQuery } from 'admin/features/apps/utils/apiPaths';
 import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
+import { renderWithProviders } from 'admin/testing/mocks';
 import { InstancesTable } from './InstancesTable';
-
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-}));
 
 const environment = 'at23';
 const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
@@ -68,28 +62,31 @@ const engineUnavailableError = () =>
     },
   });
 
-const keysFrom = (url: string) => [
-  ...new URLSearchParams(url.slice(url.indexOf('?'))).getAll('key'),
-];
+const getAppInstances = vi.fn();
+const getWorkflowCollections = vi.fn();
+const getWorkflows = vi.fn();
 
-type RouteHandler = (url: string) => unknown;
+type InstancesHandler = (continuationToken: string | undefined) => unknown;
+type HealthHandler = (keys: string[]) => unknown;
 
 type RouteHandlers = {
-  instances?: RouteHandler;
-  health?: RouteHandler;
+  instances?: InstancesHandler;
+  health?: HealthHandler;
 };
 
 /** Serves the two paged instance pages by continuation token, so both are loadable. */
-const pagedInstances: RouteHandler = (url) =>
-  url.includes(`continuationToken=${continuationToken}`) ? secondInstancesPage : firstInstancesPage;
+const pagedInstances: InstancesHandler = (token) =>
+  token === continuationToken ? secondInstancesPage : firstInstancesPage;
 
 const mockRequests = ({ instances: instancesHandler, health }: RouteHandlers = {}) => {
-  vi.mocked(get).mockImplementation(async (url: string) => {
-    if (url.includes('/workflows/')) {
-      return health ? health(url) : healthResponse;
-    }
-    return instancesHandler ? instancesHandler(url) : instancesResponse;
-  });
+  getAppInstances.mockImplementation(
+    async (_org: string, _env: string, _app: string, token: string | undefined) =>
+      instancesHandler ? instancesHandler(token) : instancesResponse,
+  );
+  getWorkflowCollections.mockImplementation(
+    async (_org: string, _env: string, _app: string, query: WorkflowCollectionsQuery) =>
+      health ? health(query.keys ?? []) : healthResponse,
+  );
 };
 
 const fetchMoreButton = () =>
@@ -113,11 +110,10 @@ const expectHealth = (instanceId: string, healthTextKey: string) =>
     expect(await healthCellOf(instanceId)).toHaveTextContent(textMock(healthTextKey)),
   );
 
-const workflowEngineRequests = () =>
-  vi
-    .mocked(get)
-    .mock.calls.map(([url]) => url as string)
-    .filter((url) => url.includes('/workflows/'));
+const workflowEngineRequests = () => [
+  ...getWorkflowCollections.mock.calls,
+  ...getWorkflows.mock.calls,
+];
 
 describe('InstancesTable workflow health column', () => {
   it('leaves the column out, and the engine unasked, for an app that does not run on it', async () => {
@@ -200,13 +196,12 @@ describe('InstancesTable workflow health column', () => {
 
     await healthCellOf(healthyGuid);
 
-    const healthCalls = vi
-      .mocked(get)
-      .mock.calls.map(([url]) => url as string)
-      .filter((url) => url.includes('/collections'));
+    const requestedKeys = getWorkflowCollections.mock.calls.map(
+      ([, , , query]: [string, string, string, WorkflowCollectionsQuery]) => query.keys ?? [],
+    );
 
-    expect(healthCalls).toHaveLength(1);
-    allGuids.forEach((guid) => expect(healthCalls[0]).toContain(`key=${guid}`));
+    expect(requestedKeys).toHaveLength(1);
+    allGuids.forEach((guid) => expect(requestedKeys[0]).toContain(guid));
   });
 
   it('shows the column as unavailable without disturbing the instance list', async () => {
@@ -245,8 +240,7 @@ describe('InstancesTable workflow health column', () => {
     mockRequests({
       instances: pagedInstances,
       // The first page's annotate request answers; the second page's never does.
-      health: (url) =>
-        keysFrom(url).includes(healthyGuid) ? healthResponse : new Promise(() => {}),
+      health: (keys) => (keys.includes(healthyGuid) ? healthResponse : new Promise(() => {})),
     });
     renderInstancesTable();
 
@@ -270,10 +264,8 @@ describe('InstancesTable workflow health column', () => {
     const user = userEvent.setup();
     mockRequests({
       instances: pagedInstances,
-      health: (url) =>
-        keysFrom(url).includes(healthyGuid)
-          ? healthResponse
-          : Promise.reject(engineUnavailableError()),
+      health: (keys) =>
+        keys.includes(healthyGuid) ? healthResponse : Promise.reject(engineUnavailableError()),
     });
     renderInstancesTable();
 
@@ -299,20 +291,17 @@ describe('InstancesTable workflow health column', () => {
 });
 
 const renderInstancesTable = (
-  client: QueryClient = createQueryClientMock(),
+  queryClient: QueryClient = createQueryClientMock(),
   showWorkflowHealth: boolean = true,
 ) =>
-  render(
-    <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
-        <QueryClientProvider client={client}>
-          <InstancesTable
-            org={org}
-            environment={environment}
-            app={app}
-            showWorkflowHealth={showWorkflowHealth}
-          />
-        </QueryClientProvider>
-      </OrgContext.Provider>
-    </MemoryRouter>,
+  renderWithProviders(
+    <OrgContext.Provider value={orgMock}>
+      <InstancesTable
+        org={org}
+        environment={environment}
+        app={app}
+        showWorkflowHealth={showWorkflowHealth}
+      />
+    </OrgContext.Provider>,
+    { queryClient, queries: { getAppInstances, getWorkflowCollections, getWorkflows } },
   );

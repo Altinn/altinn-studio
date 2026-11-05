@@ -1,23 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
-import { get, post, HttpError } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { HttpError } from 'app-shared/utils/networking';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { WorkflowsQuery } from 'admin/features/apps/utils/apiPaths';
+import { renderWithProviders } from 'admin/testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { formatDay, formatTimeOfDay } from 'admin/features/apps/utils/formatTimestamp';
 import { InstanceWorkflows } from './InstanceWorkflows';
 
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-  post: vi.fn(),
-}));
+const getWorkflows = vi.fn();
+const resumeWorkflow = vi.fn();
 
 const environment = 'at23';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${environment.toUpperCase()}`;
@@ -104,7 +99,7 @@ const workflowsResponse = {
 
 describe('InstanceWorkflows', () => {
   it('lists the instance workflows in the order the process ran them, marking the auxiliary workflow', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     const summaries = await screen.findAllByTestId('workflow-row');
@@ -113,8 +108,8 @@ describe('InstanceWorkflows', () => {
     expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.auxiliary_workflow'));
     expect(within(summaries[1]).getByTitle('Process next: Pdf -> Sign')).toBeInTheDocument();
 
-    const requestedUrl = vi.mocked(get).mock.calls[0][0] as string;
-    expect(requestedUrl).toContain(`collectionKey=${instanceId}`);
+    const [, , , requestedQuery] = getWorkflows.mock.calls[0];
+    expect(requestedQuery).toEqual(expect.objectContaining({ collectionKey: instanceId }));
   });
 
   it('shows the workflows of one transition as one row, speaking for the one it stopped at', async () => {
@@ -144,7 +139,7 @@ describe('InstanceWorkflows', () => {
       labels,
       steps,
     });
-    vi.mocked(get).mockResolvedValue({
+    getWorkflows.mockResolvedValue({
       ...workflowsResponse,
       data: [
         workflowOf(
@@ -226,7 +221,7 @@ describe('InstanceWorkflows', () => {
       },
       steps: [{ ...failedPrimaryWorkflow.steps[0], databaseId: 'auxiliary-step' }],
     };
-    vi.mocked(get).mockResolvedValue({
+    getWorkflows.mockResolvedValue({
       ...workflowsResponse,
       data: [transition, failedAuxiliaryWorkflow],
     });
@@ -265,7 +260,7 @@ describe('InstanceWorkflows', () => {
       createdAt: '2026-08-01T10:03:00Z',
       labels: { processNextTargetTask: 'Form' },
     };
-    vi.mocked(get).mockResolvedValue({
+    getWorkflows.mockResolvedValue({
       ...workflowsResponse,
       data: [
         lateAuxiliaryWorkflow,
@@ -289,7 +284,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('shows per-step status, retries and the error history', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
@@ -341,7 +336,7 @@ describe('InstanceWorkflows', () => {
       ],
     };
     const respondWith = (...sideFlows: object[]) =>
-      vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [transition, ...sideFlows] });
+      getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [transition, ...sideFlows] });
 
     it('expands each flow independently and lists all its steps in execution order', async () => {
       const user = userEvent.setup();
@@ -396,7 +391,7 @@ describe('InstanceWorkflows', () => {
           stepOf('Confirm delivery', 2, 'Enqueued'),
         ],
       });
-      vi.mocked(post).mockResolvedValue({});
+      resumeWorkflow.mockResolvedValue({});
       renderInstanceWorkflows();
 
       const [row] = await screen.findAllByTestId('workflow-row');
@@ -424,8 +419,8 @@ describe('InstanceWorkflows', () => {
       await user.click(
         screen.getByRole('button', { name: textMock('admin.workflows.actions.retry.confirm') }),
       );
-      await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-      expect(vi.mocked(post).mock.calls[0][0]).toContain('/workflows/wf-archive/resume');
+      await waitFor(() => expect(resumeWorkflow).toHaveBeenCalledTimes(1));
+      expect(resumeWorkflow.mock.calls[0][3]).toBe('wf-archive');
     });
 
     it('still offers retry when a failed flow has no steps', async () => {
@@ -449,7 +444,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Processing',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [runningPrimaryWorkflow] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [runningPrimaryWorkflow] });
     renderInstanceWorkflows();
 
     expect(await screen.findByTitle('app-command · Processing')).toHaveAttribute('data-live');
@@ -462,7 +457,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed' }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [recoveredPrimaryWorkflow] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [recoveredPrimaryWorkflow] });
     renderInstanceWorkflows();
 
     const [row] = await screen.findAllByTestId('workflow-row');
@@ -508,7 +503,7 @@ describe('InstanceWorkflows', () => {
       steps,
     });
     const respondWith = (data: object[]) =>
-      vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data });
+      getWorkflows.mockResolvedValue({ ...workflowsResponse, data });
 
     it('heads the steps of each phase with the task it ends or starts, and nothing else', async () => {
       const user = userEvent.setup();
@@ -652,7 +647,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [],
     };
-    vi.mocked(get).mockResolvedValue({
+    getWorkflows.mockResolvedValue({
       ...workflowsResponse,
       data: [settledAuxiliaryWorkflow, completedPrimaryWorkflow],
     });
@@ -668,7 +663,7 @@ describe('InstanceWorkflows', () => {
       backoffUntil: new Date(Date.now() + 40_000).toISOString(),
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 5 }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [retryingPrimaryWorkflow] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [retryingPrimaryWorkflow] });
     renderInstanceWorkflows();
 
     const [row] = await screen.findAllByTestId('workflow-row');
@@ -687,7 +682,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed', retryCount: 0 }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [resumedWorkflow] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [resumedWorkflow] });
     renderInstanceWorkflows();
 
     const [row] = await screen.findAllByTestId('workflow-row');
@@ -702,7 +697,7 @@ describe('InstanceWorkflows', () => {
       backoffUntil: new Date(Date.now() + 2_000).toISOString(),
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 1 }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [retryingSoon] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [retryingSoon] });
     renderInstanceWorkflows();
 
     const [row] = await screen.findAllByTestId('workflow-row');
@@ -721,7 +716,7 @@ describe('InstanceWorkflows', () => {
       updatedAt: tenMinutesAgo,
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
-    vi.mocked(get).mockResolvedValue({ ...workflowsResponse, data: [runningPrimaryWorkflow] });
+    getWorkflows.mockResolvedValue({ ...workflowsResponse, data: [runningPrimaryWorkflow] });
     renderInstanceWorkflows();
 
     const [row] = await screen.findAllByTestId('workflow-row');
@@ -731,7 +726,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
@@ -760,7 +755,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
@@ -773,7 +768,7 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
   it("lists a step's errors newest first, each with what the engine made of it", async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     const user = userEvent.setup();
@@ -805,7 +800,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('reads the defer reason as live only on the step that is actually waiting', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     expect(
@@ -824,12 +819,14 @@ describe('InstanceWorkflows', () => {
   it('keeps the loaded workflows when loading more of them fails', async () => {
     const user = userEvent.setup();
     const cursor = 'opaque-cursor';
-    vi.mocked(get).mockImplementation(async (url: string) => {
-      if (url.includes(`cursor=${cursor}`)) {
-        throw new HttpError();
-      }
-      return { ...workflowsResponse, nextCursor: cursor };
-    });
+    getWorkflows.mockImplementation(
+      async (_org: string, _env: string, _app: string, query: WorkflowsQuery) => {
+        if (query.cursor === cursor) {
+          throw new HttpError();
+        }
+        return { ...workflowsResponse, nextCursor: cursor };
+      },
+    );
     renderInstanceWorkflows();
 
     await screen.findAllByTestId('workflow-row');
@@ -844,7 +841,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('sets engine free text apart from the Norwegian copy around it', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
+    getWorkflows.mockResolvedValue(workflowsResponse);
     renderInstanceWorkflows();
 
     const message = await screen.findByText(shownProblemMessage);
@@ -855,7 +852,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {
-    vi.mocked(get).mockResolvedValue(null);
+    getWorkflows.mockResolvedValue(null);
     renderInstanceWorkflows();
 
     expect(await screen.findByText(textMock('admin.workflows.no_results'))).toBeInTheDocument();
@@ -866,7 +863,7 @@ describe('InstanceWorkflows', () => {
       status: 502,
       data: { type: 'urn:altinn:studio:designer:runtime-gateway-unavailable' },
     });
-    vi.mocked(get).mockRejectedValue(error);
+    getWorkflows.mockRejectedValue(error);
     renderInstanceWorkflows();
 
     expect(
@@ -875,39 +872,39 @@ describe('InstanceWorkflows', () => {
   });
 
   it('does not query the engine when the instance id is not a usable collection key', async () => {
-    vi.mocked(get).mockResolvedValue(workflowsResponse);
-    renderInstanceWorkflows(createQueryClientMock(), 'not-a-guid');
+    getWorkflows.mockResolvedValue(workflowsResponse);
+    const getWorkflowCollections = vi.fn();
+    renderInstanceWorkflows({ id: 'not-a-guid', queries: { getWorkflowCollections } });
 
     expect(await screen.findByText(textMock('admin.workflows.no_results'))).toBeInTheDocument();
-    const requestedUrls = vi.mocked(get).mock.calls.map(([url]) => url as string);
-    expect(requestedUrls.filter((url) => url.includes('/workflows/'))).toEqual([]);
+    expect(getWorkflows).not.toHaveBeenCalled();
+    expect(getWorkflowCollections).not.toHaveBeenCalled();
   });
 
   it("names a transition's tasks by their names in the app's process", async () => {
-    vi.mocked(get).mockImplementation(async (url: string) =>
-      url.endsWith('/process-metadata')
-        ? [
-            { id: 'Pdf', name: 'PDF-generering', dataTypeTags: [] },
-            { id: 'Sign', name: 'Signering', dataTypeTags: [] },
-          ]
-        : workflowsResponse,
-    );
-    renderInstanceWorkflows();
+    getWorkflows.mockResolvedValue(workflowsResponse);
+    const getProcessMetadata = vi.fn().mockResolvedValue([
+      { id: 'Pdf', name: 'PDF-generering', dataTypeTags: [] },
+      { id: 'Sign', name: 'Signering', dataTypeTags: [] },
+    ]);
+    renderInstanceWorkflows({ queries: { getProcessMetadata } });
 
     expect(await screen.findByText('PDF-generering → Signering')).toBeInTheDocument();
   });
 });
 
-const renderInstanceWorkflows = (
-  client: QueryClient = createQueryClientMock(),
-  id: string = instanceId,
-) =>
-  render(
-    <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
-        <QueryClientProvider client={client}>
-          <InstanceWorkflows org={org} environment={environment} app={app} instanceId={id} />
-        </QueryClientProvider>
-      </OrgContext.Provider>
-    </MemoryRouter>,
+type RenderInstanceWorkflowsOptions = {
+  id?: string;
+  queries?: Partial<ServicesContextProps>;
+};
+
+const renderInstanceWorkflows = ({
+  id = instanceId,
+  queries = {},
+}: RenderInstanceWorkflowsOptions = {}) =>
+  renderWithProviders(
+    <OrgContext.Provider value={orgMock}>
+      <InstanceWorkflows org={org} environment={environment} app={app} instanceId={id} />
+    </OrgContext.Provider>,
+    { queries: { getWorkflows, resumeWorkflow, ...queries } },
   );

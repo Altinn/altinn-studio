@@ -1,13 +1,8 @@
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { post } from 'app-shared/utils/networking';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import {
-  failWorkflowPath,
-  nudgeWorkflowPath,
-  resumeWorkflowPath,
-} from 'admin/features/apps/utils/apiPaths';
 
 /**
  * Resume always cascades. The engine's cascade drains the dependents this workflow left in
@@ -28,14 +23,11 @@ export const useResumeWorkflowMutation = (
   context: WorkflowOpsContext,
 ): UseMutationResult<ResumeWorkflowResponse | null, unknown, string> => {
   const queryClient = useQueryClient();
+  const { resumeWorkflow } = useServicesContext();
   const { org, env, app } = context;
 
   return useMutation({
-    mutationFn: async (workflowId: string) => {
-      return post<ResumeWorkflowResponse>(
-        resumeWorkflowPath(org, env, app, workflowId, RESUME_CASCADE),
-      );
-    },
+    mutationFn: (workflowId: string) => resumeWorkflow(org, env, app, workflowId, RESUME_CASCADE),
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },
   });
@@ -46,11 +38,12 @@ export const useNudgeWorkflowMutation = (
   context: WorkflowOpsContext,
 ): UseMutationResult<void, unknown, string> => {
   const queryClient = useQueryClient();
+  const { nudgeWorkflow } = useServicesContext();
   const { org, env, app } = context;
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      await post(nudgeWorkflowPath(org, env, app, workflowId));
+      await nudgeWorkflow(org, env, app, workflowId);
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },
@@ -65,11 +58,12 @@ export const useFailWorkflowMutation = (
   context: WorkflowOpsContext,
 ): UseMutationResult<void, unknown, string> => {
   const queryClient = useQueryClient();
+  const { failWorkflow } = useServicesContext();
   const { org, env, app } = context;
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      await post(failWorkflowPath(org, env, app, workflowId));
+      await failWorkflow(org, env, app, workflowId);
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },

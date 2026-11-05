@@ -1,8 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
-import { get } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,11 +8,6 @@ import { renderWithProviders } from '../../../../testing/mocks';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { RunningApplicationMetadata } from 'admin/features/apps/types/RunningApplicationMetadata';
 import { InstanceDetails } from './InstanceDetails';
-
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-}));
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -30,17 +23,15 @@ const instanceMock: SimpleInstanceDetails = {
   lastChangedAt: '2026-08-02T12:00:00Z',
 };
 
-const workflowEngineRequests = () =>
-  vi
-    .mocked(get)
-    .mock.calls.map(([url]) => url as string)
-    .filter((url) => url.includes('/workflows/'));
+const getWorkflowCollections = vi.fn().mockResolvedValue(null);
+const getWorkflows = vi.fn().mockResolvedValue(null);
+
+const workflowEngineRequests = () => [
+  ...getWorkflowCollections.mock.calls,
+  ...getWorkflows.mock.calls,
+];
 
 describe('InstanceDetails', () => {
-  beforeEach(() => {
-    vi.mocked(get).mockResolvedValue(null);
-  });
-
   it('shows an instance of an app on app libraries before v9 without the workflow engine', async () => {
     renderInstanceDetails('8.5.1.0');
 
@@ -88,6 +79,7 @@ function renderInstanceDetails(appLibVersion: string | undefined) {
     </Routes>,
     {
       queryClient,
+      queries: { getWorkflowCollections, getWorkflows },
       initialEntries: [`/${org}/apps/${environment}/${app}/instances/${instanceId}`],
     },
   );

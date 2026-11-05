@@ -33,11 +33,17 @@ export function renderWithProviders(
   return render(component, renderOptions);
 }
 
-export function renderHookWithProviders<T>(
-  hook: () => T,
-  { queries = {}, queryClient = createQueryClientMock(), initialEntries }: ProviderData = {},
+export function renderHookWithProviders<T, Props = undefined>(
+  hook: (props: Props) => T,
+  {
+    queries = {},
+    queryClient = createQueryClientMock(),
+    initialEntries,
+    initialProps,
+  }: ProviderData & { initialProps?: Props } = {},
 ) {
   return renderHook(hook, {
+    initialProps,
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={initialEntries}>
         <FeatureFlagsProvider>

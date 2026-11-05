@@ -1,8 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
-import { processMetadataPath } from 'admin/features/apps/utils/apiPaths';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
 export type ProcessTaskMetadata = {
   id: string;
@@ -25,11 +24,9 @@ export const useProcessMetadataQuery = (
   env: string,
   app: string,
 ): UseQueryResult<ProcessTaskMetadata[]> => {
+  const { getProcessMetadata } = useServicesContext();
   return useQuery<ProcessTaskMetadata[]>({
     queryKey: [QueryKey.AppProcessMetadata, org, env, app],
-    queryFn: async ({ signal }) =>
-      await getAdminResource<ProcessTaskMetadata[]>(processMetadataPath(org, env, app), {
-        signal,
-      }),
+    queryFn: async ({ signal }) => getProcessMetadata(org, env, app, signal),
   });
 };

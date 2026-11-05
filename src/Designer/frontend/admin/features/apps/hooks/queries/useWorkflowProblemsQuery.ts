@@ -4,10 +4,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
   CollectionFailureFilter,
   WorkflowCollection,
-  WorkflowCollectionListResponse,
 } from 'admin/features/apps/types/workflows/WorkflowCollection';
-import { workflowCollectionsPath } from 'admin/features/apps/utils/apiPaths';
-import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { isShownInPlaceError } from 'admin/features/apps/utils/workflowHealth';
 import {
   hasActiveCollectionPages,
@@ -34,16 +32,20 @@ export const useWorkflowProblemsQuery = (
   app: string,
   failures: CollectionFailureFilter,
 ): UseInfiniteQueryResult<WorkflowProblems> => {
+  const { getWorkflowCollections } = useServicesContext();
   return useInfiniteQuery({
     initialPageParam: undefined as string | undefined,
     queryKey: [QueryKey.AppWorkflowProblems, org, env, app, failures],
     queryFn: async ({ signal, pageParam }) =>
-      getWorkflowEngineResource<WorkflowCollectionListResponse>(
-        workflowCollectionsPath(org, env, app, {
+      getWorkflowCollections(
+        org,
+        env,
+        app,
+        {
           failures,
           cursor: pageParam,
           pageSize: WORKFLOW_PROBLEMS_PAGE_SIZE,
-        }),
+        },
         signal,
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,

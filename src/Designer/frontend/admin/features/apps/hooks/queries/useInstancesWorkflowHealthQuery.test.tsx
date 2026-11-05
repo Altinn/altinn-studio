@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
-import { get } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
+import type { WorkflowCollectionsQuery } from 'admin/features/apps/utils/apiPaths';
+import { renderHookWithProviders } from 'admin/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
@@ -12,11 +11,6 @@ import {
   useInstancesWorkflowHealthQuery,
   WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
 } from './useInstancesWorkflowHealthQuery';
-
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-}));
 
 const env = 'at23';
 
@@ -27,27 +21,28 @@ const guidAt = (index: number) => `3a0e0f6e-4b1d-4a2a-9d31-${index.toString().pa
 const pageOf = (size: number, from: number) =>
   Array.from({ length: size }, (_, index) => guidAt(from + index));
 
-const keysFrom = (url: string) => [
-  ...new URLSearchParams(url.slice(url.indexOf('?'))).getAll('key'),
-];
+const getWorkflowCollections = vi.fn();
 
-const requestedKeySets = () =>
-  vi
-    .mocked(get)
-    .mock.calls.map(([url]) => keysFrom(url as string))
-    .map((keys) => keys.join(','));
+const keysFrom = (query: WorkflowCollectionsQuery) => query.keys ?? [];
+
+const requestedKeys = () =>
+  getWorkflowCollections.mock.calls.map(([, , , query]) => keysFrom(query));
+
+const requestedKeySets = () => requestedKeys().map((keys) => keys.join(','));
 
 const respondHealthy = () => {
-  vi.mocked(get).mockImplementation(async (url: string) => ({
-    data: keysFrom(url).map((key) => ({
-      key,
-      namespace: `${org}/${app}`,
-      createdAt: '2026-08-01T10:00:00Z',
-      workflowCounts: workflowCounts(),
-    })),
-    pageSize: WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
-    totalCount: keysFrom(url).length,
-  }));
+  getWorkflowCollections.mockImplementation(
+    async (_org: string, _env: string, _app: string, query: WorkflowCollectionsQuery) => ({
+      data: keysFrom(query).map((key) => ({
+        key,
+        namespace: `${org}/${app}`,
+        createdAt: '2026-08-01T10:00:00Z',
+        workflowCounts: workflowCounts(),
+      })),
+      pageSize: WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
+      totalCount: keysFrom(query).length,
+    }),
+  );
 };
 
 const hasSettled = (pendingKeys: Set<string>) => pendingKeys.size === 0;
@@ -71,9 +66,7 @@ describe('useInstancesWorkflowHealthQuery', () => {
     const { result } = renderHealthQuery([oversizedPage]);
 
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    const requestedKeyCounts = vi
-      .mocked(get)
-      .mock.calls.map(([url]) => keysFrom(url as string).length);
+    const requestedKeyCounts = requestedKeys().map((keys) => keys.length);
     expect(requestedKeyCounts).toEqual([WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST, 3]);
   });
 
@@ -84,12 +77,12 @@ describe('useInstancesWorkflowHealthQuery', () => {
 
     const { result, rerender } = renderHealthQuery([firstPage], client);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    expect(get).toHaveBeenCalledTimes(1);
+    expect(getWorkflowCollections).toHaveBeenCalledTimes(1);
 
     rerender([firstPage, [guidAt(10)]]);
 
-    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
-    expect(keysFrom(vi.mocked(get).mock.calls[1][0] as string)).toEqual([guidAt(10)]);
+    await waitFor(() => expect(getWorkflowCollections).toHaveBeenCalledTimes(2));
+    expect(requestedKeys()[1]).toEqual([guidAt(10)]);
     await waitFor(() =>
       expect(result.current.healthByKey[guidAt(10)]).toBe(WorkflowHealth.Healthy),
     );
@@ -109,12 +102,12 @@ describe('useInstancesWorkflowHealthQuery', () => {
 
     rerender([shortFirstPage, fullSecondPage]);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    expect(get).toHaveBeenCalledTimes(2);
+    expect(getWorkflowCollections).toHaveBeenCalledTimes(2);
 
     rerender([shortFirstPage, fullSecondPage, thirdPage]);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
 
-    expect(get).toHaveBeenCalledTimes(3);
+    expect(getWorkflowCollections).toHaveBeenCalledTimes(3);
     expect(requestedKeySets()).toEqual(
       [shortFirstPage, fullSecondPage, thirdPage].map((page) => page.join(',')),
     );
@@ -125,24 +118,19 @@ describe('useInstancesWorkflowHealthQuery', () => {
     respondHealthy();
     const { result } = renderHealthQuery([]);
 
-    expect(get).not.toHaveBeenCalled();
+    expect(getWorkflowCollections).not.toHaveBeenCalled();
     expect(result.current).toEqual({ healthByKey: {}, pendingKeys: new Set() });
   });
 });
 
 const renderHealthQuery = (
   guidPages: string[][],
-  client: QueryClient = createQueryClientMock(),
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const { result, rerender } = renderHook(
+  const { result, rerender } = renderHookWithProviders(
     (instanceGuidPages: string[][]) =>
       useInstancesWorkflowHealthQuery(org, env, app, instanceGuidPages),
-    {
-      initialProps: guidPages,
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={client}>{children}</QueryClientProvider>
-      ),
-    },
+    { initialProps: guidPages, queryClient, queries: { getWorkflowCollections } },
   );
   return { result, rerender };
 };

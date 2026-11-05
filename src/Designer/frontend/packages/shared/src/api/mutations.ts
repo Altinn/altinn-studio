@@ -145,6 +145,8 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
+import { failWorkflowPath, instanceDeletePath, nudgeWorkflowPath, resumeWorkflowPath } from 'admin/features/apps/utils/apiPaths';
+import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
 export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<void>(uiFoldersLayoutSetsPath(org, app), payload);
@@ -294,3 +296,9 @@ export const createChatMessage = (org: string, app: string, threadId: string, pa
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
 export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);
 export const clearChatFeedback = (org: string, app: string, traceId: string) => del(chatFeedbackPath(org, app, traceId));
+
+// Admin
+export const deleteAppInstance = (org: string, env: string, app: string, instanceId: string) => del(instanceDeletePath(org, env, app, instanceId));
+export const resumeWorkflow = (org: string, env: string, app: string, workflowId: string, cascade: boolean) => post<ResumeWorkflowResponse>(resumeWorkflowPath(org, env, app, workflowId, cascade));
+export const nudgeWorkflow = (org: string, env: string, app: string, workflowId: string) => post(nudgeWorkflowPath(org, env, app, workflowId));
+export const failWorkflow = (org: string, env: string, app: string, workflowId: string) => post(failWorkflowPath(org, env, app, workflowId));

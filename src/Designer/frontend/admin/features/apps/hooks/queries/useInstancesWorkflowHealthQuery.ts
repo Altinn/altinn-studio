@@ -5,8 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import type { WorkflowHealthLookup } from 'admin/features/apps/utils/workflowHealth';
 import { mergeWorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
-import { workflowCollectionsPath } from 'admin/features/apps/utils/apiPaths';
-import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import {
   hasActiveCollections,
   refetchWhileActive,
@@ -40,6 +39,7 @@ export const useInstancesWorkflowHealthQuery = (
   app: string,
   instanceGuidPages: string[][],
 ): WorkflowHealthLookup => {
+  const { getWorkflowCollections } = useServicesContext();
   const pageFingerprint = instanceGuidPages.map((page) => page.join(',')).join(PAGE_SEPARATOR);
   const chunks = useMemo(() => chunkPages(pageFingerprint), [pageFingerprint]);
 
@@ -62,10 +62,7 @@ export const useInstancesWorkflowHealthQuery = (
     queries: chunks.map((keys) => ({
       queryKey: [QueryKey.AppInstancesWorkflowHealth, org, env, app, keys],
       queryFn: async ({ signal }: { signal: AbortSignal }) =>
-        getWorkflowEngineResource<WorkflowCollectionListResponse>(
-          workflowCollectionsPath(org, env, app, { keys }),
-          signal,
-        ),
+        getWorkflowCollections(org, env, app, { keys }, signal),
       // An instance with work in flight will change color on its own; keep asking until it settles.
       refetchInterval: (query: { state: { data?: WorkflowCollectionListResponse | null } }) =>
         refetchWhileActive(hasActiveCollections(query.state.data)),

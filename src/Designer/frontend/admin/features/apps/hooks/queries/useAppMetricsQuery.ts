@@ -1,9 +1,8 @@
 import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { AppMetric } from 'admin/features/apps/types/metrics/AppMetric';
-import { appMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
 export const useAppMetricsQuery = (
   org: string,
@@ -12,10 +11,10 @@ export const useAppMetricsQuery = (
   range: number,
   meta?: QueryMeta,
 ): UseQueryResult<AppMetric[]> => {
+  const { getAppMetrics } = useServicesContext();
   return useQuery<AppMetric[]>({
     queryKey: [QueryKey.AppMetrics, org, env, app, range],
-    queryFn: async ({ signal }) =>
-      await getAdminResource<AppMetric[]>(appMetricsPath(org, env, app, range), { signal }),
+    queryFn: async ({ signal }) => getAppMetrics(org, env, app, range, signal),
     meta,
   });
 };

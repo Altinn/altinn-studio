@@ -149,6 +149,33 @@ import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
+import {
+  appDetailsPath,
+  appErrorMetricsPath,
+  appHealthMetricsPath,
+  appMetadataPath as runningAppMetadataPath,
+  appMetricsPath,
+  errorMetricsPath,
+  instanceDetailsPath,
+  instancesListPath,
+  processMetadataPath,
+  runningAppsPath,
+  workflowCollectionsPath,
+  workflowsListPath,
+} from 'admin/features/apps/utils/apiPaths';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
+import type { WorkflowCollectionsQuery, WorkflowsQuery } from 'admin/features/apps/utils/apiPaths';
+import type { AppHealthMetric } from 'admin/features/apps/types/metrics/AppHealthMetric';
+import type { AppMetric } from 'admin/features/apps/types/metrics/AppMetric';
+import type { ErrorMetric } from 'admin/features/apps/types/metrics/ErrorMetric';
+import type { PublishedApplication } from 'admin/features/apps/types/PublishedApplication';
+import type { PublishedApplicationDetails } from 'admin/features/apps/types/PublishedApplicationDetails';
+import type { InstancesResponse } from 'admin/features/apps/types/InstancesResponse';
+import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
+import type { RunningApplicationMetadata } from 'admin/features/apps/types/RunningApplicationMetadata';
+import type { ProcessTaskMetadata } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
+import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import type { WorkflowListResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
 export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
@@ -205,6 +232,8 @@ export const getTaskNavigationGroup = (org: string, app: string) => get<TaskNavi
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
+// Widget URLs come from the app's widget settings and can point anywhere, so each widget's type is the caller's.
+export const getWidget = <T>(url: string) => get<T>(url);
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
@@ -269,3 +298,28 @@ export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPoin
 // Org settings - Bot accounts
 export const getBotAccounts = (org: string) => get<BotAccount[]>(botAccountsPath(org));
 export const getBotAccountApiKeys = (org: string, botAccountId: string) => get<BotAccountApiKey[]>(botAccountApiKeysPath(org, botAccountId));
+
+// Admin
+export type AppInstancesFilter = {
+  currentTask?: string;
+  isArchived?: boolean;
+  archiveReference?: string;
+  confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
+  createdBefore?: string;
+};
+export const getErrorMetrics = (org: string, env: string, range: number, signal?: AbortSignal) => getAdminResource<ErrorMetric[]>(errorMetricsPath(org, env, range), { signal });
+export const getAppMetrics = (org: string, env: string, app: string, range: number, signal?: AbortSignal) => getAdminResource<AppMetric[]>(appMetricsPath(org, env, app, range), { signal });
+export const getAppErrorMetrics = (org: string, env: string, app: string, range: number, signal?: AbortSignal) => getAdminResource<AppMetric[]>(appErrorMetricsPath(org, env, app, range), { signal });
+export const getAppHealthMetrics = (org: string, env: string, app: string, signal?: AbortSignal) => getAdminResource<AppHealthMetric[]>(appHealthMetricsPath(org, env, app), { signal });
+export const getRunningApps = (org: string, signal?: AbortSignal) => getAdminResource<Record<string, PublishedApplication[]>>(runningAppsPath(org), { signal });
+export const getPublishedAppDetails = (org: string, env: string, app: string, signal?: AbortSignal) => getAdminResource<PublishedApplicationDetails>(appDetailsPath(org, env, app), { signal });
+export const getRunningAppMetadata = (org: string, env: string, app: string, signal?: AbortSignal) => getAdminResource<RunningApplicationMetadata>(runningAppMetadataPath(org, env, app), { signal });
+export const getProcessMetadata = (org: string, env: string, app: string, signal?: AbortSignal) => getAdminResource<ProcessTaskMetadata[]>(processMetadataPath(org, env, app), { signal });
+export const getAppInstances = (org: string, env: string, app: string, continuationToken: string | undefined, filter: AppInstancesFilter, signal?: AbortSignal) =>
+  getAdminResource<InstancesResponse>(instancesListPath(org, env, app, continuationToken, filter.currentTask, filter.isArchived, filter.archiveReference, filter.confirmed, filter.isSoftDeleted, filter.isHardDeleted, filter.createdBefore), { signal });
+export const getAppInstanceDetails = (org: string, env: string, app: string, instanceId: string, signal?: AbortSignal) => getAdminResource<SimpleInstanceDetails>(instanceDetailsPath(org, env, app, instanceId), { signal });
+// The workflow engine answers 204 No Content for "nothing matched", which `get` resolves as null.
+export const getWorkflowCollections = (org: string, env: string, app: string, query: WorkflowCollectionsQuery, signal?: AbortSignal) => get<WorkflowCollectionListResponse>(workflowCollectionsPath(org, env, app, query), { signal });
+export const getWorkflows = (org: string, env: string, app: string, query: WorkflowsQuery, signal?: AbortSignal) => get<WorkflowListResponse>(workflowsListPath(org, env, app, query), { signal });
