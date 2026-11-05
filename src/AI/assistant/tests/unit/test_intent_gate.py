@@ -1,5 +1,5 @@
-"""The intent gate: what the pre-model blocklist may reject, and what the
-confidence threshold rejects. The classifier call is mocked throughout."""
+"""The intent gate: what the pre-model blocklist may reject, and that an
+unclear goal reaches the loop. The classifier call is mocked throughout."""
 
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from agents.graph.runner import (
-    _UNCLEAR_GOAL_MESSAGE,
     GoalRejected,
     _validate_intent,
 )
@@ -132,16 +131,17 @@ class TestTheConfidenceThreshold:
 
         assert f"confidence: {MINIMUM_INTENT_CONFIDENCE:g}" in prompt
 
-    async def test_an_underspecified_goal_is_rejected(self):
-        parsed = MagicMock(safe=True, confidence=UNDERSPECIFIED_CONFIDENCE, reason=None)
+    async def test_an_underspecified_goal_goes_to_the_loop(self):
+        """The loop reads the app and asks back when it is stuck, so the gate
+        only screens for abuse."""
+        parsed = MagicMock(action="update", safe=True, confidence=UNDERSPECIFIED_CONFIDENCE, reason=None)
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
-            patch("agents.graph.runner.suggest_goal_correction", return_value=[]),
-            pytest.raises(GoalRejected) as excinfo,
+            patch("agents.graph.runner.suggest_goal_correction", AsyncMock()) as suggest,
         ):
             await _validate_intent(_state("gjør feltet obligatorisk"))
 
-        assert excinfo.value.message == _UNCLEAR_GOAL_MESSAGE
+        suggest.assert_not_awaited()
 
     async def test_a_suggestion_below_the_threshold_is_not_offered(self):
         async def parse(goal, attachments=None, conversation=None):

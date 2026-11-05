@@ -116,9 +116,9 @@ class TestSuggestionFailures:
 
 
 class TestConfidenceGate:
-    async def test_a_suggestion_below_the_workflow_threshold_is_dropped(self):
-        """The workflow rejects on confidence too, so offering one below the
-        threshold would be refused the moment the user picked it."""
+    async def test_a_suggestion_below_the_threshold_is_dropped(self):
+        """A suggestion stands in for the rejected goal, so one too vague to
+        name its target gives the user nothing better to ask for."""
         with (
             patch(
                 "agents.services.llm.intent_parser.suggest_goals_with_llm",

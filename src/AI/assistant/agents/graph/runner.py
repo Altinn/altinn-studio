@@ -10,7 +10,6 @@ from opentelemetry import trace as otel_trace
 from agents.services.events import AgentEvent, EventSink, sink
 from agents.services.llm import (
     GATE_FAILED_ACTION,
-    MINIMUM_INTENT_CONFIDENCE,
     check_scope_async,
     parse_intent_async,
     suggest_goal_correction,
@@ -135,9 +134,6 @@ _GATE_UNAVAILABLE_MESSAGE = (
     "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
     "litt."
 )
-_UNCLEAR_GOAL_MESSAGE = (
-    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive endringen litt mer konkret?"
-)
 
 
 class GoalRejected(Exception):
@@ -229,7 +225,12 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
 
 
 async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals, for write runs only.
+    """Parse intent and reject unsafe goals, for write runs only.
+
+    An unclear goal is not rejected here. The loop reads the app, so it can
+    often find the target itself, and its prompt tells it to ask back when it
+    cannot. Rejecting on low confidence turned away requests such as "add
+    validation" that the loop handles.
 
     Read-only runs are held back structurally rather than by this gate.
     """
@@ -247,11 +248,6 @@ async def _validate_intent(state: AgentState):
             state.user_goal, parsed.reason, conversation=state.conversation_history
         )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
-
-    if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
-        _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = await suggest_goal_correction(state.user_goal, conversation=state.conversation_history)
-        raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
 
     _log.info(
         "Parsed intent for session %s: action=%s, component=%s, confidence=%s",

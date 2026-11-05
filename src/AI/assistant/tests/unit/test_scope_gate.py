@@ -13,7 +13,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from agents.graph.runner import (
-    _UNCLEAR_GOAL_MESSAGE,
     _UNSAFE_GOAL_MESSAGE,
     GoalRejected,
     WorkflowCancelled,
@@ -342,14 +341,6 @@ class TestValidateIntentRejectionCopy:
         assert rejection.message == _UNSAFE_GOAL_MESSAGE
         assert rejection.suggestions == [REJECTION_SUGGESTION]
         assert UNSAFE_GATE_REASON not in rejection.message
-
-    async def test_an_unclear_goal_is_reported_in_norwegian(self):
-        parsed = MagicMock(safe=True, confidence=0.0, reason="unclear")
-
-        rejection = await self._reject(parsed)
-
-        assert rejection.message == _UNCLEAR_GOAL_MESSAGE
-        assert rejection.suggestions == [REJECTION_SUGGESTION]
 
 
 class TestTheClassifierSeesTheConversation:

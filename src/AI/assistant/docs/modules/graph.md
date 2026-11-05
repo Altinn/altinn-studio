@@ -11,10 +11,10 @@ flowchart TD
   S["Scope check, all runs"] --> Q{"In scope?"}
   Q -- No --> X["Chat: polite decline. Workflow: reject"]
   Q -- Yes --> I["Intent check, workflow mode only"]
-  I -- "safe, confidence 0.30 or more" --> G["Run the graph"]
+  I -- "safe" --> G["Run the graph"]
 ```
 
-_The gates. An unsafe or unclear goal stops with `GoalRejected` and gets suggestions._
+_The gates. An unsafe goal stops with `GoalRejected` and gets suggestions. An unclear goal goes to the loop, which asks back when it cannot find what to change._
 
 ```mermaid
 flowchart LR
