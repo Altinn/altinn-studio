@@ -207,7 +207,9 @@ describe('Repeating group row validation', () => {
     cy.get('#validationValue-0').closest('[data-componentid]').should('contain.text', 'Beløpet må korrigeres');
     cy.get(appFrontend.errorReport).should('not.exist');
     for (const index of [1, 2, 3]) {
-      cy.get(row(index)).find(indicator).click();
+      cy.get(row(index)).find(indicator).click({ scrollBehavior: 'center' });
+      cy.get(row(index)).find(indicator).should('be.inViewport');
+      cy.findByRole('dialog', { name: 'Meldinger' }).should('be.inViewport');
       cy.findByRole('dialog', { name: 'Meldinger' }).findByRole('button', { name: 'Opprinnelig beløp' }).click();
       cy.get(`#validationValue-${index}`).should('have.focus');
       cy.get(row(index)).find(indicator).should('have.attr', 'aria-expanded', 'false');
