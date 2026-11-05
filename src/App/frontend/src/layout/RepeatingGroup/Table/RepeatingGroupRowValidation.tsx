@@ -4,6 +4,7 @@ import { Button, Popover } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { ValidationMessage, validationSeverityPresentation } from 'src/components/message/ValidationMessage';
+import messageClasses from 'src/components/message/ValidationMessage.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation.module.css';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -107,7 +108,10 @@ function RowValidationPopover({
             >
               <XMarkIcon aria-hidden />
             </Button>
-            <ul className={classes.messages}>
+            <ul
+              data-size='md'
+              className={`${messageClasses.list} ${classes.messages}`}
+            >
               {validations.map((validation) => (
                 <li key={getUniqueKey(validation)}>
                   <ValidationMessage

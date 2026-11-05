@@ -17,7 +17,3 @@
   max-height: min(32rem, 75dvh);
   overflow-y: auto;
 }
-
-.messages > li + li {
-  margin-top: var(--ds-size-4);
-}

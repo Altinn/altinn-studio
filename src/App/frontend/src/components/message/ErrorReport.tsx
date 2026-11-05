@@ -6,6 +6,7 @@ import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
 import { ValidationMessage } from 'src/components/message/ValidationMessage';
+import messageClasses from 'src/components/message/ValidationMessage.module.css';
 import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
 import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import {
@@ -65,7 +66,12 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
               <ErrorSummary.Heading>
                 <Lang id='form_filler.error_report_header' />
               </ErrorSummary.Heading>
-              <ErrorSummary.List className={classes.errorList}>{errors}</ErrorSummary.List>
+              <ErrorSummary.List
+                data-size='md'
+                className={`${messageClasses.list} ${classes.errorList}`}
+              >
+                {errors}
+              </ErrorSummary.List>
             </Flex>
             {children}
           </Flex>

@@ -4,16 +4,6 @@
 
 .errorList {
   list-style-position: outside;
-  margin: 0 0 0 24px;
-  padding: 0;
-}
-
-.errorList span {
-  font-size: 1rem;
-}
-
-.errorList > li + li {
-  margin-top: var(--ds-size-4);
 }
 
 .linkedError {
