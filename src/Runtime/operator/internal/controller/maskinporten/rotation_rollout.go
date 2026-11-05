@@ -103,11 +103,11 @@ func durationUntilNextRotationRollout(now time.Time) time.Duration {
 func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollouts(
 	ctx context.Context,
 	now time.Time,
-) (err error) {
+) error {
 	ctx, span := telemetry.StartRun(ctx, rotationRolloutControllerName, "MaskinportenRotationRollout.processPending",
 		attribute.String("altinn.operator.maskinporten_rotation_rollout.scheduled_at", now.UTC().Format(time.RFC3339)),
 	)
-	defer func() { telemetry.EndRun(ctx, span, err) }()
+	defer span.End()
 
 	logger := log.FromContext(ctx).WithName("maskinporten-rotation-rollout")
 	serviceOwnerID := r.serviceOwnerID()
@@ -125,10 +125,6 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 
 	var errs []error
 	for i := range list.Items {
-		if err := ctx.Err(); err != nil {
-			errs = append(errs, err)
-			break
-		}
 		instance := &list.Items[i]
 
 		releaseName, inScope, err := appReleaseNameForMaskinportenClient(instance, serviceOwnerID)

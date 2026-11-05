@@ -824,7 +824,7 @@ func TestSyncAll_StopsOnCancellationAndKeepsPriorFailures(t *testing.T) {
 			if priorFailure != nil {
 				g.Expect(errors.Is(err, priorFailure)).To(BeTrue())
 				wantRequested = append(wantRequested, "second")
-				wantErrors = 2 // The mapping failure and the failed outer run.
+				wantErrors = 1 // The mapping failure. The run itself was canceled.
 			}
 			g.Expect(requested).To(Equal(wantRequested))
 			g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(wantErrors))

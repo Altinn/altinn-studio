@@ -3,14 +3,12 @@ package telemetry
 import (
 	"context"
 	"errors"
-	"fmt"
 	"maps"
 	"testing"
 
 	"github.com/go-logr/zapr"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -106,159 +104,47 @@ func TestStartRunRecordsEachRunOnce(t *testing.T) {
 }
 
 //nolint:paralleltest // StartRun records through the global providers, which this test replaces.
-func TestEndRunDistinguishesCancellationFromFailure(t *testing.T) {
+func TestStartRunDoesNotCountACanceledRunAsFailed(t *testing.T) {
 	tests := map[string]struct {
-		runError func(context.Context, context.CancelFunc) error
-		canceled bool
-		deadline bool
+		stop       func(context.Context) (context.Context, context.CancelFunc)
+		wantCounts map[string]uint64
+		wantErrors int
 	}{
-		"shutdown": {
-			runError: func(ctx context.Context, cancel context.CancelFunc) error {
+		"canceled": {
+			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				ctx, cancel := context.WithCancel(ctx)
 				cancel()
-				return fmt.Errorf("sync mapping: %w", ctx.Err())
+				return ctx, cancel
 			},
-			canceled: true,
+			wantCounts: map[string]uint64{},
+			wantErrors: 0,
 		},
-		"joined cancellations": {
-			runError: func(_ context.Context, cancel context.CancelFunc) error {
-				cancel()
-				return fmt.Errorf("sync mappings: %w", errors.Join(context.Canceled, context.Canceled))
+		"past its deadline": {
+			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				return context.WithTimeout(ctx, 0)
 			},
-			canceled: true,
-		},
-		"failure during shutdown": {
-			runError: func(_ context.Context, cancel context.CancelFunc) error {
-				cancel()
-				return errTestRun
-			},
-		},
-		"batch failure followed by shutdown": {
-			runError: func(_ context.Context, cancel context.CancelFunc) error {
-				cancel()
-				return fmt.Errorf("sync mappings: %w", errors.Join(errTestRun, context.Canceled))
-			},
-		},
-		"child cancellation": {
-			runError: func(ctx context.Context, _ context.CancelFunc) error {
-				child, cancel := context.WithCancel(ctx)
-				cancel()
-				return child.Err()
-			},
-		},
-		"run deadline": {
-			runError: func(ctx context.Context, _ context.CancelFunc) error { return ctx.Err() },
-			deadline: true,
-		},
-		"child deadline": {
-			runError: func(ctx context.Context, _ context.CancelFunc) error {
-				child, cancel := context.WithTimeout(ctx, 0)
-				defer cancel()
-				return child.Err()
-			},
-		},
-		"deadline followed by shutdown": {
-			runError: func(ctx context.Context, cancel context.CancelFunc) error {
-				child, stop := context.WithTimeout(ctx, 0)
-				defer stop()
-				cancel()
-				return child.Err()
-			},
-		},
-		"completed during shutdown": {
-			runError: func(_ context.Context, cancel context.CancelFunc) error {
-				cancel()
-				return nil
-			},
+			wantCounts: map[string]uint64{"azurekeyvaultsync/sync_mappings": 1},
+			wantErrors: 1,
 		},
 	}
-	samplers := map[string]sdktrace.Sampler{
-		"sampled":   sdktrace.AlwaysSample(),
-		"unsampled": sdktrace.NeverSample(),
-	}
-	for sampling, sampler := range samplers {
-		for name, tt := range tests {
-			t.Run(sampling+"/"+name, func(t *testing.T) {
-				reader := useTestProviders(t, sampler)
-				recorder := tracetest.NewSpanRecorder()
-				provider, ok := otel.GetTracerProvider().(*sdktrace.TracerProvider)
-				if !ok {
-					t.Fatal("test tracer provider is not an SDK provider")
-				}
-				provider.RegisterSpanProcessor(recorder)
-				console, logs := observer.New(zap.InfoLevel)
-				ctx, cancel := context.WithCancel(
-					log.IntoContext(context.Background(), zapr.NewLogger(zap.New(console))),
-				)
-				defer cancel()
-				if tt.deadline {
-					var stop context.CancelFunc
-					ctx, stop = context.WithTimeout(ctx, 0)
-					defer stop()
-				}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			reader := useTestProviders(t, sdktrace.AlwaysSample())
+			console, logs := observer.New(zap.InfoLevel)
+			ctx, stop := tt.stop(log.IntoContext(context.Background(), zapr.NewLogger(zap.New(console))))
+			defer stop()
 
-				ctx, run := StartRun(ctx, "secretsync", "secretsync.SyncAll")
-				_, step := StartRun(ctx, "secretsync", "secretsync.Reconcile")
-				err := tt.runError(ctx, cancel)
-				wantCounts := map[string]uint64{"secretsync/": 1}
-				wantErrors := 0
-				if err != nil {
-					commontelemetry.SetError(step, "get_source_secret", err)
-					commontelemetry.SetError(trace.SpanFromContext(ctx), "sync_mappings", err)
-					wantCounts = map[string]uint64{"secretsync/sync_mappings": 1}
-					wantErrors = 1
-				}
-				if tt.canceled {
-					wantCounts = map[string]uint64{}
-					wantErrors = 0
-				}
-				EndRun(ctx, step, err)
-				EndRun(ctx, run, err)
+			ctx, run := StartRun(ctx, "azurekeyvaultsync", "keyvaultsync.SyncAll")
+			commontelemetry.SetError(run, "sync_mappings", ctx.Err())
+			run.End()
 
-				if counts := runCounts(t, reader); !maps.Equal(counts, wantCounts) {
-					t.Errorf("runs recorded = %v, want %v", counts, wantCounts)
-				}
-				if got := logs.FilterLevelExact(zap.ErrorLevel).Len(); got != wantErrors {
-					t.Errorf("ERROR records = %d, want %d", got, wantErrors)
-				}
-				if got := logs.FilterMessage("Controller run canceled").Len(); (got == 1) != tt.canceled {
-					t.Errorf("cancellation records = %d, canceled = %v", got, tt.canceled)
-				}
-				if sampling == "sampled" && err != nil {
-					assertRunSpansKeepError(t, recorder.Ended(), err)
-				}
-			})
-		}
-	}
-}
-
-func assertRunSpansKeepError(t *testing.T, ended []sdktrace.ReadOnlySpan, err error) {
-	t.Helper()
-	if len(ended) != 2 {
-		t.Fatalf("spans = %d, want 2", len(ended))
-	}
-	for _, span := range ended {
-		if got := span.Status(); got.Code != codes.Error || got.Description != err.Error() {
-			t.Errorf("span %s status = %v, want the original error", span.Name(), got)
-		}
-		if got := findAttribute(span.Attributes(), string(semconv.ErrorTypeKey)); got.AsString() == "" {
-			t.Errorf("span %s lost error.type", span.Name())
-		}
-	}
-}
-
-//nolint:paralleltest // StartRun records through the global providers, which this test replaces.
-func TestEndRunKeepsAFailureRecordedBeforeShutdown(t *testing.T) {
-	reader := useTestProviders(t, sdktrace.AlwaysSample())
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	_, run := StartRun(ctx, "secretsync", "secretsync.Reconcile")
-	commontelemetry.SetError(run, "get_source_secret", errTestRun)
-	cancel()
-	EndRun(ctx, run, errTestRun)
-
-	want := map[string]uint64{"secretsync/get_source_secret": 1}
-	if counts := runCounts(t, reader); !maps.Equal(counts, want) {
-		t.Errorf("runs recorded = %v, want %v", counts, want)
+			if counts := runCounts(t, reader); !maps.Equal(counts, tt.wantCounts) {
+				t.Errorf("runs recorded = %v, want %v", counts, tt.wantCounts)
+			}
+			if got := logs.FilterLevelExact(zap.ErrorLevel).Len(); got != tt.wantErrors {
+				t.Errorf("ERROR records = %d, want %d", got, tt.wantErrors)
+			}
+		})
 	}
 }
 

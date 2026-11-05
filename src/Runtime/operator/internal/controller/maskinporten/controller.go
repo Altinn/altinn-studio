@@ -95,13 +95,13 @@ const (
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.0/pkg/reconcile
-func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.Request) (_ ctrl.Result, err error) {
+func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.Request) (ctrl.Result, error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "maskinporten.Reconcile",
 		telemetry.AttrObjectKind.String("MaskinportenClient"),
 		telemetry.AttrObjectNamespace.String(kreq.Namespace),
 		telemetry.AttrObjectName.String(kreq.Name),
 	)
-	defer func() { telemetry.EndRun(ctx, span, err) }()
+	defer span.End()
 
 	logger := log.FromContext(ctx)
 

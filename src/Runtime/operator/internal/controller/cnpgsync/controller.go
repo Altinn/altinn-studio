@@ -229,7 +229,7 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 	ctx, span := telemetry.StartRun(ctx, controllerName, "cnpgsync.SyncAll",
 		attribute.Int("altinn.operator.cnpgsync.targets", len(r.targets)),
 	)
-	defer func() { telemetry.EndRun(ctx, span, err) }()
+	defer span.End()
 
 	opCtx := r.runtime.GetOperatorContext()
 	if !r.isTargeted(opCtx.ServiceOwner.Id, opCtx.Environment) {

@@ -134,20 +134,20 @@ func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncRec
 
 const controllerName = "appcodesync"
 
-func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, err error) {
+func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "appcodesync.Reconcile",
 		telemetry.AttrObjectKind.String("Secret"),
 		telemetry.AttrObjectNamespace.String(req.Namespace),
 		telemetry.AttrObjectName.String(req.Name),
 	)
-	defer func() { telemetry.EndRun(ctx, span, err) }()
+	defer span.End()
 
 	if !isTargetSecret(req.Namespace, req.Name, r.serviceOwnerPrefix()) {
 		return ctrl.Result{}, nil
 	}
 
 	secret := &corev1.Secret{}
-	if err = r.k8sClient.Get(ctx, req.NamespacedName, secret); err != nil {
+	if err := r.k8sClient.Get(ctx, req.NamespacedName, secret); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
