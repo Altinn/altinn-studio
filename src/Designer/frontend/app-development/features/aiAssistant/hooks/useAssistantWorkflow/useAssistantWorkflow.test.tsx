@@ -846,9 +846,19 @@ describe('useAssistantWorkflow', () => {
     );
   });
 
-  it('keeps the message and shows the generic failure text when session registration fails', async () => {
+  it('keeps the message and saves the generic failure text after it when session registration fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    let finishSavingUserMessage: () => void = () => {};
+    const createMessage = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishSavingUserMessage = () => resolve({ id: 'user-message-id' });
+          }),
+      )
+      .mockResolvedValue({ id: 'error-message-id' });
+    const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
     const startWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
@@ -872,18 +882,26 @@ describe('useAssistantWorkflow', () => {
       allowAppChanges: false,
     };
 
+    let submission: Promise<void> = Promise.resolve();
     await act(async () => {
-      await result.current.onSubmitMessage(message);
+      submission = result.current.onSubmitMessage(message);
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
-    expect(threads.createMessage).toHaveBeenNthCalledWith(
-      1,
+    // The server orders messages by when it saves them, so the reply waits for the message.
+    expect(createMessage).toHaveBeenCalledTimes(1);
+    expect(createMessage).toHaveBeenCalledWith(
       'thread-a',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
     );
-    expect(threads.createMessage).toHaveBeenNthCalledWith(
-      2,
+
+    await act(async () => {
+      finishSavingUserMessage();
+      await submission;
+    });
+
+    expect(createMessage).toHaveBeenCalledTimes(2);
+    expect(createMessage).toHaveBeenLastCalledWith(
       'thread-a',
       expect.objectContaining({
         role: MessageAuthor.Assistant,
@@ -1693,7 +1711,7 @@ const createThreadState = (overrides: Partial<AssistantThreadState> = {}): Assis
     createThread: vi.fn().mockResolvedValue('new-thread-id'),
     deleteThread: vi.fn(),
     deleteMessage: vi.fn(),
-    createMessage: vi.fn(),
+    createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
     refreshMessages: vi.fn(),
     ...overrides,
   };
