@@ -626,7 +626,7 @@
   "ux_editor.component_properties_help_text.data_model_bindings.checksum": "The component reads the checksum from the field and sends it with the file. If the field is required in the data model, the file cannot be sent without a checksum.",
   "ux_editor.component_properties_help_text.data_model_bindings.fileName": "The component fills in the field with the name of the file it sends.",
   "ux_editor.component_properties_help_text.data_model_bindings.fileTransferId": "The component fills in the field with the ID Altinn Broker gives the file transfer. Other components should not be able to change the field.",
-  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "The component fills in the field with the file transfer's status in Altinn Broker.",
+  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "The component fills in the field with the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, and Published, AllConfirmedDownloaded or Purged once the file is sent. The field is empty until the user sends a file, and the component empties it if Broker rejects the file. The form can only be submitted once the file is sent.",
   "ux_editor.component_title.Accordion": "Accordion",
   "ux_editor.component_title.AccordionGroup": "AccordionGroup",
   "ux_editor.component_title.ActionButton": "ActionButton",

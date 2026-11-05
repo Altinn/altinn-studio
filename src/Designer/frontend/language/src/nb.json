@@ -2441,7 +2441,7 @@
   "ux_editor.component_properties_help_text.data_model_bindings.checksum": "Komponenten leser sjekksummen fra feltet og sender den med filen. Er feltet påkrevd i datamodellen, kan ikke filen sendes uten sjekksum.",
   "ux_editor.component_properties_help_text.data_model_bindings.fileName": "Komponenten fyller ut feltet med navnet på filen som sendes.",
   "ux_editor.component_properties_help_text.data_model_bindings.fileTransferId": "Komponenten fyller ut feltet med ID-en Altinn Formidling gir formidlingen. Feltet bør ikke kunne endres av andre komponenter.",
-  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "Komponenten fyller ut feltet med statusen til formidlingen i Altinn Formidling.",
+  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "Komponenten fyller ut feltet med statusen til formidlingen i Altinn Formidling: Initialized mens filen lastes opp, UploadProcessing mens Formidling kontrollerer filen, og Published, AllConfirmedDownloaded eller Purged når filen er sendt. Feltet er tomt til brukeren sender en fil, og komponenten tømmer det hvis Formidling avviser filen. Skjemaet kan først sendes inn når filen er sendt.",
   "ux_editor.component_properties_help_text.hasCustomRecipients": "Hvis du ikke spesifiserer mottakere, sendes filen til den påkrevde parten på ressursen i Altinn Formidling.",
   "ux_editor.component_properties_help_text.hidden": "Hvis du velger å skjule et felt, kan du sette betingelser for når det skal skjules under Valg for dynamikk.",
   "ux_editor.component_properties_help_text.maxFileTransferSizeInMB": "Hvis ressursen har en lavere grense, gjelder den. Når filen skannes for virus, kan den ikke være større enn 50 GB.",

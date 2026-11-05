@@ -259,7 +259,7 @@ The component also supports the [common component properties](../common-properti
             <span class="component-property-type" title="data model binding">Type: <span class="component-property-value"><a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">data model binding</a></span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized when the transfer is created, and UploadProcessing or a later status once Broker has the whole file. The form cannot be submitted before then. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, and Published, AllConfirmedDownloaded or Purged once the file is sent. The field is empty until the user sends a file, and the component empties it if Broker rejects the file. The form cannot be submitted before the file is sent. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.filename">
