@@ -36,6 +36,7 @@ type TB interface {
 
 // Match compares data with the snapshot named after the test: <test>_<name>.<ext>, where <test> is the
 // test name with each / replaced by _. An empty name leaves out _<name>, and an empty ext means txt.
+// name and ext must not contain path separators.
 func Match(t TB, data []byte, name, ext string) {
 	t.Helper()
 	MatchFile(t, data, fileName(t, name, ext))
@@ -58,12 +59,12 @@ func fileName(t TB, name, ext string) string {
 	return file + "." + ext
 }
 
-// MatchFile compares data with the snapshot file, a file name local to the snapshot directory. Use it when
+// MatchFile compares data with the snapshot file, a base name without path separators. Use it when
 // the test name does not make a good file name, as with Ginkgo specs.
 func MatchFile(t TB, data []byte, file string) {
 	t.Helper()
-	if !filepath.IsLocal(file) {
-		t.Fatalf("snapshot file %q is not a local path", file)
+	if !filepath.IsLocal(file) || file == "." || strings.ContainsAny(file, `/\`) {
+		t.Fatalf("snapshot file %q is not a local file name without path separators", file)
 		return
 	}
 	workingDirectory, err := os.OpenRoot(".")

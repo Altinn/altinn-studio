@@ -148,12 +148,26 @@ func TestMatchFailsOnDifferentSnapshotInCI(t *testing.T) {
 
 func TestMatchFileRejectsNonLocalPath(t *testing.T) {
 	inTempDir(t, false)
-	r := &recorder{name: "TestA"}
+	for _, file := range []string{"../escape.txt", "/escape.txt", "nested/../TestA.txt", `nested\file.txt`, ".", ""} {
+		r := &recorder{name: "TestA"}
+		MatchFile(r, []byte("x"), file)
+		if len(r.fatals) != 1 {
+			t.Errorf("MatchFile(%q) fatals = %v, want one", file, r.fatals)
+		}
+	}
+}
 
-	MatchFile(r, []byte("x"), "../escape.txt")
-
-	if len(r.fatals) != 1 {
-		t.Errorf("fatals = %v, want one", r.fatals)
+func TestMatchRejectsPathComponents(t *testing.T) {
+	inTempDir(t, false)
+	for _, test := range []struct{ name, ext string }{
+		{"/../TestOther", "json"},
+		{"", "json/../TestOther.json"},
+	} {
+		r := &recorder{name: "TestA"}
+		Match(r, []byte("x"), test.name, test.ext)
+		if len(r.fatals) != 1 {
+			t.Errorf("Match(%q, %q) fatals = %v, want one", test.name, test.ext, r.fatals)
+		}
 	}
 }
 
