@@ -492,7 +492,6 @@ export function nb() {
     'broker_file_transfer.checking': 'Kontrolleres',
     'broker_file_transfer.sent_file': 'Filen er sendt',
     'broker_file_transfer.not_fully_sent': 'Ikke ferdig sendt',
-    'broker_file_transfer.not_sent': 'Ikke sendt',
     'broker_file_transfer.unsent_file': 'Filen som sendes',
     'broker_file_transfer.file_transfer_id': 'Formidlings-ID: {0}',
     'broker_file_transfer.sent_checksum': 'Sjekksum ({0}): {1}',

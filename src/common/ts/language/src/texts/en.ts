@@ -491,7 +491,6 @@ export function en() {
     'broker_file_transfer.checking': 'Being checked',
     'broker_file_transfer.sent_file': 'File sent',
     'broker_file_transfer.not_fully_sent': 'Not fully sent',
-    'broker_file_transfer.not_sent': 'Not sent',
     'broker_file_transfer.unsent_file': 'File being sent',
     'broker_file_transfer.file_transfer_id': 'File transfer ID: {0}',
     'broker_file_transfer.sent_checksum': 'Checksum ({0}): {1}',

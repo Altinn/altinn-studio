@@ -1,19 +1,15 @@
 import React from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Label, Paragraph, Tag, ValidationMessage } from '@digdir/designsystemet-react';
+import { Label, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
-import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
-import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
-import { useChosenFile } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
@@ -21,7 +17,7 @@ import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/ho
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-/** Shows the component in a summary: the sent file, a chosen file not yet sent, or nothing */
+/** Shows the component in a summary: the file transfer, or nothing until the user sends a file */
 export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const errors = validationsOfSeverity(useUnifiedValidationsForNode(targetBaseComponentId), 'error');
@@ -37,9 +33,6 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
   );
   const required = useEvalExpression(config.required, Expressions.BrokerFileTransfer.required);
 
-  const chosenFile = useChosenFile(targetBaseComponentId);
-  const language = useCurrentLanguage();
-
   const title = summaryTitle || resolvedTitle;
   const { fileTransferId, fileName } = formData;
   const isReceived = isTransferReceived(formData);
@@ -48,7 +41,7 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
     <SummaryFlex
       targetBaseId={targetBaseComponentId}
       content={
-        fileTransferId || chosenFile
+        fileTransferId
           ? SummaryContains.SomeUserContent
           : required
             ? SummaryContains.EmptyValueRequired
@@ -71,16 +64,6 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
             fileName={fileName}
             state={isTransferSent(formData) ? 'sent' : isReceived ? 'checking' : 'notFullySent'}
           />
-        ) : chosenFile ? (
-          // Only in this browser until the user sends it
-          <FileBox
-            name={chosenFile.name}
-            details={formatFileSize(chosenFile.size, language)}
-          >
-            <Tag data-color='warning'>
-              <Lang id='broker_file_transfer.not_sent' />
-            </Tag>
-          </FileBox>
         ) : (
           <Paragraph
             asChild

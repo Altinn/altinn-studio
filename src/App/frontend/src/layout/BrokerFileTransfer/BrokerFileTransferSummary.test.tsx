@@ -57,7 +57,7 @@ describe('BrokerFileTransferSummary', () => {
     expect(await screen.findByText('Du har ikke lagt inn informasjon her')).toBeInTheDocument();
   });
 
-  it('shows a chosen file as not sent, as soon as it is chosen', async () => {
+  it('shows nothing for a chosen file until it is sent, since nothing has been sent yet', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = undefined;
     await renderSummary({}, 'broker-with-chosen-file');
 
@@ -66,8 +66,9 @@ describe('BrokerFileTransferSummary', () => {
       new File(['content'], 'rapport.pdf'),
     );
 
-    expect(await screen.findByText('Ikke sendt')).toBeInTheDocument();
-    expect(screen.getAllByText('rapport.pdf')).toHaveLength(2);
+    expect(await screen.findByText('rapport.pdf')).toBeInTheDocument();
+    expect(screen.getAllByText('rapport.pdf')).toHaveLength(1);
+    expect(screen.getByText('Du har ikke lagt inn informasjon her')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Endre/ })).toBeInTheDocument();
   });
 });
