@@ -109,4 +109,20 @@ public class JsonPatchOperationTests
 
         act.Should().Throw<JsonException>().WithMessage("A JSON Patch document must be an array of operations*");
     }
+
+    [Fact]
+    public void OpenApiSchema_RequiresValueExactlyWhereTheConverterDoes()
+    {
+        var schema = JsonPatchOperation.OpenApiSchema();
+
+        var byOp = schema.OneOf!.ToDictionary(o => o.Properties!["op"].Enum!.Single()!.GetValue<string>());
+        byOp.Keys.Should().BeEquivalentTo("add", "remove", "replace", "test");
+        foreach (var (op, operationSchema) in byOp)
+        {
+            var expectsValue = op is "add" or "replace" or "test";
+            operationSchema.Required.Should().Contain("op").And.Contain("path");
+            operationSchema.Required!.Contains("value").Should().Be(expectsValue, op);
+            operationSchema.Properties!.ContainsKey("value").Should().Be(expectsValue, op);
+        }
+    }
 }

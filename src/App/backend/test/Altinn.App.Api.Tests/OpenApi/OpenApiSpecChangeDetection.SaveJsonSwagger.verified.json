@@ -9545,29 +9545,104 @@
             "type": "array",
             "items": {
               "title": "JSON Patch operation",
-              "required": [
-                "op",
-                "path"
-              ],
-              "type": "object",
-              "properties": {
-                "op": {
-                  "enum": [
-                    "add",
-                    "remove",
-                    "replace",
-                    "test"
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
                   ],
-                  "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
                 },
-                "path": {
-                  "type": "string",
-                  "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
                 },
-                "value": {
-                  "description": "Required for add, replace and test operations; any JSON value, including null"
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
                 }
-              },
+              ],
               "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
             },
             "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations."
@@ -11036,29 +11111,104 @@
             "type": "array",
             "items": {
               "title": "JSON Patch operation",
-              "required": [
-                "op",
-                "path"
-              ],
-              "type": "object",
-              "properties": {
-                "op": {
-                  "enum": [
-                    "add",
-                    "remove",
-                    "replace",
-                    "test"
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
                   ],
-                  "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
                 },
-                "path": {
-                  "type": "string",
-                  "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
                 },
-                "value": {
-                  "description": "Required for add, replace and test operations; any JSON value, including null"
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
                 }
-              },
+              ],
               "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
             },
             "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations"

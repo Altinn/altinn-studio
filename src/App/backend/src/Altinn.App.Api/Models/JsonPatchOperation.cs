@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Microsoft.OpenApi;
 
 namespace Altinn.App.Api.Models;
 
@@ -75,6 +76,56 @@ public sealed class JsonPatchOperation
     public static List<JsonPatchOperation> ParseList([StringSyntax(StringSyntaxAttribute.Json)] string patch) =>
         JsonSerializer.Deserialize<List<JsonPatchOperation>>(patch)
         ?? throw new JsonException("A JSON Patch document must be an array of operations, not null");
+
+    /// <summary>
+    /// The OpenAPI schema of one operation as the converter reads it: one object schema per operation type, so
+    /// that <c>value</c> is required exactly for <c>add</c>, <c>replace</c> and <c>test</c>.
+    /// </summary>
+    internal static OpenApiSchema OpenApiSchema() =>
+        new()
+        {
+            Title = "JSON Patch operation",
+            Description = "One operation of an RFC 6902 JSON Patch document. move and copy are not supported",
+            OneOf =
+            [
+                OperationSchema("add", "Adds a value, inserts into an array, or replaces an existing member", true),
+                OperationSchema("remove", "Removes the value at the path", false),
+                OperationSchema("replace", "Replaces the value at the path, which must exist", true),
+                OperationSchema(
+                    "test",
+                    "Checks that the value at the path equals the value. A failed test fails the whole patch",
+                    true
+                ),
+            ],
+        };
+
+    private static OpenApiSchema OperationSchema(string op, string description, bool hasValue)
+    {
+        var properties = new Dictionary<string, IOpenApiSchema>
+        {
+            ["op"] = new OpenApiSchema { Type = JsonSchemaType.String, Enum = [op] },
+            ["path"] = new OpenApiSchema
+            {
+                Type = JsonSchemaType.String,
+                Description = "JSON Pointer (RFC 6901) to the location the operation applies to",
+            },
+        };
+        var required = new HashSet<string> { "op", "path" };
+        if (hasValue)
+        {
+            properties["value"] = new OpenApiSchema { Description = "Any JSON value, including null" };
+            required.Add("value");
+        }
+
+        return new OpenApiSchema
+        {
+            Title = op,
+            Description = description,
+            Type = JsonSchemaType.Object,
+            Required = required,
+            Properties = properties,
+        };
+    }
 
     /// <summary>
     /// Checks that <paramref name="pointer"/> is a JSON Pointer as defined in RFC 6901: empty for the whole
