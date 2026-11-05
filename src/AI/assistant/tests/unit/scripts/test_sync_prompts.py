@@ -34,10 +34,12 @@ def _page(names, *, total_pages=1, labels=None):
 
 
 class _Langfuse:
-    def __init__(self, listing=None, prompts=None, published=None):
+    def __init__(self, listing=None, prompts=None, published=None, labelled=None):
         self._listing = listing or [_page([])]
         self._prompts = prompts or {}
         self._published = published or {}
+        # Served only under the labels it carries; no label means production.
+        self._labelled = labelled or {}
         self.published = []
         self.patched = []
         self.deleted = []
@@ -53,6 +55,8 @@ class _Langfuse:
         name = path.rsplit("/", 1)[-1]
         if name in self._published:
             return self._published[name]
+        if name in self._labelled and params.get("label", "production") in self._labelled[name]["labels"]:
+            return self._labelled[name]
         if name not in self._prompts:
             raise httpx.HTTPStatusError(
                 "not found",
@@ -225,6 +229,19 @@ class TestPushKeepsThePublishedShape:
         body = api.published[0]
         assert body["type"] == "text"
         assert isinstance(body["prompt"], str)
+
+    def test_a_prompt_with_only_an_experiment_version_keeps_its_chat_shape(self):
+        """A new prompt is benchmarked under `experiment` before the merge, so it has no
+        production version yet. Reading the shape from production found nothing, and the
+        first push published it as text, which Langfuse refuses for a chat prompt."""
+        chat = {**self._chat(IN_SYNC), "labels": ["experiment", "latest"]}
+        api = _Langfuse(labelled={IN_SYNC: chat})
+
+        sync_prompts._push(api, IN_SYNC, "why")
+
+        body = api.published[0]
+        assert body["type"] == "chat"
+        assert [turn["role"] for turn in body["prompt"]] == ["system", "user"]
 
     def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
         api = _Langfuse()

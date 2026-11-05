@@ -180,9 +180,13 @@ def _require_push_override() -> None:
 
 
 def _published_shape(api: LangfuseApi, name: str) -> list | None:
-    """The turns of the published chat prompt, or None when it is a text prompt."""
+    """The turns of the published chat prompt, or None when it is a text prompt.
+
+    Read from `latest`, not `production`: a new prompt can have only an `experiment`
+    version before its first push, and every version of a name has the same type.
+    """
     try:
-        published = api._get(f"/api/public/v2/prompts/{name}")
+        published = api._get(f"/api/public/v2/prompts/{name}", label="latest")
     except httpx.HTTPStatusError as error:
         if error.response.status_code == HTTP_NOT_FOUND:
             return None  # nobody has published this one yet, so text is the shape
