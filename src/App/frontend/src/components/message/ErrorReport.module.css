@@ -12,25 +12,10 @@
   font-size: 1rem;
 }
 
-.errorList button {
-  text-align: left;
-  border-bottom: 2px solid transparent;
+.errorList > li + li {
+  margin-top: var(--ds-size-4);
 }
 
-.errorList button:hover {
-  border-bottom: 2px solid black;
-}
-.errorList button:focus-visible {
-  color: var(--ds-color-focus-inner);
-  background: var(--ds-color-focus-outer);
-  outline: transparent solid 2px;
-}
-
-.buttonAsInvisibleLink {
-  display: inline;
-  margin: 0;
-  padding: 0;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
+.linkedError {
+  list-style: none;
 }
