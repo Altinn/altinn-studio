@@ -14,9 +14,7 @@ from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
 
-# Below this, the classifier cannot name what to change. The workflow does not
-# reject on it: it filters suggestions, and the Gates/confidence benchmark
-# splits its bands on it.
+# Only the Gates/confidence benchmark uses this. It splits its bands at this value.
 MINIMUM_INTENT_CONFIDENCE = 0.30
 
 # `action` when the classifier never ran, as opposed to answering "unsafe".
@@ -161,6 +159,4 @@ async def _would_be_accepted(goal: str, conversation: Sequence[Any] | None) -> b
         parsed = await parse_intent_async(goal, conversation=conversation)
     except Exception:
         return False
-    # A suggestion is offered as something concrete to ask for instead, so one
-    # too vague to name its target is no help.
-    return parsed.safe and parsed.confidence >= MINIMUM_INTENT_CONFIDENCE
+    return parsed.safe

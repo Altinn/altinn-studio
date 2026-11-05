@@ -1,5 +1,6 @@
-"""The intent gate: what the pre-model blocklist may reject, and that an
-unclear goal reaches the loop. The classifier call is mocked throughout."""
+"""Tests for the intent check, which screens a write request for abuse before
+the agent starts. The classifier model is mocked, so these tests cover the code
+around it, not the model's verdicts."""
 
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -17,7 +18,6 @@ from agents.services.llm.intent_parser import (
     MINIMUM_INTENT_CONFIDENCE,
     _validate_goal_safety_quick,
     parse_intent_async,
-    suggest_goal_correction,
 )
 from agents.services.llm.llm_client import build_intent_parse_message, parse_intent_with_llm
 
@@ -142,19 +142,6 @@ class TestTheConfidenceThreshold:
             await _validate_intent(_state("gjør feltet obligatorisk"))
 
         suggest.assert_not_awaited()
-
-    async def test_a_suggestion_below_the_threshold_is_not_offered(self):
-        async def parse(goal, attachments=None, conversation=None):
-            return MagicMock(safe=True, confidence=UNDERSPECIFIED_CONFIDENCE, reason=None)
-
-        with (
-            patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
-                return_value=["gjør feltet obligatorisk"],
-            ),
-            patch("agents.services.llm.intent_parser.parse_intent_async", new=parse),
-        ):
-            assert await suggest_goal_correction("noe uklart") == []
 
     def test_the_benchmark_bands_split_on_the_production_threshold(self):
         from benchmarks import gates

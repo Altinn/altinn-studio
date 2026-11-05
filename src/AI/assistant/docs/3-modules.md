@@ -121,7 +121,6 @@ The conversation history for follow-up questions is also lost. Designer keeps th
 | Permission prompt timeout            | 300 s                     | `src/AI/assistant/agents/services/events/permissions.py`   |
 | Starts for each developer            | 5 / min                   | `src/AI/assistant/api/routes/agent.py`                     |
 | Starts for all developers            | 30 / min                  | `src/AI/assistant/api/routes/agent.py`                     |
-| Confidence a suggestion needs        | 0.30                      | `src/AI/assistant/agents/services/llm/intent_parser.py`    |
 | Render repair rounds                 | 1                         | `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py` |
 | Langfuse trace retention             | 90 days                   | `LANGFUSE_TRACE_RETENTION_DAYS`                            |
 | Pod resources                        | 100m CPU, 250Mi–1Gi       | `src/AI/assistant/infra/kustomize/deployment.yaml`         |

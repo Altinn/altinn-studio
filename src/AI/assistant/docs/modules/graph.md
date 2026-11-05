@@ -14,7 +14,7 @@ flowchart TD
   I -- "safe" --> G["Run the graph"]
 ```
 
-_The gates. An unsafe goal stops with `GoalRejected` and gets suggestions. An unclear goal goes to the loop, which asks back when it cannot find what to change._
+_The gates. An unsafe goal stops with `GoalRejected` and gets suggestions. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
 
 ```mermaid
 flowchart LR

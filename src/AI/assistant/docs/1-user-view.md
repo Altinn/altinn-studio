@@ -57,7 +57,7 @@ _One run, as the user sees it._
 Some requests do not give changes:
 
 - A question that is not about Altinn app development gets a polite decline.
-- In workflow mode, an unsafe request gets a rejection, with suggestions for a better request. The assistant asks back about an unclear request.
+- In workflow mode, an unsafe request is rejected, with suggestions for a safer request. An unclear request goes to the agent. If the agent cannot tell what to change, its reply says what it needs.
 - If an uploaded document contains instructions to the assistant, the user gets a warning. The assistant does not obey these instructions.
 
 ## A second user: the assistant developer

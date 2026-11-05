@@ -227,10 +227,9 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
 async def _validate_intent(state: AgentState):
     """Parse intent and reject unsafe goals, for write runs only.
 
-    An unclear goal is not rejected here. The loop reads the app, so it can
-    often find the target itself, and its prompt tells it to ask back when it
-    cannot. Rejecting on low confidence turned away requests such as "add
-    validation" that the loop handles.
+    An unclear goal is not rejected here. It goes to the loop, which reads the
+    app to find what to change. When the loop cannot tell, its prompt has it end
+    with a message that says what it needs.
 
     Read-only runs are held back structurally rather than by this gate.
     """

@@ -27,15 +27,6 @@ def _verdicts(**by_goal):
     return parse
 
 
-def _confidences(**by_goal):
-    """Stand in for the classifier when only confidence differs."""
-
-    async def parse(goal, attachments=None, conversation=None):
-        return MagicMock(safe=True, confidence=by_goal[goal], reason=None)
-
-    return parse
-
-
 async def _suggest_after_two_choices() -> MagicMock:
     """Use a mock for the model only. The suggestion call is synchronous, and the
     gate call is asynchronous."""
@@ -113,25 +104,6 @@ class TestSuggestionFailures:
             ),
         ):
             assert await suggest_goal_correction(REJECTED_GOAL, GATE_REASON) == []
-
-
-class TestConfidenceGate:
-    async def test_a_suggestion_below_the_threshold_is_dropped(self):
-        """A suggestion stands in for the rejected goal, so one too vague to
-        name its target gives the user nothing better to ask for."""
-        with (
-            patch(
-                "agents.services.llm.intent_parser.suggest_goals_with_llm",
-                return_value=[SAFE_SUGGESTION, "gjør det der"],
-            ),
-            patch(
-                "agents.services.llm.intent_parser.parse_intent_async",
-                new=_confidences(**{SAFE_SUGGESTION: 0.9, "gjør det der": 0.02}),
-            ),
-        ):
-            kept = await suggest_goal_correction(REJECTED_GOAL, GATE_REASON)
-
-        assert kept == [SAFE_SUGGESTION]
 
 
 class TestEventLoop:

@@ -2,7 +2,6 @@
 
 from .intent_parser import (
     GATE_FAILED_ACTION,
-    MINIMUM_INTENT_CONFIDENCE,
     IntentParsingError,
     ParsedIntent,
     parse_intent_async,
@@ -13,7 +12,6 @@ from .scope_checker import ScopeCheckResult, check_scope_async
 
 __all__ = [
     "GATE_FAILED_ACTION",
-    "MINIMUM_INTENT_CONFIDENCE",
     "IntentParsingError",
     "LLMClient",
     "ParsedIntent",
