@@ -234,6 +234,40 @@ func TestReconciler_ContinuesOnPartialFailure(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
+// cancellingKeyVaultClient stands in for a Key Vault request that the operator's shutdown cancels.
+type cancellingKeyVaultClient struct {
+	cancel    context.CancelFunc
+	requested []string
+}
+
+func (c *cancellingKeyVaultClient) GetSecret(_ context.Context, name, _ string) (string, error) {
+	c.requested = append(c.requested, name)
+	c.cancel()
+	return "", context.Canceled
+}
+
+func TestReconciler_StopsSyncingWhenCancelled(t *testing.T) {
+	g := NewWithT(t)
+
+	mappings := []KeyVaultSecretMapping{
+		{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+		{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	kvClient := &cancellingKeyVaultClient{cancel: cancel}
+	reconciler := NewReconcilerForTesting(
+		newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+		newFakeK8sClient(),
+		kvClient,
+		mappings,
+	)
+
+	err := reconciler.SyncAll(ctx)
+	g.Expect(err).To(MatchError(context.Canceled))
+	g.Expect(kvClient.requested).To(Equal([]string{"first-secret"}))
+}
+
 func TestReconciler_SyncsMultipleMappings(t *testing.T) {
 	g := NewWithT(t)
 

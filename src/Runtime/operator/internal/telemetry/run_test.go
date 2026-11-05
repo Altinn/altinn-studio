@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"maps"
 	"testing"
 
 	"github.com/go-logr/zapr"
@@ -97,6 +98,51 @@ func TestStartRunRecordsEachRunOnce(t *testing.T) {
 			want := map[string]uint64{"secretsync/": 1, "secretsync/get_source_secret": 1}
 			if len(counts) != len(want) || counts["secretsync/"] != 1 || counts["secretsync/get_source_secret"] != 1 {
 				t.Errorf("runs recorded = %v, want %v", counts, want)
+			}
+		})
+	}
+}
+
+//nolint:paralleltest // StartRun records through the global providers, which this test replaces.
+func TestStartRunDoesNotCountACancelledRunAsFailed(t *testing.T) {
+	tests := map[string]struct {
+		stop       func(context.Context) (context.Context, context.CancelFunc)
+		wantCounts map[string]uint64
+		wantErrors int
+	}{
+		"cancelled": {
+			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				ctx, cancel := context.WithCancel(ctx)
+				cancel()
+				return ctx, cancel
+			},
+			wantCounts: map[string]uint64{},
+			wantErrors: 0,
+		},
+		"past its deadline": {
+			stop: func(ctx context.Context) (context.Context, context.CancelFunc) {
+				return context.WithTimeout(ctx, 0)
+			},
+			wantCounts: map[string]uint64{"azurekeyvaultsync/sync_mappings": 1},
+			wantErrors: 1,
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			reader := useTestProviders(t, sdktrace.AlwaysSample())
+			console, logs := observer.New(zap.InfoLevel)
+			ctx, stop := tt.stop(log.IntoContext(context.Background(), zapr.NewLogger(zap.New(console))))
+			defer stop()
+
+			ctx, run := StartRun(ctx, "azurekeyvaultsync", "keyvaultsync.SyncAll")
+			commontelemetry.SetError(run, "sync_mappings", ctx.Err())
+			run.End()
+
+			if counts := runCounts(t, reader); !maps.Equal(counts, tt.wantCounts) {
+				t.Errorf("runs recorded = %v, want %v", counts, tt.wantCounts)
+			}
+			if got := logs.FilterLevelExact(zap.ErrorLevel).Len(); got != tt.wantErrors {
+				t.Errorf("ERROR records = %d, want %d", got, tt.wantErrors)
 			}
 		})
 	}

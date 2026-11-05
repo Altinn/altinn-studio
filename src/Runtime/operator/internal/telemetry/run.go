@@ -70,9 +70,10 @@ var errRunFailed = errors.New("controller run failed")
 // When the span ends, the run is recorded in RunDuration, with the error.type that SetError put on
 // the span. A failed run also logs one ERROR with its error type and status description, linked to
 // its trace, so every failure has a correlated log record even where only controller-runtime
-// logs the returned error. A run started inside another, such as the reconciles secretsync's
-// SyncAll makes, is a step of the outer run: an ordinary span, neither recorded nor logged on its
-// own.
+// logs the returned error. A run that fails because ctx was cancelled, as when the operator shuts
+// down or loses its leader lease, was stopped rather than failed: it logs at INFO and is not
+// recorded. A run started inside another, such as the reconciles secretsync's SyncAll makes, is a
+// step of the outer run: an ordinary span, neither recorded nor logged on its own.
 //
 //nolint:spancheck,ireturn // The caller owns ending the span, as with Tracer().Start.
 func StartRun(
@@ -85,7 +86,7 @@ func StartRun(
 		return Tracer().Start(ctx, spanName, trace.WithAttributes(attrs...))
 	}
 	ctx, span := Tracer().Start(ctx, spanName, trace.WithAttributes(append(attrs, AttrController.String(controller))...))
-	run := &runSpan{Span: span, controller: controller, start: time.Now()}
+	run := &runSpan{Span: span, controller: controller, start: time.Now(), ctxErr: ctx.Err}
 	ctx = context.WithValue(trace.ContextWithSpan(ctx, run), runKey{}, run)
 	run.logger = log.FromContext(ctx).WithValues(traceContextKey, ctx)
 	return log.IntoContext(ctx, run.logger), run
@@ -98,6 +99,7 @@ type runSpan struct {
 
 	start       time.Time
 	logger      logr.Logger
+	ctxErr      func() error
 	controller  string
 	errorType   string
 	description string
@@ -131,6 +133,12 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 	errorType, description := s.errorType, s.description
 	s.mu.Unlock()
 
+	if errorType != "" && s.cancelled() {
+		s.logger.Info("Controller run cancelled", string(AttrController), s.controller,
+			string(semconv.ErrorTypeKey), errorType, "reason", description)
+		return
+	}
+
 	attrs := []attribute.KeyValue{AttrController.String(s.controller)}
 	if errorType != "" {
 		attrs = append(attrs, semconv.ErrorTypeKey.String(errorType))
@@ -138,4 +146,10 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 			string(AttrController), s.controller, string(semconv.ErrorTypeKey), errorType)
 	}
 	runDuration().Record(context.Background(), time.Since(s.start).Seconds(), metric.WithAttributes(attrs...))
+}
+
+// cancelled reports whether the run's context was cancelled. A deadline is not a cancellation: a
+// run that overran one failed.
+func (s *runSpan) cancelled() bool {
+	return errors.Is(s.ctxErr(), context.Canceled)
 }

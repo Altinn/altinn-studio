@@ -334,11 +334,15 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 			},
 		})
 		if err != nil {
+			lastErr = err
+			// The run was stopped, so the remaining mappings would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 			r.logger.Error(err, "failed to sync mapping",
 				"sourceName", mapping.SourceName,
 				"sourceNamespace", mapping.SourceNamespace,
 			)
-			lastErr = err
 		}
 	}
 

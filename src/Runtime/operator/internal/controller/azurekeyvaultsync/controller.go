@@ -247,11 +247,15 @@ func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
 	var lastErr error
 	for _, mapping := range c.mappings {
 		if err := c.syncMapping(ctx, mapping); err != nil {
+			lastErr = err
+			// The run was stopped, so the remaining mappings would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 			c.logger.Error(err, "failed to sync mapping",
 				"secretName", mapping.Name,
 				"namespace", mapping.Namespace,
 			)
-			lastErr = err
 		}
 	}
 
@@ -279,7 +283,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		value, err := c.getSecret(ctx, kvSecretName)
 		if err != nil {
 			commontelemetry.SetError(span, "get_key_vault_secret", err)
-			return fmt.Errorf("failed to get secret %q: %w", kvSecretName, err)
+			return err
 		}
 		secretData[kvSecretName] = value
 	}
