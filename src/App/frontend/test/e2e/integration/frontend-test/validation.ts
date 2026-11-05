@@ -634,7 +634,7 @@ describe('Validation', () => {
     });
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -647,7 +647,7 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is still visible
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6); // 'hide' page is still visible
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -667,7 +667,7 @@ describe('Validation', () => {
     );
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -680,8 +680,10 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is now invisible
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is now invisible
     cy.get(appFrontend.errorReport).should('not.exist');
+    cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
     cy.get(appFrontend.sendinButton).click();
