@@ -54,6 +54,10 @@ const BYTES_IN_MB = 1000 * 1000;
 // MD5 or SHA256, the algorithms Broker accepts
 const CHECKSUM_PATTERN = /^([0-9a-f]{32}|[0-9a-f]{64})$/;
 
+export function getBrokerApiBaseUrl(): string | undefined {
+  return GlobalData.platformFrontendSettings.brokerApiBaseUrl || undefined;
+}
+
 export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const config = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
   const { resourceId, disableVirusScan = false, maxFileTransferSizeInMB } = config;
@@ -62,7 +66,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const isSubformPage = useIsSubformPage();
   const navigation = useNavigation();
   const { langAsString } = useLanguage();
-  const baseUrl = GlobalData.platformFrontendSettings.brokerApiBaseUrl || undefined;
+  const baseUrl = getBrokerApiBaseUrl();
   const instanceId = useLaxInstanceId();
   const owner = useInstanceDataQuery({ select: (instance) => instance.instanceOwner }).data;
   const configuredRecipients = useConfiguredRecipients(baseComponentId);

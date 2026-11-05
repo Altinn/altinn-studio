@@ -5,7 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import { isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { BrokerFileTransferComponent } from 'src/layout/BrokerFileTransfer/BrokerFileTransferComponent';
 import { BrokerFileTransferLayoutValidator } from 'src/layout/BrokerFileTransfer/BrokerFileTransferLayoutValidator';
 import { BrokerFileTransferSummary } from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary';
@@ -64,10 +64,13 @@ export class BrokerFileTransfer extends BrokerFileTransferDef {
     if (!fileTransferId || isTransferSent({ fileTransferId, fileTransferStatus })) {
       return [];
     }
+    const isChecking = isTransferReceived({ fileTransferId, fileTransferStatus });
 
     return [
       {
-        message: { key: 'broker_file_transfer.error_not_sent' },
+        message: {
+          key: isChecking ? 'broker_file_transfer.error_still_checking' : 'broker_file_transfer.error_not_sent',
+        },
         severity: 'error',
         source: FrontendValidationSource.Component,
         // Shown like a required field, so it does not appear while the file uploads

@@ -8,7 +8,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
@@ -43,7 +43,7 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
 
   const title = summaryTitle || resolvedTitle;
   const { fileTransferId, fileName } = formData;
-  const isSent = isTransferSent(formData);
+  const isReceived = isTransferReceived(formData);
 
   return (
     <SummaryFlex
@@ -59,7 +59,7 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
       <div className={classes.summary}>
         <div className={classes.header}>
           <Label weight='regular'>{title && <Lang id={title} />}</Label>
-          {!isSent && (
+          {!isReceived && (
             <EditButton
               className={classes.editButton}
               targetBaseComponentId={targetBaseComponentId}
@@ -70,7 +70,7 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
           <SentFile
             fileTransferId={fileTransferId}
             fileName={fileName}
-            isSent={isSent}
+            state={isTransferSent(formData) ? 'sent' : isReceived ? 'checking' : 'notFullySent'}
           />
         ) : chosenFile ? (
           // Only in this browser until the user sends it

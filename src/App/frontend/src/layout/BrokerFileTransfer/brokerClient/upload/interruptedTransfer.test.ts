@@ -81,10 +81,25 @@ describe('checkInterruptedTransfer', () => {
     expect(findUploadPlan).not.toHaveBeenCalled();
   });
 
-  it.each(['Failed', 'Cancelled'])('is gone when Broker has given the transfer up (%s)', async (fileTransferStatus) => {
-    vi.mocked(getFileTransferOverview).mockResolvedValue({ fileTransferStatus, fileName: 'report.pdf' });
+  it('is gone when the transfer was cancelled', async () => {
+    vi.mocked(getFileTransferOverview).mockResolvedValue({ fileTransferStatus: 'Cancelled', fileName: 'report.pdf' });
 
     await expect(checkInterruptedTransfer('transfer-1')).resolves.toEqual({ status: 'gone' });
+  });
+
+  it.each([
+    ['Malware scan failed: Malicious. Extra details: {}', 'virus'],
+    ['Checksum mismatch', 'checksum'],
+    ['Malware scan failed: Error. Extra details: {}', 'other'],
+    ['File upload failed and was aborted', 'other'],
+  ])('has failed, and says why, when Broker failed it with "%s"', async (fileTransferStatusText, failure) => {
+    vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fileTransferStatus: 'Failed',
+      fileTransferStatusText,
+      fileName: 'report.pdf',
+    });
+
+    await expect(checkInterruptedTransfer('transfer-1')).resolves.toEqual({ status: 'failed', failure });
   });
 
   it('is gone when Broker does not know the transfer', async () => {

@@ -25,4 +25,16 @@ describe('getFileTransferOverview', () => {
       'https://platform.example/broker/api/v1/filetransfer/..%2Fresource%2Fx',
     );
   });
+
+  it('counts a purged transfer as sent only if Broker published it first', async () => {
+    fetchMock.mockImplementation(async () =>
+      Response.json({ fileTransferStatus: 'Purged', fileName: 'report.pdf', published: '2026-11-01T10:00:00Z' }),
+    );
+    await expect(getFileTransferOverview('transfer-1')).resolves.toMatchObject({ fileTransferStatus: 'Purged' });
+
+    fetchMock.mockImplementation(async () =>
+      Response.json({ fileTransferStatus: 'Purged', fileName: 'report.pdf', published: null }),
+    );
+    await expect(getFileTransferOverview('transfer-1')).resolves.toMatchObject({ fileTransferStatus: 'Failed' });
+  });
 });

@@ -13,6 +13,7 @@ import { useQueryClient } from 'src/core/queries/reactQuery';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
+import { getFileTransferOverview } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { getResourceConfiguration } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
 import { checkInterruptedTransfer } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 import { createUploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
@@ -32,6 +33,10 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 vi.mock('src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration', async (importOriginal) => ({
   ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration')>()),
   getResourceConfiguration: vi.fn(),
+}));
+vi.mock('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus')>()),
+  getFileTransferOverview: vi.fn(),
 }));
 vi.mock('src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer', async (importOriginal) => ({
   ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer')>()),
@@ -183,6 +188,7 @@ describe('BrokerFileTransferComponent', () => {
     fake = fakeController();
     vi.mocked(createUploadController).mockReturnValue(fake.controller);
     vi.mocked(getResourceConfiguration).mockResolvedValue(resourceConfiguration);
+    vi.mocked(getFileTransferOverview).mockRejectedValue(new ApiError('Not found', 404));
     vi.mocked(useIsSubformPage).mockReturnValue(false);
   });
 
@@ -725,7 +731,7 @@ describe('BrokerFileTransferComponent', () => {
 
   describe('a sent file', () => {
     it('shows a file that has been sent', async () => {
-      await render({ formData: { id: 'transfer-1', status: 'UploadProcessing', name: 'rapport.pdf' } });
+      await render({ formData: { id: 'transfer-1', status: 'Published', name: 'rapport.pdf' } });
 
       expect(await screen.findByText('rapport.pdf')).toBeInTheDocument();
       expect(screen.getByText('Sendt')).toBeInTheDocument();
@@ -733,11 +739,62 @@ describe('BrokerFileTransferComponent', () => {
       expect(screen.queryByRole('button', { name: 'Send filen' })).not.toBeInTheDocument();
     });
 
+    it('shows the size and checksum Broker has for the sent file', async () => {
+      vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fileTransferStatus: 'Published',
+        fileName: 'rapport.pdf',
+        fileTransferSize: 2_500_000,
+        checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        checksumAlgorithm: 'SHA256',
+      });
+      await render({ formData: { id: 'transfer-1', status: 'Published', name: 'rapport.pdf' } });
+
+      expect(await screen.findByText(/2,5.MB/)).toBeInTheDocument();
+      expect(screen.getByText(/Sjekksum \(SHA256\): e3b0c44298fc1c149afbf4c8996fb924/)).toBeInTheDocument();
+    });
+
+    it.each(['UploadProcessing', 'UploadStarted'])(
+      'shows the file as being checked while Broker reports it as %s',
+      async (fileTransferStatus) => {
+        vi.mocked(getFileTransferOverview).mockResolvedValue({
+          fileTransferStatus,
+          fileName: 'rapport.pdf',
+          fileTransferSize: 2_500_000,
+        });
+        const { formDataMethods } = await render({
+          formData: { id: 'transfer-1', status: 'UploadProcessing', name: 'rapport.pdf' },
+        });
+
+        expect(await screen.findByText(/2,5.MB/)).toBeInTheDocument();
+        expect(screen.getByText('Kontrolleres')).toBeInTheDocument();
+        expect(screen.queryByText('Sendt')).not.toBeInTheDocument();
+        expect(formDataMethods.setMultiLeafValues).not.toHaveBeenCalled();
+      },
+    );
+
+    it('records the status once Broker has published the file', async () => {
+      vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fileTransferStatus: 'Published',
+        fileName: 'rapport.pdf',
+      });
+      const { formDataMethods } = await render({
+        formData: { id: 'transfer-1', status: 'UploadProcessing', name: 'rapport.pdf' },
+      });
+
+      await waitFor(() =>
+        expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith(
+          expect.objectContaining({
+            changes: [expect.objectContaining({ reference: binding('broker.status'), newValue: 'Published' })],
+          }),
+        ),
+      );
+    });
+
     it('lets go of the chosen file and the upload once the file is sent', async () => {
       const { unmount } = await render({ id: 'broker-file-transfer-sent' });
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       fake.update({ transfer: { ...transfer, status: 'UploadProcessing' } });
-      expect(await screen.findByText('Sendt')).toBeInTheDocument();
+      expect(await screen.findByText('Kontrolleres')).toBeInTheDocument();
       unmount();
 
       vi.mocked(createUploadController).mockReturnValue(fakeController().controller);
@@ -832,6 +889,19 @@ describe('BrokerFileTransferComponent', () => {
       await render({ formData: interruptedFormData });
 
       await waitFor(() => expect(fake.controller.discard).toHaveBeenCalledWith(transfer, null));
+    });
+
+    it('gives up a file transfer Broker has failed, and says why', async () => {
+      vi.mocked(checkInterruptedTransfer).mockResolvedValue({ status: 'failed', failure: 'virus' });
+      await render({ formData: { id: 'transfer-1', status: 'Failed', name: 'rapport.pdf' } });
+
+      await waitFor(() => expect(fake.controller.discard).toHaveBeenCalledWith(transfer, null));
+      fake.update({ transfer: { ...transfer, status: null } });
+
+      expect(
+        await screen.findByText('Altinn Formidling fant skadelig innhold i filen og avviste den. Velg en annen fil.'),
+      ).toBeInTheDocument();
+      expect(await findFileInput()).toBeInTheDocument();
     });
 
     it('says so when it cannot check an interrupted upload', async () => {

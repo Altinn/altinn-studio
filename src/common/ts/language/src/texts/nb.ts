@@ -431,6 +431,12 @@ export function nb() {
       'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.',
     'broker_file_transfer.error_metadata_required':
       'Fyll ut de påkrevde feltene før du sender filen.',
+    'broker_file_transfer.error_failed_virus':
+      'Altinn Formidling fant skadelig innhold i filen og avviste den. Velg en annen fil.',
+    'broker_file_transfer.error_failed_checksum':
+      'Filen stemte ikke med sjekksummen, og Altinn Formidling avviste den. Kontroller sjekksummen, og send filen på nytt.',
+    'broker_file_transfer.error_failed_other':
+      'Altinn Formidling kunne ikke ta imot filen. Send den på nytt.',
     'broker_file_transfer.error_no_access':
       'Du har ikke tilgang til å sende filer i denne tjenesten på vegne av virksomheten.',
     'broker_file_transfer.error_login':
@@ -452,6 +458,8 @@ export function nb() {
       'Opplastingen er ikke lenger tilgjengelig på serveren. Send filen på nytt.',
     'broker_file_transfer.error_not_sent':
       'Filen er ikke ferdig lastet opp. Fortsett opplastingen, eller forkast den.',
+    'broker_file_transfer.error_still_checking':
+      'Altinn Formidling kontrollerer fortsatt filen. Du kan sende inn når kontrollen er ferdig.',
     'broker_file_transfer.error_interrupted_unknown':
       'Vi fikk ikke sjekket hvor langt den avbrutte opplastingen kom. Prøv å laste inn siden på nytt.',
     'broker_file_transfer.progress_label': 'Fremdrift for opplastingen',
@@ -481,11 +489,13 @@ export function nb() {
     'broker_file_transfer.discard_upload': 'Forkast opplastingen',
     'broker_file_transfer.discard_confirm_yes': 'Ja, forkast',
     'broker_file_transfer.sent': 'Sendt',
+    'broker_file_transfer.checking': 'Kontrolleres',
     'broker_file_transfer.sent_file': 'Filen er sendt',
     'broker_file_transfer.not_fully_sent': 'Ikke ferdig sendt',
     'broker_file_transfer.not_sent': 'Ikke sendt',
     'broker_file_transfer.unsent_file': 'Filen som sendes',
     'broker_file_transfer.file_transfer_id': 'Formidlings-ID: {0}',
+    'broker_file_transfer.sent_checksum': 'Sjekksum ({0}): {1}',
     'helptext.button_title': 'Hjelp',
     'helptext.button_title_prefix': 'Hjelpetekst for',
     'receipt.attachments': 'Vedlegg',

@@ -430,6 +430,12 @@ export function en() {
       'The checksum must be 32 or 64 characters, using only the digits 0–9 and the letters a–f.',
     'broker_file_transfer.error_metadata_required':
       'Fill in the required fields before you send the file.',
+    'broker_file_transfer.error_failed_virus':
+      'Altinn Broker found harmful content in the file and rejected it. Choose another file.',
+    'broker_file_transfer.error_failed_checksum':
+      'The file did not match its checksum, and Altinn Broker rejected it. Check the checksum and send the file again.',
+    'broker_file_transfer.error_failed_other':
+      'Altinn Broker could not accept the file. Send it again.',
     'broker_file_transfer.error_no_access':
       'You do not have access to send files on this service on behalf of the organisation.',
     'broker_file_transfer.error_login':
@@ -451,6 +457,8 @@ export function en() {
       'The upload is no longer available on the server. Send the file again.',
     'broker_file_transfer.error_not_sent':
       'The file has not finished uploading. Continue the upload, or discard it.',
+    'broker_file_transfer.error_still_checking':
+      'Altinn Broker is still checking the file. You can submit when the check is finished.',
     'broker_file_transfer.error_interrupted_unknown':
       'We could not check how far the interrupted upload got. Try reloading the page.',
     'broker_file_transfer.progress_label': 'Upload progress',
@@ -480,11 +488,13 @@ export function en() {
     'broker_file_transfer.discard_upload': 'Discard upload',
     'broker_file_transfer.discard_confirm_yes': 'Yes, discard',
     'broker_file_transfer.sent': 'Sent',
+    'broker_file_transfer.checking': 'Being checked',
     'broker_file_transfer.sent_file': 'File sent',
     'broker_file_transfer.not_fully_sent': 'Not fully sent',
     'broker_file_transfer.not_sent': 'Not sent',
     'broker_file_transfer.unsent_file': 'File being sent',
     'broker_file_transfer.file_transfer_id': 'File transfer ID: {0}',
+    'broker_file_transfer.sent_checksum': 'Checksum ({0}): {1}',
     'helptext.button_title': 'Help',
     'helptext.button_title_prefix': 'Help text for',
     'receipt.attachments': 'Attachments',

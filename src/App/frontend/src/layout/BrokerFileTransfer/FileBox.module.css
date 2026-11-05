@@ -27,4 +27,5 @@
 .details {
   color: var(--ds-color-neutral-text-subtle);
   font-size: var(--ds-body-sm-font-size);
+  overflow-wrap: anywhere;
 }

@@ -1,8 +1,10 @@
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import {
+  FAILED_STATUS,
   getFileTransferOverview,
   isReceivedStatus,
   isUploadableStatus,
+  transferFailureOf,
 } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import {
   findUploadPlan,
@@ -10,6 +12,7 @@ import {
   readUploadedBytes,
   type UploadPlan,
 } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
+import type { TransferFailure } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 
 export type ResumableTransfer = {
   fileName: string;
@@ -20,6 +23,7 @@ export type ResumableTransfer = {
 export type InterruptedTransfer =
   | { status: 'received'; fileName: string; fileTransferStatus: string }
   | { status: 'gone'; plan?: UploadPlan }
+  | { status: 'failed'; failure: TransferFailure }
   | ({ status: 'resumable' } & ResumableTransfer);
 
 export async function checkInterruptedTransfer(
@@ -34,6 +38,9 @@ export async function checkInterruptedTransfer(
   });
   if (overview && isReceivedStatus(overview.fileTransferStatus)) {
     return { status: 'received', fileName: overview.fileName, fileTransferStatus: overview.fileTransferStatus };
+  }
+  if (overview?.fileTransferStatus === FAILED_STATUS) {
+    return { status: 'failed', failure: transferFailureOf(overview.fileTransferStatusText) };
   }
   if (!overview || !isUploadableStatus(overview.fileTransferStatus)) {
     return { status: 'gone' };

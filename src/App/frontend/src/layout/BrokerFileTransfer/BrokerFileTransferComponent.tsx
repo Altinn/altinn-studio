@@ -7,13 +7,13 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Label } from 'src/components/label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
-import { isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { ChooseFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile';
 import { ChooseFileWithoutBroker } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFileWithoutBroker';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
 import { useBrokerSetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { UploadingFile } from 'src/layout/BrokerFileTransfer/UploadingFile/UploadingFile';
-import { useBrokerUpload } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
+import { useBrokerUpload, useFollowReceivedTransfer } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -29,9 +29,10 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
   const { formData } = useDataModelBindings(dataModelBindings);
   const setup = useBrokerSetup(baseComponentId);
+  useFollowReceivedTransfer(baseComponentId, !readOnly);
 
-  const isSent = isTransferSent(formData);
-  if (!isSent && setup.kind === 'misconfigured') {
+  const isReceived = isTransferReceived(formData);
+  if (!isReceived && setup.kind === 'misconfigured') {
     return (
       <ComponentErrorList
         baseComponentId={baseComponentId}
@@ -46,11 +47,11 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
         baseComponentId={baseComponentId}
         renderLabelAs='plainLabel'
       />
-      {isSent ? (
+      {isReceived ? (
         <SentFile
           fileTransferId={formData.fileTransferId}
           fileName={formData.fileName}
-          isSent
+          state={isTransferSent(formData) ? 'sent' : 'checking'}
         />
       ) : readOnly ? (
         <Paragraph data-size='sm'>
