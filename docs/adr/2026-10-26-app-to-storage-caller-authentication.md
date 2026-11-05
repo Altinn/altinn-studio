@@ -1,4 +1,4 @@
-# Apps reach Storage through an egress proxy that authenticates them
+# Apps reach Storage through a platform-owned layer that authenticates them
 
 - Status: Proposed
 - Deciders: Team Studio
@@ -6,11 +6,14 @@
 
 ## Result
 
-A2: Studio runs an egress proxy in each runtime cluster, and apps reach Storage through it, as proposed in [altinn-studio#21747](https://github.com/Altinn/altinn-studio/issues/21747).
+A2: Apps reach Storage through a layer that the platform owns in each runtime cluster, and that layer authenticates the app to Storage.
+The layer is an egress proxy that Studio runs, as proposed in [altinn-studio#21747](https://github.com/Altinn/altinn-studio/issues/21747).
 Studio points `PlatformSettings__ApiStorageEndpoint` in the apps' ConfigMap at the proxy, so every app, v8 and v9 alike, moves to the proxy when its pod restarts.
-The proxy does nothing but authenticate: it adds a `PlatformAccessToken` header and forwards the request, and Storage validates the token locally.
+The proxy does nothing but authenticate: it attaches the app's credential and forwards the request.
 
-The token changes in two steps, and neither needs an app change:
+This decides who owns the step between the app and Storage, not which credential crosses it.
+Studio owns both the proxy and the apps' configuration, so the credential can change without app changes or app-lib releases.
+The first version attaches a `PlatformAccessToken`, which Storage validates locally, and changes it in two steps:
 
 - Step 1: the proxy signs with the org certificate each runtime cluster already has.
   The token proves that the call comes from the org's runtime cluster, and takes the place of the subscription key APIM checks today.
@@ -18,6 +21,8 @@ The token changes in two steps, and neither needs an app change:
 - Step 2: each app runs under its own service account, and the proxy names the app from the caller's Linkerd identity.
   The proxy then sends a token from a new issuer, `altinn-apps`, whose key never leaves Key Vault, as A1 describes.
   The token names `{org}/{app}`, and Storage limits the operations it lets the owning org skip authorization for to the owning app.
+
+Later, the platform can replace the token with another credential in the same way.
 
 Every Storage call then passes through the proxy (B6).
 We accept that dependency because the proxy only authenticates, so calls stay fast, and because Studio can change how apps authenticate whenever it needs to, without waiting for service owners to upgrade their apps.
@@ -113,10 +118,10 @@ Relevant facts:
 ## Alternatives considered
 
 - A1: A platform access token that the operator signs for each app, under a new issuer, with a key that never leaves Key Vault.
-- A2: An egress proxy that Studio runs in each runtime cluster, for the apps' calls to Storage first and to the other platform APIs later.
+- A2: A layer that the platform owns between apps and the platform APIs, which attaches the app's credential: an egress proxy that Studio runs in each runtime cluster, for the apps' calls to Storage first and to the other platform APIs later.
   Proposed in [altinn-studio#21747](https://github.com/Altinn/altinn-studio/issues/21747).
   The apps' ConfigMap points Storage's address at the proxy.
-  When a request has no `PlatformAccessToken` header, the proxy adds one, signed with the org certificate the cluster already has, so Storage can check that the call comes from the org's runtime cluster.
+  In the first version, when a request has no `PlatformAccessToken` header, the proxy adds one, signed with the org certificate the cluster already has, so Storage can check that the call comes from the org's runtime cluster.
   To name the app as well, the proxy maps the caller's Linkerd identity to the app's Deployment, which needs each app to run under its own service account.
   Later, the proxy signs with A1's issuer instead, so its key is not one the apps also hold.
 - A3: A Maskinporten token from the per-app client the operator provisions, with a new app-only scope owned by Altinn, `altinn:storage/app`, sent in its own header.
@@ -187,13 +192,13 @@ Issuing does not: when an app cannot get a new token, it cannot call Storage.
 - Bad, because it does not cover v8 apps (B10).
   Enforcing it for every app waits for service owners to upgrade their v8 apps, which Studio cannot do for them.
 
-### A2: Egress proxy in each runtime cluster
+### A2: Platform-owned egress proxy in each runtime cluster
 
 - Good, because it covers v8 apps from day one (B10).
   Every app gets Storage's address from the same ConfigMap, so Studio can route every app through the proxy itself, without waiting for service owners to upgrade.
   Storage needs no app library version, and there is no v8 exemption to end before APIM can go.
 - Good, because it unlinks Storage's authentication from the app-lib packages (B7).
-  How the proxy authenticates to Storage can change without an app-lib release, and without staying compatible with every released app-lib version.
+  How the proxy authenticates to Storage, including which credential it uses, can change without an app-lib release, and without staying compatible with every released app-lib version.
 - Good, because step 1 builds on what exists (B9).
   Storage already validates org-signed platform access tokens with `altinn-accesstoken`, and each runtime cluster already has the org certificate.
   Neither step needs an app-lib release or a recorded app library version.
@@ -283,6 +288,7 @@ They need a new token type and change all traffic between apps and Storage, so t
   Events and Notifications read `iss` as the org, so they must change before they accept tokens from the new issuer.
 - Once every platform API the apps call gets its token from the proxy, the `accesstoken` volume can be removed from app pods, so apps no longer hold the org key.
 - The proxy can restrict each app to the endpoints and methods it needs, based on what `Observe` shows each app calls.
+- The credential can change again, to whatever the platform settles on, without app changes or app-lib releases.
 
 ## Consequences
 
