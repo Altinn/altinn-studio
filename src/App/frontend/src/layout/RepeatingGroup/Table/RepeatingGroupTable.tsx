@@ -104,6 +104,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         stickyHeader={config.stickyHeader}
         className={cn(
           {
+            [classes.mobileTable]: mobileView,
             [classes.editingBorder]: isNested,
             [classes.nestedTable]: isNested,
             [classes.nestedNonSticky]: isNested && !config.stickyHeader,

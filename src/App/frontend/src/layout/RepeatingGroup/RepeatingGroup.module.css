@@ -245,3 +245,40 @@ table > tbody > tr.editingRow:hover {
   padding-left: var(--modal-padding-x);
   padding-right: var(--modal-padding-x);
 }
+
+/* Stacked fields need the full viewport width; row actions follow them in their own bar. */
+.mobileTable,
+.mobileTable > tbody,
+.mobileTable > caption,
+.mobileTable > tfoot {
+  display: block;
+}
+
+.mobileTable > tbody > tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mobileTable > tbody > tr > td {
+  display: block;
+  min-width: 0;
+  width: auto;
+  padding-inline: var(--modal-padding-x);
+}
+
+.mobileRow > td:first-child:not(.buttonCell) {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.mobileRow .buttonInCellWrapper {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ds-size-1);
+}
+
+.mobileRow .buttonInCellWrapper > button {
+  min-width: 44px;
+  min-height: 44px;
+}

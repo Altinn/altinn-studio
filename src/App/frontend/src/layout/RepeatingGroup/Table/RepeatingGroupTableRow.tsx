@@ -151,7 +151,7 @@ export function RepeatingGroupTableRow({
     <>
       <Table.Row
         ref={(node) => refSetter(index, 'row', node)}
-        className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
+        className={cn({ [classes.tableRowError]: rowHasErrors, [classes.mobileRow]: mobileView }, className)}
         data-row-num={index}
         data-row-uuid={uuid}
       >
