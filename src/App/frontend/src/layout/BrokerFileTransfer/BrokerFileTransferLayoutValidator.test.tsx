@@ -12,16 +12,12 @@ import type { CompExternal } from 'src/layout/layout';
 const binding = (field: string) => ({ dataType: defaultDataTypeMock, field });
 
 describe('BrokerFileTransferLayoutValidator', () => {
-  const { featureToggles } = window;
-
   beforeEach(() => {
-    window.featureToggles = { ...featureToggles, brokerFileTransferEnabled: true };
     window.forceLayoutPropertiesValidation = 'on';
     vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    window.featureToggles = featureToggles;
     window.forceLayoutPropertiesValidation = 'off';
   });
 
@@ -40,15 +36,6 @@ describe('BrokerFileTransferLayoutValidator', () => {
     expect(window.logErrorOnce).toHaveBeenCalledWith(
       "Validation error for 'broker': metadata kan ha høyst 10 oppføringer, men har 11.",
     );
-  });
-
-  it('says the feature flag must be enabled', async () => {
-    window.featureToggles = { ...featureToggles, brokerFileTransferEnabled: false };
-    await render();
-
-    expect(
-      await screen.findByText(/You need to enable the feature flag brokerFileTransferEnabled/),
-    ).toBeInTheDocument();
   });
 });
 

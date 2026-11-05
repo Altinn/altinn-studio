@@ -179,21 +179,15 @@ async function render({
 }
 
 describe('BrokerFileTransferComponent', () => {
-  const { featureToggles } = window;
   let fake: ReturnType<typeof fakeController>;
 
   beforeEach(() => {
-    window.featureToggles = { ...featureToggles, brokerFileTransferEnabled: true };
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
     fake = fakeController();
     vi.mocked(createUploadController).mockReturnValue(fake.controller);
     vi.mocked(getResourceConfiguration).mockResolvedValue(resourceConfiguration);
     vi.mocked(getFileTransferOverview).mockRejectedValue(new ApiError('Not found', 404));
     vi.mocked(useIsSubformPage).mockReturnValue(false);
-  });
-
-  afterEach(() => {
-    window.featureToggles = featureToggles;
   });
 
   describe('setup', () => {

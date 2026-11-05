@@ -34,16 +34,6 @@ const layoutsFor = (componentId: string): ILayoutCollection => ({
 });
 
 describe('BrokerFileTransferSummary', () => {
-  const { featureToggles } = window;
-
-  beforeEach(() => {
-    window.featureToggles = { ...featureToggles, brokerFileTransferEnabled: true };
-  });
-
-  afterEach(() => {
-    window.featureToggles = featureToggles;
-  });
-
   it('shows a sent file the way the component does, with nothing left to change', async () => {
     await renderSummary({ id: 'transfer-1', status: 'Published', name: 'rapport.pdf' });
 
