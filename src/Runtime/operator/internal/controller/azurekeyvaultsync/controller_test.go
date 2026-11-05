@@ -265,7 +265,9 @@ func TestReconciler_StopsSyncingWhenCanceled(t *testing.T) {
 				{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
 				{Name: "third", Namespace: "default", FileName: "key", Secrets: []string{"third-secret"}},
 			}
-			ctx, cancel := context.WithCancel(context.Background())
+			core, logs := observer.New(zap.InfoLevel)
+			logger := zapr.NewLogger(zap.New(core))
+			ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
 			defer cancel()
 			kvClient := &cancelingKeyVaultClient{cancel: cancel, failure: priorFailure}
 			reconciler := NewReconcilerForTesting(
@@ -274,15 +276,19 @@ func TestReconciler_StopsSyncingWhenCanceled(t *testing.T) {
 				kvClient,
 				mappings,
 			)
+			reconciler.logger = logger
 
 			err := reconciler.SyncAll(ctx)
 			g.Expect(errors.Is(err, context.Canceled)).To(BeTrue())
 			wantRequested := []string{"first-secret"}
+			wantErrors := 0
 			if priorFailure != nil {
 				g.Expect(errors.Is(err, priorFailure)).To(BeTrue())
 				wantRequested = append(wantRequested, "second-secret")
+				wantErrors = 1 // The mapping failure. The run itself was canceled.
 			}
 			g.Expect(kvClient.requested).To(Equal(wantRequested))
+			g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(wantErrors))
 			g.Expect(err.Error()).To(ContainSubstring(`get Key Vault secret "first-secret"`))
 		})
 	}

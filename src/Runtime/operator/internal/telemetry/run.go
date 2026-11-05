@@ -15,6 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"altinn.studio/operator/internal/assert"
 )
@@ -152,4 +153,20 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 // run that overran one failed.
 func (s *runSpan) canceled() bool {
 	return errors.Is(s.ctxErr(), context.Canceled)
+}
+
+// QuietOnCancel wraps a reconciler so that a reconcile whose context was canceled returns no error.
+// controller-runtime logs every error a reconcile returns as an ERROR, and the operator's shutdown
+// or loss of its leader lease cancels the reconciles in progress. The run itself logs at INFO, and
+// the next leader reconciles every object when it starts.
+//
+//nolint:ireturn // controller-runtime's builder takes the interface.
+func QuietOnCancel(r reconcile.Reconciler) reconcile.Reconciler {
+	return reconcile.Func(func(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+		result, err := r.Reconcile(ctx, req)
+		if err != nil && errors.Is(ctx.Err(), context.Canceled) {
+			return reconcile.Result{}, nil
+		}
+		return result, err //nolint:wrapcheck // The wrapper passes the reconciler's error through unchanged.
+	})
 }

@@ -3,8 +3,10 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
 	"testing"
+	"time"
 
 	"github.com/go-logr/zapr"
 	"go.opentelemetry.io/otel"
@@ -19,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	commontelemetry "altinn.studio/common/telemetry"
 )
@@ -143,6 +146,51 @@ func TestStartRunDoesNotCountACanceledRunAsFailed(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestQuietOnCancelDropsOnlyErrorsOfCanceledReconciles(t *testing.T) {
+	t.Parallel()
+	tests := map[string]struct {
+		newContext func(context.Context) (context.Context, context.CancelFunc)
+		wantErr    bool
+	}{
+		"canceled": {newContext: context.WithCancel, wantErr: false},
+		"past its deadline": {
+			newContext: func(ctx context.Context) (context.Context, context.CancelFunc) { return context.WithTimeout(ctx, 0) },
+			wantErr:    true,
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			ctx, stop := tt.newContext(context.Background())
+			defer stop()
+			reconciler := QuietOnCancel(
+				reconcile.Func(func(ctx context.Context, _ reconcile.Request) (reconcile.Result, error) {
+					stop()
+					return reconcile.Result{RequeueAfter: time.Minute}, fmt.Errorf("get secret: %w", ctx.Err())
+				}),
+			)
+
+			result, err := reconciler.Reconcile(ctx, reconcile.Request{})
+			if gotErr := err != nil; gotErr != tt.wantErr {
+				t.Errorf("error = %v, want error: %t", err, tt.wantErr)
+			}
+			if !tt.wantErr && !result.IsZero() {
+				t.Errorf("result = %+v, want zero", result)
+			}
+		})
+	}
+
+	t.Run("live", func(t *testing.T) {
+		t.Parallel()
+		reconciler := QuietOnCancel(reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, fmt.Errorf("get secret: %w", context.Canceled)
+		}))
+		if _, err := reconciler.Reconcile(context.Background(), reconcile.Request{}); err == nil {
+			t.Error("error = nil, want the reconcile's error while the operator runs")
+		}
+	})
 }
 
 // useTestProviders installs a tracer provider with sampler and a meter provider read by the
