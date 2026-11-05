@@ -72,14 +72,13 @@ export const ResourceDeployEnvCard = ({
             status: 409,
           });
         } else {
+          const statusCode = (error as ResourceError).response?.status || 500;
           setPublishError({
-            title:
-              (error as ResourceError).response?.data?.title ||
-              t('resourceadm.resource_publish_error_title'),
-            status: (error as ResourceError).response?.status || 500,
+            title: (error as ResourceError).response?.data?.title || undefined,
+            status: statusCode,
             detail:
               (error as ResourceError).response?.data?.detail ||
-              t('resourceadm.resource_publish_error_detail'),
+              t('resourceadm.resource_publish_error', { statusCode: statusCode }),
           });
         }
       },
