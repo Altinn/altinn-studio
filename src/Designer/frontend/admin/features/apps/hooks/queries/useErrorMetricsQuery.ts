@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ErrorMetric } from 'admin/features/apps/types/metrics/ErrorMetric';
 import { errorMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import axios from 'axios';
+import { get } from 'app-shared/utils/networking';
 
 export const useErrorMetricsQuery = (
   org: string,
@@ -14,7 +14,7 @@ export const useErrorMetricsQuery = (
   return useQuery<ErrorMetric[]>({
     queryKey: [QueryKey.ErrorMetrics, org, env, range],
     queryFn: async ({ signal }) =>
-      (await axios.get<ErrorMetric[]>(errorMetricsPath(org, env, range), { signal })).data,
+      await get<ErrorMetric[]>(errorMetricsPath(org, env, range), { signal }),
     meta,
   });
 };

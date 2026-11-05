@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
-import axios from 'axios';
+import { get } from 'app-shared/utils/networking';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { LoginGuide, shouldSkipLoginGuide } from './LoginGuide';
 
@@ -14,10 +14,9 @@ export const GuidePage = (): ReactElement => {
       return;
     }
 
-    // Using axios.get directly instead of useUserQuery to avoid ServicesContextProvider's
+    // Using get directly instead of useUserQuery to avoid ServicesContextProvider's
     // global 401 error handler, which would trigger a logout toast on this unauthenticated page.
-    axios
-      .get('/designer/api/user/current')
+    get('/designer/api/user/current')
       .then(() => {
         window.location.href = '/';
       })

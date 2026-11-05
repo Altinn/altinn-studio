@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios, { AxiosError, type AxiosResponse, type AxiosStatic } from 'axios';
+import { get, HttpError } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -12,10 +13,10 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { WorkflowProblems } from './WorkflowProblems';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+}));
 
 const environment = 'at23';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${environment.toUpperCase()}`;
@@ -44,15 +45,13 @@ const page = (key: string, nextCursor: string | null) => ({
   nextCursor,
 });
 
-const respondWith = (
-  handler: (url: string) => { status: number; data: unknown } | Promise<never>,
-) => {
-  vi.mocked(axios.get).mockImplementation(async (url: string) => handler(url) as AxiosResponse);
+const respondWith = (handler: (url: string) => unknown) => {
+  vi.mocked(get).mockImplementation(async (url: string) => handler(url));
 };
 
 describe('WorkflowProblems', () => {
   it('lists failing instances from the discovery read with the counts that matter', async () => {
-    respondWith(() => ({ status: 200, data: page(firstPageKey, null) }));
+    respondWith(() => page(firstPageKey, null));
     renderWorkflowProblems();
 
     const link = await screen.findByRole('link', { name: firstPageKey });
@@ -63,7 +62,7 @@ describe('WorkflowProblems', () => {
       screen.getByText(textMock('admin.workflows.problems.total', { total: 2 })),
     ).toBeInTheDocument();
 
-    const requestedUrl = vi.mocked(axios.get).mock.calls[0][0] as string;
+    const requestedUrl = vi.mocked(get).mock.calls[0][0] as string;
     expect(requestedUrl).toContain('failures=Any');
     expect(requestedUrl).toContain('/collections');
   });
@@ -71,9 +70,7 @@ describe('WorkflowProblems', () => {
   it('pages with the engine cursor, which is separate from the instance list pager', async () => {
     const user = userEvent.setup();
     respondWith((url) =>
-      url.includes(`cursor=${cursor}`)
-        ? { status: 200, data: page(secondPageKey, null) }
-        : { status: 200, data: page(firstPageKey, cursor) },
+      url.includes(`cursor=${cursor}`) ? page(secondPageKey, null) : page(firstPageKey, cursor),
     );
     renderWorkflowProblems();
 
@@ -93,8 +90,8 @@ describe('WorkflowProblems', () => {
     const user = userEvent.setup();
     respondWith((url) =>
       url.includes(`cursor=${cursor}`)
-        ? Promise.reject(new AxiosError())
-        : { status: 200, data: page(firstPageKey, cursor) },
+        ? Promise.reject(new HttpError())
+        : page(firstPageKey, cursor),
     );
     renderWorkflowProblems();
 
@@ -112,7 +109,7 @@ describe('WorkflowProblems', () => {
 
   it('narrows the discovery filter to a single failure kind', async () => {
     const user = userEvent.setup();
-    respondWith(() => ({ status: 200, data: page(firstPageKey, null) }));
+    respondWith(() => page(firstPageKey, null));
     renderWorkflowProblems();
 
     await screen.findByRole('link', { name: firstPageKey });
@@ -121,7 +118,7 @@ describe('WorkflowProblems', () => {
     await waitFor(() =>
       expect(
         vi
-          .mocked(axios.get)
+          .mocked(get)
           .mock.calls.map(([url]) => url as string)
           .some((url) => url.includes('failures=Auxiliary')),
       ).toBe(true),
@@ -130,7 +127,7 @@ describe('WorkflowProblems', () => {
 
   it('shows a collection key that is not an instance id as plain text, not as a dead link', async () => {
     const notAnInstanceKey = 'batch/nightly-cleanup';
-    respondWith(() => ({ status: 200, data: page(notAnInstanceKey, null) }));
+    respondWith(() => page(notAnInstanceKey, null));
     renderWorkflowProblems();
 
     expect(await screen.findByRole('cell', { name: notAnInstanceKey })).toBeInTheDocument();
@@ -138,7 +135,7 @@ describe('WorkflowProblems', () => {
   });
 
   it('reports an empty discovery answer as nothing to fix', async () => {
-    respondWith(() => ({ status: 204, data: '' }));
+    respondWith(() => null);
     renderWorkflowProblems();
 
     expect(
@@ -147,11 +144,10 @@ describe('WorkflowProblems', () => {
   });
 
   it('reports an unreachable engine as unavailable rather than an error', async () => {
-    const error = new AxiosError();
-    error.response = {
+    const error = new HttpError({
       status: 502,
       data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
-    } as AxiosResponse;
+    });
     respondWith(() => Promise.reject(error));
     renderWorkflowProblems();
 
@@ -162,7 +158,7 @@ describe('WorkflowProblems', () => {
   });
 
   it('falls back to the generic error state for a real failure', async () => {
-    respondWith(() => Promise.reject(new AxiosError()));
+    respondWith(() => Promise.reject(new HttpError()));
     renderWorkflowProblems();
 
     expect(await screen.findByText(textMock('general.page_error_title'))).toBeInTheDocument();

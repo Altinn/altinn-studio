@@ -1,12 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FeedbackForm } from './FeedbackForm';
 import type { ButtonTexts } from '../types/QuestionsProps';
 import { mockQuestions } from '../../mocks/mockQuestionsConfig';
 import { FeedbackFormContext } from '../contexts/FeedbackFormContext';
 import userEvent from '@testing-library/user-event';
-import axios from 'axios';
+import { post } from 'app-shared/utils/networking';
 
 const buttonTexts: ButtonTexts = {
   submit: 'Submit',
@@ -17,8 +16,11 @@ const buttonTexts: ButtonTexts = {
 const heading = 'Heading';
 const description = 'Description';
 
-vi.mock('axios');
-var mockedAxios = axios as Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  post: vi.fn(),
+}));
+const mockedPost = vi.mocked(post);
 
 describe('FeedbackForm', () => {
   it('should render FeedbackForm', () => {
@@ -53,7 +55,7 @@ describe('FeedbackForm', () => {
   it('should close FeedbackForm modal when submit button is clicked', async () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions });
-    mockedAxios.post.mockResolvedValueOnce({});
+    mockedPost.mockResolvedValueOnce(null);
 
     const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
@@ -73,7 +75,7 @@ describe('FeedbackForm', () => {
     await user.click(trigger);
 
     const submitButton = screen.getByText(buttonTexts.submit);
-    mockedAxios.post.mockRejectedValueOnce('Error while submitting feedback');
+    mockedPost.mockRejectedValueOnce('Error while submitting feedback');
 
     await user.click(submitButton);
 

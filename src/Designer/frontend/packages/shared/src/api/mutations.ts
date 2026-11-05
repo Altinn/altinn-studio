@@ -148,7 +148,7 @@ const headers = {
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
 export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<void>(uiFoldersLayoutSetsPath(org, app), payload);
-export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form);
 export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
 
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
@@ -191,10 +191,10 @@ export const updateTranslationByLangCode = (org: string, app: string, language, 
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
-export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
-export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form);
+export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form);
 export const updateDataType = (org: string, app: string, dataModelName: string, payload: DataType) => put<void>(dataTypePath(org, app, dataModelName), payload);
-export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload);
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
 export const updateTaskNavigationGroupV4 = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app), payload);
@@ -239,12 +239,7 @@ export const createPreviewInstance = (org: string, app: string, partyId: number,
 export const addDataTypeToAppMetadata = (org: string, app: string, { dataTypeId, taskId, allowedContributors, allowedContentTypes }: AddDataTypeToAppMetadataPayload) => post(processEditorDataTypePath(org, app, dataTypeId, taskId, allowedContentTypes), allowedContributors);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
-export const updateBpmnXml = (org: string, app: string, form: any) =>
-  put(processEditorPath(org, app), form, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+export const updateBpmnXml = (org: string, app: string, form: FormData) => put(processEditorPath(org, app), form);
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
 

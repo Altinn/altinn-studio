@@ -24,7 +24,7 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { useCreateOrgCodeListMutation } from 'app-shared/hooks/mutations/useCreateOrgCodeListMutation';
 import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
 import { toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
   backendCodeListsToLibraryCodeLists,
@@ -276,7 +276,7 @@ function ContextWithoutLibraryAccess(): ReactElement {
 
 function useUploadCodeList(orgName: string): (file: File) => void {
   const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(orgName, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+    hideDefaultError: (error: HttpError<ApiError>) => isErrorUnknown(error),
   });
   const { t } = useTranslation();
 
@@ -286,7 +286,7 @@ function useUploadCodeList(orgName: string): (file: File) => void {
         onSuccess: () => {
           toast.success(t('dashboard.org_library.code_list_upload_success'));
         },
-        onError: (error: AxiosError<ApiError>) => {
+        onError: (error: HttpError<ApiError>) => {
           if (isErrorUnknown(error)) {
             toast.error(t('dashboard.org_library.code_list_upload_generic_error'));
           }

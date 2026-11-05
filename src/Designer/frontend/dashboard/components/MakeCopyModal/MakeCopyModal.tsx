@@ -3,7 +3,7 @@ import { StudioDialog, StudioHeading } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../../hooks/queries';
@@ -29,7 +29,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
       isPending: isCopyAppPending,
       isSuccess: isCopyAppSuccess,
     } = useCopyAppMutation({
-      hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+      hideDefaultError: (error: HttpError) => error?.response?.status === ServerCodes.Conflict,
     });
 
     const [formError, setFormError] = useState<CreateServiceFormError>({ org: '', repoName: '' });
@@ -54,7 +54,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
           onSuccess: () => {
             navigateToEditorOverview(newOrg, newRepoName);
           },
-          onError: (error: AxiosError): void => {
+          onError: (error: HttpError): void => {
             const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
             if (appNameAlreadyExists) {
               setFormError((prevErrors): CreateServiceFormError => ({
