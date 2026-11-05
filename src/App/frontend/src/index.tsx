@@ -1,3 +1,4 @@
+// Bundles the core-js polyfills into the app, so it works in older browsers
 import 'core-js';
 
 import React from 'react';
@@ -25,8 +26,6 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
-
-// Bundles the core-js polyfills into the app, so it works in older browsers
 
 const isRedirectingFromHashRoute = executeHashRouterRedirect();
 
