@@ -112,7 +112,10 @@ spec:
           include:
             match_type: regexp
             metric_names:
-              - '^(altinn|http|signalr\.server)([._].*)?$'
+              # gen_ai: the assistant's model calls. 17 series for each model and error type in the
+              # duration, and for each model and token type in the usage: about 250 per process with
+              # the three models it uses.
+              - '^(altinn|gen_ai|http|signalr\.server)([._].*)?$'
               # The router's and the gateway's own metrics (service.telemetry): each exporter's
               # queue, in its sizer's unit, and the items it sent, failed to send after its
               # retries, or could not queue; and how many gateways the router's ring holds. A

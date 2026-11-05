@@ -23,12 +23,14 @@ from api.routes import (
     traces_router,
 )
 from shared.config import get_config
+from shared.telemetry import instrument_app, setup_telemetry
 
 # Get configuration
 config = get_config()
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, config.LOG_LEVEL), format=config.LOG_FORMAT)
+setup_telemetry()
 
 
 class SuppressLangfuseTimeouts(logging.Filter):
@@ -86,6 +88,8 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+instrument_app(app)
 
 # Add CORS middleware
 app.add_middleware(

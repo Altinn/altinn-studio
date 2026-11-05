@@ -66,7 +66,7 @@ jobs:
       - name: docker build
         # Build from the repo root in order to bundle the v9 layout schemas
         working-directory: ${{ github.workspace }}
-        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f src/AI/assistant/dockerfile .
+        run: docker build --build-arg SERVICE_VERSION=${{ steps.vars.outputs.short-sha }} -t ${{ steps.vars.outputs.image-repo }} -f src/AI/assistant/dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}

@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from shared.telemetry import record_tool_call
 from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
@@ -570,6 +571,7 @@ async def _run_one(
             max_result_chars=max_result_chars,
             on_event=on_event,
         )
+        record_tool_call(tool_use.name, is_error=block.is_error)
 
         with contextlib.suppress(Exception):
             span.update(

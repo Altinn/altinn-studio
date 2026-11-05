@@ -307,8 +307,8 @@ section.
 - The router drops logs below WARN.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
-  namespaces that our services emit, such as `http.*`, `signalr.server.*` and the language runtimes' `dotnet.*` and
-  `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
+  namespaces that our services emit, such as `http.*`, `signalr.server.*`, the assistant's `gen_ai.*` and the
+  language runtimes' `dotnet.*` and `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
   process.
 - The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.

@@ -16,7 +16,8 @@ from shared.config import get_config
 from shared.models import AgentAttachment, AttachmentUpload
 from shared.models.attachments import cleanup_session_attachments, get_session_dir
 from shared.models.experiment import ExperimentContext
-from shared.utils.logging_utils import get_logger
+from shared.telemetry import annotate_agent_start
+from shared.utils.logging_utils import describe_error, get_logger
 from shared.utils.path_utils import repo_owner_and_app_name
 
 router = APIRouter()
@@ -86,6 +87,7 @@ async def start_agent(
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
 
         repo_owner, app_name = repo_owner_and_app_name(req.repo_url)
+        annotate_agent_start(repo_owner=repo_owner, developer=developer, app=app_name, conversation_id=session_id)
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
@@ -115,7 +117,7 @@ async def start_agent(
                     saved_attachments.append(upload.to_agent_attachment(attachment_dir))
                 log.info(f"Stored {len(saved_attachments)} attachments for session {req.session_id}")
             except Exception as e:
-                log.error(f"Failed to process attachments for session {req.session_id}: {e}")
+                log.error(f"Failed to process attachments for session {req.session_id}: {describe_error(e)}")
                 raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
         # Unified path: chat vs workflow is a permission on the same agentic
@@ -177,7 +179,7 @@ async def start_agent(
     except HTTPException:
         raise
     except Exception as e:
-        log.error(f"Failed to start agent workflow: {e}")
+        log.error(f"Failed to start agent workflow: {describe_error(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

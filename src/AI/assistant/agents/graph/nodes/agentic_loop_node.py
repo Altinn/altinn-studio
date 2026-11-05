@@ -46,6 +46,7 @@ from agents.core.tools.commit_session_branch_tool import unverified_changed_file
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.llm.recent_turns import truncate_to_history_limit
+from shared.telemetry import record_loop_result
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -374,11 +375,8 @@ async def _maybe_auto_commit(
         log.exception("Auto-commit raised for session %s", state.session_id)
         return
     if outcome.is_error:
-        log.warning(
-            "Auto-commit declined for session %s: %s",
-            state.session_id,
-            outcome.content,
-        )
+        log.warning("Auto-commit declined for session %s", state.session_id)
+        log.debug("Auto-commit declined: %s", outcome.content)
         return
     log.info(
         "Auto-committed partial work for session %s (reason=%s)",
@@ -398,11 +396,8 @@ async def _verified_for_auto_commit(state: AgentState, ctx: LoopContext) -> bool
         log.exception("Auto-verify raised for session %s", state.session_id)
         return False
     if checked.is_error:
-        log.warning(
-            "Auto-commit skipped for session %s, the changes do not verify: %s",
-            state.session_id,
-            checked.content,
-        )
+        log.warning("Auto-commit skipped for session %s, the changes do not verify", state.session_id)
+        log.debug("Verification notes: %s", checked.content)
         return False
     return True
 
@@ -602,11 +597,8 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
         "sources": ctx.extras.get("sources", []),
     }
     if security_notice:
-        log.warning(
-            "Prompt injection reported by the model for session %s: %s",
-            state.session_id,
-            security_notice,
-        )
+        log.warning("Prompt injection reported by the model for session %s", state.session_id)
+        log.debug("Security notice: %s", security_notice)
         # The alert tells the user a document they uploaded carried the
         # instruction, so it must not fire when there was no document.
         if _turn_carried_attachment_content(state):
@@ -709,8 +701,10 @@ def _final_summary_text(result: LoopResult) -> str:
     if result.reason is TerminationReason.CANCELLED:
         return "Forespørselen ble avbrutt."
     if result.reason is TerminationReason.ERROR:
-        # The provider's own text names keys, endpoints and regions: log it, don't ship it.
-        log.error("Loop failed: %s", result.error or "unknown")
+        # The provider's own text names keys, endpoints and regions. It goes in neither the reply nor
+        # the records at WARNING and above, which the shared telemetry backend gets.
+        log.error("Agentic loop stopped on an error")
+        log.debug("Loop failed: %s", result.error or "unknown")
         return (
             "Noe gikk galt hos meg underveis, så jeg stoppet.  Eventuelle endringer "
             "som ble gjort er commitet til sesjons-grenen.  Prøv igjen om litt."
@@ -724,6 +718,7 @@ def _apply_result_to_state(
     ctx: LoopContext,
 ) -> None:
     state.next_action = "stop"
+    record_loop_result(result.reason.value, result.turns)
 
     state.allow_app_changes = ctx.allow_app_changes
 

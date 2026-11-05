@@ -84,7 +84,7 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         error_type = type(exc).__name__
-        log.error(f"Intake failed ({error_type}): {exc}", exc_info=True)
+        log.error(f"Intake failed ({error_type})", exc_info=True)
         hint = _intake_failure_hint(exc)
         sink.send(
             AgentEvent(

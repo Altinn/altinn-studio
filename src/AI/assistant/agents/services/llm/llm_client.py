@@ -1,6 +1,7 @@
 """LLM client for Altinity agents"""
 
 import asyncio
+import contextvars
 import json
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
@@ -13,8 +14,14 @@ from langfuse import get_client
 from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
 from shared.models import AgentAttachment
+from shared.telemetry import ModelCall, model_call
+from shared.telemetry.names import (
+    GEN_AI_PROVIDER_ANTHROPIC,
+    GEN_AI_PROVIDER_AZURE_OPENAI,
+    GEN_AI_PROVIDER_OPENAI,
+)
 from shared.utils.langfuse_utils import trace_generation
-from shared.utils.logging_utils import get_logger
+from shared.utils.logging_utils import describe_error, get_logger
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
     close_delimiter,
@@ -68,6 +75,36 @@ def _defang_attachment_value(value: Any) -> Any:
 def _defang_attachment_blocks(blocks: list[dict]) -> list[dict]:
     """Stop an attachment closing the block it sits inside."""
     return [_defang_attachment_value(block) for block in blocks]
+
+
+def _record_anthropic_response(call: ModelCall, response: Any) -> None:
+    call.response_model = getattr(response, "model", None)
+    call.finish_reason = getattr(response, "stop_reason", None)
+    usage = getattr(response, "usage", None)
+    if usage:
+        # Anthropic counts cache reads and writes apart from input_tokens.
+        cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
+        cache_creation = getattr(usage, "cache_creation_input_tokens", 0) or 0
+        call.record_usage(
+            input_tokens=(getattr(usage, "input_tokens", 0) or 0) + cache_read + cache_creation,
+            output_tokens=getattr(usage, "output_tokens", 0) or 0,
+            cache_read_input_tokens=cache_read,
+            cache_creation_input_tokens=cache_creation,
+        )
+
+
+def _record_chat_model_response(call: ModelCall, response: Any) -> None:
+    metadata = getattr(response, "response_metadata", None) or {}
+    call.response_model = metadata.get("model_name")
+    call.finish_reason = metadata.get("finish_reason")
+    usage = metadata.get("token_usage")
+    if usage:
+        details = usage.get("prompt_tokens_details") or {}
+        call.record_usage(
+            input_tokens=usage.get("prompt_tokens", 0),
+            output_tokens=usage.get("completion_tokens", 0),
+            cache_read_input_tokens=details.get("cached_tokens") or 0,
+        )
 
 
 def _build_anthropic_user_content(
@@ -214,6 +251,12 @@ class LLMClient:
 
         self.use_anthropic = True
 
+    def _provider(self) -> str:
+        """The model provider, as the GenAI semantic conventions name it."""
+        if self.use_anthropic:
+            return GEN_AI_PROVIDER_ANTHROPIC
+        return GEN_AI_PROVIDER_AZURE_OPENAI if config.AZURE_API_KEY else GEN_AI_PROVIDER_OPENAI
+
     def _require_anthropic_client(self) -> Anthropic:
         if self.anthropic_client is None:
             raise ValueError("Anthropic client not initialized")
@@ -304,7 +347,13 @@ class LLMClient:
                             max_tokens=self.max_tokens,
                         )
 
-                    response = await asyncio.wait_for(loop.run_in_executor(None, _call_anthropic), timeout=timeout)
+                    with model_call(provider=self._provider(), model=self.model) as call:
+                        # run_in_executor doesn't carry the context, which holds the current spans.
+                        response = await asyncio.wait_for(
+                            loop.run_in_executor(None, contextvars.copy_context().run, _call_anthropic),
+                            timeout=timeout,
+                        )
+                        _record_anthropic_response(call, response)
                     response_text = self._extract_anthropic_text(response)
                     usage = getattr(response, "usage", None)
                     if usage:
@@ -320,9 +369,14 @@ class LLMClient:
                         SystemMessage(content=system_prompt),
                         self._build_human_message(user_prompt, attachments),
                     ]
-                    response = await asyncio.wait_for(
-                        loop.run_in_executor(None, self.llm.invoke, messages), timeout=timeout
-                    )
+                    llm = self.llm
+                    with model_call(provider=self._provider(), model=self.model) as call:
+                        context = contextvars.copy_context()
+                        response = await asyncio.wait_for(
+                            loop.run_in_executor(None, lambda: context.run(llm.invoke, messages)),
+                            timeout=timeout,
+                        )
+                        _record_chat_model_response(call, response)
                     response_text = response.text.strip()
                     if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
                         usage = response.response_metadata["token_usage"]
@@ -355,7 +409,7 @@ class LLMClient:
                     f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request."
                 ) from e
             except Exception as e:
-                log.error(f"LLM call failed: {e}")
+                log.error(f"LLM call failed: {describe_error(e)} (role={self.role}, model={self.model})")
                 try:
                     span.update(metadata={"error": str(e)})
                 except Exception as span_e:
@@ -434,19 +488,20 @@ class LLMClient:
 
                     call_start = time.time()
                     try:
-                        response = self._require_anthropic_client().messages.create(
-                            model=self.model,
-                            system=system_message.strip() if system_message else "",
-                            messages=[{"role": "user", "content": user_content}],
-                            max_tokens=self.max_tokens,
-                        )
+                        with model_call(provider=self._provider(), model=self.model) as call:
+                            response = self._require_anthropic_client().messages.create(
+                                model=self.model,
+                                system=system_message.strip() if system_message else "",
+                                messages=[{"role": "user", "content": user_content}],
+                                max_tokens=self.max_tokens,
+                            )
+                            _record_anthropic_response(call, response)
                         call_elapsed = time.time() - call_start
                         log.info(f"✅ Anthropic API call succeeded in {call_elapsed:.1f}s")
                     except Exception as api_error:
                         call_elapsed = time.time() - call_start
                         log.error(f"❌ Anthropic API call failed after {call_elapsed:.1f}s")
                         log.error(f"   Error type: {type(api_error).__name__}")
-                        log.error(f"   Error: {api_error}")
                         if "408" in str(api_error) or "Timeout" in str(api_error):
                             log.error("   ⚠️  AZURE GATEWAY TIMEOUT DETECTED")
                             log.error("   The Azure AI Foundry gateway has a ~4 minute timeout limit")
@@ -475,7 +530,9 @@ class LLMClient:
                         self._build_human_message(user_message, attachments),
                     ]
 
-                    llm_response = self.llm.invoke(messages)
+                    with model_call(provider=self._provider(), model=self.model) as call:
+                        llm_response = self.llm.invoke(messages)
+                        _record_chat_model_response(call, llm_response)
                     response_text = llm_response.text
 
                     # Detect empty/filtered responses
@@ -596,7 +653,7 @@ async def parse_intent_with_llm(
         parsed = json.loads(cleaned_response)
         return parsed
     except json.JSONDecodeError:
-        log.warning(f"Failed to parse LLM response as JSON: {response}")
+        log.warning(f"Failed to parse LLM response as JSON (response length: {len(response)})")
         return {
             "action": "unknown",
             "component": "unknown",
@@ -638,5 +695,5 @@ def suggest_goals_with_llm(
 
     except Exception as e:
         # The old fallbacks were English examples shown to Norwegian users.
-        log.error(f"Failed to generate suggestions: {e}")
+        log.error(f"Failed to generate suggestions: {describe_error(e)}")
         return []

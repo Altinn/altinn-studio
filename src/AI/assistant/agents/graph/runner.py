@@ -15,6 +15,16 @@ from agents.services.llm import (
     parse_intent_async,
     suggest_goal_correction,
 )
+from shared.telemetry import AgentRun, run_phase, start_run
+from shared.telemetry.names import (
+    RUN_MODE_CHAT,
+    RUN_MODE_WORKFLOW,
+    RUN_OUTCOME_CANCELLED,
+    RUN_OUTCOME_COMPLETED,
+    RUN_OUTCOME_DECLINED,
+    RUN_OUTCOME_FAILED,
+    RUN_OUTCOME_REJECTED,
+)
 from shared.utils.langfuse_utils import (
     flush_langfuse,
     get_current_trace_id,
@@ -44,12 +54,13 @@ def _raise_if_cancelled(state: AgentState, event_sink: EventSink) -> None:
         raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
 
 
-def _with_cancellation(fn):
-    """Wrap an async node handler to check for cancellation before execution."""
+def _with_cancellation(phase: str, fn):
+    """Wrap an async node handler to check for cancellation before execution, and time it as a phase of the run."""
 
     async def wrapper(state: AgentState) -> AgentState:
         _check_cancelled(state)
-        return await fn(state)
+        with run_phase(phase):
+            return await fn(state)
 
     wrapper.__name__ = fn.__name__
     return wrapper
@@ -97,9 +108,9 @@ def build_graph():
     """
     g = StateGraph(AgentState)
 
-    g.add_node("intake", _with_cancellation(intake_node))
-    g.add_node("spec", _with_cancellation(spec_node))
-    g.add_node("agentic_loop", _with_cancellation(agentic_loop_node))
+    g.add_node("intake", _with_cancellation("intake", intake_node))
+    g.add_node("spec", _with_cancellation("spec", spec_node))
+    g.add_node("agentic_loop", _with_cancellation("agentic_loop", agentic_loop_node))
 
     g.set_conditional_entry_point(
         _route_entry,
@@ -238,11 +249,11 @@ async def _validate_intent(state: AgentState):
     )
 
     if parsed.action == GATE_FAILED_ACTION:
-        _log.error("Intent gate could not run for session %s: %s", state.session_id, parsed.reason)
+        _log.error("Intent gate could not run for session %s", state.session_id)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
-        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
+        _log.warning("Unsafe goal rejected for session %s (confidence %s)", state.session_id, parsed.confidence)
         suggestions = await suggest_goal_correction(
             state.user_goal, parsed.reason, conversation=state.conversation_history
         )
@@ -308,7 +319,8 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
             _mark_as_experiment_item(state, root_span)
             with propagate_attributes(user_id=state.cost_org):
                 try:
-                    decline_text = await _gate_goal(state, event_sink)
+                    with run_phase("gate"):
+                        decline_text = await _gate_goal(state, event_sink)
                     if decline_text is not None:
                         # The decline IS the workflow result — record it in the
                         # trace output so the evaluators (in particular
@@ -355,7 +367,8 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
                     root_span.update(output={"error": str(e)}, metadata={"error": str(e)})
                     raise
     else:
-        decline_text = await _gate_goal(state, event_sink)
+        with run_phase("gate"):
+            decline_text = await _gate_goal(state, event_sink)
         if decline_text is not None:
             return None
         final_state = await graph.ainvoke(state)
@@ -393,12 +406,38 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
     if event_sink is None:
         event_sink = sink
 
+    run = start_run(
+        repo_owner=state.repo_owner,
+        developer=state.developer,
+        app=state.app_name,
+        conversation_id=state.session_id,
+        mode=RUN_MODE_WORKFLOW if state.allow_app_changes else RUN_MODE_CHAT,
+        attachments=len(state.attachments),
+    )
+
     async def _run():
         try:
-            await run_once(state, event_sink)
+            with run:
+                await _run_with_outcome(run)
+        finally:
+            # Force Langfuse to export buffered spans now instead of waiting for
+            # the BatchSpanProcessor's periodic flush. Without this the trace can
+            # sit invisible in the UI until the next batch tick (or process exit).
+            flush_langfuse()
+
+    async def _run_with_outcome(run: AgentRun):
+        try:
+            final_state = await run_once(state, event_sink)
+            if final_state is None:
+                run.set_outcome(RUN_OUTCOME_DECLINED)
+            else:
+                run.set_changed_files(len(final_state.get("changed_files") or []))
+                run.set_outcome(RUN_OUTCOME_COMPLETED if final_state.get("tests_passed") else RUN_OUTCOME_FAILED)
         except WorkflowCancelled:
+            run.set_outcome(RUN_OUTCOME_CANCELLED)
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
+            run.set_outcome(RUN_OUTCOME_REJECTED)
             event_sink.send(
                 AgentEvent(
                     type="error",
@@ -414,9 +453,11 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
             )
         except Exception as e:
             if event_sink.is_cancelled(state.session_id):
+                run.set_outcome(RUN_OUTCOME_CANCELLED)
                 log.info(f"🛑 Workflow error after cancellation for session {state.session_id}: {e}")
                 return
-            log.error(f"Workflow failed with exception: {e}", exc_info=True)
+            run.set_error(type(e).__name__)
+            log.error(f"Workflow failed with exception: {type(e).__name__}", exc_info=True)
             event_sink.send(
                 AgentEvent(
                     type="error",
@@ -429,11 +470,6 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
                     },
                 )
             )
-        finally:
-            # Force Langfuse to export buffered spans now instead of waiting for
-            # the BatchSpanProcessor's periodic flush. Without this the trace can
-            # sit invisible in the UI until the next batch tick (or process exit).
-            flush_langfuse()
 
     # Create background task
     task = asyncio.create_task(_run())

@@ -10,7 +10,7 @@ from agents.prompts import get_prompt_with_langfuse, render_template
 from agents.services.llm import LLMClient
 from shared.models import AgentAttachment
 from shared.utils.langfuse_utils import trace_span
-from shared.utils.logging_utils import get_logger
+from shared.utils.logging_utils import describe_error, get_logger
 
 log = get_logger(__name__)
 
@@ -49,7 +49,7 @@ def run_spec_pipeline(
             )
         except Exception as e:
             error_str = str(e)
-            log.error(f"Spec extraction LLM call failed: {error_str}")
+            log.error(f"Spec extraction LLM call failed: {describe_error(e)}")
             span.update(output={"error": error_str})
 
             # If max_tokens was hit, retry with a shorter prompt asking for compact output
@@ -66,7 +66,7 @@ def run_spec_pipeline(
                     raw_response = client.call_sync("", compact_prompt, attachments=attachments)
                     log.info(f"Retry succeeded, response length: {len(raw_response)}")
                 except Exception as retry_err:
-                    log.error(f"Spec extraction retry also failed: {retry_err}")
+                    log.error(f"Spec extraction retry also failed: {describe_error(retry_err)}")
                     span.update(output={"error": str(retry_err), "retry_failed": True})
                     return None
             else:
@@ -90,11 +90,7 @@ def run_spec_pipeline(
                 }
             )
         else:
-            log.warning(
-                f"⚠️ Could not parse spec from LLM response "
-                f"(response length: {len(raw_response)}, "
-                f"first 500 chars: {raw_response[:500]!r})"
-            )
+            log.warning(f"⚠️ Could not parse spec from LLM response (response length: {len(raw_response)})")
             span.update(
                 output={
                     "response_length": len(raw_response),
@@ -171,7 +167,7 @@ def _try_parse_json(text: str) -> dict | None:
     except Exception as e:
         log.debug(f"json_repair fallback failed: {e}")
 
-    log.error(f"All JSON parse strategies failed for text of length {len(text)} (starts with: {text[:200]!r})")
+    log.error(f"All JSON parse strategies failed for text of length {len(text)}")
     return None
 
 
@@ -257,5 +253,5 @@ def _parse_spec_response(raw: str) -> FormSpec | None:
         return spec
 
     except Exception as e:
-        log.error(f"Failed to construct FormSpec from parsed data: {e}")
+        log.error(f"Failed to construct FormSpec from parsed data: {describe_error(e)}")
         return None
