@@ -138,7 +138,7 @@ func TestMatchFailsOnDifferentSnapshotInCI(t *testing.T) {
 	Match(r, []byte("line 1\nnew\n"), "", "")
 
 	if len(r.errors) != 1 || !strings.Contains(r.errors[0], `line 2`) ||
-		!strings.Contains(r.errors[0], `"old"`) || !strings.Contains(r.errors[0], `"new"`) {
+		!strings.Contains(r.errors[0], `"old\n"`) || !strings.Contains(r.errors[0], `"new\n"`) {
 		t.Errorf("errors = %v, want one naming line 2 with both versions", r.errors)
 	}
 	if got := readSnapshot(t, directory, "TestA.txt"); got != "line 1\nold\n" {
@@ -192,6 +192,25 @@ func TestJSONRejectsInvalidJSON(t *testing.T) {
 		JSON(r, []byte(input))
 		if len(r.fatals) != 1 {
 			t.Errorf("JSON(%q) fatals = %v, want one", input, r.fatals)
+		}
+	}
+}
+
+func TestFirstDifference(t *testing.T) {
+	for _, test := range []struct {
+		snapshot, actual, want string
+	}{
+		{"same", "same", ""},
+		{"line 1\nold\n", "line 1\nnew\n", "line 2"},
+		{"same", "same\n", "line 1"},
+		{strings.Repeat("x", 200) + "old", strings.Repeat("x", 200) + "new", "line 1, byte 201"},
+	} {
+		got := firstDifference([]byte(test.snapshot), []byte(test.actual))
+		if test.want == "" && got != "" || test.want != "" && !strings.Contains(got, test.want) {
+			t.Errorf("firstDifference = %q, want %q", got, test.want)
+		}
+		if strings.Contains(test.snapshot, "old") && (!strings.Contains(got, "old") || !strings.Contains(got, "new")) {
+			t.Errorf("firstDifference = %q, want both changed values", got)
 		}
 	}
 }

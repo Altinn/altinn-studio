@@ -21,8 +21,8 @@ const (
 	// directory, relative to the test's working directory, holds the snapshots.
 	directory        = "_snapshots"
 	defaultExtension = "txt"
-	// maxQuotedLine keeps a failure readable when a snapshot has long lines, as a PDF does.
-	maxQuotedLine = 200
+	// maxDifferenceBytes keeps a failure readable when a snapshot has long lines, as a PDF does.
+	maxDifferenceBytes = 200
 )
 
 // TB is the part of testing.TB the package uses, which Ginkgo's GinkgoT also provides.
@@ -154,30 +154,19 @@ func isCI() bool {
 }
 
 func firstDifference(snapshot, actual []byte) string {
-	snapshotLines := strings.Split(string(snapshot), "\n")
-	actualLines := strings.Split(string(actual), "\n")
-	for i := range max(len(snapshotLines), len(actualLines)) {
-		snapshotLine := lineAt(snapshotLines, i)
-		actualLine := lineAt(actualLines, i)
-		if snapshotLine != actualLine {
-			return fmt.Sprintf(
-				"First difference, at line %d:\n  snapshot: %s\n  actual:   %s",
-				i+1,
-				snapshotLine,
-				actualLine,
-			)
-		}
+	index := 0
+	for index < min(len(snapshot), len(actual)) && snapshot[index] == actual[index] {
+		index++
 	}
-	return ""
-}
-
-func lineAt(lines []string, index int) string {
-	if index >= len(lines) {
-		return "<end of file>"
+	if index == len(snapshot) && index == len(actual) {
+		return ""
 	}
-	line := lines[index]
-	if len(line) > maxQuotedLine {
-		return fmt.Sprintf("%q...", line[:maxQuotedLine])
-	}
-	return fmt.Sprintf("%q", line)
+	return fmt.Sprintf(
+		"First difference, at line %d, byte %d (up to %d bytes from the difference):\n  snapshot: %q\n  actual:   %q",
+		bytes.Count(snapshot[:index], []byte{'\n'})+1,
+		index+1,
+		maxDifferenceBytes,
+		snapshot[index:min(index+maxDifferenceBytes, len(snapshot))],
+		actual[index:min(index+maxDifferenceBytes, len(actual))],
+	)
 }
