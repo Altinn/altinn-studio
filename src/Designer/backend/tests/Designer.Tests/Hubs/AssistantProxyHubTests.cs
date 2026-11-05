@@ -296,37 +296,14 @@ public class AssistantProxyHubTests
         Assert.Equal($"http://test-repos/{TestOrg}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
-    [Fact]
-    public async Task StartWorkflow_ForwardsResolvedCostOrg_IgnoringCostOrgFromClient()
+    [Theory]
+    [InlineData(TestDeveloper)]
+    // In a developer's own repository, org is the username, which can contain a dot.
+    [InlineData("test.user")]
+    public async Task StartWorkflow_ForwardsOwnRepositoryUrlAndResolvedCostOrg_IgnoringCostOrgFromClient(
+        string developer
+    )
     {
-        var threadId = Guid.NewGuid();
-        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
-        SetupCostOrg(TestDeveloper, resolvedCostOrg: "nfk");
-        SetupApiKey();
-        var hub = CreateHub();
-        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
-
-        var request = JsonSerializer.SerializeToElement(
-            new
-            {
-                session_id = threadId.ToString(),
-                org = TestDeveloper,
-                app = TestApp,
-                cost_org = "other-org",
-            }
-        );
-
-        await hub.StartWorkflow(request);
-
-        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
-        Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
-        Assert.Equal($"http://test-repos/{TestDeveloper}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
-    }
-
-    [Fact]
-    public async Task StartWorkflow_ForwardsRepoUrl_WhenOwnRepositoryUsernameContainsDot()
-    {
-        const string developer = "test.user";
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, developer, TestApp);
         SetupCostOrg(developer, resolvedCostOrg: "nfk");
@@ -340,12 +317,14 @@ public class AssistantProxyHubTests
                 session_id = threadId.ToString(),
                 org = developer,
                 app = TestApp,
+                cost_org = "other-org",
             }
         );
 
         await hub.StartWorkflow(request);
 
         JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
         Assert.Equal($"http://test-repos/{developer}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
