@@ -1,0 +1,4 @@
+[
+ {"type":"DeleteSecretContent"},
+ {"type":"RemoveFinalizer"}
+]
