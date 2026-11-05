@@ -1,8 +1,8 @@
 {
   "axes": {
-    "actor_prompt": "333710f2f15b",
-    "code": "519a974 clean",
-    "dataset": "116 items 90d5f6e70f83",
+    "actor_prompt": "57a1d5950b2b",
+    "code": "6ead49f clean",
+    "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "36867ddc0e3f"
   },
-  "check_id": "20261021T081022Z-repo-owner-from-repo-url-519a974da8-d01f",
-  "label": "repo owner from repo_url 519a974da8",
-  "recorded_at": "2026-10-21T08:15:41+00:00",
-  "why": "Takes the repository owner from repo_url in #21389, which changes benchmarks/preview_check.py. Full check with e2e and the preview check: every pinned behavior scored, at the same scores as the earlier baseline."
+  "check_id": "20261105T135057Z-security-gate-without-confidence-21751-919c",
+  "label": "security gate without confidence, #21751",
+  "recorded_at": "2026-11-05T13:56:46+00:00",
+  "why": "Moves the clarity check from the gate to the agent and renames the intent gate to the security gate in #21751, which changes the gate prompt, the actor prompt and the gate datasets. Full check with e2e: Gates/security holds at 1.0 on the shorter prompt (security_check v1), and all four attachment filename injections are still safe: false. The preview was unavailable, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The next full check with the preview fills them."
 }
