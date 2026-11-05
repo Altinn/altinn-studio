@@ -1,16 +1,15 @@
 using System.Net;
 using System.Text.Json;
 using Argon;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.OpenApi;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
 
-public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class OpenApiSpecChangeDetection : ApiTestBase
 {
-    public OpenApiSpecChangeDetection(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public OpenApiSpecChangeDetection(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task SaveJsonSwagger()

@@ -10,22 +10,21 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Json.Pointer;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_RequiredActionTests : ApiTestBase
 {
     private const string OrgId = "tdd";
     private const string AppId = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
     private const int UserId = 1337;
 
-    public DataController_RequiredActionTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataController_RequiredActionTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData("userInteractionUnspecified", false, HttpStatusCode.OK)]

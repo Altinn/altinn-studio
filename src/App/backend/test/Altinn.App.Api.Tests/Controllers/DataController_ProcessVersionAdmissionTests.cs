@@ -12,14 +12,13 @@ using Json.Patch;
 using Json.Pointer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataControllerProcessVersionAdmissionTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataControllerProcessVersionAdmissionTests : ApiTestBase
 {
     private const string Org = "ttd";
     private const string App = "process-version-admission";
@@ -28,11 +27,8 @@ public class DataControllerProcessVersionAdmissionTests : ApiTestBase, IClassFix
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
     private static readonly Guid _dataGuid = new("ed4c42a4-a6a0-4aec-b8e9-9f5d34c445ca");
 
-    public DataControllerProcessVersionAdmissionTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper)
+    public DataControllerProcessVersionAdmissionTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
     }
