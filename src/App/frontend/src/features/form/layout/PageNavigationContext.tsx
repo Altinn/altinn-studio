@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
-import { useIsHiddenPage } from 'src/utils/layout/hidden';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
+import { getReturnRoute } from 'src/features/navigation/returnRoute';
+import { useCurrentView, usePageOrder } from 'src/hooks/useNavigatePage';
 
 type ReturnToView = {
   pageId: string;
@@ -61,27 +65,59 @@ export const pageNavigationHooks = {
   },
 };
 
-export function ClearHiddenSummaryReturnState() {
+export function ClearInvalidReturnState() {
   const returnToView = FormStore.pageNavigation.useReturnToView();
-  return returnToView ? (
-    <ClearReturnStateForHiddenPage
-      key={returnToView.pageId}
-      pageId={returnToView.pageId}
-    />
-  ) : null;
-}
-
-function ClearReturnStateForHiddenPage({ pageId }: { pageId: string }) {
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
-  const hidden = useIsHiddenPage(pageId, { respectPageOrder: true, respectDevTools: false });
+  const currentPage = useCurrentView();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const backToPage = searchParams.get(SearchParams.BackToPage);
+
+  return (
+    <>
+      {returnToView && (
+        <ClearReturnStateForChangedRoute
+          key={`summary:${currentPage}:${returnToView.pageId}`}
+          pageId={returnToView.pageId}
+          onReset={() => {
+            setReturnToView?.(undefined);
+            setSummaryNodeOfOrigin?.(undefined);
+          }}
+        />
+      )}
+      {backToPage && (
+        <ClearReturnStateForChangedRoute
+          key={`link:${currentPage}:${backToPage}`}
+          pageId={backToPage}
+          onReset={() =>
+            setSearchParams((previous) => {
+              const next = new URLSearchParams(previous);
+              next.delete(SearchParams.BackToPage);
+              return next;
+            }, replaceAndPreventResetOptions)
+          }
+        />
+      )}
+    </>
+  );
+}
+
+function ClearReturnStateForChangedRoute({ pageId, onReset }: { pageId: string; onReset: () => void }) {
+  const order = usePageOrder();
+  const currentPage = useCurrentView();
+  const route = useMemo(() => getReturnRoute(order, currentPage, pageId), [order, currentPage, pageId]);
+  // A return shortcut belongs to one edit detour; undoing an answer must not restore it.
+  const originalRoute = useRef(route);
 
   useEffect(() => {
-    if (hidden) {
-      setReturnToView?.(undefined);
-      setSummaryNodeOfOrigin?.(undefined);
+    if (
+      !route ||
+      route.length !== originalRoute.current?.length ||
+      route.some((page, index) => page !== originalRoute.current?.[index])
+    ) {
+      onReset();
     }
-  }, [hidden, setReturnToView, setSummaryNodeOfOrigin]);
+  }, [route, onReset]);
 
   return null;
 }
