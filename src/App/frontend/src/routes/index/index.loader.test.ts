@@ -52,7 +52,7 @@ describe('index clientLoader', () => {
 
     await clientLoader(createLoaderArgs());
 
-    expect(mutations.create.mock).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith('/instance-selection');
   });
   it('does not create an instance when the service is closed', async () => {
@@ -66,7 +66,7 @@ describe('index clientLoader', () => {
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
-    expect(mutations.create.mock).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
   });
 
   it('reports a closed service when the backend rejects creation with 410', async () => {
@@ -75,7 +75,7 @@ describe('index clientLoader', () => {
       onEntry: { show: 'new-instance' },
     });
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockRejectedValue(
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(
       Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
     );
 

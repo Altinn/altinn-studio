@@ -33,7 +33,7 @@ const render = async (instances = mockActiveInstances) => {
   const renderResult = await renderWithInstanceAndLayout({
     renderer: () => <InstanceSelectionWrapper />,
     queries: { getActiveInstances: async () => instances || [] },
-    mutations: { create: instanceCreateMock },
+    mutations: { createInstance: instanceCreateMock },
   });
   return {
     ...renderResult,
@@ -93,7 +93,7 @@ describe('InstanceSelection', () => {
       renderer: () => <InstanceSelectionWrapper />,
       queries: { getActiveInstances: async () => mockActiveInstances },
       mutations: {
-        create: async () => {
+        createInstance: async () => {
           throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
         },
       },

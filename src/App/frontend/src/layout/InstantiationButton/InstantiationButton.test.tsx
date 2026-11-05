@@ -13,10 +13,10 @@ import { statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 
 const render = async (
-  createWithPrefill: InstanceApi['createWithPrefill'],
+  createWithPrefill: AppMutations['createInstanceWithPrefill'],
   queryParameters?: IQueryParameters,
   validity: { validFrom?: string; validTo?: string } = {},
 ) => {
@@ -64,7 +64,7 @@ const render = async (
           obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock({ initialData: { name: 'Ada' } });
         }),
     },
-    mutations: { createWithPrefill },
+    mutations: { createInstanceWithPrefill: createWithPrefill },
   });
 };
 

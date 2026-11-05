@@ -65,16 +65,16 @@ describe('instance-selection clientLoader', () => {
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toBeNull();
-    expect(mutations.create.mock).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
   });
 
   it('should create instance and redirect when no active instances exist', async () => {
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockResolvedValue(mockInstance);
+    vi.mocked(mutations.createInstance.mock).mockResolvedValue(mockInstance);
 
     await clientLoader(createLoaderArgs());
 
-    expect(mutations.create.mock).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
+    expect(mutations.createInstance.mock).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('some-instance-guid'));
   });
 
@@ -90,7 +90,7 @@ describe('instance-selection clientLoader', () => {
     });
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockRejectedValue(error);
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
 
     const result = (await clientLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
 
@@ -108,7 +108,7 @@ describe('instance-selection clientLoader', () => {
     });
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockRejectedValue(error);
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
 
     const result = await clientLoader(createLoaderArgs());
 
@@ -120,7 +120,7 @@ describe('instance-selection clientLoader', () => {
     const error = new Error('Server error');
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockRejectedValue(error);
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
 
     const result = await clientLoader(createLoaderArgs());
 
@@ -154,7 +154,7 @@ describe('instance-selection clientLoader', () => {
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
-    expect(mutations.create.mock).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
   });
 
   it('reports a closed service when the backend rejects creation with 410', async () => {
@@ -163,7 +163,7 @@ describe('instance-selection clientLoader', () => {
       onEntry: { show: 'new-instance' },
     });
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.create.mock).mockRejectedValue(
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(
       Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
     );
 

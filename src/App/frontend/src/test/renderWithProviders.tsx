@@ -182,10 +182,13 @@ function createQueryMocks({ queries, mutations }: QueryOverrides = {}) {
     doSubformEntryDelete: queryPromiseMock('doSubformEntryDelete', mutations?.doSubformEntryDelete),
     doPatchMultipleFormData: queryPromiseMock('doPatchMultipleFormData', mutations?.doPatchMultipleFormData),
     doPostStatelessFormData: queryPromiseMock('doPostStatelessFormData', mutations?.doPostStatelessFormData),
-    create: queryPromiseMock('create', mutations?.create ?? (async () => getInstanceWithProcessMock())),
-    createWithPrefill: queryPromiseMock(
-      'createWithPrefill',
-      mutations?.createWithPrefill ?? (async () => getInstanceWithProcessMock()),
+    createInstance: queryPromiseMock(
+      'createInstance',
+      mutations?.createInstance ?? (async () => getInstanceWithProcessMock()),
+    ),
+    createInstanceWithPrefill: queryPromiseMock(
+      'createInstanceWithPrefill',
+      mutations?.createInstanceWithPrefill ?? (async () => getInstanceWithProcessMock()),
     ),
     setSelectedParty: queryPromiseMock(
       'setSelectedParty',
@@ -204,8 +207,8 @@ function createQueryMocks({ queries, mutations }: QueryOverrides = {}) {
     doSubformEntryDelete: mutationMocks.doSubformEntryDelete.mock,
     doPatchMultipleFormData: mutationMocks.doPatchMultipleFormData.mock,
     doPostStatelessFormData: mutationMocks.doPostStatelessFormData.mock,
-    create: mutationMocks.create.mock,
-    createWithPrefill: mutationMocks.createWithPrefill.mock,
+    createInstance: mutationMocks.createInstance.mock,
+    createInstanceWithPrefill: mutationMocks.createInstanceWithPrefill.mock,
     setSelectedParty: mutationMocks.setSelectedParty.mock,
   };
   return {
