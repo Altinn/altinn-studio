@@ -23,7 +23,6 @@ const environment: Record<string, string | null | undefined> = {
 const createGiteaAccessToken = async (): Promise<void> => {
   const result = await giteaApi({
     path: `/api/v1/users/${process.env.GITEA_CYPRESS_USER}/tokens`,
-    hostname: 'http://studio.localhost',
     method: 'POST',
     user: process.env.GITEA_CYPRESS_USER,
     pass: process.env.GITEA_CYPRESS_PASS,
