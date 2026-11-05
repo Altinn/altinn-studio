@@ -68,6 +68,10 @@ public class JsonPatchOperationTests
     [InlineData("""[{"op":"remove"}]""", "`remove` operation requires `path`")]
     [InlineData("""[{"path":"/a","value":1}]""", "A JSON Patch operation requires `op`")]
     [InlineData("""[{"op":"bogus","path":"/a","value":1}]""", "`bogus` is not a JSON Patch operation")]
+    // RFC 6902 names the members and the operations in lower case, and JSON member names are case-sensitive. The
+    // converter does not honor PropertyNameCaseInsensitive: JsonPatch.Net rejected both of these as well.
+    [InlineData("""[{"Op":"add","Path":"/a","Value":1}]""", "A JSON Patch operation requires `op`")]
+    [InlineData("""[{"op":"Add","path":"/a","value":1}]""", "`Add` is not a JSON Patch operation")]
     [InlineData(
         """[{"op":"move","from":"/b","path":"/a"}]""",
         "`move` operations are not supported; use `add` and `remove` instead"
