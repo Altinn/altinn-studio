@@ -471,6 +471,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       createMessage(threadId, userMessage);
       try {
+        // The hub rejects commands for sessions not registered on this connection.
+        await registerSession(org, app, threadId);
         const result = await startAgentWorkflow(
           threadId,
           userMessage.content,
@@ -495,7 +497,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         });
       }
     },
-    [createMessage, startAgentWorkflow, rejectionTexts],
+    [createMessage, registerSession, org, app, startAgentWorkflow, rejectionTexts],
   );
 
   const onSubmitMessage = useCallback(
@@ -513,26 +515,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      try {
-        await registerSession(org, app, threadId);
-      } catch (error) {
-        console.error('Failed to register session for thread:', error);
-        setWorkflowStatus(threadId, { isActive: false });
-        return;
-      }
-
       await runWorkflowForSession(threadId, message);
     },
-    [
-      selectedThreadId,
-      createThread,
-      registerSession,
-      org,
-      app,
-      runWorkflowForSession,
-      selectThread,
-      setWorkflowStatus,
-    ],
+    [selectedThreadId, createThread, runWorkflowForSession, selectThread],
   );
 
   const restoreCancelledMessage = useCallback(

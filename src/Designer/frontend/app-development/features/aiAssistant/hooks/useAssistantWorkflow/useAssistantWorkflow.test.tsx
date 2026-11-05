@@ -846,6 +846,55 @@ describe('useAssistantWorkflow', () => {
     );
   });
 
+  it('keeps the message and shows the generic failure text when session registration fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const startWorkflow = vi.fn();
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow,
+      cancelWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
+      registerSession: vi.fn().mockRejectedValue(new Error('hub unavailable')),
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    const message: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(message);
+    });
+
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(threads.createMessage).toHaveBeenNthCalledWith(
+      1,
+      'thread-a',
+      expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
+    );
+    expect(threads.createMessage).toHaveBeenNthCalledWith(
+      2,
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content:
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+      }),
+    );
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).not.toBe(true);
+    consoleErrorSpy.mockRestore();
+  });
+
   it('stores a permission request on the active thread status and clears it when the user responds', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
     const respondToPermission = vi.fn().mockResolvedValue(undefined);
