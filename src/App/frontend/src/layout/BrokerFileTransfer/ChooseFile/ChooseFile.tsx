@@ -18,8 +18,6 @@ import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import type { InterruptedState } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
 
-// Lets the user choose a file and send it, or continue or discard an interrupted upload
-
 type ChooseFileProps = {
   baseComponentId: string;
   setup: ReadySetup;
@@ -30,6 +28,7 @@ type ChooseFileProps = {
   onDiscard: () => void;
 };
 
+/** Lets the user choose a file and send it, or continue or discard an interrupted upload */
 export function ChooseFile({
   baseComponentId,
   setup,

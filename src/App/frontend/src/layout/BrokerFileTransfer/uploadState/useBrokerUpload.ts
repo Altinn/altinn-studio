@@ -21,10 +21,9 @@ import type { ResumableTransfer } from 'src/layout/BrokerFileTransfer/brokerClie
 import type { UploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 
-// Starts, continues and follows the upload, and records the transfer in the form
-
 export type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ kind: 'resumable' } & ResumableTransfer);
 
+/** Starts, continues and follows the upload, and records the transfer in the form */
 export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
   const { baseUrl, instanceId, resourceId, sender, recipients, checksum, propertyList, disableVirusScan } = setup;
   const uploadsKey = useUploadsKey(baseComponentId);

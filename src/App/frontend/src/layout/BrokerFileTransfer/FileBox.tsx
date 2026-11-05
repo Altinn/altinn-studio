@@ -5,14 +5,13 @@ import { FileIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/layout/BrokerFileTransfer/FileBox.module.css';
 
-// The box that shows one file: icon, name, details and room for a button or tag
-
 type FileBoxProps = {
   name: ReactNode;
   details: ReactNode;
   children?: ReactNode;
 };
 
+/** The box that shows one file: icon, name, details and room for a button or tag */
 export function FileBox({ name, details, children }: FileBoxProps) {
   return (
     <div className={classes.fileBox}>

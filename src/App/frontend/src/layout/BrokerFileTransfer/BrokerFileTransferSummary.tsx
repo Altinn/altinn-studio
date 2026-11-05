@@ -21,8 +21,7 @@ import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/ho
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-// Shows the component in a summary: the sent file, a chosen file not yet sent, or nothing
-
+/** Shows the component in a summary: the sent file, a chosen file not yet sent, or nothing */
 export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const errors = validationsOfSeverity(useUnifiedValidationsForNode(targetBaseComponentId), 'error');

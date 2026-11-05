@@ -17,8 +17,6 @@ import type { UploadProgress } from 'src/layout/BrokerFileTransfer/brokerClient/
 import type { ActiveUpload } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-// Shows the running upload: progress, speed and time left, with pause, continue and cancel
-
 type UploadingFileProps = {
   active: ActiveUpload;
   progress: UploadProgress | null;
@@ -27,6 +25,7 @@ type UploadingFileProps = {
   onCancel: () => void;
 };
 
+/** Shows the running upload: progress, speed and time left, with pause, continue and cancel */
 export function UploadingFile({ active, progress, onPause, onResume, onCancel }: UploadingFileProps) {
   const language = useCurrentLanguage();
   const { langAsString } = useLanguage();

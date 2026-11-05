@@ -21,8 +21,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
-// The drop zone for choosing a file, with the allowed file types and size limit
-
 // The shared Dropzone counts a MB as 1,048,576 bytes
 const DROPZONE_BYTES_IN_MB = 1048576;
 
@@ -33,6 +31,7 @@ type FileDropzoneProps = {
   onDrop: (accepted: File[], rejected: FileRejection[]) => void;
 };
 
+/** The drop zone for choosing a file, with the allowed file types and size limit */
 export function FileDropzone({ baseComponentId, maxFileSize, hasError, onDrop }: FileDropzoneProps) {
   const config = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
   const componentId = useIndexedId(baseComponentId);

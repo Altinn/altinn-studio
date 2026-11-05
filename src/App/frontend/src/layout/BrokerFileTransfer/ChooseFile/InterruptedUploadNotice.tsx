@@ -4,14 +4,13 @@ import { Alert, Paragraph } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 
-// Tells the user an earlier upload was interrupted, and how far it got
-
 type InterruptedUploadNoticeProps = {
   fileName: string;
   uploaded: number;
   size: number;
 };
 
+/** Tells the user an earlier upload was interrupted, and how far it got */
 export function InterruptedUploadNotice({ fileName, uploaded, size }: InterruptedUploadNoticeProps) {
   return (
     <Alert data-color='info'>

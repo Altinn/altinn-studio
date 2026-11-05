@@ -11,13 +11,12 @@ import { fileProblem } from 'src/layout/BrokerFileTransfer/messages';
 import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { useFilePick } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 
-// Stands in for ChooseFile where the app can't reach Broker, such as in Studio's preview: it can't send
-
 type ChooseFileWithoutBrokerProps = {
   baseComponentId: string;
   maxFileSize: number | null;
 };
 
+/** Stands in for ChooseFile where the app can't reach Broker, such as in Studio's preview: it can't send */
 export function ChooseFileWithoutBroker({ baseComponentId, maxFileSize }: ChooseFileWithoutBrokerProps) {
   const language = useCurrentLanguage();
   const allowedFileEndings = useAllowedFileEndings(baseComponentId);

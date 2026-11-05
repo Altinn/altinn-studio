@@ -10,8 +10,6 @@ import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 import { getBrokerApiBaseUrl } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 
-// Shows the sent file with its file transfer ID, and its size and checksum when Broker can be reached
-
 export type SentFileState = 'sent' | 'checking' | 'notFullySent';
 
 const TAGS = {
@@ -26,6 +24,7 @@ type SentFileProps = {
   state: SentFileState;
 };
 
+/** Shows the sent file with its file transfer ID, and its size and checksum when Broker can be reached */
 export function SentFile({ fileTransferId, fileName, state }: SentFileProps) {
   const language = useCurrentLanguage();
   const overview = useQuery(brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), fileTransferId)).data;

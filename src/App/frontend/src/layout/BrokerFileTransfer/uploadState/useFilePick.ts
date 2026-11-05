@@ -10,8 +10,6 @@ import {
   useUploadsKey,
 } from 'src/layout/BrokerFileTransfer/uploadState/uploadStore';
 
-// Choosing and removing the file, kept in the upload store until it's sent
-
 function useCurrentPick(baseComponentId: string) {
   const key = useUploadsKey(baseComponentId);
   const getPick = useCallback(() => getFilePick(key), [key]);
@@ -22,6 +20,7 @@ export function useChosenFile(baseComponentId: string): File | null {
   return useCurrentPick(baseComponentId).current.file;
 }
 
+/** Choosing and removing the file, kept in the upload store until it's sent */
 export function useFilePick(baseComponentId: string, allowedFileEndings: string[] | null) {
   const { key, current } = useCurrentPick(baseComponentId);
 

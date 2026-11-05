@@ -23,8 +23,6 @@ import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/ho
 import { useEvalExpression, useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-// Works out whether the component can send, and with which Broker settings and recipients
-
 export type ReadySetup = {
   baseUrl: string;
   instanceId: string;
@@ -58,6 +56,7 @@ export function getBrokerApiBaseUrl(): string | undefined {
   return GlobalData.platformFrontendSettings.brokerApiBaseUrl || undefined;
 }
 
+/** Works out whether the component can send, and with which Broker settings and recipients */
 export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const config = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
   const { resourceId, disableVirusScan = false, maxFileTransferSizeInMB } = config;

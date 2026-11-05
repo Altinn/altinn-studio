@@ -3,8 +3,7 @@ import { CompCategory } from '@app/layout-contract';
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 
-// The component's settings and data model bindings, which its schema and types are generated from
-
+/** The component's settings and data model bindings, which its schema and types are generated from */
 export const Config = new CG.component({
   category: CompCategory.Form,
   availability: 'configurable',

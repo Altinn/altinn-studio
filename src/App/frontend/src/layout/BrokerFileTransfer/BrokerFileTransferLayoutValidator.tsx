@@ -5,8 +5,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { configProblems } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
-// Reports configuration mistakes to the app developer
-
+/** Reports configuration mistakes to the app developer */
 export function BrokerFileTransferLayoutValidator({
   externalItem,
 }: ComponentLayoutValidationProps<'BrokerFileTransfer'>) {

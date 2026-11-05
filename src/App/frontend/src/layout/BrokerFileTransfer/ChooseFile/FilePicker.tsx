@@ -8,8 +8,6 @@ import { ChosenFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChosenFile'
 import { FileDropzone } from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-// The drop zone, or the chosen file once there is one, with any problem with the file below
-
 type FilePickerProps = {
   baseComponentId: string;
   maxFileSize: number | null;
@@ -19,6 +17,7 @@ type FilePickerProps = {
   onRemove: () => void;
 };
 
+/** The drop zone, or the chosen file once there is one, with any problem with the file below */
 export function FilePicker({ baseComponentId, maxFileSize, file, problem, onPick, onRemove }: FilePickerProps) {
   return (
     <>

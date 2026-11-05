@@ -8,13 +8,12 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 
-// Shows the chosen file with its size and a button to remove it
-
 type ChosenFileProps = {
   file: File;
   onRemove: () => void;
 };
 
+/** Shows the chosen file with its size and a button to remove it */
 export function ChosenFile({ file, onRemove }: ChosenFileProps) {
   const language = useCurrentLanguage();
   return (
