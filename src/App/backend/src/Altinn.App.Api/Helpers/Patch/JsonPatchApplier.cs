@@ -75,3 +75,25 @@ internal static class JsonPatchApplier
             _ => throw new InvalidOperationException($"Unknown operation type {operation.Op}"),
         };
 }
+
+/// <summary>
+/// Every operation applied. <see cref="Document"/> is the patched copy.
+/// </summary>
+internal sealed record JsonPatchApplied(JsonNode? Document);
+
+/// <summary>
+/// An operation failed, and no later operation was applied.
+/// </summary>
+/// <param name="OperationIndex">Index of the failed operation in the patch.</param>
+/// <param name="Operation">The failed operation.</param>
+/// <param name="IsTestFailure">
+/// The operation was a <c>test</c> of an existing location with another value, so the document did not
+/// match what the patch expected. <see langword="false"/> for every other failure.
+/// </param>
+/// <param name="Message">Describes the failure for the caller of the API.</param>
+internal sealed record JsonPatchFailed(
+    int OperationIndex,
+    JsonPatchOperation Operation,
+    bool IsTestFailure,
+    string Message
+);

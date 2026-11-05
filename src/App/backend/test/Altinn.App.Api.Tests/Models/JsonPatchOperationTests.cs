@@ -86,6 +86,15 @@ public class JsonPatchOperationTests
     )]
     [InlineData("""[{"op":1,"path":"/a"}]""", "`op` of a JSON Patch operation must be a string")]
     [InlineData("""["add"]""", "A JSON Patch operation must be an object")]
+    [InlineData("""[null]""", "A JSON Patch operation must be an object")]
+    [InlineData(
+        """[{"op":"test","path":"/o","value":{"x":null,"x":1}}]""",
+        "`value` of a JSON Patch operation has duplicate member names*"
+    )]
+    [InlineData(
+        """[{"op":"add","path":"/o","value":[{"a":{"b":1,"b":2}}]}]""",
+        "`value` of a JSON Patch operation has duplicate member names*"
+    )]
     public void ParseList_RejectsOperationsThatBreakRfc6902(string json, string expectedMessage)
     {
         var act = () => JsonPatchOperation.ParseList(json);

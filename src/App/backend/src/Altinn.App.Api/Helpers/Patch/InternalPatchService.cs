@@ -122,11 +122,15 @@ internal class InternalPatchService
 
             var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
-            JsonNode? patchedModelNode;
-            switch (JsonPatchApplier.Apply(jsonPatch, oldModelNode))
+            (JsonNode? patchedModelNode, DataPatchError? patchError) = JsonPatchApplier.Apply(
+                jsonPatch,
+                oldModelNode
+            ) switch
             {
-                case JsonPatchFailed failed:
-                    return new DataPatchError()
+                JsonPatchApplied applied => (applied.Document, (DataPatchError?)null),
+                JsonPatchFailed failed => (
+                    (JsonNode?)null,
+                    new DataPatchError()
                     {
                         Title = failed.IsTestFailure ? "Precondition in patch failed" : "Patch Operation Failed",
                         Detail = failed.Message,
@@ -137,12 +141,15 @@ internal class InternalPatchService
                         PreviousModel = oldModel,
                         DataElementId = dataElementGuid,
                         PatchOperationIndex = failed.OperationIndex,
-                    };
-                case JsonPatchApplied applied:
-                    patchedModelNode = applied.Document;
-                    break;
-                default:
-                    throw new UnreachableException();
+                    }
+                ),
+                // The default value of the union holds no case. Apply never returns it, but the compiler requires
+                // the arm for exhaustiveness.
+                null => throw new UnreachableException("The patch outcome holds no case"),
+            };
+            if (patchError is not null)
+            {
+                return patchError;
             }
 
             var newModelResult = DeserializeModel(oldModel.GetType(), patchedModelNode);

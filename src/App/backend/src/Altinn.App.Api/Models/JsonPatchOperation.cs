@@ -158,6 +158,10 @@ public sealed class JsonPatchOperation
 /// </summary>
 internal sealed class JsonPatchOperationConverter : JsonConverter<JsonPatchOperation>
 {
+    // Without this, System.Text.Json turns a null element of the patch array into a null list entry without
+    // calling Read, and the null surfaces as a server error when the patch is applied.
+    public override bool HandleNull => true;
+
     public override JsonPatchOperation Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
@@ -192,7 +196,7 @@ internal sealed class JsonPatchOperationConverter : JsonConverter<JsonPatchOpera
                     path = ReadString(ref reader, member);
                     break;
                 case "value":
-                    value = JsonNode.Parse(ref reader);
+                    value = ReadValue(ref reader);
                     hasValue = true;
                     break;
                 default:
@@ -207,6 +211,46 @@ internal sealed class JsonPatchOperationConverter : JsonConverter<JsonPatchOpera
         }
 
         return JsonPatchOperation.FromJson(op, path, value, hasValue);
+    }
+
+    /// <summary>
+    /// Reads <c>value</c> as a node and walks it, so that an object with duplicate member names fails here with a
+    /// JsonException instead of when the patch is applied.
+    /// </summary>
+    private static JsonNode? ReadValue(ref Utf8JsonReader reader)
+    {
+        var value = JsonNode.Parse(ref reader);
+        try
+        {
+            Materialize(value);
+        }
+        catch (ArgumentException e)
+        {
+            throw new JsonException($"`value` of a JSON Patch operation has duplicate member names: {e.Message}", e);
+        }
+
+        return value;
+    }
+
+    private static void Materialize(JsonNode? node)
+    {
+        switch (node)
+        {
+            case JsonObject jsonObject:
+                foreach (var (_, member) in jsonObject)
+                {
+                    Materialize(member);
+                }
+
+                break;
+            case JsonArray jsonArray:
+                foreach (var element in jsonArray)
+                {
+                    Materialize(element);
+                }
+
+                break;
+        }
     }
 
     private static string ReadString(ref Utf8JsonReader reader, string member)
