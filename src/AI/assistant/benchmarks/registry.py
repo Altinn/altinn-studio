@@ -97,16 +97,6 @@ EVALS = (
         ),
     ),
     Eval(
-        name="Gates/confidence",
-        kind="prompt",
-        file="gates_confidence.jsonl",
-        prompt="intent_check",
-        summary=(
-            "Does the parsed confidence land on the right side of the 0.30 threshold the "
-            "workflow gate rejects on. Bands, not values."
-        ),
-    ),
-    Eval(
         name="Loop/traces",
         kind="generation",
         file="loop_traces.jsonl",

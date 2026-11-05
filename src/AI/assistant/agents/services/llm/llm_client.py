@@ -602,7 +602,6 @@ async def parse_intent_with_llm(
             "component": "unknown",
             "target": goal,
             "details": {},
-            "confidence": 0.0,
             "safe": False,
             "reason": "Failed to parse intent",
         }

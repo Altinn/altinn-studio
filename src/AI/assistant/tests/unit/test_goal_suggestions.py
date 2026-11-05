@@ -22,7 +22,7 @@ def _verdicts(**by_goal):
     """Stand in for the classifier: each goal maps to its `safe` verdict."""
 
     async def parse(goal, attachments=None, conversation=None):
-        return MagicMock(safe=by_goal[goal], confidence=0.9, reason=None)
+        return MagicMock(safe=by_goal[goal], reason=None)
 
     return parse
 
@@ -32,7 +32,7 @@ async def _suggest_after_two_choices() -> MagicMock:
     gate call is asynchronous."""
     client = MagicMock()
     client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
-    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true,"confidence":0.9}')
+    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true}')
     with (
         patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
         patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),

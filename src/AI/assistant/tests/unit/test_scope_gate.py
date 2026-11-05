@@ -334,7 +334,7 @@ class TestValidateIntentRejectionCopy:
         return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):
-        parsed = MagicMock(safe=False, confidence=0.9, reason=UNSAFE_GATE_REASON)
+        parsed = MagicMock(safe=False, reason=UNSAFE_GATE_REASON)
 
         rejection = await self._reject(parsed)
 

@@ -14,9 +14,6 @@ from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
 
-# Only the Gates/confidence benchmark uses this. It splits its bands at this value.
-MINIMUM_INTENT_CONFIDENCE = 0.30
-
 # `action` when the classifier never ran, as opposed to answering "unsafe".
 GATE_FAILED_ACTION = "error"
 
@@ -28,9 +25,8 @@ class ParsedIntent(BaseModel):
     component: str  # field, layout, validation, etc.
     target: str  # specific target like "layout main", "field totalWeight"
     details: dict[str, str] = {}  # additional details like type, binding
-    confidence: float = 0.0  # confidence in parsing (0-1)
     safe: bool = True  # whether this intent is considered safe
-    reason: str | None = None  # reason if not safe or low confidence
+    reason: str | None = None  # reason if not safe
 
 
 class IntentParsingError(Exception):
@@ -52,7 +48,6 @@ async def parse_intent_async(
             component="unknown",
             target=goal,
             safe=False,
-            confidence=1.0,  # We're certain it's unsafe
             reason=safety_reason,
         )
 
@@ -65,14 +60,9 @@ async def parse_intent_async(
             component=result.get("component", "unknown"),
             target=result.get("target", goal),
             details=result.get("details", {}),
-            confidence=max(0.0, min(1.0, result.get("confidence", 0.0))),  # Clamp to [0,1]
             safe=result.get("safe", False),
             reason=result.get("reason"),
         )
-
-        # Additional validation - ensure confidence makes sense
-        if parsed.action == "unknown" and parsed.confidence > 0.5:
-            parsed.confidence = 0.5  # Cap confidence for unknown actions
 
         # Log if the intent parser marked something unsafe (should only be security threats now)
         if not parsed.safe:
@@ -87,7 +77,6 @@ async def parse_intent_async(
             component="unknown",
             target=goal,
             safe=False,
-            confidence=0.0,
             reason=f"Intent parsing failed: {e!s}",
         )
 

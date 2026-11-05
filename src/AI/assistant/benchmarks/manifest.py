@@ -161,13 +161,6 @@ COMPONENTS = (
         role="default",
     ),
     Component(
-        id="confidence",
-        name="Confidence band",
-        where="agents/services/llm/llm_client.py::suggest_goals_with_llm",
-        does="Tells the user how sure the agent is before it starts work.",
-        role="default",
-    ),
-    Component(
         id="spec",
         name="Spec extraction",
         where="agents/workflows/spec/pipeline.py::run_spec_pipeline",
@@ -459,50 +452,6 @@ BEHAVIORS = (
         see=("build.matches-the-request",),
     ),
     Behavior(
-        id="confidence.band-matches-outcome",
-        component="confidence",
-        text="Reports a confidence band that matches the outcome",
-        checks=(
-            "When the agent says high confidence the build succeeds, and when it says low the "
-            "request really was underspecified."
-        ),
-        blind=(
-            "This measures something the prompt tells the model not to do. The confidence "
-            "value comes from the intent security prompt, which states that the model is not "
-            "judging clarity, feasibility, complexity or quality. Production then reads that "
-            "same value as a clarity gate and rejects a goal below 0.30, and so does this "
-            "score. The prompt gives one worked example near the threshold, so the model is "
-            "interpolating around a single anchor rather than applying a rubric. A low score "
-            "here is therefore evidence about the specification and not about the model."
-        ),
-        eval="Gates/confidence",
-        evaluator="gate_verdict",
-        fix=Fix(
-            kind="defect",
-            title="The prompt is asked for one judgment and read for another",
-            task=(
-                "1. Settle what confidence means before touching the dataset. The prompt says "
-                "it is not judging clarity; intent_parser.py rejects a goal below 0.30 as too "
-                "unclear or ambiguous. One of the two has to change. Either the prompt judges "
-                "clarity explicitly, with a rubric and more than one worked example near the "
-                "cut, or clarity gets its own field and confidence stops gating it.\n"
-                "2. There is now one threshold: MINIMUM_INTENT_CONFIDENCE, at 0.30, which "
-                "this benchmark imports rather than duplicating. What it means is still "
-                "undefined, which is what point 1 is about.\n"
-                "3. Note also that the parser post-processes what the model returned: it caps "
-                "confidence at 0.5 for an unknown action and clamps the range. This score "
-                "reads the raw value, so it can disagree with what production acted on.\n"
-                "4. Report the accuracy of each band, not only the overall rate. Each band "
-                "has sixteen items, which is sufficient for a separate rate."
-            ),
-            acceptance=(
-                "One written definition of confidence that the prompt, the production "
-                "threshold and this score all agree on, and per-band accuracy reported "
-                "separately."
-            ),
-        ),
-    ),
-    Behavior(
         id="spec.parses",
         component="spec",
         text="Emits a form spec that parses",
@@ -697,6 +646,36 @@ BEHAVIORS = (
             ),
         ),
         see=("build.reaches-terminal-state",),
+    ),
+    Behavior(
+        id="actor.asks-before-guessing",
+        component="actor",
+        text="Asks what the user means instead of guessing",
+        checks="Nothing checks this today.",
+        blind=(
+            "No gate stops a vague write request, so the loop is the only place that can tell "
+            "a request it can act on from one it would have to guess at. Its prompt tells it to "
+            "ask before editing when the request and the app leave more than one reading, and "
+            "nothing measures whether it does."
+        ),
+        fix=Fix(
+            kind="gap",
+            title="Nothing measures what the loop does with a vague request",
+            task=(
+                "1. Start from the retired Gates/confidence items. Their notes say why each one "
+                "is vague or clear. They are in git history: git log -- "
+                "src/AI/assistant/benchmarks/datasets/gates_confidence.jsonl.\n"
+                "2. Run each one as a write request against an app. Score whether the loop ends "
+                "with a question and no edit on the vague items, and acts on the clear ones.\n"
+                "3. Add terse requests that the app makes clear, such as 'gjør feltet "
+                "obligatorisk' in an app with one field, so the score also catches a loop that "
+                "asks too often."
+            ),
+            acceptance=(
+                "A pinned behavior that scores the two halves separately: a question on each "
+                "vague item, and an edit on each clear one."
+            ),
+        ),
     ),
     Behavior(
         id="build.pages-render",

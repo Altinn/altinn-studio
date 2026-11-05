@@ -15,7 +15,6 @@ from agents.graph.runner import (
 )
 from agents.graph.state import AgentState, ConversationMessage
 from agents.services.llm.intent_parser import (
-    MINIMUM_INTENT_CONFIDENCE,
     _validate_goal_safety_quick,
     parse_intent_async,
 )
@@ -54,7 +53,6 @@ def _classifier(**verdict):
             "component": "field",
             "target": "field",
             "details": {},
-            "confidence": 0.9,
             "safe": True,
             **verdict,
         }
@@ -105,7 +103,7 @@ class TestCredentialSubjectMatterReachesTheClassifier:
 
     @pytest.mark.parametrize("goal", [EXPOSE_CREDENTIAL_NB, EXPOSE_CREDENTIAL_EN], ids=["nb", "en"])
     async def test_the_workflow_refuses_an_exposure_goal(self, goal):
-        parsed = MagicMock(safe=False, confidence=0.9, reason=EXPOSURE_REASON)
+        parsed = MagicMock(safe=False, reason=EXPOSURE_REASON)
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", return_value=[]),
@@ -122,19 +120,15 @@ class TestCredentialSubjectMatterReachesTheClassifier:
         assert parsed.action == "blocked"
 
 
-UNDERSPECIFIED_CONFIDENCE = 0.22
-
-
-class TestTheConfidenceThreshold:
-    def test_the_threshold_matches_the_worked_example_in_the_prompt(self):
+class TestAVagueGoal:
+    def test_the_gate_prompt_does_not_judge_clarity(self):
+        """Clarity is the loop's call, since only the loop can read the app."""
         prompt = (Path(__file__).resolve().parents[2] / "agents/prompts/intent_security.md").read_text()
 
-        assert f"confidence: {MINIMUM_INTENT_CONFIDENCE:g}" in prompt
+        assert "confidence" not in prompt.lower()
 
-    async def test_an_underspecified_goal_goes_to_the_loop(self):
-        """The loop reads the app and asks back when it is stuck, so the gate
-        only screens for abuse."""
-        parsed = MagicMock(action="update", safe=True, confidence=UNDERSPECIFIED_CONFIDENCE, reason=None)
+    async def test_a_vague_but_safe_goal_goes_to_the_loop(self):
+        parsed = MagicMock(action="update", safe=True, reason=None)
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", AsyncMock()) as suggest,
@@ -142,12 +136,6 @@ class TestTheConfidenceThreshold:
             await _validate_intent(_state("gjør feltet obligatorisk"))
 
         suggest.assert_not_awaited()
-
-    def test_the_benchmark_bands_split_on_the_production_threshold(self):
-        from benchmarks import gates
-
-        assert gates.CONFIDENCE_THRESHOLD == MINIMUM_INTENT_CONFIDENCE
-        assert gates._band(UNDERSPECIFIED_CONFIDENCE) == gates.BELOW
 
 
 class TestWhatTheGateNeverSees:
@@ -184,7 +172,7 @@ class TestTheGateBeingDownIsNotTheUsersFault:
     """A 401 from Azure made every request read as an unsafe request."""
 
     async def test_a_failed_classifier_says_so_rather_than_blaming_the_goal(self):
-        parsed = MagicMock(action="error", safe=False, confidence=0.0, reason="401 …")
+        parsed = MagicMock(action="error", safe=False, reason="401 …")
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", AsyncMock()) as suggest,
@@ -197,7 +185,7 @@ class TestTheGateBeingDownIsNotTheUsersFault:
         suggest.assert_not_awaited()
 
     async def test_a_genuinely_unsafe_goal_still_says_unsafe(self):
-        parsed = MagicMock(action="blocked", safe=False, confidence=1.0, reason="exfiltration")
+        parsed = MagicMock(action="blocked", safe=False, reason="exfiltration")
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", AsyncMock(return_value=[])),
@@ -231,7 +219,7 @@ class TestTheGateSeesTheConversation:
     async def test_sends_the_session_history_to_the_classifier(self):
         state = _state(FOLLOW_UP_GOAL)
         state.conversation_history = [ConversationMessage(role="assistant", content=FIX_OFFER)]
-        with _classifier_answering('{"action":"update","safe":true,"confidence":0.8}') as client:
+        with _classifier_answering('{"action":"update","safe":true}') as client:
             await _validate_intent(state)
 
         assert FIX_OFFER in _sent_prompt(client)

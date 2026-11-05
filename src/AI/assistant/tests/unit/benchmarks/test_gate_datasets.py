@@ -116,12 +116,6 @@ class TestTheCasesAreDiscriminating:
             if not item["expectedOutput"]["in_scope"]:
                 assert item["expectedOutput"].get("decline_language") in {"nb", "en"}, item["id"]
 
-    def test_both_confidence_bands_are_represented(self):
-        confidence = next(d for d in DATASETS if d.name == "Gates/confidence")
-        bands = {item["expectedOutput"]["confidence_band"] for item in confidence.items}
-
-        assert bands == {"below_threshold", "at_or_above_threshold"}
-
 
 class TestTheUploadedInputMatchesProduction:
     """Both gates build their user message in code, so an experiment that is handed

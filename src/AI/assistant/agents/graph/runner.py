@@ -249,11 +249,10 @@ async def _validate_intent(state: AgentState):
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
     _log.info(
-        "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
+        "Parsed intent for session %s: action=%s, component=%s",
         state.session_id,
         parsed.action,
         parsed.component,
-        parsed.confidence,
     )
 
 
