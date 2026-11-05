@@ -6,6 +6,7 @@ import (
 	"math"
 	"testing"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/pdf3/test/harness"
 )
@@ -51,7 +52,7 @@ func Test_ImageSizes(t *testing.T) {
 
 	output := fmt.Sprintf("Proxy:  %d MiB\nWorker: %d MiB\n", proxySizeMiB, workerSizeMiB)
 
-	harness.Snapshot(t, []byte(output), "", "txt")
+	snapshot.Match(t, []byte(output), "", "txt")
 
 	t.Logf("Image sizes:\n%s", output)
 }

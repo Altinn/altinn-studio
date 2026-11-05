@@ -12,10 +12,9 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
-import { useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getProcessNextMutationKey, useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
+import { useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
 import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import {
   findProcessTask,
@@ -37,7 +36,6 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import type { QueryClient } from 'src/core/queries/reactQuery';
 
 interface NavigationErrorProps {
   label: string;
@@ -138,8 +136,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const isRunningProcessNext = useIsRunningProcessNext();
-  const isProcessNextPending = useIsProcessNextPending();
+  const { isProcessNextPending, isInitialProcessNextPending } = useProcessNextState();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
@@ -163,7 +160,11 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   // Mounting mid-mutation waits for the response, except on a service task's page: the URL moves
   // there while the call is pending, and no form on it is part of the call.
-  if (isRunningProcessNext === null || (isRunningProcessNext && !isServiceTaskPage) || isWrongTask === null) {
+  if (
+    isInitialProcessNextPending === null ||
+    (isInitialProcessNextPending && !isServiceTaskPage) ||
+    isWrongTask === null
+  ) {
     return <Loader reason='process-wrapper' />;
   }
 
@@ -349,30 +350,26 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
   );
 }
 
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
+function useProcessNextState() {
+  const isProcessNextPending = useIsProcessNextPending();
+  const [isInitialProcessNextPending, setIsInitialProcessNextPending] = useState<boolean | null>(null);
 
-function useIsRunningProcessNext() {
-  const queryClient = useQueryClient();
-  const [isMutating, setIsMutating] = useState<boolean | null>(null);
-
-  // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
-  // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
-  // block rendering when we're calling process/next.
-  //
-  // Deliberately sampled once (not subscribed via useIsMutating): the mutation's pre-request phase
+  // Only block a task mounted mid-mutation, and release it when that mutation settles. Navigation can mount the
+  // destination before process/next finishes, so keeping the initial pending state would leave its loader forever.
+  // A later mutation must not start blocking: the mutation's pre-request phase
   // (beforeProcessNext -> onFormSubmitValidation -> useWaitForValidation) only resolves while the
-  // form/validation providers stay mounted. Subscribing here swaps the task tree for the <Loader />
-  // as soon as the mutation starts, unmounting those providers and deadlocking the mutation - it
+  // form/validation providers stay mounted. Blocking as soon as a later mutation starts would swap the task tree
+  // for the <Loader />, unmounting those providers and deadlocking the mutation - it
   // never reaches process/next and never settles, so the Loader stays forever. This check only
   // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
   // workflow annotation instead.
   useEffect(() => {
-    setIsMutating(isRunningProcessNext(queryClient));
-  }, [queryClient]);
+    setIsInitialProcessNextPending((wasPending) =>
+      wasPending === null ? isProcessNextPending : wasPending && isProcessNextPending,
+    );
+  }, [isProcessNextPending]);
 
-  return isMutating;
+  return { isProcessNextPending, isInitialProcessNextPending };
 }
 
 function useIsWrongTask(taskId: string | undefined) {

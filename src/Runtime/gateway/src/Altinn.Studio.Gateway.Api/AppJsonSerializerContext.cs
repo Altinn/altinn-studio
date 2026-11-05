@@ -14,7 +14,6 @@ namespace Altinn.Studio.Gateway.Api;
 
 [JsonSerializable(typeof(FluxEvent))]
 [JsonSerializable(typeof(ObjectReference))]
-[JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(ClientIpResponse))]
 [JsonSerializable(typeof(DeployEventRequest))]
 [JsonSerializable(typeof(IsAppDeployedResponse))]

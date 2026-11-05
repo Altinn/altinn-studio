@@ -1,0 +1,9 @@
+{
+  "cluster": {
+    "name": "pg-apps-cluster"
+  },
+  "databaseReclaimPolicy": "delete",
+  "ensure": "present",
+  "name": "localtestapp",
+  "owner": "localtestapp"
+}
