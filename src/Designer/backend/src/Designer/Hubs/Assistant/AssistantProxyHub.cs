@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -108,9 +107,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Invalid threadId format");
         }
 
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
-
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         // Only the access check matters here. StartWorkflow resolves the cost organization again.
         await ResolveCostOrgOrDenyAccessAsync(context);
@@ -178,8 +174,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         // silently desync the session's persistence context.
         string org = ExtractRequiredString(request, "org");
         string app = ExtractRequiredString(request, "app");
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
 
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string costOrg = await ResolveCostOrgOrDenyAccessAsync(editingContext);
