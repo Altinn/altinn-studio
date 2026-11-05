@@ -469,11 +469,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
-      // The server orders messages by when it saves them, so a reply must wait for this one.
-      const userMessageSaved = createMessage(threadId, userMessage).catch((error: unknown) => {
-        console.error('Failed to save the user message:', error);
-      });
       try {
+        // The server orders messages by when it saves them, so any reply must come after this.
+        await createMessage(threadId, userMessage);
         // The hub rejects commands for sessions not registered on this connection.
         await registerSession(org, app, threadId);
         const result = await startAgentWorkflow(
@@ -483,7 +481,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           userMessage.attachments,
         );
         if (!result.accepted) {
-          await userMessageSaved;
           createMessage(threadId, {
             role: MessageAuthor.Assistant,
             content: formatRejectionMessage(result, rejectionTexts),
@@ -493,7 +490,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
-        await userMessageSaved;
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,

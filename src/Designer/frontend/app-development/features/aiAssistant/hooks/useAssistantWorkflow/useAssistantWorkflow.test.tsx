@@ -913,6 +913,54 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('does not start the workflow when the message cannot be saved', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const createMessage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('thread unavailable'))
+      .mockResolvedValue({ id: 'error-message-id' });
+    const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
+    const registerSession = vi.fn();
+    const startWorkflow = vi.fn();
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow,
+      cancelWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
+      registerSession,
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    const message: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(message);
+    });
+
+    expect(registerSession).not.toHaveBeenCalled();
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(createMessage).toHaveBeenLastCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content:
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
+      }),
+    );
+    consoleErrorSpy.mockRestore();
+  });
+
   it('stores a permission request on the active thread status and clears it when the user responds', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
     const respondToPermission = vi.fn().mockResolvedValue(undefined);
