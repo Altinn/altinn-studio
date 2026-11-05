@@ -470,9 +470,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       try {
-        // The server orders messages by when it saves them, so any reply must come after this.
         await createMessage(threadId, userMessage);
-        // The hub rejects commands for sessions not registered on this connection.
         await registerSession(org, app, threadId);
         const result = await startAgentWorkflow(
           threadId,
