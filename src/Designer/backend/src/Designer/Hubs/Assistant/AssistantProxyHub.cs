@@ -107,8 +107,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Invalid threadId format");
         }
 
-        // FromOrgRepoDeveloper validates the names. In a developer's own repository, org is a username,
-        // which can contain a dot.
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         // Only the access check matters here. StartWorkflow resolves the cost organization again.
         await ResolveCostOrgOrDenyAccessAsync(context);
