@@ -13,6 +13,7 @@ export interface AppQueriesProps extends AppQueriesContext {
 }
 
 interface ContextData {
+  queryClient: AppQueryClient;
   queries: AppQueries;
   mutations: AppMutations;
 }
@@ -42,6 +43,7 @@ export const AppQueriesProvider = ({
 
   // Expression readers cache against the request records; preserve their identity until a function changes.
   const value = useShallowMemo({
+    queryClient,
     queries: useShallowMemo(queries),
     mutations: useShallowMemo(mutations),
   });
@@ -55,3 +57,4 @@ export const AppQueriesProvider = ({
 
 export const useAppQueries = () => useCtx().queries;
 export const useAppMutations = () => useCtx().mutations;
+export const useAppQueryClient = () => useCtx().queryClient;

@@ -1,28 +1,20 @@
-import type { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 
-import type { AppQueryClient } from 'src/core/queries/queryClient';
+const queryClient = Symbol('AppQueryClient');
 
-const handles = new WeakMap<QueryClient, AppQueryClient>();
+/** Opaque cache handle; the private symbol keeps TanStack types out of its public interface. */
+export interface AppQueryClient {
+  readonly [queryClient]: unknown;
+}
 
-const clients = new WeakMap<AppQueryClient, QueryClient>();
-
-export function registerQueryClient(handle: AppQueryClient, client: QueryClient) {
-  clients.set(handle, client);
-  handles.set(client, handle);
+export function createQueryClientHandle(client: QueryClient): AppQueryClient {
+  return { [queryClient]: client };
 }
 
 export function getQueryClient(handle: AppQueryClient): QueryClient {
-  const client = clients.get(handle);
-  if (!client) {
+  const client = handle[queryClient];
+  if (!(client instanceof QueryClient)) {
     throw new Error('Unknown app query client');
   }
   return client;
-}
-
-export function getAppQueryClient(client: QueryClient): AppQueryClient {
-  const handle = handles.get(client);
-  if (!handle) {
-    throw new Error('Unknown app query client');
-  }
-  return handle;
 }

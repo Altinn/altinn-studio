@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { createMemoryRouter, LoaderFunctionArgs, RouterContextProvider, RouterProvider } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { useAppMutations, useAppQueries } from 'src/core/queries/AppQueriesProvider';
-import { useAppQueryClient } from 'src/core/queries/queryClient';
+import { useAppMutations, useAppQueries, useAppQueryClient } from 'src/core/queries/AppQueriesProvider';
 import { instanceRoutes } from 'src/router';
 import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';

@@ -1,19 +1,9 @@
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 
-import { getAppQueryClient, registerQueryClient } from 'src/core/queries/queryClient.queries';
+import { createQueryClientHandle } from 'src/core/queries/queryClient.queries';
+import type { AppQueryClient } from 'src/core/queries/queryClient.queries';
 
-const clientId = Symbol('AppQueryClient');
-
-/** Opaque cache handle passed between the app root, provider, and route loaders. */
-export interface AppQueryClient {
-  readonly [clientId]: true;
-}
-
-function handleFor(client: QueryClient): AppQueryClient {
-  const handle: AppQueryClient = { [clientId]: true };
-  registerQueryClient(handle, client);
-  return handle;
-}
+export type { AppQueryClient };
 
 declare global {
   interface Window {
@@ -30,7 +20,7 @@ declare global {
  * Query client for the application. Only one instance should be created and shared across the app to maintain a single data cache.
  */
 export function createAppQueryClient(): AppQueryClient {
-  return handleFor(
+  return createQueryClientHandle(
     new QueryClient({
       defaultOptions: {
         queries: {
@@ -45,7 +35,7 @@ export function createAppQueryClient(): AppQueryClient {
 
 /** Isolated caches for test renders and route loader tests. */
 export function createTestQueryClient(): AppQueryClient {
-  return handleFor(
+  return createQueryClientHandle(
     new QueryClient({
       defaultOptions: {
         mutations: { retry: false },
@@ -53,8 +43,4 @@ export function createTestQueryClient(): AppQueryClient {
       },
     }),
   );
-}
-
-export function useAppQueryClient(): AppQueryClient {
-  return getAppQueryClient(useQueryClient());
 }
