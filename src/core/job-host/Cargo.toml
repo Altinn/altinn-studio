@@ -1,0 +1,34 @@
+[package]
+name = "job-host"
+description = "Runs one command on app code in a new microVM, for the core operator"
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+base64.workspace = true
+bytes.workspace = true
+clap = { workspace = true, features = ["env"] }
+futures-util.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+sandbox.workspace = true
+sandbox-authorization.workspace = true
+sandbox-host.workspace = true
+sandbox-microsandbox.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true

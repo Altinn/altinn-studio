@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from agents.altinn.datamodel import datamodel_sync
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from .utils.repo_files import PathError, resolve_repo_path
+from .utils.repo_files import PathError, mark_changed, resolve_repo_path
 
 
 class DatamodelSyncArgs(BaseModel):
@@ -92,8 +92,6 @@ def _report_generation_failure(result: Any) -> ToolResult:
 
 def _write_generated_files(ctx: LoopContext, schema_dir: Path, result: dict[str, Any]) -> list[str] | ToolResult:
     written: list[str] = []
-    changed: set[str] = ctx.extras.setdefault("changed_files", set())
-    verified: set[str] = ctx.extras.setdefault("verified_files", set())
     for entry in result.get("generated") or []:
         rel = str(schema_dir / entry["path"])
         try:
@@ -102,8 +100,7 @@ def _write_generated_files(ctx: LoopContext, schema_dir: Path, result: dict[str,
         except (PathError, OSError) as exc:
             return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
         written.append(rel)
-        changed.add(rel)
         # Generated files must be re-verified before commit like any
         # other write.
-        verified.discard(rel)
+        mark_changed(ctx, rel)
     return written

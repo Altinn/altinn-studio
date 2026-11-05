@@ -1,0 +1,38 @@
+# The workflow engine host that runs the core operator's workflows. See src/core/operator-workflow-engine/README.md.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: operator-workflow-engine
+  namespace: default
+spec:
+  interval: 5m
+  # The deploy-core-operator-workflow-engine workflow pushes one artifact per build SHA and tags it with the
+  # environment name.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/operator-workflow-engine-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: operator-workflow-engine
+  namespace: default
+spec:
+  # No targetNamespace: the artifact creates and sets its own namespace.
+  interval: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: operator-workflow-engine
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  wait: true
+  timeout: 5m
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
+      OPERATOR_WORKFLOW_ENGINE_ENTRA_CLIENT_ID: ${OPERATOR_WORKFLOW_ENGINE_ENTRA_CLIENT_ID}
+      # The SecretStore in the artifact reads the connection string from the Studio Key Vault.
+      TENANT_ID: ${TENANT_ID}
+      STUDIO_KV_URI: ${STUDIO_KV_URI}

@@ -32,6 +32,8 @@ from agents.altinn.resources.validator import resource_validator_tool
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from shared.utils.langfuse_utils import trace_span
 
+from .utils.repo_files import mark_verified
+
 # App files can start with a UTF-8 BOM.
 _JSON_FILE_ENCODING = "utf-8-sig"
 _MAX_LISTED_ERRORS = 10
@@ -93,8 +95,8 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
         if passed:
-            verified_set: set[str] = ctx.extras.setdefault("verified_files", set())
-            verified_set.update(verified_now)
+            for file_path in verified_now:
+                mark_verified(ctx, file_path)
 
         body = {
             "passed": passed,
@@ -143,10 +145,9 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
     """Return `(passed, notes)` for a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # `discard_file_changes` removes the entry from `changed_files`,
-        # so reaching this branch means the file was deleted some other
-        # way — flag it rather than crash.
-        return False, [f"{file_path}: file does not exist on disk"]
+        # Only the v9 upgrade deletes files.  The model has no delete tool, and
+        # `discard_file_changes` removes the entry from `changed_files`.
+        return True, [f"{file_path}: deleted, nothing to validate"]
 
     if _is_layout_file(file_path):
         return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)

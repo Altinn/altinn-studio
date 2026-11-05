@@ -1,0 +1,20 @@
+[package]
+name = "sandbox-host"
+description = "Host wiring for Sandbox workloads on the Altinn sandbox nodes"
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+clap = { workspace = true, features = ["env"] }
+sandbox.workspace = true
+sandbox-microsandbox.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

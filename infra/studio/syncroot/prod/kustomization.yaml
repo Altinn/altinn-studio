@@ -4,5 +4,6 @@ resources:
   - ../base
   - ../base/github-runners.yaml
   - ../base/sandbox-node.yaml
+  - ../base/studio-job-host.yaml
   - ../base/victoriametrics-operator.yaml
   - ../base/observability-victoria.yaml

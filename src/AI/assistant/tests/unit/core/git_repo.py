@@ -17,6 +17,12 @@ def git(repo: Path, *args: str) -> None:
     subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
 
 
+def head_commit(repo: Path) -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
 def create_committed_repo(repo: Path, files: dict[str, str]) -> Path:
     write_files(repo, files)
     git(repo, "init")

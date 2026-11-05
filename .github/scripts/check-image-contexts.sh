@@ -39,7 +39,7 @@ load_context() {
     context_dir="${repo_root}" prefix="" header="${header_root}"
     max_context_bytes=$((64 * 1024 * 1024)) max_shared_context_bytes=$((96 * 1024 * 1024))
     # Rust keeps binaries' sources in src/bin/, which the .NET build output exclusion would leave out.
-    excludes=("${common_excludes[@]}" '**/dist') keeps=('!src/ci/github-runner/coordinator/src/bin/**')
+    excludes=("${common_excludes[@]}" '**/dist') keeps=('!src/ci/github-runner/coordinator/src/bin/**' '!src/ci/sandbox-host/src/bin/**')
     ;;
   esac
   images=()
