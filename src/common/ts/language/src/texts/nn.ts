@@ -239,7 +239,6 @@ export function nn() {
       'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
     'group.row_popover_delete_message': 'Er du sikker på at du vil sletta denne rada?',
     'group.row_popover_delete_button_confirm': 'Ja, slett rada',
-    'group.row_validation_title': 'Meldingar for rad {0}',
     'group.row_validation_error': 'Feil i rad {0}. Vis meldingar',
     'group.row_validation_warning': 'Åtvaringar i rad {0}. Vis meldingar',
     'group.row_validation_info': 'Informasjon i rad {0}. Vis meldingar',

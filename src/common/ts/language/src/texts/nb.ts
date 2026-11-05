@@ -239,7 +239,6 @@ export function nb() {
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
     'group.row_popover_delete_message': 'Er du sikker på at du vil slette denne raden?',
     'group.row_popover_delete_button_confirm': 'Ja, slett raden',
-    'group.row_validation_title': 'Meldinger for rad {0}',
     'group.row_validation_error': 'Feil i rad {0}. Vis meldinger',
     'group.row_validation_warning': 'Advarsler i rad {0}. Vis meldinger',
     'group.row_validation_info': 'Informasjon i rad {0}. Vis meldinger',

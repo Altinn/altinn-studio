@@ -6,16 +6,15 @@
   overflow-wrap: anywhere;
 }
 
-.heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-size-4);
+.closeButton {
+  float: inline-end;
+  margin-inline-start: var(--ds-size-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .messages {
   list-style: none;
-  margin: var(--ds-size-3) 0 0;
+  margin: 0;
   padding: 0;
 }
 

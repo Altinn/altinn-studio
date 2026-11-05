@@ -238,7 +238,6 @@ export function en() {
       'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
     'group.row_popover_delete_message': 'Are you sure you want to delete this row?',
     'group.row_popover_delete_button_confirm': 'Yes, delete the row',
-    'group.row_validation_title': 'Messages for row {0}',
     'group.row_validation_error': 'Errors in row {0}. Show messages',
     'group.row_validation_warning': 'Warnings in row {0}. Show messages',
     'group.row_validation_info': 'Information in row {0}. Show messages',

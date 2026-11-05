@@ -1,6 +1,6 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { Button, Heading, Popover } from '@digdir/designsystemet-react';
+import { Button, Popover } from '@digdir/designsystemet-react';
 import {
   CheckmarkCircleIcon,
   ExclamationmarkTriangleIcon,
@@ -59,7 +59,6 @@ function RowValidationPopover({
   severity: ValidationSeverity;
 }) {
   const [open, setOpen] = useState(false);
-  const headingId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const { langAsString } = useLanguage();
@@ -72,7 +71,6 @@ function RowValidationPopover({
   }, [open]);
 
   const { Icon, color } = severityPresentation[severity];
-  const title = langAsString('group.row_validation_title', [index + 1]);
   const label = langAsString(`group.row_validation_${severity}`, [index + 1]);
 
   return (
@@ -96,7 +94,7 @@ function RowValidationPopover({
         ref={popoverRef}
         tabIndex={-1}
         role='dialog'
-        aria-labelledby={headingId}
+        aria-label={langAsString('group.row_validation_messages')}
         open={open}
         onClose={() => setOpen(false)}
         placement='bottom'
@@ -106,27 +104,19 @@ function RowValidationPopover({
       >
         {open && (
           <>
-            <div className={classes.heading}>
-              <Heading
-                level={2}
-                data-size='xs'
-                id={headingId}
-              >
-                {title}
-              </Heading>
-              <Button
-                variant='tertiary'
-                data-color='neutral'
-                icon
-                aria-label={langAsString('general.close')}
-                onClick={() => {
-                  setOpen(false);
-                  triggerRef.current?.focus();
-                }}
-              >
-                <XMarkIcon aria-hidden />
-              </Button>
-            </div>
+            <Button
+              className={classes.closeButton}
+              variant='tertiary'
+              data-color='neutral'
+              icon
+              aria-label={langAsString('general.close')}
+              onClick={() => {
+                setOpen(false);
+                triggerRef.current?.focus();
+              }}
+            >
+              <XMarkIcon aria-hidden />
+            </Button>
             <ul className={classes.messages}>
               {validations.map((validation) => (
                 <li key={getUniqueKey(validation)}>
