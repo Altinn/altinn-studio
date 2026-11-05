@@ -4,16 +4,33 @@
   overflow-wrap: anywhere;
 }
 
+/* Use the floating layer's available-height limit without clipping its pointer. */
+.popover[data-overscroll='contain'] {
+  overflow: visible;
+}
+
+.popover:popover-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--ds-size-2);
+}
+
 .closeButton {
-  float: inline-end;
-  margin-inline-start: var(--ds-size-2);
-  margin-bottom: var(--ds-size-2);
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .messages {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
   list-style: none;
   margin: 0;
   padding: 0;
   max-height: min(32rem, 75dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }

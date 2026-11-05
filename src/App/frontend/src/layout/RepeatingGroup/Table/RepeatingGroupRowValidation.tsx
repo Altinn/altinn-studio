@@ -82,6 +82,7 @@ function RowValidationPopover({
         placement='bottom'
         className={classes.popover}
         data-color='neutral'
+        data-overscroll='contain'
         data-testid='row-validation-messages'
       >
         {open && (
