@@ -52,28 +52,27 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       }
       return await beforeProcessNext?.();
     },
-    onWorkflowFailure: async () => {
-      const result = await refreshProcess();
-      if (result.error) {
-        throw result.error;
-      }
-    },
-    onSuccess: async ([newInstance, validationIssues]) => {
-      if (newInstance) {
-        const task = getTargetTaskFromProcess(newInstance.process);
+    onSuccess: async (outcome) => {
+      if (outcome.kind === 'refreshWorkflow') {
+        const result = await refreshProcess();
+        if (result.error) {
+          throw result.error;
+        }
+      } else if (outcome.kind === 'transitioned') {
+        const task = getTargetTaskFromProcess(outcome.instance.process);
         if (!task) {
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        await commitTransition(newInstance, () => navigateToTask(task));
-      } else if (validationIssues) {
+        await commitTransition(outcome.instance, () => navigateToTask(task));
+      } else if (outcome.kind === 'validationRejected') {
         if (!onValidationIssues) {
           throw new Error(
             'Process next returned validation issues outside a form context. This task cannot represent validation issues without a FormProvider.',
           );
         }
 
-        await onValidationIssues(validationIssues);
+        await onValidationIssues(outcome.validationIssues);
       }
     },
     onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
@@ -132,19 +131,16 @@ export function useProcessResume() {
 
   return useProcessResumeMutation({
     instanceId,
-    onWorkflowFailure: async () => {
+    onSuccess: async (outcome) => {
+      // Failed workflows are not polled, and resume returns no instance.
       const result = await refreshProcess();
-      if (result.error) {
-        throw result.error;
-      }
-    },
-    onSuccess: async (resumed) => {
-      if (!resumed) {
+      if (outcome.kind === 'refreshWorkflow') {
+        if (result.error) {
+          throw result.error;
+        }
         return;
       }
 
-      // Failed workflows are not polled, and resume returns no instance.
-      await refreshProcess();
       await invalidateFormData();
     },
     onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {

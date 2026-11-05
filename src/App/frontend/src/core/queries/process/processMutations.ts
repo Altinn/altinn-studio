@@ -14,12 +14,16 @@ import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-type ProcessNextResult = readonly [IInstance | null, BackendValidationIssue[] | null];
+type ProcessNextOutcome =
+  | { kind: 'transitioned'; instance: IInstance }
+  | { kind: 'validationRejected'; validationIssues: BackendValidationIssue[] }
+  | { kind: 'cancelled' }
+  | { kind: 'refreshWorkflow' };
+type ProcessResumeOutcome = { kind: 'resumed' | 'refreshWorkflow' };
 type ProcessError = HttpClientError<ProcessNextProblemDetails | undefined>;
 
 interface ProcessMutationOptions {
   instanceId: string | undefined;
-  onWorkflowFailure: () => Promise<void>;
   onError: (error: ProcessError) => Promise<void>;
 }
 
@@ -27,7 +31,7 @@ interface ProcessNextMutationOptions extends ProcessMutationOptions {
   language: string;
   action: IActionType | undefined;
   beforeProcessNext: () => Promise<boolean | undefined>;
-  onSuccess: (result: ProcessNextResult) => Promise<void>;
+  onSuccess: (outcome: ProcessNextOutcome) => Promise<void>;
 }
 
 export function useProcessNextMutation({
@@ -35,7 +39,6 @@ export function useProcessNextMutation({
   language,
   action,
   beforeProcessNext,
-  onWorkflowFailure,
   onSuccess,
   onError,
 }: ProcessNextMutationOptions) {
@@ -43,24 +46,23 @@ export function useProcessNextMutation({
   const mutation = useMutation({
     scope: { id: 'process/next' },
     mutationKey: getProcessNextMutationKey(action),
-    mutationFn: async (): Promise<ProcessNextResult> => {
+    mutationFn: async (): Promise<ProcessNextOutcome> => {
       if (await beforeProcessNext()) {
-        return [null, null];
+        return { kind: 'cancelled' };
       }
       if (!instanceId) {
         throw new Error('Missing instance ID. Cannot perform process/next.');
       }
       return doProcessNext(instanceId, language, action)
-        .then(({ data: instance }) => [instance, null] as const)
-        .catch(async (error: ProcessError): Promise<ProcessNextResult> => {
+        .then<ProcessNextOutcome>(({ data: instance }) => ({ kind: 'transitioned', instance }))
+        .catch((error: ProcessError): ProcessNextOutcome => {
           const validationIssues = error.response?.data?.validationIssues;
           if (error.response?.status === 409 && validationIssues?.length) {
-            return [null, validationIssues];
+            return { kind: 'validationRejected', validationIssues };
           }
           const { processNextState, workflowFailure } = error.response?.data ?? {};
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            await onWorkflowFailure();
-            return [null, null];
+            return { kind: 'refreshWorkflow' };
           }
           throw error;
         });
@@ -73,10 +75,9 @@ export function useProcessNextMutation({
 
 export function useProcessResumeMutation({
   instanceId,
-  onWorkflowFailure,
   onSuccess,
   onError,
-}: ProcessMutationOptions & { onSuccess: (resumed: boolean) => Promise<void> }) {
+}: ProcessMutationOptions & { onSuccess: (outcome: ProcessResumeOutcome) => Promise<void> }) {
   const { doProcessResume } = useAppMutations();
   const mutation = useMutation({
     scope: { id: 'process/next' },
@@ -86,12 +87,11 @@ export function useProcessResumeMutation({
         throw new Error('Missing instance ID. Cannot perform process/resume.');
       }
       return doProcessResume(instanceId)
-        .then(() => true)
-        .catch(async (error: ProcessError) => {
+        .then<ProcessResumeOutcome>(() => ({ kind: 'resumed' }))
+        .catch((error: ProcessError): ProcessResumeOutcome => {
           const { processNextState, workflowFailure } = error.response?.data ?? {};
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            await onWorkflowFailure();
-            return false;
+            return { kind: 'refreshWorkflow' };
           }
           throw error;
         });
