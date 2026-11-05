@@ -27,6 +27,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IFormDataValidator, ChangeNameValidator>();
     services.AddTransient<IFormDataValidator, GroupValidator>();
     services.AddTransient<IValidator, ComponentLinkedValidator>();
+    services.AddTransient<IValidator, RepeatingGroupShowcaseValidator>();
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IServiceTask, PdfIfRequestedServiceTask>();
     services.AddTransient<IUserAction, FillAction>();
@@ -35,6 +36,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IUserAction, ShiftingOptionsRemoveAll>();
     services.AddTransient<IUserAction, SortPetsAction>();
     services.AddTransient<IUserAction, GeneratePetsAction>();
+    services.AddTransient<IUserAction, LoadRepeatingValidationExamples>();
     services.AddMimeTypeValidation();
     services.AddTransient<IDataWriteProcessor, ChangenameDataProcessor>();
 }

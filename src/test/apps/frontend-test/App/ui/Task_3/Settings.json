@@ -8,6 +8,7 @@
       "repeating3",
       "option-comp",
       "hide",
+      "validation-showcase",
       "summary"
     ],
     "excludeFromPdf": ["summary"],

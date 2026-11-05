@@ -84,6 +84,7 @@
           <altinn:actions>
             <altinn:action type="serverAction">sortPets</altinn:action>
             <altinn:action type="serverAction">generatePets</altinn:action>
+            <altinn:action type="serverAction">loadRepeatingValidationExamples</altinn:action>
           </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>

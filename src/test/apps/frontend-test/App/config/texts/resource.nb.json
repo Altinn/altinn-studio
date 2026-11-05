@@ -2,6 +2,7 @@
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "nb",
   "resources": [
+    { "id": "validation-showcase", "value": "Validering i grupper" },
     { "id": "appName", "value": "frontend-test" },
     {
       "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",
