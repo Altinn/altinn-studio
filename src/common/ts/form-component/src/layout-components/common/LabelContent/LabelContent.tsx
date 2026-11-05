@@ -61,7 +61,7 @@ export function LabelContent({
       <span className={classes.labelContainer}>
         <span className={classes.labelContent}>
           {lang(label)}
-          <RequiredIndicator required={required} />
+          <RequiredIndicator required={required} readOnly={readOnly} />
           <OptionalIndicator
             readOnly={readOnly}
             required={required}
