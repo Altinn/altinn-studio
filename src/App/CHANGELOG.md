@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - The loading screen shown when entering a task during a process transition now clears when that transition finishes. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment pages no longer show payment information from another task or order details from another submission or a previously selected language. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 
 ## [9.0.0-preview.9] - 2026-10-28
 
