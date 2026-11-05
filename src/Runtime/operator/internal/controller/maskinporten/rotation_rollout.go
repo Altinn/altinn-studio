@@ -71,8 +71,13 @@ func (p *rotationRolloutProcessor) Start(ctx context.Context) error {
 		case <-clock.After(delay):
 		}
 
-		if err := p.reconciler.processPendingMaskinportenRotationRollouts(ctx, clock.Now().UTC()); err != nil {
-			logger.Error(err, "Maskinporten rotation rollout processing failed")
+		// A failed run logs its own ERROR, linked to its trace.
+		if err := p.reconciler.processPendingMaskinportenRotationRollouts(
+			ctx,
+			clock.Now().UTC(),
+		); err != nil &&
+			ctx.Err() != nil {
+			return nil
 		}
 	}
 }
@@ -148,14 +153,20 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 			secretAppLabel,
 			now,
 		); err != nil {
-			logger.Error(
-				err,
-				"failed processing Maskinporten rotation rollout",
-				"maskinportenClient", instance.Name,
-				"namespace", instance.Namespace,
-				"release", releaseName,
-			)
 			errs = append(errs, err)
+			if !errors.Is(err, context.Canceled) {
+				logger.Error(
+					err,
+					"failed processing Maskinporten rotation rollout",
+					"maskinportenClient", instance.Name,
+					"namespace", instance.Namespace,
+					"release", releaseName,
+				)
+			}
+			// The run was stopped, so the remaining clients would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 		}
 	}
 

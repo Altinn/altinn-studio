@@ -15,6 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"altinn.studio/operator/internal/assert"
 )
@@ -70,9 +71,10 @@ var errRunFailed = errors.New("controller run failed")
 // When the span ends, the run is recorded in RunDuration, with the error.type that SetError put on
 // the span. A failed run also logs one ERROR with its error type and status description, linked to
 // its trace, so every failure has a correlated log record even where only controller-runtime
-// logs the returned error. A run started inside another, such as the reconciles secretsync's
-// SyncAll makes, is a step of the outer run: an ordinary span, neither recorded nor logged on its
-// own.
+// logs the returned error. A run that fails because ctx was canceled, as when the operator shuts
+// down or loses its leader lease, was stopped rather than failed: it logs at INFO and is not
+// recorded. A run started inside another, such as the reconciles secretsync's SyncAll makes, is a
+// step of the outer run: an ordinary span, neither recorded nor logged on its own.
 //
 //nolint:spancheck,ireturn // The caller owns ending the span, as with Tracer().Start.
 func StartRun(
@@ -85,7 +87,7 @@ func StartRun(
 		return Tracer().Start(ctx, spanName, trace.WithAttributes(attrs...))
 	}
 	ctx, span := Tracer().Start(ctx, spanName, trace.WithAttributes(append(attrs, AttrController.String(controller))...))
-	run := &runSpan{Span: span, controller: controller, start: time.Now()}
+	run := &runSpan{Span: span, controller: controller, start: time.Now(), ctxErr: ctx.Err}
 	ctx = context.WithValue(trace.ContextWithSpan(ctx, run), runKey{}, run)
 	run.logger = log.FromContext(ctx).WithValues(traceContextKey, ctx)
 	return log.IntoContext(ctx, run.logger), run
@@ -98,6 +100,7 @@ type runSpan struct {
 
 	start       time.Time
 	logger      logr.Logger
+	ctxErr      func() error
 	controller  string
 	errorType   string
 	description string
@@ -131,6 +134,12 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 	errorType, description := s.errorType, s.description
 	s.mu.Unlock()
 
+	if errorType != "" && s.canceled() {
+		s.logger.Info("Controller run canceled", string(AttrController), s.controller,
+			string(semconv.ErrorTypeKey), errorType, "reason", description)
+		return
+	}
+
 	attrs := []attribute.KeyValue{AttrController.String(s.controller)}
 	if errorType != "" {
 		attrs = append(attrs, semconv.ErrorTypeKey.String(errorType))
@@ -138,4 +147,26 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 			string(AttrController), s.controller, string(semconv.ErrorTypeKey), errorType)
 	}
 	runDuration().Record(context.Background(), time.Since(s.start).Seconds(), metric.WithAttributes(attrs...))
+}
+
+// canceled reports whether the run's context was canceled. A deadline is not a cancellation: a
+// run that overran one failed.
+func (s *runSpan) canceled() bool {
+	return errors.Is(s.ctxErr(), context.Canceled)
+}
+
+// QuietOnCancel wraps a reconciler so that a reconcile whose context was canceled returns no error.
+// controller-runtime logs every error a reconcile returns as an ERROR, and the operator's shutdown
+// or loss of its leader lease cancels the reconciles in progress. The run itself logs at INFO, and
+// the next leader reconciles every object when it starts.
+//
+//nolint:ireturn // controller-runtime's builder takes the interface.
+func QuietOnCancel(r reconcile.Reconciler) reconcile.Reconciler {
+	return reconcile.Func(func(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+		result, err := r.Reconcile(ctx, req)
+		if err != nil && errors.Is(ctx.Err(), context.Canceled) {
+			return reconcile.Result{}, nil
+		}
+		return result, err //nolint:wrapcheck // The wrapper passes the reconciler's error through unchanged.
+	})
 }
