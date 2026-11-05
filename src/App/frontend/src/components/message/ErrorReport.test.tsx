@@ -12,7 +12,7 @@ import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
-  const render = async (validationIssues: BackendValidationIssue[] = []) => {
+  const render = async (validationIssues: BackendValidationIssue[] = [], title?: string) => {
     window.altinnAppGlobalData.textResources!.resources = [{ id: 'submit', value: 'This is a page title' }];
     window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
       ui.folders.Task_1 = {
@@ -37,6 +37,7 @@ describe('ErrorReport', () => {
                     {
                       id: 'input',
                       type: 'Input',
+                      textResourceBindings: { title },
                       dataModelBindings: {
                         simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
                       },
@@ -184,6 +185,13 @@ describe('ErrorReport', () => {
     const errorNodes = await screen.findAllByText('component error');
     expect(errorNodes).toHaveLength(1);
     expect(errorNodes[0].parentElement?.tagName).toEqual('BUTTON');
+  });
+
+  it('includes the component label in the error link when it has one', async () => {
+    await render([issue({ customTextKey: 'Check the value', componentId: 'input' })], 'Name');
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(await screen.findByRole('button', { name: 'Name: Check the value' })).toBeInTheDocument();
   });
 
   it('should list an error linked to a missing component as unclickable', async () => {
