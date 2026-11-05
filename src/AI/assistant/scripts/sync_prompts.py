@@ -182,21 +182,29 @@ def _require_push_override() -> None:
 def _published_shape(api: LangfuseApi, name: str) -> list | None:
     """The turns of the published chat prompt, or None when it is a text prompt.
 
-    Read from `latest`, not `production`: a new prompt can have only an `experiment`
-    version before its first push, and every version of a name has the same type.
+    A push keeps every turn but the system turn, so the turns come from `production`,
+    not from a newer `experiment`. A prompt that has never been pushed can still have
+    a version, such as the one a benchmark run creates, and then `latest` gives the
+    shape: every version of a name has the same type.
     """
+    published = _labeled_version(api, name, "production") or _labeled_version(api, name, "latest")
+    if published is None:
+        return None  # Langfuse has no version of it, so text is the shape
+    if published.get("type") != "chat":
+        return None
+    return published.get("prompt") or None
+
+
+def _labeled_version(api: LangfuseApi, name: str, label: str) -> dict | None:
     try:
-        published = api._get(f"/api/public/v2/prompts/{name}", label="latest")
+        return api._get(f"/api/public/v2/prompts/{name}", label=label)
     except httpx.HTTPStatusError as error:
         if error.response.status_code == HTTP_NOT_FOUND:
-            return None  # nobody has published this one yet, so text is the shape
+            return None
         raise SystemExit(
             f"Could not read the published {name}: {error}. Refusing to publish, "
             "because guessing the shape can drop a chat prompt's variables."
         ) from error
-    if published.get("type") != "chat":
-        return None
-    return published.get("prompt") or None
 
 
 def _as_published(name: str, content: str, shape: list | None) -> dict:

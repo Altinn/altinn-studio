@@ -55,8 +55,12 @@ class _Langfuse:
         name = path.rsplit("/", 1)[-1]
         if name in self._published:
             return self._published[name]
-        if name in self._labelled and params.get("label", "production") in self._labelled[name]["labels"]:
-            return self._labelled[name]
+        if name in self._labelled:
+            versions = self._labelled[name]
+            label = params.get("label", "production")
+            for version in versions if isinstance(versions, list) else [versions]:
+                if label in version["labels"]:
+                    return version
         if name not in self._prompts:
             raise httpx.HTTPStatusError(
                 "not found",
@@ -242,6 +246,25 @@ class TestPushKeepsThePublishedShape:
         body = api.published[0]
         assert body["type"] == "chat"
         assert [turn["role"] for turn in body["prompt"]] == ["system", "user"]
+
+    def test_a_newer_experiment_does_not_reach_production(self):
+        """A push keeps the published turns, so taking them from the experiment
+        would publish its user turn as production without a review."""
+        production = {**self._chat(IN_SYNC), "labels": ["production"]}
+        experiment = {
+            **self._chat(IN_SYNC),
+            "version": 4,
+            "labels": ["experiment", "latest"],
+            "prompt": [
+                {"type": "message", "role": "system", "content": "experiment system text"},
+                {"type": "message", "role": "user", "content": "Try this: {{user_message}}"},
+            ],
+        }
+        api = _Langfuse(labelled={IN_SYNC: [experiment, production]})
+
+        sync_prompts._push(api, IN_SYNC, "why")
+
+        assert api.published[0]["prompt"][1]["content"] == "{{user_message}}"
 
     def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
         api = _Langfuse()
