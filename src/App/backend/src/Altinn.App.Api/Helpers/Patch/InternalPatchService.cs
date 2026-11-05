@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -11,7 +12,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,7 +20,7 @@ namespace Altinn.App.Api.Helpers.Patch;
 /// <summary>
 /// Service for applying patches to form data elements
 /// </summary>
-public class InternalPatchService
+internal class InternalPatchService
 {
     private readonly IHostEnvironment _hostingEnvironment;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -59,7 +59,7 @@ public class InternalPatchService
     /// </summary>
     public Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
-        Dictionary<Guid, JsonPatch> patches,
+        Dictionary<Guid, List<JsonPatchOperation>> patches,
         string? language,
         List<string>? ignoredValidators
     ) =>
@@ -75,7 +75,7 @@ public class InternalPatchService
     internal async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
         StorageVersionMetadata versions,
-        Dictionary<Guid, JsonPatch> patches,
+        Dictionary<Guid, List<JsonPatchOperation>> patches,
         string? language,
         List<string>? ignoredValidators,
         int? expectedProcessStateVersion
@@ -122,26 +122,30 @@ public class InternalPatchService
 
             var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
-            var patchResult = jsonPatch.Apply(oldModelNode);
-
-            if (!patchResult.IsSuccess)
+            JsonNode? patchedModelNode;
+            switch (JsonPatchApplier.Apply(jsonPatch, oldModelNode))
             {
-                bool testOperationFailed = patchResult.Error.Contains("is not equal to the indicated value.");
-                return new DataPatchError()
-                {
-                    Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
-                    Detail = patchResult.Error,
-                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
-                    Status = testOperationFailed
-                        ? StatusCodes.Status409Conflict
-                        : StatusCodes.Status422UnprocessableEntity,
-                    PreviousModel = oldModel,
-                    DataElementId = dataElementGuid,
-                    PatchOperationIndex = patchResult.Operation,
-                };
+                case JsonPatchFailed failed:
+                    return new DataPatchError()
+                    {
+                        Title = failed.IsTestFailure ? "Precondition in patch failed" : "Patch Operation Failed",
+                        Detail = failed.Message,
+                        Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
+                        Status = failed.IsTestFailure
+                            ? StatusCodes.Status409Conflict
+                            : StatusCodes.Status422UnprocessableEntity,
+                        PreviousModel = oldModel,
+                        DataElementId = dataElementGuid,
+                        PatchOperationIndex = failed.OperationIndex,
+                    };
+                case JsonPatchApplied applied:
+                    patchedModelNode = applied.Document;
+                    break;
+                default:
+                    throw new UnreachableException();
             }
 
-            var newModelResult = DeserializeModel(oldModel.GetType(), patchResult.Result);
+            var newModelResult = DeserializeModel(oldModel.GetType(), patchedModelNode);
             if (!newModelResult.Success)
             {
                 return new ProblemDetails()

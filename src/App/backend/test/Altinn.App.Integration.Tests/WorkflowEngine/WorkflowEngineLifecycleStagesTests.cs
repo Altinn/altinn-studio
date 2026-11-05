@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -120,15 +119,13 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
                 [
                     new(
                         dataElementId,
-                        new Json.Patch.JsonPatch(
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property1"),
-                                JsonNode.Parse("\"2\"")
-                            ),
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property2"),
-                                JsonNode.Parse("\"2\"")
-                            )
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],

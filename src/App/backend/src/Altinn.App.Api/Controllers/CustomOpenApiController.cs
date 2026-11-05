@@ -1484,7 +1484,8 @@ file static class Snippets
                             {
                                 Type = JsonSchemaType.Array,
                                 Title = "Json patch",
-                                Description = "A standard RFC 6902 document describing changes to one data element",
+                                Description =
+                                    "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported",
                                 Items = new OpenApiSchema
                                 {
                                     Type = JsonSchemaType.Object,
@@ -1495,12 +1496,7 @@ file static class Snippets
                                         {
                                             Title = "Patch operation",
                                             Type = JsonSchemaType.String,
-                                            Enum = ["add", "remove", "replace", "move", "copy", "test"],
-                                        },
-                                        ["from"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
+                                            Enum = ["add", "remove", "replace", "test"],
                                         },
                                         ["path"] = new OpenApiSchema
                                         {

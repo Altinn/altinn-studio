@@ -19,11 +19,39 @@ internal static class SwaggerFilterExtensions
         services.Configure<SwaggerGenOptions>(c =>
         {
             c.SupportNonNullableReferenceTypes();
+            // JsonPatchOperation has a custom converter, so describe its wire format instead of its properties.
+            c.MapType<JsonPatchOperation>(JsonPatchOperationSchema);
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();
         });
     }
+
+    private static OpenApiSchema JsonPatchOperationSchema() =>
+        new()
+        {
+            Type = JsonSchemaType.Object,
+            Title = "JSON Patch operation",
+            Description = "One operation of an RFC 6902 JSON Patch document. move and copy are not supported",
+            Required = new HashSet<string> { "op", "path" },
+            Properties = new Dictionary<string, IOpenApiSchema>
+            {
+                ["op"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String,
+                    Enum = ["add", "remove", "replace", "test"],
+                },
+                ["path"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String,
+                    Description = "JSON Pointer (RFC 6901) to the location the operation applies to",
+                },
+                ["value"] = new OpenApiSchema
+                {
+                    Description = "The value of an add, replace or test operation; any JSON value",
+                },
+            },
+        };
 }
 
 internal sealed class ExplicitProblemDetailsResponseOperationFilter : IOperationFilter

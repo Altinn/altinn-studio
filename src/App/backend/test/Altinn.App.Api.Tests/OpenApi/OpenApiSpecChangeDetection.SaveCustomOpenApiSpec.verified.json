@@ -298,14 +298,8 @@
                                   "add",
                                   "remove",
                                   "replace",
-                                  "move",
-                                  "copy",
                                   "test"
                                 ],
-                                "type": "string"
-                              },
-                              "from": {
-                                "title": "JsonPointer",
                                 "type": "string"
                               },
                               "path": {
@@ -319,7 +313,7 @@
                             },
                             "additionalProperties": false
                           },
-                          "description": "A standard RFC 6902 document describing changes to one data element"
+                          "description": "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported"
                         }
                       },
                       "additionalProperties": false
