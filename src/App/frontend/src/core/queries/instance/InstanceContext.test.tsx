@@ -8,9 +8,6 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
-// The error page (UnknownError) calls the real axios isAxiosError on the thrown error.
-vi.unmock('axios');
-
 function InstanceProbe() {
   const { dataUpdatedAt, errorUpdateCount } = useInstanceQueryInternal();
   return (
