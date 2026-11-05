@@ -25,5 +25,5 @@ export function useServerActionMutation() {
   });
   const mutateAsync: (input: ServerActionInput) => Promise<Awaited<ReturnType<typeof doPerformAction>>> =
     mutation.mutateAsync;
-  return { mutateAsync, error: mutation.error };
+  return { mutateAsync };
 }
