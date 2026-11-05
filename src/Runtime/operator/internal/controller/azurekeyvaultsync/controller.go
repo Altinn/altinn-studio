@@ -238,16 +238,20 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 
 const controllerName = "azurekeyvaultsync"
 
-func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
+func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) (err error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "keyvaultsync.SyncAll",
 		attribute.Int("altinn.operator.azurekeyvaultsync.mappings", len(c.mappings)),
 	)
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 
-	var lastErr error
+	var syncErr error
 	for _, mapping := range c.mappings {
+		if err := ctx.Err(); err != nil {
+			syncErr = errors.Join(syncErr, err)
+			break
+		}
 		if err := c.syncMapping(ctx, mapping); err != nil {
-			lastErr = err
+			syncErr = errors.Join(syncErr, err)
 			// The run was stopped, so the remaining mappings would fail the same way.
 			if ctx.Err() != nil {
 				break
@@ -259,11 +263,11 @@ func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
 		}
 	}
 
-	if lastErr != nil {
-		commontelemetry.SetError(span, "sync_mappings", lastErr)
+	if syncErr != nil {
+		commontelemetry.SetError(span, "sync_mappings", syncErr)
 	}
 
-	return lastErr
+	return syncErr
 }
 
 func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVaultSecretMapping) error {

@@ -70,10 +70,11 @@ var errRunFailed = errors.New("controller run failed")
 // When the span ends, the run is recorded in RunDuration, with the error.type that SetError put on
 // the span. A failed run also logs one ERROR with its error type and status description, linked to
 // its trace, so every failure has a correlated log record even where only controller-runtime
-// logs the returned error. A run that fails because ctx was cancelled, as when the operator shuts
-// down or loses its leader lease, was stopped rather than failed: it logs at INFO and is not
-// recorded. A run started inside another, such as the reconciles secretsync's SyncAll makes, is a
-// step of the outer run: an ordinary span, neither recorded nor logged on its own.
+// logs the returned error. End the run with EndRun and its returned error so that a cancellation
+// during shutdown or leader lease loss logs at INFO and is not recorded as a completed run.
+// Its span keeps the error for diagnosis. A run started inside another, such as the reconciles
+// secretsync's SyncAll makes, is a step of the outer run: an ordinary span, neither recorded nor
+// logged on its own.
 //
 //nolint:spancheck,ireturn // The caller owns ending the span, as with Tracer().Start.
 func StartRun(
@@ -86,7 +87,7 @@ func StartRun(
 		return Tracer().Start(ctx, spanName, trace.WithAttributes(attrs...))
 	}
 	ctx, span := Tracer().Start(ctx, spanName, trace.WithAttributes(append(attrs, AttrController.String(controller))...))
-	run := &runSpan{Span: span, controller: controller, start: time.Now(), ctxErr: ctx.Err}
+	run := &runSpan{Span: span, controller: controller, start: time.Now()}
 	ctx = context.WithValue(trace.ContextWithSpan(ctx, run), runKey{}, run)
 	run.logger = log.FromContext(ctx).WithValues(traceContextKey, ctx)
 	return log.IntoContext(ctx, run.logger), run
@@ -99,7 +100,6 @@ type runSpan struct {
 
 	start       time.Time
 	logger      logr.Logger
-	ctxErr      func() error
 	controller  string
 	errorType   string
 	description string
@@ -127,14 +127,30 @@ func (s *runSpan) SetStatus(code codes.Code, description string) {
 }
 
 func (s *runSpan) End(options ...trace.SpanEndOption) {
+	s.end(context.Background(), nil, options...)
+}
+
+// EndRun ends a controller run with its returned error. Call it in a deferred closure so it sees
+// the final error, using the context returned by StartRun. Checking the error as well as the
+// context keeps a failure from being hidden by a concurrent shutdown. Deadlines and cancellations
+// of a child context remain failures.
+func EndRun(ctx context.Context, span trace.Span, err error) {
+	if run, ok := span.(*runSpan); ok {
+		run.end(ctx, err)
+		return
+	}
+	span.End()
+}
+
+func (s *runSpan) end(ctx context.Context, err error, options ...trace.SpanEndOption) {
 	s.Span.End(options...)
 
 	s.mu.Lock()
 	errorType, description := s.errorType, s.description
 	s.mu.Unlock()
 
-	if errorType != "" && s.cancelled() {
-		s.logger.Info("Controller run cancelled", string(AttrController), s.controller,
+	if errorType != "" && errors.Is(ctx.Err(), context.Canceled) && isCancellation(err) {
+		s.logger.Info("Controller run canceled", string(AttrController), s.controller,
 			string(semconv.ErrorTypeKey), errorType, "reason", description)
 		return
 	}
@@ -145,11 +161,22 @@ func (s *runSpan) End(options ...trace.SpanEndOption) {
 		s.logger.Error(fmt.Errorf("%w: %s", errRunFailed, description), "Controller run failed",
 			string(AttrController), s.controller, string(semconv.ErrorTypeKey), errorType)
 	}
-	runDuration().Record(context.Background(), time.Since(s.start).Seconds(), metric.WithAttributes(attrs...))
+	runDuration().Record(context.WithoutCancel(ctx), time.Since(s.start).Seconds(), metric.WithAttributes(attrs...))
 }
 
-// cancelled reports whether the run's context was cancelled. A deadline is not a cancellation: a
-// run that overran one failed.
-func (s *runSpan) cancelled() bool {
-	return errors.Is(s.ctxErr(), context.Canceled)
+// A batch can return both a real failure and a cancellation. Keep that failure visible.
+func isCancellation(err error) bool {
+	if !errors.Is(err, context.Canceled) {
+		return false
+	}
+	if joined, ok := err.(interface{ Unwrap() []error }); ok {
+		for _, cause := range joined.Unwrap() {
+			if cause != nil && !isCancellation(cause) {
+				return false
+			}
+		}
+	} else if cause := errors.Unwrap(err); cause != nil {
+		return isCancellation(cause)
+	}
+	return true
 }

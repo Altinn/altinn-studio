@@ -183,7 +183,7 @@ func (r *Reconciler) Start(ctx context.Context) error {
 
 const controllerName = "grafanapolicysync"
 
-func (r *Reconciler) SyncAll(ctx context.Context) error {
+func (r *Reconciler) SyncAll(ctx context.Context) (err error) {
 	opCtx := r.runtime.GetOperatorContext()
 	environment := opCtx.Environment
 	assert.That(
@@ -193,7 +193,7 @@ func (r *Reconciler) SyncAll(ctx context.Context) error {
 	)
 
 	ctx, span := telemetry.StartRun(ctx, controllerName, "grafanapolicysync.SyncAll")
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 	withErrorStatus := func(err error, errorType string) error {
 		commontelemetry.SetError(span, errorType, err)
 		return err

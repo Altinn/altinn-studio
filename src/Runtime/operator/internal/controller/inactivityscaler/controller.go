@@ -220,9 +220,9 @@ func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 
 const controllerName = "inactivityscaler"
 
-func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
+func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) (err error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "inactivityscaler.SyncAll")
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 
 	opCtx := r.runtime.GetOperatorContext()
 	assert.That(

@@ -3,6 +3,7 @@ package secretsync
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 
@@ -67,13 +68,13 @@ func NewReconcilerForTesting(
 const controllerName = "secretsync"
 
 // Reconcile handles secret changes and syncs them according to mappings.
-func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ ctrl.Result, err error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "secretsync.Reconcile",
 		telemetry.AttrObjectKind.String("Secret"),
 		telemetry.AttrObjectNamespace.String(req.Namespace),
 		telemetry.AttrObjectName.String(req.Name),
 	)
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 
 	mapping := r.findMapping(req.Name, req.Namespace)
 	if mapping == nil {
@@ -319,14 +320,18 @@ func (r *SecretSyncReconciler) secretPredicate() predicate.Predicate {
 }
 
 // SyncAll synchronizes all mappings. Useful for testing and initial sync.
-func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
+func (r *SecretSyncReconciler) SyncAll(ctx context.Context) (err error) {
 	ctx, span := telemetry.StartRun(ctx, controllerName, "secretsync.SyncAll",
 		attribute.Int("altinn.operator.secretsync.mappings", len(r.mappings)),
 	)
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 
-	var lastErr error
+	var syncErr error
 	for _, mapping := range r.mappings {
+		if err := ctx.Err(); err != nil {
+			syncErr = errors.Join(syncErr, err)
+			break
+		}
 		_, err := r.Reconcile(ctx, reconcile.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      mapping.SourceName,
@@ -334,7 +339,7 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 			},
 		})
 		if err != nil {
-			lastErr = err
+			syncErr = errors.Join(syncErr, err)
 			// The run was stopped, so the remaining mappings would fail the same way.
 			if ctx.Err() != nil {
 				break
@@ -346,10 +351,10 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 		}
 	}
 
-	if lastErr != nil {
-		commontelemetry.SetError(span, "sync_mappings", lastErr)
+	if syncErr != nil {
+		commontelemetry.SetError(span, "sync_mappings", syncErr)
 	}
-	return lastErr
+	return syncErr
 }
 
 func copyLabels(src map[string]string) map[string]string {

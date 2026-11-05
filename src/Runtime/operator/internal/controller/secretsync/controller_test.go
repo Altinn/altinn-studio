@@ -6,13 +6,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/zapr"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"altinn.studio/operator/internal"
@@ -783,4 +788,46 @@ func TestReconciler_DefaultMapping_GrafanaCRNoExternalSpec(t *testing.T) {
 	})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("grafana CR has no external spec"))
+}
+
+func TestSyncAll_StopsOnCancellationAndKeepsPriorFailures(t *testing.T) {
+	for _, priorFailure := range []error{nil, errTransformFailed} {
+		t.Run(fmt.Sprint(priorFailure), func(t *testing.T) {
+			g := NewWithT(t)
+			mappings := []SecretSyncMapping{
+				{SourceName: "first", SourceNamespace: "default", DestName: "first", DestNamespace: "dest"},
+				{SourceName: "second", SourceNamespace: "default", DestName: "second", DestNamespace: "dest"},
+				{SourceName: "third", SourceNamespace: "default", DestName: "third", DestNamespace: "dest"},
+			}
+			h := newTestHarness(t, mappings)
+			core, logs := observer.New(zap.InfoLevel)
+			logger := zapr.NewLogger(zap.New(core))
+			ctx, stop := context.WithCancel(log.IntoContext(context.Background(), logger))
+			defer stop()
+			h.reconciler.logger = logger
+			var requested []string
+			h.reconciler.k8sClient = fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+				Get: func(_ context.Context, _ client.WithWatch, key client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
+					requested = append(requested, key.Name)
+					if priorFailure != nil && len(requested) == 1 {
+						return priorFailure
+					}
+					stop()
+					return context.Canceled
+				},
+			}).Build()
+
+			err := h.reconciler.SyncAll(ctx)
+			g.Expect(errors.Is(err, context.Canceled)).To(BeTrue())
+			wantRequested := []string{"first"}
+			wantErrors := 0
+			if priorFailure != nil {
+				g.Expect(errors.Is(err, priorFailure)).To(BeTrue())
+				wantRequested = append(wantRequested, "second")
+				wantErrors = 2 // The mapping failure and the failed outer run.
+			}
+			g.Expect(requested).To(Equal(wantRequested))
+			g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(wantErrors))
+		})
+	}
 }

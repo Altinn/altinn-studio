@@ -71,8 +71,13 @@ func (p *rotationRolloutProcessor) Start(ctx context.Context) error {
 		case <-clock.After(delay):
 		}
 
-		if err := p.reconciler.processPendingMaskinportenRotationRollouts(ctx, clock.Now().UTC()); err != nil {
-			logger.Error(err, "Maskinporten rotation rollout processing failed")
+		// A failed run logs its own ERROR, linked to its trace.
+		if err := p.reconciler.processPendingMaskinportenRotationRollouts(
+			ctx,
+			clock.Now().UTC(),
+		); err != nil &&
+			ctx.Err() != nil {
+			return nil
 		}
 	}
 }
@@ -98,11 +103,11 @@ func durationUntilNextRotationRollout(now time.Time) time.Duration {
 func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollouts(
 	ctx context.Context,
 	now time.Time,
-) error {
+) (err error) {
 	ctx, span := telemetry.StartRun(ctx, rotationRolloutControllerName, "MaskinportenRotationRollout.processPending",
 		attribute.String("altinn.operator.maskinporten_rotation_rollout.scheduled_at", now.UTC().Format(time.RFC3339)),
 	)
-	defer span.End()
+	defer func() { telemetry.EndRun(ctx, span, err) }()
 
 	logger := log.FromContext(ctx).WithName("maskinporten-rotation-rollout")
 	serviceOwnerID := r.serviceOwnerID()
@@ -120,6 +125,10 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 
 	var errs []error
 	for i := range list.Items {
+		if err := ctx.Err(); err != nil {
+			errs = append(errs, err)
+			break
+		}
 		instance := &list.Items[i]
 
 		releaseName, inScope, err := appReleaseNameForMaskinportenClient(instance, serviceOwnerID)
@@ -148,6 +157,10 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 			secretAppLabel,
 			now,
 		); err != nil {
+			errs = append(errs, err)
+			if ctx.Err() != nil {
+				break
+			}
 			logger.Error(
 				err,
 				"failed processing Maskinporten rotation rollout",
@@ -155,7 +168,6 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 				"namespace", instance.Namespace,
 				"release", releaseName,
 			)
-			errs = append(errs, err)
 		}
 	}
 
