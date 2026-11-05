@@ -2,8 +2,8 @@
 # to meshed pods by default, so Traefik's identity is allowed explicitly. The workers are not
 # meshed (worker.yaml), so network-policies.yaml alone decides who reaches them.
 #
-# Traefik's HTTPRoute (httproute.yaml) only routes POST /pdf here, so there are no per-path
-# routes. The kubelet's probes need nothing: Linkerd 2.12 and later authorize a pod's probe
+# Traefik's HTTPRoute (httproute.yaml) only routes POST /pdf and GET /pdf/health here, so there are
+# no per-path routes. The kubelet's probes need nothing: Linkerd 2.12 and later authorize a pod's probe
 # paths on a Server without HTTPRoutes, even when the default policy is deny (DIS Core's
 # version is not confirmed). Adding an HTTPRoute to the Server turns that off. See
 # https://linkerd.io/2-edge/features/server-policy/#default-authorizations
