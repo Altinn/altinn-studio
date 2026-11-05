@@ -14,8 +14,10 @@ import {
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
@@ -178,10 +180,29 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         onKeyDown={handleErrorClick}
         data-target-node={error.nodeId}
       >
-        <DataModelLocationProviderFromNode nodeId={error.nodeId}>
-          <LangReference reference={error.message} />
+        <DataModelLocationProviderFromNode
+          nodeId={error.nodeId}
+          replace
+        >
+          <FormComponentContextProvider value={{ baseComponentId: error.baseComponentId }}>
+            <LabeledErrorMessage error={error} />
+          </FormComponentContextProvider>
         </DataModelLocationProviderFromNode>
       </button>
     </ErrorReportListItem>
+  );
+}
+
+function LabeledErrorMessage({ error }: { error: NodeRefValidation }) {
+  const { title } = useLabelData({ baseComponentId: error.baseComponentId, overrideDisplay: undefined });
+  return (
+    <>
+      {title && (
+        <>
+          <Lang id={title} />:{' '}
+        </>
+      )}
+      <LangReference reference={error.message} />
+    </>
   );
 }
