@@ -19,7 +19,7 @@
         "id": "validation-showcase-intro",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Seks kjæledyr vises i tre oppsett. Balder har feil i navn, Maja har en advarsel om dyreslag, Luna har informasjon om alder, Felix har en bekreftelse, Milo har to meldinger og Saga har ingen. Last eksempeldata og trykk Neste."
+          "title": "Sju kjæledyr vises i tre oppsett. Balder har feil i navn, Maja har en advarsel om dyreslag, Luna har informasjon om alder, Felix har en bekreftelse, Milo har meldinger på to felt, Saga har ingen og Nala har to feil på samme felt. Last eksempeldata og trykk Neste."
         }
       },
       {
@@ -66,15 +66,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Standardvisning: navn",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Navn",
           "tableTitle": "Navn"
         },
         "labelSettings": {
@@ -88,15 +80,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Standardvisning: dyreslag",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Dyreslag",
           "tableTitle": "Dyreslag"
         },
         "labelSettings": {
@@ -124,15 +108,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Standardvisning: alder",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Alder",
           "tableTitle": "Alder"
         },
         "labelSettings": {
@@ -206,15 +182,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Blandet redigering: navn",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Navn",
           "tableTitle": "Navn"
         },
         "labelSettings": {
@@ -228,15 +196,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Blandet redigering: dyreslag",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Dyreslag",
           "tableTitle": "Dyreslag"
         },
         "labelSettings": {
@@ -264,15 +224,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Blandet redigering: alder",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Alder",
           "tableTitle": "Alder"
         },
         "labelSettings": {
@@ -338,15 +290,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Kun tabell: navn",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Navn",
           "tableTitle": "Navn"
         },
         "labelSettings": {
@@ -360,15 +304,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Kun tabell: dyreslag",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Dyreslag",
           "tableTitle": "Dyreslag"
         },
         "labelSettings": {
@@ -396,15 +332,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": [
-            "concat",
-            "Kun tabell: alder",
-            " – ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ],
+          "title": "Alder",
           "tableTitle": "Alder"
         },
         "labelSettings": {

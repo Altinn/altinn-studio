@@ -24,6 +24,7 @@ internal sealed class LoadRepeatingValidationExamples : IUserAction
             new Pet { UniqueId = "validation-showcase-felix", Name = "Felix", Species = "Cat", Age = 5 },
             new Pet { UniqueId = "validation-showcase-milo", Name = "Milo", Species = "Dog", Age = 12 },
             new Pet { UniqueId = "validation-showcase-saga", Name = "Saga", Species = "Dog", Age = 7 },
+            new Pet { UniqueId = "validation-showcase-nala", Name = "Nala", Species = "Cat", Age = 6 },
         ];
         data.Endringsmeldinggrp9786 ??= new();
         data.Endringsmeldinggrp9786.Avgivergrp9787 ??= new();

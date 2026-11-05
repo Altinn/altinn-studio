@@ -113,6 +113,10 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
             ("name", ValidationIssueSeverity.Error, "Oppgi navnet slik det står i registeret."),
             ("age", ValidationIssueSeverity.Warning, "Alderen er høyere enn ved forrige innrapportering. Kontroller verdien.")
         ],
+        "validation-showcase-nala" => [
+            ("name", ValidationIssueSeverity.Error, "Navnet mangler i registeret."),
+            ("name", ValidationIssueSeverity.Error, "Kontroller at navnet er skrevet riktig.")
+        ],
         _ => [],
     };
 
