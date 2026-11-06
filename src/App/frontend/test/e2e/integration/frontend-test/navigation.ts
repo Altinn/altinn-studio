@@ -191,11 +191,6 @@ describe('Navigation', () => {
   });
 
   it('should navigate back to previous page when using back button after navigating to a component', () => {
-    cy.interceptLayout('Task_3', (component) => {
-      if (component.type === 'NavigationButtons') {
-        component.validateOnBackToSummary = { page: 'current', show: [] };
-      }
-    });
     mockLinkTo('component', 'hideRepeatingGroupRow', true);
     cy.findByRole('link', { name: 'Klikk på meg' }).click();
     cy.url().should('satisfy', (url: string) => url.endsWith('/Task_3/repeating?backToPage=prefill'));

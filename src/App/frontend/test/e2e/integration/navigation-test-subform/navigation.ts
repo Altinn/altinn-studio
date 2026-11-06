@@ -531,6 +531,91 @@ describe('navigation', () => {
     }),
   );
 
+  it('validates returns and resets shortcuts when an edit changes the visible pages', () => {
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
+    cy.waitForLoad();
+    // These values came from the real Settings.json files through the backend HTML response.
+    cy.window().then(({ altinnAppGlobalData: { ui } }) => {
+      expect(ui.settings?.validateOnBackToSummary).to.deep.equal({ page: 'current', show: [] });
+      expect(ui.folders.Task_1.pages.validationOnNavigation).to.deep.equal({ page: 'current', show: [] });
+      expect(ui.folders.Task_1.pages.validateOnBackToSummary).to.deep.equal({ page: 'current', show: ['Required'] });
+    });
+    const summary = () => cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
+    const edit = (id: string) =>
+      cy.get(`[data-componentid="${id}"]`).findByRole('button', { name: /Endre/ }).clickAndGone();
+    const back = () => cy.findByRole('button', { name: 'Tilbake til oppsummering' });
+
+    summary();
+    // All-page validation reveals future errors but still lets the user return to reach them.
+    cy.findByRole('link', { name: 'Se informasjon med returknapp' }).clickAndGone();
+    back().click();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).should('be.visible');
+
+    // A legacy Summary and linkToPage both inherit the task's return validation.
+    edit('Summary-OUQOpH');
+    back().click();
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('be.visible');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
+    back().click();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Fornavn/ }).clear();
+    back().click();
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('be.visible');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
+    back().click();
+
+    // Summary2 and linkToComponent use component Next before the page's disabled return setting.
+    edit('Summary-0y5P1Z');
+    back().click();
+    cy.findByRole('textbox', { name: /Alder/ }).should('be.visible');
+    cy.findByRole('textbox', { name: /Alder/ }).type('42');
+    back().click();
+    cy.findByRole('link', { name: 'Rediger alder via lenke' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Alder/ }).should('be.focused');
+    cy.findByRole('textbox', { name: /Alder/ }).clear();
+    back().click();
+    cy.findByRole('textbox', { name: /Alder/ }).type('42');
+    back().click();
+
+    // The lastname page explicitly opts out, including when errors are already visible.
+    edit('Summary-8fAUjk');
+    back().click();
+    edit('Summary-8fAUjk');
+    cy.findByRole('textbox', { name: /Etternavn/ }).should('have.value', '');
+    cy.get('#lastname-validations').should('be.visible');
+    back().click();
+
+    // A visibility change outside extra -> summary keeps the shortcut.
+    edit('summary-extra');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    back().click();
+    // Hiding an intervening page resets it permanently, even after undoing the answer.
+    edit('summary-extra');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    back().should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    // Starting a new edit while the page is hidden also resets when that page reappears.
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    summary();
+    edit('summary-extra');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    summary();
+    // The same reset applies to a link return without moving focus away from the edited field.
+    cy.findByRole('link', { name: 'Rediger sidevalg via lenke' }).clickAndGone();
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    back().should('not.exist');
+    cy.url().should('not.include', 'backToPage=');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
+    summary();
+    edit('summary-extra');
+    cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).check();
+    back().should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+  });
+
   it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();

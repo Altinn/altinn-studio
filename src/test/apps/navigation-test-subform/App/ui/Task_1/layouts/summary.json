@@ -4,6 +4,31 @@
     "hidden": ["commaContains", ["dataModel", "extra"], "summary"],
     "layout": [
       {
+        "id": "summary-extra",
+        "type": "Summary2",
+        "target": { "type": "component", "id": "extra" }
+      },
+      {
+        "id": "edit-firstname-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Rediger fornavn via lenke", "firstname", true] }
+      },
+      {
+        "id": "edit-age-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToComponent", "Rediger alder via lenke", "age", true] }
+      },
+      {
+        "id": "edit-extra-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Rediger sidevalg via lenke", "extra", true] }
+      },
+      {
+        "id": "edit-info-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Se informasjon med returknapp", "info2", true] }
+      },
+      {
         "componentRef": "firstname",
         "id": "Summary-OUQOpH",
         "type": "Summary"
@@ -14,9 +39,9 @@
         "type": "Summary"
       },
       {
-        "componentRef": "age",
+        "target": { "type": "component", "id": "age" },
         "id": "Summary-0y5P1Z",
-        "type": "Summary"
+        "type": "Summary2"
       },
       {
         "componentRef": "birthday",

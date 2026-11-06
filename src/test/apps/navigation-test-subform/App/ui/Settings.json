@@ -1,4 +1,5 @@
 {
+  "validateOnBackToSummary": { "page": "current", "show": [] },
   "taskNavigation": [
     {
       "name": "tasks.form",
