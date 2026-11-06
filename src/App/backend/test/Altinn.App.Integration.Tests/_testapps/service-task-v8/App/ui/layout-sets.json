@@ -1,0 +1,52 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout-sets.schema.v1.json",
+  "sets": [
+    {
+      "id": "form",
+      "dataType": "model",
+      "tasks": [
+        "Task_Utfylling1"
+      ]
+    },
+    {
+      "id": "Utfylling_2",
+      "dataType": "Model2",
+      "tasks": [
+        "Task_Utfylling2"
+      ]
+    },
+    {
+      "id": "Pdf",
+      "dataType": "model",
+      "tasks": [
+        "Task_PDF_Layout"
+      ]
+    },
+    {
+      "id": "Fail",
+      "dataType": "model",
+      "tasks": [
+        "Task_Fail"
+      ]
+    },
+    {
+      "id": "TestSubform",
+      "dataType": "SubformModel"
+    }
+  ],
+  "uiSettings": {
+    "taskNavigation": [
+      {
+        "taskId": "Task_Utfylling1",
+        "name": "Utfylling 1"
+      },
+      {
+        "taskId": "Task_Utfylling2",
+        "name": "Utfylling 2"
+      },
+      {
+        "type": "receipt"
+      }
+    ]
+  }
+}

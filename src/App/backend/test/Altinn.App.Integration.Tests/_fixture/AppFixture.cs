@@ -65,8 +65,12 @@ public sealed partial class AppFixture : IAsyncDisposable
     /// </summary>
     internal string AppProjectDirectory => Path.Join(_generatedAppDirectory, "App");
     private readonly bool _isClassFixture;
+    private readonly IReadOnlyDictionary<string, string>? _environmentVariables;
     private readonly StudioctlEnvironmentLease _studioctlEnvironmentLease;
     private StudioctlAppProcess _appProcess;
+
+    // Processes stopped by UpgradeTo, kept so their logs can still be dumped when a test fails.
+    private readonly List<StudioctlAppProcess> _previousAppProcesses = [];
 
     internal ScopedVerifier ScopedVerifier { get; private set; }
 
@@ -94,6 +98,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         string generatedAppDirectory,
         string fixtureConfigurationPath,
         bool isClassFixture,
+        IReadOnlyDictionary<string, string>? environmentVariables,
         StudioctlEnvironmentLease studioctlEnvironmentLease,
         StudioctlAppProcess appProcess
     )
@@ -109,6 +114,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         _generatedAppDirectory = generatedAppDirectory;
         _fixtureConfigurationPath = fixtureConfigurationPath;
         _isClassFixture = isClassFixture;
+        _environmentVariables = environmentVariables;
         _studioctlEnvironmentLease = studioctlEnvironmentLease;
         _appProcess = appProcess;
         ScopedVerifier = new ScopedVerifier(this);
@@ -197,6 +203,7 @@ public sealed partial class AppFixture : IAsyncDisposable
                 generatedAppDirectory,
                 fixtureConfigurationPath,
                 isClassFixture,
+                environmentVariables,
                 studioctlEnvironmentLease,
                 appProcess
             );
@@ -507,6 +514,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             static relativePath =>
                 ContainsPathSegment(relativePath, "_packages")
                 || ContainsPathSegment(relativePath, "_shared")
+                || ContainsPathSegment(relativePath, "_shared-v8")
                 || ContainsPathSegment(relativePath, "bin")
                 || ContainsPathSegment(relativePath, "obj")
         );
@@ -668,23 +676,27 @@ public sealed partial class AppFixture : IAsyncDisposable
         await _studioctlEnvironmentLease.DisposeAsync();
     }
 
-    internal Task LogAppLogs(CancellationToken cancellationToken = default) =>
-        LogAppLogs(_logger, _appProcess, cancellationToken);
+    internal async Task LogAppLogs(CancellationToken cancellationToken = default)
+    {
+        _logger.LogError(
+            "Localtest is managed by studioctl. Run 'studioctl env logs --follow=false' for localtest logs."
+        );
+        // An upgraded fixture has run more than one app process, so log the earlier versions too.
+        foreach (var previousAppProcess in _previousAppProcesses)
+            await LogAppLogs(_logger, previousAppProcess, "App logs (before upgrade)", cancellationToken);
+        await LogAppLogs(_logger, _appProcess, "App logs", cancellationToken);
+    }
 
     private static async Task LogAppLogs(
         ILogger logger,
         StudioctlAppProcess appProcess,
+        string title,
         CancellationToken cancellationToken
     )
     {
-        logger.LogError(
-            "Localtest is managed by studioctl. Run 'studioctl env logs --follow=false' for localtest logs."
-        );
-        {
-            var logLines = await appProcess.GetLogLines(startLine: 0, cancellationToken);
-            var logs = string.Join("\n", logLines);
-            logger.LogError("App logs:\n{Logs}", logs);
-        }
+        var logLines = await appProcess.GetLogLines(startLine: 0, cancellationToken);
+        var logs = string.Join("\n", logLines);
+        logger.LogError("{Title}:\n{Logs}", title, logs);
     }
 
     private static string GetAppDir(string name)
@@ -884,18 +896,23 @@ public sealed partial class AppFixture : IAsyncDisposable
 
     private static async Task SyncShared(string appDirectory, CancellationToken cancellationToken)
     {
-        var sharedDirectory = Path.Join(_projectDirectory, "_testapps", "_shared");
-        var appSharedDirectory = Path.Join(appDirectory, "_shared");
-        if (Directory.Exists(appSharedDirectory))
-            Directory.Delete(appSharedDirectory, true);
-        Directory.CreateDirectory(appSharedDirectory);
-        foreach (var file in Directory.GetFiles(sharedDirectory))
+        // _shared-v8 holds the v8 variants of shared files, for test apps that run a released v8 version of the
+        // app libraries. Each test app's csproj decides which of the two folders it compiles.
+        foreach (var folderName in (string[])["_shared", "_shared-v8"])
         {
-            var fileName = Path.GetFileName(file);
-            var destFile = Path.Join(appSharedDirectory, fileName);
-            await using var source = File.OpenRead(file);
-            await using var destination = File.Create(destFile);
-            await source.CopyToAsync(destination, cancellationToken);
+            var sharedDirectory = Path.Join(_projectDirectory, "_testapps", folderName);
+            var appSharedDirectory = Path.Join(appDirectory, folderName);
+            if (Directory.Exists(appSharedDirectory))
+                Directory.Delete(appSharedDirectory, true);
+            Directory.CreateDirectory(appSharedDirectory);
+            foreach (var file in Directory.GetFiles(sharedDirectory))
+            {
+                var fileName = Path.GetFileName(file);
+                var destFile = Path.Join(appSharedDirectory, fileName);
+                await using var source = File.OpenRead(file);
+                await using var destination = File.Create(destFile);
+                await source.CopyToAsync(destination, cancellationToken);
+            }
         }
     }
 }

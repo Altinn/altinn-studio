@@ -1,0 +1,12 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": [
+      "om-selskapet",
+      "stiftere-og-aksjetegning",
+      "aksjekapital",
+      "styre-og-revisjon",
+      "signering-av-stiftelsesdok"
+    ]
+  }
+}
