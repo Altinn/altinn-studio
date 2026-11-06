@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ErrorMetric } from 'admin/features/apps/types/metrics/ErrorMetric';
 import { errorMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { getResource } from 'admin/features/apps/utils/getResource';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 
 export const useErrorMetricsQuery = (
   org: string,
@@ -14,7 +14,7 @@ export const useErrorMetricsQuery = (
   return useQuery<ErrorMetric[]>({
     queryKey: [QueryKey.ErrorMetrics, org, env, range],
     queryFn: async ({ signal }) =>
-      await getResource<ErrorMetric[]>(errorMetricsPath(org, env, range), { signal }),
+      await getAdminResource<ErrorMetric[]>(errorMetricsPath(org, env, range), { signal }),
     meta,
   });
 };

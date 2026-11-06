@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { AppHealthMetric } from 'admin/features/apps/types/metrics/AppHealthMetric';
 import { appHealthMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { getResource } from 'admin/features/apps/utils/getResource';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 
 export const useAppHealthMetricsQuery = (
   org: string,
@@ -14,7 +14,7 @@ export const useAppHealthMetricsQuery = (
   return useQuery<AppHealthMetric[]>({
     queryKey: [QueryKey.AppHealthMetrics, org, env, app],
     queryFn: async ({ signal }) =>
-      await getResource<AppHealthMetric[]>(appHealthMetricsPath(org, env, app), { signal }),
+      await getAdminResource<AppHealthMetric[]>(appHealthMetricsPath(org, env, app), { signal }),
     meta,
   });
 };
