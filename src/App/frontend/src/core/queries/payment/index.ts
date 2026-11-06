@@ -9,7 +9,11 @@ import {
   useRefetchOrderDetails,
 } from 'src/core/queries/payment/OrderDetailsProvider';
 import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
-import { PaymentInformationProvider, usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
+import {
+  PaymentInformationProvider,
+  usePaymentInformation,
+  useRefetchPaymentInformation,
+} from 'src/core/queries/payment/PaymentInformationProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {
@@ -46,6 +50,7 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
 export {
   PaymentInformationProvider,
   usePaymentInformation,
+  useRefetchPaymentInformation,
   OrderDetailsProvider,
   useOrderDetails,
   useRefetchOrderDetails,

@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -58,3 +58,15 @@ const { Provider, useCtx } = delayedContext(() =>
 
 export const PaymentInformationProvider = Provider;
 export const usePaymentInformation = () => useCtx();
+
+/**
+ * Fetches the payment information again. The backend asks the payment processor for the status, and stores it.
+ */
+export function useRefetchPaymentInformation() {
+  const instanceId = useLaxInstanceId();
+  const queryClient = useQueryClient();
+  return useCallback(
+    () => queryClient.invalidateQueries({ queryKey: paymentQueryKeys.informationForInstance(instanceId) }),
+    [instanceId, queryClient],
+  );
+}
