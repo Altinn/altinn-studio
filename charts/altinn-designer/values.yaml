@@ -109,6 +109,8 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
+    - name: PreviewServiceSettings__InternalBaseUrl
+      value: http://altinn-preview-internal
     - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
@@ -207,6 +209,8 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
+    - name: PreviewServiceSettings__InternalBaseUrl
+      value: http://altinn-preview-internal
     - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
@@ -303,6 +307,8 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
+    - name: PreviewServiceSettings__InternalBaseUrl
+      value: http://altinn-preview-internal
     - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:

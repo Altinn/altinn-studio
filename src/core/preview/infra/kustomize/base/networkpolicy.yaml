@@ -1,0 +1,63 @@
+# The internal port starts a session for whichever developer the caller names, so only Designer reaches it. Browsers
+# reach the public port through the load balancer.
+#
+# Egress is limited too: preview runs content from app repositories, so if that content ever got code running in the
+# service, it should reach nothing but the service's own Redis.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-preview
+spec:
+  podSelector:
+    matchLabels:
+      run: altinn-preview
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              run: altinn-designer
+      ports:
+        - protocol: TCP
+          port: 8081
+    - from:
+        - podSelector:
+            matchLabels:
+              run: altinn-loadbalancer
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              run: altinn-preview-redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Telemetry, to the router collector.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-router
+      ports:
+        - protocol: TCP
+          port: 4317
+    # Cluster DNS: CoreDNS in kube-system, behind the kube-dns Service.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
