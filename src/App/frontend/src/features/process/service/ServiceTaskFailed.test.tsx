@@ -5,16 +5,13 @@ import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-vi.mock('src/queries/queries', async () => ({
-  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
-  doProcessNext: vi.fn(),
-  doProcessResume: vi.fn(),
-}));
+const doProcessNext = vi.fn<AppMutations['doProcessNext']>();
+const doProcessResume = vi.fn<AppMutations['doProcessResume']>();
 
 function getServiceTaskInstance(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -34,11 +31,8 @@ async function renderServiceTask(workflow?: IProcessWorkflow, after?: IInstanceW
   await renderWithInstanceAndLayout({
     renderer: () => <ServiceTaskFailed />,
     taskId: 'Task_Service',
-    apis: {
-      instanceApi: {
-        getInstance: async () => (mutated && after ? after : getServiceTaskInstance(workflow)),
-      },
-    },
+    queries: { getInstance: async () => (mutated && after ? after : getServiceTaskInstance(workflow)) },
+    mutations: { doProcessNext, doProcessResume },
   });
   return {
     markMutated: () => {

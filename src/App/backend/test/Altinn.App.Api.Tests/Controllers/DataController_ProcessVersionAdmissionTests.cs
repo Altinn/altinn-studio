@@ -1,15 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -80,7 +77,13 @@ public class DataControllerProcessVersionAdmissionTests : ApiTestBase, IClassFix
             [
                 new(
                     _dataGuid,
-                    new JsonPatch(PatchOperation.Replace(JsonPointer.Create("Navn"), JsonValue.Create("Updated name")))
+                    JsonPatchOperation.ParseList(
+                        """
+                        [
+                            { "op": "replace", "path": "/Navn", "value": "Updated name" }
+                        ]
+                        """
+                    )
                 ),
             ],
         };

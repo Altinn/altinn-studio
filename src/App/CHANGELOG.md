@@ -10,11 +10,29 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
+
 ### Changed
 
+- Breaking: the data patch API in `Altinn.App.Api` no longer exposes JsonPatch.Net: ([#21762](https://github.com/Altinn/altinn-studio/pull/21762))
+  - `DataPatchRequest.Patch` and `PatchListItem.Patch` are a `List<JsonPatchOperation>`, built with `JsonPatchOperation.ParseList`
+  - `InternalPatchService` and `DataPatchResult` are internal, and the controller constructors no longer take the service
+  - `move`, `copy` and `#`-prefixed paths get `400 Bad Request`, and a failed `test` has a new `detail` text
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+
+### Fixed
+
+- Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
+- When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+
+### Removed
+
+- Breaking: `GET .../data/{dataGuid}/validate` is removed, with `ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask`, the issue code only it returned, and `Altinn.App.Core.Models.Validation.ValidationException`, which only it threw. Call `GET .../instances/{instanceOwnerPartyId}/{instanceGuid}/validate` instead, with the appropriate query parameters. ([#21783](https://github.com/Altinn/altinn-studio/pull/21783))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

@@ -22,17 +22,6 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
-  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
-  useTextResources: vi.fn(() => ({
-    'option.label': { value: 'Value to be shown' },
-    'button.open': { value: 'New open text' },
-    'button.close': { value: 'New close text' },
-    'button.save': { value: 'New save text' },
-  })),
-}));
-
 const mockContainer = getFormLayoutRepeatingGroupMock({
   id: 'myGroup',
   maxCount: 5,
@@ -46,6 +35,13 @@ interface IRender {
 }
 
 async function render({ container, numRows = 3, validationIssues = [], onServiceTaskPage = false }: IRender = {}) {
+  window.altinnAppGlobalData.textResources!.resources = [
+    { id: 'option.label', value: 'Value to be shown' },
+    { id: 'button.open', value: 'New open text' },
+    { id: 'button.close', value: 'New close text' },
+    { id: 'button.save', value: 'New save text' },
+  ];
+
   const mockComponents: ILayout = [
     {
       id: 'field1',
@@ -120,6 +116,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
       </RepeatingGroupProvider>
     ),
     queries: {
+      ...(onServiceTaskPage ? { getInstance: getInstanceAtServiceTask } : undefined),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = {
@@ -139,7 +136,6 @@ async function render({ container, numRows = 3, validationIssues = [], onService
           obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
         }),
     },
-    apis: onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined,
   });
 }
 

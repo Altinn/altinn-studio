@@ -1,0 +1,65 @@
+{
+  "name": "Norwegian locale",
+  "disabledBackend": true,
+  "profileSettings": {
+    "language": "nb"
+  },
+  "testCases": [
+    {
+      "name": "Currency defaults to a prefix",
+      "expression": ["formatNumber", 10000, ["object", "currency", "NOK"]],
+      "expects": "kr 10 000"
+    },
+    {
+      "name": "Currency can be a suffix",
+      "expression": ["formatNumber", 10000, ["object", "currency", "NOK", "position", "suffix"]],
+      "expects": "10 000 kr"
+    },
+    {
+      "name": "Unit defaults to a suffix",
+      "expression": ["formatNumber", 10000.5, ["object", "unit", "kilogram"]],
+      "expects": "10 000,5 kg"
+    },
+    {
+      "name": "Unit can be a prefix",
+      "expression": ["formatNumber", 10000.5, ["object", "unit", "kilogram", "position", "prefix"]],
+      "expects": "kg 10 000,5"
+    },
+    {
+      "name": "Explicit number options override language defaults",
+      "expression": [
+        "formatNumber",
+        10000.5,
+        [
+          "object",
+          "currency",
+          "NOK",
+          "number",
+          [
+            "object",
+            "prefix",
+            "custom ",
+            "thousandSeparator",
+            "_",
+            "decimalSeparator",
+            ".",
+            "decimalScale",
+            2,
+            "fixedDecimalScale",
+            true
+          ]
+        ]
+      ],
+      "expects": "custom 10_000.50"
+    },
+    {
+      "name": "Partial overrides preserve currency defaults",
+      "expression": [
+        "formatNumber",
+        0,
+        ["object", "currency", "NOK", "position", "suffix", "number", ["object", "decimalScale", 0]]
+      ],
+      "expects": "0 kr"
+    }
+  ]
+}

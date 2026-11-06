@@ -25,7 +25,7 @@ internal static class DeployEndpoints
             .WithName("GetRunningAppDeployment")
             .WithSummary("Get the running App deployment.")
             .WithDescription(
-                "Endpoint to get the version of an app that runs in the cluster, whichever Studio environment deployed it."
+                "Endpoint to get the version of an app that runs in the cluster, whichever Studio environment deployed it. Returns 204 when the app does not run in the cluster."
             );
 
         deployApi

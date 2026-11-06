@@ -19,6 +19,8 @@ internal static class SwaggerFilterExtensions
         services.Configure<SwaggerGenOptions>(c =>
         {
             c.SupportNonNullableReferenceTypes();
+            // JsonPatchOperation has a custom converter, so describe its wire format instead of its properties.
+            c.MapType<JsonPatchOperation>(JsonPatchOperation.OpenApiSchema);
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();

@@ -142,19 +142,17 @@ describe('SummaryComponent', () => {
       renderer: <SummaryComponent summaryBaseId='mySummary' />,
       initialPage: currentPageId,
       queries: {
+        ...(onServiceTaskPage
+          ? {
+              getInstance: async () => getInstanceAtServiceTaskMock(),
+            }
+          : undefined),
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.layouts = layout;
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
       },
-      apis: onServiceTaskPage
-        ? {
-            instanceApi: {
-              getInstance: async () => getInstanceAtServiceTaskMock(),
-            },
-          }
-        : undefined,
     });
   };
 });

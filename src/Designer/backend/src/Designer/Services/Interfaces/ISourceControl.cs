@@ -85,8 +85,13 @@ public interface ISourceControl
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The name of the branch</param>
+    /// <param name="localPath">Path to local clone of repository</param>
     /// <exception cref="Exceptions.SourceControl.BranchNotFoundException">The remote has no such branch.</exception>
-    void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+    void ResetToRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName,
+        string localPath
+    );
 
     /// <summary>
     /// List Git status for an app repo

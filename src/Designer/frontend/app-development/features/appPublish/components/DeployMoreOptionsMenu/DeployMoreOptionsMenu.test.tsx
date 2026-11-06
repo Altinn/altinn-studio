@@ -29,9 +29,7 @@ describe('DeployMoreOptionsMenu', () => {
     const listItems = screen.getAllByRole('listitem');
     expect(listItems).toHaveLength(2);
 
-    expect(
-      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
-    ).toBeInTheDocument();
+    expect(getMenuUndeployButton()).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.more_options_menu'))).toBeInTheDocument();
   });
 
@@ -43,42 +41,46 @@ describe('DeployMoreOptionsMenu', () => {
     expect(listItems).toHaveLength(2);
   });
 
-  it('should open dialog if undeploy is clicked', async () => {
+  it('opens the unpublish dialog when the user chooses to unpublish', async () => {
     const user = userEvent.setup();
     renderMenu();
     await openMenu();
 
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
-    );
+    await user.click(getMenuUndeployButton());
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('app_deployment.unpublish_consequence_dialog_title'),
-      }),
-    ).toBeInTheDocument();
+    expect(getUndeployDialog()).toBeInTheDocument();
   });
 
   it('closes the unpublish dialog when the user closes it', async () => {
     const user = userEvent.setup();
     renderMenu();
     await openMenu();
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
-    );
-    // Named by its title, so screen readers announce what it is about.
-    const dialog = screen.getByRole('dialog', {
-      name: textMock('app_deployment.unpublish_consequence_dialog_title'),
-    });
+    await user.click(getMenuUndeployButton());
 
-    await user.click(within(dialog).getByRole('button', { name: /lukk/i }));
+    await user.click(within(getUndeployDialog()).getByRole('button', { name: /lukk/i }));
 
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('app_deployment.unpublish_consequence_dialog_title'),
-      }),
-    ).not.toBeInTheDocument();
+    expect(queryUndeployDialog()).not.toBeInTheDocument();
     // The menu item that opened it went with the menu, so focus goes back to the menu.
+    expect(getMenuTrigger()).toHaveFocus();
+  });
+
+  it('closes the unpublish dialog once the app is unpublished', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await openMenu();
+    await user.click(getMenuUndeployButton());
+    await user.type(
+      screen.getByLabelText(textMock('app_deployment.undeploy_confirmation_input_label')),
+      app,
+    );
+
+    await user.click(
+      within(getUndeployDialog()).getByRole('button', {
+        name: textMock('app_deployment.undeploy_button'),
+      }),
+    );
+
+    expect(queryUndeployDialog()).not.toBeInTheDocument();
     expect(getMenuTrigger()).toHaveFocus();
   });
 
@@ -201,6 +203,13 @@ const getRestartButton = () =>
 
 const queryRestartButton = () =>
   screen.queryByRole('button', { name: textMock('app_deployment.restart_button') });
+
+const getMenuUndeployButton = () =>
+  screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') });
+
+const undeployDialogName = textMock('app_deployment.undeploy_dialog_title', { envTitle: 'TT02' });
+const getUndeployDialog = () => screen.getByRole('dialog', { name: undeployDialogName });
+const queryUndeployDialog = () => screen.queryByRole('dialog', { name: undeployDialogName });
 
 function getMenuTrigger(): HTMLElement {
   return screen.getByRole('button', {
