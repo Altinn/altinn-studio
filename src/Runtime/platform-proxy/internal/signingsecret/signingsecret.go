@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opentelemetry.io/otel/metric"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
@@ -38,6 +39,9 @@ const (
 	requestTimeout = 10 * time.Second
 )
 
+// metricCertificateExpiry is the gauge RegisterMetrics reports.
+const metricCertificateExpiry = "altinn.platform_proxy.signing_certificate.expiry"
+
 var errMissingKey = errors.New("the Secret has no " + Key)
 
 // Watcher reads the certificate from the Secret into an issuer.
@@ -47,8 +51,12 @@ type Watcher struct {
 	issuer  *accesstoken.Issuer
 	// lastError is the last failure logged at WARN, so a lasting failure is logged once.
 	lastError string
-	// keyID is the certificate the issuer has from the watcher.
-	keyID string
+	// keyID is the certificate the issuer signs with, and pendingKeyID one in the Secret that is not valid
+	// yet, so each is logged once.
+	keyID        string
+	pendingKeyID string
+	// expiredLogged is whether the issuer's certificate has been logged as expired.
+	expiredLogged bool
 }
 
 // NewWatcher returns a watcher that reads the Secret through secrets into issuer.
@@ -95,8 +103,17 @@ func (w *Watcher) Load(ctx context.Context) error {
 		return fmt.Errorf("read Secret %s/%s: %w", Namespace, Name, err)
 	}
 
-	w.issuer.SetCredentials(credentials)
-	if credentials.KeyID() != w.keyID {
+	if !w.issuer.SetCredentials(credentials) {
+		if credentials.KeyID() != w.pendingKeyID {
+			w.pendingKeyID = credentials.KeyID()
+			w.logger.InfoContext(
+				ctx,
+				"The Secret has a certificate that is not valid yet, signing with the current one until it is",
+				attr.SigningKeyID, credentials.KeyID(),
+				attr.SigningKeyNotBefore, credentials.NotBefore(),
+			)
+		}
+	} else if credentials.KeyID() != w.keyID {
 		w.keyID = credentials.KeyID()
 		w.logger.InfoContext(
 			ctx,
@@ -104,6 +121,44 @@ func (w *Watcher) Load(ctx context.Context) error {
 			attr.SigningKeyID, credentials.KeyID(),
 			attr.SigningKeyNotAfter, credentials.NotAfter(),
 		)
+	}
+	w.checkExpiry(ctx)
+	return nil
+}
+
+// checkExpiry logs once when the issuer's certificate has expired. The proxy keeps signing with it: without a
+// token the platform rejects the request too, and requests that carry the app's own token still work.
+func (w *Watcher) checkExpiry(ctx context.Context) {
+	notAfter, ok := w.issuer.NotAfter()
+	expired := ok && time.Now().After(notAfter)
+	if expired && !w.expiredLogged {
+		w.logger.ErrorContext(
+			ctx,
+			"The certificate the proxy signs platform access tokens with has expired, and the platform rejects them",
+			attr.SigningKeyID, w.keyID,
+			attr.SigningKeyNotAfter, notAfter,
+		)
+	}
+	w.expiredLogged = expired
+}
+
+// RegisterMetrics reports when issuer's certificate expires, for an alert well before it does.
+func RegisterMetrics(meter metric.Meter, issuer *accesstoken.Issuer) error {
+	_, err := meter.Float64ObservableGauge(
+		metricCertificateExpiry,
+		metric.WithUnit("s"),
+		metric.WithDescription(
+			"When the certificate the proxy signs platform access tokens with expires, in Unix seconds.",
+		),
+		metric.WithFloat64Callback(func(_ context.Context, observer metric.Float64Observer) error {
+			if notAfter, ok := issuer.NotAfter(); ok {
+				observer.Observe(float64(notAfter.Unix()))
+			}
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("register %s: %w", metricCertificateExpiry, err)
 	}
 	return nil
 }

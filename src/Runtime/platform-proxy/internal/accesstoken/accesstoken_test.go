@@ -148,7 +148,56 @@ func TestSetCredentials(t *testing.T) {
 	verify(t, mustToken(t, issuer), &otherKey.PublicKey)
 }
 
+func TestSetCredentialsWaitsForAReplacementToBeValid(t *testing.T) {
+	now := time.Unix(1_800_000_000, 0)
+	issuer := NewIssuer("ttd")
+	issuer.now = func() time.Time { return now }
+	currentKey, current := newCertificateValid(t, now.Add(-time.Hour), now.Add(time.Hour))
+	nextKey, next := newCertificateValid(t, now.Add(10*time.Minute), now.Add(24*time.Hour))
+	if !issuer.SetCredentials(mustCredentials(t, currentKey, current)) {
+		t.Fatal("the first credentials were not used")
+	}
+
+	if issuer.SetCredentials(mustCredentials(t, nextKey, next)) {
+		t.Error("credentials that are not valid yet replaced valid ones")
+	}
+	verify(t, mustToken(t, issuer), &currentKey.PublicKey)
+
+	now = now.Add(10 * time.Minute)
+	if !issuer.SetCredentials(mustCredentials(t, nextKey, next)) {
+		t.Error("credentials that have become valid were not used")
+	}
+	verify(t, mustToken(t, issuer), &nextKey.PublicKey)
+}
+
+func TestSetCredentialsReplacesExpired(t *testing.T) {
+	now := time.Unix(1_800_000_000, 0)
+	issuer := NewIssuer("ttd")
+	issuer.now = func() time.Time { return now }
+	expiredKey, expired := newCertificateValid(t, now.Add(-2*time.Hour), now.Add(-time.Hour))
+	nextKey, next := newCertificateValid(t, now.Add(10*time.Minute), now.Add(24*time.Hour))
+	issuer.SetCredentials(mustCredentials(t, expiredKey, expired))
+
+	// Expired credentials still sign: the platform rejects the token either way, and the proxy stays ready
+	// for requests that carry the app's own.
+	if !issuer.Ready() {
+		t.Error("the issuer is not ready with expired credentials")
+	}
+	if notAfter, ok := issuer.NotAfter(); !ok || !notAfter.Equal(expired.NotAfter) {
+		t.Errorf("NotAfter() = %v, %v, want %v", notAfter, ok, expired.NotAfter)
+	}
+
+	if !issuer.SetCredentials(mustCredentials(t, nextKey, next)) {
+		t.Error("credentials that are not valid yet did not replace expired ones")
+	}
+}
+
 func newCertificate(t *testing.T) (*rsa.PrivateKey, *x509.Certificate) {
+	t.Helper()
+	return newCertificateValid(t, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
+}
+
+func newCertificateValid(t *testing.T, notBefore, notAfter time.Time) (*rsa.PrivateKey, *x509.Certificate) {
 	t.Helper()
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -157,8 +206,8 @@ func newCertificate(t *testing.T) (*rsa.PrivateKey, *x509.Certificate) {
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject:      pkix.Name{CommonName: "ttd"},
-		NotBefore:    time.Now().Add(-time.Hour),
-		NotAfter:     time.Now().Add(time.Hour).Truncate(time.Second),
+		NotBefore:    notBefore.Truncate(time.Second),
+		NotAfter:     notAfter.Truncate(time.Second),
 	}
 	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
 	if err != nil {

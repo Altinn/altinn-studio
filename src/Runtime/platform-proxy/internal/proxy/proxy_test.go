@@ -1,7 +1,13 @@
 package proxy
 
 import (
+	"bufio"
+	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -14,13 +20,16 @@ import (
 
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"altinn.studio/platform-proxy/internal/accesstoken"
 )
 
-// TestMain records spans, so the proxy has a trace context to pass on.
+// spans records the spans the proxy ends. A recording provider also gives the proxy a trace context to pass on.
+var spans = tracetest.NewSpanRecorder()
+
 func TestMain(m *testing.M) {
-	otel.SetTracerProvider(sdktrace.NewTracerProvider())
+	otel.SetTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)))
 	os.Exit(m.Run())
 }
 
@@ -226,4 +235,186 @@ func assertProblem(t *testing.T, w *httptest.ResponseRecorder, status int) {
 	if problem.Status != status {
 		t.Errorf("problem status = %d, want %d", problem.Status, status)
 	}
+}
+
+func TestTokenHeaderValues(t *testing.T) {
+	tests := map[string]struct {
+		sent      []string
+		want      []string
+		wantIssue bool
+	}{
+		"none":                {sent: nil, want: []string{"signed-token"}, wantIssue: true},
+		"empty":               {sent: []string{""}, want: []string{"signed-token"}, wantIssue: true},
+		"the app's":           {sent: []string{"apps-token"}, want: []string{"apps-token"}},
+		"empty and the app's": {sent: []string{"", "apps-token"}, want: []string{"", "apps-token"}},
+		"two of the app's":    {sent: []string{"a", "b"}, want: []string{"a", "b"}},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			up := newUpstream(t)
+			issuer := &fakeIssuer{token: "signed-token"}
+			p := newProxy(t, up.URL, issuer)
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/storage/api/v1/applications", nil)
+			for _, value := range tt.sent {
+				r.Header.Add(accesstoken.Header, value)
+			}
+
+			p.ServeHTTP(httptest.NewRecorder(), r)
+
+			got := up.request.Header.Values(accesstoken.Header)
+			if strings.Join(got, "|") != strings.Join(tt.want, "|") || len(got) != len(tt.want) {
+				t.Errorf("upstream got %q, want %q", got, tt.want)
+			}
+			if (issuer.calls > 0) != tt.wantIssue {
+				t.Errorf("issued %d tokens, want an issued token: %v", issuer.calls, tt.wantIssue)
+			}
+			if values := r.Header.Values(accesstoken.Header); len(values) != len(tt.sent) {
+				t.Errorf("the app's request was changed to %q", values)
+			}
+		})
+	}
+}
+
+func TestRejectsTokenAsHopByHopHeader(t *testing.T) {
+	up := newUpstream(t)
+	p := newProxy(t, up.URL, &fakeIssuer{token: "signed-token"})
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/storage/api/v1/instances", nil)
+	r.Header.Set("Connection", "keep-alive, platformaccesstoken")
+	r.Header.Set(accesstoken.Header, "apps-token")
+	w := httptest.NewRecorder()
+
+	p.ServeHTTP(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+	assertProblem(t, w, http.StatusBadRequest)
+	if up.request != nil {
+		t.Error("the request was forwarded")
+	}
+}
+
+// A transport error can quote the response, so the proxy must not log or record its message.
+func TestErrorsKeepResponseContentOutOfTelemetry(t *testing.T) {
+	const secret = "01017012345-secret-token"
+	address := serveRaw(t, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n"+secret+" is not a header\r\n\r\n")
+
+	// The transport's error does quote it, so the test would catch a leak.
+	resp, err := http.Get("http://" + address) //nolint:noctx // A plain client, to see the transport's error.
+	if err == nil {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Errorf("close response: %v", closeErr)
+		}
+		t.Fatal("the malformed response was accepted")
+	}
+	if !strings.Contains(err.Error(), secret) {
+		t.Fatalf("the transport's error no longer quotes the response, so this test checks nothing: %v", err)
+	}
+
+	var logs bytes.Buffer
+	target, err := url.Parse("http://" + address)
+	if err != nil {
+		t.Fatalf("parse address: %v", err)
+	}
+	p, err := New(slog.New(slog.NewTextHandler(&logs, nil)), target, &fakeIssuer{token: "signed-token"})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	p.ServeHTTP(w, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/register/api/v1/x", nil))
+
+	if w.Code != http.StatusBadGateway {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusBadGateway)
+	}
+	if strings.Contains(logs.String(), secret) || strings.Contains(w.Body.String(), secret) {
+		t.Errorf("the response's content reached the logs or the app:\n%s\n%s", logs.String(), w.Body.String())
+	}
+	for _, span := range spans.Ended() {
+		if strings.Contains(span.Status().Description, secret) ||
+			strings.Contains(fmt.Sprint(span.Attributes()), secret) {
+			t.Errorf("the response's content reached span %q", span.Name())
+		}
+	}
+}
+
+func TestClassify(t *testing.T) {
+	tests := map[string]struct {
+		err        error
+		wantType   string
+		wantStatus int
+	}{
+		"timeout": {
+			err:        &net.OpError{Op: "read", Err: timeoutError{}},
+			wantType:   errorUpstreamTimeout,
+			wantStatus: http.StatusGatewayTimeout,
+		},
+		"dial": {
+			err:        &net.OpError{Op: "dial", Err: errRefused},
+			wantType:   errorUpstreamUnreachable,
+			wantStatus: http.StatusBadGateway,
+		},
+		"certificate": {
+			err:        fmt.Errorf("tls: %w", &tls.CertificateVerificationError{Err: x509.UnknownAuthorityError{}}),
+			wantType:   errorUpstreamCertificate,
+			wantStatus: http.StatusBadGateway,
+		},
+		"other": {err: errMalformed, wantType: errorUpstreamFailed, wantStatus: http.StatusBadGateway},
+	}
+	for name, tt := range tests {
+		status, errorType := classify(tt.err)
+		if status != tt.wantStatus || errorType != tt.wantType {
+			t.Errorf("%s: classify = %d %q, want %d %q", name, status, errorType, tt.wantStatus, tt.wantType)
+		}
+	}
+}
+
+var (
+	errRefused   = errors.New("connection refused")
+	errMalformed = errors.New("malformed HTTP response")
+)
+
+type timeoutError struct{}
+
+func (timeoutError) Error() string   { return "timeout" }
+func (timeoutError) Timeout() bool   { return true }
+func (timeoutError) Temporary() bool { return true }
+
+// serveRaw answers every connection with response after reading the request's headers, and returns its address.
+func serveRaw(t *testing.T, response string) string {
+	t.Helper()
+	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := listener.Close(); err != nil {
+			t.Errorf("close listener: %v", err)
+		}
+	})
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			go func() {
+				defer func() {
+					if err := conn.Close(); err != nil {
+						t.Logf("close connection: %v", err)
+					}
+				}()
+				reader := bufio.NewReader(conn)
+				for {
+					line, err := reader.ReadString('\n')
+					if err != nil || line == "\r\n" {
+						break
+					}
+				}
+				if _, err := io.WriteString(conn, response); err != nil {
+					t.Logf("write response: %v", err)
+				}
+			}()
+		}
+	}()
+	return listener.Addr().String()
 }

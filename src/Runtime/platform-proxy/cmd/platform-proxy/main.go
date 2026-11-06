@@ -79,6 +79,9 @@ func run(logger *slog.Logger) error {
 	}
 
 	issuer := accesstoken.NewIssuer(cfg.serviceOwner)
+	if metricsErr := signingsecret.RegisterMetrics(telemetry.Meter(), issuer); metricsErr != nil {
+		return fmt.Errorf("start: %w", metricsErr)
+	}
 	watcherCtx, stopWatcher := context.WithCancel(context.Background())
 	defer stopWatcher()
 	go signingsecret.NewWatcher(log.NewComponent("signingsecret"), clientset.CoreV1(), issuer).Run(watcherCtx)

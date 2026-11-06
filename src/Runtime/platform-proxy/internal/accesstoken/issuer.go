@@ -46,15 +46,32 @@ func NewIssuer(serviceOwner string) *Issuer {
 	return &Issuer{issuer: serviceOwner, now: time.Now}
 }
 
-// SetCredentials makes the issuer sign with credentials from now on.
-func (i *Issuer) SetCredentials(credentials *Credentials) {
+// SetCredentials makes the issuer sign with credentials from now on, and reports whether it does. The
+// platform rejects a token whose certificate is outside its validity, so while credentials are not valid
+// yet, the issuer keeps the ones it has, unless those have expired.
+func (i *Issuer) SetCredentials(credentials *Credentials) bool {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 	if i.credentials != nil && i.credentials.keyID == credentials.keyID {
-		return
+		return true
+	}
+	now := i.now()
+	if i.credentials != nil && now.Before(credentials.notBefore) && now.Before(i.credentials.notAfter) {
+		return false
 	}
 	i.credentials = credentials
 	i.token = ""
+	return true
+}
+
+// NotAfter is when the certificate the issuer signs with expires, if it has one.
+func (i *Issuer) NotAfter() (time.Time, bool) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	if i.credentials == nil {
+		return time.Time{}, false
+	}
+	return i.credentials.notAfter, true
 }
 
 // Ready reports whether the issuer has credentials.

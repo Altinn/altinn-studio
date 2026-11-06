@@ -27,8 +27,9 @@ var (
 
 // Credentials are the private key and certificate that sign tokens.
 type Credentials struct {
-	notAfter time.Time
-	key      *rsa.PrivateKey
+	notBefore time.Time
+	notAfter  time.Time
+	key       *rsa.PrivateKey
 	// keyID is the certificate's SHA-1 thumbprint in uppercase hex, the kid .NET gives a token signed with
 	// an X509SigningCredentials.
 	keyID string
@@ -60,6 +61,7 @@ func newCredentials(key *rsa.PrivateKey, certificate *x509.Certificate) (*Creden
 		key:        key,
 		keyID:      strings.ToUpper(hex.EncodeToString(sum[:])),
 		thumbprint: base64.RawURLEncoding.EncodeToString(sum[:]),
+		notBefore:  certificate.NotBefore,
 		notAfter:   certificate.NotAfter,
 	}, nil
 }
@@ -67,6 +69,11 @@ func newCredentials(key *rsa.PrivateKey, certificate *x509.Certificate) (*Creden
 // KeyID identifies the certificate, as the kid of the tokens it signs. It is public, and safe to log.
 func (c *Credentials) KeyID() string {
 	return c.keyID
+}
+
+// NotBefore is when the certificate becomes valid.
+func (c *Credentials) NotBefore() time.Time {
+	return c.notBefore
 }
 
 // NotAfter is when the certificate expires.

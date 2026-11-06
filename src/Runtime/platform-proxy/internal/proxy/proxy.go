@@ -4,15 +4,19 @@ package proxy
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -34,7 +38,11 @@ const (
 	errorTokenUnavailable = "access_token_unavailable"
 	errorClientDropped    = "client_dropped"
 	errorUpstreamTimeout  = "upstream_timeout"
-	errorUpstreamFailed   = "upstream_failed"
+	// errorUpstreamUnreachable means the proxy could not connect to the platform.
+	errorUpstreamUnreachable = "upstream_unreachable"
+	// errorUpstreamCertificate means the platform's certificate did not verify.
+	errorUpstreamCertificate = "upstream_certificate"
+	errorUpstreamFailed      = "upstream_failed"
 	// errorResponseAborted means the upstream's response failed after its status was sent, so the app got a
 	// truncated response that the server aborted.
 	errorResponseAborted = "response_aborted"
@@ -67,15 +75,21 @@ func New(logger *slog.Logger, upstream *url.URL, issuer TokenIssuer) (*Proxy, er
 			// Sets the Host header to the platform's. ReverseProxy has already removed any X-Forwarded
 			// headers the app sent, and none are added: the platform has no use for pod addresses.
 			pr.SetURL(upstream)
+			// Set on the outgoing request, after ReverseProxy has removed the hop-by-hop headers, and
+			// replacing any empty values the app sent.
+			if token := requestFrom(pr.In.Context()).token; token != "" {
+				pr.Out.Header.Set(accesstoken.Header, token)
+			}
 			// Only the trace context, so the platform's spans join the request's trace. Baggage is sent
 			// as the app sent it.
 			propagation.TraceContext{}.Inject(pr.Out.Context(), propagation.HeaderCarrier(pr.Out.Header))
 		},
 		Transport:    newTransport(),
 		ErrorHandler: p.handleError,
-		// What ReverseProxy logs itself is about the connection to the app, such as an app that goes away
-		// during a download, so it is not something to act on.
-		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
+		// ReverseProxy's own messages quote errors that can hold the request or the response, such as a
+		// malformed trailer. What they report, a response cut off on the way to the app, is in the request's
+		// span and metrics as response_aborted.
+		ErrorLog: log.New(io.Discard, "", 0),
 	}
 	return p, nil
 }
@@ -101,12 +115,15 @@ func newTransport() *http.Transport {
 // request is what the proxy learns about a request while it handles it, for its span and metrics.
 type request struct {
 	start time.Time
-	err   error
+	// err is the proxy's own error, never one from the transport, whose message can hold request content.
+	err error
 	// accessToken is one of the attr.AccessToken* values, or empty if the proxy did not get that far.
 	accessToken string
-	errorType   string
-	method      string
-	route       string
+	// token is the token the proxy adds, if the app sent none.
+	token     string
+	errorType string
+	method    string
+	route     string
 }
 
 type requestKey struct{}
@@ -139,53 +156,85 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	if !p.addAccessToken(r, req) {
-		writeProblem(
-			ctx,
-			p.logger,
-			recorder,
-			http.StatusServiceUnavailable,
-			"The platform proxy cannot sign access tokens",
-		)
+	switch {
+	// ReverseProxy would remove the header the token is in, so the platform would get none.
+	case namesAccessTokenHopByHop(r.Header):
+		writeProblem(ctx, p.logger, recorder, http.StatusBadRequest,
+			"The Connection header must not name "+accesstoken.Header)
 		return
+	// A token the app sent is passed on as it is, even with more than one value, which the platform rejects:
+	// the app signs it with the same certificate, and may name itself in it.
+	case hasAccessToken(r.Header):
+		req.accessToken = attr.AccessTokenFromApp
+	default:
+		token, err := p.issuer.Token()
+		if err != nil {
+			req.errorType, req.err = errorTokenUnavailable, err
+			p.logger.ErrorContext(ctx, "Failed to issue a platform access token", attr.Error, err)
+			writeProblem(ctx, p.logger, recorder, http.StatusServiceUnavailable,
+				"The platform proxy cannot sign access tokens")
+			return
+		}
+		req.token, req.accessToken = token, attr.AccessTokenAdded
 	}
 	p.reverse.ServeHTTP(recorder, r)
 }
 
-// addAccessToken adds a platform access token to r if it has none, and reports whether r may be forwarded.
-// A token the app sent is kept: the app signs it with the same certificate, and may name itself in it.
-func (p *Proxy) addAccessToken(r *http.Request, req *request) bool {
-	if r.Header.Get(accesstoken.Header) != "" {
-		req.accessToken = attr.AccessTokenFromApp
-		return true
+// hasAccessToken reports whether header has a token that is not empty.
+func hasAccessToken(header http.Header) bool {
+	for _, value := range header.Values(accesstoken.Header) {
+		if value != "" {
+			return true
+		}
 	}
-	token, err := p.issuer.Token()
-	if err != nil {
-		req.errorType, req.err = errorTokenUnavailable, err
-		p.logger.ErrorContext(r.Context(), "Failed to issue a platform access token", attr.Error, err)
-		return false
-	}
-	r.Header.Set(accesstoken.Header, token)
-	req.accessToken = attr.AccessTokenAdded
-	return true
+	return false
 }
 
-// handleError answers a request that got no response from the platform.
+// namesAccessTokenHopByHop reports whether the Connection header names the token's header, which makes it a
+// hop-by-hop header that a proxy removes.
+func namesAccessTokenHopByHop(header http.Header) bool {
+	for _, value := range header.Values("Connection") {
+		for name := range strings.SplitSeq(value, ",") {
+			if strings.EqualFold(strings.TrimSpace(name), accesstoken.Header) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// handleError answers a request that got no response from the platform. It logs and records only what kind
+// of failure it was: the error's message can quote the request or the response, such as a malformed header.
 func (p *Proxy) handleError(w http.ResponseWriter, r *http.Request, err error) {
 	req := requestFrom(r.Context())
-	status, level, message := http.StatusBadGateway, slog.LevelError, "Failed to forward a request to the platform"
-	errorType := errorUpstreamFailed
-	var netErr net.Error
-	switch {
+	status, errorType := classify(err)
+	level, message := slog.LevelError, "Failed to forward a request to the platform"
 	// An app that gave up is not the proxy's error.
-	case r.Context().Err() != nil:
-		level, message, errorType = slog.LevelInfo, "The app gave up before the platform responded", errorClientDropped
-	case errors.As(err, &netErr) && netErr.Timeout():
-		status, errorType = http.StatusGatewayTimeout, errorUpstreamTimeout
+	if r.Context().Err() != nil {
+		status, errorType = http.StatusBadGateway, errorClientDropped
+		level, message = slog.LevelInfo, "The app gave up before the platform responded"
 	}
-	req.errorType, req.err = errorType, err
-	p.logger.Log(r.Context(), level, message, attr.HTTPRoute, req.route, attr.ErrorType, errorType, attr.Error, err)
+	req.errorType = errorType
+	p.logger.Log(r.Context(), level, message, attr.HTTPRoute, req.route, attr.ErrorType, errorType)
 	writeProblem(r.Context(), p.logger, w, status, "The platform did not respond")
+}
+
+// classify returns the status to answer and the error.type for err, a failure to get a response from the
+// platform.
+func classify(err error) (int, string) {
+	var netErr net.Error
+	var opErr *net.OpError
+	var certErr *tls.CertificateVerificationError
+	switch {
+	case errors.As(err, &netErr) && netErr.Timeout():
+		return http.StatusGatewayTimeout, errorUpstreamTimeout
+	case errors.As(err, &certErr):
+		return http.StatusBadGateway, errorUpstreamCertificate
+	case errors.As(err, &opErr) && opErr.Op == "dial":
+		return http.StatusBadGateway, errorUpstreamUnreachable
+	default:
+		return http.StatusBadGateway, errorUpstreamFailed
+	}
 }
 
 func (p *Proxy) record(ctx context.Context, span trace.Span, req *request, status int) {
@@ -236,6 +285,7 @@ func requestMethod(method string) string {
 	}
 }
 
+// problemDetails is an RFC 9457 problem. Its type is about:blank, so its title is the status's.
 type problemDetails struct {
 	Type   string `json:"type"`
 	Title  string `json:"title"`
@@ -247,7 +297,7 @@ func writeProblem(ctx context.Context, logger *slog.Logger, w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(problemDetails{
-		Type:   "https://tools.ietf.org/html/rfc9110#section-15.6",
+		Type:   "about:blank",
 		Title:  http.StatusText(status),
 		Detail: detail,
 		Status: status,

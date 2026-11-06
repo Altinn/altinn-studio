@@ -32,8 +32,9 @@ const (
 	AccessToken = prefix + "access_token"
 	// SigningKeyID is the thumbprint of the certificate the proxy signs tokens with. It is public.
 	SigningKeyID = prefix + "signing.key_id"
-	// SigningKeyNotAfter is when that certificate expires.
-	SigningKeyNotAfter = prefix + "signing.not_after"
+	// SigningKeyNotBefore and SigningKeyNotAfter are when that certificate is valid.
+	SigningKeyNotBefore = prefix + "signing.not_before"
+	SigningKeyNotAfter  = prefix + "signing.not_after"
 )
 
 // The values of AccessToken.
