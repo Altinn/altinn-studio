@@ -540,10 +540,10 @@ describe('navigation', () => {
       expect(ui.folders.Task_1.pages.validationOnNavigation).to.deep.equal({ page: 'current', show: [] });
       expect(ui.folders.Task_1.pages.validateOnBackToSummary).to.deep.equal({ page: 'current', show: ['Required'] });
     });
-    const summary = () => cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
+    const summary = () => cy.gotoNavGroup(/Innsending/, 'desktop', /Samlet oversikt/);
     const edit = (id: string) =>
-      cy.get(`[data-componentid="${id}"]`).findByRole('button', { name: /Endre/ }).clickAndGone();
-    const back = () => cy.findByRole('button', { name: 'Tilbake til oppsummering' });
+      cy.get(`[data-summary-target="${id}"]`).findByRole('button', { name: /Endre/ }).clickAndGone();
+    const back = () => cy.findByRole('button', { name: /^Tilbake til (oppsummering|samlet oversikt)$/ });
 
     summary();
     // All-page validation reveals future errors but still lets the user return to reach them.
@@ -552,11 +552,13 @@ describe('navigation', () => {
     cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).should('be.visible');
 
     // A legacy Summary and linkToPage both inherit the task's return validation.
-    edit('Summary-OUQOpH');
+    cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
+    cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
     back().click();
     cy.findByRole('textbox', { name: /Fornavn/ }).should('be.visible');
     cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
     back().click();
+    summary();
     cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
     cy.findByRole('textbox', { name: /Fornavn/ }).clear();
     back().click();
@@ -565,7 +567,7 @@ describe('navigation', () => {
     back().click();
 
     // Summary2 and linkToComponent use component Next before the page's disabled return setting.
-    edit('Summary-0y5P1Z');
+    edit('age');
     back().click();
     cy.findByRole('textbox', { name: /Alder/ }).should('be.visible');
     cy.findByRole('textbox', { name: /Alder/ }).type('42');
@@ -578,19 +580,19 @@ describe('navigation', () => {
     back().click();
 
     // The lastname page explicitly opts out, including when errors are already visible.
-    edit('Summary-8fAUjk');
+    edit('lastname');
     back().click();
-    edit('Summary-8fAUjk');
+    edit('lastname');
     cy.findByRole('textbox', { name: /Etternavn/ }).should('have.value', '');
     cy.get('#lastname-validations').should('be.visible');
     back().click();
 
     // A visibility change outside extra -> summary keeps the shortcut.
-    edit('summary-extra');
+    edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
     back().click();
     // Hiding an intervening page resets it permanently, even after undoing the answer.
-    edit('summary-extra');
+    edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
     back().should('not.exist');
     cy.findByRole('button', { name: 'Neste' }).should('be.visible');
@@ -599,7 +601,7 @@ describe('navigation', () => {
     // Starting a new edit while the page is hidden also resets when that page reappears.
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
     summary();
-    edit('summary-extra');
+    edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
     back().should('not.exist');
     summary();
@@ -610,7 +612,7 @@ describe('navigation', () => {
     cy.url().should('not.include', 'backToPage=');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
     summary();
-    edit('summary-extra');
+    edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).check();
     back().should('not.exist');
     cy.findByRole('button', { name: 'Neste' }).should('be.visible');
