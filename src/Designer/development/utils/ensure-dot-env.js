@@ -23,6 +23,7 @@ const defaultEnvVars = {
   GITEA_CYPRESS_PASS: randomPass(),
   GITEA_ORG_USER: 'ttd',
   POSTGRES_PASSWORD: randomPass(),
+  PREVIEW_REDIS_PASSWORD: randomPass(),
   CLIENT_ID: '',
   CLIENT_SECRET: '',
 };

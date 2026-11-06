@@ -1,0 +1,31 @@
+# The public port, which the load balancer sends browsers' requests to.
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-preview
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      appProtocol: http
+      name: http
+  selector:
+    run: altinn-preview
+---
+# The internal port, where Designer starts sessions.
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-preview-internal
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8081
+      protocol: TCP
+      appProtocol: http
+      name: http
+  selector:
+    run: altinn-preview

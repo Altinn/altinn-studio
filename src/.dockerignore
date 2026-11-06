@@ -54,6 +54,8 @@
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
 !common/dotnet/Altinn.Studio.Common/src/**
 !common/go/**
+!core/preview/Directory.Packages.props
+!core/preview/src/Altinn.Studio.Preview/**
 **/.DS_Store
 **/.cache
 **/.git
