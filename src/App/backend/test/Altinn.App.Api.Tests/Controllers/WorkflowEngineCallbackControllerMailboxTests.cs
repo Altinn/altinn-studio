@@ -18,7 +18,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -30,7 +29,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 /// The relay from the controller's end: the unit tests prove what the saga does, this proves the controller
 /// asks for it — after the save on a success, before the response on a permanent failure.
 /// </summary>
-public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -45,11 +44,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// </summary>
     private const int HandlerIndex = 1;
 
-    public WorkflowEngineCallbackControllerMailboxTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public WorkflowEngineCallbackControllerMailboxTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     /// <summary>A pipeline answered by messages, whose handlers return whatever the test wants.</summary>
     /// <param name="trailingStage">
@@ -205,10 +201,11 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// <summary>
     /// Drives one receive callback. Only one of the two handlers can run for a given rendezvous, so a test
     /// supplies the one its <paramref name="mailbox"/> dispatches to and leaves the other at its default —
-    /// which fails loudly rather than answering plausibly.
+    /// which fails loudly rather than answering plausibly. The mailbox is built from the services of the host
+    /// that receives the callback.
     /// </summary>
     private Task<CallbackOutcome> RunReceiveCallback(
-        AppCallbackMailbox mailbox,
+        Func<IServiceProvider, AppCallbackMailbox> mailbox,
         Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
         Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
     ) =>
@@ -253,7 +250,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
 
     private async Task<CallbackOutcome> RunCallback(
-        AppCallbackMailbox? mailbox,
+        Func<IServiceProvider, AppCallbackMailbox>? mailbox,
         ExecuteServiceTaskPayload stepPayload,
         Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
         Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
@@ -349,7 +346,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             StepId = stepId,
-            Mailbox = mailbox,
+            Mailbox = mailbox?.Invoke(Services),
             Payload = CommandPayloadSerializer.Serialize(stepPayload),
             State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
@@ -391,7 +388,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// <see cref="IServiceTaskReplyForwarder"/> seals one. An unsealed payload never reaches the handler, so a
     /// relay test that hand-wrote one would only be testing the refusal.
     /// </summary>
-    private AppCallbackMailbox Delivered()
+    private static AppCallbackMailbox Delivered(IServiceProvider services)
     {
         const string key = "fiks-message-1";
         return new AppCallbackMailbox
@@ -401,7 +398,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             Delivery = new AppCallbackMailboxDelivery
             {
                 IdempotencyKey = key,
-                Payload = Services
+                Payload = services
                     .GetRequiredService<MailboxDeliveryEnvelope>()
                     .Wrap("<receipt/>", _mailboxId, ServiceTaskType, key),
                 AcceptedAt = DateTimeOffset.UnixEpoch,
@@ -409,7 +406,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         };
     }
 
-    private static AppCallbackMailbox Closed() =>
+    private static AppCallbackMailbox Closed(IServiceProvider _) =>
         new()
         {
             Id = _mailboxId,
@@ -422,6 +419,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     {
         // Taken through the step's one public entry point: every other test constructs the forwarder directly,
         // so nothing else would notice a missing registration or an unreachable dependency.
+        using HttpClient client = GetRootedClient(Org, App);
         using IServiceScope scope = Services.CreateScope();
 
         var forwarder = scope.ServiceProvider.GetService<IServiceTaskReplyForwarder>();
@@ -433,10 +431,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task Conclusion_ClosesTheMailboxBeforeTheAfterWorkflow_ThroughTheRealCallback()
     {
-        CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered(),
-            onMessage: (_, _) => ServiceTaskResult.Success()
-        );
+        CallbackOutcome outcome = await RunReceiveCallback(Delivered, onMessage: (_, _) => ServiceTaskResult.Success());
 
         Assert.Equal(HttpStatusCode.OK, outcome.Status);
         Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
@@ -447,10 +442,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     [Fact]
     public async Task Conclusion_StartsTheAfterWorkflowOnTheBlobItJustPublished()
     {
-        CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered(),
-            onMessage: (_, _) => ServiceTaskResult.Success()
-        );
+        CallbackOutcome outcome = await RunReceiveCallback(Delivered, onMessage: (_, _) => ServiceTaskResult.Success());
 
         Assert.NotNull(outcome.Returned);
         Assert.Null(outcome.Returned.Mailboxes);
@@ -467,7 +459,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     public async Task AwaitNextReply_EnqueuesTheSuccessorAndKeepsTheMailboxOpenAndCarried()
     {
         CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered(),
+            Delivered,
             onMessage: (_, _) => ServiceTaskExchangeResult.AwaitNextReply()
         );
 
@@ -483,7 +475,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     public async Task PermanentFailure_ClosesTheMailboxAndStillFailsTheCallback()
     {
         CallbackOutcome outcome = await RunReceiveCallback(
-            Closed(),
+            Closed,
             onClosed: (_, _) => ServiceTaskResult.FailedPermanent("the archive never confirmed before the deadline")
         );
 
@@ -496,7 +488,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     public async Task RetryableFailure_StartsNoSaga()
     {
         CallbackOutcome outcome = await RunReceiveCallback(
-            Delivered(),
+            Delivered,
             onMessage: (_, _) => ServiceTaskResult.FailedRetryable("the archive is down")
         );
 
@@ -520,7 +512,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     {
         ServiceTaskReply? seen = null;
         await RunReceiveCallback(
-            Delivered(),
+            Delivered,
             onMessage: (_, reply) =>
             {
                 seen = reply;
@@ -538,7 +530,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     {
         MailboxClosedReason? seen = null;
         await RunReceiveCallback(
-            Closed(),
+            Closed,
             onClosed: (_, reason) =>
             {
                 seen = reason;

@@ -1,12 +1,11 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ResourceControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ResourceControllerTests : ApiTestBase
 {
-    public ResourceControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public ResourceControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
