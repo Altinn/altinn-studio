@@ -11,6 +11,27 @@ using Newtonsoft.Json;
 namespace Altinn.App.Models
 {
   public class NestedGroup{
+    [JsonPropertyName("CalculateAnnualWork")]
+    public bool CalculateAnnualWork { get; set; }
+    [JsonPropertyName("Persons")]
+    public decimal? Persons { get; set; }
+    [JsonPropertyName("AnnualWork")]
+    public decimal? AnnualWork { get; set; }
+    [JsonPropertyName("CalculatedAnnualWork")]
+    public decimal? CalculatedAnnualWork { get; set; }
+    [JsonPropertyName("AllocationCategories")]
+    public string? AllocationCategories { get; set; }
+    [JsonPropertyName("FeedAllocation")]
+    public decimal? FeedAllocation { get; set; }
+    [JsonPropertyName("CompostAllocation")]
+    public decimal? CompostAllocation { get; set; }
+    [JsonPropertyName("AllocationHelper")]
+    public string? AllocationHelper { get; set; }
+    [JsonPropertyName("RemainingAllocation")]
+    public decimal RemainingAllocation { get; set; } = 100;
+    [JsonPropertyName("IncompleteAllocation")]
+    public bool IncompleteAllocation { get; set; }
+
     [Range(Int32.MinValue,Int32.MaxValue)]
     [XmlAttribute("skjemanummer")]
     [BindNever]

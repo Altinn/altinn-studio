@@ -184,7 +184,17 @@
         },
         "PetsUseOptionComponent": {
           "type": "boolean"
-        }
+        },
+        "CalculateAnnualWork": {"type": "boolean"},
+        "Persons": {"type": ["number", "null"]},
+        "AnnualWork": {"type": ["number", "null"]},
+        "CalculatedAnnualWork": {"type": ["number", "null"]},
+        "AllocationCategories": {"type": "string"},
+        "FeedAllocation": {"type": ["number", "null"]},
+        "CompostAllocation": {"type": ["number", "null"]},
+        "AllocationHelper": {"type": "string"},
+        "RemainingAllocation": {"type": "number"},
+        "IncompleteAllocation": {"type": "boolean"}
       },
       "required": [
         "skjemanummer",
