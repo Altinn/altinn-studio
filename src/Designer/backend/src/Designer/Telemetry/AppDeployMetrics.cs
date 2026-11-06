@@ -37,11 +37,52 @@ public sealed class AppDeployMetrics
     /// </summary>
     public const string PipelineCanceled = "pipeline_canceled";
 
-    // A deploy's pipeline takes from a few minutes to a quarter of an hour, and Flux adds up to a few minutes.
-    private static readonly double[] s_deployBuckets = [30, 60, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 3600];
+    // A deploy's pipeline takes from a few minutes to a quarter of an hour, and Flux adds up to a few minutes. A quantile
+    // is interpolated within its bucket, so steps of a minute up to 10 minutes and of two up to 20 bound its error.
+    private static readonly double[] s_deployBuckets =
+    [
+        30,
+        60,
+        120,
+        180,
+        240,
+        300,
+        360,
+        420,
+        480,
+        540,
+        600,
+        720,
+        840,
+        960,
+        1080,
+        1200,
+        1500,
+        1800,
+        2700,
+        3600,
+    ];
 
     // Flux installs or upgrades an app in seconds to minutes, and a run can wait seconds or minutes for an agent.
-    private static readonly double[] s_shortBuckets = [5, 10, 20, 30, 60, 90, 120, 180, 300, 600, 900, 1800];
+    private static readonly double[] s_shortBuckets =
+    [
+        5,
+        10,
+        20,
+        30,
+        45,
+        60,
+        90,
+        120,
+        150,
+        180,
+        240,
+        300,
+        420,
+        600,
+        900,
+        1800,
+    ];
 
     private readonly Counter<long> _queued;
     private readonly Histogram<double> _pipelineDuration;
