@@ -30,6 +30,8 @@ const (
 	// AccessToken is where the request's platform access token came from, one of the AccessToken*
 	// values. It goes on the request's span and on http.server.request.duration.
 	AccessToken = prefix + "access_token"
+	// HealthReason is why the platform is not reachable through the proxy, from a fixed set.
+	HealthReason = prefix + "health.reason"
 	// SigningKeyID is the thumbprint of the certificate the proxy signs tokens with. It is public.
 	SigningKeyID = prefix + "signing.key_id"
 	// SigningKeyNotBefore and SigningKeyNotAfter are when that certificate is valid.

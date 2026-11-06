@@ -17,6 +17,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -34,9 +35,21 @@ func TestMain(m *testing.M) {
 }
 
 type fakeIssuer struct {
-	err   error
-	token string
-	calls int
+	notAfter time.Time
+	err      error
+	token    string
+	calls    int
+}
+
+// NotAfter has the issuer's certificate expire at notAfter, or an hour from now when it is not set.
+func (f *fakeIssuer) NotAfter() (time.Time, bool) {
+	if f.err != nil {
+		return time.Time{}, false
+	}
+	if f.notAfter.IsZero() {
+		return time.Now().Add(time.Hour), true
+	}
+	return f.notAfter, true
 }
 
 func (f *fakeIssuer) Token() (string, error) {

@@ -33,6 +33,9 @@ const (
 	listenAddress = ":5040"
 	livePath      = "/health/live"
 	readyPath     = "/health/ready"
+	// platformHealthPath is the check the gateway calls for the runtime cluster's health. The kubelet does not:
+	// the platform being down must not take the proxy out of rotation.
+	platformHealthPath = "/health/platform"
 	// readinessDrainDelay is how long the proxy keeps serving after it is told to stop and reports itself not
 	// ready, while Kubernetes and Linkerd stop sending it requests.
 	readinessDrainDelay = 5 * time.Second
@@ -97,6 +100,7 @@ func run(logger *slog.Logger) error {
 		Handler: handler(
 			logger,
 			platformProxy,
+			proxy.NewHealthChecker(log.NewComponent("health"), cfg.upstream, issuer),
 			func() bool { return issuer.Ready() && !shuttingDown.Load() },
 		),
 		ReadHeaderTimeout: 10 * time.Second,
@@ -133,9 +137,10 @@ func run(logger *slog.Logger) error {
 	return nil
 }
 
-// handler answers the probes, and passes every other request to the proxy. It does not use a ServeMux, which
-// would redirect paths it considers unclean instead of forwarding them as the app sent them.
-func handler(logger *slog.Logger, platformProxy http.Handler, ready func() bool) http.Handler {
+// handler answers the probes and the platform's health check, and passes every other request to the proxy. It
+// does not use a ServeMux, which would redirect paths it considers unclean instead of forwarding them as the app
+// sent them.
+func handler(logger *slog.Logger, platformProxy, platformHealth http.Handler, ready func() bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case livePath:
@@ -143,6 +148,8 @@ func handler(logger *slog.Logger, platformProxy http.Handler, ready func() bool)
 		case readyPath:
 			// Not ready until the proxy can sign tokens, and no longer once it is stopping.
 			writeProbe(logger, w, r, ready())
+		case platformHealthPath:
+			platformHealth.ServeHTTP(w, r)
 		default:
 			platformProxy.ServeHTTP(w, r)
 		}

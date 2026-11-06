@@ -14,6 +14,20 @@ internal sealed class RuntimeHealthSettings
     public bool CheckPdf3 { get; set; } = true;
 
     /// <summary>
+    /// Whether to check the platform proxy. Off where it doesn't run, such as the local kind cluster.
+    /// </summary>
+    public bool CheckPlatformProxy { get; set; } = true;
+
+#pragma warning disable S5332 // In-cluster service URL; transport security is provided by the Linkerd mesh (mTLS)
+    private const string DefaultPlatformProxyAddress = "http://platform-proxy.runtime-platform-proxy.svc.cluster.local";
+#pragma warning restore S5332
+
+    /// <summary>
+    /// The platform proxy's address in the runtime cluster.
+    /// </summary>
+    public Uri PlatformProxyAddress { get; set; } = new(DefaultPlatformProxyAddress);
+
+    /// <summary>
     /// How often the checks run.
     /// </summary>
     public TimeSpan Period { get; set; } = TimeSpan.FromSeconds(30);

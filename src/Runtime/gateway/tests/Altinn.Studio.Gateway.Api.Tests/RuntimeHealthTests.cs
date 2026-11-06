@@ -273,6 +273,58 @@ public sealed class RuntimeHealthTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.OK, HealthStatus.Healthy)]
+    // The proxy can't sign tokens, or the platform didn't answer it.
+    [InlineData(HttpStatusCode.ServiceUnavailable, HealthStatus.Unhealthy)]
+    // What Linkerd answers when the proxy has no ready pods.
+    [InlineData(HttpStatusCode.GatewayTimeout, HealthStatus.Unhealthy)]
+    public async Task PlatformProxyCheck_CallsTheProxysPlatformCheck(HttpStatusCode answer, HealthStatus expected)
+    {
+        using var proxy = new FakeWorkflowEngineHandler { ResponseFactory = _ => new HttpResponseMessage(answer) };
+        var services = new ServiceCollection();
+        services.AddHttpClient(PlatformProxyHealthCheck.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => proxy);
+        using var provider = services.BuildServiceProvider();
+        var check = new PlatformProxyHealthCheck(
+            provider.GetRequiredService<IHttpClientFactory>(),
+            Options.Create(
+                new RuntimeHealthSettings { PlatformProxyAddress = new Uri("http://platform-proxy.example") }
+            )
+        );
+
+        var result = await check.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(expected, result.Status);
+        var request = Assert.Single(proxy.Requests);
+        Assert.Equal(new Uri("http://platform-proxy.example/health/platform"), request.Uri);
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("false", false)]
+    public void PlatformProxyCheck_IsARuntimeCheckUnlessTurnedOff(string? checkPlatformProxy, bool registered)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?> { ["RuntimeHealth:CheckPlatformProxy"] = checkPlatformProxy }
+            )
+            .Build();
+        var services = new ServiceCollection();
+
+        services.AddRuntimeHealth(configuration);
+        using var provider = services.BuildServiceProvider();
+        var registrations = provider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value.Registrations;
+
+        var platformProxy = registrations.SingleOrDefault(registration =>
+            registration.Name == PlatformProxyHealthCheck.Name
+        );
+        Assert.Equal(registered, platformProxy is not null);
+        if (platformProxy is not null)
+        {
+            Assert.Contains(RuntimeHealthRegistration.RuntimeTag, platformProxy.Tags);
+        }
+    }
+
     private Task Publish(HealthStatus status, HealthReportEntry? pdf3 = null) =>
         _factory
             .Services.GetRequiredService<RuntimeHealthReport>()
