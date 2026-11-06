@@ -1,0 +1,121 @@
+# The sessions' Redis. Only preview reaches it, so preview gets no access to Designer's Redis, and a flaw in preview
+# can't read or change what Designer keeps there.
+#
+# Whoever can write a session here can read any working copy, so Redis also requires a password. The NetworkPolicy
+# below keeps other pods out, and the password still stops them if the policy doesn't apply, as for a few seconds
+# after a pod starts.
+#
+# A session lasts a day at most and Studio starts a new one when its session ends, so Redis keeps nothing on disk. A
+# restart ends the sessions it had.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-preview-redis
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      run: altinn-preview-redis
+  template:
+    metadata:
+      labels:
+        run: altinn-preview-redis
+    spec:
+      automountServiceAccountToken: false
+      # The redis user of the image.
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: docker.io/library/redis:8.10.3-alpine@sha256:21090af93f8324db2f0f0f4f38a7c60369d47d917e000c3423d89d2ae2883537
+          args:
+            - --save
+            - ""
+            - --appendonly
+            - "no"
+            # Every key is a session with a TTL, so when memory runs out, the sessions closest to ending go first.
+            - --maxmemory
+            - 100mb
+            - --maxmemory-policy
+            - volatile-ttl
+            # Redis replaces its process title once it starts, so the password doesn't stay in the command line.
+            - --requirepass
+            - $(REDIS_PASSWORD)
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-preview-redis
+                  key: password
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 160Mi
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-preview-redis
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: redis
+  selector:
+    run: altinn-preview-redis
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-preview-redis
+spec:
+  podSelector:
+    matchLabels:
+      run: altinn-preview-redis
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              run: altinn-preview
+      ports:
+        - protocol: TCP
+          port: 6379
+  # No egress: Redis calls nothing.
+  egress: []
