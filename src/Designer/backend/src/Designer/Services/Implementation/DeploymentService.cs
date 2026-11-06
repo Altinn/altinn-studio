@@ -405,8 +405,14 @@ public class DeploymentService : IDeploymentService
         if (pendingDecommission is not null)
         {
             DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
-            DateTime pendingCreatedUtc = NormalizeToUtc(pendingDecommission.Created);
-            TimeSpan pendingAge = nowUtc - pendingCreatedUtc;
+            // The age counts from when the pending undeploy's pipeline was queued. Created is earlier: the undeploy's
+            // durations start when Designer starts it, before the GitOps change and the queue request.
+            DateTime pendingQueuedUtc =
+                pendingDecommission
+                    .Events?.FirstOrDefault(e => e.EventType == DeployEventType.PipelineScheduled)
+                    ?.Timestamp.UtcDateTime
+                ?? NormalizeToUtc(pendingDecommission.Created);
+            TimeSpan pendingAge = nowUtc - pendingQueuedUtc;
             bool shouldSkip = pendingAge >= TimeSpan.Zero && pendingAge <= s_pendingDecommissionSkipThreshold;
 
             if (shouldSkip)

@@ -1892,6 +1892,57 @@ public class DeploymentServiceTest : IDisposable
     }
 
     [Fact]
+    public async Task UndeployAsync_CountsAPendingUndeploysAgeFromWhenItWasQueued()
+    {
+        // Arrange: the pending undeploy started 10 min 15 s ago, but its pipeline was queued 9 min 45 s ago.
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        var now = new DateTimeOffset(2026, 02, 17, 12, 00, 00, TimeSpan.Zero);
+        _fakeTimeProvider.SetUtcNow(now);
+        _deploymentRepository
+            .Setup(r => r.GetPendingDecommission(org, app, env))
+            .ReturnsAsync(
+                new DeploymentEntity
+                {
+                    Org = org,
+                    App = app,
+                    EnvName = env,
+                    DeploymentType = DeploymentType.Decommission,
+                    Created = now.AddSeconds(-615).UtcDateTime,
+                    Build = new BuildEntity { Id = "123" },
+                    Events =
+                    [
+                        new DeployEvent
+                        {
+                            EventType = DeployEventType.PipelineScheduled,
+                            Timestamp = now.AddSeconds(-585),
+                        },
+                    ],
+                }
+            );
+
+        // Act
+        await CreateService()
+            .UndeployAsync(
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                env
+            );
+
+        // Assert: it is still within the 10 minutes, so this undeploy is skipped.
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+    }
+
+    [Fact]
     public async Task UndeployAsync_TimesTheUndeployFromWhenItStarts()
     {
         // Arrange
