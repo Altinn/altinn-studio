@@ -143,6 +143,7 @@ internal sealed class ConditionalRenderingConverter
         }
 
         var layoutManager = new LayoutFileManager(_workspace, layoutsPath);
+        var inputMetadata = new ConditionalRuleInputMetadata(_appBasePath, layoutSetPath);
 
         // Process each rule
         foreach (var ruleEntry in rules)
@@ -155,7 +156,7 @@ internal sealed class ConditionalRenderingConverter
             // Serialize the rule configuration for context in failed conversions
             var ruleConfigJson = JsonSerializer.Serialize(rule, JsonOptions);
 
-            var injectionResults = ProcessRule(ruleId, rule, jsParser, layoutManager, ruleConfigJson);
+            var injectionResults = ProcessRule(ruleId, rule, jsParser, layoutManager, ruleConfigJson, inputMetadata);
             if (injectionResults.Count == 0)
             {
                 _layoutSetsRequiringManualWork.Add(layoutSetName);
@@ -220,7 +221,8 @@ internal sealed class ConditionalRenderingConverter
         ConditionalRenderingRule rule,
         RuleHandlerParser jsParser,
         LayoutFileManager layoutManager,
-        string ruleConfigJson
+        string ruleConfigJson,
+        ConditionalRuleInputMetadata inputMetadata
     )
     {
         var results = new List<InjectionResult>();
@@ -260,7 +262,9 @@ internal sealed class ConditionalRenderingConverter
         var conversionResult = converter.Convert(
             jsFunction.Implementation,
             rule.InputParams ?? new Dictionary<string, string>(),
-            rule.SelectedAction ?? "Hide"
+            rule.SelectedAction ?? "Hide",
+            inputMetadata.GetTypes(rule.InputParams ?? []),
+            inputMetadata.GetOptions(rule.InputParams ?? [])
         );
 
         // Inject into each component, passing the JS function body and rule config for context

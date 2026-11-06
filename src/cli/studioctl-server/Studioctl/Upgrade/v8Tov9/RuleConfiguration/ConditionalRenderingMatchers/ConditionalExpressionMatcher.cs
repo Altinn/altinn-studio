@@ -21,7 +21,7 @@ public class ConditionalExpressionMatcher : IExpressionMatcher
         debugInfo.Add("Converting conditional expression (ternary operator)");
 
         // Convert the test condition
-        var test = context.ConvertExpression(conditionalExpr.Test, debugInfo);
+        var test = context.ConvertBoolean(conditionalExpr.Test, debugInfo);
         if (test == null)
         {
             debugInfo.Add("❌ Failed to convert condition of ternary expression");
@@ -29,7 +29,11 @@ public class ConditionalExpressionMatcher : IExpressionMatcher
         }
 
         // Convert the consequent (true branch)
-        var consequent = context.ConvertExpression(conditionalExpr.Consequent, debugInfo);
+        var consequent = context.WithAssumption(
+            conditionalExpr.Test,
+            true,
+            () => context.ConvertExpression(conditionalExpr.Consequent, debugInfo)
+        );
         if (consequent == null)
         {
             debugInfo.Add("❌ Failed to convert consequent (true branch) of ternary expression");
@@ -37,7 +41,11 @@ public class ConditionalExpressionMatcher : IExpressionMatcher
         }
 
         // Convert the alternate (false branch)
-        var alternate = context.ConvertExpression(conditionalExpr.Alternate, debugInfo);
+        var alternate = context.WithAssumption(
+            conditionalExpr.Test,
+            false,
+            () => context.ConvertExpression(conditionalExpr.Alternate, debugInfo)
+        );
         if (alternate == null)
         {
             debugInfo.Add("❌ Failed to convert alternate (false branch) of ternary expression");
