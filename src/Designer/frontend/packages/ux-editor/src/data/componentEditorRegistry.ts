@@ -4,6 +4,14 @@ const commonSpecializedProperties = ['grid'] as const;
 
 const specializedPropertiesByComponent: Partial<Record<ComponentType, readonly string[]>> = {
   [ComponentType.AttachmentList]: ['dataTypeIds'],
+  [ComponentType.BrokerFileTransfer]: [
+    'checksum',
+    'hasCustomFileEndings',
+    'hasCustomRecipients',
+    'metadata',
+    'recipients',
+    'validFileEndings',
+  ],
   [ComponentType.Checkboxes]: ['mapping', 'queryParameters', 'source'],
   [ComponentType.Dropdown]: ['mapping', 'queryParameters', 'source'],
   [ComponentType.FileUpload]: [

@@ -156,6 +156,15 @@ const defaultQueryMocks: AppQueries = {
   fetchOrg: async () => {
     throw new Error('Override fetchOrg in this test');
   },
+  fetchBrokerResourceConfiguration: async () => {
+    throw new Error('Override fetchBrokerResourceConfiguration in this test');
+  },
+  fetchBrokerFileTransferOverview: async () => {
+    throw new Error('Override fetchBrokerFileTransferOverview in this test');
+  },
+  fetchInterruptedBrokerTransfer: async () => {
+    throw new Error('Override fetchInterruptedBrokerTransfer in this test');
+  },
 };
 
 function createQueryMocks({ queries, mutations }: QueryOverrides = {}) {

@@ -10,6 +10,7 @@ import { getConfig as getAddToListConfig } from 'src/layout/AddToList/config.run
 import { getConfig as getAlertConfig } from 'src/layout/Alert/config.runtime.generated';
 import { getConfig as getAttachmentListConfig } from 'src/layout/AttachmentList/config.runtime.generated';
 import { getConfig as getAudioConfig } from 'src/layout/Audio/config.runtime.generated';
+import { getConfig as getBrokerFileTransferConfig } from 'src/layout/BrokerFileTransfer/config.runtime.generated';
 import { getConfig as getButtonConfig } from 'src/layout/Button/config.runtime.generated';
 import { getConfig as getButtonGroupConfig } from 'src/layout/ButtonGroup/config.runtime.generated';
 import { getConfig as getCardsConfig } from 'src/layout/Cards/config.runtime.generated';
@@ -73,6 +74,7 @@ function createComponentConfigs() {
     Alert: getAlertConfig(),
     AttachmentList: getAttachmentListConfig(),
     Audio: getAudioConfig(),
+    BrokerFileTransfer: getBrokerFileTransferConfig(),
     Button: getButtonConfig(),
     ButtonGroup: getButtonGroupConfig(),
     Cards: getCardsConfig(),
@@ -135,4 +137,4 @@ export function getComponentConfigs() {
 
 export type ComponentTypeConfigs = GeneratedComponentTypeConfigs;
 
-// Source hash: 21f57c6038e3d0b81a8f231d17aa2794fbdc7403cb3a75e7e75c4bb405d56421
+// Source hash: 4dff842046a34fc6c36fa9a90ac592458f830941b60757af68219176f30022ab

@@ -1,6 +1,7 @@
 import { CompExternal } from '@app/layout-contract/generated/components.generated';
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Address/config.generated';
+import { BrokerFileTransferSummaryOverridesWithRef } from '@app/layout-contract/generated/components/BrokerFileTransfer/config.generated';
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
 import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
@@ -40,6 +41,7 @@ export type AnySummaryOverride =
   | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
+  | BrokerFileTransferSummaryOverridesWithRef
   | CheckboxesSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Date' } & ISummaryOverridesCommon)
@@ -658,4 +660,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 3fcf9d1f1d197c4cf40ba79d6397e991b7f1fc4633698be74274324d8cf834d6
+// Source hash: 8b4c7bf297813722fa08ec48aed29a539054f8183db680793b256eebffcfd26d
