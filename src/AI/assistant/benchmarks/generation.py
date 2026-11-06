@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Iterator
 from dataclasses import dataclass
-from functools import cache
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from langfuse import Evaluation
-from pydantic import BaseModel, ValidationError
 
 from agents.core.llm_adapter import build_adapter
 from agents.core.messages import (
@@ -24,19 +21,8 @@ from agents.core.messages import (
 
 from .experiment import ItemEvaluator
 
-if TYPE_CHECKING:
-    from agents.altinn.app_version.profile import AppVersionProfile
-
 TOOL_CALLS_KEY = "tool_calls"
 TEXT_KEY = "text"
-NOT_APPLICABLE_KEY = "not_applicable"
-
-# An item with this `version_file` shows a skill without its version file, as the skill tool returns it when
-# APPEND_SKILL_VERSION_FILE is false. In the default mode there is nothing for the model to load, so it is not run.
-VERSION_FILE_ON_DEMAND = "on demand"
-
-# A result an item marks `live` comes from this checkout when the item runs. Only tools without side effects qualify.
-LIVE_TOOLS = ("skill",)
 
 
 def message_from_item(entry: dict[str, Any]) -> Message:
@@ -72,63 +58,7 @@ def message_from_item(entry: dict[str, Any]) -> Message:
 
 
 def conversation_from_item(item_input: dict[str, Any]) -> list[Message]:
-    calls: dict[str, dict[str, Any]] = {}
-    messages = []
-    for entry in item_input["conversation"]:
-        if entry.get("role") == "assistant":
-            calls.update({call["id"]: call for call in entry.get("tool_calls") or [] if call.get("id")})
-        elif "tool_results" in entry:
-            entry = {
-                **entry,
-                "tool_results": [_resolved(result, calls, item_input) for result in entry["tool_results"]],
-            }
-        messages.append(message_from_item(entry))
-    return messages
-
-
-def app_version_profile(item_input: dict[str, Any]) -> AppVersionProfile:
-    """The app version an item is for, from `app_version`. Without one it is v8, as in a session."""
-    from agents.altinn.app_version import APP_VERSION_PROFILES, V8_PROFILE
-
-    label = item_input.get("app_version")
-    if label is None:
-        return V8_PROFILE
-    for profile in APP_VERSION_PROFILES:
-        if profile.version_label == label:
-            return profile
-    raise ValueError(f"unknown app_version {label!r}; use one of {[p.version_label for p in APP_VERSION_PROFILES]}")
-
-
-def _resolved(result: dict[str, Any], calls: dict[str, dict[str, Any]], item_input: dict[str, Any]) -> dict[str, Any]:
-    if not result.get("live"):
-        return result
-    call = calls.get(result.get("tool_use_id", ""))
-    if call is None:
-        raise ValueError(f"the live result {result.get('tool_use_id')!r} answers no call before it")
-    return {**result, "content": _live_content(call, item_input)}
-
-
-def _live_content(call: dict[str, Any], item_input: dict[str, Any]) -> str:
-    """What the skill tool returns for this call from this checkout, so that an item measures the skill as it is
-    now, not as it was when the item was written."""
-    from agents.core.skills import SkillFileError, discover_skills
-
-    if call["name"] not in LIVE_TOOLS:
-        raise ValueError(f"a live result answers a call to {' or '.join(LIVE_TOOLS)}, not {call['name']!r}")
-    args = call.get("input") or {}
-    name = args.get("skill") or args.get("name")
-    skill = next((skill for skill in discover_skills() if skill.name == name), None)
-    if skill is None:
-        raise ValueError(f"a live result loads {name!r}, which is not a skill")
-    try:
-        if args.get("file"):
-            return skill.load_file(args["file"])
-        return skill.load_body(
-            app_version_profile(item_input).version_label,
-            append_version_file=item_input.get("version_file") != VERSION_FILE_ON_DEMAND,
-        )
-    except SkillFileError as error:
-        raise ValueError(str(error)) from error
+    return [message_from_item(entry) for entry in item_input["conversation"]]
 
 
 @dataclass(frozen=True)
@@ -153,10 +83,8 @@ def turn_from_reply(reply: AssistantMessage) -> GeneratedTurn:
     return GeneratedTurn(tool_calls=calls, text=text, stop_reason=reply.stop_reason)
 
 
-def rule_of(expected_output: Any, output: Any = None) -> dict[str, Any]:
-    """The scored assertions in an expected output. None for an item that did not run."""
-    if isinstance(output, dict) and output.get(NOT_APPLICABLE_KEY):
-        return {}
+def rule_of(expected_output: Any) -> dict[str, Any]:
+    """The scored assertions in an expected output."""
     if isinstance(expected_output, dict):
         rule = expected_output.get("rule")
         return rule if isinstance(rule, dict) else expected_output
@@ -182,7 +110,7 @@ def _call_names(output: Any) -> list[str]:
 
 def tool_choice(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did it reach for the tool the turn calls for."""
-    expected = rule_of(expected_output, output).get("tool")
+    expected = rule_of(expected_output).get("tool")
     if not expected:
         return []
     actual = _first_call_name(output)
@@ -198,7 +126,7 @@ def tool_choice(*, output: Any = None, expected_output: Any = None, **_: Any) ->
 
 def tool_arguments(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Are the arguments that matter right."""
-    expected = rule_of(expected_output, output).get("arguments")
+    expected = rule_of(expected_output).get("arguments")
     if not expected:
         return []
     calls = _calls(output)
@@ -229,7 +157,7 @@ def tool_arguments(*, output: Any = None, expected_output: Any = None, **_: Any)
 
 def allowed_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Was the chosen tool one of the defensible ones."""
-    allowed = rule_of(expected_output, output).get("allowed_tools")
+    allowed = rule_of(expected_output).get("allowed_tools")
     if not allowed:
         return []
     used = _call_names(output)
@@ -247,7 +175,7 @@ def allowed_tools(*, output: Any = None, expected_output: Any = None, **_: Any) 
 
 def forbidden_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did it avoid the tools this turn must not use."""
-    forbidden = set(rule_of(expected_output, output).get("forbidden_tools") or [])
+    forbidden = set(rule_of(expected_output).get("forbidden_tools") or [])
     if not forbidden:
         return []
     used = set(_call_names(output))
@@ -265,7 +193,7 @@ def forbidden_tools(*, output: Any = None, expected_output: Any = None, **_: Any
 def stopped_cleanly(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """A turn expected to finish must not ask for another tool, and a turn
     expected to continue must not stop early."""
-    expected = rule_of(expected_output, output).get("stop")
+    expected = rule_of(expected_output).get("stop")
     if expected is None:
         return []
     finished = not _calls(output)
@@ -335,9 +263,8 @@ def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
     return [by_name[name] for name in names]
 
 
-def actor_system_prompt(goal: str, *, allow_app_changes: bool = True, profile: AppVersionProfile | None = None) -> str:
-    """The real loop system prompt for one goal and app version, with the skill listing."""
-    from agents.altinn.app_version import V8_PROFILE
+def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
+    """The real loop system prompt, composed for one goal, with the skill listing."""
     from agents.core.context import SessionContext, build_system_prompt
     from agents.core.skills import discover_skills, format_skill_listing
 
@@ -347,7 +274,6 @@ def actor_system_prompt(goal: str, *, allow_app_changes: bool = True, profile: A
             repo_path="/tmp/generation-experiment",
             user_goal=goal,
             allow_app_changes=allow_app_changes,
-            app_version_profile=profile or V8_PROFILE,
         ),
         skill_listing=format_skill_listing(discover_skills()),
     )
@@ -377,11 +303,7 @@ def resolve_system_prompt(item_input: dict[str, Any]) -> str:
     goal = item_input.get("goal")
     if not goal:
         raise ValueError("an item needs system_prompt, system_prompt_trace or goal")
-    return actor_system_prompt(
-        goal,
-        allow_app_changes=item_input.get("allow_app_changes", True),
-        profile=app_version_profile(item_input),
-    )
+    return actor_system_prompt(goal, allow_app_changes=item_input.get("allow_app_changes", True))
 
 
 def adapter_for(model: str, max_tokens: int | None = None) -> Any:
@@ -414,14 +336,6 @@ class GenerationTask:
 
         item_input = item_field(item, "input") or {}
         role = item_input.get("role") or self.role
-        if item_input.get("version_file") == VERSION_FILE_ON_DEMAND and _appends_version_file():
-            return {
-                TOOL_CALLS_KEY: [],
-                TEXT_KEY: "",
-                "stop_reason": None,
-                NOT_APPLICABLE_KEY: "the skill tool appends the version file in this mode, so there is none to load",
-                "role": role,
-            }
         adapter = (
             adapter_for(self.model, self.max_tokens) if self.model else build_adapter(role, max_tokens=self.max_tokens)
         )
@@ -450,7 +364,7 @@ FAILURE_MODES = (
 
 def required_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """How much of what the turn had to do it actually did."""
-    required = rule_of(expected_output, output).get("required_tools")
+    required = rule_of(expected_output).get("required_tools")
     if not required:
         return []
     used = set(_call_names(output))
@@ -468,7 +382,7 @@ def required_tools(*, output: Any = None, expected_output: Any = None, **_: Any)
 
 def failure_mode(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Which way the turn went wrong, as a category."""
-    rule = rule_of(expected_output, output)
+    rule = rule_of(expected_output)
     if not rule:
         return []
     calls = _calls(output)
@@ -541,7 +455,7 @@ def _carries(component: dict[str, Any], prop: str, required: Any) -> bool:
 
 def content_pairings(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Do the components this turn wrote carry the property values their bindings need."""
-    required = rule_of(expected_output, output).get("content_pairings") or []
+    required = rule_of(expected_output).get("content_pairings") or []
     if not required:
         return []
 
@@ -575,143 +489,14 @@ def content_pairings(*, output: Any = None, expected_output: Any = None, **_: An
     ]
 
 
-def _appends_version_file() -> bool:
-    from shared.config.base_config import get_config
-
-    return get_config().APPEND_SKILL_VERSION_FILE
-
-
-@cache
-def _input_models() -> dict[str, type[BaseModel]]:
-    from agents.core.skills import discover_skills
-    from agents.graph.nodes.agentic_loop_node import _build_registry
-
-    registry = _build_registry(discover_skills())
-    return {name: registry.get(name).input_schema for name in registry.names()}
-
-
-def _input_as_read(call: dict[str, Any]) -> dict[str, Any]:
-    """A call's input as its tool reads it, so that an alias, such as `name` for `skill`, counts as the field."""
-    raw = call.get("input") or {}
-    model = _input_models().get(call.get("name") or "")
-    if model is None:
-        return raw
-    try:
-        return model.model_validate(raw).model_dump(exclude_none=True)
-    except ValidationError:
-        return raw
-
-
-def _brief(name: str | None, args: dict[str, Any]) -> str:
-    shown = json.dumps(args, ensure_ascii=False)
-    return f"{name}({shown if len(shown) <= 80 else shown[:77] + '...'})"
-
-
-def required_calls(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """Did the turn make each call the item names, with the inputs it names. Other inputs and other calls are
-    free."""
-    required = rule_of(expected_output, output).get("required_calls")
-    if not required:
-        return []
-    made = [(call.get("name"), _input_as_read(call)) for call in _calls(output)]
-    missing = [
-        wanted
-        for wanted in required
-        if not any(
-            name == wanted["name"] and all(args.get(key) == value for key, value in (wanted.get("input") or {}).items())
-            for name, args in made
-        )
-    ]
-    called = ", ".join(_brief(name, args) for name, args in made) or "nothing"
-    return [
-        Evaluation(
-            name="gen_required_calls",
-            value=round((len(required) - len(missing)) / len(required), 4),
-            data_type="NUMERIC",
-            comment=f"called {called}"
-            + ("".join(f"; missing {_brief(want['name'], want.get('input') or {})}" for want in missing)),
-        )
-    ]
-
-
-def _target_text(output: Any, target: dict[str, Any]) -> tuple[str, str | None]:
-    """What a content target names, and the text this turn gave it, or None when it gave none."""
-    calls = _calls(output)
-    if "path" in target:
-        written = [
-            (call.get("input") or {}).get("content" if call.get("name") == "write_file" else "new_string")
-            for call in calls
-            if call.get("name") in ("write_file", "edit_file")
-            and (call.get("input") or {}).get("path") == target["path"]
-        ]
-        texts = [text for text in written if isinstance(text, str)]
-        return target["path"], "\n".join(texts) if texts else None
-    if "call" in target:
-        inputs = [
-            json.dumps(call.get("input") or {}, ensure_ascii=False)
-            for call in calls
-            if call.get("name") == target["call"]
-        ]
-        return f"the {target['call']} calls", "\n".join(inputs) if inputs else None
-    if target.get("answer"):
-        text = output.get(TEXT_KEY) if isinstance(output, dict) else None
-        return "the answer", text or None
-    raise ValueError(f"a content target names a path, a call or the answer, not {sorted(target)}")
-
-
-def content_patterns(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """Does what the turn wrote to a file, sent to a tool or answered match the patterns the item asks for, and
-    leave out the ones it forbids. A target the turn gave nothing fails every pattern it has, unless it has only
-    `absent` patterns: then it says what the turn must not do, and doing nothing satisfies it."""
-    targets = rule_of(expected_output, output).get("content_patterns")
-    if not targets:
-        return []
-    total = 0
-    held = 0
-    misses = []
-    for target in targets:
-        label, text = _target_text(output, target)
-        wanted = target.get("matches") or []
-        unwanted = target.get("absent") or []
-        total += len(wanted) + len(unwanted)
-        if text is None:
-            if wanted:
-                misses.append(f"nothing in {label}")
-            else:
-                held += len(unwanted)
-            continue
-        for pattern in wanted:
-            if re.search(pattern, text):
-                held += 1
-            else:
-                misses.append(f"{label} lacks /{pattern}/")
-        for pattern in unwanted:
-            if re.search(pattern, text):
-                misses.append(f"{label} has /{pattern}/")
-            else:
-                held += 1
-    if not total:
-        return []
-    return [
-        Evaluation(
-            name="gen_content_patterns",
-            value=round(held / total, 4),
-            data_type="NUMERIC",
-            comment="; ".join(misses) if misses else f"all {total} patterns hold",
-        )
-    ]
-
-
-ITEM_EVALUATORS.extend([required_tools, failure_mode, content_pairings, required_calls, content_patterns])
+ITEM_EVALUATORS.extend([required_tools, failure_mode, content_pairings])
 
 
 SCORE_NAMES = (
     "gen_content_pairings",
-    "gen_content_patterns",
     "gen_failure_mode",
     "gen_json_parses",
     "gen_no_forbidden_tool",
-    "gen_required_calls",
     "gen_required_tools",
     "gen_stopped_cleanly",
     "gen_tool_allowed",

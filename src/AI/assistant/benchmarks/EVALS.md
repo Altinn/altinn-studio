@@ -124,7 +124,6 @@ takes its flags directly too:
 python -m benchmarks.runner check --label "new actor model"      # run and compare
 python -m benchmarks.runner check --include-e2e           # also the slow builds, minutes
 python -m benchmarks.runner check --only Gates/scope      # one eval, while iterating
-python -m benchmarks.runner check --skill studio-policy   # one skill's items, while iterating
 python -m benchmarks.runner check --no-review             # skip the judged write-up
 
 python -m benchmarks.runner runs                          # every run on disk
@@ -135,33 +134,6 @@ python -m benchmarks.runner behaviors                    # the manifest
 python -m benchmarks.runner behaviors --prompt build.pages-render
 python -m benchmarks.runner status                        # repo against Langfuse
 ```
-
-## Skills
-
-Each skill in [`agents/skills/`](../agents/skills) has items in two evals. Both run one model turn per item and no
-tools, so they take seconds where an end to end build takes minutes.
-
-- **Skills/routing** asks whether the actor loads the skill a request needs. Each item is a request to a v8 or a v9
-  app after the actor has scanned the repository. Some are near misses, requests that sound like a neighboring
-  skill.
-- **Skills/applied** asks whether the change the actor makes after loading a skill follows it. Each item shows the
-  skill and the app files the change needs. Patterns check what the next turn writes for the mistake the skill exists
-  to prevent.
-
-An item never holds skill text. The bench reads the skill from this checkout when the item runs, so the items measure
-the skills as they are now. A change to a skill moves the `tools` digest, so it needs a new baseline like any other
-change to what the actor is shown.
-
-The report splits both scores by skill, since a mean over every skill hides the one that scores zero.
-`check --skill NAME` runs one skill's items while you work on it. That run cannot be a baseline, and `check` refuses
-to compare it with a full run.
-
-The routing items marked `version_file: on demand` show a skill without its version file. They run only with
-`APPEND_SKILL_VERSION_FILE=false`, and score whether the actor then loads the file itself. Run `check` once in each
-mode to decide the default, as [the skills guide](../docs/skills.md#app-versions) describes.
-
-A test fails when a skill lacks items: three routing requests for each skill, a version file item for each skill that
-has version files, and an applied item for each version file, or one for a skill without them.
 
 ## Where the runs and the baseline live
 

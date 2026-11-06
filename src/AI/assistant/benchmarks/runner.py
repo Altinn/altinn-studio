@@ -161,24 +161,6 @@ def _print_next_step(report) -> None:
     print(f'  python -m benchmarks.runner baseline {report.current.name} --why "..."')
 
 
-def _only_for_skills(skills: tuple[str, ...], only: tuple[str, ...]) -> tuple[str, ...]:
-    """The evals whose items name a skill, narrowed by --only. A run of some skills is for iterating on them: it
-    cannot be a baseline, and a comparison with a full run is refused."""
-    from agents.core.skills import discover_skills
-
-    from . import check as checker
-
-    unknown = sorted(set(skills) - {skill.name for skill in discover_skills()})
-    if unknown:
-        sys.exit(f"{unknown} are not skills in agents/skills/.")
-    by_skill = checker.evals_split_by("skill")
-    chosen = tuple(name for name in (only or by_skill) if name in by_skill)
-    if not chosen:
-        sys.exit(f"--skill runs only {list(by_skill)}, and --only left none of them.")
-    print(f"Only the items for {', '.join(skills)}, so this run cannot be a baseline.\n")
-    return chosen
-
-
 def cmd_check(args: argparse.Namespace) -> None:
     """Run the pinned behaviors against the working tree and say what moved."""
     import asyncio
@@ -192,9 +174,6 @@ def cmd_check(args: argparse.Namespace) -> None:
     label = args.label or "working tree"
     under_test = tuple(args.under_test or ())
     only = tuple(args.only or ())
-    skills = tuple(args.skill or ())
-    if skills:
-        only = _only_for_skills(skills, only)
 
     planned = checker.evals_to_run(include_slow=args.include_e2e, only=only)
     if not planned:
@@ -211,7 +190,6 @@ def cmd_check(args: argparse.Namespace) -> None:
         only=only,
         agent_models=agent_models,
         run_eval=checker.langfuse_runner(args, check_id=name, label=label, agent_models=agent_models),
-        skills=skills,
     )
     path = runstore.save(run)
     print(f"\nsaved {path}")
@@ -589,9 +567,6 @@ def _parser() -> argparse.ArgumentParser:
         help="an axis you meant to change, so a difference on it does not refuse the comparison",
     )
     check_parser.add_argument("--only", action="append", help="limit to one eval, repeatable")
-    check_parser.add_argument(
-        "--skill", action="append", help="run only the Skills/* items for this skill, repeatable, while iterating"
-    )
     check_parser.add_argument("--include-e2e", action="store_true", help="also run the slow builds")
     check_parser.add_argument("--no-review", action="store_true")
     check_parser.add_argument("--judge-model", default=None)
