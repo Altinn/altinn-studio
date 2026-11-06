@@ -10,6 +10,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
+import { useFollowReceivedTransfer } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
@@ -32,6 +33,9 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
     Expressions.BrokerFileTransfer.textResourceBindings.title,
   );
   const required = useEvalExpression(config.required, Expressions.BrokerFileTransfer.required);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.BrokerFileTransfer.readOnly);
+  // The user may wait to submit on the summary's page, so the summary records Broker's status too until sendt
+  useFollowReceivedTransfer(targetBaseComponentId, !readOnly);
 
   const title = summaryTitle || resolvedTitle;
   const { fileTransferId, fileName } = formData;
