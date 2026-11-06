@@ -15,6 +15,22 @@ internal static partial class ServiceTelemetry
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";
 
+        /// <summary>
+        /// A finished Azure DevOps run's result: success, failure, cancellation or error.
+        /// </summary>
+        public const string CicdPipelineResult = "cicd.pipeline.result";
+
+        /// <summary>
+        /// The Azure DevOps pipeline's name, such as the one that deploys apps.
+        /// </summary>
+        public const string CicdPipelineName = "cicd.pipeline.name";
+
+        /// <summary>
+        /// The state of an Azure DevOps run that a duration covers: pending while it waits in the queue, and executing
+        /// while it runs.
+        /// </summary>
+        public const string CicdPipelineRunState = "cicd.pipeline.run.state";
+
         public const string ServiceOwner = AltinnAttributes.ServiceOwner;
         public const string App = AltinnAttributes.App;
         public const string RepoType = AltinnAttributes.RepoType;
@@ -29,6 +45,11 @@ internal static partial class ServiceTelemetry
         /// Marks a span whose trace the collectors' tail sampling always keeps.
         /// </summary>
         public const string Sampling = AltinnAttributes.Sampling;
+
+        /// <summary>
+        /// The Azure DevOps run that deploys or undeploys an app, on every part of the deploy.
+        /// </summary>
+        public const string AppDeployBuildId = AltinnAttributes.AppDeployBuildId;
 
         public static class AppActivity
         {
@@ -48,6 +69,34 @@ internal static partial class ServiceTelemetry
             public const string TimeoutSeconds = Prefix + "timeout_seconds";
             public const string UndeployedAppWithSignalCount = Prefix + "undeployed_app_with_signal_count";
             public const string WindowDays = Prefix + "window_days";
+        }
+
+        public static class AppDeploy
+        {
+            private const string Prefix = "altinn.designer.app_deploy.";
+
+            /// <summary>
+            /// Whether the pipeline deploys or undeploys the app: deploy or undeploy.
+            /// </summary>
+            public const string PipelineType = Prefix + "pipeline.type";
+
+            /// <summary>
+            /// The Azure DevOps run's status when Designer polled it, such as in_progress or completed. It is not the
+            /// semantic conventions' cicd.pipeline.run.state, which has no state for a run that has finished.
+            /// </summary>
+            public const string PipelineStatus = Prefix + "pipeline.status";
+
+            /// <summary>
+            /// How the deploy or undeploy ended: Flux's result, such as install_succeeded or upgrade_failed, or
+            /// pipeline_failed or pipeline_canceled when the pipeline did not succeed.
+            /// </summary>
+            public const string Result = Prefix + "result";
+
+            /// <summary>
+            /// What made Designer queue the pipeline: manual, for a deploy or undeploy someone asked for, or
+            /// inactivity, for the nightly undeploy of an inactive app.
+            /// </summary>
+            public const string Trigger = Prefix + "trigger";
         }
 
         public static class ChatCleanup
