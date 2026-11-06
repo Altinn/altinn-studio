@@ -30,11 +30,13 @@ one with the `file` argument of the `skill` tool, since `read_file` reads only t
 is true for both, and tells the reader to read the file for the app's version. The `skill` tool appends that file to
 the body itself, so the model gets it in the same call.
 
-## Size and links
+## Format, size and links
 
-The [skills-check](../../../../.github/workflows/skills-check.yaml) workflow runs
-[skills-check.py](../../../../.github/scripts/skills-check.py) on every pull request that changes a skill, and once a
-week, since linked pages move without a change here. It fails a skill that breaks a published rule:
+The [agents-skills-check](../../../../.github/workflows/agents-skills-check.yaml) workflow runs two checks on every
+pull request that changes a skill, and once a week, since linked pages move without a change here.
+
+[agents-skills-check.py](../../../../.github/scripts/agents-skills-check.py) fails a skill that breaks a published
+rule:
 
 - The requirements in the [specification](https://agentskills.io/specification): the frontmatter fields, and the
   length of `name`, `description` and `compatibility`. Anthropic adds that names and descriptions have no XML tags.
@@ -43,10 +45,15 @@ week, since linked pages move without a change here. It fails a skill that break
 - Anthropic's [best practice](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) for
   reference files: one longer than 100 lines starts with a `## Contents` section.
 
-It also fails on a relative link to a missing file and on a web link that answers 404 or 410. Links in code are not
-checked, since they are values, namespaces or examples. Run it locally with
-`uv run --script .github/scripts/skills-check.py src/AI/assistant/agents/skills` from the repository root. Add
-`--no-links` to skip the web requests.
+The [link check](../../../../.github/workflows/template-link-check.yaml) fails on a relative link to a missing file and
+on a web link that answers 404 or 410. It skips links in code, since those are values, namespaces or examples.
+
+Run them locally from the repository root:
+
+```bash
+uv run --script .github/scripts/agents-skills-check.py src/AI/assistant/agents/skills
+uv run --script .github/scripts/link-check.py --root-marker SKILL.md src/AI/assistant/agents/skills
+```
 
 ## What a skill holds
 

@@ -1,0 +1,50 @@
+name: Check links
+
+# Checks that the links in Markdown files work: relative links must point to a file that exists, and web links must not
+# answer 404 or 410. .github/scripts/link-check.py says what it checks and what it skips.
+
+on:
+  workflow_call:
+    inputs:
+      paths:
+        description: Markdown files, or folders to search for them, separated by spaces.
+        required: true
+        type: string
+      root-marker:
+        description: >-
+          Also resolve relative links from the nearest folder above a file that holds a file with this name. Agent
+          Skills need SKILL.md.
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.0"
+
+      - name: Check links
+        env:
+          LINK_PATHS: ${{ inputs.paths }}
+          ROOT_MARKER: ${{ inputs.root-marker }}
+        run: |
+          read -ra paths <<< "$LINK_PATHS"
+          options=()
+          if [ -n "$ROOT_MARKER" ]; then
+            options+=(--root-marker "$ROOT_MARKER")
+          fi
+          uv run --script .github/scripts/link-check.py "${options[@]}" "${paths[@]}"

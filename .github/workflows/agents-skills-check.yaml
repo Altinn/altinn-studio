@@ -5,8 +5,10 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "src/AI/assistant/agents/skills/**"
-      - ".github/scripts/skills-check.py"
-      - ".github/workflows/skills-check.yaml"
+      - ".github/scripts/agents-skills-check.py"
+      - ".github/scripts/link-check.py"
+      - ".github/workflows/agents-skills-check.yaml"
+      - ".github/workflows/template-link-check.yaml"
   # Docs pages and other linked pages move without a change in this repository.
   schedule:
     - cron: "0 6 * * 1"
@@ -20,8 +22,8 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    name: Check skill sizes and links
+  format-and-size:
+    name: Skill format and size
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -36,6 +38,14 @@ jobs:
         with:
           version: "0.13.0"
 
-      # Each argument is a directory with one directory per skill.
-      - name: Check skills
-        run: uv run --script .github/scripts/skills-check.py src/AI/assistant/agents/skills
+      # Each argument is a folder with one folder per skill.
+      - name: Check skill format and size
+        run: uv run --script .github/scripts/agents-skills-check.py src/AI/assistant/agents/skills
+
+  links:
+    name: Skill links
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/template-link-check.yaml
+    with:
+      paths: src/AI/assistant/agents/skills
+      root-marker: SKILL.md

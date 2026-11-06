@@ -1,15 +1,13 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["httpx==0.28.1", "pyyaml==6.0.3", "tiktoken==0.13.0"]
+# dependencies = ["pyyaml==6.0.3", "tiktoken==0.13.0"]
 # ///
-"""Check Agent Skills against the published rules for their format and size, and check that their links work.
+"""Check Agent Skills against the published rules for their format and size.
 
-Usage: uv run --script .github/scripts/skills-check.py [--no-links] <skills dir> [<skills dir> ...]
+Usage: uv run --script .github/scripts/agents-skills-check.py <skills folder> [<skills folder> ...]
 
-A skills dir holds one directory per skill, each with a SKILL.md. The check fails when a skill breaks a rule below,
-when a relative link points to a missing file, or when a web link answers 404 or 410, or its host does not answer.
-Other answers, such as 403, 429, 5xx or a timeout, are warnings, since they say little about whether the page exists.
-A URL in code is a value to write, a namespace or an example, so only links outside code are checked.
+A skills folder holds one folder per skill, each with a SKILL.md. The check fails when a skill breaks a rule below.
+.github/scripts/link-check.py checks the skills' links.
 
 Agents read skills as tokens, so sizes are counted in tokens. No published rule names a tokenizer. The count uses
 o200k_base, the encoding of the models the Studio Assistant runs on, as a proxy for every agent.
@@ -18,14 +16,12 @@ o200k_base, the encoding of the models the Studio Assistant runs on, as a proxy 
 from __future__ import annotations
 
 import argparse
-import asyncio
 import os
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import httpx
 import tiktoken
 import yaml
 
@@ -59,20 +55,6 @@ TEXT_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml", ".xml"}
 FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 FENCED_CODE = re.compile(r"^[ \t]*(```|~~~)[^\n]*\n.*?^[ \t]*\1[^\n]*$", re.DOTALL | re.MULTILINE)
 INLINE_CODE = re.compile(r"`[^`\n]+`")
-WEB_URL = re.compile(r"https?://[^\s<>\"'`)\]]+")
-RELATIVE_LINK = re.compile(r"\]\((?!https?://|mailto:|#)([^)\s]+)\)")
-# URLs with these are templates or examples, such as https://{org}.apps.altinn.no/<path>.
-PLACEHOLDER = re.compile(r"[{}<>*]|\.\.\.|…")
-SKIPPED_HOSTS = {"localhost", "127.0.0.1", "local.altinn.cloud"}
-EXAMPLE_HOST = re.compile(r"(^|\.)example\.[a-z]+$")
-
-# Requests to docs pages usually take a second or two. Twenty seconds allows for a slow host, and three attempts let
-# a passing 429 or 5xx clear before the check gives up on a URL.
-LINK_TIMEOUT_SECONDS = 20
-LINK_ATTEMPTS = 3
-# Enough to finish a few hundred links in seconds without looking like a burst to the hosts.
-LINK_CONCURRENCY = 8
-USER_AGENT = "altinn-studio-skills-check (+https://github.com/Altinn/altinn-studio)"
 
 
 @dataclass
@@ -232,85 +214,9 @@ def has_contents(content: str) -> bool:
     return False
 
 
-def check_relative_links(skills: list[Path], report: Report) -> None:
-    """A skill links its files from its root, as the specification says. Links from the file's own folder are
-    accepted too, since some readers resolve them that way."""
-    for skill in skills:
-        for path in text_files(skill):
-            if path.suffix != ".md":
-                continue
-            for target in RELATIVE_LINK.findall(prose(path.read_text(encoding="utf-8"))):
-                target_path = target.split("#", 1)[0]
-                if target_path and not ((skill / target_path).exists() or (path.parent / target_path).exists()):
-                    report.error(f"{path}: link to missing file {target}", path)
-
-
-def web_links(skills: list[Path]) -> dict[str, list[Path]]:
-    links: dict[str, list[Path]] = {}
-    for skill in skills:
-        for path in text_files(skill):
-            if path.suffix != ".md":
-                continue
-            for raw in WEB_URL.findall(prose(path.read_text(encoding="utf-8"))):
-                url = raw.rstrip(".,;:!?").split("#", 1)[0]
-                host = httpx.URL(url).host
-                if PLACEHOLDER.search(url) or host in SKIPPED_HOSTS or EXAMPLE_HOST.search(host):
-                    continue
-                links.setdefault(url, []).append(path)
-    return links
-
-
-async def fetch_status(client: httpx.AsyncClient, url: str) -> tuple[int | None, str]:
-    """The final status after redirects, or None and the reason when no answer came."""
-    reason = ""
-    for attempt in range(LINK_ATTEMPTS):
-        try:
-            async with client.stream("GET", url) as response:
-                if response.status_code in {429, 500, 502, 503, 504} and attempt + 1 < LINK_ATTEMPTS:
-                    await asyncio.sleep(2 * (attempt + 1))
-                    continue
-                return response.status_code, ""
-        except httpx.ConnectError as exc:
-            return None, f"cannot connect: {exc}"
-        except httpx.HTTPError as exc:
-            reason = f"{type(exc).__name__}: {exc}"
-            await asyncio.sleep(2 * (attempt + 1))
-    return None, reason or "no answer"
-
-
-async def check_web_links(skills: list[Path], report: Report) -> None:
-    links = web_links(skills)
-    semaphore = asyncio.Semaphore(LINK_CONCURRENCY)
-    async with httpx.AsyncClient(
-        follow_redirects=True,
-        timeout=LINK_TIMEOUT_SECONDS,
-        headers={"User-Agent": USER_AGENT},
-    ) as client:
-
-        async def check(url: str) -> tuple[str, int | None, str]:
-            async with semaphore:
-                status, reason = await fetch_status(client, url)
-                return url, status, reason
-
-        results = await asyncio.gather(*(check(url) for url in links))
-
-    broken = 0
-    for url, status, reason in sorted(results, key=lambda result: result[0]):
-        if status is not None and status < 400:
-            continue
-        where = ", ".join(sorted({str(path) for path in links[url]}))
-        if status in {404, 410} or (status is None and reason.startswith("cannot connect")):
-            broken += 1
-            report.error(f"{url} is broken ({status or reason}), linked from {where}", links[url][0])
-        else:
-            report.warning(f"{url} could not be checked ({status or reason}), linked from {where}", links[url][0])
-    report.summary.append(f"Checked {len(links)} web links: {broken} broken.")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("roots", nargs="+", type=Path, help="directories that hold one directory per skill")
-    parser.add_argument("--no-links", action="store_true", help="skip the web link check, which needs a network")
+    parser.add_argument("roots", nargs="+", type=Path, help="folders that hold one folder per skill")
     args = parser.parse_args()
 
     for root in args.roots:
@@ -322,9 +228,6 @@ def main() -> int:
 
     report = Report()
     check_sizes(skills, report)
-    check_relative_links(skills, report)
-    if not args.no_links:
-        asyncio.run(check_web_links(skills, report))
 
     summary = "\n".join(report.summary)
     print(summary)
