@@ -127,14 +127,3 @@ frontend reads the row that the component showing the text belongs to.
 - Every `dataModel.<data type id>` names a data type in `applicationmetadata.json`, and the field path exists in its
   JSON schema.
 - Run the app, switch between the languages, and check that no raw keys show.
-
-## Docs
-
-- [Tekster (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/): formatting, variables,
-  `appName`, `appOwner` and the receipt texts in a v8 app.
-- [Tekster (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/tekster/): the same
-  for a v9 app.
-- [Oversettelse (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/translation/): languages
-  and the language selector in a v8 app.
-- [Oversettelse (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/tekster/oversettelse/):
-  the language selector in a v9 app, and the order in which the app picks the user's language.

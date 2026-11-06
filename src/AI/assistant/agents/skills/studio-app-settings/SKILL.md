@@ -180,13 +180,3 @@ Secrets go in the organization's Azure Key Vault:
 
 - [Applikasjonsmetadata](https://docs.altinn.studio/nb/api/models/app-metadata/): the properties of
   `applicationmetadata.json` and their sub-objects.
-- [Konfigurasjon (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/): the v8 pages for each
-  setting, such as party types, stateless apps and the message box.
-- [Innstillinger (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/settings/):
-  `appsettings*.json` in a v9 app and the defaults that changed.
-- [Stateless app (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/stateless/):
-  stateless apps, anonymous access and starting an instance from a stateless page.
-- [Hemmeligheter (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/secrets/):
-  Key Vault, `ISecretsClient` and local secrets.
-- [Opprett kopi (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/messagebox/create-copy/):
-  every key of `copyInstanceSettings`.

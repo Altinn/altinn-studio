@@ -163,18 +163,3 @@ protect data that an API client sends.
   message goes away. Try to submit with an empty required field. Test repeating group rows and hidden fields.
 - Call `GET {org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` on the running app. It returns every
   issue `process/next` would find for the current task.
-
-## Docs
-
-- [Validering (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/validation/) and
-  [Validering (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/): which
-  mechanism to choose, the validation types for `showValidations`, and the built-in checks on the backend.
-- [Validering med uttrykk (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/expression-validation/):
-  the file format, with `definitions` and `ref`. The example writes `lowercase`, which must be `lowerCase`.
-- [Påkrevde felt (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/required/):
-  how the app builds the required message from `shortName` and `title`.
-- [Begrensninger i datamodellen (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/data-model/):
-  the built-in messages for each schema keyword, and `errorMessage`.
-- [Validering i C# (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/validation/csharp/) and
-  [Validering i C# (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/csharp/):
-  the interfaces, severity, and messages in several languages.

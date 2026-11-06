@@ -198,20 +198,5 @@ pages and components.
 
 ## Docs
 
-- [Signing guides for v8](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/signing/) and the
-  [v9 signing overview](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/signing/): the kinds
-  of signing, with a guide for each.
-- User-controlled signing for
-  [v8](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/signing/runtime-delegated-signing/) and
-  [v9](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/signing/how-to/runtime-delegated-signing/):
-  `CommunicationConfig`, the default texts, and the delegation rule in full.
-- The signing task reference for
-  [v8](https://docs.altinn.studio/nb/altinn-studio/v8/reference/process/tasks/signing/) and
-  [v9](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/process/tasks/signing/): the
-  signature object, unique signatures and how to verify a signature's hash.
-- API signing for
-  [v8](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/signing/api-signing/) and
-  [v9](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/signing/how-to/api-signing/): the
-  calls and their responses.
 - [Getting started with Correspondence as a service owner](https://docs.altinn.studio/nb/correspondence/getting-started/developer-guides/serviceowner/):
   how to create the Correspondence resource and get the scopes.

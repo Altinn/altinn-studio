@@ -196,10 +196,6 @@ task:
 
 ## Docs
 
-- [Regelbibliotek (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/authorization/rules/)
-  and [Regelbibliotek (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/authorization/rules/):
-  example rules scoped to a task or an end event, for events and for authentication levels. They use roles, not
-  access packages.
 - [Tilgangspakker og roller](https://docs.altinn.studio/nb/authorization/what-do-you-get/accesspackages/): what an
   access package gives, and who decides what it covers.
 - [Altinn Autorisasjon - Detaljert konsept](https://docs.altinn.studio/nb/authorization/about/detailed/): key roles,

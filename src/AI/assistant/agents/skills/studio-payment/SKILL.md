@@ -143,14 +143,3 @@ The `studio-layouts` skill covers pages and components.
 - No `appsettings*.json` file in the repository holds the real key.
 - Build and start the app, and pay with a Nets test card. Test that the process moves on by itself in a test
   environment, since a local run gets no callback from Nets.
-
-## Docs
-
-- The payment guide for [v8](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/payment/) and
-  [v9](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/payment/): every step, in Studio and by
-  hand, with the optional Nets Easy settings.
-- Secrets for [v8](https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/secrets/) and
-  [v9](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/secrets/): how to load
-  Azure Key Vault as a configuration source and test with user secrets.
-- [The payment concept](https://docs.altinn.studio/nb/altinn-studio/v8/concepts/payment/): how a payment flows, and
-  that the service owner must keep the payment information as the Norwegian Bookkeeping Act requires.

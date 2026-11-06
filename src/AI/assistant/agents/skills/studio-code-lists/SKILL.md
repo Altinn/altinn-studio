@@ -126,15 +126,3 @@ The List component is not a selection component. It gets rows from a data list p
 - A renamed code list ID is renamed everywhere it is used: in components, and in `optionLabel` expressions.
 - The app builds. Open the page and check that each component shows its options. The response from
   `{org}/{app}/api/options/{optionsId}` shows what the backend serves.
-
-## Docs
-
-- [Kodelister og svaralternativer (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/options/)
-  and [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/options/): every source,
-  with filtering, sorting, preselection and what is saved in the data model.
-- [Felles standard kodelister (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/options/sources/shared/)
-  and [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/options/sources/shared/):
-  the IDs in Altinn.Codelists, and how to set up one SSB classification.
-- [Dynamiske kodelister (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/options/sources/dynamic/)
-  and [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/options/sources/dynamic/):
-  code list providers, query parameters and secure options.

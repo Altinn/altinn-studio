@@ -159,16 +159,3 @@ Expressions in layouts never change the data. To store a computed value in the d
   pick.
 - Change the values each expression reads and check that the result follows. In a repeating group, test with two
   rows.
-
-## Docs
-
-- [Dynamikk (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/): the uses, the
-  functions and the data types in a v8 app.
-- [Uttrykk (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/): the uses in a v9 app.
-- [Funksjoner (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/reference/functions/):
-  every function, with arguments and examples.
-- [Datatyper (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/reference/datatypes/):
-  the casting rules in full.
-- [Kalkulering av datafelt (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/dataprocessing/calculation/)
-  and [Regne ut verdier med uttrykk (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/dataprocessing/calculation/):
-  when the app computes the values in `calculation.json`.

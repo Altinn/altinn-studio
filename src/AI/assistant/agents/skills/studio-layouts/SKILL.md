@@ -177,20 +177,5 @@ components cannot bind to the subform's data model. A PDF for each entry needs a
 
 ## Docs
 
-- [Komponenter (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/components/) and
-  [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/components/): one page per
-  component type. The schema is still the authority on its properties.
-- [Sider (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/pages/) and
-  [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/sider/): the UI folders and
-  the settings in `Settings.json`.
-- [Navigasjon (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/pages/navigation/) and
-  [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/sider/navigasjon/):
-  `NavigationButtons`, page groups, task navigation, the progress indicator and validation on page change.
-- [Repeterende grupper (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/fields/grouping/repeating/):
-  table, edit and multi-page modes. The parameter table says `type` must be `Group`, which is wrong. It is
-  `RepeatingGroup`.
 - [Summary2 (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/components/summary2/): every
   `target` type, `taskId` and overrides. It holds for v9 too.
-- [Underskjema (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/subform/) and
-  [(v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/subform/): setting up a
-  subform in Studio or by hand.
