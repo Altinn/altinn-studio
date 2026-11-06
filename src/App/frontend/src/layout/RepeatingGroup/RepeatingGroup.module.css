@@ -190,6 +190,13 @@ table > tbody > tr.editingRow:hover {
   width: 100%;
 }
 
+.rowActions {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ds-size-1);
+}
+
 .tableRowError > td {
   background-color: var(--repeating-group-error-color) !important;
 }

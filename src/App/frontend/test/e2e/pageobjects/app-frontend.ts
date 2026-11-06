@@ -249,7 +249,7 @@ export class AppFrontend {
       newValue: `#newValue-${idx}`,
       uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
       uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4, 'untagged'),
-      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:nth-last-of-type(2n) button`,
+      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:nth-last-of-type(2n) button[data-testid="repeating-group-edit-button"]`,
       deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:last-of-type button`,
       nestedGroup: {
         row: (subIdx: number) => ({
@@ -263,7 +263,7 @@ export class AppFrontend {
             `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(1)`,
             `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(2)`,
           ],
-          editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:nth-last-of-type(2n) button`,
+          editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:nth-last-of-type(2n) button[data-testid="repeating-group-edit-button"]`,
           deleteBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type button`,
         }),
         groupContainer: `#group-subGroup-${idx}`,
