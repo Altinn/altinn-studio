@@ -5,25 +5,15 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => {
-  const actual = await vi.importActual<TextResourcesProviderImport>(
-    'src/features/language/textResources/TextResourcesProvider',
-  );
-  return {
-    ...actual,
-    useTextResources: vi.fn(() => ({
-      mockGroupTitle: { value: 'Mock group' },
-      mockField1: { value: 'Mock field 1' },
-      mockField2: { value: 'Mock field 2' },
-    })),
-  };
-});
-
 describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;
 
   beforeEach(() => {
+    window.altinnAppGlobalData.textResources!.resources = [
+      { id: 'mockGroupTitle', value: 'Mock group' },
+      { id: 'mockField1', value: 'Mock field 1' },
+      { id: 'mockField2', value: 'Mock field 2' },
+    ];
     mockHandleDataChange = vi.fn();
   });
 

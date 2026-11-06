@@ -75,11 +75,7 @@ describe('EditButton', () => {
               },
             };
           }),
-      },
-      apis: {
-        instanceApi: {
-          getInstance: async () => getInstanceAtServiceTaskMock(),
-        },
+        getInstance: async () => getInstanceAtServiceTaskMock(),
       },
     });
 

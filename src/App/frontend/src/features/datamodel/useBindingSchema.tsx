@@ -4,10 +4,11 @@ import type { IDataModelReference } from '@app/layout-contract/generated/common.
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
-import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useAsRef } from 'src/hooks/useAsRef';

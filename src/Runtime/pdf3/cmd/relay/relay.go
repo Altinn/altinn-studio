@@ -61,6 +61,9 @@ type relay struct {
 	logger *slog.Logger
 	keys   *auth.KeyFile
 	client *http.Client
+	// healthClient checks the shared pdf3, without the telemetry client's instrumentation.
+	healthClient *http.Client
+	healthURL    string
 	// shuttingDown tells whether the relay is shutting down, which also cancels its requests.
 	shuttingDown func() bool
 	upstream     string
@@ -68,9 +71,11 @@ type relay struct {
 	timeout      time.Duration
 }
 
+// newRelay makes a relay to the shared pdf3's API at baseURL, which takes PDF requests at /generate and answers
+// its health at /health.
 func newRelay(
 	logger *slog.Logger,
-	upstream string,
+	baseURL string,
 	keys *auth.KeyFile,
 	serviceOwner string,
 	shuttingDown func() bool,
@@ -97,7 +102,13 @@ func newRelay(
 			// A redirect is not followed, so the API key is only ever sent to the upstream.
 			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 		},
-		upstream:     upstream,
+		healthClient: &http.Client{
+			Transport:     transport,
+			Timeout:       healthTimeout,
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+		},
+		healthURL:    baseURL + "/health",
+		upstream:     baseURL + "/generate",
 		serviceOwner: serviceOwner,
 		timeout:      upstreamTimeout,
 		shuttingDown: shuttingDown,

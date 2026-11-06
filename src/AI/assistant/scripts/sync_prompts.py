@@ -28,11 +28,7 @@ PROMPT_PAGE_SIZE = 100
 PUSH_OVERRIDE_VARIABLE = "ALLOW_PROMPT_PUSH"
 DELETE_OVERRIDE_VARIABLE = "ALLOW_PROMPT_DELETE"
 
-# Langfuse name -> the local file that serves it, where get_prompt_with_langfuse
-# is called with local_path. Without these the file reads as retired.
 HTTP_NOT_FOUND = 404
-
-SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
 
 # Judges run as Langfuse evaluator templates, not prompts, so they cannot be diffed.
 JUDGE_DIR = "llm-as-a-judge"
@@ -66,13 +62,8 @@ def _local_prompt_names() -> list[str]:
 
 
 def _every_local_name() -> set[str]:
-    """Templates and judges live in subdirectories but are prompts to Langfuse.
-
-    A file that serves another name does not account for its own, so a Langfuse
-    `intent_security` is retired rather than local while the file serves `intent_check`.
-    """
-    found = {path.stem for path in PROMPTS_DIR.rglob("*.md") if _is_prompt(path)}
-    return (found - set(SERVED_FROM.values())) | set(SERVED_FROM)
+    """Templates and judges live in subdirectories but are prompts to Langfuse."""
+    return {path.stem for path in PROMPTS_DIR.rglob("*.md") if _is_prompt(path)}
 
 
 def _remote(api: LangfuseApi, name: str) -> dict | None:
@@ -99,14 +90,6 @@ def _remote_prompts(api: LangfuseApi) -> list[dict]:
         page += 1
 
 
-def _served_as(name: str) -> str:
-    """The Langfuse name for a local file, where the two differ."""
-    for langfuse_name, local_file in SERVED_FROM.items():
-        if local_file == name:
-            return langfuse_name
-    return name
-
-
 def _system_turn(content: object) -> str | None:
     """A chat prompt's system text, which is the half a repo file holds."""
     if isinstance(content, str):
@@ -123,7 +106,7 @@ def _system_turn(content: object) -> str | None:
 def _diff(api: LangfuseApi, name: str) -> bool:
     """Print the drift for one prompt. Returns True when they differ."""
     local = load_prompt(name)["content"]
-    remote = _remote(api, _served_as(name))
+    remote = _remote(api, name)
     if remote is None:
         print(f"{name}: not in Langfuse (local file is authoritative)")
         return True
@@ -197,19 +180,31 @@ def _require_push_override() -> None:
 
 
 def _published_shape(api: LangfuseApi, name: str) -> list | None:
-    """The turns of the published chat prompt, or None when it is a text prompt."""
+    """The turns of the published chat prompt, or None when it is a text prompt.
+
+    A push keeps every turn but the system turn, so the turns come from `production`,
+    not from a newer `experiment`. A prompt that has never been pushed can still have
+    a version, such as the one a benchmark run creates, and then `latest` gives the
+    shape: every version of a name has the same type.
+    """
+    published = _labeled_version(api, name, "production") or _labeled_version(api, name, "latest")
+    if published is None:
+        return None  # Langfuse has no version of it, so text is the shape
+    if published.get("type") != "chat":
+        return None
+    return published.get("prompt") or None
+
+
+def _labeled_version(api: LangfuseApi, name: str, label: str) -> dict | None:
     try:
-        published = api._get(f"/api/public/v2/prompts/{name}")
+        return api._get(f"/api/public/v2/prompts/{name}", label=label)
     except httpx.HTTPStatusError as error:
         if error.response.status_code == HTTP_NOT_FOUND:
-            return None  # nobody has published this one yet, so text is the shape
+            return None
         raise SystemExit(
             f"Could not read the published {name}: {error}. Refusing to publish, "
             "because guessing the shape can drop a chat prompt's variables."
         ) from error
-    if published.get("type") != "chat":
-        return None
-    return published.get("prompt") or None
 
 
 def _as_published(name: str, content: str, shape: list | None) -> dict:
@@ -233,18 +228,16 @@ def _as_published(name: str, content: str, shape: list | None) -> dict:
 
 def _push(api: LangfuseApi, name: str, message: str) -> None:
     local = load_prompt(name)
-    served = _served_as(name)
     created = api._post(
         "/api/public/v2/prompts",
         {
-            "name": served,
-            **_as_published(served, local["content"], _published_shape(api, served)),
+            "name": name,
+            **_as_published(name, local["content"], _published_shape(api, name)),
             "labels": ["production"],
             "commitMessage": message,
         },
     )
-    served_note = f" (serving {served})" if served != name else ""
-    print(f"{name}: published v{created.get('version')} as {created.get('labels')}{served_note}")
+    print(f"{name}: published v{created.get('version')} as {created.get('labels')}")
 
 
 ARCHIVED_FIELDS = ("version", "type", "labels", "tags", "config", "commitMessage", "prompt")
