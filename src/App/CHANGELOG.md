@@ -22,8 +22,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The loading screen shown when entering a task during a process transition now clears when that transition finishes. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
-- Payment pages no longer show payment information from another task or order details from another submission or a previously selected language. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
+- When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 
 ## [9.0.0-preview.9] - 2026-10-28
 
