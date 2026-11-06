@@ -221,6 +221,7 @@ export const queriesMock: ServicesContextProps = {
   getWidgetSettings: vi
     .fn()
     .mockImplementation(() => Promise.resolve<WidgetSettingsResponse | null>({})),
+  getWidget: vi.fn().mockImplementation(() => Promise.resolve(null)),
   searchRepos: vi
     .fn()
     .mockImplementation(() => Promise.resolve<SearchRepositoryResponse>(searchRepositoryResponse)),
@@ -311,6 +312,20 @@ export const queriesMock: ServicesContextProps = {
   // Queries - Org settings - Bot accounts
   getBotAccounts: vi.fn().mockImplementation(() => Promise.resolve([])),
   getBotAccountApiKeys: vi.fn().mockImplementation(() => Promise.resolve([])),
+
+  // Queries - Admin
+  getErrorMetrics: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getAppMetrics: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getAppErrorMetrics: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getAppHealthMetrics: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getRunningApps: vi.fn().mockImplementation(() => Promise.resolve({})),
+  getPublishedAppDetails: vi.fn().mockImplementation(() => Promise.resolve({})),
+  getRunningAppMetadata: vi.fn().mockImplementation(() => Promise.resolve({})),
+  getProcessMetadata: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getAppInstances: vi.fn().mockImplementation(() => Promise.resolve({ instances: [] })),
+  getAppInstanceDetails: vi.fn().mockImplementation(() => Promise.resolve({})),
+  getWorkflowCollections: vi.fn().mockImplementation(() => Promise.resolve(null)),
+  getWorkflows: vi.fn().mockImplementation(() => Promise.resolve(null)),
 
   // Mutations
   addAppAttachmentMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
@@ -444,4 +459,10 @@ export const queriesMock: ServicesContextProps = {
   createBotAccountApiKey: vi.fn().mockImplementation(() => Promise.resolve({})),
   revokeBotAccountApiKey: vi.fn().mockImplementation(() => Promise.resolve()),
   updateBotAccount: vi.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Admin
+  deleteAppInstance: vi.fn().mockImplementation(() => Promise.resolve()),
+  resumeWorkflow: vi.fn().mockImplementation(() => Promise.resolve({})),
+  nudgeWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
+  failWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
 };

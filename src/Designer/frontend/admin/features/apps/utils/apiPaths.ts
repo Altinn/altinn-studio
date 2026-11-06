@@ -69,7 +69,7 @@ export const workflowCollectionsPath = (
   return `${workflowsBasePath(org, env, app)}/collections${toQueryString(queryParams)}`; // Get
 };
 
-type WorkflowCollectionsQuery = {
+export type WorkflowCollectionsQuery = {
   keys?: string[];
   failures?: CollectionFailureFilter;
   cursor?: string;
@@ -91,7 +91,7 @@ export const workflowsListPath = (
   return `${workflowsBasePath(org, env, app)}/workflows${toQueryString(queryParams)}`; // Get
 };
 
-type WorkflowsQuery = {
+export type WorkflowsQuery = {
   collectionKey?: string;
   statuses?: string[];
   role?: WorkflowRole;

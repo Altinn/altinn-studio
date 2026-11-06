@@ -19,16 +19,14 @@ const widget2: IWidget = { displayName: widget2Name, components: [], texts: [] }
 // Mocks:
 const widgetSettingsResponse: WidgetSettingsResponse = { widgetUrls };
 const getWidgetSettings = vi.fn(() => Promise.resolve(widgetSettingsResponse));
-vi.mock('app-shared/utils/networking', () => ({
-  get: async (url: string) => {
-    switch (url) {
-      case widgetUrl1:
-        return widget1;
-      case widgetUrl2:
-        return widget2;
-    }
-  },
-}));
+const getWidget = vi.fn().mockImplementation(async (url: string) => {
+  switch (url) {
+    case widgetUrl1:
+      return widget1;
+    case widgetUrl2:
+      return widget2;
+  }
+});
 
 describe('useWidgetsQuery', () => {
   it('Calls getWidgetSettings with correct parameters', async () => {
@@ -45,7 +43,7 @@ describe('useWidgetsQuery', () => {
 
 const render = async () => {
   const { result } = renderHookWithProviders(() => useWidgetsQuery(org, app), {
-    queries: { getWidgetSettings },
+    queries: { getWidgetSettings, getWidget },
   });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   return result;

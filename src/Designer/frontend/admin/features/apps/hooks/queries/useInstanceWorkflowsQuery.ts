@@ -1,12 +1,8 @@
 import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type {
-  WorkflowListResponse,
-  WorkflowStatus,
-} from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { workflowsListPath } from 'admin/features/apps/utils/apiPaths';
-import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
+import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { isShownInPlaceError } from 'admin/features/apps/utils/workflowHealth';
 import { INSTANCE_VIEW_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/workflowRefetch';
 
@@ -23,17 +19,21 @@ export const useInstanceWorkflowsQuery = (
   app: string,
   collectionKey: string | undefined,
 ): UseInfiniteQueryResult<WorkflowStatus[]> => {
+  const { getWorkflows } = useServicesContext();
   return useInfiniteQuery({
     initialPageParam: undefined as string | undefined,
     queryKey: [QueryKey.AppInstanceWorkflows, org, env, app, collectionKey],
     enabled: collectionKey !== undefined,
     queryFn: async ({ signal, pageParam }) =>
-      getWorkflowEngineResource<WorkflowListResponse>(
-        workflowsListPath(org, env, app, {
+      getWorkflows(
+        org,
+        env,
+        app,
+        {
           collectionKey,
           cursor: pageParam,
           pageSize: INSTANCE_WORKFLOWS_PAGE_SIZE,
-        }),
+        },
         signal,
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,

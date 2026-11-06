@@ -1,9 +1,8 @@
 import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { AppHealthMetric } from 'admin/features/apps/types/metrics/AppHealthMetric';
-import { appHealthMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
 export const useAppHealthMetricsQuery = (
   org: string,
@@ -11,10 +10,10 @@ export const useAppHealthMetricsQuery = (
   app: string,
   meta?: QueryMeta,
 ): UseQueryResult<AppHealthMetric[]> => {
+  const { getAppHealthMetrics } = useServicesContext();
   return useQuery<AppHealthMetric[]>({
     queryKey: [QueryKey.AppHealthMetrics, org, env, app],
-    queryFn: async ({ signal }) =>
-      await getAdminResource<AppHealthMetric[]>(appHealthMetricsPath(org, env, app), { signal }),
+    queryFn: async ({ signal }) => getAppHealthMetrics(org, env, app, signal),
     meta,
   });
 };

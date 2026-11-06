@@ -1,22 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { get, HttpError } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
+import { HttpError } from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
+import { renderWithProviders } from 'admin/testing/mocks';
+import type { WorkflowCollectionsQuery } from 'admin/features/apps/utils/apiPaths';
 import { WorkflowProblems } from './WorkflowProblems';
-
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-}));
 
 const environment = 'at23';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${environment.toUpperCase()}`;
@@ -45,9 +39,17 @@ const page = (key: string, nextCursor: string | null) => ({
   nextCursor,
 });
 
-const respondWith = (handler: (url: string) => unknown) => {
-  vi.mocked(get).mockImplementation(async (url: string) => handler(url));
+const getWorkflowCollections = vi.fn();
+
+const respondWith = (handler: (query: WorkflowCollectionsQuery) => unknown) => {
+  getWorkflowCollections.mockImplementation(
+    async (_org: string, _env: string, _app: string, query: WorkflowCollectionsQuery) =>
+      handler(query),
+  );
 };
+
+const requestedQueries = (): WorkflowCollectionsQuery[] =>
+  getWorkflowCollections.mock.calls.map(([, , , query]) => query);
 
 describe('WorkflowProblems', () => {
   it('lists failing instances from the discovery read with the counts that matter', async () => {
@@ -62,15 +64,19 @@ describe('WorkflowProblems', () => {
       screen.getByText(textMock('admin.workflows.problems.total', { total: 2 })),
     ).toBeInTheDocument();
 
-    const requestedUrl = vi.mocked(get).mock.calls[0][0] as string;
-    expect(requestedUrl).toContain('failures=Any');
-    expect(requestedUrl).toContain('/collections');
+    expect(getWorkflowCollections).toHaveBeenCalledWith(
+      org,
+      environment,
+      app,
+      expect.objectContaining({ failures: 'Any' }),
+      expect.anything(),
+    );
   });
 
   it('pages with the engine cursor, which is separate from the instance list pager', async () => {
     const user = userEvent.setup();
-    respondWith((url) =>
-      url.includes(`cursor=${cursor}`) ? page(secondPageKey, null) : page(firstPageKey, cursor),
+    respondWith((query) =>
+      query.cursor === cursor ? page(secondPageKey, null) : page(firstPageKey, cursor),
     );
     renderWorkflowProblems();
 
@@ -88,10 +94,8 @@ describe('WorkflowProblems', () => {
 
   it('keeps the loaded rows when loading more of them fails', async () => {
     const user = userEvent.setup();
-    respondWith((url) =>
-      url.includes(`cursor=${cursor}`)
-        ? Promise.reject(new HttpError())
-        : page(firstPageKey, cursor),
+    respondWith((query) =>
+      query.cursor === cursor ? Promise.reject(new HttpError()) : page(firstPageKey, cursor),
     );
     renderWorkflowProblems();
 
@@ -116,12 +120,7 @@ describe('WorkflowProblems', () => {
     await user.selectOptions(screen.getByRole('combobox'), JSON.stringify('Auxiliary'));
 
     await waitFor(() =>
-      expect(
-        vi
-          .mocked(get)
-          .mock.calls.map(([url]) => url as string)
-          .some((url) => url.includes('failures=Auxiliary')),
-      ).toBe(true),
+      expect(requestedQueries().some((query) => query.failures === 'Auxiliary')).toBe(true),
     );
   });
 
@@ -165,13 +164,10 @@ describe('WorkflowProblems', () => {
   });
 });
 
-const renderWorkflowProblems = (client: QueryClient = createQueryClientMock()) =>
-  render(
-    <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
-        <QueryClientProvider client={client}>
-          <WorkflowProblems org={org} environment={environment} app={app} />
-        </QueryClientProvider>
-      </OrgContext.Provider>
-    </MemoryRouter>,
+const renderWorkflowProblems = (queryClient: QueryClient = createQueryClientMock()) =>
+  renderWithProviders(
+    <OrgContext.Provider value={orgMock}>
+      <WorkflowProblems org={org} environment={environment} app={app} />
+    </OrgContext.Provider>,
+    { queryClient, queries: { getWorkflowCollections } },
   );

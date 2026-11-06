@@ -1,27 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { get, del } from 'app-shared/utils/networking';
-import type * as Networking from 'app-shared/utils/networking';
 import type { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { InstanceDataView } from './InstanceDataView';
 import type { InstanceDataViewSection } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { workflowCounts } from 'admin/testing/workflowCounts';
-
-vi.mock('app-shared/utils/networking', async (importOriginal) => ({
-  ...(await importOriginal<typeof Networking>()),
-  get: vi.fn(),
-  del: vi.fn(),
-}));
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -44,9 +36,16 @@ const appMetadataMock: ApplicationMetadata = {
 
 describe('InstanceDataView', () => {
   it('shows a spinner while loading', () => {
-    vi.mocked(get).mockReturnValue(new Promise(() => {}));
+    const pending = () => new Promise(() => {});
 
-    renderInstanceDataView({ instance: null });
+    renderInstanceDataView({
+      instance: null,
+      queries: {
+        getAppInstanceDetails: vi.fn().mockImplementation(pending),
+        getRunningAppMetadata: vi.fn().mockImplementation(pending),
+        getProcessMetadata: vi.fn().mockImplementation(pending),
+      },
+    });
 
     expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
@@ -78,16 +77,16 @@ describe('InstanceDataView', () => {
   it('deletes the instance and invalidates instance queries when the user confirms', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.mocked(del).mockResolvedValue(undefined);
+    const deleteAppInstance = vi.fn().mockResolvedValue(undefined);
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
-    renderInstanceDataView({ queryClient });
+    renderInstanceDataView({ queryClient, queries: { deleteAppInstance } });
 
     await user.click(getDeleteButton());
 
     expect(window.confirm).toHaveBeenCalledWith(textMock('admin.instances.delete.confirm'));
     await waitFor(() => {
-      expect(del).toHaveBeenCalledWith(instanceDeletePath(org, environment, app, instanceId));
+      expect(deleteAppInstance).toHaveBeenCalledWith(org, environment, app, instanceId);
     });
     await waitFor(() => {
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
@@ -102,14 +101,14 @@ describe('InstanceDataView', () => {
   it('disables the delete button while the deletion is pending so only one request is sent', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.mocked(del).mockReturnValue(new Promise(() => {}));
-    renderInstanceDataView();
+    const deleteAppInstance = vi.fn().mockReturnValue(new Promise(() => {}));
+    renderInstanceDataView({ queries: { deleteAppInstance } });
 
     await user.click(getDeleteButton());
     expect(getDeleteButton()).toBeDisabled();
     await user.click(getDeleteButton());
 
-    expect(del).toHaveBeenCalledTimes(1);
+    expect(deleteAppInstance).toHaveBeenCalledTimes(1);
   });
 
   it("shows the instance's health on the workflow engine only when asked to", () => {
@@ -133,11 +132,13 @@ describe('InstanceDataView', () => {
       unmatchedKeys: [],
     };
     const newestWorkflows = { data: [completedWorkflow], pageSize: 25, totalCount: 26 };
-    vi.mocked(get).mockImplementation((url: string) =>
-      Promise.resolve(url.includes('/collections') ? rollup : newestWorkflows),
-    );
-
-    renderInstanceDataView({ showWorkflowHealth: true });
+    renderInstanceDataView({
+      showWorkflowHealth: true,
+      queries: {
+        getWorkflowCollections: vi.fn().mockResolvedValue(rollup),
+        getWorkflows: vi.fn().mockResolvedValue(newestWorkflows),
+      },
+    });
 
     expect(
       await screen.findByText(textMock('admin.workflows.health.auxiliary_workflow_failed')),
@@ -145,20 +146,24 @@ describe('InstanceDataView', () => {
   });
 
   it('leaves the workflow engine out of the info card, and unasked, by default', () => {
-    renderInstanceDataView();
+    const getWorkflowCollections = vi.fn();
+    const getWorkflows = vi.fn();
+    renderInstanceDataView({ queries: { getWorkflowCollections, getWorkflows } });
 
     expect(screen.queryByText(textMock('admin.workflows.health'))).not.toBeInTheDocument();
-    expect(get).not.toHaveBeenCalled();
+    expect(getWorkflowCollections).not.toHaveBeenCalled();
+    expect(getWorkflows).not.toHaveBeenCalled();
   });
 
   it('does not delete the instance when the user cancels the confirmation', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(false);
-    renderInstanceDataView();
+    const deleteAppInstance = vi.fn();
+    renderInstanceDataView({ queries: { deleteAppInstance } });
 
     await user.click(getDeleteButton());
 
-    expect(del).not.toHaveBeenCalled();
+    expect(deleteAppInstance).not.toHaveBeenCalled();
   });
 });
 
@@ -181,6 +186,7 @@ type RenderInstanceDataViewOptions = {
   queryClient?: QueryClient;
   section?: InstanceDataViewSection;
   showWorkflowHealth?: boolean;
+  queries?: Partial<ServicesContextProps>;
 };
 
 function renderInstanceDataView({
@@ -188,6 +194,7 @@ function renderInstanceDataView({
   queryClient = createQueryClientMock(),
   section = 'info',
   showWorkflowHealth,
+  queries,
 }: RenderInstanceDataViewOptions = {}) {
   if (instance) {
     queryClient.setQueryData(
@@ -206,6 +213,6 @@ function renderInstanceDataView({
       section={section}
       showWorkflowHealth={showWorkflowHealth}
     />,
-    { queryClient },
+    { queryClient, queries },
   );
 }
