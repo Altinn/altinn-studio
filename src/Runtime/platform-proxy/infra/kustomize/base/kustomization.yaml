@@ -1,0 +1,23 @@
+# The proxy, for the environment overlays. Each overlay sets PLATFORM_PROXY_UPSTREAM_URL.
+# Every resource names its namespace: the proxy runs in runtime-platform-proxy, and its Role is in default,
+# where the Secret it reads is. The syncroot's Kustomization therefore sets no targetNamespace.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - serviceaccount.yaml
+  - role.yaml
+  - deployment.yaml
+  - availability.yaml
+  - service.yaml
+  - networkpolicy.yaml
+replacements:
+  - source:
+      kind: Deployment
+      name: platform-proxy
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: platform-proxy
+        fieldPaths:
+          - spec.template.spec.containers.[name=platform-proxy].image

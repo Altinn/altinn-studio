@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-proxy
+  namespace: runtime-platform-proxy
+  labels:
+    app: platform-proxy
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5040
+      protocol: TCP
+      appProtocol: http
+      name: http
+  selector:
+    app: platform-proxy

@@ -82,6 +82,12 @@ internal static class RuntimeHealthRegistration
             healthChecks.AddCheck<Pdf3HealthCheck>(Pdf3HealthCheck.Name, tags: [RuntimeTag]);
         }
 
+        if (section.GetValue(nameof(RuntimeHealthSettings.CheckPlatformAccess), defaultValue: true))
+        {
+            services.AddHttpClient(PlatformAccessHealthCheck.HttpClientName);
+            healthChecks.AddCheck<PlatformAccessHealthCheck>(PlatformAccessHealthCheck.Name, tags: [RuntimeTag]);
+        }
+
         return services;
     }
 }
