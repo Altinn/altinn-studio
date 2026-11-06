@@ -1,0 +1,47 @@
+﻿[
+  {
+    Id: ALTINNAPP1029,
+    Title: Task hook compares the task id with a task that does not exist,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/Hooks.cs(36,62),
+    Code: "Task_l",
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1029,
+    MessageFormat: ShouldRunForTask in '{0}' compares the task id with '{1}', but {2}, so the comparison never matches. Correct the id, or remove the comparison.,
+    Message: ShouldRunForTask in 'Misspelled' compares the task id with 'Task_l', but process.bpmn has no task with that id, so the comparison never matches. Correct the id, or remove the comparison.,
+    Category: Process,
+    CustomTags: [
+      CompilationEnd
+    ]
+  },
+  {
+    Id: ALTINNAPP1027,
+    Title: More than one task hook of a kind runs for a task,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Hooks.cs(54,10),
+    Code: AddTransient<IOnTaskStartingHandler, FirstTaskOnly>(),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1027,
+    MessageFormat: Task '{0}' has more than one {1} implementation that runs for it: {2}. Only one may run for a task, so the app fails to start, or fails when the hook runs. Combine them, or change ShouldRunForTask so that only one returns true for '{0}'.,
+    Message: Task 'Task_1' has more than one IOnTaskStartingHandler implementation that runs for it: Everywhere, FirstTaskOnly. Only one may run for a task, so the app fails to start, or fails when the hook runs. Combine them, or change ShouldRunForTask so that only one returns true for 'Task_1'.,
+    Category: Process,
+    CustomTags: [
+      CompilationEnd
+    ]
+  },
+  {
+    Id: ALTINNAPP1028,
+    Title: More than one IOnProcessEndedHandler is registered,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Hooks.cs(57,10),
+    Code: AddTransient<IOnProcessEndedHandler, Notify>(),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1028,
+    MessageFormat: More than one IOnProcessEndedHandler implementation is registered: {0}. Only one may run when the process ends, so the app does not start. Register only one.,
+    Message: More than one IOnProcessEndedHandler implementation is registered: Archive, Notify. Only one may run when the process ends, so the app does not start. Register only one.,
+    Category: Process,
+    CustomTags: [
+      CompilationEnd
+    ]
+  }
+]

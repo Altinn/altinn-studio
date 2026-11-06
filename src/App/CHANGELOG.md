@@ -13,6 +13,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
+- Build checks report problems with process hooks: ([#21742](https://github.com/Altinn/altinn-studio/pull/21742))
+  - `ALTINNAPP1027` (error): one method registers two task hooks of a kind that run for the same task
+  - `ALTINNAPP1028` (error): one method registers more than one `IOnProcessEndedHandler`
+  - `ALTINNAPP1029` (warning): `ShouldRunForTask` names a task that `process.bpmn` does not have
 
 ### Changed
 

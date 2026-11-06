@@ -45,3 +45,6 @@ ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the 
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
 ALTINNAPP1024 | Process | Error | Subform PDF service task names a UI folder it cannot render
 ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist
+ALTINNAPP1027 | Process | Error | More than one task hook of a kind runs for a task
+ALTINNAPP1028 | Process | Error | More than one IOnProcessEndedHandler is registered
+ALTINNAPP1029 | Process | Warning | Task hook compares the task id with a task that does not exist
