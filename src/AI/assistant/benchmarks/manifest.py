@@ -617,6 +617,78 @@ BEHAVIORS = (
         see=("build.pages-render", "build.components-valid"),
     ),
     Behavior(
+        id="actor.loads-the-relevant-skill",
+        component="actor",
+        text="Loads the skill a request needs before working on it",
+        checks=(
+            "After the actor has scanned the repository, its next turn calls `skill` with the skill the item "
+            "names. There are a few requests for each skill, in v8 and v9 apps, and some are near misses that "
+            "sound like a neighboring skill. With APPEND_SKILL_VERSION_FILE=false, it also checks that the actor "
+            "loads a skill's version file once the skill tells it to. The system prompt, the skill listing and "
+            "the skill text come from this checkout."
+        ),
+        blind=(
+            "One turn after a canned scan, so a skill loaded a turn later counts as a miss, and a skill loaded "
+            "without need costs nothing here although it costs tokens in a session. The requests are written, "
+            "not harvested, so they are clearer than what users write."
+        ),
+        eval="Skills/routing",
+        evaluator="gen_required_calls",
+        fix=Fix(
+            kind="coverage",
+            title="Written requests stand in for real ones",
+            task=(
+                "1. Once the studio-* skills run in production, harvest requests where the actor loaded a "
+                "skill, and add each with the skill a reviewer agrees it needed.\n"
+                "2. Read the comment on a miss before changing a description. A request that names two topics "
+                "can load the other skill first.\n"
+                "3. Fix a miss in the skill's description, not in the item. Descriptions compete for the same "
+                "requests, so run the whole dataset after the change, not only that skill's items."
+            ),
+            acceptance="At least one harvested request for each skill beside the written ones.",
+        ),
+        see=("actor.applies-the-skill",),
+    ),
+    Behavior(
+        id="actor.applies-the-skill",
+        component="actor",
+        text="Makes the change a loaded skill describes",
+        checks=(
+            "With a skill loaded from this checkout and the app files read, what the next turn writes, answers "
+            "or sends to a tool matches the patterns the item gives for the mistake the skill exists to prevent, "
+            "such as an access package rule in a policy or the service owner's confirm action on a payment "
+            "task. Each skill has items for each app version its version files cover."
+        ),
+        blind=(
+            "Patterns over text, not a build: a policy can match every pattern and still not parse, and a "
+            "correct change written another way can miss a pattern. Each item shows the skill loaded and the "
+            "files read, so it cannot show whether the actor would load the skill, which "
+            "actor.loads-the-relevant-skill checks, or read the right files. A turn that first reads another "
+            "file or loads another skill scores zero. The skill comes with its version file appended in both "
+            "modes of APPEND_SKILL_VERSION_FILE."
+        ),
+        eval="Skills/applied",
+        evaluator="gen_content_patterns",
+        metric="mean",
+        fix=Fix(
+            kind="coverage",
+            title="Patterns check the text, not that the app works",
+            task=(
+                "1. Read what the turn wrote before changing a skill. A pattern that is too narrow fails a "
+                "correct change, and then the item is what needs fixing.\n"
+                "2. When the turn made the mistake the item names, fix the skill and keep the item, so the "
+                "mistake stays pinned.\n"
+                "3. Where a mistake shows only when the app builds or runs, add the case to Benchmarks/forms "
+                "instead of a pattern here."
+            ),
+            acceptance=(
+                "Every failing item classified as a skill defect or a pattern defect, and each skill defect "
+                "fixed in the skill."
+            ),
+        ),
+        see=("actor.loads-the-relevant-skill", "build.pages-render"),
+    ),
+    Behavior(
         id="actor.recovers-from-tool-error",
         component="actor",
         text="Recovers from a tool error without abandoning the turn",

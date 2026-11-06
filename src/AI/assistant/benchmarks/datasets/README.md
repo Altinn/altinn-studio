@@ -44,6 +44,23 @@ For the gate datasets, the files have the fields that people read. `dataset_sync
 `build_security_check_message`. There is no copy of the text, so the two cannot become different. A
 test makes sure that the rendered message is the same as the result of the function.
 
+## Items for a skill
+
+The items in `skills_routing.jsonl` and `skills_applied.jsonl` start from a goal rather than a recorded session, so
+they run with the system prompt and the tools of this checkout. They add these fields:
+
+- `input.app_version` is `v8` or `v9`. It sets the version in the system prompt and the version file of a skill.
+- A tool result with `"live": true` and no content answers a `skill` call with the skill as it is in this checkout.
+  The skill comes with its version file appended, as in the default mode.
+- `input.version_file: "on demand"` shows the skill without its version file. Such an item runs only when
+  `APPEND_SKILL_VERSION_FILE` is false.
+- `metadata.skill` names the skill the item measures. The report splits the scores by it.
+- `metadata.near_miss_of` names the skill a routing request sounds like, when it needs another one.
+
+`expectedOutput` leads with the correct change, so the comparison view shows it beside the model's turn, and a test
+checks that the rule accepts it. `skills_applied.mistakes.json` holds, for each applied item, the change with the
+mistake the item exists to catch, and a test checks that the rule rejects it.
+
 ## Items from production traces
 
 `python -m benchmarks.harvest` makes `loop_traces.jsonl` from production traces. Nobody writes

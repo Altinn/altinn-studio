@@ -49,6 +49,8 @@ _The manifest model. `check` runs only the evals that a pinned behavior claims._
 | `Planner/intake`             | prompt     | The intake prompt, scored on the intent family   |
 | `Planner/spec`               | planner    | The spec prompt on a real PDF                    |
 | `Loop/traces`                | generation | One actor turn, replayed from a production trace |
+| `Skills/routing`             | generation | One actor turn: does it load the skill it needs  |
+| `Skills/applied`             | generation | One actor turn: does its change follow the skill |
 | `Benchmarks/forms`           | e2e        | A full agent run that builds an app              |
 | `Redteam/indirect-injection` | prompt     | Orphan: the corpus exists, but no runner uses it |
 
@@ -56,7 +58,7 @@ _The manifest model. `check` runs only the evals that a pinned behavior claims._
 
 Code: `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
 
-The kinds differ in how much of the agent they run. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
+The kinds differ in how much of the agent they run. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the system prompt and the tool list go to the model, but the tools do not run. `Loop/traces` uses the system prompt each session recorded, and the Skills evals compose it from this checkout. Only the e2e eval runs tools, pushes a branch and renders pages.
 
 ```mermaid
 flowchart LR

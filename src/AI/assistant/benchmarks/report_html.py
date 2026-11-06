@@ -1111,9 +1111,9 @@ function behaviors() {
             esc(sp.value) + " <b>" + sp.reading + "</b>" +
             '<em>' + fmt(sp.mean) + "</em></span>").join("") + "</span>" +
           (notable
-            ? '<span class="snote">' + esc(worst.value) + " is the weak half, " +
-              fmt(bd.spread) + " below the best. The overall number is the average of " +
-              "the two and describes neither.</span>"
+            ? '<span class="snote">' + esc(worst.value) + " scores lowest, " +
+              fmt(bd.spread) + " below the best. The overall number is an average over " +
+              "these classes and describes none of them.</span>"
             : "") + "</div>";
       }).join("");
       const splitBlock = splits

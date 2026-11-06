@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from benchmarks import manifest
+from benchmarks import manifest, registry
 from benchmarks.diff import NOISE_FLOOR, Comparison, compare
 from benchmarks.runstore import BehaviorResult, ItemResult, Run, load, series
 
@@ -210,28 +210,23 @@ class BehaviorView:
             for dimension, klass in declared.items():
                 facets.setdefault(dimension, []).append((klass, value))
 
+        declared_split = registry.by_name(self.behavior.eval).split_by if self.behavior.eval else None
         found = []
         for dimension, pairs in facets.items():
             classes = {klass for klass, _ in pairs}
+            if dimension == declared_split:
+                found.append(Breakdown(dimension=dimension, splits=_splits(pairs), declared=True))
+                continue
             if not 2 <= len(classes) <= _MAX_CLASSES:
                 continue
             if len(pairs) < _MIN_COVERAGE * len(scored):
                 continue
-            splits = []
-            for klass in sorted(classes):
-                values = [v for k, v in pairs if k == klass]
-                splits.append(
-                    Split(
-                        value=klass,
-                        scored=len(values),
-                        passed=sum(1 for v in values if v >= 1.0),
-                        mean=sum(values) / len(values),
-                    )
-                )
+            splits = _splits(pairs)
             if any(split.scored < _MIN_PER_CLASS for split in splits):
                 continue
-            found.append(Breakdown(dimension=dimension, splits=tuple(splits)))
-        return tuple(_deduplicated(sorted(found, key=lambda b: -b.spread)))
+            found.append(Breakdown(dimension=dimension, splits=splits))
+        # The declared split comes first, since the eval exists to be read that way.
+        return tuple(_deduplicated(sorted(found, key=lambda b: (not b.declared, -b.spread))))
 
     def rows(self) -> tuple[ItemRow, ...]:
         """Per-item detail, from the run itself rather than from a comparison."""
@@ -530,6 +525,8 @@ class Breakdown:
 
     dimension: str
     splits: tuple[Split, ...]
+    # The eval names this dimension in `split_by`, so it shows however many classes it has.
+    declared: bool = False
 
     @property
     def weakest(self) -> Split:
@@ -538,6 +535,21 @@ class Breakdown:
     @property
     def spread(self) -> float:
         return max(s.mean for s in self.splits) - min(s.mean for s in self.splits)
+
+
+def _splits(pairs: list[tuple[str, float]]) -> tuple[Split, ...]:
+    splits = []
+    for klass in sorted({klass for klass, _ in pairs}):
+        values = [v for k, v in pairs if k == klass]
+        splits.append(
+            Split(
+                value=klass,
+                scored=len(values),
+                passed=sum(1 for v in values if v >= 1.0),
+                mean=sum(values) / len(values),
+            )
+        )
+    return tuple(splits)
 
 
 def _deduplicated(found: list[Breakdown]) -> list[Breakdown]:

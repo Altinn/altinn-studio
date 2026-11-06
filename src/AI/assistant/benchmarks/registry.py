@@ -23,6 +23,8 @@ class Eval:
     prompt: str | None = None
     user_template: str | None = None
     note: str | None = None
+    # An item metadata key the report always splits this eval's scores by, however many values it has.
+    split_by: str | None = None
 
     def __post_init__(self) -> None:
         assert self.kind in KINDS, f"{self.name}: unknown kind {self.kind}"
@@ -106,6 +108,30 @@ EVALS = (
             "from runs checked against the apps they produced. Includes one regression "
             "item asserting a behavior a source run got wrong, so a score of 0 there is "
             "the finding rather than a defect in the item."
+        ),
+    ),
+    Eval(
+        name="Skills/routing",
+        kind="generation",
+        file="skills_routing.jsonl",
+        split_by="skill",
+        summary=(
+            "Does the actor load the skill a request needs. Each item is a request to a v8 or a v9 app, "
+            "after the actor has scanned the repository, and names the skill it should load next. Some are "
+            "near misses that sound like a neighboring skill. The items marked `version_file: on demand` "
+            "show a skill without its version file and expect the actor to load it, so they only run with "
+            "APPEND_SKILL_VERSION_FILE=false."
+        ),
+    ),
+    Eval(
+        name="Skills/applied",
+        kind="generation",
+        file="skills_applied.jsonl",
+        split_by="skill",
+        summary=(
+            "Does the change the actor makes after loading a skill follow it. Each item shows the skill, "
+            "read from this checkout when the item runs, and the app files the change needs, and checks what "
+            "the next turn writes against patterns for the mistake the skill exists to prevent."
         ),
     ),
     Eval(

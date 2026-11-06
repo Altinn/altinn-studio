@@ -232,7 +232,7 @@ def _collect(result: object, eval_name: str, dataset_version: str | None) -> Eva
 
 
 # What the item is, not how it was uploaded. These dimensions split a mean in half.
-KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace", "regression", "defect")
+KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace", "regression", "defect", "skill")
 
 
 def _kept_metadata(metadata: dict) -> dict[str, str]:
@@ -325,6 +325,11 @@ def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult,
     return tuple(results)
 
 
+def evals_split_by(key: str) -> tuple[str, ...]:
+    """The live evals whose items carry this metadata key, such as `skill`."""
+    return tuple(entry.name for entry in registry.live() if entry.split_by == key)
+
+
 def evals_to_run(*, include_slow: bool, only: tuple[str, ...] = ()) -> tuple[registry.Eval, ...]:
     """Live evals some behavior claims, minus the slow ones unless asked for."""
     claimed = {b.eval for b in manifest.pinned()}
@@ -349,8 +354,10 @@ def run(
     run_eval,
     agent_models: dict[str, str] | None = None,
     name: str | None = None,
+    skills: tuple[str, ...] = (),
 ) -> Run:
-    """Execute the pinned behaviors and return a saved-shaped run."""
+    """Execute the pinned behaviors and return a saved-shaped run. With `skills`, `run_eval` ran only the items for
+    those skills, so the dataset axis names the items and a comparison with a full run is refused."""
     started = time.monotonic()
     name = name or runstore.new_name(label)
     outcomes: dict[str, EvalOutcome] = {}
@@ -373,7 +380,11 @@ def run(
 
     state = provenance.collect(
         prompts=prompt_versions,
-        dataset=dataset_version or _scored_set_digest(outcomes),
+        dataset=(
+            f"{_scored_set_digest(outcomes)} for {', '.join(skills)}"
+            if skills
+            else dataset_version or _scored_set_digest(outcomes)
+        ),
         evaluators=evaluator_versions,
         judge=_judge_model(),
         agent_models=agent_models,
@@ -426,10 +437,13 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
     def go(entry: registry.Eval):
         dataset = client.get_dataset(entry.name)
         items = [i for i in dataset.items if getattr(i, "status", "ACTIVE") != "ARCHIVED"]
+        _warn_if_stale(entry, len(items))
+        skills = tuple(getattr(args, "skill", None) or ())
+        if skills and entry.split_by == "skill":
+            items = [i for i in items if (getattr(i, "metadata", None) or {}).get("skill") in skills]
         task, evaluators, _score_names, model = task_for(args, entry, agent_models)
         slow = " (builds apps, minutes)" if entry.kind in SLOW_KINDS else ""
         print(f"  {entry.name}: {len(items)} items on {model}{slow}", flush=True)
-        _warn_if_stale(entry, len(items))
         started = time.monotonic()
         concurrency = E2E_MAX_CONCURRENCY if entry.kind in SLOW_KINDS else getattr(args, "max_concurrency", 5)
         state = provenance.collect(agent_models=getattr(task, "role_models", None))

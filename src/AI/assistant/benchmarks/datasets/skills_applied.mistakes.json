@@ -1,0 +1,582 @@
+{
+  "applied-app-development-v8-rename-task": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "old_string": "Task_1",
+          "new_string": "Registrering",
+          "replace_all": true
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/applicationmetadata.json",
+          "old_string": "\"taskId\": \"Task_1\"",
+          "new_string": "\"taskId\": \"Registrering\""
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-app-development-v9-custom-css": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/wwwroot/css/knapper.css",
+          "content": "button {\n  border-radius: 0 !important;\n}\n"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/views/Home/Index.cshtml",
+          "content": "<link rel=\"stylesheet\" type=\"text/css\" href=\"/@ViewBag.Org/@ViewBag.App/css/knapper.css\">\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-app-lib-v8-task-end-hook": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/logic/Fagsystem/VarsleVedInnsending.cs",
+          "content": "using System.Threading.Tasks;\nusing Altinn.App.Core.Features;\nusing Altinn.Platform.Storage.Interface.Models;\n\nnamespace Altinn.App.Logic.Fagsystem;\n\npublic class VarsleVedInnsending : IProcessTaskEnd\n{\n    private readonly IFagsystemVarsler _fagsystemVarsler;\n\n    public VarsleVedInnsending(IFagsystemVarsler fagsystemVarsler)\n    {\n        _fagsystemVarsler = fagsystemVarsler;\n    }\n\n    public async Task End(string taskId, Instance instance)\n    {\n        await _fagsystemVarsler.VarsleNySoknad(instance);\n    }\n}\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/Program.cs",
+          "old_string": "    services.AddHttpClient<IFagsystemVarsler, FagsystemVarsler>();\n",
+          "new_string": "    services.AddHttpClient<IFagsystemVarsler, FagsystemVarsler>();\n    services.AddTransient<IProcessTaskEnd, VarsleVedInnsending>();\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-app-lib-v9-port-task-end-hook": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/logic/Fagsystem/VarsleVedInnsending.cs",
+          "content": "using Altinn.App.Core.Features;\n\nnamespace Altinn.App.Logic.Fagsystem;\n\npublic class VarsleVedInnsending : IOnTaskEndingHandler\n{\n    private readonly IFagsystemVarsler _fagsystemVarsler;\n\n    public VarsleVedInnsending(IFagsystemVarsler fagsystemVarsler)\n    {\n        _fagsystemVarsler = fagsystemVarsler;\n    }\n\n    public bool ShouldRunForTask(string taskId) => taskId == \"Task_1\";\n\n    public async Task<HandlerResult> Execute(OnTaskEndingContext context)\n    {\n        await _fagsystemVarsler.VarsleNySoknad(context.InstanceDataMutator.Instance);\n        return HandlerResult.Success();\n    }\n}\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/Program.cs",
+          "old_string": "    services.AddTransient<IProcessTaskEnd, VarsleVedInnsending>();\n",
+          "new_string": "    services.AddTransient<IOnTaskEndingHandler, VarsleVedInnsending>();\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-app-settings-v8-title-and-app-name": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/applicationmetadata.json",
+          "old_string": "\"title\": {\n    \"nb\": \"Innsending av PDF til Helse Møre og Romsdal\",\n    \"nn\": \"Innsending av PDF til Helse Møre og Romsdal\",\n    \"en\": \"Submission of PDF to Helse Møre og Romsdal\"\n  }",
+          "new_string": "\"title\": {\n    \"nb\": \"Innsending av dokumenter til forskning i Helse Møre og Romsdal\",\n    \"nn\": \"Innsending av dokument til forsking i Helse Møre og Romsdal\",\n    \"en\": \"Send documents to research at Møre og Romsdal Hospital Trust\"\n  }"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-app-settings-v9-file-scan-text-keys": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nb.json",
+          "old_string": "    {\n      \"id\": \"appName\",\n",
+          "new_string": "    {\n      \"id\": \"DataElementFileInfected\",\n      \"value\": \"Filen inneholder skadelig innhold og ble avvist. Last opp en annen fil.\"\n    },\n    {\n      \"id\": \"DataElementFileScanPending\",\n      \"value\": \"Vi sjekker filen for virus. Vent litt før du sender inn.\"\n    },\n    {\n      \"id\": \"appName\",\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-code-lists-v8-library-reference": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/form/layouts/Om_meg.json",
+          "old_string": "        \"options\": [\n          {\n            \"label\": \"81BTpWAgtdCY\",\n            \"value\": \"ostlandet\"\n          },\n          {\n            \"label\": \"DNxbxmV8hLOL\",\n            \"value\": \"midt-norge\"\n          },\n          {\n            \"label\": \"f5z7k9xtdTei\",\n            \"value\": \"sor-norge\"\n          },\n          {\n            \"label\": \"qO0f57eUWMO4\",\n            \"value\": \"nord-norge\"\n          }\n        ]",
+          "new_string": "        \"optionsId\": \"lib**fors**landsdeler**latest\""
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-code-lists-v9-options-provider": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/logic/AarAppOptionsProvider.cs",
+          "content": "using Altinn.App.Core.Features;\nusing Altinn.App.Core.Models;\n\nnamespace Altinn.App.logic;\n\npublic class AarAppOptionsProvider : IAppOptionsProvider\n{\n    public string Id => \"aar\";\n\n    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)\n    {\n        int year = DateTime.Today.Year;\n        var options = new AppOptions\n        {\n            Options =\n            [\n                new AppOption { Value = year.ToString(), Label = year.ToString() },\n                new AppOption { Value = (year - 1).ToString(), Label = (year - 1).ToString() },\n            ],\n        };\n        return Task.FromResult(options);\n    }\n}\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/Program.cs",
+          "old_string": "    services.AddTransient<IDataProcessor, DataProcessor>();\n",
+          "new_string": "    services.AddTransient<IDataProcessor, DataProcessor>();\n    services.AddTransient<IAppOptionsProvider, AarAppOptionsProvider>();\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-data-model-v8-wellbore-schema-only": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/models/Wellbore.schema.json",
+          "old_string": "\"maxLength\": 2,",
+          "new_string": "\"maxLength\": 3,"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/models/Wellbore.cs",
+          "old_string": "[MaxLength(2)]",
+          "new_string": "[MaxLength(3)]"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-data-model-v9-connect-model-to-task": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/applicationmetadata.json",
+          "old_string": "\"classRef\": \"Altinn.App.Models.modell3.modell3\",\n        \"allowAnonymousOnStateless\": false,\n        \"autoDeleteOnProcessEnd\": false\n      },\n",
+          "new_string": "\"classRef\": \"Altinn.App.Models.modell3.modell3\",\n        \"allowAnonymousOnStateless\": false,\n        \"autoDeleteOnProcessEnd\": false\n      },\n      \"taskId\": \"Task_2\",\n"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/layout-sets.json",
+          "content": "{\n  \"sets\": [\n    {\n      \"id\": \"Task_2\",\n      \"dataType\": \"modell3\",\n      \"tasks\": [\n        \"Task_2\"\n      ]\n    }\n  ]\n}"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-docs-v8-logs-and-metrics": {
+    "tool_calls": [
+      {
+        "name": "web_fetch",
+        "input": {
+          "url": "https://docs.altinn.studio/nb/altinn-studio/v8/guides/monitoring/index.md"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-docs-v9-outgoing-ip-english": {
+    "tool_calls": [
+      {
+        "name": "web_fetch",
+        "input": {
+          "url": "https://docs.altinn.studio/en/llms.txt",
+          "filter": "firewall IP"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-expressions-v8-calculation-not-rule": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/mainlayout/RuleConfiguration.json",
+          "old_string": "      }\n    },\n    \"conditionalRendering\": {}",
+          "new_string": "      },\n      \"tidsbruksum-9db765228f3d\": {\n        \"selectedFunction\": \"sum\",\n        \"inputParams\": {\n          \"a\": \"Tidsbruk.samletInfoMin\",\n          \"b\": \"Tidsbruk.hjelpAvAndreMin\",\n          \"c\": \"Tidsbruk.utfyllingMin\"\n        },\n        \"outParams\": {\n          \"outParam0\": \"Hjelpefelter.hjelpefeltdec6\"\n        }\n      }\n    },\n    \"conditionalRendering\": {}"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-expressions-v9-checkbox-condition": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/Task_1/layouts/S04_Driftsopplysninger.json",
+          "old_string": "        \"id\": \"S04-Input-Utendoers-Areal\",\n        \"type\": \"Input\",\n        \"textResourceBindings\": {\n          \"title\": \"S04-Input-Utendoers-Areal.Title\"\n        },\n        \"dataModelBindings\": {\n          \"simpleBinding\": \"FlatData.Driftsopplysninger.Serveringsinformasjon.UtendoersServering.Areal\"\n        },\n        \"required\": false",
+          "new_string": "        \"id\": \"S04-Input-Utendoers-Areal\",\n        \"type\": \"Input\",\n        \"hidden\": [\"not\", [\"equals\", [\"dataModel\", \"FlatData.Driftsopplysninger.Serveringsinformasjon.Serveringsomraade\"], \"Utendoers\"]],\n        \"textResourceBindings\": {\n          \"title\": \"S04-Input-Utendoers-Areal.Title\"\n        },\n        \"dataModelBindings\": {\n          \"simpleBinding\": \"FlatData.Driftsopplysninger.Serveringsinformasjon.UtendoersServering.Areal\"\n        },\n        \"required\": [\"equals\", [\"dataModel\", \"FlatData.Driftsopplysninger.Serveringsinformasjon.Serveringsomraade\"], \"Utendoers\"]"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-integrations-v8-altinn-token-exchange": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/Program.cs",
+          "old_string": "        .UseMaskinportenAuthorisation(\"nhn:hpr/basic\");\n",
+          "new_string": "        .UseMaskinportenAuthorisation(\"nhn:hpr/basic\");\n    services\n        .AddHttpClient<ITilgangslisteClient, TilgangslisteClient>()\n        .UseMaskinportenAuthorisation(\"altinn:resourceregistry/accesslist.read\");\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-integrations-v9-maskinporten-without-settings": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/appsettings.json",
+          "old_string": "  \"LokalitetApi\": {\n    \"BaseUrl\": \"https://api.fiskeridir.no/pub-aqua/api/v1/\"\n  },\n",
+          "new_string": "  \"LokalitetApi\": {\n    \"BaseUrl\": \"https://api.fiskeridir.no/aqua/api/v2/\"\n  },\n  \"MaskinportenSettings\": {\n    \"Authority\": \"https://test.maskinporten.no/\",\n    \"ClientId\": \"\",\n    \"JwkBase64\": \"\"\n  },\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/Program.cs",
+          "old_string": "    services.AddHttpClient<ILokalitetClient, LokalitetClient>();\n",
+          "new_string": "    services.ConfigureMaskinportenClient(\"MaskinportenSettings\");\n    services.AddHttpClient<ILokalitetClient, LokalitetClient>().UseMaskinportenAuthorization(\"fdir:aqua.read\");\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-layouts-v8-new-page": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/form/Settings.json",
+          "old_string": "\"Personalia\",",
+          "new_string": "\"Personalia\",\n      \"Kontakt\","
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/form/layouts/Kontakt.json",
+          "content": "{\n  \"$schema\": \"https://altinncdn.no/schemas/json/layout/layout.schema.v1.json\",\n  \"data\": {\n    \"layout\": [\n      {\n        \"id\": \"kontakt-phonenumber\",\n        \"type\": \"Input\",\n        \"textResourceBindings\": {\n          \"title\": \"titlePhonenumber\"\n        },\n        \"dataModelBindings\": {\n          \"simpleBinding\": \"phonenumber\"\n        },\n        \"required\": true,\n        \"readOnly\": false\n      },\n      {\n        \"id\": \"kontakt-email-personal\",\n        \"type\": \"Input\",\n        \"textResourceBindings\": {\n          \"title\": \"titleEmailPersonal\"\n        },\n        \"dataModelBindings\": {\n          \"simpleBinding\": \"emailPersonal\"\n        },\n        \"required\": true,\n        \"readOnly\": false\n      },\n      {\n        \"id\": \"kontakt-email-work\",\n        \"type\": \"Input\",\n        \"textResourceBindings\": {\n          \"title\": \"titleEmailWork\"\n        },\n        \"dataModelBindings\": {\n          \"simpleBinding\": \"emailWork\"\n        },\n        \"required\": true,\n        \"readOnly\": false\n      },\n      {\n        \"id\": \"kontakt-navigation\",\n        \"type\": \"NavigationButtons\",\n        \"textResourceBindings\": {\n          \"next\": \"page-1-next\"\n        }\n      }\n    ]\n  }\n}"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nb.json",
+          "old_string": "    {\n      \"id\": \"page-2-back\",",
+          "new_string": "    {\n      \"id\": \"titlePhonenumber\",\n      \"value\": \"Telefonnummer\"\n    },\n    {\n      \"id\": \"titleEmailPersonal\",\n      \"value\": \"Personlig e-post\"\n    },\n    {\n      \"id\": \"titleEmailWork\",\n      \"value\": \"Jobb-e-post\"\n    },\n    {\n      \"id\": \"page-2-back\","
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-layouts-v9-custom-receipt": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/layout-sets.json",
+          "content": "{\n  \"sets\": [\n    {\n      \"id\": \"Task_Utfylling\",\n      \"dataType\": \"DataModel\",\n      \"tasks\": [\n        \"Task_Utfylling\"\n      ]\n    },\n    {\n      \"id\": \"kvittering\",\n      \"dataType\": \"DataModel\",\n      \"tasks\": [\n        \"CustomReceipt\"\n      ]\n    }\n  ]\n}"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/kvittering/Settings.json",
+          "content": "{\n  \"$schema\": \"https://altinn.studio/designer/app-dist/9.0.0-preview.5/schemas/json/layout/layoutSettings.schema.v1.json\",\n  \"pages\": {\n    \"order\": [\n      \"Kvittering\"\n    ]\n  }\n}"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/kvittering/layouts/Kvittering.json",
+          "content": "{\n  \"$schema\": \"https://altinn.studio/designer/app-dist/9.0.0-preview.5/schemas/json/layout/layout.schema.v1.json\",\n  \"data\": {\n    \"layout\": [\n      {\n        \"id\": \"Receipt-Header\",\n        \"type\": \"Heading\",\n        \"size\": \"L\",\n        \"textResourceBindings\": {\n          \"title\": \"Receipt-Header.Title\"\n        }\n      },\n      {\n        \"id\": \"Receipt-Summary2\",\n        \"type\": \"Summary2\",\n        \"target\": {\n          \"type\": \"layoutSet\"\n        },\n        \"hideEmptyFields\": true\n      }\n    ]\n  }\n}"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nb.json",
+          "old_string": "    {\n      \"id\": \"S99-Header.Title\",",
+          "new_string": "    {\n      \"id\": \"Receipt-Header.Title\",\n      \"value\": \"Skjema er sendt inn\"\n    },\n    {\n      \"id\": \"S99-Header.Title\","
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-payment-v8-actions-and-grants": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "old_string": "            <altinn:action>pay</altinn:action>\n",
+          "new_string": "            <altinn:action>pay</altinn:action>\n            <altinn:action>confirm</altinn:action>\n            <altinn:action>reject</altinn:action>\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/authorization/policy.xml",
+          "old_string": "  <xacml:ObligationExpressions>",
+          "new_string": "  <xacml:Rule RuleId=\"urn:altinn:example:ruleid:7\" Effect=\"Permit\">\n    <xacml:Description>Rule that defines that user with specified role(s) can pay, reject and confirm for [ORG]/[APP] when it is in payment task</xacml:Description>\n    <xacml:Target>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">dagl</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:rolecode\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">lede</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:rolecode\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[ORG]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:org\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[APP]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:app\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_2</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:task\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">pay</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">confirm</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">reject</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n    </xacml:Target>\n  </xacml:Rule>\n  <xacml:ObligationExpressions>"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-payment-v9-service-owner-confirm": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/authorization/policy.xml",
+          "old_string": "        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">complete</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n",
+          "new_string": "        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">complete</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">confirm</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-policy-v8-accountant-package": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/authorization/policy.xml",
+          "old_string": "  <xacml:ObligationExpressions>",
+          "new_string": "  <xacml:Rule RuleId=\"urn:altinn:resource:app_[ORG]_[APP]:policyid:1:ruleid:3\" Effect=\"Permit\">\n    <xacml:Description>Regel for regnskapsfører: Gir rettighetene Les, Skriv og Start til brukere med rollene Regnskapsfører (REGN) og Regnskapsmedarbeider (REGNA), for hele tjenesten.</xacml:Description>\n    <xacml:Target>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">regn</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:rolecode\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">regna</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:rolecode\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[ORG]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:org\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[APP]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:app\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">write</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">instantiate</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n    </xacml:Target>\n  </xacml:Rule>\n  <xacml:ObligationExpressions>"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-policy-v9-service-owner-write": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/authorization/policy.xml",
+          "old_string": "  <xacml:ObligationExpressions>",
+          "new_string": "  <xacml:Rule RuleId=\"urn:altinn:example:ruleid:3\" Effect=\"Permit\">\n    <xacml:Description>Tjenesteeier\nProsessteg: Task_1\nRettigheter: Skriv</xacml:Description>\n    <xacml:Target>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[org]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:org\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[ORG]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:org\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">[APP]</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:app\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_1</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:altinn:task\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n      <xacml:AnyOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">write</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n    </xacml:Target>\n  </xacml:Rule>\n  <xacml:ObligationExpressions>"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-prefill-v8-er-for-the-organisation": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/models/Innmeldingsliste.prefill.json",
+          "content": "{\n  \"$schema\": \"https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json\",\n  \"UserProfile\": {\n    \"Party.Organization.OrgNumber\": \"Innsender.Organisasjon.Organisasjonsnummer\",\n    \"Party.Organization.Name\": \"Innsender.Organisasjon.Organisasjonsnavn\",\n    \"Email\": \"Innsender.Kontaktperson.Epost\",\n    \"PhoneNumber\": \"Innsender.Kontaktperson.Mobilnummer\"\n  }\n}"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-prefill-v9-instantiation-query-parameters": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/stateless/layouts/1.json",
+          "old_string": "\"type\": \"InstantiationButton\",\n        \"textResourceBindings\": {\n          \"title\": \"Start instans\"\n        }\n",
+          "new_string": "\"type\": \"InstantiationButton\",\n        \"textResourceBindings\": {\n          \"title\": \"Start instans\"\n        },\n        \"mapping\": {\n          \"JobTitle\": \"PrefilledJobTitle\"\n        }\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-process-v8-pdf-service-task": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "content": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<bpmn:definitions id=\"Altinn_SingleDataTask_Process_Definition\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:altinn=\"http://altinn.no/process\" xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" targetNamespace=\"http://bpmn.io/schema/bpmn\">\n  <bpmn:process id=\"SingleDataTask\" isExecutable=\"false\">\n    <bpmn:startEvent id=\"StartEvent_1\">\n      <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>\n    </bpmn:startEvent>\n    <bpmn:task id=\"Task_1\" name=\"Utfylling\">\n      <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>\n      <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>data</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n    </bpmn:task>\n    <bpmn:serviceTask id=\"PdfTask_Task_1\" name=\"Lag PDF\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>pdf</altinn:taskType>\n          <altinn:pdfConfig>\n            <altinn:autoPdfTaskIds>\n              <altinn:taskId>Task_1</altinn:taskId>\n            </altinn:autoPdfTaskIds>\n          </altinn:pdfConfig>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>\n      <bpmn:outgoing>Flow_PdfTask_Task_1_EndEvent_1</bpmn:outgoing>\n    </bpmn:serviceTask>\n    <bpmn:endEvent id=\"EndEvent_1\">\n      <bpmn:incoming>Flow_PdfTask_Task_1_EndEvent_1</bpmn:incoming>\n    </bpmn:endEvent>\n    <bpmn:sequenceFlow id=\"SequenceFlow_1n56yn5\" sourceRef=\"StartEvent_1\" targetRef=\"Task_1\" />\n    <bpmn:sequenceFlow id=\"SequenceFlow_1oot28q\" sourceRef=\"Task_1\" targetRef=\"PdfTask_Task_1\" />\n    <bpmn:sequenceFlow id=\"Flow_PdfTask_Task_1_EndEvent_1\" sourceRef=\"PdfTask_Task_1\" targetRef=\"EndEvent_1\" />\n  </bpmn:process>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"SingleDataTask\">\n      <bpmndi:BPMNShape id=\"_BPMNShape_StartEvent_2\" bpmnElement=\"StartEvent_1\">\n        <dc:Bounds x=\"156\" y=\"81\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Task_1_di\" bpmnElement=\"Task_1\">\n        <dc:Bounds x=\"300\" y=\"59\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"PdfTask_Task_1_di\" bpmnElement=\"PdfTask_Task_1\">\n        <dc:Bounds x=\"460\" y=\"59\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\">\n        <dc:Bounds x=\"632\" y=\"81\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNEdge id=\"SequenceFlow_1n56yn5_di\" bpmnElement=\"SequenceFlow_1n56yn5\">\n        <di:waypoint x=\"192\" y=\"99\" />\n        <di:waypoint x=\"300\" y=\"99\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"SequenceFlow_1oot28q_di\" bpmnElement=\"SequenceFlow_1oot28q\">\n        <di:waypoint x=\"400\" y=\"99\" />\n        <di:waypoint x=\"512\" y=\"99\" />\n      </bpmndi:BPMNEdge>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn:definitions>"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-process-v9-custom-service-task": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "old_string": "    <bpmn:task id=\"Task_Utfylling2\" name=\"Utfylling 2\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>data</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>\n",
+          "new_string": "    <bpmn:task id=\"Task_Example\" name=\"Eksempel\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>exampleServiceTask</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>\n      <bpmn:outgoing>Flow_Example_Utfylling2</bpmn:outgoing>\n    </bpmn:task>\n    <bpmn:task id=\"Task_Utfylling2\" name=\"Utfylling 2\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>data</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>Flow_Example_Utfylling2</bpmn:incoming>\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "old_string": "    <bpmn:sequenceFlow id=\"SequenceFlow_1oot28q\" sourceRef=\"Task_Utfylling1\" targetRef=\"Task_Utfylling2\" />\n",
+          "new_string": "    <bpmn:sequenceFlow id=\"SequenceFlow_1oot28q\" sourceRef=\"Task_Utfylling1\" targetRef=\"Task_Example\" />\n    <bpmn:sequenceFlow id=\"Flow_Example_Utfylling2\" sourceRef=\"Task_Example\" targetRef=\"Task_Utfylling2\" />\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-signing-v8-signature-datatype": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "content": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<bpmn:definitions id=\"Altinn_Data_Process_Definition\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:altinn=\"http://altinn.no/process\" xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" targetNamespace=\"http://bpmn.io/schema/bpmn\">\n  <bpmn:process id=\"Data\" isExecutable=\"false\">\n    <bpmn:startEvent id=\"StartEvent_1\">\n      <bpmn:outgoing>SequenceFlow_Start_Task1</bpmn:outgoing>\n    </bpmn:startEvent>\n    <bpmn:task id=\"Task_1\" name=\"Utfylling\">\n      <bpmn:incoming>SequenceFlow_Start_Task1</bpmn:incoming>\n      <bpmn:outgoing>SequenceFlow_Task1_End</bpmn:outgoing>\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>data</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n    </bpmn:task>\n    <bpmn:task id=\"Task_2\" name=\"Signering\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>signing</altinn:taskType>\n          <altinn:actions>\n            <altinn:action>sign</altinn:action>\n          </altinn:actions>\n          <altinn:signatureConfig>\n            <altinn:dataTypesToSign>\n              <altinn:dataType>Form</altinn:dataType>\n            </altinn:dataTypesToSign>\n            <altinn:signatureDataType>signatures</altinn:signatureDataType>\n            <altinn:runDefaultValidator>true</altinn:runDefaultValidator>\n          </altinn:signatureConfig>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>SequenceFlow_Task1_End</bpmn:incoming>\n      <bpmn:outgoing>SequenceFlow_Task2_End</bpmn:outgoing>\n    </bpmn:task>\n    <bpmn:endEvent id=\"EndEvent_1\">\n      <bpmn:incoming>SequenceFlow_Task2_End</bpmn:incoming>\n    </bpmn:endEvent>\n    <bpmn:sequenceFlow id=\"SequenceFlow_Start_Task1\" sourceRef=\"StartEvent_1\" targetRef=\"Task_1\" />\n    <bpmn:sequenceFlow id=\"SequenceFlow_Task1_End\" sourceRef=\"Task_1\" targetRef=\"Task_2\" />\n    <bpmn:sequenceFlow id=\"SequenceFlow_Task2_End\" sourceRef=\"Task_2\" targetRef=\"EndEvent_1\" />\n  </bpmn:process>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Data\">\n      <bpmndi:BPMNShape id=\"_BPMNShape_StartEvent_2\" bpmnElement=\"StartEvent_1\">\n        <dc:Bounds x=\"156\" y=\"81\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Task_1_di\" bpmnElement=\"Task_1\">\n        <dc:Bounds x=\"270\" y=\"59\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\">\n        <dc:Bounds x=\"452\" y=\"81\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNEdge id=\"SequenceFlow_Start_Task1_di\" bpmnElement=\"SequenceFlow_Start_Task1\">\n        <di:waypoint x=\"192\" y=\"99\" />\n        <di:waypoint x=\"270\" y=\"99\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"SequenceFlow_Task1_End_di\" bpmnElement=\"SequenceFlow_Task1_End\">\n        <di:waypoint x=\"370\" y=\"99\" />\n        <di:waypoint x=\"452\" y=\"99\" />\n      </bpmndi:BPMNEdge>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn:definitions>\n"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/applicationmetadata.json",
+          "old_string": "    }\n  ],\n  \"partyTypesAllowed\": {",
+          "new_string": "    },\n    {\n      \"id\": \"signatures\",\n      \"allowedContentTypes\": [\n        \"application/json\"\n      ],\n      \"taskId\": \"Task_1\",\n      \"maxCount\": 1,\n      \"minCount\": 1\n    }\n  ],\n  \"partyTypesAllowed\": {"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/authorization/policy.xml",
+          "old_string": "        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">instantiate</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n",
+          "new_string": "        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">instantiate</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n        <xacml:AllOf>\n          <xacml:Match MatchId=\"urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case\">\n            <xacml:AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</xacml:AttributeValue>\n            <xacml:AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"false\" />\n          </xacml:Match>\n        </xacml:AllOf>\n      </xacml:AnyOf>\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-signing-v9-pdf-before-signing": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/config/process/process.bpmn",
+          "content": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" xmlns:modeler=\"http://camunda.org/schema/modeler/1.0\" xmlns:altinn=\"http://altinn.no/process\" xmlns:camunda=\"http://camunda.org/schema/1.0/bpmn\" id=\"Altinn_Data_Signing_Process_Definition\" targetNamespace=\"http://bpmn.io/schema/bpmn\" exporter=\"Camunda Web Modeler\" exporterVersion=\"60e1771\" modeler:executionPlatform=\"Camunda Cloud\" modeler:executionPlatformVersion=\"8.1.0\" camunda:diagramRelationId=\"69b5995e-5e3d-457e-b866-aa9a162a36c5\">\n  <bpmn:process id=\"Data_Signing\" isExecutable=\"false\">\n    <bpmn:startEvent id=\"StartEvent_1\">\n      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>\n    </bpmn:startEvent>\n    <bpmn:task id=\"Task_1\" name=\"Form\">\n      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>\n      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>data</altinn:taskType>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n    </bpmn:task>\n    <bpmn:task id=\"Task_Signing\" name=\"Signering\">\n      <bpmn:extensionElements>\n        <altinn:taskExtension>\n          <altinn:taskType>signing</altinn:taskType>\n          <altinn:actions>\n            <altinn:action>sign</altinn:action>\n          </altinn:actions>\n          <altinn:signatureConfig>\n            <altinn:dataTypesToSign>\n              <altinn:dataType>ref-data-as-pdf</altinn:dataType>\n            </altinn:dataTypesToSign>\n            <altinn:signatureDataType>signatures</altinn:signatureDataType>\n            <altinn:runDefaultValidator>true</altinn:runDefaultValidator>\n          </altinn:signatureConfig>\n        </altinn:taskExtension>\n      </bpmn:extensionElements>\n      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>\n      <bpmn:outgoing>Flow_Signing_End</bpmn:outgoing>\n    </bpmn:task>\n    <bpmn:endEvent id=\"EndEvent_1\">\n      <bpmn:incoming>Flow_Signing_End</bpmn:incoming>\n    </bpmn:endEvent>\n    <bpmn:sequenceFlow id=\"SequenceFlow_1\" sourceRef=\"StartEvent_1\" targetRef=\"Task_1\" />\n    <bpmn:sequenceFlow id=\"SequenceFlow_2\" sourceRef=\"Task_1\" targetRef=\"Task_Signing\" />\n    <bpmn:sequenceFlow id=\"Flow_Signing_End\" sourceRef=\"Task_Signing\" targetRef=\"EndEvent_1\" />\n  </bpmn:process>\n</bpmn:definitions>\n"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/config/applicationmetadata.json",
+          "content": "{\n  \"id\": \"ttd/signing-test\",\n  \"onEntry\": {\n    \"show\": \"select-instance\"\n  },\n  \"org\": \"ttd\",\n  \"title\": {\n    \"nb\": \"Signeringstest\"\n  },\n  \"dataTypes\": [\n    {\n      \"id\": \"ref-data-as-pdf\",\n      \"allowedContentTypes\": [\n        \"application/pdf\"\n      ],\n      \"maxCount\": 0,\n      \"minCount\": 0,\n      \"enableFileScan\": false,\n      \"validationErrorOnPendingFileScan\": false,\n      \"enabledFileAnalysers\": [],\n      \"enabledFileValidators\": []\n    },\n    {\n      \"id\": \"data\",\n      \"allowedContentTypes\": [\n        \"application/xml\"\n      ],\n      \"appLogic\": {\n        \"autoCreate\": true,\n        \"classRef\": \"Altinn.App.Models.data\",\n        \"allowAnonymousOnStateless\": false,\n        \"autoDeleteOnProcessEnd\": false,\n        \"allowUserCreate\": false,\n        \"allowUserDelete\": false,\n        \"allowInSubform\": false\n      },\n      \"taskId\": \"Task_1\",\n      \"maxCount\": 1,\n      \"minCount\": 1,\n      \"enableFileScan\": false,\n      \"validationErrorOnPendingFileScan\": false,\n      \"enabledFileAnalysers\": [],\n      \"enabledFileValidators\": [],\n      \"enablePdfCreation\": true\n    },\n    {\n      \"id\": \"signatures\",\n      \"allowedContentTypes\": [\n        \"application/json\"\n      ],\n      \"allowedContributors\": [\n        \"app:owned\"\n      ],\n      \"taskId\": \"Task_Signing\",\n      \"maxCount\": 1,\n      \"minCount\": 1\n    }\n  ],\n  \"partyTypesAllowed\": {\n    \"bankruptcyEstate\": false,\n    \"organisation\": true,\n    \"person\": false,\n    \"subUnit\": false\n  },\n  \"autoDeleteOnProcessEnd\": false,\n  \"disallowUserInstantiation\": false,\n  \"created\": \"2023-02-28T11:22:50.9417037Z\",\n  \"createdBy\": \"bjosttveit\",\n  \"lastChanged\": \"2023-02-28T11:22:50.9417659Z\",\n  \"lastChangedBy\": \"bjosttveit\"\n}"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-text-resources-v8-variable-every-language": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/ui/form/layouts/Side1.json",
+          "old_string": "      {\n        \"id\": \"Header-OmVirksomheten\",",
+          "new_string": "      {\n        \"id\": \"Paragraph-PaVegneAv\",\n        \"type\": \"Paragraph\",\n        \"textResourceBindings\": {\n          \"title\": \"0-startside.Paragraph.PaVegneAv.title\"\n        }\n      },\n      {\n        \"id\": \"Header-OmVirksomheten\","
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nb.json",
+          "old_string": "    {\n      \"id\": \"Side1\",",
+          "new_string": "    {\n      \"id\": \"0-startside.Paragraph.PaVegneAv.title\",\n      \"value\": \"Du sender henvendelsen på vegne av {0}.\",\n      \"variables\": [\n        {\n          \"key\": \"Renholdsvirksomhet.Navn\",\n          \"dataSource\": \"dataModel.RenholdHenvendelse\"\n        }\n      ]\n    },\n    {\n      \"id\": \"Side1\","
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nn.json",
+          "old_string": "    {\n      \"id\": \"Side1\",",
+          "new_string": "    {\n      \"id\": \"0-startside.Paragraph.PaVegneAv.title\",\n      \"value\": \"Du sender førespurnaden på vegner av {0}.\"\n    },\n    {\n      \"id\": \"Side1\","
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.en.json",
+          "old_string": "    {\n      \"id\": \"Side1\",",
+          "new_string": "    {\n      \"id\": \"0-startside.Paragraph.PaVegneAv.title\",\n      \"value\": \"You are sending this request on behalf of {0}.\"\n    },\n    {\n      \"id\": \"Side1\","
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-text-resources-v9-new-language": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/ui/Settings.json",
+          "content": "{\n  \"pages\": {\n    \"showLanguageSelector\": true\n  }\n}"
+        }
+      },
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/config/texts/resource.en.json",
+          "content": "{\n  \"language\": \"en\",\n  \"resources\": [\n    {\n      \"id\": \"Side1\",\n      \"value\": \"Demo page\"\n    },\n    {\n      \"id\": \"id_FgW0QWcCCFgO\",\n      \"value\": \"Sunday\"\n    },\n    {\n      \"id\": \"id_2d3NFx56ZUnY\",\n      \"value\": \"Saturday\"\n    },\n    {\n      \"id\": \"id_NR1rMOuLWftK\",\n      \"value\": \"Friday\"\n    },\n    {\n      \"id\": \"id_XameLFem8GYc\",\n      \"value\": \"Thursday\"\n    },\n    {\n      \"id\": \"id_w8yzCao9NeQr\",\n      \"value\": \"Wednesday\"\n    },\n    {\n      \"id\": \"id_cbuI6W4AZtiA\",\n      \"value\": \"Tuesday\"\n    },\n    {\n      \"id\": \"id_gOQaBT86BuH9\",\n      \"value\": \"Monday\"\n    },\n    {\n      \"id\": \"Side1.Dropdown-6ijPRF.title.cE95\",\n      \"value\": \"What day is it today?\"\n    },\n    {\n      \"id\": \"Side1.Button-cCpJVR.title.pRxg\",\n      \"value\": \"Submit\"\n    },\n    {\n      \"id\": \"Side1.Alert-gFgQox.title.E1y4\",\n      \"value\": \"Weekend soon!\"\n    },\n    {\n      \"id\": \"Side1.Input-9tDfmn.title.ESSb\",\n      \"value\": \"What day is it?\"\n    },\n    {\n      \"id\": \"Side1.Input-X0MyjX.title.fZHW\",\n      \"value\": \"Name\"\n    },\n    {\n      \"id\": \"appName\",\n      \"value\": \"This is a demo\"\n    }\n  ]\n}"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-validation-v8-expression-validation-switch": {
+    "tool_calls": [
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/models/datamodel.validation.json",
+          "old_string": "  \"validations\": {\n",
+          "new_string": "  \"validations\": {\n    \"Prosjekt.TotaltOmsokteRentemidler\": [\n      {\n        \"severity\": \"error\",\n        \"message\": \"Totalt omsøkte rentemidler kan ikke være høyere enn totalkostnaden\",\n        \"condition\": [\n          \"greaterThan\",\n          [\"dataModel\", [\"argv\", 0]],\n          [\"dataModel\", \"Prosjekt.TotalKostnad\"]\n        ]\n      }\n    ],\n"
+        }
+      }
+    ],
+    "text": ""
+  },
+  "applied-validation-v9-new-rule-file": {
+    "tool_calls": [
+      {
+        "name": "write_file",
+        "input": {
+          "path": "App/models/skjema.validation.json",
+          "content": "{\n  \"$schema\": \"https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json\",\n  \"validations\": {\n    \"root.arbeidserfaring.til\": [\n      {\n        \"message\": \"validation.til-foer-fra\",\n        \"severity\": \"error\",\n        \"condition\": [\n          \"compare\",\n          [\n            \"dataModel\",\n            [\n              \"argv\",\n              0\n            ]\n          ],\n          \"isBefore\",\n          [\n            \"dataModel\",\n            \"root.arbeidserfaring.fra\"\n          ]\n        ]\n      }\n    ]\n  },\n  \"definitions\": {}\n}"
+        }
+      },
+      {
+        "name": "edit_file",
+        "input": {
+          "path": "App/config/texts/resource.nb.json",
+          "old_string": "      \"value\": \"Forrige\"\n    }\n",
+          "new_string": "      \"value\": \"Forrige\"\n    },\n    {\n      \"id\": \"validation.til-foer-fra\",\n      \"value\": \"Til-dato kan ikke være før fra-dato\"\n    }\n"
+        }
+      }
+    ],
+    "text": ""
+  }
+}
