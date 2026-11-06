@@ -1,0 +1,26 @@
+{
+  "id": "500600/9a1f3c52-6d0e-4b7a-8c21-5e4f7d1b2a60",
+  "instanceOwner": {
+    "partyId": "500600",
+    "organisationNumber": "897069631"
+  },
+  "appId": "tdd/payment-task",
+  "org": "tdd",
+  "process": {
+    "started": "2026-10-22T08:00:00Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 3,
+      "started": "2026-10-22T08:05:00Z",
+      "elementId": "Task_2",
+      "name": "Betaling",
+      "altinnTaskType": "payment"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  }
+}
