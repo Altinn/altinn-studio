@@ -5,7 +5,7 @@ import { prefetchPartiesAllowedToInstantiate } from 'src/core/queries/party';
 import { getInstantiationClosedReason, isInstantiationClosedError } from 'src/features/instantiate/instantiationClosed';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -22,8 +22,8 @@ export type InstanceSelectionLoaderResult = null | InstanceSelectionLoaderError;
 
 export async function clientLoader({ context }: LoaderFunctionArgs): Promise<InstanceSelectionLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
-  const { partyApi, instanceApi } = context.get(apiClientsContext);
-  prefetchPartiesAllowedToInstantiate({ queryClient, partyApi });
+  const queries = context.get(appQueriesContext);
+  prefetchPartiesAllowedToInstantiate({ queryClient, partyApi: queries });
 
   const party = GlobalData.getSelectedParty();
   if (!party) {
@@ -31,14 +31,14 @@ export async function clientLoader({ context }: LoaderFunctionArgs): Promise<Ins
   }
 
   try {
-    const activeInstances = await prefetchActiveInstances(queryClient, String(party.partyId), instanceApi);
+    const activeInstances = await prefetchActiveInstances(queryClient, String(party.partyId), queries);
 
     if (activeInstances.length === 0) {
       const reason = getInstantiationClosedReason(GlobalData.applicationMetadata, new Date(), window.location.host);
       if (reason) {
         return { error: 'instantiation-closed', reason };
       }
-      const instance = await instanceApi.create({ instanceOwnerPartyId: party.partyId });
+      const instance = await queries.createInstance({ instanceOwnerPartyId: party.partyId });
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
       return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
     }

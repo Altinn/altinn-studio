@@ -1,44 +1,31 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
+import { getAttachmentDataMock } from 'src/__mocks__/getAttachmentsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { UploadedAttachment } from 'src/features/attachments';
-import * as imageHooks from 'src/layout/ImageUpload/hooks/useImageFile';
 import { ImageUploadComponent } from 'src/layout/ImageUpload/ImageUploadComponent';
 import { renderGenericComponentTest, RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const attachmentsMock: UploadedAttachment[] = getAttachmentsMock({ count: 1, fileSize: 500 });
+const image = getAttachmentDataMock({ dataType: 'mock-id', size: 500, contentType: 'image/png' });
 
 describe('ImageUploadComponent', () => {
-  beforeEach(() => vi.restoreAllMocks());
-
   it('should render label', async () => {
     await renderImageUploadComponent();
     expect(screen.getByText('mock.label')).toBeInTheDocument();
   });
 
   it('should render delete button when there is an stored image', async () => {
-    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
-      storedImage: attachmentsMock[0],
-      saveImage: vi.fn(),
-      deleteImage: vi.fn(),
-    });
-
-    await renderImageUploadComponent();
+    await renderImageUploadComponent({ withStoredImage: true });
 
     expect(screen.getByRole('button', { name: 'Slett bildet' })).toBeInTheDocument();
   });
 
   it('should render disabled delete button when there is an stored image and is readOnly', async () => {
-    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
-      storedImage: attachmentsMock[0],
-      saveImage: vi.fn(),
-      deleteImage: vi.fn(),
-    });
-    await renderImageUploadComponent({ component: { readOnly: true } });
+    await renderImageUploadComponent({ withStoredImage: true, component: { readOnly: true } });
     const deleteButton = screen.getByRole('button', { name: 'Slett bildet' });
     expect(deleteButton).toBeInTheDocument();
     expect(deleteButton).toBeDisabled();
@@ -46,20 +33,16 @@ describe('ImageUploadComponent', () => {
 
   it('should call to delete image when delete button is clicked', async () => {
     const user = userEvent.setup();
-    const deleteImage = vi.fn();
-
-    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
-      storedImage: attachmentsMock[0],
-      saveImage: vi.fn(),
-      deleteImage,
-    });
-
-    await renderImageUploadComponent();
+    const { mutations } = await renderImageUploadComponent({ withStoredImage: true });
     const deleteButton = screen.getByRole('button', { name: 'Slett bildet' });
     expect(deleteButton).toBeInTheDocument();
     await user.click(deleteButton);
 
-    expect(deleteImage).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mutations.doAttachmentRemove.mock).toHaveBeenCalledWith(getInstanceWithProcessMock().id, image.id, 'nb'),
+    );
+    mutations.doAttachmentRemove.resolve();
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Slett bildet' })).not.toBeInTheDocument());
   });
 
   it('should render validation message when the file are bigger than 10mb', async () => {
@@ -75,10 +58,23 @@ describe('ImageUploadComponent', () => {
 
 const renderImageUploadComponent = async ({
   component,
+  withStoredImage = false,
   ...rest
-}: Partial<RenderGenericComponentTestProps<'ImageUpload'>> = {}) =>
-  await renderGenericComponentTest({
+}: Partial<RenderGenericComponentTestProps<'ImageUpload'>> & { withStoredImage?: boolean } = {}) => {
+  const instance = getInstanceWithProcessMock();
+  if (withStoredImage) {
+    instance.data.push(image);
+    window.altinnAppGlobalData.applicationMetadata.dataTypes.push({
+      id: image.dataType,
+      allowedContentTypes: ['image/png'],
+      maxCount: 1,
+      minCount: 0,
+    });
+  }
+
+  return renderGenericComponentTest({
     type: 'ImageUpload',
+    instanceId: instance.id,
     renderer: (props) => <ImageUploadComponent {...props} />,
     component: {
       id: 'mock-id',
@@ -91,5 +87,15 @@ const renderImageUploadComponent = async ({
       },
       ...component,
     },
+    queries: {
+      getInstance: async () => instance,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((bootstrap) => {
+          bootstrap.dataModels[defaultDataTypeMock].initialData = {
+            some: { field: withStoredImage ? image.id : undefined },
+          };
+        }),
+    },
     ...rest,
   });
+};

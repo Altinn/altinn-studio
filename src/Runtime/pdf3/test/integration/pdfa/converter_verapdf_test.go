@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/devenv/pkg/projectroot"
 	pdfaconverter "altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/test/harness"
@@ -29,5 +30,5 @@ func TestConvertFixturePDFToPDFA(t *testing.T) {
 
 	result := harness.ValidatePDFWithVeraPDF(t, output)
 	report := harness.NormalizeVeraPDFXML(result.Stdout)
-	harness.Snapshot(t, []byte(report), "verapdf", "xml")
+	snapshot.Match(t, []byte(report), "verapdf", "xml")
 }

@@ -11,6 +11,7 @@ on:
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'
+      - 'src/Designer/frontend/admin/features/apps/utils/appWorkflowLabels.json'
       - '.github/workflows/app-backend-tests.yml'
       - '!**/AGENTS.md'
       - '!**/README.md'

@@ -323,9 +323,7 @@ describe('InputComponent', () => {
       component: {
         autocomplete: 'name',
       },
-      queries: {
-        fetchFormData: () => Promise.resolve({ some: { field: initialValue } }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ some: { field: initialValue } }) },
     });
 
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;

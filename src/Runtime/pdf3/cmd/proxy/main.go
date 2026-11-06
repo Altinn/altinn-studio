@@ -87,11 +87,15 @@ func main() {
 	})
 
 	pdfHandler := generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname, cfg.ServiceOwner)
+	// Behind the API key like /pdf, so a relay's check also covers its key.
+	healthHandler := workerHealth(logger, workerHTTPAddr, host.IsShuttingDown)
 	if apiKeys != nil {
 		go apiKeys.Watch(host.ServerContext(), auth.ReloadInterval)
 		pdfHandler = auth.RequireAPIKey(logger, apiKeys, pdfHandler)
+		healthHandler = auth.RequireAPIKey(logger, apiKeys, healthHandler)
 	}
 	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", pdfHandler))
+	http.HandleFunc("/pdf/health", healthHandler)
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {

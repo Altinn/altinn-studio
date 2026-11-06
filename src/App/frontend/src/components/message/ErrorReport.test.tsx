@@ -8,8 +8,9 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
-import { doProcessNext } from 'src/queries/queries';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { queryPromiseMock, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+
+const { mock: doProcessNext } = queryPromiseMock('doProcessNext');
 
 describe('ErrorReport', () => {
   const render = async (validationIssues: BackendValidationIssue[] = []) => {
@@ -60,6 +61,7 @@ describe('ErrorReport', () => {
             };
           }),
       },
+      mutations: { doProcessNext },
     });
   };
 

@@ -15,6 +15,8 @@ browsers.
 
 - Services export traces, metrics and logs over OTLP to the router collector in their cluster.
 - The router adds Kubernetes metadata and the environment, and passes everything to the gateway collector.
+  Each cluster runs two of each collector, so one pod that is evicted or cannot be scheduled doesn't stop its
+  telemetry.
 - The gateway samples traces, filters metrics and sends all three signals through the
   [observability-proxy](../src/observability-proxy) to VictoriaMetrics, VictoriaTraces and VictoriaLogs.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,

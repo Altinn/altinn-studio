@@ -171,7 +171,7 @@ func (r *AppCodesSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
 		Named("appcodesync").
 		For(&corev1.Secret{}, builder.WithPredicates(r.secretPredicate())).
-		Complete(r); err != nil {
+		Complete(telemetry.QuietOnCancel(r)); err != nil {
 		return fmt.Errorf("complete AppCodesSync controller builder: %w", err)
 	}
 	return nil

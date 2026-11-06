@@ -2,12 +2,10 @@ package config
 
 import (
 	"context"
-	"errors"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	. "github.com/onsi/gomega"
 
 	"altinn.studio/operator/internal/operatorcontext"
@@ -34,10 +32,7 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	environment := operatorcontext.EnvironmentLocal
 	cfg, err := GetConfig(ctx, environment, file.Name())
 	Expect(cfg).To(BeNil())
-	Expect(err).To(HaveOccurred())
-	var validationErrors validator.ValidationErrors
-	ok := errors.As(err, &validationErrors)
-	Expect(ok).To(BeTrue())
+	Expect(err).To(MatchError(HavePrefix("config validation failed: ")))
 }
 
 func TestConfigTestEnvLoadsOk(t *testing.T) {

@@ -6,6 +6,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -23,6 +24,7 @@ import {
 } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import {
+  httpResponse,
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
   renderWithMinimalProviders,
@@ -343,6 +345,7 @@ describe('FormData', () => {
             />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () =>
@@ -359,7 +362,6 @@ describe('FormData', () => {
               };
             }),
         },
-        ...props,
       });
 
       return { ...utils, renderCounts };
@@ -492,6 +494,7 @@ describe('FormData', () => {
             <HasUnsavedChanges />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForInstance: async () => {
@@ -504,7 +507,6 @@ describe('FormData', () => {
             return obj;
           },
         },
-        ...props,
       });
     }
 
@@ -607,7 +609,7 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      mutations.doPatchMultipleFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -673,7 +675,7 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      mutations.doPatchMultipleFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
 
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
@@ -708,6 +710,7 @@ describe('FormData', () => {
             <NavigationButton />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () => {
@@ -717,7 +720,6 @@ describe('FormData', () => {
             return obj;
           },
         },
-        ...props,
       });
     }
 
@@ -746,13 +748,13 @@ describe('FormData', () => {
         obj2: { prop1: 'a' },
       });
 
-      mutations.doPostStatelessFormData.resolve();
+      mutations.doPostStatelessFormData.resolve({});
       await screen.findByText('something different');
     });
 
     it('Navigating away and back again should restore the form data', async () => {
       const user = userEvent.setup({ delay: null });
-      const { mutations, queries } = await render();
+      const { queries, mutations } = await render();
 
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
@@ -766,7 +768,7 @@ describe('FormData', () => {
       // as otherwise it would still be working on saving the form data (and form data is marked as unsaved until the
       // save operation is finished).
       expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
-      mutations.doPostStatelessFormData.resolve();
+      mutations.doPostStatelessFormData.resolve({});
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
@@ -797,9 +799,9 @@ describe('FormData', () => {
         ]),
       );
 
-      const { mutations, queries } = await render();
-      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as Mock;
-      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
+      const { queries } = await render();
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless;
+      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls;
       const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
         string,
         Record<string, string>
@@ -812,7 +814,6 @@ describe('FormData', () => {
 
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
-      mutations.doPostStatelessFormData.resolve();
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
@@ -871,6 +872,7 @@ describe('FormData', () => {
     async function render(props: MinimalRenderProps = {}) {
       return await statelessRender({
         renderer: <InvalidReadWrite path='obj3.prop1' />,
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () =>
@@ -883,7 +885,6 @@ describe('FormData', () => {
               };
             }),
         },
-        ...props,
       });
     }
 
@@ -1046,4 +1047,3 @@ describe('FormData', () => {
     });
   });
 });
-import type { Mock } from 'vitest';

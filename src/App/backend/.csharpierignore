@@ -5,3 +5,6 @@ obj/
 *.csproj
 *.props
 *.targets
+
+# CSharpier 1.3.0 cannot parse the C# `union` declaration in this file.
+src/Altinn.App.Api/Helpers/Patch/JsonPatchApplyResult.cs
