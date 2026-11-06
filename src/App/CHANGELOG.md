@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- The notification sent to the instance owner on instantiation is now followed up until Altinn Notifications reports it delivered. One that bounces or is never delivered fails its workflow in Studio's admin panel and logs an error with each channel's status. ([#21262](https://github.com/Altinn/altinn-studio/issues/21262))
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
 
 ### Changed

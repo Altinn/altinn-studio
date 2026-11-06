@@ -209,8 +209,10 @@ port and its log path), or run `BasicAppTests` on an unmodified `main` checkout 
 - **More than one `studioctl-server` process** (`ps aux | grep '[s]tudioctl-server'`) corrupts the
   host bridge localtest uses to reach the app: connection refused, 502s, or `NotFound` from
   `AppCommand`. Run `studioctl env down`, stop every server process, and start again.
-- **A locally built `studioctl`** (`studioctl version` prints `v0.1.0-preview.0`) turns failures into
-  15-minute timeouts. `studioctl self update` restores a released one.
+- **A stale source build of `studioctl`** can use Docker build contexts or host-service behavior that no longer
+  match the checkout. Rebuild it and `studioctl-server` from the current sources with `make user-install` in
+  `src/cli`, as [studioctl's README](../../../../cli/README.md#development) describes. `v0.1.0-preview.0` is the
+  expected version for a source build and does not tell you whether it is current.
 - **A full Docker disk** shows as a failed `localtest-workflow-engine` or `-db` health check; the
   database container's log says `No space left on device`. Check with
   `docker run --rm alpine df -h /`.

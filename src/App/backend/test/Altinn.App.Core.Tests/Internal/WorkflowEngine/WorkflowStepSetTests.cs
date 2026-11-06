@@ -64,10 +64,15 @@ public class WorkflowStepSetTests
         // ExecuteServiceTask is primary - the next transition must wait on it.
         Assert.Equal([ExecuteServiceTask.Key], Keys(stepSet.PrimaryPostCommitSteps));
 
-        // Outbound events and notifications are auxiliary: they run beside the process.
+        // Outbound events and notifications are auxiliary: they run beside the process. The notification's
+        // delivery check follows its send in the same workflow, where it reads the shipment the send recorded.
         Assert.Equal(
-            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
-            Keys(stepSet.AuxiliarySteps)
+            [
+                [MovedToAltinnEvent.Key],
+                [InstanceCreatedAltinnEvent.Key],
+                [NotifyInstanceOwnerOnInstantiation.Key, AwaitNotificationDelivery.Key],
+            ],
+            stepSet.AuxiliaryWorkflows.Select(Keys)
         );
     }
 
@@ -87,7 +92,7 @@ public class WorkflowStepSetTests
         );
 
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
-        Assert.Empty(stepSet.AuxiliarySteps);
+        Assert.Empty(stepSet.AuxiliaryWorkflows);
     }
 
     [Fact]
@@ -99,7 +104,12 @@ public class WorkflowStepSetTests
 
         Assert.Empty(stepSet.LifecycleSteps);
         Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(stepSet.PrimaryPostCommitSteps));
-        Assert.Equal([CompletedAltinnEvent.Key], Keys(stepSet.AuxiliarySteps));
+        Assert.Equal(
+            [
+                [CompletedAltinnEvent.Key],
+            ],
+            stepSet.AuxiliaryWorkflows.Select(Keys)
+        );
     }
 
     [Fact]
@@ -112,7 +122,7 @@ public class WorkflowStepSetTests
             Keys(stepSet.LifecycleSteps)
         );
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
-        Assert.Empty(stepSet.AuxiliarySteps);
+        Assert.Empty(stepSet.AuxiliaryWorkflows);
     }
 
     [Fact]
@@ -122,7 +132,7 @@ public class WorkflowStepSetTests
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(stepSet.LifecycleSteps));
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
-        Assert.Empty(stepSet.AuxiliarySteps);
+        Assert.Empty(stepSet.AuxiliaryWorkflows);
     }
 
     [Fact]

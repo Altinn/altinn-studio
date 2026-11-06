@@ -25,6 +25,8 @@ internal sealed class WorkflowCallbackStateCarry
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
+        NotificationShipment = state.NotificationShipment;
+
         if (state.Mailboxes is not { } carried)
         {
             return;
@@ -103,4 +105,23 @@ internal sealed class WorkflowCallbackStateCarry
     /// same index, which <see cref="RecordMailbox"/> would refuse over a stale entry.
     /// </summary>
     public void RecordMailboxConcluded(int stageIndex) => _mailboxes.Remove(stageIndex);
+
+    /// <summary>
+    /// The notification order this workflow placed, or <c>null</c> when it has placed none.
+    /// </summary>
+    public CarriedNotificationShipment? NotificationShipment { get; private set; }
+
+    /// <summary>
+    /// Records a notification order for the steps after the one that placed it, such as
+    /// <see cref="Commands.AwaitNotificationDelivery"/>.
+    /// </summary>
+    public void RecordNotificationShipment(Guid shipmentId, DateTimeOffset requestedSendTime)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(shipmentId, Guid.Empty, nameof(shipmentId));
+        NotificationShipment = new CarriedNotificationShipment
+        {
+            ShipmentId = shipmentId,
+            RequestedSendTime = requestedSendTime,
+        };
+    }
 }
