@@ -11,8 +11,8 @@ TOOL_SCHEMAS = [{"name": "read_file", "description": "read", "input_schema": {}}
 BUDGET = 32768
 
 # A prefix rule, so the rule is tested rather than the deployments of the day.
-REASONING_PREFIXES = ["o1", "o3", "gpt-5"]
-NON_REASONING = ["gpt-4o", "gpt-4.1", "claude-sonnet-5", "claude-haiku-4-5", ""]
+REASONING_PREFIXES = ["o1", "o3", "gpt-5", "gpt-6"]
+NON_REASONING = ["gpt-4o", "gpt-4.1", "gpt-4", "claude-sonnet-5", "claude-haiku-4-5", ""]
 
 
 def _request(model_is_reasoning: bool, *, tools=None, effort="low") -> dict:
@@ -82,6 +82,11 @@ class TestTheReasoningModelRule:
 
     def test_the_rule_is_case_insensitive(self):
         assert _is_reasoning_model("GPT-5.6-Terra")
+
+    @pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "gpt-6-luna", "gpt-10"])
+    def test_later_gpt_generations_are_reasoning_models(self, model):
+        """A deployment upgrade must not fall out of the rule because the generation number grew."""
+        assert _is_reasoning_model(model)
 
 
 class TestShapeInvariants:

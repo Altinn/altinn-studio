@@ -35,23 +35,23 @@ class BaseConfig:
         "AZURE_ANTHROPIC_ENDPOINT", "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
     )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
-    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-6-luna")
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
-    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-6-luna")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     # Reviews the eval report; not in the agent's path.
-    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-5.6-sol")
+    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-6.1-sol")
     LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
 
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-6.1-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.6-terra")
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-6.1-terra")
 
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
+    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-6.1-sol")
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-6.1-sol")
 
     # False leaves the version file (references/v8.md or v9.md) to the actor to load, as other coding agents do. The
     # bench compares the two modes before the default changes.

@@ -12,6 +12,7 @@ from typing import Any
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
+from shared.utils.models import is_reasoning_model as _is_reasoning_model
 
 from .messages import (
     AssistantMessage,
@@ -636,13 +637,6 @@ def _is_claude_model(model: str | None) -> bool:
         return False
     m = model.lower()
     return m.startswith("claude") or "anthropic" in m
-
-
-def _is_reasoning_model(model: str | None) -> bool:
-    if not model:
-        return False
-    m = model.lower()
-    return m.startswith(("o1", "o3", "gpt-5"))
 
 
 def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdapter:

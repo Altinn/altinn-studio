@@ -15,6 +15,7 @@ from shared.config.base_config import get_config
 from shared.models import AgentAttachment
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
+from shared.utils.models import is_reasoning_model as _is_reasoning_model
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
     close_delimiter,
@@ -37,15 +38,6 @@ def _is_claude_model(model_name: str | None) -> bool:
         return False
     model_lower = model_name.lower()
     return model_lower.startswith("claude") or "anthropic" in model_lower
-
-
-def _is_reasoning_model(model_name: str | None) -> bool:
-    """Check if model is a reasoning model that uses internal reasoning tokens."""
-    if not model_name:
-        return False
-    m = model_name.lower()
-    # o1, o1-mini, o1-preview, o3, o3-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro
-    return m.startswith(("o1", "o3", "gpt-5"))
 
 
 ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
