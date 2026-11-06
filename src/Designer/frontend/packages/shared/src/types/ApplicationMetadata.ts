@@ -21,6 +21,7 @@ export interface ApplicationMetadata {
   validFrom?: string;
   validTo?: string;
   versionId?: string;
+  status?: StatusOption;
 
   keywords?: Keyword[];
   description?: SupportedLanguage;
