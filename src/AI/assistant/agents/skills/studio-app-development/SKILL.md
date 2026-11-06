@@ -23,7 +23,7 @@ The versions differ in these places. The skill for each topic has the details.
 | Computed values and dynamics | C# data processors and expressions. The old `RuleHandler.js` and `RuleConfiguration.json` in a layout set folder still run. | C# data processors and expressions. Rule files no longer run. |
 | PDF | A `pdf` service task, or `enablePdfCreation` on a data type, which counts as `true` when left out | A `pdf` service task only. `enablePdfCreation: true` fails the build. |
 | eFormidling | An `eFormidling` service task, or the `eFormidling` block in `applicationmetadata.json` | An `eFormidling` service task only. The block fails the build. |
-| Page HTML | `views/Home/Index.cshtml` loads the frontend. Custom CSS and JavaScript go there. | The app builds the page. Custom CSS and JavaScript go in `config/assets.json`, `wwwroot/custom-css/` or `wwwroot/custom-js/`. If `Index.cshtml` is still there, the app serves it instead. |
+| Page HTML | `views/Home/Index.cshtml` loads the frontend. Custom CSS and JavaScript go there. | The app builds the page. It links every file directly in `wwwroot/custom-css/` and `wwwroot/custom-js/`, in name order. `config/assets.json` adds external files only, as `{"stylesheets": [{"url": "..."}], "scripts": [{"url": "..."}]}`. If `Index.cshtml` is still there, the app serves it instead. |
 
 [The upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/) lists every other difference.
 
