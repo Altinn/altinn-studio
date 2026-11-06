@@ -30,6 +30,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 
+### Removed
+
+- Breaking: `GET .../data/{dataGuid}/validate` is removed, with `ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask`, the issue code only it returned, and `Altinn.App.Core.Models.Validation.ValidationException`, which only it threw. Call `GET .../instances/{instanceOwnerPartyId}/{instanceGuid}/validate` instead, with the appropriate query parameters. ([#21783](https://github.com/Altinn/altinn-studio/pull/21783))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
