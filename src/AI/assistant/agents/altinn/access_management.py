@@ -220,7 +220,6 @@ def _package_index(packages: list[AccessPackage]) -> str:
 
 
 def _groups(items: list[AccessPackage]) -> list[str]:
-    """Group names in the order Access Management lists them."""
     return list(dict.fromkeys(item.group for item in items))
 
 

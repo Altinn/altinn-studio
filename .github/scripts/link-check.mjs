@@ -117,7 +117,6 @@ function webLinks(files) {
   return links;
 }
 
-// The final status after redirects, or null and the reason when no answer came.
 async function fetchStatus(url) {
   let reason = 'no answer';
   for (let attempt = 0; attempt < ATTEMPTS; attempt += 1) {

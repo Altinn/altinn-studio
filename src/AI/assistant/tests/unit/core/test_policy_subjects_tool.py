@@ -1,4 +1,4 @@
-"""Tests for `altinn_policy_subjects`. A mock transport serves a recorded copy of Access Management's lists."""
+"""A mock transport serves a recorded copy of Access Management's lists."""
 
 from __future__ import annotations
 

@@ -3,9 +3,7 @@
 One tool for all skills (mirroring Claude Code's design): the model
 sees a compact listing of available skills in the system prompt and
 calls `skill(name)` to pull the full body into the conversation as an
-ordinary tool result.  A skill links further files under `references/`;
-`skill(name, file=...)` loads one of them, since `read_file` cannot reach
-the skill directory.
+ordinary tool result.
 
 Compared to per-topic MCP doc tools this saves a network round-trip,
 keeps the tool catalog small, and lets the documentation ship (and be

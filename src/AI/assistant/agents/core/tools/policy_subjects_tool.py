@@ -1,7 +1,6 @@
 """`altinn_policy_subjects` — the access packages and roles a policy can name, live from Altinn Access Management.
 
-The studio-policy skill says what the lists are and where they live, without naming this tool. Logic lives in
-`agents.altinn.access_management`; this class is a thin `Tool` shim.
+The studio-policy skill says what the lists are and where they live, without naming this tool.
 """
 
 from __future__ import annotations

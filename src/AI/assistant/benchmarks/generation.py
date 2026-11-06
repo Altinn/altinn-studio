@@ -248,8 +248,7 @@ ITEM_EVALUATORS: list[ItemEvaluator] = [
 
 
 def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
-    """The real tool catalog the loop offers, optionally narrowed. The `skill` tool lists the skills, as in a
-    session."""
+    """The real tool catalog the loop offers, optionally narrowed."""
     from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
 
@@ -264,7 +263,7 @@ def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
 
 
 def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
-    """The real loop system prompt, composed for one goal, with the skill listing."""
+    """The real loop system prompt, composed for one goal."""
     from agents.core.context import SessionContext, build_system_prompt
     from agents.core.skills import discover_skills, format_skill_listing
 

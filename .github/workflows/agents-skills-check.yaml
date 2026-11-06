@@ -34,6 +34,5 @@ jobs:
           node-version: "24"
           package-manager-cache: false
 
-      # Agent Skills resolve relative links from the skill's root, the folder that holds SKILL.md.
       - name: Check skill links
         run: node .github/scripts/link-check.mjs --root-marker SKILL.md src/AI/assistant/agents/skills
