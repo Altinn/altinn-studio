@@ -91,7 +91,9 @@ The docs show few complete layouts. These apps have a page for each layout compo
   `https://github.com/Altinn/altinn-studio/tree/main/src/test/apps/component-library`. The app frontend's tests run
   against it.
 
-Read them for examples, and check what you copy against the version of the app you change.
+Read them for examples, and check what you copy against the version of the app you change. If you cannot read GitHub
+or sign in to Altinn Studio, do not try to fetch them. Read the component's properties from the layout schema
+instead, and give the user the link.
 
 ## Before you finish
 

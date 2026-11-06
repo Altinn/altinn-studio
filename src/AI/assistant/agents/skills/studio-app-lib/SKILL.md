@@ -41,7 +41,7 @@ Process hooks and service tasks differ between the versions, so the version file
 | Compute what the user pays | `IOrderDetailsCalculator` (`.Payment`) | One per app, used by every payment task |
 | Use another payment provider than Nets Easy | `IPaymentProcessor` (`.Payment.Processors`) | `PaymentProcessorId`: the ID the order details name |
 | A task type of your own that users complete | `IProcessTask` (`Altinn.App.Core.Internal.Process.ProcessTasks`) | `Type`: `<altinn:taskType>` on a `bpmn:task` |
-| Work the app does on its own in the process | `IServiceTask` | `Type`: `<altinn:taskType>` on a `bpmn:serviceTask` |
+| Work the app does on its own in the process | `IServiceTask`, in the namespace the version file names | `Type`: `<altinn:taskType>` on a `bpmn:serviceTask` |
 | Run code when a task starts, ends or is abandoned, or when the process ends | process hooks | See the version file |
 
 Some of these connections have rules of their own:
