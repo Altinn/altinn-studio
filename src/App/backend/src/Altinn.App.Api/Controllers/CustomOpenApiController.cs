@@ -1484,36 +1484,9 @@ file static class Snippets
                             {
                                 Type = JsonSchemaType.Array,
                                 Title = "Json patch",
-                                Description = "A standard RFC 6902 document describing changes to one data element",
-                                Items = new OpenApiSchema
-                                {
-                                    Type = JsonSchemaType.Object,
-                                    Required = new HashSet<string>() { "op", "path" },
-                                    Properties = new Dictionary<string, IOpenApiSchema>
-                                    {
-                                        ["op"] = new OpenApiSchema
-                                        {
-                                            Title = "Patch operation",
-                                            Type = JsonSchemaType.String,
-                                            Enum = ["add", "remove", "replace", "move", "copy", "test"],
-                                        },
-                                        ["from"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["path"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["value"] = new OpenApiSchema
-                                        {
-                                            Title = "the value",
-                                            Description = "The value to add or replace",
-                                        },
-                                    },
-                                },
+                                Description =
+                                    "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported",
+                                Items = JsonPatchOperation.OpenApiSchema(),
                             },
                         },
                     },

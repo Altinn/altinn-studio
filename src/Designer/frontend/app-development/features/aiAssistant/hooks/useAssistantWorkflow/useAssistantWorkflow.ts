@@ -33,7 +33,7 @@ import type { RejectionTexts } from '../../utils/messageUtils';
 const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
 const WORKFLOW_ERROR_MESSAGE =
-  'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
+  'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.';
 // Status events this soon after a terminal event are stragglers from the finished run.
 const ADOPTION_GRACE_AFTER_TERMINAL_MS = 10_000;
 const MAX_HANDLED_ASSISTANT_EVENTS = 200;
@@ -469,8 +469,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
-      createMessage(threadId, userMessage);
       try {
+        await createMessage(threadId, userMessage);
+        await registerSession(org, app, threadId);
         const result = await startAgentWorkflow(
           threadId,
           userMessage.content,
@@ -495,7 +496,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         });
       }
     },
-    [createMessage, startAgentWorkflow, rejectionTexts],
+    [createMessage, registerSession, org, app, startAgentWorkflow, rejectionTexts],
   );
 
   const onSubmitMessage = useCallback(
@@ -513,26 +514,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      try {
-        await registerSession(org, app, threadId);
-      } catch (error) {
-        console.error('Failed to register session for thread:', error);
-        setWorkflowStatus(threadId, { isActive: false });
-        return;
-      }
-
       await runWorkflowForSession(threadId, message);
     },
-    [
-      selectedThreadId,
-      createThread,
-      registerSession,
-      org,
-      app,
-      runWorkflowForSession,
-      selectThread,
-      setWorkflowStatus,
-    ],
+    [selectedThreadId, createThread, runWorkflowForSession, selectThread],
   );
 
   const restoreCancelledMessage = useCallback(

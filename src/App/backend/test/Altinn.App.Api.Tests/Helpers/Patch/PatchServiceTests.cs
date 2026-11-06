@@ -16,8 +16,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -186,7 +184,13 @@ public sealed class PatchServiceTests : IDisposable
     [Fact]
     public async Task Test_Ok()
     {
-        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/Name", "value": "Test Testesen" }
+            ]
+            """
+        );
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
         SetupDataClient(oldModel);
@@ -218,7 +222,7 @@ public sealed class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
         var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
@@ -252,7 +256,13 @@ public sealed class PatchServiceTests : IDisposable
             ? new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: expectedVersion)
             : StorageVersionMetadata.Empty;
 
-        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/Name", "value": "Test Testesen" }
+            ]
+            """
+        );
         var oldModel = new MyModel { Name = "OrginaltNavn" };
         SetupDataClient(oldModel);
         _dataProcessorMock
@@ -277,7 +287,7 @@ public sealed class PatchServiceTests : IDisposable
             )
             .ReturnsAsync([]);
 
-        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
         var response = await _patchService.ApplyPatches(
             _instance,
             versions,
@@ -321,8 +331,14 @@ public sealed class PatchServiceTests : IDisposable
     public async Task ApplyPatches_WhenExpectedProcessStateVersionIsGreaterThanCurrent_ThrowsBeforeDataIsTouched()
     {
         var versions = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 3);
-        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
-        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/Name", "value": "Test Testesen" }
+            ]
+            """
+        );
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
 
         var exception = await Assert.ThrowsAsync<ProcessStateStaleException>(() =>
             _patchService.ApplyPatches(
@@ -369,9 +385,13 @@ public sealed class PatchServiceTests : IDisposable
     [Fact]
     public async Task Test_JsonPatchTest_fail()
     {
-        JsonPatch jsonPatch = new JsonPatch(
-            PatchOperation.Test(JsonPointer.Parse("/Name"), "NotOriginalName"),
-            PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen")
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "test", "path": "/Name", "value": "NotOriginalName" },
+                { "op": "replace", "path": "/Name", "value": "Test Testesen" }
+            ]
+            """
         );
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
@@ -404,7 +424,7 @@ public sealed class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
         var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
@@ -413,7 +433,7 @@ public sealed class PatchServiceTests : IDisposable
         var err = response.Error;
         err.Should().NotBeNull();
         err!.Title.Should().Be("Precondition in patch failed");
-        err.Detail.Should().Be("Path `/Name` is not equal to the indicated value.");
+        err.Detail.Should().Be("Test operation 0 failed: the value at `/Name` is not equal to the expected value.");
         err.Status.Should().Be(StatusCodes.Status409Conflict);
         var errType = err.Should().BeOfType<DataPatchError>().Which;
         errType.PreviousModel.Should().BeEquivalentTo(oldModel);
@@ -424,7 +444,13 @@ public sealed class PatchServiceTests : IDisposable
     [Fact]
     public async Task Test_JsonPatch_does_not_deserialize()
     {
-        JsonPatch jsonPatch = new JsonPatch(PatchOperation.Add(JsonPointer.Parse("/Age"), 1));
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "add", "path": "/Age", "value": 1 }
+            ]
+            """
+        );
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
         SetupDataClient(oldModel);
@@ -456,7 +482,7 @@ public sealed class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
         var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
