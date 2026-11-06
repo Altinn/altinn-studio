@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -9,18 +9,14 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { useQueryClient } from 'src/core/queries/reactQuery';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
-import { getFileTransferOverview } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
-import { getResourceConfiguration } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
-import { checkInterruptedTransfer } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 import { createUploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import { BrokerFileTransferComponent } from 'src/layout/BrokerFileTransfer/BrokerFileTransferComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { QueryClient } from 'src/core/queries/reactQuery';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ResourceConfiguration } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
 import type { UploadPlan, UploadProgress } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import type {
@@ -30,18 +26,6 @@ import type {
 } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-vi.mock('src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration')>()),
-  getResourceConfiguration: vi.fn(),
-}));
-vi.mock('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus')>()),
-  getFileTransferOverview: vi.fn(),
-}));
-vi.mock('src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer')>()),
-  checkInterruptedTransfer: vi.fn(),
-}));
 vi.mock('src/layout/BrokerFileTransfer/brokerClient/upload/uploadController', async (importOriginal) => ({
   ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/upload/uploadController')>()),
   createUploadController: vi.fn(),
@@ -50,6 +34,16 @@ vi.mock('src/hooks/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('src/hooks/navigation')>()),
   useIsSubformPage: vi.fn(),
 }));
+
+// Broker's answers, given to the component as the app's requests
+const fetchBrokerResourceConfiguration = vi.fn<AppQueries['fetchBrokerResourceConfiguration']>();
+const fetchBrokerFileTransferOverview = vi.fn<AppQueries['fetchBrokerFileTransferOverview']>();
+const fetchInterruptedBrokerTransfer = vi.fn<AppQueries['fetchInterruptedBrokerTransfer']>();
+const brokerQueries = {
+  fetchBrokerResourceConfiguration,
+  fetchBrokerFileTransferOverview,
+  fetchInterruptedBrokerTransfer,
+};
 
 const ORGANIZATION = '912345678';
 const RECIPIENT = '991825827';
@@ -121,16 +115,6 @@ const SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 const findWholeText = (text: string) =>
   screen.findByText((_, element) => element?.tagName === 'SPAN' && element.textContent === text);
 
-// Lets a test refresh the component's queries, as coming back to the page later would
-let queryClient: QueryClient;
-function CaptureQueryClient() {
-  const client = useQueryClient();
-  useEffect(() => {
-    queryClient = client;
-  }, [client]);
-  return null;
-}
-
 async function render({
   owner = ORGANIZATION,
   formData = { id: '', status: '', name: '' },
@@ -142,12 +126,7 @@ async function render({
   componentCount += 1;
   return renderGenericComponentTest({
     type: 'BrokerFileTransfer',
-    renderer: (props) => (
-      <>
-        <CaptureQueryClient />
-        <BrokerFileTransferComponent {...props} />
-      </>
-    ),
+    renderer: (props) => <BrokerFileTransferComponent {...props} />,
     component: {
       id: `broker-file-transfer-${componentCount}`,
       resourceId: 'broker-resource',
@@ -162,6 +141,7 @@ async function render({
       ...component,
     },
     queries: {
+      ...brokerQueries,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((bootstrap) => {
           bootstrap.dataModels[defaultDataTypeMock].initialData = { broker: formData };
@@ -169,14 +149,10 @@ async function render({
             bootstrap.dataModels[defaultDataTypeMock].schema = schema;
           }
         }),
-    },
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({
-          ...getInstanceDataMock(undefined, 512345, owner ? undefined : '01017512345', owner),
-          process: getProcessDataMock(),
-        }),
-      },
+      getInstance: async () => ({
+        ...getInstanceDataMock(undefined, 512345, owner ? undefined : '01017512345', owner),
+        process: getProcessDataMock(),
+      }),
     },
   });
 }
@@ -188,8 +164,8 @@ describe('BrokerFileTransferComponent', () => {
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
     fake = fakeController();
     vi.mocked(createUploadController).mockReturnValue(fake.controller);
-    vi.mocked(getResourceConfiguration).mockResolvedValue(resourceConfiguration);
-    vi.mocked(getFileTransferOverview).mockRejectedValue(new ApiError('Not found', 404));
+    fetchBrokerResourceConfiguration.mockResolvedValue(resourceConfiguration);
+    fetchBrokerFileTransferOverview.mockRejectedValue(new ApiError('Not found', 404));
     vi.mocked(useIsSubformPage).mockReturnValue(false);
   });
 
@@ -217,7 +193,7 @@ describe('BrokerFileTransferComponent', () => {
 
     it('asks the user to log in again when Broker does not accept the login', async () => {
       const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
-      vi.mocked(getResourceConfiguration).mockRejectedValue(new ApiError('Request failed: 401', 401, ''));
+      fetchBrokerResourceConfiguration.mockRejectedValue(new ApiError('Request failed: 401', 401, ''));
       await render();
 
       expect(
@@ -230,7 +206,7 @@ describe('BrokerFileTransferComponent', () => {
 
     it("reports Broker's reason as a configuration error when Broker refuses the resource", async () => {
       const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
-      vi.mocked(getResourceConfiguration).mockRejectedValue(
+      fetchBrokerResourceConfiguration.mockRejectedValue(
         new ApiError('Request failed: 403', 403, { errorCode: 5, detail: 'The resource needs to be registered' }),
       );
       await render();
@@ -243,7 +219,7 @@ describe('BrokerFileTransferComponent', () => {
 
     it('suggests reloading when the settings cannot be read for another reason', async () => {
       const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
-      vi.mocked(getResourceConfiguration).mockRejectedValue(new ApiError('Request failed: 503', 503));
+      fetchBrokerResourceConfiguration.mockRejectedValue(new ApiError('Request failed: 503', 503));
       await render();
 
       expect(
@@ -318,7 +294,7 @@ describe('BrokerFileTransferComponent', () => {
 
   describe('choosing a file', () => {
     it('refuses a file larger than the resource allows', async () => {
-      vi.mocked(getResourceConfiguration).mockResolvedValue({ ...resourceConfiguration, maxFileTransferSize: 5 });
+      fetchBrokerResourceConfiguration.mockResolvedValue({ ...resourceConfiguration, maxFileTransferSize: 5 });
       await render();
 
       await userEvent.upload(await findFileInput(), new File(['too large'], 'rapport.pdf'));
@@ -337,7 +313,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it("keeps the resource's size limit when it is lower than the component's", async () => {
-      vi.mocked(getResourceConfiguration).mockResolvedValue({ ...resourceConfiguration, maxFileTransferSize: 5 });
+      fetchBrokerResourceConfiguration.mockResolvedValue({ ...resourceConfiguration, maxFileTransferSize: 5 });
       await render({ maxFileTransferSizeInMB: 1 });
 
       await userEvent.upload(await findFileInput(), new File(['too large'], 'rapport.pdf'));
@@ -485,7 +461,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('sends without virus scan when the resource is approved for it', async () => {
-      vi.mocked(getResourceConfiguration).mockResolvedValue({
+      fetchBrokerResourceConfiguration.mockResolvedValue({
         ...resourceConfiguration,
         approvedForDisabledVirusScan: true,
       });
@@ -498,7 +474,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('sends to the required party of the resource unless recipients are specified', async () => {
-      vi.mocked(getResourceConfiguration).mockResolvedValue({
+      fetchBrokerResourceConfiguration.mockResolvedValue({
         ...resourceConfiguration,
         requiredParty: 'urn:altinn:organization:identifier-no:987654321',
       });
@@ -648,7 +624,7 @@ describe('BrokerFileTransferComponent', () => {
     it.each(['Published', 'Failed'])(
       'stays read-only with the checksum Broker has, instead of in the file box, once Broker reports %s',
       async (fileTransferStatus) => {
-        vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fetchBrokerFileTransferOverview.mockResolvedValue({
           fileTransferStatus,
           fileName: 'rapport.pdf',
           checksum: MD5,
@@ -751,8 +727,8 @@ describe('BrokerFileTransferComponent', () => {
       expect(await screen.findByText(/Laster opp – 50 %/)).toBeInTheDocument();
 
       const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
-      vi.mocked(getResourceConfiguration).mockRejectedValue(new ApiError('Request failed: 503', 503));
-      await queryClient.refetchQueries({ queryKey: ['brokerFileTransfer', 'resourceConfiguration'] });
+      fetchBrokerResourceConfiguration.mockRejectedValue(new ApiError('Request failed: 503', 503));
+      await window.queryClient.refetchQueries({ queryKey: ['brokerFileTransfer', 'resourceConfiguration'] });
 
       // The component logs the failure once it has rendered with it
       await waitFor(() => expect(logError).toHaveBeenCalled());
@@ -762,7 +738,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('clears the data model when the file transfer is given up', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      fetchInterruptedBrokerTransfer.mockResolvedValue(resumable);
       const { formDataMethods } = await render({ formData: interruptedFormData });
       await screen.findByText(interruptedText);
 
@@ -793,7 +769,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('shows the size and checksum Broker has for the sent file', async () => {
-      vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fetchBrokerFileTransferOverview.mockResolvedValue({
         fileTransferStatus: 'Published',
         fileName: 'rapport.pdf',
         fileTransferSize: 2_500_000,
@@ -807,7 +783,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it("shows Broker's name for the file when the form does not record it", async () => {
-      vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fetchBrokerFileTransferOverview.mockResolvedValue({
         fileTransferStatus: 'Published',
         fileName: 'rapport.pdf',
       });
@@ -823,7 +799,7 @@ describe('BrokerFileTransferComponent', () => {
     it.each(['UploadProcessing', 'UploadStarted'])(
       'shows the file as being checked while Broker reports it as %s',
       async (fileTransferStatus) => {
-        vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fetchBrokerFileTransferOverview.mockResolvedValue({
           fileTransferStatus,
           fileName: 'rapport.pdf',
           fileTransferSize: 2_500_000,
@@ -840,7 +816,7 @@ describe('BrokerFileTransferComponent', () => {
     );
 
     it('records the status once Broker has published the file', async () => {
-      vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fetchBrokerFileTransferOverview.mockResolvedValue({
         fileTransferStatus: 'Published',
         fileName: 'rapport.pdf',
       });
@@ -877,7 +853,7 @@ describe('BrokerFileTransferComponent', () => {
     const rejectedFormData = { id: 'transfer-1', status: 'Failed', name: 'rapport.pdf' };
 
     it('shows the file Broker rejected, and why', async () => {
-      vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fetchBrokerFileTransferOverview.mockResolvedValue({
         fileTransferStatus: 'Failed',
         fileTransferStatusText: 'Malware scan failed: Malicious. Extra details: {}',
         fileName: 'rapport.pdf',
@@ -919,7 +895,7 @@ describe('BrokerFileTransferComponent', () => {
 
   describe('an interrupted upload', () => {
     it('continues an interrupted upload to the recipients it was started with', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      fetchInterruptedBrokerTransfer.mockResolvedValue(resumable);
       await render({ formData: interruptedFormData, recipients: ['dataModel', 'broker.recipients'] });
 
       await userEvent.upload(await findFileInput(), new File(['rapporten'], 'rapport.pdf'));
@@ -931,7 +907,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('continues an interrupted upload with the checksum it was started with, read-only', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue({ ...resumable, checksum: MD5 });
+      fetchInterruptedBrokerTransfer.mockResolvedValue({ ...resumable, checksum: MD5 });
       await render({ formData: interruptedFormData, checksum: 'required' });
 
       expect(await screen.findByDisplayValue(MD5)).toHaveAttribute('readonly');
@@ -942,7 +918,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('continues an interrupted upload where it stopped when the same file is chosen', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      fetchInterruptedBrokerTransfer.mockResolvedValue(resumable);
       await render({ formData: interruptedFormData });
 
       expect(await screen.findByText(interruptedText)).toBeInTheDocument();
@@ -962,7 +938,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('refuses another file than the one the interrupted upload was sending', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      fetchInterruptedBrokerTransfer.mockResolvedValue(resumable);
       await render({ formData: interruptedFormData });
 
       await userEvent.upload(await findFileInput(), new File(['rapporten'], 'annen.pdf'));
@@ -976,7 +952,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('discards an interrupted upload', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+      fetchInterruptedBrokerTransfer.mockResolvedValue(resumable);
       await render({ formData: interruptedFormData });
 
       await userEvent.click(await screen.findByRole('button', { name: 'Forkast opplastingen' }));
@@ -986,7 +962,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('records an interrupted file transfer that Broker has received meanwhile', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue({
+      fetchInterruptedBrokerTransfer.mockResolvedValue({
         status: 'ended',
         fileName: 'rapport.pdf',
         fileTransferStatus: 'Published',
@@ -997,14 +973,14 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('gives up an interrupted file transfer that Broker no longer has', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue({ status: 'gone' });
+      fetchInterruptedBrokerTransfer.mockResolvedValue({ status: 'gone' });
       await render({ formData: interruptedFormData });
 
       await waitFor(() => expect(fake.controller.discard).toHaveBeenCalledWith(transfer, null));
     });
 
     it('records an interrupted file transfer Broker has failed, and lets go of the upload', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue({
+      fetchInterruptedBrokerTransfer.mockResolvedValue({
         status: 'ended',
         fileName: 'rapport.pdf',
         fileTransferStatus: 'Failed',
@@ -1022,7 +998,7 @@ describe('BrokerFileTransferComponent', () => {
     it('says so when it cannot check an interrupted upload', async () => {
       const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
       const error = new Error('Broker is down');
-      vi.mocked(checkInterruptedTransfer).mockRejectedValue(error);
+      fetchInterruptedBrokerTransfer.mockRejectedValue(error);
       await render({ formData: interruptedFormData });
 
       expect(
@@ -1045,6 +1021,7 @@ async function renderInRepeatingGroup() {
   return renderWithInstanceAndLayout({
     renderer: <GenericComponent baseComponentId='broker-rows' />,
     queries: {
+      ...brokerQueries,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((bootstrap) => {
           bootstrap.layouts = {

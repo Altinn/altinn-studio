@@ -8,16 +8,14 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { ValidationMask } from 'src/features/validation';
-import { getFileTransferOverview } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ILayoutCollection } from 'src/layout/layout';
 
-vi.mock('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus')>()),
-  getFileTransferOverview: vi.fn(),
-}));
+// Broker's overview of the transfer, given to the summary as the app's request
+const fetchBrokerFileTransferOverview = vi.fn<AppQueries['fetchBrokerFileTransferOverview']>();
 
 const binding = (field: string) => ({ dataType: defaultDataTypeMock, field });
 
@@ -58,7 +56,7 @@ describe('BrokerFileTransferSummary', () => {
 
   it('leaves out the size until Broker has received the whole file', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
-    vi.mocked(getFileTransferOverview).mockResolvedValue({
+    fetchBrokerFileTransferOverview.mockResolvedValue({
       fileTransferStatus: 'UploadStarted',
       fileName: 'rapport.pdf',
       fileTransferSize: 0,
@@ -81,7 +79,7 @@ describe('BrokerFileTransferSummary', () => {
 
   it('records the status once Broker has published the file, so the form can be submitted from the summary', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
-    vi.mocked(getFileTransferOverview).mockResolvedValue({ fileTransferStatus: 'Published', fileName: 'rapport.pdf' });
+    fetchBrokerFileTransferOverview.mockResolvedValue({ fileTransferStatus: 'Published', fileName: 'rapport.pdf' });
     const { formDataMethods } = await renderSummary({
       id: 'transfer-1',
       status: 'UploadProcessing',
@@ -99,7 +97,7 @@ describe('BrokerFileTransferSummary', () => {
 
   it('shows a file Broker rejected and why, and asks the user to remove it before continuing', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
-    vi.mocked(getFileTransferOverview).mockResolvedValue({
+    fetchBrokerFileTransferOverview.mockResolvedValue({
       fileTransferStatus: 'Failed',
       fileTransferStatusText: 'Checksum mismatch',
       fileName: 'rapport.pdf',
@@ -157,6 +155,7 @@ async function renderSummary(formData: Record<string, string>, componentId?: str
       </>
     ),
     queries: {
+      fetchBrokerFileTransferOverview,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((bootstrap) => {
           bootstrap.layouts = layoutsFor(componentId ?? 'broker');

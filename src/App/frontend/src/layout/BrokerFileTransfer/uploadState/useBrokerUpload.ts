@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
-import { useQuery } from 'src/core/queries/reactQuery';
+import {
+  useBrokerFileTransferOverviewQuery,
+  useInterruptedBrokerTransferQuery,
+} from 'src/core/queries/brokerFileTransfer';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import {
   FAILED_STATUS,
   isReceivedStatus,
@@ -160,8 +162,9 @@ export function useFollowReceivedTransfer(baseComponentId: string, enabled: bool
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
   const { formData, setValues } = useDataModelBindings(dataModelBindings);
   const isChecking = enabled && !!formData.fileTransferId && formData.fileTransferStatus === UPLOADED_STATUS;
-  const overview = useQuery(
-    brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), isChecking ? formData.fileTransferId : undefined),
+  const overview = useBrokerFileTransferOverviewQuery(
+    getBrokerApiBaseUrl(),
+    isChecking ? formData.fileTransferId : undefined,
   );
   const status = overview.data?.fileTransferStatus;
 
@@ -182,7 +185,7 @@ function useInterruptedTransfer(
   const { formData } = useDataModelBindings(dataModelBindings);
   const { fileTransferId, fileName } = formData;
   const isInterrupted = !!fileTransferId && !isReceivedStatus(formData.fileTransferStatus) && !hasActive;
-  const check = useQuery(brokerQueries.interruptedTransfer(baseUrl, isInterrupted ? fileTransferId : null));
+  const check = useInterruptedBrokerTransferQuery(baseUrl, isInterrupted ? fileTransferId : null);
 
   useEffect(() => {
     if (!isInterrupted || !check.data) {
@@ -216,7 +219,7 @@ function useInterruptedTransfer(
     state = { kind: 'resumable', fileName: resumableName, plan, uploaded, checksum };
   } else if (isInterrupted) {
     // Also while a received, failed or gone transfer is being recorded
-    state = check.isError ? { kind: 'unknown' } : { kind: 'checking' };
+    state = check.error ? { kind: 'unknown' } : { kind: 'checking' };
   }
 
   return { state, fileTransferId, discard };

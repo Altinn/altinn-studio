@@ -4,14 +4,14 @@ import { useNavigation } from 'react-router';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import { useQuery } from 'src/core/queries/reactQuery';
+import { useBrokerResourceConfigurationQuery } from 'src/core/queries/brokerFileTransfer';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
-import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { GlobalData } from 'src/GlobalData';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import { toOrgNumber } from 'src/layout/BrokerFileTransfer/brokerClient/orgIdentifier';
 import { effectiveMaxFileTransferSize } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
@@ -64,7 +64,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const configuredRecipients = useConfiguredRecipients(baseComponentId);
   const isRequired = useIsRequiredInDataModel();
   const metadata = useMetadata(baseComponentId, isRequired);
-  const resource = useQuery(brokerQueries.resourceConfiguration(baseUrl, resourceId));
+  const resource = useBrokerResourceConfigurationQuery(baseUrl, resourceId);
 
   useEffect(() => {
     if (resource.error) {
@@ -108,7 +108,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   }
   // A failed refresh keeps the settings read before, so a running upload isn't replaced by an error
   if (!resource.data) {
-    return resource.isError ? resourceProblem(resource.error, resourceId) : { kind: 'loading' };
+    return resource.error ? resourceProblem(resource.error, resourceId) : { kind: 'loading' };
   }
   if (disableVirusScan && !resource.data.approvedForDisabledVirusScan) {
     return {

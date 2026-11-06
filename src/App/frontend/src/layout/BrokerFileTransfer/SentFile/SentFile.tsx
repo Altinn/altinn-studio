@@ -2,10 +2,9 @@ import React from 'react';
 
 import { Tag } from '@digdir/designsystemet-react';
 
-import { useQuery } from 'src/core/queries/reactQuery';
+import { useBrokerFileTransferOverviewQuery } from 'src/core/queries/brokerFileTransfer';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import {
   isTransferFailed,
   isTransferReceived,
@@ -41,7 +40,7 @@ export function SentFile({
   onRemove,
 }: SentFileProps) {
   const language = useCurrentLanguage();
-  const overview = useQuery(brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), fileTransferId)).data;
+  const overview = useBrokerFileTransferOverviewQuery(getBrokerApiBaseUrl(), fileTransferId).data;
   const transfer = { fileTransferId, fileTransferStatus };
   const isReceived = isTransferReceived(transfer);
   const isFailed = isTransferFailed(transfer);
