@@ -7,6 +7,14 @@ import re
 _GPT_GENERATION = re.compile(r"gpt-(\d+)")
 
 
+def is_claude_model(model: str | None) -> bool:
+    """Claude models go through the Anthropic API rather than the OpenAI one."""
+    if not model:
+        return False
+    name = model.lower()
+    return name.startswith("claude") or "anthropic" in name
+
+
 def is_reasoning_model(model: str | None) -> bool:
     """o1, o3 and every gpt generation from 5 on. They take `max_completion_tokens` and a reasoning effort, and reject
     `temperature`, so a wrong answer here makes every call fail with 400."""

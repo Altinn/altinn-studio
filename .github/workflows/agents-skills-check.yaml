@@ -35,4 +35,4 @@ jobs:
           package-manager-cache: false
 
       - name: Check skill links
-        run: node .github/scripts/link-check.mjs --root-marker SKILL.md src/AI/assistant/agents/skills
+        run: node .github/scripts/link-check.mjs src/AI/assistant/agents/skills

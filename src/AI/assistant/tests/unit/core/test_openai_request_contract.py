@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from agents.core.llm_adapter import _is_reasoning_model, build_openai_request
+from agents.core.llm_adapter import build_openai_request
+from shared.utils.models import is_reasoning_model
 
 MESSAGES = [{"role": "user", "content": "hei"}]
 TOOL_SCHEMAS = [{"name": "read_file", "description": "read", "input_schema": {}}]
@@ -71,22 +72,22 @@ class TestTheReasoningModelRule:
     @pytest.mark.parametrize("prefix", REASONING_PREFIXES)
     def test_a_prefixed_model_is_a_reasoning_model(self, prefix):
         for name in (prefix, f"{prefix}-mini", f"{prefix}.6-somename"):
-            assert _is_reasoning_model(name), f"{name} must classify, or every call 400s"
+            assert is_reasoning_model(name), f"{name} must classify, or every call 400s"
 
     @pytest.mark.parametrize("model", NON_REASONING)
     def test_anything_else_is_not(self, model):
-        assert not _is_reasoning_model(model)
+        assert not is_reasoning_model(model)
 
     def test_no_model_is_not(self):
-        assert not _is_reasoning_model(None)
+        assert not is_reasoning_model(None)
 
     def test_the_rule_is_case_insensitive(self):
-        assert _is_reasoning_model("GPT-5.6-Terra")
+        assert is_reasoning_model("GPT-5.6-Terra")
 
     @pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "gpt-6-luna", "gpt-10"])
     def test_later_gpt_generations_are_reasoning_models(self, model):
         """A deployment upgrade must not fall out of the rule because the generation number grew."""
-        assert _is_reasoning_model(model)
+        assert is_reasoning_model(model)
 
 
 class TestShapeInvariants:

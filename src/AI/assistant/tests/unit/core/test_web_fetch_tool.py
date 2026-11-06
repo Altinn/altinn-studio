@@ -2,40 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 import httpx
 import pytest
 
 from agents.core import LoopContext, WebFetchTool
 from agents.core.tools.web_fetch_tool import MAX_REDIRECTS, MAX_RESPONSE_CHARS
 
+from .conftest import Handler
+
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
-REAL_CLIENT = httpx.AsyncClient
-
-Handler = Callable[[httpx.Request], httpx.Response]
-
-
-@pytest.fixture
-def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
-    """Send the requests of the tool to `handler`, and return the list of requests that it got."""
-
-    def install(handler: Handler) -> list[httpx.Request]:
-        requests: list[httpx.Request] = []
-
-        def record(request: httpx.Request) -> httpx.Response:
-            requests.append(request)
-            return handler(request)
-
-        def make_client(**kwargs) -> httpx.AsyncClient:
-            return REAL_CLIENT(transport=httpx.MockTransport(record), **kwargs)
-
-        monkeypatch.setattr("agents.core.tools.web_fetch_tool.httpx.AsyncClient", make_client)
-        return requests
-
-    return install
 
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:
@@ -53,10 +30,10 @@ def _redirect_to(location: str, *, status: int = 200) -> Handler:
     return handle
 
 
-async def _fetch(url: str):
+async def _fetch(url: str, **args):
     tool = WebFetchTool()
     ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
-    return await tool.run(tool.input_schema(url=url), ctx)
+    return await tool.run(tool.input_schema(url=url, **args), ctx)
 
 
 class TestRefusedUrls:
@@ -166,28 +143,22 @@ class TestPageContent:
                 content_type="text/plain",
             )
         )
-        tool = WebFetchTool()
-        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
 
-        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="/altinn-studio/v9/ SIGNERING"), ctx)
+        result = await _fetch(DOCS_URL, filter="/altinn-studio/v9/ SIGNERING")
 
         assert result.content == "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)"
 
     async def test_filter_applies_before_truncation(self, serve):
         serve(_respond("match\n" + "x" * (MAX_RESPONSE_CHARS + 1), content_type="text/plain"))
-        tool = WebFetchTool()
-        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
 
-        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="match"), ctx)
+        result = await _fetch(DOCS_URL, filter="match")
 
         assert result.content == "match"
 
     async def test_filter_says_when_no_line_matches(self, serve):
         serve(_respond("one\ntwo", content_type="text/plain"))
-        tool = WebFetchTool()
-        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
 
-        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="three"), ctx)
+        result = await _fetch(DOCS_URL, filter="three")
 
         assert not result.is_error
         assert result.content == "No lines contain all of: three"

@@ -13,6 +13,7 @@ from agents.core import (
     LoopResult,
     TerminationReason,
     ToolResult,
+    discover_skills,
 )
 from agents.graph.nodes import agentic_loop_node as node
 from agents.graph.nodes.agentic_loop_node import (
@@ -43,7 +44,7 @@ def _state(**overrides: Any) -> AgentState:
 
 class TestBuildRegistry:
     def test_internal_tools_always_present(self):
-        registry = _build_registry()
+        registry = _build_registry([])
         names = set(registry.names())
         assert {
             "scan_repo",
@@ -56,15 +57,16 @@ class TestBuildRegistry:
         }.issubset(names)
 
     def test_altinn_tools_registered(self):
-        registry = _build_registry()
+        registry = _build_registry([])
         assert "altinn_layout_props" in registry
         assert "altinn_policy_subjects" in registry
         assert "altinn_datamodel_sync" in registry
         assert "web_fetch" in registry
 
     def test_skill_tool_registered_with_discovered_skills(self):
-        registry = _build_registry()
+        registry = _build_registry(discover_skills())
         assert "skill" in registry
+        assert "studio-policy" in registry.get("skill").description
 
 
 class TestEventBridge:

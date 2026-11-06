@@ -15,7 +15,7 @@ from shared.config.base_config import get_config
 from shared.models import AgentAttachment
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
-from shared.utils.models import is_reasoning_model as _is_reasoning_model
+from shared.utils.models import is_claude_model, is_reasoning_model
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
     close_delimiter,
@@ -30,14 +30,6 @@ if TYPE_CHECKING:
 
 log = get_logger(__name__)
 config = get_config()
-
-
-def _is_claude_model(model_name: str | None) -> bool:
-    """Check if model name indicates a Claude/Anthropic model"""
-    if not model_name:
-        return False
-    model_lower = model_name.lower()
-    return model_lower.startswith("claude") or "anthropic" in model_lower
 
 
 ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
@@ -116,7 +108,7 @@ class LLMClient:
         self.use_anthropic = False
         self.anthropic_client: Anthropic | None = None
         self.llm: BaseChatOpenAI | None = None
-        self.is_reasoning_model = _is_reasoning_model(model)
+        self.is_reasoning_model = is_reasoning_model(model)
 
         # Set max_tokens based on role and model type
         if max_tokens is not None:
@@ -131,7 +123,7 @@ class LLMClient:
             self.max_tokens = 8192
 
         # Check if this is a Claude model - use Anthropic SDK instead of OpenAI
-        if _is_claude_model(model):
+        if is_claude_model(model):
             self._init_anthropic_client(role, model, temperature)
         # Prefer Azure OpenAI if available
         elif config.AZURE_API_KEY:

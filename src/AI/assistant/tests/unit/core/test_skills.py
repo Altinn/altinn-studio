@@ -11,6 +11,7 @@ import yaml
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core.skills import (
     _DEFAULT_SKILLS_DIR,
+    _FRONTMATTER_PATTERN,
     MAX_LISTING_DESCRIPTION_CHARS,
     Skill,
     SkillFileError,
@@ -19,9 +20,11 @@ from agents.core.skills import (
 )
 from agents.core.tool import LoopContext
 from agents.core.tools.skill_tool import SkillArgs, SkillTool
+from agents.graph.nodes.agentic_loop_node import _build_registry
 
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/"
 DOCS_URL_V9 = "https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/"
+METADATA = {"studio-title": "Dynamiske uttrykk", "studio-docs-url": DOCS_URL, "studio-docs-url-v9": DOCS_URL_V9}
 
 
 def _write_skill(
@@ -106,15 +109,7 @@ class TestDiscoverSkills:
         assert skills[0].description == "Topic: the details, see also: more."
 
     def test_title_and_docs_urls_come_from_metadata(self, tmp_path):
-        _write_skill(
-            tmp_path,
-            "titled",
-            metadata={
-                "studio-title": "Dynamiske uttrykk",
-                "studio-docs-url": DOCS_URL,
-                "studio-docs-url-v9": DOCS_URL_V9,
-            },
-        )
+        _write_skill(tmp_path, "titled", metadata=METADATA)
 
         skill = discover_skills(tmp_path)[0]
 
@@ -323,15 +318,7 @@ class TestSkillTool:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(("profile", "url"), [(V8_PROFILE, DOCS_URL), (V9_PROFILE, DOCS_URL_V9)])
     async def test_source_record_uses_the_title_and_the_docs_url_for_the_app_version(self, tmp_path, profile, url):
-        _write_skill(
-            tmp_path,
-            "titled",
-            metadata={
-                "studio-title": "Dynamiske uttrykk",
-                "studio-docs-url": DOCS_URL,
-                "studio-docs-url-v9": DOCS_URL_V9,
-            },
-        )
+        _write_skill(tmp_path, "titled", metadata=METADATA)
         tool = SkillTool(discover_skills(tmp_path))
 
         result = await tool.run(SkillArgs(skill="titled"), _ctx(profile))
@@ -354,28 +341,15 @@ class TestSkillTool:
 _SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 _STUDIO_METADATA = {"studio-title", "studio-docs-url", "studio-docs-url-v9"}
 _NAME_PATTERN = re.compile(r"^studio-[a-z0-9]+(-[a-z0-9]+)*$")
-_ASSISTANT_TOOL_NAMES = (
-    "altinn_layout_props",
-    "altinn_policy_subjects",
-    "altinn_datamodel_sync",
-    "verify_changes",
-    "commit_session_branch",
-    "preview_render_check",
-    "discard_file_changes",
-    "scan_repo",
-    "read_file",
-    "edit_file",
-    "write_file",
-    "web_fetch",
-    "skill(",
-)
+# "skill" is an ordinary word, so only a call to that tool counts.
+_ASSISTANT_TOOL_NAMES = (*(name for name in _build_registry([]).names() if name != "skill"), "skill(")
 _RELATIVE_LINK = re.compile(r"\]\((?!https?://|#|mailto:)([^)\s#]+)")
 _BUNDLED_SKILL_DIRS = sorted(path for path in _DEFAULT_SKILLS_DIR.iterdir() if path.is_dir())
 
 
 def _frontmatter(skill_dir: Path) -> dict:
     raw = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-    match = re.match(r"\A---\s*\n(.*?)\n---\s*\n", raw, re.DOTALL)
+    match = _FRONTMATTER_PATTERN.match(raw)
     assert match, f"{skill_dir.name}: SKILL.md has no frontmatter"
     return yaml.safe_load(match.group(1))
 
@@ -403,8 +377,13 @@ class TestBundledSkills:
 
     @pytest.mark.parametrize("skill_dir", _BUNDLED_SKILL_DIRS, ids=lambda path: path.name)
     def test_links_resolve_and_every_reference_is_linked(self, skill_dir):
-        skill_md = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
-        linked = set(_RELATIVE_LINK.findall(skill_md))
+        """Relative links resolve from the skill's root, as the spec says. CI's link check reads only web links."""
+
+        def links_in(path: Path) -> set[str]:
+            return set(_RELATIVE_LINK.findall(path.read_text(encoding="utf-8")))
+
+        linked_from_skill_md = links_in(skill_dir / "SKILL.md")
+        linked = set().union(*(links_in(path) for path in skill_dir.rglob("*.md")))
         files = {
             path.relative_to(skill_dir).as_posix()
             for path in skill_dir.rglob("*")
@@ -413,7 +392,7 @@ class TestBundledSkills:
 
         assert all(".." not in Path(link).parts for link in linked)
         assert linked <= files | {"SKILL.md"}, f"broken links: {sorted(linked - files)}"
-        assert files <= linked, f"files not linked from SKILL.md: {sorted(files - linked)}"
+        assert files <= linked_from_skill_md, f"files not linked from SKILL.md: {sorted(files - linked_from_skill_md)}"
         assert all(path.startswith(("references/", "scripts/", "assets/")) for path in files)
 
     @pytest.mark.parametrize("skill_dir", _BUNDLED_SKILL_DIRS, ids=lambda path: path.name)

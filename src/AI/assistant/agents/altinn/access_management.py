@@ -128,7 +128,7 @@ def parse_roles(data: Any) -> list[Role]:
                 code=code,
                 attribute=attribute,
                 name=_text(role, "name"),
-                description=" ".join(str(role.get("description") or "").split()),
+                description=_squash(role.get("description")),
                 provider_code=provider["code"],
                 provider_name=str(provider.get("name") or provider["code"]),
                 usable_in_policy=_flag(role, "isResourcePolicyAvailable"),
@@ -253,16 +253,17 @@ def _join(names: list[str]) -> str:
 
 
 def _short_description(description: Any) -> str:
-    sentences = [
-        sentence
-        for sentence in _SENTENCE_END.split(" ".join(str(description or "").split()))
-        if not _DISCLAIMER.match(sentence)
-    ]
+    sentences = [sentence for sentence in _SENTENCE_END.split(_squash(description)) if not _DISCLAIMER.match(sentence)]
     return sentences[0] if sentences else ""
 
 
+def _squash(value: Any) -> str:
+    """The text with each run of whitespace, line breaks too, as one space."""
+    return " ".join(str(value or "").split())
+
+
 def _cell(text: str) -> str:
-    return " ".join(text.split()).replace("|", "\\|")
+    return text.replace("|", "\\|")
 
 
 def _list(data: Any, what: str) -> list[dict[str, Any]]:
@@ -275,7 +276,7 @@ def _text(item: dict[str, Any], key: str) -> str:
     value = item.get(key)
     if not isinstance(value, str) or not value.strip():
         raise AccessManagementError(f"an entry has no {key!r}: {str(item)[:200]}")
-    return " ".join(value.split())
+    return _squash(value)
 
 
 def _flag(item: dict[str, Any], key: str) -> bool:

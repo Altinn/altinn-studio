@@ -28,6 +28,7 @@ from agents.core import (
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
+    Skill,
     SkillTool,
     TerminationReason,
     TextBlock,
@@ -444,15 +445,15 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
+def _build_registry(skills: list[Skill]) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
+    for tool in _internal_tools(skills):
         registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
+def _internal_tools(skills: list[Skill]) -> list[Tool]:
     return [
         ScanRepoTool(),
         ReadFileTool(),

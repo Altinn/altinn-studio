@@ -20,5 +20,5 @@ Files the body links to go in `references/`. The model loads one with the `file`
 `references/v8.md` or `references/v9.md` holds text for apps of that version. The `skill` tool adds it after the body,
 unless `APPEND_SKILL_VERSION_FILE` is false, and then the model loads it when the skill tells it to.
 
-The [agents-skills-check](../../../../.github/workflows/agents-skills-check.yaml) workflow checks the links in the
-skills.
+The [agents-skills-check](../../../../.github/workflows/agents-skills-check.yaml) workflow checks the web links in the
+skills. The unit tests check that each relative link resolves inside its skill.

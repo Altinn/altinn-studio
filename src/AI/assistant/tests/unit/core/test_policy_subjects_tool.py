@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
 
 import httpx
@@ -17,9 +16,6 @@ RECORDED = {
     access_management.ACCESS_PACKAGES_URL: (FIXTURES / "accesspackages-export.json").read_bytes(),
     access_management.ROLES_URL: (FIXTURES / "roles.json").read_bytes(),
 }
-REAL_CLIENT = httpx.AsyncClient
-
-Handler = Callable[[httpx.Request], httpx.Response]
 
 
 def _recorded(request: httpx.Request) -> httpx.Response:
@@ -31,26 +27,6 @@ def no_cache(monkeypatch):
     monkeypatch.setattr(access_management, "_cache", {})
 
 
-@pytest.fixture
-def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
-    """Send the tool's requests to `handler`, and return the list of requests that it got."""
-
-    def install(handler: Handler = _recorded) -> list[httpx.Request]:
-        requests: list[httpx.Request] = []
-
-        def record(request: httpx.Request) -> httpx.Response:
-            requests.append(request)
-            return handler(request)
-
-        def make_client(**kwargs) -> httpx.AsyncClient:
-            return REAL_CLIENT(transport=httpx.MockTransport(record), **kwargs)
-
-        monkeypatch.setattr(access_management.httpx, "AsyncClient", make_client)
-        return requests
-
-    return install
-
-
 def _ctx() -> LoopContext:
     return LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
 
@@ -60,7 +36,7 @@ async def _run(**args):
 
 
 async def test_lists_a_group_and_names_the_docs_as_its_source(serve):
-    serve()
+    serve(_recorded)
 
     result = await _run(group="Særskilt")
 
@@ -71,7 +47,7 @@ async def test_lists_a_group_and_names_the_docs_as_its_source(serve):
 
 
 async def test_reads_each_list_once_within_the_hour(serve):
-    requests = serve()
+    requests = serve(_recorded)
 
     await _run(group="Allment")
     await _run(search="regnskap")
@@ -85,7 +61,7 @@ async def test_reads_each_list_once_within_the_hour(serve):
 
 
 async def test_roles(serve):
-    serve()
+    serve(_recorded)
 
     result = await _run(kind="roles", search="daglig")
 
@@ -114,7 +90,7 @@ async def test_an_unreadable_answer_is_an_error_and_is_not_kept(serve):
 
 
 async def test_an_unknown_group_is_an_error(serve):
-    serve()
+    serve(_recorded)
 
     result = await _run(group="Nope")
 
