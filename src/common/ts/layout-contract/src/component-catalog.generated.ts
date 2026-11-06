@@ -6148,6 +6148,26 @@ const generatedContract = {
             title: TRBLabel['properties']['title'],
             description: TRBLabel['properties']['description'],
             help: TRBLabel['properties']['help'],
+            checksumTitle: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Checksum title', nb: 'Ledetekst for sjekksum' },
+              description: {
+                en: 'Title of the checksum field, instead of "Checksum".',
+                nb: 'Ledeteksten til feltet for sjekksum, i stedet for «Sjekksum».',
+              },
+              required: false,
+            },
+            checksumHelp: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Checksum help text', nb: 'Hjelpetekst for sjekksum' },
+              description: {
+                en: 'Help text for the checksum field, instead of the built-in one.',
+                nb: 'Hjelpeteksten til feltet for sjekksum, i stedet for den innebygde.',
+              },
+              required: false,
+            },
           },
           additionalProperties: false,
           title: { en: 'Text resources', nb: 'Tekstressurser' },
@@ -6262,21 +6282,6 @@ const generatedContract = {
               semanticType: 'dataModelBinding',
               required: false,
             },
-            checksum: {
-              type: 'object',
-              properties: IDataModelReference['properties'],
-              additionalProperties: false,
-              title: {
-                en: 'Data model binding for the checksum',
-                nb: 'Datamodellbinding for sjekksum',
-              },
-              description: {
-                en: "Where in the data model the component reads the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. When the field is required in the data model, the file cannot be sent without it.",
-                nb: 'Angir hvor i datamodellen komponenten leser sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Når feltet er påkrevd i datamodellen, kan ikke filen sendes uten den.',
-              },
-              semanticType: 'dataModelBinding',
-              required: false,
-            },
           },
           additionalProperties: false,
           title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
@@ -6327,6 +6332,16 @@ const generatedContract = {
             nb: 'Metadata som sendes med formidlingen, som egenskapslisten i Altinn Formidling: høyst 10 oppføringer, og hver nøkkel høyst 50 tegn. En verdi er fast tekst eller et uttrykk, for eksempel ["dataModel", "sti.til.felt"] for noe brukeren har fylt ut. Oppføringer uten verdi når filen sendes, utelates.',
           },
           examples: [{ caseNumber: ['dataModel', 'case.number'], category: 'invoice' }],
+          required: false,
+        },
+        checksum: {
+          type: 'string',
+          allowedValues: ['optional', 'required'],
+          title: { en: 'Checksum', nb: 'Sjekksum' },
+          description: {
+            en: "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
+            nb: 'Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv.',
+          },
           required: false,
         },
         disableVirusScan: {

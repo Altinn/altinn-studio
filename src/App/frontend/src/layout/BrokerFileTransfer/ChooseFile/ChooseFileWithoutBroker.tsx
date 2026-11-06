@@ -5,6 +5,7 @@ import { Alert } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { ChecksumField } from 'src/layout/BrokerFileTransfer/ChecksumField';
 import classes from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile.module.css';
 import { FilePicker } from 'src/layout/BrokerFileTransfer/ChooseFile/FilePicker';
 import { fileProblem } from 'src/layout/BrokerFileTransfer/messages';
@@ -20,7 +21,7 @@ type ChooseFileWithoutBrokerProps = {
 export function ChooseFileWithoutBroker({ baseComponentId, maxFileSize }: ChooseFileWithoutBrokerProps) {
   const language = useCurrentLanguage();
   const allowedFileEndings = useAllowedFileEndings(baseComponentId);
-  const { file, pickError, pick, remove } = useFilePick(baseComponentId, allowedFileEndings);
+  const { file, pickError, checksum, pick, remove, setChecksum } = useFilePick(baseComponentId, allowedFileEndings);
   const problem = pickError ?? (file ? fileProblem(file, maxFileSize, language) : undefined);
 
   return (
@@ -32,6 +33,11 @@ export function ChooseFileWithoutBroker({ baseComponentId, maxFileSize }: Choose
         problem={problem}
         onPick={pick}
         onRemove={remove}
+      />
+      <ChecksumField
+        baseComponentId={baseComponentId}
+        value={checksum}
+        onChange={setChecksum}
       />
       <Alert
         data-color='info'

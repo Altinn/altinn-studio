@@ -26,6 +26,7 @@ export type ActiveUpload = {
   sender: string;
   fileName: string;
   fileSize: number;
+  checksum?: string;
   status: UploadStatus;
   error: unknown;
 };
@@ -40,6 +41,8 @@ export type ContinueTransferInput = {
   // What Broker already holds of the file
   plan: UploadPlan;
   uploaded: number;
+  // The checksum the file transfer was started with
+  checksum?: string;
 };
 
 export type PlannedUpload = {
@@ -180,7 +183,7 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     recordStatus(fileTransferOf(upload), UPLOADED_STATUS);
   }
 
-  function beginInitializing(upload: { resourceId: string; sender: string; file: File }): Initializing | null {
+  function beginInitializing(upload: NewActiveUpload): Initializing | null {
     if (session) {
       return null;
     }
@@ -328,15 +331,15 @@ function fileTransferOf({ resourceId, sender, plan, file }: PlannedUpload): File
   return { resourceId, sender, fileTransferId: plan.fileTransferId, fileName: file.name };
 }
 
-function newActiveUpload(
-  { resourceId, sender, file }: { resourceId: string; sender: string; file: File },
-  status: UploadStatus,
-): ActiveUpload {
+type NewActiveUpload = { resourceId: string; sender: string; file: File; checksum?: string };
+
+function newActiveUpload({ resourceId, sender, file, checksum }: NewActiveUpload, status: UploadStatus): ActiveUpload {
   return {
     resourceId,
     sender,
     fileName: file.name,
     fileSize: file.size,
+    checksum,
     status,
     error: null,
   };

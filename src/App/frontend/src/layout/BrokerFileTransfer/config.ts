@@ -62,16 +62,6 @@ export const Config = new CG.component({
           )
           .optional(),
       ),
-      new CG.prop(
-        'checksum',
-        new CG.dataModelBinding()
-          .setTitle('Data model binding for the checksum', 'Datamodellbinding for sjekksum')
-          .setDescription(
-            "Where in the data model the component reads the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. When the field is required in the data model, the file cannot be sent without it.",
-            'Angir hvor i datamodellen komponenten leser sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Når feltet er påkrevd i datamodellen, kan ikke filen sendes uten den.',
-          )
-          .optional(),
-      ),
     ),
   )
   .addProperty(
@@ -123,6 +113,38 @@ export const Config = new CG.component({
         )
         .addExample({ caseNumber: ['dataModel', 'case.number'], category: 'invoice' }),
     ),
+  )
+  .addProperty(
+    new CG.prop(
+      'checksum',
+      new CG.enum('optional', 'required')
+        .optional()
+        .setTitle('Checksum', 'Sjekksum')
+        .setDescription(
+          "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
+          'Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv.',
+        ),
+    ),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'checksumTitle',
+      title: { en: 'Checksum title', nb: 'Ledetekst for sjekksum' },
+      description: {
+        en: 'Title of the checksum field, instead of "Checksum".',
+        nb: 'Ledeteksten til feltet for sjekksum, i stedet for «Sjekksum».',
+      },
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'checksumHelp',
+      title: { en: 'Checksum help text', nb: 'Hjelpetekst for sjekksum' },
+      description: {
+        en: 'Help text for the checksum field, instead of the built-in one.',
+        nb: 'Hjelpeteksten til feltet for sjekksum, i stedet for den innebygde.',
+      },
+    }),
   )
   .addProperty(
     new CG.prop(

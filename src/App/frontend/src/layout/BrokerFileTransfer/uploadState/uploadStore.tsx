@@ -10,11 +10,11 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { UploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-// Keeps each component's upload and chosen file outside React, so they survive the user leaving the page
+// Keeps each component's upload, chosen file and checksum outside React, so they survive the user leaving the page
 
-type FilePick = { file: File | null; pickError: Message | null };
+type FilePick = { file: File | null; pickError: Message | null; checksum: string };
 
-export const noPick: FilePick = { file: null, pickError: null };
+export const noPick: FilePick = { file: null, pickError: null, checksum: '' };
 
 type ComponentUploads = { controller: UploadController | null; pick: FilePick };
 

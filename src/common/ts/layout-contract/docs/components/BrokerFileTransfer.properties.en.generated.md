@@ -182,6 +182,30 @@ The component also supports the [common component properties](../common-properti
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Help text shown in a tooltip when clicking the help button</div></div>
       </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.checksumtitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.checksumTitle">textResourceBindings.checksumTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title of the checksum field, instead of "Checksum".</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.checksumhelp">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.checksumHelp">textResourceBindings.checksumHelp</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Help text for the checksum field, instead of the built-in one.</div></div>
+      </details>
     </div>
 
   </div>
@@ -273,18 +297,6 @@ The component also supports the [common component properties](../common-properti
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component stores the name of the file it sends. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
       </details>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.checksum">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="dataModelBindings.checksum">dataModelBindings.checksum</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="data model binding">Type: <span class="component-property-value"><a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">data model binding</a></span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Where in the data model the component reads the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. When the field is required in the data model, the file cannot be sent without it. <a href="/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">How to use data model bindings.</a></div></div>
-      </details>
     </div>
 
   </div>
@@ -337,6 +349,18 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Metadata sent with the file transfer, as Altinn Broker's property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as ["dataModel", "path.to.field"] for something the user filled in. Entries without a value when the file is sent are left out. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="checksum">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="checksum">checksum</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="&quot;optional&quot; | &quot;required&quot;">Type: <span class="component-property-value">&quot;optional&quot; | &quot;required&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself. Allowed values: "optional", "required".</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="disablevirusscan">

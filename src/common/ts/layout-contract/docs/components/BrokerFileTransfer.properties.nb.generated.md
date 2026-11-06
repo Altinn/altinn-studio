@@ -182,6 +182,30 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Hjelpeteksten som vises når brukeren åpner hjelpeknappen.</div></div>
       </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.checksumtitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.checksumTitle">textResourceBindings.checksumTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Ledeteksten til feltet for sjekksum, i stedet for «Sjekksum».</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.checksumhelp">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.checksumHelp">textResourceBindings.checksumHelp</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Hjelpeteksten til feltet for sjekksum, i stedet for den innebygde.</div></div>
+      </details>
     </div>
 
   </div>
@@ -273,18 +297,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten lagrer navnet på filen den sender. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
       </details>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.checksum">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="dataModelBindings.checksum">dataModelBindings.checksum</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Valgfri</span>
-            <span class="component-property-type" title="datamodellbinding">Type: <span class="component-property-value"><a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a></span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten leser sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Når feltet er påkrevd i datamodellen, kan ikke filen sendes uten den. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
-      </details>
     </div>
 
   </div>
@@ -337,6 +349,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Metadata som sendes med formidlingen, som egenskapslisten i Altinn Formidling: høyst 10 oppføringer, og hver nøkkel høyst 50 tegn. En verdi er fast tekst eller et uttrykk, for eksempel ["dataModel", "sti.til.felt"] for noe brukeren har fylt ut. Oppføringer uten verdi når filen sendes, utelates. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="checksum">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="checksum">checksum</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="&quot;optional&quot; | &quot;required&quot;">Type: <span class="component-property-value">&quot;optional&quot; | &quot;required&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv. Tillatte verdier: "optional", "required".</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="disablevirusscan">

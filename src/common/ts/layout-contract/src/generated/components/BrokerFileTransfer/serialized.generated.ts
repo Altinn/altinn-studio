@@ -1,3 +1,4 @@
+import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   FormComponentProps,
@@ -7,11 +8,15 @@ import {
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export type CompBrokerFileTransferSerialized = {
   type: 'BrokerFileTransfer';
-  textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  textResourceBindings?: {
+    checksumTitle?: ExprValToActualOrExpr<ExprVal.String>;
+    checksumHelp?: ExprValToActualOrExpr<ExprVal.String>;
+  } & TRBFormComp &
+    TRBSummarizable &
+    TRBLabel;
   renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -21,12 +26,12 @@ export type CompBrokerFileTransferSerialized = {
     fileTransferId: IRawDataModelBinding;
     fileTransferStatus: IRawDataModelBinding;
     fileName?: IRawDataModelBinding;
-    checksum?: IRawDataModelBinding;
   };
   resourceId: string;
   hasCustomRecipients?: boolean;
   recipients?: ExprValToActualOrExpr<ExprVal.String>;
   metadata?: { [key: string]: ExprValToActualOrExpr<ExprVal.String> };
+  checksum?: 'optional' | 'required';
   disableVirusScan?: boolean;
   maxFileTransferSizeInMB?: number;
   hasCustomFileEndings?: boolean;
@@ -35,4 +40,4 @@ export type CompBrokerFileTransferSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: cd2cc4f940296191d3a2a73c62fa8cc0f4f4ca03b6535250eb519df0e0f15169
+// Source hash: 6c1eb08fb220cd45caea88c98e9c5fd02d1cc458bdb1147af326da615481037a

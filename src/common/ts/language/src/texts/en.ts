@@ -148,7 +148,6 @@ export function en() {
     'form_filler.orgnr': 'organisation number',
     'form_filler.name': 'organisation name',
     'form_filler.fileTransferId': 'file',
-    'form_filler.checksum': 'checksum',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -412,6 +411,10 @@ export function en() {
     'broker_file_transfer.send': 'Send file',
     'broker_file_transfer.remove_file': 'Remove',
     'broker_file_transfer.choose_file': 'Choose file',
+    'broker_file_transfer.checksum': 'Checksum',
+    'broker_file_transfer.checksum_algorithm': '{0} checksum',
+    'broker_file_transfer.checksum_help':
+      "The checksum is a code calculated from the file's contents. Altinn Broker calculates it again once the file is uploaded, and rejects the file if it does not match. You can enter an MD5 checksum of 32 characters or a SHA256 checksum of 64 characters.",
     'broker_file_transfer.error_required': 'You must send a file.',
     'broker_file_transfer.error_one_file': 'You can only send one file here.',
     'broker_file_transfer.error_empty_file': 'The file is empty.',

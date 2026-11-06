@@ -22,6 +22,9 @@ const NO_ACCESS_TO_RESOURCE = 6;
 // Broker's error codes for RecipientNotInAccessList and InvalidRecipient, from its check against the access list
 const RECIPIENTS_NOT_ALLOWED = new Set<number | undefined>([28, 31]);
 
+// MD5 or SHA256, the algorithms Broker accepts
+const CHECKSUM_PATTERN = /^([0-9a-f]{32}|[0-9a-f]{64})$/;
+
 const problemDetailsSchema = z.object({
   errorCode: z.number().nullish(),
   detail: z.string().nullish(),
@@ -59,6 +62,10 @@ export function transferFailureMessage(statusText: string | undefined): Message 
     return { key: 'broker_file_transfer.error_failed_virus' };
   }
   return { key: 'broker_file_transfer.error_failed_other' };
+}
+
+export function checksumProblem(checksum: string): Message | undefined {
+  return CHECKSUM_PATTERN.test(checksum) ? undefined : { key: 'broker_file_transfer.error_checksum_invalid' };
 }
 
 export function sendErrorMessage(error: unknown): Message {

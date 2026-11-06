@@ -411,6 +411,18 @@ export const Expressions = {
         errorIntroText:
           'Invalid expression for BrokerFileTransfer, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
+      checksumTitle: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.checksumTitle',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      checksumHelp: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.checksumHelp',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
     },
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
@@ -4564,4 +4576,4 @@ export const CommonExpressions = {
   } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: a464d415f8d4c32f3ee67792c644c51c4348f783eff047ed75de6ab2a817edc2
+// Source hash: 493c15f7eb72b5ff8add804492180c05df2b4edbe67a591ba8f308992a789ed2

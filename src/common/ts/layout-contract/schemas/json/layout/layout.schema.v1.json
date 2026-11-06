@@ -2604,6 +2604,23 @@
                   "$ref": "#/definitions/TRBLabel"
                 },
                 {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
+                  "type": "object",
+                  "properties": {
+                    "checksumTitle": {
+                      "title": "Checksum title",
+                      "description": "Title of the checksum field, instead of \"Checksum\".",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
+                    "checksumHelp": {
+                      "title": "Checksum help text",
+                      "description": "Help text for the checksum field, instead of the built-in one.",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    }
+                  }
+                },
+                {
                   "type": "object",
                   "properties": {
                     "tableTitle": true,
@@ -2613,7 +2630,9 @@
                     "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
-                    "help": true
+                    "help": true,
+                    "checksumTitle": true,
+                    "checksumHelp": true
                   },
                   "additionalProperties": false
                 }
@@ -2662,9 +2681,6 @@
                 },
                 "fileName": {
                   "$ref": "#/definitions/IRawDataModelBinding"
-                },
-                "checksum": {
-                  "$ref": "#/definitions/IRawDataModelBinding"
                 }
               },
               "required": [
@@ -2710,6 +2726,14 @@
               "additionalProperties": {
                 "$ref": "expression.schema.v1.json#/definitions/string"
               }
+            },
+            "checksum": {
+              "title": "Checksum",
+              "description": "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
+              "enum": [
+                "optional",
+                "required"
+              ]
             },
             "disableVirusScan": {
               "title": "Disable virus scan",
@@ -2781,6 +2805,7 @@
             "hasCustomRecipients": true,
             "recipients": true,
             "metadata": true,
+            "checksum": true,
             "disableVirusScan": true,
             "maxFileTransferSizeInMB": true,
             "hasCustomFileEndings": true,

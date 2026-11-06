@@ -112,6 +112,10 @@ function fakeController() {
 let componentCount = 0;
 
 const findFileInput = () => screen.findByLabelText(/Last opp rapporten/, { selector: 'input' });
+const getChecksumField = () => screen.getByRole('textbox', { name: /Sjekksum/ });
+
+const MD5 = 'd41d8cd98f00b204e9800998ecf8427e';
+const SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
 // For text that translations split across elements
 const findWholeText = (text: string) =>
@@ -153,7 +157,6 @@ async function render({
         fileTransferId: { dataType: defaultDataTypeMock, field: 'broker.id' },
         fileTransferStatus: { dataType: defaultDataTypeMock, field: 'broker.status' },
         fileName: { dataType: defaultDataTypeMock, field: 'broker.name' },
-        checksum: { dataType: defaultDataTypeMock, field: 'broker.checksum' },
       },
       textResourceBindings: { title: 'Last opp rapporten' },
       ...component,
@@ -554,19 +557,29 @@ describe('BrokerFileTransferComponent', () => {
       ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
     });
+  });
 
-    it('sends the checksum from the data model in lower case', async () => {
-      const checksum = 'D41D8CD98F00B204E9800998ECF8427E';
-      await render({ formData: { id: '', status: '', name: '', checksum } });
+  describe('the checksum field', () => {
+    it('is left out unless the component asks for a checksum', async () => {
+      await render();
+      await findFileInput();
 
-      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
-      await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
-
-      expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ checksum: checksum.toLowerCase() }));
+      expect(screen.queryByRole('textbox', { name: /Sjekksum/ })).not.toBeInTheDocument();
     });
 
-    it('sends without a checksum when the data model leaves it out', async () => {
-      await render();
+    it('sends the checksum the user enters in lower case, and says under the field that it is MD5', async () => {
+      await render({ checksum: 'optional' });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+      await userEvent.type(getChecksumField(), MD5.toUpperCase());
+      await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
+
+      expect(getChecksumField()).toHaveAccessibleDescription('MD5-sjekksum');
+      expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ checksum: MD5 }));
+    });
+
+    it('sends without a checksum when the user leaves an optional checksum empty', async () => {
+      await render({ checksum: 'optional' });
 
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
@@ -574,36 +587,82 @@ describe('BrokerFileTransferComponent', () => {
       expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ checksum: undefined }));
     });
 
-    it('asks for the checksum when the data model requires it', async () => {
-      await render({
-        schema: {
-          type: 'object',
-          properties: {
-            broker: {
-              type: 'object',
-              properties: { checksum: { type: 'string' } },
-              required: ['checksum'],
-            },
-          },
+    it('cannot send before the user enters a required checksum', async () => {
+      await render({ checksum: 'required' });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+
+      await userEvent.type(getChecksumField(), SHA256);
+
+      expect(getChecksumField()).toHaveAccessibleDescription('SHA256-sjekksum');
+      expect(screen.getByRole('button', { name: 'Send filen' })).toBeEnabled();
+    });
+
+    it('says what is wrong with the checksum once the user leaves the field', async () => {
+      const invalid = 'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.';
+      await render({ checksum: 'optional' });
+
+      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+      await userEvent.type(getChecksumField(), 'abc123');
+      expect(screen.queryByText(invalid)).not.toBeInTheDocument();
+      await userEvent.tab();
+
+      expect(screen.getByText(invalid)).toBeInTheDocument();
+      expect(getChecksumField()).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.queryByText(/-sjekksum$/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+    });
+
+    it('keeps the checksum when the user leaves the page and comes back', async () => {
+      const { unmount } = await render({ id: 'broker-file-transfer-checksum', checksum: 'optional' });
+      await findFileInput();
+      await userEvent.type(getChecksumField(), MD5);
+      unmount();
+
+      await render({ id: 'broker-file-transfer-checksum', checksum: 'optional' });
+
+      expect(await screen.findByDisplayValue(MD5)).toBeInTheDocument();
+    });
+
+    it('shows the checksum read-only while the file uploads', async () => {
+      await render({ checksum: 'optional' });
+      await findFileInput();
+
+      fake.update({
+        active: {
+          resourceId: 'broker-resource',
+          sender: ORGANIZATION,
+          fileName: 'rapport.pdf',
+          fileSize: 9,
+          checksum: MD5,
+          status: 'uploading',
+          error: null,
         },
       });
 
-      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
-
-      expect(screen.getByText('Du må fylle ut sjekksum')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+      await waitFor(() => expect(getChecksumField()).toHaveValue(MD5));
+      expect(getChecksumField()).toHaveAttribute('readonly');
     });
 
-    it('refuses a checksum that is neither MD5 nor SHA256', async () => {
-      await render({ formData: { id: '', status: '', name: '', checksum: 'abc123' } });
+    it.each(['Published', 'Failed'])(
+      'stays read-only with the checksum Broker has, instead of in the file box, once Broker reports %s',
+      async (fileTransferStatus) => {
+        vi.mocked(getFileTransferOverview).mockResolvedValue({
+          fileTransferStatus,
+          fileName: 'rapport.pdf',
+          checksum: MD5,
+          checksumAlgorithm: 'MD5',
+        });
+        await render({
+          formData: { id: 'transfer-1', status: fileTransferStatus, name: 'rapport.pdf' },
+          checksum: 'optional',
+        });
 
-      await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
-
-      expect(
-        screen.getByText('Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.'),
-      ).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
-    });
+        expect(await screen.findByDisplayValue(MD5)).toHaveAttribute('readonly');
+        expect(screen.queryByText(/Sjekksum \(MD5\)/)).not.toBeInTheDocument();
+      },
+    );
   });
 
   describe('uploading', () => {
@@ -871,14 +930,15 @@ describe('BrokerFileTransferComponent', () => {
       expect(screen.getByRole('button', { name: 'Fortsett opplastingen' })).toBeEnabled();
     });
 
-    it('continues an interrupted upload with the checksum it was started with', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
-      await render({ formData: { ...interruptedFormData, checksum: 'abc123' } });
+    it('continues an interrupted upload with the checksum it was started with, read-only', async () => {
+      vi.mocked(checkInterruptedTransfer).mockResolvedValue({ ...resumable, checksum: MD5 });
+      await render({ formData: interruptedFormData, checksum: 'required' });
 
+      expect(await screen.findByDisplayValue(MD5)).toHaveAttribute('readonly');
       await userEvent.upload(await findFileInput(), new File(['rapporten'], 'rapport.pdf'));
+      await userEvent.click(screen.getByRole('button', { name: 'Fortsett opplastingen' }));
 
-      expect(screen.queryByText(/^Sjekksummen må være/)).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Fortsett opplastingen' })).toBeEnabled();
+      expect(fake.controller.continueTransfer).toHaveBeenCalledWith(expect.objectContaining({ checksum: MD5 }));
     });
 
     it('continues an interrupted upload where it stopped when the same file is chosen', async () => {

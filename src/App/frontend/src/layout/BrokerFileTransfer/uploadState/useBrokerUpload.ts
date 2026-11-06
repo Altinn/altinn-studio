@@ -25,7 +25,7 @@ export type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ k
 
 /** Starts, continues and follows the upload, and records the transfer in the form */
 export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
-  const { baseUrl, instanceId, resourceId, sender, recipients, checksum, propertyList, disableVirusScan } = setup;
+  const { baseUrl, instanceId, resourceId, sender, recipients, propertyList, disableVirusScan } = setup;
   const uploadsKey = useUploadsKey(baseComponentId);
   const controller = useMemo(() => getUploadController(baseUrl, uploadsKey), [baseUrl, uploadsKey]);
   const active = useSyncExternalStore(controller.subscribe, controller.getActive);
@@ -41,7 +41,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
   const interrupted = useInterruptedTransfer(baseComponentId, controller, setup, hasActive);
 
   const send = useCallback(
-    async (file: File) => {
+    async (file: File, checksum: string | undefined) => {
       setSendError(null);
       try {
         await controller.start({
@@ -59,7 +59,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
         setSendError(error);
       }
     },
-    [checksum, controller, disableVirusScan, instanceId, propertyList, recipients, resourceId, sender],
+    [controller, disableVirusScan, instanceId, propertyList, recipients, resourceId, sender],
   );
 
   const { state: interruptedState, fileTransferId: interruptedId } = interrupted;
@@ -77,6 +77,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
           file,
           plan: interruptedState.plan,
           uploaded: interruptedState.uploaded,
+          checksum: interruptedState.checksum,
         });
       } catch (error) {
         window.logError('Could not continue the Broker upload:\n', error);
@@ -211,8 +212,8 @@ function useInterruptedTransfer(
 
   let state: InterruptedState | null = null;
   if (isInterrupted && check.data?.status === 'resumable') {
-    const { fileName: resumableName, plan, uploaded } = check.data;
-    state = { kind: 'resumable', fileName: resumableName, plan, uploaded };
+    const { fileName: resumableName, plan, uploaded, checksum } = check.data;
+    state = { kind: 'resumable', fileName: resumableName, plan, uploaded, checksum };
   } else if (isInterrupted) {
     // Also while a received, failed or gone transfer is being recorded
     state = check.isError ? { kind: 'unknown' } : { kind: 'checking' };

@@ -5,6 +5,7 @@ import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigS
 import { ConfigNumberProperties } from '../../../config/ConfigProperties/ConfigNumberProperties';
 import { EditBooleanValue } from '../../../config/editModal/EditBooleanValue';
 import { getBooleanDefault, getComponentDefinition } from '../../../../data/componentCatalog';
+import { BrokerFileTransferChecksum } from './BrokerFileTransferChecksum';
 import { BrokerFileTransferMetadata } from './BrokerFileTransferMetadata/BrokerFileTransferMetadata';
 import { BrokerFileTransferRecipients } from './BrokerFileTransferRecipients';
 
@@ -66,6 +67,11 @@ export const BrokerFileTransferMainConfig = ({
         handleComponentUpdate={handleComponentChange}
         properties={properties}
         numberPropertyKeys={brokerFileTransferMainNumberProperties}
+        className={className}
+      />
+      <BrokerFileTransferChecksum
+        component={component}
+        handleComponentChange={handleComponentChange}
         className={className}
       />
       {/* ConfigBooleanProperties would also show the allowed file types here */}

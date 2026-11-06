@@ -18,6 +18,13 @@ const brokerFileTransferComponent: FormItem<ComponentType.BrokerFileTransfer> = 
   resourceId: 'broker-resource',
 };
 
+const checksumSwitch = () =>
+  screen.getByRole('switch', { name: textMock('ux_editor.component_properties.checksum') });
+const checksumRequiredSwitch = () =>
+  screen.queryByRole('switch', {
+    name: textMock('ux_editor.component_properties.checksum_required'),
+  });
+
 const recipientsSwitch = () =>
   screen.getByRole('switch', {
     name: textMock('ux_editor.component_properties.hasCustomRecipients'),
@@ -72,6 +79,50 @@ describe('BrokerFileTransferMainConfig', () => {
 
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({ hasCustomRecipients: false, recipients: undefined }),
+    );
+  });
+
+  it('asks for an optional checksum when the checksum field is switched on', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMainConfig(brokerFileTransferComponent, handleComponentChange);
+
+    expect(checksumRequiredSwitch()).not.toBeInTheDocument();
+    await user.click(checksumSwitch());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ checksum: 'optional' }),
+    );
+  });
+
+  it('makes the checksum required with the second switch', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMainConfig(
+      { ...brokerFileTransferComponent, checksum: 'optional' },
+      handleComponentChange,
+    );
+
+    await user.click(checksumRequiredSwitch());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ checksum: 'required' }),
+    );
+  });
+
+  it('removes the checksum setting when the checksum field is switched off', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMainConfig(
+      { ...brokerFileTransferComponent, checksum: 'required' },
+      handleComponentChange,
+    );
+
+    expect(checksumRequiredSwitch()).toBeChecked();
+    await user.click(checksumSwitch());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ checksum: undefined }),
     );
   });
 });

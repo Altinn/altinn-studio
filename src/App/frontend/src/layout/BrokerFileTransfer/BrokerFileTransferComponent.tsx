@@ -5,13 +5,17 @@ import { Alert, Paragraph } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Label } from 'src/components/label/Label';
+import { useQuery } from 'src/core/queries/reactQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
+import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import { isTransferFailed, isTransferReceived } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferComponent.module.css';
+import { ChecksumField } from 'src/layout/BrokerFileTransfer/ChecksumField';
 import { ChooseFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile';
 import { ChooseFileWithoutBroker } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFileWithoutBroker';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
-import { useBrokerSetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
+import { getBrokerApiBaseUrl, useBrokerSetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { UploadingFile } from 'src/layout/BrokerFileTransfer/UploadingFile/UploadingFile';
 import {
   useBrokerUpload,
@@ -55,12 +59,19 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
         renderLabelAs='plainLabel'
       />
       {isReceived || isFailed ? (
-        <SentFile
-          fileTransferId={formData.fileTransferId}
-          fileTransferStatus={formData.fileTransferStatus}
-          fileName={formData.fileName}
-          onRemove={isFailed && !readOnly ? removeTransfer : undefined}
-        />
+        <div className={classes.sent}>
+          <SentFile
+            fileTransferId={formData.fileTransferId}
+            fileTransferStatus={formData.fileTransferStatus}
+            fileName={formData.fileName}
+            showChecksum={!config.checksum}
+            onRemove={isFailed && !readOnly ? removeTransfer : undefined}
+          />
+          <SentChecksum
+            baseComponentId={baseComponentId}
+            fileTransferId={formData.fileTransferId}
+          />
+        </div>
       ) : readOnly ? (
         <Paragraph data-size='sm'>
           <Lang id='broker_file_transfer.none_sent' />
@@ -94,13 +105,13 @@ type FileSenderProps = {
   setup: ReadySetup;
 };
 
-// Its own component, because useBrokerUpload can only run once the setup is ready
 function FileSender({ baseComponentId, setup }: FileSenderProps) {
   const upload = useBrokerUpload(baseComponentId, setup);
 
   if (upload.active) {
     return (
       <UploadingFile
+        baseComponentId={baseComponentId}
         active={upload.active}
         progress={upload.progress}
         onPause={upload.pause}
@@ -119,6 +130,21 @@ function FileSender({ baseComponentId, setup }: FileSenderProps) {
       onSend={upload.send}
       onContinue={upload.continueInterrupted}
       onDiscard={upload.discardInterrupted}
+    />
+  );
+}
+
+type SentChecksumProps = {
+  baseComponentId: string;
+  fileTransferId: string;
+};
+
+function SentChecksum({ baseComponentId, fileTransferId }: SentChecksumProps) {
+  const overview = useQuery(brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), fileTransferId)).data;
+  return (
+    <ChecksumField
+      baseComponentId={baseComponentId}
+      value={overview?.checksum ?? ''}
     />
   );
 }

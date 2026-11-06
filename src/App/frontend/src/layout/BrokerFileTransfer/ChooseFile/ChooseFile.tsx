@@ -8,12 +8,14 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { expectedFileSize, isSameFile } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/CancelUploadButton';
+import { ChecksumField } from 'src/layout/BrokerFileTransfer/ChecksumField';
 import classes from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile.module.css';
 import { FilePicker } from 'src/layout/BrokerFileTransfer/ChooseFile/FilePicker';
 import { InterruptedUploadNotice } from 'src/layout/BrokerFileTransfer/ChooseFile/InterruptedUploadNotice';
-import { fileProblem, sendErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
+import { checksumProblem, fileProblem, sendErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
 import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { useFilePick } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import type { InterruptedState } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
@@ -23,7 +25,7 @@ type ChooseFileProps = {
   setup: ReadySetup;
   interrupted: InterruptedState | null;
   sendError: unknown;
-  onSend: (file: File) => Promise<void>;
+  onSend: (file: File, checksum: string | undefined) => Promise<void>;
   onContinue: (file: File) => Promise<void>;
   onDiscard: () => void;
 };
@@ -40,7 +42,8 @@ export function ChooseFile({
 }: ChooseFileProps) {
   const language = useCurrentLanguage();
   const allowedFileEndings = useAllowedFileEndings(baseComponentId);
-  const { file, pickError, pick, remove } = useFilePick(baseComponentId, allowedFileEndings);
+  const { file, pickError, checksum, pick, remove, setChecksum } = useFilePick(baseComponentId, allowedFileEndings);
+  const { checksum: checksumSetting } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
 
   if (interrupted?.kind === 'checking') {
     return <AltinnSpinner />;
@@ -67,9 +70,10 @@ export function ChooseFile({
       ? { key: 'broker_file_transfer.wrong_file', params: [interrupted.fileName] }
       : undefined;
   // An interrupted file transfer already has its recipients, checksum and metadata
-  const transferProblem = interrupted
-    ? undefined
-    : (setup.recipientsProblem ?? setup.checksumProblem ?? setup.metadataProblem);
+  const transferProblem = interrupted ? undefined : (setup.recipientsProblem ?? setup.metadataProblem);
+  const checksumToSend = checksumSetting && checksum ? checksum : undefined;
+  // The checksum field says what is wrong with the checksum, so here it only holds back sending
+  const isChecksumReady = checksumToSend ? !checksumProblem(checksumToSend) : checksumSetting !== 'required';
   const problem =
     pickError ?? wrongFile ?? (file ? (fileProblem(file, setup.maxFileSize, language) ?? transferProblem) : undefined);
   const error = sendError !== null ? sendErrorMessage(sendError) : undefined;
@@ -90,6 +94,11 @@ export function ChooseFile({
         problem={problem}
         onPick={pick}
         onRemove={remove}
+      />
+      <ChecksumField
+        baseComponentId={baseComponentId}
+        value={interrupted ? (interrupted.checksum ?? '') : checksum}
+        onChange={interrupted ? undefined : setChecksum}
       />
       {error && (
         <Alert data-color='danger'>
@@ -116,8 +125,8 @@ export function ChooseFile({
           </>
         ) : (
           <Button
-            disabled={!file || !!problem}
-            onClick={() => file && onSend(file)}
+            disabled={!file || !!problem || !isChecksumReady}
+            onClick={() => file && onSend(file, checksumToSend)}
           >
             <Lang id='broker_file_transfer.send' />
           </Button>

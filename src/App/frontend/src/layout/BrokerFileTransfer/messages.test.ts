@@ -3,10 +3,24 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import {
   brokerProblem,
+  checksumProblem,
   sendErrorMessage,
   transferFailureMessage,
   uploadErrorMessage,
 } from 'src/layout/BrokerFileTransfer/messages';
+
+describe('checksumProblem', () => {
+  it.each(['d41d8cd98f00b204e9800998ecf8427e', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'])(
+    'accepts the MD5 or SHA256 checksum %s',
+    (checksum) => {
+      expect(checksumProblem(checksum)).toBeUndefined();
+    },
+  );
+
+  it.each(['abc123', 'g41d8cd98f00b204e9800998ecf8427e'])('refuses %s, which is neither MD5 nor SHA256', (checksum) => {
+    expect(checksumProblem(checksum)).toEqual({ key: 'broker_file_transfer.error_checksum_invalid' });
+  });
+});
 
 describe('transferFailureMessage', () => {
   it.each([

@@ -8,6 +8,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/CancelUploadButton';
+import { ChecksumField } from 'src/layout/BrokerFileTransfer/ChecksumField';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize, formatRemainingTime } from 'src/layout/BrokerFileTransfer/formatting';
 import { uploadErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
@@ -18,6 +19,7 @@ import type { ActiveUpload } from 'src/layout/BrokerFileTransfer/brokerClient/up
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
 type UploadingFileProps = {
+  baseComponentId: string;
   active: ActiveUpload;
   progress: UploadProgress | null;
   onPause: () => void;
@@ -26,7 +28,7 @@ type UploadingFileProps = {
 };
 
 /** Shows the running upload: progress, speed and time left, with pause, continue and cancel */
-export function UploadingFile({ active, progress, onPause, onResume, onCancel }: UploadingFileProps) {
+export function UploadingFile({ baseComponentId, active, progress, onPause, onResume, onCancel }: UploadingFileProps) {
   const language = useCurrentLanguage();
   const { langAsString } = useLanguage();
   const { status } = active;
@@ -74,6 +76,10 @@ export function UploadingFile({ active, progress, onPause, onResume, onCancel }:
           params={announcement.params}
         />
       </span>
+      <ChecksumField
+        baseComponentId={baseComponentId}
+        value={active.checksum ?? ''}
+      />
       {error && (
         <Alert data-color='danger'>
           <Lang

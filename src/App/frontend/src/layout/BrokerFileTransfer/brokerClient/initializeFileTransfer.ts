@@ -29,6 +29,11 @@ export async function initializeFileTransfer(
   return response.fileTransferId;
 }
 
+// An MD5 checksum has 32 hex characters and a SHA256 checksum 64
+export function checksumAlgorithmOf(checksum: string): 'MD5' | 'SHA256' {
+  return checksum.length === 64 ? 'SHA256' : 'MD5';
+}
+
 function buildRequestBody(input: InitializeFileTransferInput): FileTransferInitializeRequestBody {
   return {
     fileName: input.file.name,
@@ -38,8 +43,7 @@ function buildRequestBody(input: InitializeFileTransferInput): FileTransferIniti
     sendersFileTransferReference: input.reference?.trim() || undefined,
     propertyList: input.propertyList ?? {},
     checksum: input.checksum || undefined,
-    // An MD5 checksum has 32 hex characters and a SHA256 checksum 64
-    checksumAlgorithm: input.checksum ? (input.checksum.length === 64 ? 'SHA256' : 'MD5') : undefined,
+    checksumAlgorithm: input.checksum ? checksumAlgorithmOf(input.checksum) : undefined,
     disableVirusScan: input.disableVirusScan ?? false,
   };
 }

@@ -10,7 +10,7 @@ import {
   useUploadsKey,
 } from 'src/layout/BrokerFileTransfer/uploadState/uploadStore';
 
-/** Choosing and removing the file, kept in the upload store until it's sent */
+/** Choosing and removing the file and typing its checksum, kept in the upload store until it's sent */
 export function useFilePick(baseComponentId: string, allowedFileEndings: string[] | null) {
   const key = useUploadsKey(baseComponentId);
   const getPick = useCallback(() => getFilePick(key), [key]);
@@ -22,10 +22,12 @@ export function useFilePick(baseComponentId: string, allowedFileEndings: string[
       setFilePick(key, { ...current, pickError: { key: 'broker_file_transfer.error_one_file' } });
       return;
     }
-    setFilePick(key, { file: picked[0], pickError: fileTypeProblem(rejected, allowedFileEndings) });
+    setFilePick(key, { ...current, file: picked[0], pickError: fileTypeProblem(rejected, allowedFileEndings) });
   };
 
-  const remove = () => setFilePick(key, noPick);
+  const remove = () => setFilePick(key, { ...noPick, checksum: current.checksum });
 
-  return { file: current.file, pickError: current.pickError, pick, remove };
+  const setChecksum = (checksum: string) => setFilePick(key, { ...current, checksum });
+
+  return { file: current.file, pickError: current.pickError, checksum: current.checksum, pick, remove, setChecksum };
 }

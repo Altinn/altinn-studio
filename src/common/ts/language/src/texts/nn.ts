@@ -149,7 +149,6 @@ export function nn() {
     'form_filler.orgnr': 'organisasjonsnummer',
     'form_filler.name': 'organisasjonsnamn',
     'form_filler.fileTransferId': 'fil',
-    'form_filler.checksum': 'sjekksum',
     'navigation.main': 'Overordna',
     'navigation.form': 'Skjemasider',
     'navigation.to_main_content': 'Hopp til hovudinnhaldet',
@@ -413,6 +412,10 @@ export function nn() {
     'broker_file_transfer.send': 'Send fila',
     'broker_file_transfer.remove_file': 'Fjern',
     'broker_file_transfer.choose_file': 'Vel fil',
+    'broker_file_transfer.checksum': 'Sjekksum',
+    'broker_file_transfer.checksum_algorithm': '{0}-sjekksum',
+    'broker_file_transfer.checksum_help':
+      'Sjekksummen er ein kode som er rekna ut frå innhaldet i fila. Altinn Formidling reknar han ut på nytt når fila er lasta opp, og avviser fila viss han ikkje stemmer. Du kan oppgi ein MD5-sjekksum på 32 teikn eller ein SHA256-sjekksum på 64 teikn.',
     'broker_file_transfer.error_required': 'Du må sende ei fil.',
     'broker_file_transfer.error_one_file': 'Du kan berre sende éi fil her.',
     'broker_file_transfer.error_empty_file': 'Fila er tom.',

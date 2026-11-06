@@ -1,3 +1,4 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   FormComponentProps,
@@ -8,7 +9,6 @@ import {
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface BrokerFileTransferSummaryOverrides extends ISummaryOverridesCommon {
   showNextButton?: boolean;
@@ -21,7 +21,12 @@ export type BrokerFileTransferSummaryOverridesWithRef =
 export interface CompBrokerFileTransferExternal
   extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'BrokerFileTransfer';
-  textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  textResourceBindings?: {
+    checksumTitle?: ExprValToActualOrExpr<ExprVal.String>;
+    checksumHelp?: ExprValToActualOrExpr<ExprVal.String>;
+  } & TRBFormComp &
+    TRBSummarizable &
+    TRBLabel;
   renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -31,12 +36,12 @@ export interface CompBrokerFileTransferExternal
     fileTransferId: IDataModelReference;
     fileTransferStatus: IDataModelReference;
     fileName?: IDataModelReference;
-    checksum?: IDataModelReference;
   };
   resourceId: string;
   hasCustomRecipients?: boolean;
   recipients?: ExprValToActualOrExpr<ExprVal.String>;
   metadata?: { [key: string]: ExprValToActualOrExpr<ExprVal.String> };
+  checksum?: 'optional' | 'required';
   disableVirusScan?: boolean;
   maxFileTransferSizeInMB?: number;
   hasCustomFileEndings?: boolean;
@@ -71,4 +76,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: BrokerFileTransferSummaryOverridesWithRef;
 };
 
-// Source hash: 48feed5480c5561ab021bf05ee37964753eee02508db0634a0db3e6823ea7dab
+// Source hash: 0307e0b26688493a240b9e2494293e7fd537fb95cb7fbde6ba82e25ff2a72a20

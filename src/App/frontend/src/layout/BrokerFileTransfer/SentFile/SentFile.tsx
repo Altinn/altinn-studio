@@ -28,11 +28,18 @@ type SentFileProps = {
   fileTransferId: string;
   fileTransferStatus: string;
   fileName?: string;
+  showChecksum?: boolean;
   onRemove?: () => void;
 };
 
 /** Shows the sent file with its file transfer ID, and Broker's size, checksum or reason for rejecting it */
-export function SentFile({ fileTransferId, fileTransferStatus, fileName, onRemove }: SentFileProps) {
+export function SentFile({
+  fileTransferId,
+  fileTransferStatus,
+  fileName,
+  showChecksum = true,
+  onRemove,
+}: SentFileProps) {
   const language = useCurrentLanguage();
   const overview = useQuery(brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), fileTransferId)).data;
   const transfer = { fileTransferId, fileTransferStatus };
@@ -59,7 +66,7 @@ export function SentFile({ fileTransferId, fileTransferStatus, fileName, onRemov
             params={[fileTransferId]}
           />
           {size !== undefined && ` · ${formatFileSize(size, language)}`}
-          {overview?.checksum && (
+          {showChecksum && overview?.checksum && (
             <>
               <br />
               <Lang

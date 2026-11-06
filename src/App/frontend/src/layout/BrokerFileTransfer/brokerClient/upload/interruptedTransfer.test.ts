@@ -35,10 +35,11 @@ beforeEach(() => {
 });
 
 describe('checkInterruptedTransfer', () => {
-  it('can be continued from what Broker already holds', async () => {
+  it('can be continued from what Broker already holds, with the checksum it was started with', async () => {
     vi.mocked(getFileTransferOverview).mockResolvedValue({
       fileTransferStatus: 'UploadStarted',
       fileName: 'report.pdf',
+      checksum: 'd41d8cd98f00b204e9800998ecf8427e',
     });
     vi.mocked(findUploadPlan).mockResolvedValue(plan);
     vi.mocked(readUploadedBytes).mockResolvedValue(2);
@@ -48,6 +49,7 @@ describe('checkInterruptedTransfer', () => {
       fileName: 'report.pdf',
       plan,
       uploaded: 2,
+      checksum: 'd41d8cd98f00b204e9800998ecf8427e',
     });
   });
 

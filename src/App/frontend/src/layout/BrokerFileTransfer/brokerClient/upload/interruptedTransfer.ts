@@ -16,6 +16,7 @@ export type ResumableTransfer = {
   fileName: string;
   plan: UploadPlan;
   uploaded: number;
+  checksum?: string;
 };
 
 export type InterruptedTransfer =
@@ -45,7 +46,7 @@ export async function checkInterruptedTransfer(
   if (!plan || uploaded === null) {
     return { status: 'gone', plan: plan ?? undefined };
   }
-  return { status: 'resumable', fileName: overview.fileName, plan, uploaded };
+  return { status: 'resumable', fileName: overview.fileName, plan, uploaded, checksum: overview.checksum ?? undefined };
 }
 
 export function expectedFileSize({ plan }: ResumableTransfer): number {
