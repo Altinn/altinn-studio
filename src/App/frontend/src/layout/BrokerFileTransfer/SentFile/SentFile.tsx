@@ -28,7 +28,8 @@ type SentFileProps = {
 export function SentFile({ fileTransferId, fileName, state }: SentFileProps) {
   const language = useCurrentLanguage();
   const overview = useQuery(brokerQueries.fileTransferOverview(getBrokerApiBaseUrl(), fileTransferId)).data;
-  const size = overview?.fileTransferSize;
+  // Broker reports a size of 0 until it has received the whole file
+  const size = state === 'notFullySent' ? undefined : overview?.fileTransferSize;
   const tag = TAGS[state];
 
   return (
