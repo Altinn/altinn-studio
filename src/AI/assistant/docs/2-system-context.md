@@ -25,6 +25,7 @@ _The main path. Gitea holds the app repositories. Azure OpenAI and Azure AI Foun
 flowchart LR
   A["Assistant service"] -->|traces, prompts, scores| F["Langfuse"]
   A -->|web_fetch| W["docs.altinn.studio"]
+  A -->|access packages and roles| M["Altinn Access Management"]
   A -->|render check, local stack only| P["Studio app preview"]
   Q["Designer scheduler"] -->|nightly trace cleanup| A
 ```

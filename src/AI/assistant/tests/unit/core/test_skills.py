@@ -356,6 +356,7 @@ _STUDIO_METADATA = {"studio-title", "studio-docs-url", "studio-docs-url-v9"}
 _NAME_PATTERN = re.compile(r"^studio-[a-z0-9]+(-[a-z0-9]+)*$")
 _ASSISTANT_TOOL_NAMES = (
     "altinn_layout_props",
+    "altinn_policy_subjects",
     "altinn_datamodel_sync",
     "verify_changes",
     "commit_session_branch",

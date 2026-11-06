@@ -64,6 +64,14 @@ jobs:
       working-directory: src/AI/assistant
       run: python -m pytest
 
+    # The assistant reads access packages and roles from Access Management when it runs. This fails the build, not a
+    # user's lookup, when those responses change.
+    - name: Check Access Management's lists
+      working-directory: src/AI/assistant
+      env:
+        ACCESS_MANAGEMENT_LIVE: "true"
+      run: python -m pytest tests/unit/altinn/test_access_management_live.py
+
     - name: Start Altinity server
       working-directory: src/AI/assistant
       run: |

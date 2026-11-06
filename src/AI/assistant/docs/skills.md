@@ -78,5 +78,6 @@ uv run --script .github/scripts/link-check.py --root-marker SKILL.md src/AI/assi
 
 The docs on docs.altinn.studio are the source of truth. A skill holds what the docs do not give an agent: how the files
 of an app fit together, which mechanism to choose, the mistakes agents make, what the docs miss, and links to the pages
-with the details. A list that changes, such as access packages, is generated from its source by a script in
-[`scripts/`](../scripts) rather than copied.
+with the details. A list that changes, such as access packages, is read from its source when the agent needs it,
+rather than copied. The `studio-policy` skill names Access Management's lists, and the assistant reads them with
+[`altinn_policy_subjects`](../agents/core/tools/policy_subjects_tool.py).

@@ -29,7 +29,7 @@ class SkillArgs(BaseModel):
     file: str | None = Field(
         default=None,
         description=(
-            "A file the skill links to, relative to the skill, such as `references/access-packages.md`. "
+            "A file the skill links to, relative to the skill, such as `references/task-types.md`. "
             "Leave it out to load the skill itself."
         ),
     )

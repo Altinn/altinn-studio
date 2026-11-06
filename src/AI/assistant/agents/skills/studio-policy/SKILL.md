@@ -31,22 +31,17 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
 Choose in this order:
 
 1. **Access package**, `urn:altinn:accesspackage`. This is the default for services for organizations. Choose the
-   package from what the service is about. The packages are in one file per area group:
-   - [references/access-packages-allment.md](references/access-packages-allment.md): general tasks of any
-     organization, such as post, tax, accounts and staff
-   - [references/access-packages-bransje.md](references/access-packages-bransje.md): one industry, such as
-     construction, health or transport
-   - [references/access-packages-saerskilt.md](references/access-packages-saerskilt.md): accountants, auditors,
-     business managers and bankruptcy estates acting for a client
-   - [references/access-packages-innbygger.md](references/access-packages-innbygger.md): a person acting for
-     themselves or someone they act for
-   - [references/access-packages-vergemal.md](references/access-packages-vergemal.md): guardianship
+   package from what the service is about. Access Management sorts the packages into groups:
+   - Allment: general tasks of any organization, such as post, tax, accounts and staff
+   - Bransje: one industry, such as construction, health or transport
+   - Særskilt: accountants, auditors, business managers and bankruptcy estates acting for a client
+   - Innbygger: a person acting for themselves or someone they act for
+   - Vergemål: guardianship
 
    The value is the package code, such as `regnskap-okonomi-rapport`, not the full URN. Daglig leder and the other
    key roles in Enhetsregisteret hold most packages for organizations, so a package rule covers them too.
 2. **Role from Enhetsregisteret (ER role)**, `urn:altinn:rolecode` with the role code, such as `dagl` or `lede`. ER
-   roles keep working after 2026. Use one when the service is for that role in particular. The codes are in
-   [references/roles.md](references/roles.md).
+   roles keep working after 2026. Use one when the service is for that role in particular.
 3. **Private person**, `urn:altinn:rolecode` = `priv`, for a person acting for themselves. A person also holds every
    `innbygger-` package for themselves, so a rule with such a package covers the person and anyone they delegate it
    to.
@@ -61,6 +56,26 @@ Choose in this order:
 - `urn:altinn:org` in the subject category matches only the service owner. A role code such as `dagl` with
   `urn:altinn:org` matches nobody.
 - Each subject is one AllOf in the first AnyOf. Roles and packages share a rule when they get the same rights.
+
+## The lists of packages and roles
+
+Studio's policy editor offers the access packages and roles that Altinn Access Management lists. They change without
+a change to the app, so read them from Access Management each time, and never write a code you have not seen there.
+
+- The access packages are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export`,
+  by group and area. A package's code is the last part of its `urn`. A policy can use a package only when its
+  `isResourcePolicyAvailable` is `true`.
+- The roles are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/roles/`. A role's code is the last
+  part of its `legacyUrn`, such as `dagl` in `urn:altinn:rolecode:dagl`. Studio offers the roles whose
+  `isResourcePolicyAvailable` is `true`, except the Altinn 2 roles, whose provider code is `sys-altinn2`.
+
+Where a shell is available, one way to search the packages is:
+
+```sh
+curl -s https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export \
+  | jq -r '.[] | .name as $group | .areas[] | .packages[] | select(.isResourcePolicyAvailable)
+      | [$group, (.urn | split(":") | last), .name] | @tsv' | grep -i 'regnskap'
+```
 
 ## Attributes
 
@@ -189,8 +204,8 @@ task:
 
 - The file is well-formed XML. Every rule has the three AnyOf elements, and every `RuleId` is unique.
 - All rules come before `<xacml:ObligationExpressions>`, and the file has no comments.
-- Every package value is in one of the access package files, without the mark **Not for service owners**. Every role code you added is in [references/roles.md](references/roles.md), unless the
-  user asked for that role.
+- Every package code you added is in Access Management's list, with `isResourcePolicyAvailable`. Every role code you
+  added is one Studio offers, unless the user asked for that role.
 - Users get the action from the table above on every task they must complete.
 - Tell the user which subjects got which rights, and in which tasks.
 

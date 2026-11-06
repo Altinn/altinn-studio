@@ -11,9 +11,8 @@ for each service from what the service is about.
 
 ## When the policy has rules with Altinn 2 roles
 
-1. List the rules whose subjects include a code from the table below, with the role names and the rights each rule
-   gives.
-2. Suggest access packages from the access package list linked from `SKILL.md` that fit what the service is about.
+1. List the rules whose subjects include an Altinn 2 role code, with the role names and the rights each rule gives.
+2. Suggest access packages from Access Management's list, as `SKILL.md` describes, that fit what the service is about.
    Read the app's texts and data model to find out. Do not choose a package from the role's name alone: a broad role
    such as `utinn` or `regna` covered many unrelated services.
 3. If accountants, auditors or bankruptcy estates used the service for their clients through a role such as `a0239`
@@ -29,50 +28,6 @@ Add a rule with an Altinn 2 role only when the user asks for that role. Warn tha
 
 ## Role codes
 
-From `RoleConstants.cs` in `Altinn/altinn-auth` at commit f0224b3, the roles with provider Altinn 2. In a policy they
-appear as `urn:altinn:rolecode`, in any letter case.
-
-| Code | Name |
-|---|---|
-| `a0212` | Primærnæring og næringsmiddel |
-| `a0236` | Post/arkiv |
-| `a0237` | Ansvarlig revisor |
-| `a0238` | Revisormedarbeider |
-| `a0239` | Regnskapsfører med signeringsrettighet |
-| `a0240` | Regnskapsfører uten signeringsrettighet |
-| `a0241` | Regnskapsfører lønn |
-| `a0278` | Plan- og byggesak |
-| `a0282` | Skatteforhold for privatpersoner |
-| `a0286` | Taushetsbelagt post |
-| `a0287` | Taushetsbelagt post - oppvekst og utdanning |
-| `a0288` | Taushetsbelagt post - administrasjon |
-| `a0293` | Algetestdata |
-| `a0294` | Transportløyvegaranti |
-| `a0298` | Revisorattesterer |
-| `admai` | Tilgangsstyring |
-| `apiadm` | Programmeringsgrensesnitt (API) |
-| `apiadmnuf` | Programmeringsgrensesnitt for NUF (API) |
-| `attst` | Revisorattesterer - MVA kompensasjon |
-| `boadm` | Konkursbo tilgangsstyring |
-| `bobel` | Konkursbo lesetilgang |
-| `bobes` | Konkursbo skrivetilgang |
-| `ektj` | Eksplisitt tjenestedelegering |
-| `hadm` | Hovedadministrator |
-| `hvask` | Økokrim rapportering |
-| `kladm` | Klientadministrator |
-| `komab` | Kommunale tjenester |
-| `loper` | Lønn og personalmedarbeider |
-| `pasig` | Parallell signering |
-| `pavad` | Patent, varemerke og design |
-| `priut` | Privatperson begrensede rettigheter |
-| `regna` | Regnskapsmedarbeider |
-| `revai` | Revisorrettighet |
-| `signe` | Signerer av Samordnet registermelding |
-| `siskd` | Begrenset signeringsrettighet |
-| `uihtl` | Helse-, sosial- og velferdstjenester |
-| `uiluf` | Samferdsel |
-| `utinn` | Utfyller/Innsender |
-| `utomr` | Energi, miljø og klima |
-
-Studio's policy editor also warns about `eckeyrole`, `gkbht`, `sens` and `sens01` as Altinn 2 roles. Treat them the
-same way.
+Access Management's list of roles, which `SKILL.md` names, has the Altinn 2 roles: those whose provider code is
+`sys-altinn2`. In a policy they appear as `urn:altinn:rolecode`, in any letter case. Studio's policy editor also
+treats `sens` and `sens01` as Altinn 2 roles. Treat them the same way.
