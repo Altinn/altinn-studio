@@ -58,11 +58,9 @@ func TestReadConfigServiceOwner(t *testing.T) {
 func TestHandler(t *testing.T) {
 	ready := false
 	proxied := ""
-	platformChecked := false
 	h := handler(
 		slog.New(slog.DiscardHandler),
 		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) { proxied = r.URL.Path }),
-		http.HandlerFunc(func(http.ResponseWriter, *http.Request) { platformChecked = true }),
 		func() bool { return ready },
 	)
 
@@ -82,16 +80,6 @@ func TestHandler(t *testing.T) {
 		if w.Code != tt.wantStatus {
 			t.Errorf("GET %s with ready=%v: status %d, want %d", tt.path, tt.ready, w.Code, tt.wantStatus)
 		}
-	}
-	if platformChecked {
-		t.Error("a kubelet probe checked the platform")
-	}
-	h.ServeHTTP(
-		httptest.NewRecorder(),
-		httptest.NewRequestWithContext(t.Context(), http.MethodGet, platformHealthPath, nil),
-	)
-	if !platformChecked {
-		t.Errorf("GET %s did not check the platform", platformHealthPath)
 	}
 	if proxied != "" {
 		t.Errorf("a probe reached the proxy: %q", proxied)

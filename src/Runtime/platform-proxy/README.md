@@ -11,9 +11,6 @@ cluster ([altinn-studio#21747](https://github.com/Altinn/altinn-studio/issues/21
   changing the token.
 - The proxy signs with the certificate apps mount from the `accesstoken` Secret in `default`. It reads the Secret
   through the Kubernetes API, since a pod cannot mount another namespace's Secrets, and is not ready until it has it.
-- The gateway checks the proxy for the runtime cluster's health at `/health/platform`, where the proxy checks its
-  certificate and calls the platform with a token. The kubelet's probes don't, so the platform being down doesn't take
-  the proxy out of rotation.
 - Spans and metrics name only the platform API a request is for, such as `/storage/*`, never its path or query, which
   can hold a national identity number.
 

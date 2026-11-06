@@ -1,5 +1,5 @@
 # Anything that reaches the proxy gets requests signed as the cluster's service owner, so only apps may, and the
-# gateway, which checks the proxy for the runtime cluster's health.
+# gateway, which checks that apps can reach the platform for the runtime cluster's health.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
