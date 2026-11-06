@@ -85,7 +85,9 @@ Each part of the setup serves one of these steps:
 - Implement `IOrderDetailsCalculator` from `Altinn.App.Core.Features.Payment`, and register it in `Program.cs` with
   `services.AddTransient<IOrderDetailsCalculator, OrderDetailsCalculator>();`. Without it, the payment fails to start.
   The method's signature differs between the versions. The `studio-app-lib` skill covers C# extension points.
-- `CalculateOrderDetails` returns an `OrderDetails` with:
+  `OrderDetails`, `PaymentOrderLine` and `PaymentReceiver` are in `Altinn.App.Core.Features.Payment.Models`.
+- `CalculateOrderDetails` returns an `OrderDetails` with these members. All but `Payer` are `required`, so the app
+  does not build without them:
   - `PaymentProcessorId`: `Nets Easy` for the built-in Nets Easy processor, or the `PaymentProcessorId` of an
     `IPaymentProcessor` you implement and register
   - `Currency`, such as `NOK`
