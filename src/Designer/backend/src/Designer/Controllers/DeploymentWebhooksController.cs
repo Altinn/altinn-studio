@@ -137,19 +137,15 @@ public class DeploymentWebhooksController : ControllerBase
         );
 
         // Designer asks the runtime to reconcile as soon as it sees the pipeline succeed, which it records as an event.
+        // Flux also reconciles on its own, and its result can come before Designer saw the pipeline succeed. Then
+        // there is no Flux phase to time.
         DeployEvent? pipelineSucceeded = deployment.Events.FirstOrDefault(e =>
             e.EventType == DeployEventType.PipelineSucceeded
         );
-        if (pipelineSucceeded is not null)
+        TimeSpan? fluxDuration = request.Timestamp - pipelineSucceeded?.Timestamp;
+        if (fluxDuration >= TimeSpan.Zero)
         {
-            _metrics.RecordFlux(
-                deployment.Org,
-                type,
-                deployment.EnvName,
-                result,
-                errorType,
-                request.Timestamp - pipelineSucceeded.Timestamp
-            );
+            _metrics.RecordFlux(deployment.Org, type, deployment.EnvName, result, errorType, fluxDuration.Value);
         }
     }
 

@@ -341,10 +341,73 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         );
         Assert.Equal(45, pending.Value);
         Assert.Equal(300, executing.Value);
+        Assert.False(pending.Tags.ContainsKey("cicd.pipeline.result"));
+        Assert.Equal("gitops-manager", pending.Tags["cicd.pipeline.name"]);
         Assert.Equal("gitops-manager", executing.Tags["cicd.pipeline.name"]);
         Assert.Equal("success", executing.Tags["cicd.pipeline.result"]);
         Assert.Equal("tt02", executing.Tags["altinn.environment"]);
         Assert.False(executing.Tags.ContainsKey("altinn.service_owner"));
+    }
+
+    [Fact]
+    public async Task Execute_WhenTheRunIsCanceledBeforeItStarts_RecordsOnlyTheWaitWithItsResult()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        DateTime queued = s_now.UtcDateTime.AddMinutes(-3);
+        SetupPoll(
+            fixture,
+            BuildResult.Canceled,
+            requestedAgo: TimeSpan.FromMinutes(3),
+            build: new BuildEntity
+            {
+                Status = BuildStatus.Completed,
+                Result = BuildResult.Canceled,
+                Queued = queued,
+                Finished = queued.AddSeconds(90),
+                PipelineName = "gitops-manager",
+            }
+        );
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy));
+
+        // Assert
+        RecordedAppDeployMeasurement pending = Assert.Single(
+            _metrics.Measurements(AppDeployMetrics.PipelineRunDurationMetricName)
+        );
+        Assert.Equal("pending", pending.Tags["cicd.pipeline.run.state"]);
+        Assert.Equal(90, pending.Value);
+        Assert.Equal("cancellation", pending.Tags["cicd.pipeline.result"]);
+        Assert.False(pending.Tags.ContainsKey("error.type"));
+    }
+
+    [Fact]
+    public async Task Execute_WhenAzureDevOpsReturnsNoPipelineName_RecordsNoRunDuration()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        DateTime queued = s_now.UtcDateTime.AddMinutes(-6);
+        SetupPoll(
+            fixture,
+            BuildResult.Succeeded,
+            requestedAgo: TimeSpan.FromMinutes(6),
+            build: new BuildEntity
+            {
+                Status = BuildStatus.Completed,
+                Result = BuildResult.Succeeded,
+                Queued = queued,
+                Started = queued.AddSeconds(45),
+                Finished = queued.AddSeconds(345),
+            }
+        );
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy));
+
+        // Assert
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.PipelineRunDurationMetricName));
+        Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
     }
 
     [Fact]

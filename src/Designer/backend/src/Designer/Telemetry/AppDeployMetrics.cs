@@ -155,21 +155,29 @@ public sealed class AppDeployMetrics
     }
 
     /// <summary>
-    /// Records the time an Azure DevOps run waited in the queue and the time it ran, from Azure DevOps' own times.
-    /// A run canceled before it started only waited.
+    /// Records the time an Azure DevOps run waited in the queue and the time it ran, from Azure DevOps' own times. The
+    /// result goes only on the state the run ended in: executing, or pending for a run canceled before it started. The
+    /// convention requires the pipeline's name, so a run Azure DevOps returned without one is left out.
     /// </summary>
     public void RecordPipelineRun(PipelineType type, string environment, BuildEntity build)
     {
-        if (build.Queued is not { } queued || build.Finished is not { } finished)
+        if (
+            build.Queued is not { } queued
+            || build.Finished is not { } finished
+            || build.PipelineName is not { Length: > 0 } pipelineName
+        )
         {
             return;
         }
 
-        RecordPipelineRunState(type, environment, build, "pending", (build.Started ?? finished) - queued);
-        if (build.Started is { } started)
+        if (build.Started is not { } started)
         {
-            RecordPipelineRunState(type, environment, build, "executing", finished - started);
+            RecordPipelineRunState(type, environment, pipelineName, "pending", build.Result, finished - queued);
+            return;
         }
+
+        RecordPipelineRunState(type, environment, pipelineName, "pending", result: null, started - queued);
+        RecordPipelineRunState(type, environment, pipelineName, "executing", build.Result, finished - started);
     }
 
     /// <summary>
@@ -224,26 +232,27 @@ public sealed class AppDeployMetrics
     private void RecordPipelineRunState(
         PipelineType type,
         string environment,
-        BuildEntity build,
+        string pipelineName,
         string state,
+        BuildResult? result,
         TimeSpan duration
     )
     {
         // The service owner is left out: every app's runs share the pipeline and its agents.
         TagList tags = new()
         {
+            { ServiceTelemetry.Attributes.CicdPipelineName, pipelineName },
+            { ServiceTelemetry.Attributes.CicdPipelineRunState, state },
             { ServiceTelemetry.Attributes.AppDeploy.PipelineType, ServiceTelemetry.EnumValue(type) },
             { ServiceTelemetry.Attributes.Environment, ServiceTelemetry.RuntimeEnvironmentName(environment) },
-            { ServiceTelemetry.Attributes.CicdPipelineRunState, state },
-            { ServiceTelemetry.Attributes.CicdPipelineResult, PipelineResult(build.Result) },
         };
-        if (build.PipelineName is { Length: > 0 } pipelineName)
+        if (result is { } ended)
         {
-            tags.Add(ServiceTelemetry.Attributes.CicdPipelineName, pipelineName);
-        }
-        if (IsPipelineFailure(build.Result))
-        {
-            tags.Add(ServiceTelemetry.Attributes.ErrorType, PipelineFailed);
+            tags.Add(ServiceTelemetry.Attributes.CicdPipelineResult, PipelineResult(ended));
+            if (IsPipelineFailure(ended))
+            {
+                tags.Add(ServiceTelemetry.Attributes.ErrorType, PipelineFailed);
+            }
         }
         _pipelineRunDuration.Record(Seconds(duration), tags);
     }

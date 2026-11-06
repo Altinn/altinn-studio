@@ -92,6 +92,8 @@ public class DeploymentPipelinePollingJob : IJob
             }
 
             var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
+            // When Designer saw the run's status: the pipeline's end in its duration and its event, and so Flux's start.
+            DateTimeOffset observed = _timeProvider.GetUtcNow();
             foreach (Activity span in spans)
             {
                 span.SetTag(
@@ -119,14 +121,23 @@ public class DeploymentPipelinePollingJob : IJob
                 )
             )
             {
-                await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+                await AddDeployEventIfNotExist(build, org, buildId, observed);
             }
 
             await _deploymentRepository.Update(deploymentEntity);
 
             if (build.Status == BuildStatus.Completed)
             {
-                RecordCompletedPipeline(spans, editingContext, type, environment, buildId, build, deploymentEntity);
+                RecordCompletedPipeline(
+                    spans,
+                    editingContext,
+                    type,
+                    environment,
+                    buildId,
+                    build,
+                    deploymentEntity,
+                    observed
+                );
 
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
@@ -165,10 +176,11 @@ public class DeploymentPipelinePollingJob : IJob
         string environment,
         string buildId,
         BuildEntity build,
-        DeploymentEntity deploymentEntity
+        DeploymentEntity deploymentEntity,
+        DateTimeOffset observed
     )
     {
-        TimeSpan sinceRequest = _timeProvider.GetUtcNow().UtcDateTime - deploymentEntity.Created;
+        TimeSpan sinceRequest = observed.UtcDateTime - deploymentEntity.Created;
         string pipelineResult = AppDeployMetrics.PipelineResult(build.Result);
         foreach (Activity span in spans)
         {
@@ -256,7 +268,7 @@ public class DeploymentPipelinePollingJob : IJob
         return activity;
     }
 
-    private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
+    private async Task AddDeployEventIfNotExist(BuildEntity build, string org, string buildId, DateTimeOffset observed)
     {
         var eventType =
             build.Result == BuildResult.Succeeded ? DeployEventType.PipelineSucceeded : DeployEventType.PipelineFailed;
@@ -268,7 +280,7 @@ public class DeploymentPipelinePollingJob : IJob
             {
                 EventType = eventType,
                 Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
-                Timestamp = _timeProvider.GetUtcNow(),
+                Timestamp = observed,
                 Origin = DeployEventOrigin.PollingJob,
             }
         );

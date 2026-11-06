@@ -309,6 +309,8 @@ public class DeploymentService : IDeploymentService
     {
         Guard.AssertValidEnvironmentName(env);
         cancellationToken.ThrowIfCancellationRequested();
+        // The undeploy's durations start here, before the GitOps change and the queue request, as a deploy's do.
+        DateTime requested = _timeProvider.GetUtcNow().UtcDateTime;
         if (await ShouldSkipUndeployAsync(editingContext, env))
         {
             return;
@@ -368,6 +370,7 @@ public class DeploymentService : IDeploymentService
             },
         };
         deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
+        deploymentEntity.Created = requested;
 
         await _deploymentRepository.Create(deploymentEntity);
 

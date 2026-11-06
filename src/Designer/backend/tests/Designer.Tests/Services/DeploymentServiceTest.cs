@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -1888,6 +1890,106 @@ public class DeploymentServiceTest : IDisposable
         _apiKeyService.VerifyNoOtherCalls();
         AssertQueued(editingContext.Org, "undeploy", environment, "inactivity");
     }
+
+    [Fact]
+    public async Task UndeployAsync_TimesTheUndeployFromWhenItStarts()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        DateTime started = _fakeTimeProvider.GetUtcNow().UtcDateTime;
+        DeploymentEntity created = null;
+        _gitOpsConfigurationManager
+            .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(false);
+        _deploymentRepository
+            .Setup(r => r.GetLastDeployed(org, app, env))
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => _fakeTimeProvider.Advance(TimeSpan.FromSeconds(30)))
+            .ReturnsAsync(GetBuild());
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .Callback<DeploymentEntity>(entity => created = entity)
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+        // Act
+        await CreateService()
+            .UndeployAsync(
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                env
+            );
+
+        // Assert
+        Assert.NotNull(created);
+        Assert.Equal(started, created.Created);
+        Assert.Equal(DateTimeKind.Utc, created.Created.Kind);
+    }
+
+    [Fact]
+    public async Task UndeployAsync_WhenAzureDevOpsRejectsTheQueueRequest_CountsNothing()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        _gitOpsConfigurationManager
+            .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(false);
+        _deploymentRepository
+            .Setup(r => r.GetLastDeployed(org, app, env))
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("Bad Request", null, HttpStatusCode.BadRequest));
+
+        // Act
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            CreateService()
+                .UndeployAsync(
+                    AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                    env
+                )
+        );
+
+        // Assert
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+        _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Never);
+    }
+
+    private DeploymentService CreateService() =>
+        new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object,
+            _metrics.Metrics
+        );
 
     private void AssertQueued(string serviceOwner, string pipelineType, string environment, string trigger)
     {

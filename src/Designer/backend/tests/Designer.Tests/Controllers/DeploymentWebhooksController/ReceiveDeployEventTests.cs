@@ -365,6 +365,47 @@ public class ReceiveDeployEventTests
     }
 
     [Fact]
+    public async Task ReceiveDeployEvent_WithFluxResultBeforeThePipelineSucceeded_RecordsNoFluxDuration()
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        DateTimeOffset created = new(deploymentEntity.Created);
+        DeployEventRequest Event(string eventType, int minutes) =>
+            new()
+            {
+                BuildId = deploymentEntity.Build.Id,
+                EventType = eventType,
+                Message = eventType,
+                Timestamp = created.AddMinutes(minutes),
+                Environment = "at22",
+            };
+
+        // Act: Flux reconciled on its own at 7 minutes, before Designer saw the pipeline succeed at 8.
+        using var pipelineSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("PipelineSucceeded", 8))
+        );
+        using var upgradeSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("UpgradeSucceeded", 7))
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, upgradeSucceeded.StatusCode);
+        Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.Empty(metrics.Measurements(AppDeployMetrics.FluxDurationMetricName));
+    }
+
+    [Fact]
     public async Task ReceiveDeployEvent_WithPipelineEvent_RecordsNoResult()
     {
         // Arrange
