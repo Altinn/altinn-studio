@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,15 +65,18 @@ public class StartSessionTests
     }
 
     [Fact]
-    public async Task StartSession_ForAnAppTheDeveloperCannotRead_IsNotFound()
+    public async Task StartSession_PreviewsOnlyTheAuthenticatedDevelopersOwnWorkingCopy()
     {
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            "/designer/api/ttd/app-without-access/preview-sessions"
-        );
+        using var request = new HttpRequestMessage(HttpMethod.Post, Url + "?developer=otherUser")
+        {
+            Content = JsonContent.Create(new { developer = "otherUser" }),
+        };
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        _previewServiceClient.Verify(
+            client => client.StartSession("testUser", "ttd", "apps-test", It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _previewServiceClient.VerifyNoOtherCalls();
     }
 
