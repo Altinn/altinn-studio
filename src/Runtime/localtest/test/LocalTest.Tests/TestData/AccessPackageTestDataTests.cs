@@ -90,6 +90,29 @@ public sealed class AccessPackageTestDataTests : IDisposable
     }
 
     [Fact]
+    public void AppTestData_SystemUserWithoutActionsHasNone()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [],
+              "orgs": [],
+              "systems": [
+                {
+                  "id": "s",
+                  "name": "S",
+                  "systemUsers": [{ "id": "su-1", "orgNumber": "1" }, { "id": "su-2", "orgNumber": "1", "actions": null }]
+                }
+              ]
+            }
+            """
+        ).Authorization;
+
+        Assert.Empty(authorization.SystemUsers["su-1"].Actions);
+        Assert.Empty(authorization.SystemUsers["su-2"].Actions);
+    }
+
+    [Fact]
     public void AppTestData_PartiesWithOnlyPackagesAreInThePartyList()
     {
         var partyList = Read().Authorization.PartyList["1001"];
@@ -187,6 +210,61 @@ public sealed class AccessPackageTestDataTests : IDisposable
         // The app test data the merged apps give, as Localtest builds it from the merged data
         var roundTripped = AppTestDataModel.FromTestDataModel(target).GetTestDataModel().Authorization;
         Assert.Equal(["su-1", "su-2"], roundTripped.SystemUsers.Keys.Order());
+    }
+
+    [Fact]
+    public void Merge_AddsTheRolesAndPartiesOfAUserForOtherParties()
+    {
+        static TestDataModel App(string partyId) =>
+            Read(
+                $$"""
+                {
+                  "persons": [
+                    {
+                      "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                      "partyRoles": { "{{partyId}}": [{ "type": "altinn", "value": "regna" }] }
+                    }
+                  ],
+                  "orgs": [
+                    { "partyId": 500000, "orgNumber": "910000000", "name": "A AS" },
+                    { "partyId": 500002, "orgNumber": "910000002", "name": "B AS" }
+                  ],
+                  "systems": []
+                }
+                """
+            );
+        var target = new TestDataModel();
+
+        TestDataMerger.MergeTestData(App("500000"), target);
+        TestDataMerger.MergeTestData(App("500002"), target);
+
+        Assert.Equal(["500000", "500002"], target.Authorization.Roles["1"].Keys.Order());
+        Assert.Equal([1, 500000, 500002], target.Authorization.PartyList["1"].Select(p => p.PartyId));
+    }
+
+    [Fact]
+    public void Merge_TheSameSystemUserWithOtherValuesIsAConflict()
+    {
+        static TestDataModel App(string orgNumber) =>
+            Read(
+                $$"""
+                {
+                  "persons": [],
+                  "orgs": [],
+                  "systems": [
+                    { "id": "s", "name": "S", "systemUsers": [{ "id": "su-1", "orgNumber": "{{orgNumber}}", "accessPackages": ["lonn"] }] }
+                  ]
+                }
+                """
+            );
+        var target = new TestDataModel();
+        TestDataMerger.MergeTestData(App("1"), target);
+
+        // The same values are no conflict
+        TestDataMerger.MergeTestData(App("1"), target);
+        var conflict = Assert.Throws<InvalidOperationException>(() => TestDataMerger.MergeTestData(App("2"), target));
+
+        Assert.Contains("System user ID su-1", conflict.Message);
     }
 
     [Fact]

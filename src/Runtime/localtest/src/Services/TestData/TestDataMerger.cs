@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Text.Json;
+using Authorization.Interface.Models;
 
 namespace LocalTest.Services.TestData;
 
@@ -98,10 +99,18 @@ public static class TestDataMerger
         {
             foreach (var (userId, parties) in source.Authorization.PartyList)
             {
-                if (!target.Authorization.PartyList.ContainsKey(userId))
+                if (!target.Authorization.PartyList.TryGetValue(userId, out var targetParties))
                 {
                     target.Authorization.PartyList[userId] = parties;
+                    continue;
                 }
+
+                // The target's parties win; the source adds the parties the target does not list
+                target.Authorization.PartyList[userId] =
+                [
+                    .. targetParties,
+                    .. parties.Where(party => !targetParties.Any(targetParty => targetParty.PartyId == party.PartyId)),
+                ];
             }
         }
 
@@ -109,10 +118,19 @@ public static class TestDataMerger
         {
             foreach (var (userId, roles) in source.Authorization.Roles)
             {
-                if (!target.Authorization.Roles.ContainsKey(userId))
+                if (!target.Authorization.Roles.TryGetValue(userId, out var targetRoles))
                 {
                     target.Authorization.Roles[userId] = roles;
+                    continue;
                 }
+
+                // The target's roles for a party win; the source adds the parties the target has none for
+                var merged = new Dictionary<string, List<Role>>(targetRoles);
+                foreach (var (partyId, partyRoles) in roles)
+                {
+                    merged.TryAdd(partyId, partyRoles);
+                }
+                target.Authorization.Roles[userId] = merged;
             }
         }
 
@@ -160,14 +178,20 @@ public static class TestDataMerger
         {
             foreach (var (systemUserId, systemUser) in source.Authorization.SystemUsers)
             {
-                target.Authorization.SystemUsers.TryAdd(systemUserId, systemUser);
+                if (
+                    !target.Authorization.SystemUsers.TryAdd(systemUserId, systemUser)
+                    && !target.Authorization.SystemUsers[systemUserId].HasTheSameValues(systemUser)
+                )
+                {
+                    conflicts.Add($"System user ID {systemUserId}");
+                }
             }
         }
 
         if (conflicts.Count > 0)
         {
             var sourceName = sourceIdentifier ?? "source";
-            var message = $"Test data conflict detected in {sourceName}. The following identifiers have conflicts: {string.Join(", ", conflicts)}. Each app must use unique user IDs, party IDs, SSNs, and organization numbers OR use the same identifiers with the exact same values.";
+            var message = $"Test data conflict detected in {sourceName}. The following identifiers have conflicts: {string.Join(", ", conflicts)}. Each app must use unique user IDs, party IDs, SSNs, organization numbers and system user IDs OR use the same identifiers with the exact same values.";
             throw new InvalidOperationException(message);
         }
     }

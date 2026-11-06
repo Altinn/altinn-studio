@@ -50,7 +50,16 @@ public sealed record TestDataSystemUser(
     IEnumerable<string> Actions,
     // The access packages the system user holds for its own organization (OrgNumber)
     IReadOnlyList<string> AccessPackages
-);
+)
+{
+    /// <summary>Whether the other system user has the same values, comparing the lists by their contents.</summary>
+    public bool HasTheSameValues(TestDataSystemUser other) =>
+        Id == other.Id
+        && SystemId == other.SystemId
+        && OrgNumber == other.OrgNumber
+        && Actions.SequenceEqual(other.Actions)
+        && AccessPackages.SequenceEqual(other.AccessPackages);
+}
 
 public class TestDataProfile
 {

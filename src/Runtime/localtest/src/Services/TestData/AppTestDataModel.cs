@@ -454,8 +454,14 @@ public class AppTestSystemUser
     public string Id { get; set; } = default!;
     [JsonPropertyName("orgNumber")]
     public string OrgNumber { get; set; } = default!;
+    private IEnumerable<string> _actions = [];
+    /// <summary>The actions the system user may perform (a localtest shortcut). A missing list or JSON <c>null</c> is read as empty.</summary>
     [JsonPropertyName("actions")]
-    public IEnumerable<string> Actions { get; set; } = default!;
+    public IEnumerable<string> Actions
+    {
+        get => _actions;
+        set => _actions = value ?? [];
+    }
     /// <summary>
     /// The access packages the system user holds for its own organization (<see cref="OrgNumber"/>), as identifiers or
     /// URNs. A JSON <c>null</c> is read as empty.
