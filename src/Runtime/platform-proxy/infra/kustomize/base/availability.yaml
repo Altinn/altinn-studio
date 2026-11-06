@@ -1,4 +1,4 @@
-# Apps reach the platform only through the proxy, so it runs at least two pods, in different zones
+# Apps reach the platform only through the proxy, so it runs at least two pods, spread across zones
 # (see the Deployment's topologySpreadConstraints), and a voluntary disruption takes at most one.
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

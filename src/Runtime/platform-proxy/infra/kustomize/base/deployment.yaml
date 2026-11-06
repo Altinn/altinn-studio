@@ -33,11 +33,13 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
-        # Never two pods in one zone while another zone has none, so losing a zone leaves a pod running.
-        # Clusters with nodes in a single zone still schedule both there.
+        # Spread across zones, so losing one leaves a pod running. ScheduleAnyway rather than DoNotSchedule: a
+        # strict spread would leave a new pod Pending while its zone is down, when the other zones have room.
+        # Honor leaves out nodes the pod cannot run on, such as those in a zone that is down.
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
-          whenUnsatisfiable: DoNotSchedule
+          whenUnsatisfiable: ScheduleAnyway
+          nodeTaintsPolicy: Honor
           labelSelector:
             matchLabels:
               app: platform-proxy
@@ -46,6 +48,7 @@ spec:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
+          nodeTaintsPolicy: Honor
           labelSelector:
             matchLabels:
               app: platform-proxy

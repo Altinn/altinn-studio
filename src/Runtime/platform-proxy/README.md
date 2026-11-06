@@ -34,8 +34,8 @@ connection. Whatever reaches the proxy gets requests signed as the service owner
 
 ## Availability
 
-Every call apps make to the platform will go through the proxy. It runs at least two pods, which Kubernetes keeps in
-different zones while the cluster has nodes in more than one, and a voluntary disruption takes at most one. A pod that
+Every call apps make to the platform will go through the proxy. It runs at least two pods, which Kubernetes spreads
+across zones, and a voluntary disruption takes at most one. A pod that
 is told to stop finishes requests in flight for up to 45 seconds, since uploads of large data elements take time.
 
 ## Telemetry
