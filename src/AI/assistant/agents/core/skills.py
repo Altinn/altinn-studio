@@ -97,7 +97,8 @@ def _parse_frontmatter(raw: str) -> dict[str, object]:
         return {}
     try:
         fields = yaml.safe_load(match.group(1))
-    except yaml.YAMLError as exc:
+    # PyYAML raises ValueError, not YAMLError, for an unquoted date that does not exist, such as 2026-13-01.
+    except (yaml.YAMLError, ValueError) as exc:
         log.warning("Invalid skill frontmatter: %s", exc)
         return {}
     return fields if isinstance(fields, dict) else {}

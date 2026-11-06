@@ -102,6 +102,16 @@ class TestDiscoverSkills:
 
         assert discover_skills(tmp_path) == []
 
+    def test_skips_skill_with_a_date_that_does_not_exist(self, tmp_path):
+        _write_skill(tmp_path, "alpha")
+        skill_dir = tmp_path / "broken"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: broken\ndescription: Covers it.\nupdated: 2026-13-01\n---\nBody", encoding="utf-8"
+        )
+
+        assert [skill.name for skill in discover_skills(tmp_path)] == ["alpha"]
+
     def test_description_may_contain_colons_when_quoted(self, tmp_path):
         _write_skill(tmp_path, "colons", "Topic: the details, see also: more.")
 
