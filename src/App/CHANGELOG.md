@@ -24,6 +24,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- Saving data, or opening or creating an instance, no longer fails with 500 or 403 when one authorization decision request fails with a network error or a 502, 503 or 504 response. ([Altinn/app-lib-dotnet#1900](https://github.com/Altinn/app-lib-dotnet/issues/1900))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
