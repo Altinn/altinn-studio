@@ -21,15 +21,6 @@ export type FileTransferOverview = {
   published?: string | null;
 };
 
-export type TransferFailure = 'virus' | 'checksum' | 'other';
-
-export class TransferFailedError extends Error {
-  constructor(readonly failure: TransferFailure) {
-    super(`Broker failed the file transfer (${failure})`);
-    this.name = 'TransferFailedError';
-  }
-}
-
 export function isReceivedStatus(status: string | null | undefined): boolean {
   return RECEIVED_STATUSES.includes(status ?? '');
 }
@@ -44,12 +35,8 @@ export function isTransferSent({ fileTransferId, fileTransferStatus }: RecordedT
   return !!fileTransferId && typeof fileTransferStatus === 'string' && SENT_STATUSES.includes(fileTransferStatus);
 }
 
-// Broker's status text says why it failed the transfer, such as "Malware scan failed: Malicious. …"
-export function transferFailureOf(statusText: string | undefined): TransferFailure {
-  if (statusText?.startsWith('Checksum mismatch')) {
-    return 'checksum';
-  }
-  return statusText?.startsWith('Malware scan failed: Malicious') ? 'virus' : 'other';
+export function isTransferFailed({ fileTransferId, fileTransferStatus }: RecordedTransfer): boolean {
+  return !!fileTransferId && fileTransferStatus === FAILED_STATUS;
 }
 
 export function isUploadableStatus(status: string | null | undefined): boolean {

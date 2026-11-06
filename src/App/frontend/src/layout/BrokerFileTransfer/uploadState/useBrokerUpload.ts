@@ -4,9 +4,9 @@ import { useQuery } from 'src/core/queries/reactQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import {
+  FAILED_STATUS,
   isReceivedStatus,
   isSettledStatus,
-  TransferFailedError,
   UPLOADED_STATUS,
 } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { getBrokerApiBaseUrl } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
@@ -38,7 +38,7 @@ export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
   const hasActive = active !== null;
   useEffect(() => (hasActive ? controller.pause : undefined), [controller, hasActive]);
 
-  const interrupted = useInterruptedTransfer(baseComponentId, controller, setup, hasActive, setSendError);
+  const interrupted = useInterruptedTransfer(baseComponentId, controller, setup, hasActive);
 
   const send = useCallback(
     async (file: File) => {
@@ -111,6 +111,7 @@ function useRecordedTransfer(
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
   const { formData, setValues } = useDataModelBindings(dataModelBindings);
   const hasFileNameBinding = !!dataModelBindings.fileName;
+  const removeTransfer = useRemoveTransfer(baseComponentId);
 
   useEffect(() => {
     if (transfer?.resourceId !== resourceId || transfer.sender !== sender) {
@@ -118,8 +119,7 @@ function useRecordedTransfer(
     }
     if (transfer.status === null) {
       if (formData.fileTransferId === transfer.fileTransferId) {
-        const cleared = { fileTransferId: undefined, fileTransferStatus: undefined };
-        setValues(hasFileNameBinding ? { ...cleared, fileName: undefined } : cleared);
+        removeTransfer();
       }
       return;
     }
@@ -127,19 +127,32 @@ function useRecordedTransfer(
       const recorded = { fileTransferId: transfer.fileTransferId, fileTransferStatus: transfer.status };
       setValues(hasFileNameBinding ? { ...recorded, fileName: transfer.fileName } : recorded);
     }
-    if (isReceivedStatus(transfer.status)) {
+    if (isReceivedStatus(transfer.status) || transfer.status === FAILED_STATUS) {
       forgetUploads(uploadsKey);
     }
   }, [
     formData.fileTransferId,
     formData.fileTransferStatus,
     hasFileNameBinding,
+    removeTransfer,
     resourceId,
     sender,
     setValues,
     transfer,
     uploadsKey,
   ]);
+}
+
+/** Empties the component's fields in the form, so the user can send another file */
+export function useRemoveTransfer(baseComponentId: string) {
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
+  const { setValues } = useDataModelBindings(dataModelBindings);
+  const hasFileNameBinding = !!dataModelBindings.fileName;
+
+  return useCallback(() => {
+    const cleared = { fileTransferId: undefined, fileTransferStatus: undefined };
+    setValues(hasFileNameBinding ? { ...cleared, fileName: undefined } : cleared);
+  }, [hasFileNameBinding, setValues]);
 }
 
 export function useFollowReceivedTransfer(baseComponentId: string, enabled: boolean) {
@@ -163,7 +176,6 @@ function useInterruptedTransfer(
   controller: UploadController,
   { baseUrl, resourceId, sender }: ReadySetup,
   hasActive: boolean,
-  onFailed: (error: TransferFailedError) => void,
 ) {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'BrokerFileTransfer');
   const { formData } = useDataModelBindings(dataModelBindings);
@@ -175,19 +187,16 @@ function useInterruptedTransfer(
     if (!isInterrupted || !check.data) {
       return;
     }
-    if (check.data.status === 'received') {
-      controller.markReceived(
+    if (check.data.status === 'ended') {
+      controller.recordStatus(
         { resourceId, sender, fileTransferId, fileName: check.data.fileName },
         check.data.fileTransferStatus,
       );
     } else if (check.data.status === 'gone') {
       controller.discard({ resourceId, sender, fileTransferId, fileName: fileName ?? '' }, check.data.plan ?? null);
       reportUploadGone();
-    } else if (check.data.status === 'failed') {
-      controller.discard({ resourceId, sender, fileTransferId, fileName: fileName ?? '' }, null);
-      onFailed(new TransferFailedError(check.data.failure));
     }
-  }, [check.data, controller, fileName, fileTransferId, isInterrupted, onFailed, resourceId, sender]);
+  }, [check.data, controller, fileName, fileTransferId, isInterrupted, resourceId, sender]);
 
   useEffect(() => {
     if (check.error) {

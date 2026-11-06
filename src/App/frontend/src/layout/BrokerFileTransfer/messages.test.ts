@@ -1,7 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
-import { brokerProblem, sendErrorMessage, uploadErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
+import {
+  brokerProblem,
+  sendErrorMessage,
+  transferFailureMessage,
+  uploadErrorMessage,
+} from 'src/layout/BrokerFileTransfer/messages';
+
+describe('transferFailureMessage', () => {
+  it.each([
+    ['Malware scan failed: Malicious. Extra details: {}', 'broker_file_transfer.error_failed_virus'],
+    ['Checksum mismatch', 'broker_file_transfer.error_failed_checksum'],
+    ['Malware scan failed: Error. Extra details: {}', 'broker_file_transfer.error_failed_other'],
+    ['File upload failed and was aborted', 'broker_file_transfer.error_failed_other'],
+  ])('says why Broker failed the transfer with "%s"', (statusText, key) => {
+    expect(transferFailureMessage(statusText)).toEqual({ key });
+  });
+});
 
 describe('sendErrorMessage', () => {
   it('says the user has no access when Broker refuses them on the resource', () => {

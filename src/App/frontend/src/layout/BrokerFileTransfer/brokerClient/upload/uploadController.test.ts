@@ -238,7 +238,7 @@ describe('createUploadController', () => {
   it('records what the form learns about a transfer it holds', () => {
     const { controller } = setUp();
 
-    controller.markReceived(transfer, 'Published');
+    controller.recordStatus(transfer, 'Published');
     expect(controller.getTransfer()).toEqual({ ...transfer, status: 'Published' });
 
     controller.discard(transfer, plan);

@@ -92,7 +92,7 @@ function fakeController() {
     resume: vi.fn(),
     cancel: vi.fn(),
     discard: vi.fn((given) => update({ transfer: { ...given, status: null } })),
-    markReceived: vi.fn((given, status) => update({ transfer: { ...given, status } })),
+    recordStatus: vi.fn((given, status) => update({ transfer: { ...given, status } })),
     subscribe: (listener) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -747,6 +747,20 @@ describe('BrokerFileTransferComponent', () => {
       expect(screen.getByText(/Sjekksum \(SHA256\): e3b0c44298fc1c149afbf4c8996fb924/)).toBeInTheDocument();
     });
 
+    it("shows Broker's name for the file when the form does not record it", async () => {
+      vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fileTransferStatus: 'Published',
+        fileName: 'rapport.pdf',
+      });
+      await render({
+        formData: { id: 'transfer-1', status: 'Published' },
+        dataModelBindings: { fileTransferId: binding('broker.id'), fileTransferStatus: binding('broker.status') },
+      });
+
+      expect(await screen.findByText('rapport.pdf')).toBeInTheDocument();
+      expect(screen.queryByText('Filen er sendt')).not.toBeInTheDocument();
+    });
+
     it.each(['UploadProcessing', 'UploadStarted'])(
       'shows the file as being checked while Broker reports it as %s',
       async (fileTransferStatus) => {
@@ -797,6 +811,50 @@ describe('BrokerFileTransferComponent', () => {
       expect(await findFileInput()).toBeInTheDocument();
       expect(screen.queryByText('rapport.pdf')).not.toBeInTheDocument();
       expect(createUploadController).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('a rejected file', () => {
+    const rejectedFormData = { id: 'transfer-1', status: 'Failed', name: 'rapport.pdf' };
+
+    it('shows the file Broker rejected, and why', async () => {
+      vi.mocked(getFileTransferOverview).mockResolvedValue({
+        fileTransferStatus: 'Failed',
+        fileTransferStatusText: 'Malware scan failed: Malicious. Extra details: {}',
+        fileName: 'rapport.pdf',
+      });
+      await render({ formData: rejectedFormData });
+
+      expect(
+        await screen.findByText('Altinn Formidling fant skadelig innhold i filen og avviste den. Velg en annen fil.'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('rapport.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Avvist')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Send filen' })).not.toBeInTheDocument();
+    });
+
+    it('removes the rejected file without asking, so the user can send another', async () => {
+      const { formDataMethods } = await render({ formData: rejectedFormData });
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Fjern' }));
+
+      expect(await findFileInput()).toBeInTheDocument();
+      expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: [
+            expect.objectContaining({ reference: binding('broker.id'), newValue: undefined }),
+            expect.objectContaining({ reference: binding('broker.status'), newValue: undefined }),
+            expect.objectContaining({ reference: binding('broker.name'), newValue: undefined }),
+          ],
+        }),
+      );
+    });
+
+    it('keeps the rejected file when the component is read-only', async () => {
+      await render({ formData: rejectedFormData, readOnly: true });
+
+      expect(await screen.findByText('Avvist')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Fjern' })).not.toBeInTheDocument();
     });
   });
 
@@ -869,13 +927,13 @@ describe('BrokerFileTransferComponent', () => {
 
     it('records an interrupted file transfer that Broker has received meanwhile', async () => {
       vi.mocked(checkInterruptedTransfer).mockResolvedValue({
-        status: 'received',
+        status: 'ended',
         fileName: 'rapport.pdf',
         fileTransferStatus: 'Published',
       });
       await render({ formData: interruptedFormData });
 
-      await waitFor(() => expect(fake.controller.markReceived).toHaveBeenCalledWith(transfer, 'Published'));
+      await waitFor(() => expect(fake.controller.recordStatus).toHaveBeenCalledWith(transfer, 'Published'));
     });
 
     it('gives up an interrupted file transfer that Broker no longer has', async () => {
@@ -885,17 +943,20 @@ describe('BrokerFileTransferComponent', () => {
       await waitFor(() => expect(fake.controller.discard).toHaveBeenCalledWith(transfer, null));
     });
 
-    it('gives up a file transfer Broker has failed, and says why', async () => {
-      vi.mocked(checkInterruptedTransfer).mockResolvedValue({ status: 'failed', failure: 'virus' });
-      await render({ formData: { id: 'transfer-1', status: 'Failed', name: 'rapport.pdf' } });
+    it('records an interrupted file transfer Broker has failed, and lets go of the upload', async () => {
+      vi.mocked(checkInterruptedTransfer).mockResolvedValue({
+        status: 'ended',
+        fileName: 'rapport.pdf',
+        fileTransferStatus: 'Failed',
+      });
+      await render({ formData: interruptedFormData });
+      expect(await screen.findByText('Avvist')).toBeInTheDocument();
 
-      await waitFor(() => expect(fake.controller.discard).toHaveBeenCalledWith(transfer, null));
-      fake.update({ transfer: { ...transfer, status: null } });
+      vi.mocked(createUploadController).mockReturnValue(fakeController().controller);
+      await userEvent.click(screen.getByRole('button', { name: 'Fjern' }));
 
-      expect(
-        await screen.findByText('Altinn Formidling fant skadelig innhold i filen og avviste den. Velg en annen fil.'),
-      ).toBeInTheDocument();
       expect(await findFileInput()).toBeInTheDocument();
+      expect(createUploadController).toHaveBeenCalledTimes(2);
     });
 
     it('says so when it cannot check an interrupted upload', async () => {

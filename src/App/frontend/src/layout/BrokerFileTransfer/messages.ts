@@ -4,7 +4,6 @@ import { z } from 'zod';
 import type { ValidLanguageKey } from '@app/language';
 
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
-import { TransferFailedError } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { FileChangedError } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import { UploadPlanError } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
@@ -22,12 +21,6 @@ const NO_ACCESS_TO_RESOURCE = 6;
 
 // Broker's error codes for RecipientNotInAccessList and InvalidRecipient, from its check against the access list
 const RECIPIENTS_NOT_ALLOWED = new Set<number | undefined>([28, 31]);
-
-const TRANSFER_FAILURE_MESSAGES = {
-  virus: 'broker_file_transfer.error_failed_virus',
-  checksum: 'broker_file_transfer.error_failed_checksum',
-  other: 'broker_file_transfer.error_failed_other',
-} as const;
 
 const problemDetailsSchema = z.object({
   errorCode: z.number().nullish(),
@@ -58,10 +51,17 @@ export function fileProblem(file: File, maxFileSize: number | null, language: st
   return undefined;
 }
 
-export function sendErrorMessage(error: unknown): Message {
-  if (error instanceof TransferFailedError) {
-    return { key: TRANSFER_FAILURE_MESSAGES[error.failure] };
+export function transferFailureMessage(statusText: string | undefined): Message {
+  if (statusText?.startsWith('Checksum mismatch')) {
+    return { key: 'broker_file_transfer.error_failed_checksum' };
   }
+  if (statusText?.startsWith('Malware scan failed: Malicious')) {
+    return { key: 'broker_file_transfer.error_failed_virus' };
+  }
+  return { key: 'broker_file_transfer.error_failed_other' };
+}
+
+export function sendErrorMessage(error: unknown): Message {
   if (error instanceof UploadPlanError) {
     return { key: 'broker_file_transfer.error_upload_not_prepared' };
   }

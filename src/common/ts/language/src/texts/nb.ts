@@ -460,6 +460,7 @@ export function nb() {
       'Filen er ikke ferdig lastet opp. Fortsett opplastingen, eller forkast den.',
     'broker_file_transfer.error_still_checking':
       'Altinn Formidling kontrollerer fortsatt filen. Du kan sende inn når kontrollen er ferdig.',
+    'broker_file_transfer.error_rejected': 'Fjern den avviste filen før du fortsetter.',
     'broker_file_transfer.error_interrupted_unknown':
       'Vi fikk ikke sjekket hvor langt den avbrutte opplastingen kom. Prøv å laste inn siden på nytt.',
     'broker_file_transfer.progress_label': 'Fremdrift for opplastingen',
@@ -490,6 +491,7 @@ export function nb() {
     'broker_file_transfer.discard_confirm_yes': 'Ja, forkast',
     'broker_file_transfer.sent': 'Sendt',
     'broker_file_transfer.checking': 'Kontrolleres',
+    'broker_file_transfer.rejected': 'Avvist',
     'broker_file_transfer.sent_file': 'Filen er sendt',
     'broker_file_transfer.not_fully_sent': 'Ikke ferdig sendt',
     'broker_file_transfer.unsent_file': 'Filen som sendes',

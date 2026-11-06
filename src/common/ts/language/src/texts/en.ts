@@ -459,6 +459,7 @@ export function en() {
       'The file has not finished uploading. Continue the upload, or discard it.',
     'broker_file_transfer.error_still_checking':
       'Altinn Broker is still checking the file. You can submit when the check is finished.',
+    'broker_file_transfer.error_rejected': 'Remove the rejected file before you continue.',
     'broker_file_transfer.error_interrupted_unknown':
       'We could not check how far the interrupted upload got. Try reloading the page.',
     'broker_file_transfer.progress_label': 'Upload progress',
@@ -489,6 +490,7 @@ export function en() {
     'broker_file_transfer.discard_confirm_yes': 'Yes, discard',
     'broker_file_transfer.sent': 'Sent',
     'broker_file_transfer.checking': 'Being checked',
+    'broker_file_transfer.rejected': 'Rejected',
     'broker_file_transfer.sent_file': 'File sent',
     'broker_file_transfer.not_fully_sent': 'Not fully sent',
     'broker_file_transfer.unsent_file': 'File being sent',

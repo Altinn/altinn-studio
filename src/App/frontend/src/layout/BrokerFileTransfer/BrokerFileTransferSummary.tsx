@@ -7,7 +7,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import { isTransferReceived } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
 import { useFollowReceivedTransfer } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
@@ -34,7 +34,7 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
   );
   const required = useEvalExpression(config.required, Expressions.BrokerFileTransfer.required);
   const readOnly = useEvalExpression(config.readOnly, Expressions.BrokerFileTransfer.readOnly);
-  // The user may wait to submit on the summary's page, so the summary records Broker's status too until sendt
+  // The user may wait to submit on the summary's page, so the summary records Broker's status too until it settles
   useFollowReceivedTransfer(targetBaseComponentId, !readOnly);
 
   const title = summaryTitle || resolvedTitle;
@@ -65,8 +65,8 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
         {fileTransferId ? (
           <SentFile
             fileTransferId={fileTransferId}
+            fileTransferStatus={formData.fileTransferStatus}
             fileName={fileName}
-            state={isTransferSent(formData) ? 'sent' : isReceived ? 'checking' : 'notFullySent'}
           />
         ) : (
           <Paragraph

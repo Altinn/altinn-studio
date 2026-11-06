@@ -5,7 +5,11 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import {
+  isTransferFailed,
+  isTransferReceived,
+  isTransferSent,
+} from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { BrokerFileTransferComponent } from 'src/layout/BrokerFileTransfer/BrokerFileTransferComponent';
 import { BrokerFileTransferLayoutValidator } from 'src/layout/BrokerFileTransfer/BrokerFileTransferLayoutValidator';
 import { BrokerFileTransferSummary } from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary';
@@ -60,15 +64,19 @@ export class BrokerFileTransfer extends BrokerFileTransferDef {
     const bindings = ctx.component.dataModelBindings;
     const fileTransferId = readDataFromState(ctx.formState, bindings?.fileTransferId);
     const fileTransferStatus = readDataFromState(ctx.formState, bindings?.fileTransferStatus);
-    if (!fileTransferId || isTransferSent({ fileTransferId, fileTransferStatus })) {
+    const transfer = { fileTransferId, fileTransferStatus };
+    if (!fileTransferId || isTransferSent(transfer)) {
       return [];
     }
-    const isChecking = isTransferReceived({ fileTransferId, fileTransferStatus });
 
     return [
       {
         message: {
-          key: isChecking ? 'broker_file_transfer.error_still_checking' : 'broker_file_transfer.error_not_sent',
+          key: isTransferReceived(transfer)
+            ? 'broker_file_transfer.error_still_checking'
+            : isTransferFailed(transfer)
+              ? 'broker_file_transfer.error_rejected'
+              : 'broker_file_transfer.error_not_sent',
         },
         severity: 'error',
         source: FrontendValidationSource.Component,

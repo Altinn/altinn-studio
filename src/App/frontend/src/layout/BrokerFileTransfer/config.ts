@@ -48,8 +48,8 @@ export const Config = new CG.component({
         new CG.dataModelBinding()
           .setTitle('Data model binding for the file transfer status', 'Datamodellbinding for formidlingsstatus')
           .setDescription(
-            "Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, and Published, AllConfirmedDownloaded or Purged once the file is sent. The field is empty until the user sends a file, and the component empties it if Broker rejects the file. The form cannot be submitted before the file is sent.",
-            'Angir hvor i datamodellen komponenten lagrer statusen til formidlingen i Altinn Formidling: Initialized mens filen lastes opp, UploadProcessing mens Formidling kontrollerer filen, og Published, AllConfirmedDownloaded eller Purged når filen er sendt. Feltet er tomt til brukeren sender en fil, og komponenten tømmer det hvis Formidling avviser filen. Skjemaet kan ikke sendes inn før filen er sendt.',
+            "Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, Published, AllConfirmedDownloaded or Purged once the file is sent, and Failed if Broker rejects it. The field is empty until the user sends a file. The form cannot be submitted before the file is sent.",
+            'Angir hvor i datamodellen komponenten lagrer statusen til formidlingen i Altinn Formidling: Initialized mens filen lastes opp, UploadProcessing mens Formidling kontrollerer filen, Published, AllConfirmedDownloaded eller Purged når filen er sendt, og Failed hvis Formidling avviser den. Feltet er tomt til brukeren sender en fil. Skjemaet kan ikke sendes inn før filen er sendt.',
           ),
       ),
       new CG.prop(

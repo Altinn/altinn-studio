@@ -1,12 +1,9 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
-import { TrashIcon } from '@navikt/aksel-icons';
-
-import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
+import { RemoveFileButton } from 'src/layout/BrokerFileTransfer/RemoveFileButton';
 
 type ChosenFileProps = {
   file: File;
@@ -21,17 +18,7 @@ export function ChosenFile({ file, onRemove }: ChosenFileProps) {
       name={file.name}
       details={formatFileSize(file.size, language)}
     >
-      <Button
-        variant='tertiary'
-        color='danger'
-        onClick={onRemove}
-      >
-        <Lang id='broker_file_transfer.remove_file' />
-        <TrashIcon
-          fontSize='1rem'
-          aria-hidden
-        />
-      </Button>
+      <RemoveFileButton onRemove={onRemove} />
     </FileBox>
   );
 }

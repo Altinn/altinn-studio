@@ -7,13 +7,17 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Label } from 'src/components/label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
-import { isTransferReceived, isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
+import { isTransferFailed, isTransferReceived } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { ChooseFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile';
 import { ChooseFileWithoutBroker } from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFileWithoutBroker';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
 import { useBrokerSetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { UploadingFile } from 'src/layout/BrokerFileTransfer/UploadingFile/UploadingFile';
-import { useBrokerUpload, useFollowReceivedTransfer } from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
+import {
+  useBrokerUpload,
+  useFollowReceivedTransfer,
+  useRemoveTransfer,
+} from 'src/layout/BrokerFileTransfer/uploadState/useBrokerUpload';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -31,9 +35,11 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
   const { formData } = useDataModelBindings(dataModelBindings);
   const setup = useBrokerSetup(baseComponentId);
   useFollowReceivedTransfer(baseComponentId, !readOnly);
+  const removeTransfer = useRemoveTransfer(baseComponentId);
 
   const isReceived = isTransferReceived(formData);
-  if (!isReceived && setup.kind === 'misconfigured') {
+  const isFailed = isTransferFailed(formData);
+  if (!isReceived && !isFailed && setup.kind === 'misconfigured') {
     return (
       <ComponentErrorList
         baseComponentId={baseComponentId}
@@ -48,11 +54,12 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
         baseComponentId={baseComponentId}
         renderLabelAs='plainLabel'
       />
-      {isReceived ? (
+      {isReceived || isFailed ? (
         <SentFile
           fileTransferId={formData.fileTransferId}
+          fileTransferStatus={formData.fileTransferStatus}
           fileName={formData.fileName}
-          state={isTransferSent(formData) ? 'sent' : 'checking'}
+          onRemove={isFailed && !readOnly ? removeTransfer : undefined}
         />
       ) : readOnly ? (
         <Paragraph data-size='sm'>

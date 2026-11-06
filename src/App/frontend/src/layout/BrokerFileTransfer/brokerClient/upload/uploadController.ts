@@ -73,7 +73,7 @@ export type UploadController = {
   resume: () => void;
   cancel: () => void;
   discard: (transfer: FileTransfer, plan: UploadPlan | null) => void;
-  markReceived: (transfer: FileTransfer, status: string) => void;
+  recordStatus: (transfer: FileTransfer, status: string) => void;
   subscribe: (listener: () => void) => () => void;
   getActive: () => ActiveUpload | null;
   getProgress: () => UploadProgress | null;
@@ -125,7 +125,7 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     notify();
   }
 
-  const markReceived: UploadController['markReceived'] = (received, status) => record({ ...received, status });
+  const recordStatus: UploadController['recordStatus'] = (given, status) => record({ ...given, status });
 
   const discard: UploadController['discard'] = (given, plan) => {
     if (plan) {
@@ -177,7 +177,7 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     }
     session = null;
     show(null);
-    markReceived(fileTransferOf(upload), UPLOADED_STATUS);
+    recordStatus(fileTransferOf(upload), UPLOADED_STATUS);
   }
 
   function beginInitializing(upload: { resourceId: string; sender: string; file: File }): Initializing | null {
@@ -305,7 +305,7 @@ export function createUploadController({ onFailed }: UploadControllerOptions = {
     resume,
     cancel,
     discard,
-    markReceived,
+    recordStatus,
     subscribe,
     getActive: () => active,
     getProgress: () => progress,

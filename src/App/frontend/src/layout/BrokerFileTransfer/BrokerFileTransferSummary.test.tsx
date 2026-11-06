@@ -6,6 +6,8 @@ import { vi } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
+import { ValidationMask } from 'src/features/validation';
 import { getFileTransferOverview } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
@@ -95,6 +97,27 @@ describe('BrokerFileTransferSummary', () => {
     );
   });
 
+  it('shows a file Broker rejected and why, and asks the user to remove it before continuing', async () => {
+    window.altinnAppGlobalData.platformFrontendSettings.brokerApiBaseUrl = 'https://platform.tt02.altinn.no';
+    vi.mocked(getFileTransferOverview).mockResolvedValue({
+      fileTransferStatus: 'Failed',
+      fileTransferStatusText: 'Checksum mismatch',
+      fileName: 'rapport.pdf',
+    });
+    await renderSummary({ id: 'transfer-1', status: 'Failed', name: 'rapport.pdf' });
+
+    expect(
+      await screen.findByText(
+        'Filen stemte ikke med sjekksummen, og Altinn Formidling avviste den. Kontroller sjekksummen, og send filen på nytt.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Avvist')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Endre/ })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show required validations' }));
+    expect(await screen.findByText('Fjern den avviste filen før du fortsetter.')).toBeInTheDocument();
+  });
+
   it('says so when nothing has been sent', async () => {
     await renderSummary({});
 
@@ -117,6 +140,12 @@ describe('BrokerFileTransferSummary', () => {
   });
 });
 
+// Shows the validations a required field would, as trying to submit the form does
+function ShowRequiredValidations() {
+  const setFormMask = FormStore.raw.useSelector((state) => state.validation.setFormMask);
+  return <button onClick={() => setFormMask(ValidationMask.Required)}>Show required validations</button>;
+}
+
 // The component itself is rendered too when it is given, as on a page with both
 async function renderSummary(formData: Record<string, string>, componentId?: string) {
   return await renderWithInstanceAndLayout({
@@ -124,6 +153,7 @@ async function renderSummary(formData: Record<string, string>, componentId?: str
       <>
         {componentId && <GenericComponent baseComponentId={componentId} />}
         <SummaryComponent2 baseComponentId='mySummary2' />
+        <ShowRequiredValidations />
       </>
     ),
     queries: {
