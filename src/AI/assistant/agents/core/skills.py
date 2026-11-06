@@ -1,26 +1,17 @@
 """Skill discovery and loading for the agentic loop.
 
 A skill uses the Agent Skills format (https://agentskills.io/specification),
-so the same directory also works for other coding agents:
-
-    agents/skills/
-      studio-policy/
-        SKILL.md          <- frontmatter + markdown body
-        references/       <- files the body links to
-          v8.md, v9.md    <- what applies to apps of one version only
+so the same directory also works for other coding agents.  docs/skills.md
+describes the frontmatter and files.
 
 Only each skill's name and description enter the context, through a
 compact listing in the system prompt.  The body stays on disk until the
 model loads it with the `skill` tool.
 
 The loop's `read_file` reads only the app repository, so it can never
-reach a skill's own files.  The `skill` tool loads any file the body
-links to on request.  By default it also appends the version file that
-matches the app to the body (`APPEND_SKILL_VERSION_FILE`).
-
-Frontmatter: `name` (equal to the directory name) and `description` are
-required.  The chat UI reads `metadata.studio-title`, and
-`metadata.studio-docs-url` with `metadata.studio-docs-url-v9` for v9 apps.
+reach a skill's own files.  The `skill` tool therefore loads any file the
+body links to on request, and by default appends the version file that
+matches the app (`APPEND_SKILL_VERSION_FILE`).
 """
 
 from __future__ import annotations
@@ -92,7 +83,6 @@ class Skill:
         return "\n\n".join(sections)
 
     def load_file(self, relative_path: str) -> str:
-        """A file inside the skill directory, such as `references/roles.md`."""
         return self._resolve(relative_path).read_text(encoding="utf-8")
 
     def linked_files(self) -> list[str]:

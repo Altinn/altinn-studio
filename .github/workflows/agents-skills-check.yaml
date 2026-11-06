@@ -37,7 +37,6 @@ jobs:
         with:
           version: "0.13.0"
 
-      # Each argument is a folder with one folder per skill.
       - name: Check skill format and size
         run: uv run --script .github/scripts/agents-skills-check.py src/AI/assistant/agents/skills
 

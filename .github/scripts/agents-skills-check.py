@@ -7,7 +7,6 @@
 Usage: uv run --script .github/scripts/agents-skills-check.py <skills folder> [<skills folder> ...]
 
 A skills folder holds one folder per skill, each with a SKILL.md. The check fails when a skill breaks a rule below.
-.github/scripts/link-check.py checks the skills' links.
 
 Agents read skills as tokens, so sizes are counted in tokens. No published rule names a tokenizer. The count uses
 o200k_base, the encoding of the models the Studio Assistant runs on, as a proxy for every agent.
@@ -25,8 +24,7 @@ from pathlib import Path
 import tiktoken
 import yaml
 
-# Requirements in the Agent Skills specification (https://agentskills.io/specification). Its validator, skills-ref,
-# rejects a skill that breaks one.
+# Requirements in the Agent Skills specification (https://agentskills.io/specification).
 SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_NAME_CHARS = 64
@@ -36,19 +34,15 @@ MAX_COMPATIBILITY_CHARS = 500
 RESERVED_NAME_WORDS = ("anthropic", "claude")
 XML_TAG = re.compile(r"<[A-Za-z/][^>]*>")
 
-# Recommendations in the specification. An agent reads the whole SKILL.md body when it activates the skill, so the
-# body stays under 5,000 tokens and the file under 500 lines.
+# Recommendations in the specification for SKILL.md, which an agent reads whole when it activates the skill.
 MAX_TOKENS = 5_000
 MAX_LINES = 500
-# Neither the specification nor Anthropic limits the size of other files, which an agent reads only when it needs
-# them. The summary shows their sizes.
-# Recommendation in Anthropic's skill authoring best practices: a reference file longer than 100 lines starts with a
-# table of contents, so an agent that reads only the start still sees what the file holds.
+# Recommendation in Anthropic's skill authoring best practices, so that an agent that reads only the start of a long
+# file still sees what it holds.
 TOC_AFTER_LINES = 100
 TOC_HEADING = re.compile(r"^##\s+contents\s*$", re.IGNORECASE)
 
-# The Studio Assistant appends the version file that matches the app to SKILL.md. The summary shows that sum, which no
-# rule covers.
+# The Studio Assistant can append one of these to SKILL.md, so the summary shows that sum too.
 VERSION_FILES = ("references/v8.md", "references/v9.md")
 TEXT_SUFFIXES = {".md", ".txt", ".json", ".yaml", ".yml", ".xml"}
 

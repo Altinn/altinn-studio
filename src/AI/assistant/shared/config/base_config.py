@@ -53,9 +53,8 @@ class BaseConfig:
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
     LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
 
-    # The skill tool appends the file for the app's version, references/v8.md or v9.md, to the skill it loads.
-    # False leaves it to the actor to load that file when the skill says so, as other coding agents do. The bench
-    # compares the two before the default changes.
+    # False leaves the version file (references/v8.md or v9.md) to the actor to load, as other coding agents do. The
+    # bench compares the two modes before the default changes.
     APPEND_SKILL_VERSION_FILE = os.getenv("APPEND_SKILL_VERSION_FILE", "true").lower() == "true"
 
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"

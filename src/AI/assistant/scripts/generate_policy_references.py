@@ -28,7 +28,7 @@ ROLE_CODE_ATTRIBUTE = "urn:altinn:rolecode"
 
 # Altinn 2 roles stop giving access at the end of 2026. The skill lists them in references/altinn2-roles.md.
 ALTINN2_PROVIDER = "sys-altinn2"
-# Enhetsregisteret first, since those are the roles an organization service uses. Other providers follow by name.
+# Enhetsregisteret first, since those are the roles an organization service uses.
 PROVIDER_ORDER = {"sys-ccr": 0, "sys-altinn3": 1}
 
 # Most package descriptions end with this disclaimer, which says nothing about the package.
@@ -49,7 +49,6 @@ def sort_key(text: str) -> str:
 
 
 def cell(text: str | None) -> str:
-    """Make text safe for one Markdown table cell."""
     return " ".join((text or "").split()).replace("|", "\\|")
 
 
@@ -60,7 +59,6 @@ def split_urn(urn: str) -> tuple[str, str]:
 
 
 def short_description(description: str | None) -> str:
-    """The first sentence of a description, without the disclaimer about future changes."""
     sentences = [s for s in SENTENCE_END.split(" ".join((description or "").split())) if not DISCLAIMER.match(s)]
     return sentences[0] if sentences else ""
 
@@ -151,7 +149,6 @@ def main() -> int:
         "roles.md": render_roles(fetch_json(ROLES_URL)),
     }
     REFERENCES_DIR.mkdir(parents=True, exist_ok=True)
-    # An area group that no longer exists leaves no stale file behind.
     for stale in REFERENCES_DIR.glob("access-packages*.md"):
         if stale.name not in outputs:
             stale.unlink()

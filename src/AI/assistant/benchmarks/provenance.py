@@ -202,8 +202,7 @@ def _hash_tools() -> str:
 
     skills = discover_skills()
     schema = _build_registry(skills).to_schema()
-    # The skill tool's description and the text it returns both follow APPEND_SKILL_VERSION_FILE, so a run with
-    # the version file on demand gets its own digest.
+    # The tool description and the skill text both follow APPEND_SKILL_VERSION_FILE, so each mode has its own digest.
     append = get_config().APPEND_SKILL_VERSION_FILE
     skill_text = {
         profile.version_label: {

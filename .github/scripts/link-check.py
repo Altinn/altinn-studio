@@ -15,8 +15,6 @@ write, a namespace or an example, not a link.
   their links from the skill's root.
 - A web link fails when it answers 404 or 410, or when its host does not answer. Other answers, such as 403, 429, 5xx
   or a timeout, are warnings, since they say little about whether the page exists.
-
-The links job in .github/workflows/agents-skills-check.yaml shows how to run it in CI.
 """
 
 from __future__ import annotations
