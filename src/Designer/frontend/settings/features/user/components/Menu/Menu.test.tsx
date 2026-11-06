@@ -21,7 +21,24 @@ const getApiKeysTab = () =>
 const getPrivacyTab = () =>
   screen.getByRole('tab', { name: textMock('settings.user.privacy.heading') });
 
+const getExperimentalFeaturesTab = () =>
+  screen.getByRole('tab', { name: textMock('settings.user.experimental_features.heading') });
+
 describe('Menu', () => {
+  it('renders the experimental features tab as selected when on the experimental features route', () => {
+    renderMenu(['/settings/user/experimental-features']);
+    expect(getExperimentalFeaturesTab()).toHaveAttribute('tabindex', '0');
+  });
+
+  it('navigates to experimental features when the experimental features tab is clicked', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await user.click(getExperimentalFeaturesTab());
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: 'experimental-features' }),
+    );
+  });
+
   it('renders the api keys tab as selected when on the api-keys route', () => {
     renderMenu();
     expect(getApiKeysTab()).toHaveAttribute('tabindex', '0');
