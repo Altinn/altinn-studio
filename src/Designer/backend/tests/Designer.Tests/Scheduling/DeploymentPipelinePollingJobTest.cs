@@ -413,7 +413,17 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     [Fact]
     public void PollsOfOneBuild_DoNotOverlap()
     {
+        // Quartz runs one job key at a time, and each build has its own key, so only polls of the same build wait.
         Assert.NotNull(typeof(DeploymentPipelinePollingJob).GetCustomAttribute<DisallowConcurrentExecutionAttribute>());
+        var context = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "app", "testUser");
+        Assert.Equal(
+            DeploymentPipelinePollingJobConstants.JobIdentity(context, 1),
+            DeploymentPipelinePollingJobConstants.JobIdentity(context, 1)
+        );
+        Assert.NotEqual(
+            DeploymentPipelinePollingJobConstants.JobIdentity(context, 1),
+            DeploymentPipelinePollingJobConstants.JobIdentity(context, 2)
+        );
     }
 
     private void SetupPoll(
