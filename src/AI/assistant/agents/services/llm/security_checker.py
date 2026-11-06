@@ -1,4 +1,4 @@
-"""Intent parsing and validation for user goals"""
+"""The security gate: screens a write request for abuse before the agent starts."""
 
 # TODO: Not sure if this is necessary at all
 import asyncio
@@ -10,84 +10,70 @@ from pydantic import BaseModel
 from shared.models import AgentAttachment
 from shared.utils.logging_utils import get_logger
 
-from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
+from .llm_client import check_security_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
-
-MINIMUM_INTENT_CONFIDENCE = 0.30
 
 # `action` when the classifier never ran, as opposed to answering "unsafe".
 GATE_FAILED_ACTION = "error"
 
 
-class ParsedIntent(BaseModel):
-    """Structured representation of user intent"""
+class SecurityCheckResult(BaseModel):
+    """The security gate's verdict on a goal, with what the classifier read from it."""
 
     action: str  # add, remove, update, move
     component: str  # field, layout, validation, etc.
     target: str  # specific target like "layout main", "field totalWeight"
     details: dict[str, str] = {}  # additional details like type, binding
-    confidence: float = 0.0  # confidence in parsing (0-1)
-    safe: bool = True  # whether this intent is considered safe
-    reason: str | None = None  # reason if not safe or low confidence
+    safe: bool = True  # whether the goal is a legitimate request
+    reason: str | None = None  # reason if not safe
 
 
-class IntentParsingError(Exception):
-    pass
-
-
-async def parse_intent_async(
+async def check_security_async(
     goal: str,
     attachments: list[AgentAttachment] | None = None,
     conversation: Sequence[Any] | None = None,
-) -> ParsedIntent:
-    """Parse user goal into structured intent using LLM with safety checks"""
+) -> SecurityCheckResult:
+    """Screen a goal for abuse: a keyword blocklist, then the classifier."""
 
     # Quick safety check before LLM processing
     is_safe, safety_reason = _validate_goal_safety_quick(goal)
     if not is_safe:
-        return ParsedIntent(
+        return SecurityCheckResult(
             action="blocked",
             component="unknown",
             target=goal,
             safe=False,
-            confidence=1.0,  # We're certain it's unsafe
             reason=safety_reason,
         )
 
     try:
-        result = await parse_intent_with_llm(goal, attachments=attachments, conversation=conversation)
+        result = await check_security_with_llm(goal, attachments=attachments, conversation=conversation)
 
         # Validate LLM response structure
-        parsed = ParsedIntent(
+        parsed = SecurityCheckResult(
             action=result.get("action", "unknown"),
             component=result.get("component", "unknown"),
             target=result.get("target", goal),
             details=result.get("details", {}),
-            confidence=max(0.0, min(1.0, result.get("confidence", 0.0))),  # Clamp to [0,1]
             safe=result.get("safe", False),
             reason=result.get("reason"),
         )
 
-        # Additional validation - ensure confidence makes sense
-        if parsed.action == "unknown" and parsed.confidence > 0.5:
-            parsed.confidence = 0.5  # Cap confidence for unknown actions
-
-        # Log if the intent parser marked something unsafe (should only be security threats now)
+        # Log if the classifier marked something unsafe
         if not parsed.safe:
-            log.warning(f"Intent parser flagged goal as unsafe: {parsed.reason}")
+            log.warning(f"Security gate flagged goal as unsafe: {parsed.reason}")
 
         return parsed
 
     except Exception as e:
-        log.error(f"LLM intent parsing failed: {e}")
-        return ParsedIntent(
+        log.error(f"Security check failed: {e}")
+        return SecurityCheckResult(
             action=GATE_FAILED_ACTION,
             component="unknown",
             target=goal,
             safe=False,
-            confidence=0.0,
-            reason=f"Intent parsing failed: {e!s}",
+            reason=f"Security check failed: {e!s}",
         )
 
 
@@ -155,9 +141,7 @@ async def _would_be_accepted(goal: str, conversation: Sequence[Any] | None) -> b
     if not is_safe:
         return False
     try:
-        parsed = await parse_intent_async(goal, conversation=conversation)
+        parsed = await check_security_async(goal, conversation=conversation)
     except Exception:
         return False
-    # The workflow gate rejects on confidence too, so a suggestion below the
-    # threshold would be offered and then refused.
-    return parsed.safe and parsed.confidence >= MINIMUM_INTENT_CONFIDENCE
+    return parsed.safe

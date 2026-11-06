@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
@@ -34,8 +33,6 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -968,8 +965,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         );
         Assert.Single(sourceInstance.Data);
         var dataGuid = sourceInstance.Data.First().Id;
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+            ]
+            """
         );
         await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
         await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
@@ -1056,8 +1057,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         try
         {
             DataElement dataElement = Assert.Single(sourceInstance.Data, element => element.DataType == "default");
-            var patch = new JsonPatch(
-                PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+            var patch = JsonPatchOperation.ParseList(
+                """
+                [
+                    { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+                ]
+                """
             );
             await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataElement.Id, patch);
             await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
@@ -1144,8 +1149,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         );
         Assert.Single(sourceInstance.Data);
         var dataGuid = sourceInstance.Data.First().Id;
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+            ]
+            """
         );
         await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
         await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
@@ -1236,8 +1245,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         );
         Assert.Single(sourceInstance.Data);
         var dataGuid = sourceInstance.Data.First().Id;
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+            ]
+            """
         );
         await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
         await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
@@ -1351,8 +1364,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         Assert.Single(sourceInstance.Data);
         var dataGuid = sourceInstance.Data.First().Id;
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+            ]
+            """
         );
         await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
 
@@ -1441,8 +1458,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             client,
             orgToken
         );
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding", "value": {"name": "Ola Olsen"} }
+            ]
+            """
         );
         await UpdateInstanceData(
             org,
@@ -1599,11 +1620,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Reference the attachment from a list row, like a FileUpload in a repeating group
         string formDataGuid = sourceInstance.Data.Single(d => d.DataType == "default").Id;
-        var patch = new JsonPatch(
-            PatchOperation.Add(
-                JsonPointer.Create("melding", "nested_list"),
-                JsonNode.Parse($$"""[{"key": "{{sourceAttachment.Id}}"}]""")
-            )
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "add", "path": "/melding/nested_list", "value": [{"key": "{{sourceAttachment.Id}}"}] }
+            ]
+            """
         );
         await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, formDataGuid, patch);
 
@@ -1663,7 +1685,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string token,
         string instanceId,
         string dataGuid,
-        JsonPatch patch
+        List<JsonPatchOperation> patch
     )
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);

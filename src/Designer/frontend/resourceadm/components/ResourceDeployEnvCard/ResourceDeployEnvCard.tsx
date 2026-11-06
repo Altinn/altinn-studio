@@ -15,6 +15,12 @@ import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
+type PublishError = {
+  title?: string;
+  status: number;
+  detail: string;
+};
+
 export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
   env: Environment;
@@ -42,7 +48,7 @@ export const ResourceDeployEnvCard = ({
 }: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [hasNoPublishAccess, setHasNoPublishAccess] = useState<boolean>(false);
+  const [publishError, setPublishError] = useState<PublishError | null>(null);
   const { org, app, resourceId } = useUrlParams();
 
   // Query function for publishing a resource
@@ -50,13 +56,31 @@ export const ResourceDeployEnvCard = ({
     usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
+    setPublishError(null);
     publishResource(env.id, {
       onSuccess: () => {
         toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
       },
       onError: (error: Error) => {
         if ((error as ResourceError).response?.status === 403) {
-          setHasNoPublishAccess(true);
+          setPublishError({
+            detail: t('resourceadm.resource_publish_no_access', { envName: t(env.label) }),
+            status: 403,
+          });
+        } else if ((error as ResourceError).response?.status === 409) {
+          setPublishError({
+            detail: t('resourceadm.resource_publish_conflict', { envName: t(env.label) }),
+            status: 409,
+          });
+        } else {
+          const statusCode = (error as ResourceError).response?.status || 500;
+          setPublishError({
+            title: (error as ResourceError).response?.data?.title || undefined,
+            status: statusCode,
+            detail:
+              (error as ResourceError).response?.data?.detail ||
+              t('resourceadm.resource_publish_error', { statusCode: statusCode }),
+          });
         }
       },
     });
@@ -84,14 +108,17 @@ export const ResourceDeployEnvCard = ({
               </>
             )}
           </div>
-          <StudioButton disabled={!isDeployPossible || hasNoPublishAccess} onClick={handlePublish}>
+          <StudioButton disabled={!isDeployPossible} onClick={handlePublish}>
             {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
-          {hasNoPublishAccess && (
+          {publishError && (
             <StudioAlert data-color='danger'>
-              <StudioParagraph>
-                {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
-              </StudioParagraph>
+              {publishError.title && (
+                <StudioParagraph>
+                  <strong>{publishError.title}</strong>
+                </StudioParagraph>
+              )}
+              <StudioParagraph>{publishError.detail}</StudioParagraph>
             </StudioAlert>
           )}
         </>
