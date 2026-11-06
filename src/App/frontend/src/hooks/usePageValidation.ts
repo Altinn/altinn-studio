@@ -1,41 +1,30 @@
 import { useMemo } from 'react';
 
-import type { PageValidation } from '@app/layout-contract/generated/common.generated';
-import type { CompNavigationButtonsExternal } from '@app/layout-contract/generated/components/NavigationButtons/config.generated';
-
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useCurrentUiFolderSettingsFromUrl } from 'src/features/form/ui/hooks';
-import { resolveNavigationValidation } from 'src/features/navigation/resolveNavigationValidation';
 
-export function useEffectivePageValidation(pageKey: string): {
-  getPageValidation: () => PageValidation | undefined;
-  getReturnValidation: (
-    component: Pick<CompNavigationButtonsExternal, 'validateOnNext' | 'validateOnBackToSummary'>,
-  ) => PageValidation | undefined;
-} {
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const taskSettings = useCurrentUiFolderSettingsFromUrl()?.pages;
-  const globalSettings = getUiConfig().settings;
+export function useEffectivePageValidation(pageKey: string) {
+  const page = FormStore.bootstrap.useLayoutCollection()[pageKey]?.data;
+  const task = useCurrentUiFolderSettingsFromUrl()?.pages;
+  const app = getUiConfig().settings;
 
-  return useMemo(() => {
-    const settings = [layoutCollection[pageKey]?.data, taskSettings, globalSettings];
-
-    return {
-      getPageValidation: () => (pageKey ? resolveNavigationValidation(settings, 'next') : undefined),
-      getReturnValidation: (component) =>
-        resolveNavigationValidation(
-          [
-            {
-              validationOnNavigation: component.validateOnNext,
-              validateOnBackToSummary: component.validateOnBackToSummary,
-            },
-            ...settings,
-          ],
-          'return',
-        ),
-    };
-  }, [pageKey, layoutCollection, taskSettings, globalSettings]);
+  return useMemo(
+    () => ({
+      getPageValidation: () =>
+        pageKey
+          ? (page?.validationOnNavigation ?? task?.validationOnNavigation ?? app?.validationOnNavigation)
+          : undefined,
+      getReturnValidation: () =>
+        page?.validateOnBackToSummary ??
+        page?.validationOnNavigation ??
+        task?.validateOnBackToSummary ??
+        task?.validationOnNavigation ??
+        app?.validateOnBackToSummary ??
+        app?.validationOnNavigation,
+    }),
+    [pageKey, page, task, app],
+  );
 }
 
 export function usePageValidation(componentId: string) {

@@ -94,7 +94,7 @@ function NavigationButtonsComponentInner({
   const { getPageValidation, getReturnValidation } = usePageValidation(baseComponentId);
   const validateOnForward = config.validateOnNext ?? getPageValidation();
   const validateOnBackward = getPageValidation() ? undefined : config.validateOnPrevious;
-  const validateOnReturn = getReturnValidation(config);
+  const validateOnReturn = config.validateOnBackToSummary ?? config.validateOnNext ?? getReturnValidation();
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();
