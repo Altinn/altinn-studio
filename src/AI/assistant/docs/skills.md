@@ -46,7 +46,7 @@ rule:
 - Anthropic's [best practice](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) for
   reference files: one longer than 100 lines starts with a `## Contents` section.
 
-The [link check](../../../../.github/workflows/template-link-check.yaml) fails on a relative link to a missing file and
+The [link check](../../../../.github/scripts/link-check.py) fails on a relative link to a missing file and
 on a web link that answers 404 or 410. It skips links in code, since those are values, namespaces or examples.
 
 Run them locally from the repository root:

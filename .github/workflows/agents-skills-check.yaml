@@ -8,7 +8,6 @@ on:
       - ".github/scripts/agents-skills-check.py"
       - ".github/scripts/link-check.py"
       - ".github/workflows/agents-skills-check.yaml"
-      - ".github/workflows/template-link-check.yaml"
   # Docs pages and other linked pages move without a change in this repository.
   schedule:
     - cron: "0 6 * * 1"
@@ -45,7 +44,19 @@ jobs:
   links:
     name: Skill links
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    uses: ./.github/workflows/template-link-check.yaml
-    with:
-      paths: src/AI/assistant/agents/skills
-      root-marker: SKILL.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.13.0"
+
+      # Agent Skills resolve relative links from the skill's root, the folder that holds SKILL.md.
+      - name: Check skill links
+        run: uv run --script .github/scripts/link-check.py --root-marker SKILL.md src/AI/assistant/agents/skills

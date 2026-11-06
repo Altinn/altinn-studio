@@ -11,9 +11,8 @@ Use `self-hosted-ubuntu` for builds and tests that benefit from the
 [runner image's installed tools](../src/ci/github-runner/Dockerfile) and caches.
 Use `ubuntu-latest` for short checks that do not need them.
 
-To check that the links in Markdown files work, call the
-[link check template](../.github/workflows/template-link-check.yaml) with the paths to check.
-[Check skills](../.github/workflows/agents-skills-check.yaml) shows how.
+To check that the links in Markdown files work, run [link-check.py](../.github/scripts/link-check.py) with the
+paths to check. The links job in [Check skills](../.github/workflows/agents-skills-check.yaml) shows how.
 
 Reuse deployment templates for environment selection and artifact publishing.
 The [Designer deployment](../.github/workflows/deploy-designer.yaml) shows how to combine them.
