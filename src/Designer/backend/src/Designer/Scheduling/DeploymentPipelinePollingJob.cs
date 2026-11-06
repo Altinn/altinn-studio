@@ -174,7 +174,8 @@ public class DeploymentPipelinePollingJob : IJob
         {
             span.SetTag(ServiceTelemetry.Attributes.CicdPipelineResult, pipelineResult);
         }
-        _metrics.RecordPipeline(type, environment, build.Result, sinceRequest);
+        _metrics.RecordPipeline(editingContext.Org, type, environment, build.Result, sinceRequest);
+        _metrics.RecordPipelineRun(type, environment, build);
         if (build.Result == BuildResult.Succeeded)
         {
             return;

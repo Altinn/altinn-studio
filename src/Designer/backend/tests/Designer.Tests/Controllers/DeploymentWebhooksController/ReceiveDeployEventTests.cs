@@ -283,6 +283,20 @@ public class ReceiveDeployEventTests
             Environment = "at22",
         };
 
+        var pipelineSucceeded = new DeployEventRequest
+        {
+            BuildId = deploymentEntity.Build.Id,
+            EventType = "PipelineSucceeded",
+            Message = "Pipeline succeeded",
+            Timestamp = new DateTimeOffset(deploymentEntity.Created).AddMinutes(6),
+            Environment = "at22",
+        };
+        using var pipelineResponse = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(pipelineSucceeded)
+        );
+        Assert.Equal(HttpStatusCode.OK, pipelineResponse.StatusCode);
+
         // Act
         using var response = await client.PostAsync(WebhookUrl(org, app), JsonContent.Create(request));
         using var repeated = await client.PostAsync(WebhookUrl(org, app), JsonContent.Create(request));
@@ -294,13 +308,20 @@ public class ReceiveDeployEventTests
             deploymentType == DeploymentType.Deploy ? HttpStatusCode.OK : HttpStatusCode.NotFound,
             repeated.StatusCode
         );
-        RecordedDuration deploy = Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
-        Assert.InRange(deploy.Seconds, 539.99, 540.01);
+        RecordedAppDeployMeasurement deploy = Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.InRange(deploy.Value, 539.99, 540.01);
         Assert.Equal(expectedPipelineType, deploy.Tags["altinn.designer.app_deploy.pipeline.type"]);
         Assert.Equal("at22", deploy.Tags["altinn.environment"]);
         Assert.Equal("ttd", deploy.Tags["altinn.service_owner"]);
         Assert.Equal(expectedResult, deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.Equal(expectedErrorType, deploy.Tags.GetValueOrDefault("error.type"));
+
+        RecordedAppDeployMeasurement flux = Assert.Single(
+            metrics.Measurements(AppDeployMetrics.FluxDurationMetricName)
+        );
+        Assert.InRange(flux.Value, 179.99, 180.01);
+        Assert.Equal(expectedResult, flux.Tags["altinn.designer.app_deploy.result"]);
+        Assert.Equal("ttd", flux.Tags["altinn.service_owner"]);
     }
 
     [Fact]

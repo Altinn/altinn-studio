@@ -15,12 +15,14 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Telemetry;
 using Designer.Tests.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -33,8 +35,12 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Services;
 
-public class DeploymentServiceTest
+public class DeploymentServiceTest : IDisposable
 {
+    private readonly AppDeployMetricsRecorder _metrics = new();
+
+    public void Dispose() => _metrics.Dispose();
+
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
     private readonly Mock<IDeploymentRepository> _deploymentRepository;
     private readonly Mock<IDeployEventRepository> _deployEventRepository;
@@ -166,7 +172,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -226,6 +233,8 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        AssertQueued(org, "deploy", "at23", "manual");
     }
 
     [Theory]
@@ -292,7 +301,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -378,7 +388,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -465,7 +476,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -572,7 +584,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -672,7 +685,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -717,7 +731,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         // Act
@@ -822,7 +837,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -964,7 +980,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1038,7 +1055,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
         var environment = AltinnEnvironment.FromName("tt02");
 
@@ -1193,7 +1211,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1250,6 +1269,8 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        AssertQueued(org, "undeploy", env, "manual");
     }
 
     [Theory]
@@ -1289,7 +1310,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1312,6 +1334,7 @@ public class DeploymentServiceTest
             Times.Never
         );
         _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Never);
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
     }
 
     [Theory]
@@ -1381,7 +1404,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1476,7 +1500,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1607,7 +1632,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1744,7 +1770,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1859,6 +1886,17 @@ public class DeploymentServiceTest
             Times.Once
         );
         _apiKeyService.VerifyNoOtherCalls();
+        AssertQueued(editingContext.Org, "undeploy", environment, "inactivity");
+    }
+
+    private void AssertQueued(string serviceOwner, string pipelineType, string environment, string trigger)
+    {
+        RecordedAppDeployMeasurement queued = Assert.Single(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+        Assert.Equal(1, queued.Value);
+        Assert.Equal(serviceOwner, queued.Tags["altinn.service_owner"]);
+        Assert.Equal(pipelineType, queued.Tags["altinn.designer.app_deploy.pipeline.type"]);
+        Assert.Equal(environment, queued.Tags["altinn.environment"]);
+        Assert.Equal(trigger, queued.Tags["altinn.designer.app_deploy.trigger"]);
     }
 
     [Theory]
@@ -1897,6 +1935,7 @@ public class DeploymentServiceTest
             _apiKeyService.Object,
             _notificationService.Object,
             _hostEnvironment.Object,
+            _metrics.Metrics,
             gitOpsSettings
         );
 

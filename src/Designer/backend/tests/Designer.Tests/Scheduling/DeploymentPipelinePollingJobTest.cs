@@ -150,19 +150,21 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent));
 
         // Assert
-        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
-        Assert.Equal(420, pipeline.Seconds);
+        RecordedAppDeployMeasurement pipeline = Assert.Single(
+            _metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName)
+        );
+        Assert.Equal(420, pipeline.Value);
         Assert.Equal("deploy", pipeline.Tags["altinn.designer.app_deploy.pipeline.type"]);
         Assert.Equal("tt02", pipeline.Tags["altinn.environment"]);
         Assert.Equal("failure", pipeline.Tags["cicd.pipeline.result"]);
         Assert.Equal("pipeline_failed", pipeline.Tags["error.type"]);
 
-        RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
-        Assert.Equal(420, deploy.Seconds);
+        RecordedAppDeployMeasurement deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.Equal(420, deploy.Value);
         Assert.Equal("testorg", deploy.Tags["altinn.service_owner"]);
         Assert.Equal("pipeline_failed", deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.Equal("pipeline_failed", deploy.Tags["error.type"]);
-        Assert.False(pipeline.Tags.ContainsKey("altinn.service_owner"));
+        Assert.Equal("testorg", pipeline.Tags["altinn.service_owner"]);
 
         Activity span = Assert.Single(spans.Stopped);
         Assert.Equal(ActivityStatusCode.Error, span.Status);
@@ -193,8 +195,10 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         );
 
         // Assert
-        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
-        Assert.Equal(300, pipeline.Seconds);
+        RecordedAppDeployMeasurement pipeline = Assert.Single(
+            _metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName)
+        );
+        Assert.Equal(300, pipeline.Value);
         Assert.Equal("prod", pipeline.Tags["altinn.environment"]);
         Assert.Equal("success", pipeline.Tags["cicd.pipeline.result"]);
         Assert.False(pipeline.Tags.ContainsKey("error.type"));
@@ -239,11 +243,13 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent));
 
         // Assert
-        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        RecordedAppDeployMeasurement pipeline = Assert.Single(
+            _metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName)
+        );
         Assert.Equal("cancellation", pipeline.Tags["cicd.pipeline.result"]);
         Assert.False(pipeline.Tags.ContainsKey("error.type"));
 
-        RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        RecordedAppDeployMeasurement deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
         Assert.Equal("pipeline_canceled", deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.False(deploy.Tags.ContainsKey("error.type"));
 
@@ -299,6 +305,49 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     }
 
     [Fact]
+    public async Task Execute_WhenThePipelineFinishes_RecordsItsQueueAndRunTimes()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        DateTime queued = s_now.UtcDateTime.AddMinutes(-6);
+        SetupPoll(
+            fixture,
+            BuildResult.Succeeded,
+            requestedAgo: TimeSpan.FromMinutes(6),
+            build: new BuildEntity
+            {
+                Status = BuildStatus.Completed,
+                Result = BuildResult.Succeeded,
+                Queued = queued,
+                Started = queued.AddSeconds(45),
+                Finished = queued.AddSeconds(345),
+                PipelineName = "gitops-manager",
+            }
+        );
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy));
+
+        // Assert
+        var runs = _metrics.Measurements(AppDeployMetrics.PipelineRunDurationMetricName);
+        Assert.Equal(2, runs.Count);
+        RecordedAppDeployMeasurement pending = Assert.Single(
+            runs,
+            r => (string?)r.Tags["cicd.pipeline.run.state"] == "pending"
+        );
+        RecordedAppDeployMeasurement executing = Assert.Single(
+            runs,
+            r => (string?)r.Tags["cicd.pipeline.run.state"] == "executing"
+        );
+        Assert.Equal(45, pending.Value);
+        Assert.Equal(300, executing.Value);
+        Assert.Equal("gitops-manager", executing.Tags["cicd.pipeline.name"]);
+        Assert.Equal("success", executing.Tags["cicd.pipeline.result"]);
+        Assert.Equal("tt02", executing.Tags["altinn.environment"]);
+        Assert.False(executing.Tags.ContainsKey("altinn.service_owner"));
+    }
+
+    [Fact]
     public void PollsOfOneBuild_DoNotOverlap()
     {
         Assert.NotNull(typeof(DeploymentPipelinePollingJob).GetCustomAttribute<DisallowConcurrentExecutionAttribute>());
@@ -309,12 +358,13 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         BuildResult result,
         TimeSpan requestedAgo,
         BuildStatus status = BuildStatus.Completed,
-        DeployEvent[]? events = null
+        DeployEvent[]? events = null,
+        BuildEntity? build = null
     )
     {
         fixture
             .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new BuildEntity { Status = status, Result = result });
+            .ReturnsAsync(build ?? new BuildEntity { Status = status, Result = result });
 
         fixture
             .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))

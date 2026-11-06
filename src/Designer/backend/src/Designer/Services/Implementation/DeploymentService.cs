@@ -52,6 +52,7 @@ public class DeploymentService : IDeploymentService
     private readonly IApiKeyService _apiKeyService;
     private readonly INotificationService _notificationService;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly AppDeployMetrics _metrics;
 
     /// <summary>
     /// Constructor
@@ -72,6 +73,7 @@ public class DeploymentService : IDeploymentService
         IApiKeyService apiKeyService,
         INotificationService notificationService,
         IHostEnvironment hostEnvironment,
+        AppDeployMetrics metrics,
         GitOpsSettings gitOpsSettings = null
     )
     {
@@ -91,6 +93,7 @@ public class DeploymentService : IDeploymentService
         _apiKeyService = apiKeyService;
         _notificationService = notificationService;
         _hostEnvironment = hostEnvironment;
+        _metrics = metrics;
     }
 
     /// <inheritdoc/>
@@ -165,6 +168,12 @@ public class DeploymentService : IDeploymentService
             cancellationToken
         );
         Activity.Current.SetAppDeployBuild(queuedBuild.Id.ToString());
+        _metrics.RecordQueued(
+            authenticatedContext.Org,
+            PipelineType.Deploy,
+            deployment.EnvName,
+            AppDeployTrigger.Manual
+        );
 
         deploymentEntity.Build = new BuildEntity
         {
@@ -267,7 +276,8 @@ public class DeploymentService : IDeploymentService
             env,
             token,
             authHeaderName,
-            cancellationToken: cancellationToken
+            AppDeployTrigger.Manual,
+            cancellationToken
         );
     }
 
@@ -277,12 +287,14 @@ public class DeploymentService : IDeploymentService
         CancellationToken cancellationToken = default
     )
     {
+        // Only the nightly undeploy of inactive apps undeploys on Designer's own behalf.
         await UndeployInternalAsync(
             editingContext,
             env,
             _gitOpsSettings.BotPersonalAccessToken,
             appAuthHeaderName: null,
-            cancellationToken: cancellationToken
+            AppDeployTrigger.Inactivity,
+            cancellationToken
         );
     }
 
@@ -290,8 +302,9 @@ public class DeploymentService : IDeploymentService
         AltinnRepoEditingContext editingContext,
         string env,
         string appDeployToken,
-        string appAuthHeaderName = null,
-        CancellationToken cancellationToken = default
+        string appAuthHeaderName,
+        AppDeployTrigger trigger,
+        CancellationToken cancellationToken
     )
     {
         Guard.AssertValidEnvironmentName(env);
@@ -340,6 +353,7 @@ public class DeploymentService : IDeploymentService
             cancellationToken
         );
         Activity.Current.SetAppDeployBuild(build.Id.ToString());
+        _metrics.RecordQueued(editingContext.Org, PipelineType.Undeploy, env, trigger);
 
         DeploymentEntity deploymentEntity = new()
         {

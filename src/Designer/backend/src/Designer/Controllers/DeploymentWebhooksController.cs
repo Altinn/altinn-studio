@@ -126,14 +126,31 @@ public class DeploymentWebhooksController : ControllerBase
 
         PipelineType type =
             deployment.DeploymentType == DeploymentType.Decommission ? PipelineType.Undeploy : PipelineType.Deploy;
+        string? errorType = AppDeployMetrics.IsFluxFailure(eventType) ? result : null;
         _metrics.RecordResult(
             deployment.Org,
             type,
             deployment.EnvName,
             result,
-            AppDeployMetrics.IsFluxFailure(eventType) ? result : null,
+            errorType,
             request.Timestamp.UtcDateTime - deployment.Created
         );
+
+        // Designer asks the runtime to reconcile as soon as it sees the pipeline succeed, which it records as an event.
+        DeployEvent? pipelineSucceeded = deployment.Events.FirstOrDefault(e =>
+            e.EventType == DeployEventType.PipelineSucceeded
+        );
+        if (pipelineSucceeded is not null)
+        {
+            _metrics.RecordFlux(
+                deployment.Org,
+                type,
+                deployment.EnvName,
+                result,
+                errorType,
+                request.Timestamp - pipelineSucceeded.Timestamp
+            );
+        }
     }
 
     private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)

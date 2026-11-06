@@ -20,6 +20,17 @@ internal static partial class ServiceTelemetry
         /// </summary>
         public const string CicdPipelineResult = "cicd.pipeline.result";
 
+        /// <summary>
+        /// The Azure DevOps pipeline's name, such as the one that deploys apps.
+        /// </summary>
+        public const string CicdPipelineName = "cicd.pipeline.name";
+
+        /// <summary>
+        /// The state of an Azure DevOps run that a duration covers: pending while it waits in the queue, and executing
+        /// while it runs.
+        /// </summary>
+        public const string CicdPipelineRunState = "cicd.pipeline.run.state";
+
         public const string ServiceOwner = AltinnAttributes.ServiceOwner;
         public const string App = AltinnAttributes.App;
         public const string RepoType = AltinnAttributes.RepoType;
@@ -80,6 +91,12 @@ internal static partial class ServiceTelemetry
             /// pipeline_failed or pipeline_canceled when the pipeline did not succeed.
             /// </summary>
             public const string Result = Prefix + "result";
+
+            /// <summary>
+            /// What made Designer queue the pipeline: manual, for a deploy or undeploy someone asked for, or
+            /// inactivity, for the nightly undeploy of an inactive app.
+            /// </summary>
+            public const string Trigger = Prefix + "trigger";
         }
 
         public static class ChatCleanup

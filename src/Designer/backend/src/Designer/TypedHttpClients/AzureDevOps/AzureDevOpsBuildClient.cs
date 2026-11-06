@@ -98,5 +98,7 @@ public class AzureDevOpsBuildClient : IAzureDevOpsBuildClient
             Result = build.Result,
             Started = build.StartTime,
             Finished = build.FinishTime,
+            Queued = build.QueueTime,
+            PipelineName = build.Definition?.Name,
         };
 }
