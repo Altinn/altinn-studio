@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/
 ---
 
-Use this skill to write or fix an expression: a JSON array that the app frontend evaluates while the user fills in a
-form, and that the app backend evaluates for some uses. Expressions show and hide components and pages, make fields
-required or read-only, change texts, and drive expression validation, calculated fields and process gateways.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

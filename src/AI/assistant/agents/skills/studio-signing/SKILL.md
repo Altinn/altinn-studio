@@ -7,9 +7,7 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/signing/
 ---
 
-Use this skill to set up signing in an app, from choosing the kind of signing to a signing task that works. Signing
-spans the process, the data types, the policy, C# code, the pages and Correspondence, and they must agree. The
-`studio-process` skill covers the process file in general.
+The `studio-process` skill covers the process file in general.
 
 ## App version
 

@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/data/data-modeling/
 ---
 
-Use this skill to add or change a data model: the structure of the form data that layouts bind to and the app
-backend reads. A data model is a JSON schema, a C# class and an XSD under `App/models/`, and a data type in
-`App/config/applicationmetadata.json` that ties them to a task.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

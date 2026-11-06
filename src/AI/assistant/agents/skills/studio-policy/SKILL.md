@@ -8,8 +8,6 @@ metadata:
 ---
 
 `App/config/authorization/policy.xml` is the XACML 3.0 policy that decides who may do what with the app's instances.
-Use this skill to choose subjects and actions, write rules the way Studio's policy editor does, and give the process
-the rights it needs.
 
 ## App version
 

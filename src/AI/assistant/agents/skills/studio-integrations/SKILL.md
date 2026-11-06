@@ -7,10 +7,8 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/integration/
 ---
 
-Use this skill when the app calls another system or another system calls the app. It says what each integration
-needs in configuration, credentials and code. The `studio-app-lib` skill says where custom code goes, the
-`studio-process` skill covers the service tasks for eFormidling and Fiks Arkiv, and the `studio-policy` skill writes
-the rights.
+The `studio-app-lib` skill says where custom code goes, the `studio-process` skill covers the service tasks for
+eFormidling and Fiks Arkiv, and the `studio-policy` skill writes the rights.
 
 ## App version
 

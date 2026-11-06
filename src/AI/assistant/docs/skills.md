@@ -16,7 +16,8 @@ Create `agents/skills/studio-<topic>/SKILL.md`. The frontmatter has:
 
 - `name`, equal to the directory name.
 - `description`, at most 250 characters, since the listing in the system prompt stops there. It says what the skill
-  covers and when to use it. Quote it when it contains `: `.
+  covers and when to use it. Quote it when it contains `: `. The agent has read it before it loads the skill, so the
+  body does not repeat it.
 - `metadata.studio-title`, the Norwegian title the chat UI shows on the answer's source chip.
 - `metadata.studio-docs-url`, the docs page the chip links to, and `metadata.studio-docs-url-v9` for v9 apps when the
   page differs. Use only a URL you know resolves.

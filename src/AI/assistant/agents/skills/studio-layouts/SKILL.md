@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/
 ---
 
-An app's UI is JSON under `App/ui/`: a folder of pages for each process task, a `Settings.json` that orders them, and
-one layout file per page that lists its components. Use this skill to add or change pages and components, navigation,
-repeating groups, Summary2 and subforms.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

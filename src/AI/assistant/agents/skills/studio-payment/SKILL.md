@@ -7,9 +7,9 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/payment/
 ---
 
-Use this skill to add payment to an app. A payment task takes the payment through Nets Easy, or through a payment
-processor you write. The process, the data types, the policy, C# code, the settings and the pages must agree. The
-`studio-process` skill covers the process file in general.
+A payment task takes the payment through Nets Easy, or through a payment processor you write. The process, the data
+types, the policy, C# code, the settings and the pages must agree. The `studio-process` skill covers the process file
+in general.
 
 ## App version
 

@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/options/
 ---
 
-Dropdown, RadioButtons, Checkboxes, MultipleSelect, Likert and the other selection components get their options
-from one of several sources. Use this skill to choose the source, connect it to the component, and check that the
-component finds its options.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

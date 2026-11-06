@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/prefill/
 ---
 
-Use this skill to fill form data before the user sees it: from the registers, from the user's profile, from a link
-or from the system that creates the instance. Most prefill is configuration in
-`App/models/<data type id>.prefill.json`.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

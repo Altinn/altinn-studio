@@ -7,9 +7,8 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/settings/
 ---
 
-Use this skill to change settings that apply to the whole app, in `App/config/applicationmetadata.json` and
-`App/appsettings*.json`. The data type of a data model belongs to the `studio-data-model` skill. Settings for
-Maskinporten, events, eFormidling, Fiks Arkiv and other integrations belong to the `studio-integrations` skill.
+Settings for Maskinporten, events, eFormidling, Fiks Arkiv and other integrations belong to the
+`studio-integrations` skill.
 
 ## App version
 

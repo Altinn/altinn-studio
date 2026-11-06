@@ -7,9 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/
 ---
 
-Read this skill before you change an Altinn Studio app. It says how the files of an app connect, how to tell a v8
-app from a v9 app, and which skill covers each job.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

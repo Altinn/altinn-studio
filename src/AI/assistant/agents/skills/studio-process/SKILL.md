@@ -7,9 +7,7 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/
 ---
 
-Use this skill to change `App/config/process/process.bpmn`: the tasks an instance moves through, the flows and
-gateways between them, and the actions users take. Other files name tasks by their id, so a change to a task usually
-touches files outside the process too.
+Other files name tasks by their id, so a change to a task usually touches files outside the process too.
 
 ## App version
 

@@ -7,8 +7,7 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/
 ---
 
-The docs on docs.altinn.studio are the source of truth for what a feature does and how to configure it. Use this
-skill to find the one page that answers a question when no other skill does.
+The docs on docs.altinn.studio are the source of truth for what a feature does and how to configure it.
 
 ## Search the index
 

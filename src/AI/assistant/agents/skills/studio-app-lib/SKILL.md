@@ -7,10 +7,6 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/extension-points/
 ---
 
-An app runs its own C# through interfaces in the `Altinn.App.Core` package. You write a class that implements one,
-register it in `App/Program.cs`, and the app libraries call it at a fixed point. Use this skill to choose the
-interface, connect it to the files that name it, and get its exact signature.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

@@ -7,9 +7,8 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/
 ---
 
-Use this skill to decide how an app checks the data a user enters, and to set up the check. The frontend shows
-messages while the user fills in the form. The backend runs the checks again on `process/next`, so a rule protects
-the data only when it runs there too.
+The frontend shows messages while the user fills in the form. The backend runs the checks again on `process/next`, so
+a rule protects the data only when it runs there too.
 
 ## App version
 

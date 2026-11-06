@@ -7,8 +7,7 @@ metadata:
   studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/tekster/
 ---
 
-Use this skill to add, change, translate or remove the app's texts, and to add a language. Other files refer to a
-text by its key, so a change to a key reaches every file that uses it.
+Other files refer to a text by its key, so a change to a key reaches every file that uses it.
 
 ## App version
 
