@@ -1,5 +1,5 @@
 ---
-name: studio-app-configuration
+name: studio-app-settings
 description: "App-wide settings in applicationmetadata.json and appsettings*.json: data types and their limits, party types, onEntry, stateless apps and anonymous access, auto-delete, message box, copying, secrets, file scanning and events."
 metadata:
   studio-title: Appinnstillinger
@@ -8,7 +8,7 @@ metadata:
 ---
 
 Settings for Maskinporten, events, eFormidling, Fiks Arkiv and other integrations belong to the
-`studio-integrations` skill.
+`studio-integrations` skill. The UI's `Settings.json` files under `App/ui/` belong to the `studio-layouts` skill.
 
 ## App version
 

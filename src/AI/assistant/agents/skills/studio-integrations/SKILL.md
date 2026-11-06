@@ -50,7 +50,7 @@ token carries scopes, and Maskinporten grants a scope only to a client that is r
   says which interface fits.
 - Keep the base URL and other plain settings in a section of the app's own in `appsettings.json`, with overrides in
   `appsettings.Staging.json` and `appsettings.Production.json`. Keep API keys in Key Vault, as the
-  `studio-app-configuration` skill says.
+  `studio-app-settings` skill says.
 - Authenticate with Maskinporten as above, or with a key you read through `ISecretsClient` or from configuration.
 - For code lists from public registers, such as SSB and Kartverket, the `Altinn.Codelists` package already calls the
   API. The `studio-code-lists` skill covers it.

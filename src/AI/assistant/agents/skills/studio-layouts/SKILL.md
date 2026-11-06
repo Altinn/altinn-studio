@@ -52,7 +52,7 @@ the errors.
   `tableHeaders` and `tableColumns` of a repeating group, `components.excludeFromPdf`, and the `component`
   expression. When you rename an ID, rename every reference.
 - A file upload component's ID is the ID of its data type in `applicationmetadata.json`. Rename both together, or
-  uploads fail. The `studio-app-configuration` skill covers data types.
+  uploads fail. The `studio-app-settings` skill covers data types.
 
 A component reaches data and texts through two maps:
 
@@ -143,7 +143,7 @@ components cannot bind to the subform's data model. A PDF for each entry needs a
   action on the task (the `studio-process` skill) and a policy rule (the `studio-policy` skill).
 - An `InstantiationButton` creates an instance of the app and opens it, usually from a stateless start page. It can
   send values from the stateless data model as prefill, as the `studio-prefill` skill describes. The
-  `studio-app-configuration` skill covers stateless apps.
+  `studio-app-settings` skill covers stateless apps.
 
 ## The PDF of a task
 

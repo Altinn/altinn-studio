@@ -146,7 +146,7 @@ List the actions users take on a task in its `taskExtension`:
 When you add, rename or remove a task, update everything that names its id:
 
 - `dataTypes[].taskId` in `App/config/applicationmetadata.json`: the data types the task creates
-  (`appLogic.autoCreate`), edits and validates. The id must match exactly. The `studio-app-configuration` skill
+  (`appLogic.autoCreate`), edits and validates. The id must match exactly. The `studio-app-settings` skill
   covers the file.
 - The task's pages, for data, signing and payment tasks. The version files say where they live.
 - Policy rules scoped to the task with `urn:altinn:task`. See the `studio-policy` skill.

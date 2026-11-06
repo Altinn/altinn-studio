@@ -26,7 +26,7 @@ need no code.
 | A field must have a value | `required` on the component |
 | Format, length, range or allowed values of one field | A constraint in the data model |
 | A rule over values in the form, across fields or rows | Expression validation in `App/models/<dataTypeId>.validation.json` |
-| File type, size and number of attachments | Settings on the data type, the `studio-app-configuration` skill |
+| File type, size and number of attachments | Settings on the data type, the `studio-app-settings` skill |
 | Anything else, such as lookups in other systems, rules across data types or file content | A C# validator |
 
 Let `required` alone decide whether a field is empty, and write every other rule to accept an empty value. The app

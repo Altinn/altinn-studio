@@ -51,7 +51,7 @@ all of them after the data type id, as Studio does. The data type looks like thi
 - With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
   else creates the element, such as a user who adds a subform entry. A stateless form's model has no `taskId`.
 - Several data types can share a task. The version file says which one is the default for the task's pages.
-- The `studio-app-configuration` skill covers the other data type settings.
+- The `studio-app-settings` skill covers the other data type settings.
 
 ## Change the schema, then generate
 

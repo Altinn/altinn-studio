@@ -115,7 +115,7 @@ The studio-app-lib skill says which interface does what.
 
 ## Which skill to use
 
-- studio-app-configuration: `applicationmetadata.json`, `appsettings.json`, party types, stateless apps and other
+- studio-app-settings: `applicationmetadata.json`, `appsettings.json`, party types, stateless apps and other
   app-wide settings.
 - studio-app-lib: C# extension points in `Altinn.App.Core` and `Altinn.App.Api`, and how to register them.
 - studio-code-lists: options and code lists for components.

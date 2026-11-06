@@ -39,7 +39,7 @@ file covers what the app needs around it. The version files say how to register 
 - `FiksIOSettings` holds `AccountId`, `IntegrationId`, `IntegrationPassword` and `AccountPrivateKeyBase64`. Put the
   password and the private key in Key Vault as `FiksIOSettings--IntegrationPassword` and
   `FiksIOSettings--AccountPrivateKeyBase64`. The app needs Key Vault as a configuration provider, as the
-  `studio-app-configuration` skill says. Leave `ApiHost` and `AmqpHost` out. The app picks KS's test environment
+  `studio-app-settings` skill says. Leave `ApiHost` and `AmqpHost` out. The app picks KS's test environment
   everywhere except production.
 - `FiksArkivSettings` holds what to send and how to finish:
   - `Receipt`: the data types the app stores the archive record and the archive's receipt in. Both must exist in

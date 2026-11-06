@@ -104,7 +104,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 - Altinn.Codelists, eFormidling, Fiks Arkiv and Maskinporten have their own registration methods. Their skills
   cover them.
 - Leave the code below the comment `Unless you are sure what you are doing` as it is. The one exception is
-  `builder.AddAzureKeyVaultAsConfigProvider()` for secrets, which goes there. The `studio-app-configuration` skill
+  `builder.AddAzureKeyVaultAsConfigProvider()` for secrets, which goes there. The `studio-app-settings` skill
   says where.
 - Add a `using` for the interface's namespace, unless `App/App.csproj` already has a `<Using>` for it.
 - Put the classes under `App/logic/`, as the docs and test apps do.
