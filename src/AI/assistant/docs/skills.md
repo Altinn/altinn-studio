@@ -51,7 +51,8 @@ does not mix their runs.
 ## Format, size and links
 
 The [agents-skills-check](../../../../.github/workflows/agents-skills-check.yaml) workflow runs two checks on every
-pull request that changes a skill, and once a week, since linked pages move without a change here.
+pull request that changes a skill or the checks. A linked page that moves fails the link check in the next such pull
+request.
 
 [agents-skills-check.py](../../../../.github/scripts/agents-skills-check.py) fails a skill that breaks a published
 rule:
