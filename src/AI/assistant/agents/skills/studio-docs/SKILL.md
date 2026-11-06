@@ -19,7 +19,13 @@ Search the section that matches the question:
 
 - v8 apps: `/nb/altinn-studio/v8/`. How-to guides are under `guides/`, and configuration and components under
   `reference/`.
-- v9 apps: `/nb/altinn-studio/v9/`. Most pages are under `develop-a-service/`. The v9 pages exist only in Norwegian.
+- v9 apps: `/nb/altinn-studio/v9/`. The v9 pages exist only in Norwegian. Most pages are under `develop-a-service/`,
+  and these sections hold the rest:
+  - `manage-a-service/`: deploying and undeploying, the runtime environment, firewall and outgoing IP addresses,
+    monitoring, access management and maintenance
+  - `test-a-service/`: testing locally, with test users and the app's APIs, and in the test environment
+  - `plan-a-service/`: service design, texts and tone of voice, and accessibility
+  - `getting-started/`: a Studio user, studioctl and local development
 - Other products have sections of their own, such as Authorization under `/nb/authorization/`, with access packages
   under `/nb/authorization/what-do-you-get/accesspackages/`. The first list in the index, *Hovedseksjoner*, names
   every product section.
