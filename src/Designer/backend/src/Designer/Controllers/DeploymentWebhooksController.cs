@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models;
@@ -30,18 +32,21 @@ public class DeploymentWebhooksController : ControllerBase
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
     private readonly IDeploymentService _deploymentService;
     private readonly IDeploymentRepository _deploymentRepository;
+    private readonly AppDeployMetrics _metrics;
 
     public DeploymentWebhooksController(
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IDeploymentService deploymentService,
-        IDeploymentRepository deploymentRepository
+        IDeploymentRepository deploymentRepository,
+        AppDeployMetrics metrics
     )
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
         _deploymentService = deploymentService;
         _deploymentRepository = deploymentRepository;
+        _metrics = metrics;
     }
 
     /// <summary>
@@ -74,6 +79,7 @@ public class DeploymentWebhooksController : ControllerBase
 
         var deployment = resolveResult.Deployment!;
         var buildId = resolveResult.BuildId!;
+        RootSpan.Of(HttpContext).SetAppDeployBuild(buildId);
 
         if (deployment.HasFinalEvent)
         {
@@ -83,6 +89,7 @@ public class DeploymentWebhooksController : ControllerBase
         var deployEvent = CreateDeployEvent(eventType, request);
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+        RecordFinalEvent(deployment, eventType, request);
 
         await _deploymentService.SendToSlackAsync(
             org,
@@ -97,6 +104,23 @@ public class DeploymentWebhooksController : ControllerBase
         await PublishEntityUpdatedAsync(deployment);
 
         return Ok();
+    }
+
+    /// <summary>
+    /// Records how the deploy or undeploy ended, once: later copies of a final event return before this.
+    /// </summary>
+    private void RecordFinalEvent(DeploymentEntity deployment, DeployEventType eventType, DeployEventRequest request)
+    {
+        if (!DeploymentEntity.IsFinalEventType(eventType))
+        {
+            return;
+        }
+
+        Activity? span = RootSpan.Of(HttpContext);
+        span?.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, ServiceTelemetry.EnumValue(eventType));
+        PipelineType type =
+            deployment.DeploymentType == DeploymentType.Decommission ? PipelineType.Undeploy : PipelineType.Deploy;
+        _metrics.RecordResult(type, request.Environment, eventType, request.Timestamp.UtcDateTime - deployment.Created);
     }
 
     private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)

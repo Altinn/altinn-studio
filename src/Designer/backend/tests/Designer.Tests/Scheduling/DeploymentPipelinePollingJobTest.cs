@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,12 +11,15 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Scheduling;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Designer.Tests.Telemetry;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Newtonsoft.Json;
 using Quartz;
@@ -24,13 +28,20 @@ using SchedulerConstants = Altinn.Studio.Designer.Scheduling.DeploymentPipelineP
 
 namespace Designer.Tests.Scheduling;
 
-public class DeploymentPipelinePollingJobTest
+public class DeploymentPipelinePollingJobTest : IDisposable
 {
+    private static readonly DateTimeOffset s_now = new(2026, 11, 6, 12, 0, 0, TimeSpan.Zero);
+
+    private readonly AppDeployMetricsRecorder _metrics = new();
+    private readonly FakeTimeProvider _timeProvider = new(s_now);
+
+    public void Dispose() => _metrics.Dispose();
+
     [Fact]
     public async Task Execute_Undeploy_UpdatesJsonData_PassesPayloadToStorageClient()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         var appMetadata = new ApplicationMetadata("org/app");
         var capturedAppMetadataJson = string.Empty;
@@ -82,7 +93,7 @@ public class DeploymentPipelinePollingJobTest
     public async Task Execute_WithTraceParentWithoutTraceState_DoesNotThrow()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(
             PipelineType.Deploy,
             traceParent: CreateValidTraceParent()
@@ -107,7 +118,7 @@ public class DeploymentPipelinePollingJobTest
     public async Task Execute_WithInvalidTraceParent_DoesNotThrow()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Deploy, traceParent: "invalid");
 
         fixture
@@ -125,6 +136,146 @@ public class DeploymentPipelinePollingJobTest
         fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345", It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Execute_WhenThePipelineFails_RecordsTheFailedDeploy()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        string traceParent = CreateValidTraceParent();
+        using var spans = PollSpans(traceParent);
+        SetupPoll(fixture, BuildResult.Failed, requestedAgo: TimeSpan.FromMinutes(7));
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent));
+
+        // Assert
+        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        Assert.Equal(420, pipeline.Seconds);
+        Assert.Equal("deploy", pipeline.Tags["altinn.designer.app_deploy.pipeline.type"]);
+        Assert.Equal("tt02", pipeline.Tags["altinn.environment"]);
+        Assert.Equal("failed", pipeline.Tags["altinn.designer.app_deploy.pipeline.result"]);
+        Assert.Equal("failed", pipeline.Tags["error.type"]);
+
+        RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.Equal(420, deploy.Seconds);
+        Assert.Equal("pipeline_failed", deploy.Tags["altinn.designer.app_deploy.result"]);
+        Assert.Equal("pipeline_failed", deploy.Tags["error.type"]);
+
+        Activity span = Assert.Single(spans.Stopped);
+        Assert.Equal(ActivityStatusCode.Error, span.Status);
+        Assert.Equal("12345", span.GetTagItem("altinn.app_deploy.build.id"));
+        Assert.Equal("testorg", span.GetTagItem("altinn.service_owner"));
+        Assert.Equal("testapp", span.GetTagItem("altinn.app"));
+        Assert.Equal("tt02", span.GetTagItem("altinn.environment"));
+        Assert.Equal("deploy", span.GetTagItem("altinn.designer.app_deploy.pipeline.type"));
+        Assert.Equal("completed", span.GetTagItem("altinn.designer.app_deploy.pipeline.status"));
+        Assert.Equal("failed", span.GetTagItem("altinn.designer.app_deploy.pipeline.result"));
+        Assert.Equal("pipeline_failed", span.GetTagItem("altinn.designer.app_deploy.result"));
+        Assert.Equal("failed", span.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Execute_WhenThePipelineSucceeds_RecordsOnlyThePipeline()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        string traceParent = CreateValidTraceParent();
+        using var spans = PollSpans(traceParent);
+        SetupPoll(fixture, BuildResult.Succeeded, requestedAgo: TimeSpan.FromMinutes(5));
+
+        // Act
+        await fixture.Service.Execute(
+            JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent, environment: "production")
+        );
+
+        // Assert
+        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        Assert.Equal(300, pipeline.Seconds);
+        Assert.Equal("prod", pipeline.Tags["altinn.environment"]);
+        Assert.Equal("succeeded", pipeline.Tags["altinn.designer.app_deploy.pipeline.result"]);
+        Assert.False(pipeline.Tags.ContainsKey("error.type"));
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+
+        Activity span = Assert.Single(spans.Stopped);
+        Assert.Equal(ActivityStatusCode.Unset, span.Status);
+        Assert.Null(span.GetTagItem("altinn.designer.app_deploy.result"));
+    }
+
+    [Fact]
+    public async Task Execute_WhileThePipelineRuns_RecordsNoMetrics()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        string traceParent = CreateValidTraceParent();
+        using var spans = PollSpans(traceParent);
+        SetupPoll(fixture, BuildResult.None, requestedAgo: TimeSpan.FromMinutes(2), status: BuildStatus.InProgress);
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Undeploy, traceParent: traceParent));
+
+        // Assert
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Activity span = Assert.Single(spans.Stopped);
+        Assert.Equal("undeploy", span.GetTagItem("altinn.designer.app_deploy.pipeline.type"));
+        Assert.Equal("in_progress", span.GetTagItem("altinn.designer.app_deploy.pipeline.status"));
+        Assert.Null(span.GetTagItem("altinn.designer.app_deploy.pipeline.result"));
+    }
+
+    private void SetupPoll(
+        Fixture fixture,
+        BuildResult result,
+        TimeSpan requestedAgo,
+        BuildStatus status = BuildStatus.Completed
+    )
+    {
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BuildEntity { Status = status, Result = result });
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new DeploymentEntity
+                {
+                    Created = (s_now - requestedAgo).UtcDateTime,
+                    Build = new BuildEntity { Status = BuildStatus.None },
+                }
+            );
+    }
+
+    /// <summary>
+    /// Collects the poll spans in one trace, so that tests running in parallel don't see each other's.
+    /// </summary>
+    private static SpanCollector PollSpans(string traceParent) => new(ActivityContext.Parse(traceParent, null).TraceId);
+
+    private sealed class SpanCollector : IDisposable
+    {
+        private readonly ActivityListener _listener;
+        private readonly ConcurrentQueue<Activity> _stopped = new();
+
+        public SpanCollector(ActivityTraceId traceId)
+        {
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == ServiceTelemetry.MeterName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStopped = activity =>
+                {
+                    if (activity.TraceId == traceId)
+                    {
+                        _stopped.Enqueue(activity);
+                    }
+                },
+            };
+            ActivitySource.AddActivityListener(_listener);
+        }
+
+        public Activity[] Stopped => [.. _stopped];
+
+        public void Dispose() => _listener.Dispose();
+    }
+
     private sealed record Fixture(
         DeploymentPipelinePollingJob DeploymentPipelinePollingJob,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
@@ -134,7 +285,7 @@ public class DeploymentPipelinePollingJobTest
     {
         public DeploymentPipelinePollingJob Service => DeploymentPipelinePollingJob;
 
-        public static Fixture Create()
+        public static Fixture Create(AppDeployMetrics metrics, TimeProvider timeProvider)
         {
             var mockStorageAppMetadataClient = new Mock<IAltinnStorageAppMetadataClient>();
             var mockDeploymentRepository = new Mock<IDeploymentRepository>();
@@ -150,7 +301,8 @@ public class DeploymentPipelinePollingJobTest
                 mockHubContext.Object,
                 Mock.Of<IPublisher>(),
                 NullLogger<DeploymentPipelinePollingJob>.Instance,
-                TimeProvider.System
+                timeProvider,
+                metrics
             );
 
             return new Fixture(
@@ -165,7 +317,8 @@ public class DeploymentPipelinePollingJobTest
     private static IJobExecutionContext JobExecutionContextFactory(
         PipelineType pipelineType,
         string? traceParent = null,
-        string? traceState = null
+        string? traceState = null,
+        string environment = "tt02"
     )
     {
         var mockJobExecutionContext = new Mock<IJobExecutionContext>();
@@ -177,7 +330,7 @@ public class DeploymentPipelinePollingJobTest
             [SchedulerConstants.Developer] = "testdeveloper",
             [SchedulerConstants.BuildId] = "12345",
             [SchedulerConstants.PipelineType] = pipelineType.ToString(),
-            [SchedulerConstants.Environment] = "tt02",
+            [SchedulerConstants.Environment] = environment,
         };
 
         if (!string.IsNullOrWhiteSpace(traceParent))

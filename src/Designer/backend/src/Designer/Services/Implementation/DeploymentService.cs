@@ -164,6 +164,7 @@ public class DeploymentService : IDeploymentService
             traceContext.TraceState,
             cancellationToken
         );
+        Activity.Current.SetAppDeployBuild(queuedBuild.Id.ToString());
 
         deploymentEntity.Build = new BuildEntity
         {
@@ -338,6 +339,7 @@ public class DeploymentService : IDeploymentService
             _azureDevOpsSettings.GitOpsManagerDefinitionId,
             cancellationToken
         );
+        Activity.Current.SetAppDeployBuild(build.Id.ToString());
 
         DeploymentEntity deploymentEntity = new()
         {
@@ -410,7 +412,7 @@ public class DeploymentService : IDeploymentService
     private static void SetPendingDecommissionTags(DeploymentEntity pendingDecommission, TimeSpan pendingAge)
     {
         Activity activity = Activity.Current;
-        activity?.SetTag(AltinnAttributes.AppDeployBuildId, pendingDecommission.Build?.Id);
+        activity.SetAppDeployBuild(pendingDecommission.Build?.Id);
         activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.PendingAgeSeconds, pendingAge.TotalSeconds);
         activity?.SetTag(
             ServiceTelemetry.Attributes.Undeploy.PendingSkipThresholdSeconds,

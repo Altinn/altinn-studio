@@ -30,6 +30,11 @@ internal static partial class ServiceTelemetry
         /// </summary>
         public const string Sampling = AltinnAttributes.Sampling;
 
+        /// <summary>
+        /// The Azure DevOps run that deploys or undeploys an app, on every part of the deploy.
+        /// </summary>
+        public const string AppDeployBuildId = AltinnAttributes.AppDeployBuildId;
+
         public static class AppActivity
         {
             private const string Prefix = "altinn.designer.app_activity.";
@@ -48,6 +53,32 @@ internal static partial class ServiceTelemetry
             public const string TimeoutSeconds = Prefix + "timeout_seconds";
             public const string UndeployedAppWithSignalCount = Prefix + "undeployed_app_with_signal_count";
             public const string WindowDays = Prefix + "window_days";
+        }
+
+        public static class AppDeploy
+        {
+            private const string Prefix = "altinn.designer.app_deploy.";
+
+            /// <summary>
+            /// Whether the pipeline deploys or undeploys the app: deploy or undeploy.
+            /// </summary>
+            public const string PipelineType = Prefix + "pipeline.type";
+
+            /// <summary>
+            /// The Azure DevOps run's status when Designer polled it, such as in_progress or completed.
+            /// </summary>
+            public const string PipelineStatus = Prefix + "pipeline.status";
+
+            /// <summary>
+            /// The completed Azure DevOps run's result: succeeded, partially_succeeded, failed or canceled.
+            /// </summary>
+            public const string PipelineResult = Prefix + "pipeline.result";
+
+            /// <summary>
+            /// How the deploy or undeploy ended: Flux's result, such as install_succeeded or upgrade_failed, or
+            /// pipeline_failed when the pipeline did not succeed.
+            /// </summary>
+            public const string Result = Prefix + "result";
         }
 
         public static class ChatCleanup

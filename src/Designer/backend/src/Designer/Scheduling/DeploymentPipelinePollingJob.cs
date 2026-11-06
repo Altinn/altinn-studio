@@ -31,6 +31,7 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly AppDeployMetrics _metrics;
 
     public DeploymentPipelinePollingJob(
         IAzureDevOpsBuildClient azureDevOpsBuildClient,
@@ -40,7 +41,8 @@ public class DeploymentPipelinePollingJob : IJob
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IPublisher mediatr,
         ILogger<DeploymentPipelinePollingJob> logger,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        AppDeployMetrics metrics
     )
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -51,6 +53,7 @@ public class DeploymentPipelinePollingJob : IJob
         _mediatr = mediatr;
         _logger = logger;
         _timeProvider = timeProvider;
+        _metrics = metrics;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -74,8 +77,16 @@ public class DeploymentPipelinePollingJob : IJob
             string environment = jobDataMap.GetRequiredString(
                 DeploymentPipelinePollingJobConstants.Arguments.Environment
             );
+            activity.SetRepository(org, app);
+            activity.SetTargetEnvironment(environment);
+            activity.SetAppDeployBuild(buildId);
+            activity?.SetTag(ServiceTelemetry.Attributes.AppDeploy.PipelineType, ServiceTelemetry.EnumValue(type));
 
             var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
+            activity?.SetTag(
+                ServiceTelemetry.Attributes.AppDeploy.PipelineStatus,
+                ServiceTelemetry.EnumValue(build.Status)
+            );
 
             var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
@@ -103,6 +114,8 @@ public class DeploymentPipelinePollingJob : IJob
 
             if (build.Status == BuildStatus.Completed)
             {
+                RecordCompletedPipeline(activity, editingContext, type, environment, buildId, build, deploymentEntity);
+
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
                     await UpdateMetadataInStorage(editingContext, environment);
@@ -126,6 +139,49 @@ public class DeploymentPipelinePollingJob : IJob
         {
             activity?.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Records the pipeline's end once, on the poll that first sees it completed. A pipeline that did not succeed
+    /// ends the deploy, since Designer asks the runtime to reconcile only after one that succeeded.
+    /// </summary>
+    private void RecordCompletedPipeline(
+        Activity activity,
+        AltinnRepoEditingContext editingContext,
+        PipelineType type,
+        string environment,
+        string buildId,
+        BuildEntity build,
+        DeploymentEntity deploymentEntity
+    )
+    {
+        TimeSpan sinceRequest = _timeProvider.GetUtcNow().UtcDateTime - deploymentEntity.Created;
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.AppDeploy.PipelineResult,
+            ServiceTelemetry.EnumValue(build.Result)
+        );
+        _metrics.RecordPipeline(type, environment, build.Result, sinceRequest);
+        if (build.Result == BuildResult.Succeeded)
+        {
+            return;
+        }
+
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.AppDeploy.Result,
+            ServiceTelemetry.EnumValue(DeployEventType.PipelineFailed)
+        );
+        activity?.SetTag(ServiceTelemetry.Attributes.ErrorType, ServiceTelemetry.EnumValue(build.Result));
+        activity?.SetStatus(ActivityStatusCode.Error);
+        _metrics.RecordResult(type, environment, DeployEventType.PipelineFailed, sinceRequest);
+        _logger.LogError(
+            "The {PipelineType} pipeline {BuildId} for {Org}/{App} in {Environment} ended with {BuildResult}",
+            ServiceTelemetry.EnumValue(type),
+            buildId,
+            editingContext.Org,
+            editingContext.Repo,
+            environment,
+            ServiceTelemetry.EnumValue(build.Result)
+        );
     }
 
     // Each poll continues the deploy request's trace on purpose: a deploy is one trace through Designer, Azure DevOps,
