@@ -303,7 +303,7 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
   let indicator = '';
-  if (required) {
+  if (required && !readOnly) {
     indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
   } else if (required === false && showOptionalMarking && !readOnly) {
     indicator = ` ${langAsString('general.optional')}`;
