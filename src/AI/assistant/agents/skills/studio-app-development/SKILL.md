@@ -113,26 +113,6 @@ The studio-app-lib skill says which interface does what.
   components that use them.
 - Treat a data model's files as one unit. The studio-data-model skill says which file is the source.
 
-## Which skill to use
-
-- studio-app-settings: `applicationmetadata.json`, `appsettings.json`, party types, stateless apps and other
-  app-wide settings.
-- studio-app-lib: C# extension points in `Altinn.App.Core` and `Altinn.App.Api`, and how to register them.
-- studio-code-lists: options and code lists for components.
-- studio-data-model: data models under `App/models/`.
-- studio-docs: finding the page on docs.altinn.studio when no skill covers a question.
-- studio-expressions: dynamic expressions, such as `hidden` and `required`.
-- studio-integrations: Maskinporten, external APIs, Correspondence, notifications, events, eFormidling and Fiks Arkiv
-  configuration, system users and API clients.
-- studio-layouts: pages, page order, components, navigation, Summary2, subforms and UI settings.
-- studio-payment: payment, end to end.
-- studio-policy: `App/config/authorization/policy.xml`.
-- studio-prefill: prefill.
-- studio-process: `App/config/process/process.bpmn`.
-- studio-signing: signing, end to end.
-- studio-text-resources: `App/config/texts/resource.<lang>.json`.
-- studio-validation: which validation mechanism to use, and how each one works.
-
 ## Before you finish
 
 - Every ID you added or renamed resolves: task IDs, data type IDs, bindings, text keys and `optionsId`.
