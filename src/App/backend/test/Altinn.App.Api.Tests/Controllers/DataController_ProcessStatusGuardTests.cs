@@ -1,12 +1,9 @@
 using System.Net.Http.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
@@ -78,8 +75,12 @@ public sealed class DataControllerProcessStatusGuardTests : ApiTestBase, IClassF
                         [
                             new(
                                 dataGuid,
-                                new JsonPatch(
-                                    PatchOperation.Replace(JsonPointer.Create("Navn"), JsonValue.Create("Changed"))
+                                JsonPatchOperation.ParseList(
+                                    """
+                                    [
+                                        { "op": "replace", "path": "/Navn", "value": "Changed" }
+                                    ]
+                                    """
                                 )
                             ),
                         ],

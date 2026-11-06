@@ -16,6 +16,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: the data patch API in `Altinn.App.Api` no longer exposes JsonPatch.Net: ([#21762](https://github.com/Altinn/altinn-studio/pull/21762))
+  - `DataPatchRequest.Patch` and `PatchListItem.Patch` are a `List<JsonPatchOperation>`, built with `JsonPatchOperation.ParseList`
+  - `InternalPatchService` and `DataPatchResult` are internal, and the controller constructors no longer take the service
+  - `move`, `copy` and `#`-prefixed paths get `400 Bad Request`, and a failed `test` has a new `detail` text
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))

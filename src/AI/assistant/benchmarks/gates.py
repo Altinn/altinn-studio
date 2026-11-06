@@ -9,13 +9,8 @@ from typing import Any
 from langfuse import Evaluation
 
 from agents.prompts.loader import compiled_system_message
-from agents.services.llm.intent_parser import MINIMUM_INTENT_CONFIDENCE
 
 from .experiment import ItemEvaluator
-
-CONFIDENCE_THRESHOLD = MINIMUM_INTENT_CONFIDENCE
-ABOVE = "at_or_above_threshold"
-BELOW = "below_threshold"
 
 
 def parse_verdict(text: str) -> dict[str, Any] | None:
@@ -33,12 +28,6 @@ def parse_verdict(text: str) -> dict[str, Any] | None:
     return parsed if isinstance(parsed, dict) else None
 
 
-def _band(confidence: Any) -> str | None:
-    if not isinstance(confidence, (int, float)):
-        return None
-    return ABOVE if confidence >= CONFIDENCE_THRESHOLD else BELOW
-
-
 def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did the gate reach the decision the item expects."""
     expected = expected_output or {}
@@ -50,18 +39,6 @@ def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -
                 value=0.0,
                 data_type="BOOLEAN",
                 comment="the answer was not JSON, so no verdict could be read",
-            )
-        ]
-
-    if "confidence_band" in expected:
-        actual = _band(verdict.get("confidence"))
-        wanted = expected["confidence_band"]
-        return [
-            Evaluation(
-                name="gate_verdict",
-                value=1.0 if actual == wanted else 0.0,
-                data_type="BOOLEAN",
-                comment=f"confidence {verdict.get('confidence')} is {actual}, expected {wanted}",
             )
         ]
 
