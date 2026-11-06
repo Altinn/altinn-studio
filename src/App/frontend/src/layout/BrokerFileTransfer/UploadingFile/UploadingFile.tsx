@@ -76,10 +76,6 @@ export function UploadingFile({ baseComponentId, active, progress, onPause, onRe
           params={announcement.params}
         />
       </span>
-      <ChecksumField
-        baseComponentId={baseComponentId}
-        value={active.checksum ?? ''}
-      />
       {error && (
         <Alert data-color='danger'>
           <Lang
@@ -116,6 +112,10 @@ export function UploadingFile({ baseComponentId, active, progress, onPause, onRe
           />
         )}
       </div>
+      <ChecksumField
+        baseComponentId={baseComponentId}
+        value={active.checksum ?? ''}
+      />
     </div>
   );
 }

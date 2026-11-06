@@ -95,11 +95,6 @@ export function ChooseFile({
         onPick={pick}
         onRemove={remove}
       />
-      <ChecksumField
-        baseComponentId={baseComponentId}
-        value={interrupted ? (interrupted.checksum ?? '') : checksum}
-        onChange={interrupted ? undefined : setChecksum}
-      />
       {error && (
         <Alert data-color='danger'>
           <Lang
@@ -108,30 +103,36 @@ export function ChooseFile({
           />
         </Alert>
       )}
-      <div className={classes.actions}>
-        {interrupted ? (
-          <>
-            <Button
-              disabled={!file || !!problem}
-              onClick={() => file && onContinue(file)}
-            >
-              <Lang id='broker_file_transfer.continue_upload' />
-            </Button>
-            <CancelUploadButton
-              label='broker_file_transfer.discard_upload'
-              confirmLabel='broker_file_transfer.discard_confirm_yes'
-              onConfirm={onDiscard}
-            />
-          </>
-        ) : (
+      {interrupted && (
+        <div className={classes.actions}>
+          <Button
+            disabled={!file || !!problem}
+            onClick={() => file && onContinue(file)}
+          >
+            <Lang id='broker_file_transfer.continue_upload' />
+          </Button>
+          <CancelUploadButton
+            label='broker_file_transfer.discard_upload'
+            confirmLabel='broker_file_transfer.discard_confirm_yes'
+            onConfirm={onDiscard}
+          />
+        </div>
+      )}
+      <ChecksumField
+        baseComponentId={baseComponentId}
+        value={interrupted ? (interrupted.checksum ?? '') : checksum}
+        onChange={interrupted ? undefined : setChecksum}
+      />
+      {!interrupted && (
+        <div className={classes.actions}>
           <Button
             disabled={!file || !!problem || !isChecksumReady}
             onClick={() => file && onSend(file, checksumToSend)}
           >
             <Lang id='broker_file_transfer.send' />
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
