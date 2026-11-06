@@ -1,7 +1,8 @@
 import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { get, isHttpError } from 'app-shared/utils/networking';
+import { isHttpError } from 'app-shared/utils/networking';
+import { getResource } from 'admin/features/apps/utils/getResource';
 import type {
   InstancesResponse,
   SimpleInstance,
@@ -37,7 +38,7 @@ export const useAppInstancesQuery = (
       createdBefore,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
-      await get<InstancesResponse>(
+      await getResource<InstancesResponse>(
         instancesListPath(
           org,
           env,

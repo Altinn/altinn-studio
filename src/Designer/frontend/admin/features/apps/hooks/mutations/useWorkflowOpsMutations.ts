@@ -26,7 +26,7 @@ export type WorkflowOpsContext = {
 
 export const useResumeWorkflowMutation = (
   context: WorkflowOpsContext,
-): UseMutationResult<ResumeWorkflowResponse, unknown, string> => {
+): UseMutationResult<ResumeWorkflowResponse | null, unknown, string> => {
   const queryClient = useQueryClient();
   const { org, env, app } = context;
 

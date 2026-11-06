@@ -262,6 +262,18 @@ describe('networking', () => {
       expect(error.message).toBe('Failed to fetch');
     });
 
+    it('throws an HttpError with the status when the body cannot be read', async () => {
+      const response = new Response(null, { status: 403 });
+      vi.spyOn(response, 'text').mockRejectedValueOnce(new TypeError('network error'));
+      fetchSpy.mockResolvedValueOnce(response);
+
+      const error = await get(testUrl).catch((e) => e);
+
+      expect(isHttpError(error)).toBe(true);
+      expect(error.response.status).toBe(403);
+      expect(error.message).toBe('network error');
+    });
+
     it('rethrows an aborted request as it is', async () => {
       const abortError = new DOMException('The operation was aborted.', 'AbortError');
       fetchSpy.mockRejectedValueOnce(abortError);

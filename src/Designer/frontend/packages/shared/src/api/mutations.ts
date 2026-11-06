@@ -167,7 +167,7 @@ export const createRepoCommit = (org: string, app: string, payload: CreateRepoCo
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) =>
   del(appMetadataAttachmentPath(org, app), {
     headers,
-    data: id,
+    data: JSON.stringify(id),
   });
 export const deleteDataModel = (org: string, app: string, modelPath: string) => del(dataModelPath(org, app, modelPath, true));
 export const deleteFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string) => del(formLayoutPath(org, app, layoutName, layoutSetName));

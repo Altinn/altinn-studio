@@ -87,7 +87,7 @@ async function request<T>(
   // The type parameter is the caller's claim about what the endpoint returns, as with `Response.json()`.
   const response: HttpResponse<T> = {
     status: fetchResponse.status,
-    data: (await readData(fetchResponse)) as T,
+    data: (await withHttpError(readData(fetchResponse), fetchResponse.status)) as T,
   };
   if (!fetchResponse.ok) throw new HttpError<T>(response);
 
@@ -95,12 +95,22 @@ async function request<T>(
   return response;
 }
 
-async function send(url: string, init: RequestInit): Promise<Response> {
+function send(url: string, init: RequestInit): Promise<Response> {
+  return withHttpError(fetch(url, init));
+}
+
+/**
+ * Turns a failure to send the request, or to read the body after the status arrived, into an
+ * HttpError. The status is kept when there is one, so a 403 still reads as a 403. An aborted
+ * request is rethrown as it is.
+ */
+async function withHttpError<R>(promise: Promise<R>, status?: number): Promise<R> {
   try {
-    return await fetch(url, init);
+    return await promise;
   } catch (error) {
     if (isRequestCancelled(error)) throw error;
-    throw new HttpError(undefined, (error as Error)?.message, { cause: error });
+    const response = status === undefined ? undefined : { status, data: undefined };
+    throw new HttpError(response, (error as Error)?.message, { cause: error });
   }
 }
 
@@ -160,9 +170,13 @@ async function readData(response: Response): Promise<unknown> {
 const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
 const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 
+// Not `URL.canParse`, since Safari before 17 lacks it.
 function isSameOrigin(url: string): boolean {
-  if (!URL.canParse(url, window.location.href)) return false;
-  return new URL(url, window.location.href).origin === window.location.origin;
+  try {
+    return new URL(url, window.location.href).origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function readCookie(name: string): string | null {
