@@ -13,11 +13,18 @@ match.  Deliberately narrow:
   * Redirects are followed, because the docs site sends each URL without
     a final slash to the URL with the slash.  Each redirect must pass the
     same allowlist check as the first URL.
+
+The chat lists each fetched page as a source, but not the index, which
+only finds pages.  The skill fetches a page as Markdown, which has no
+title, and links in the skills lead to the HTML page.  Both give a
+source with the URL of the HTML page and the title in the index, so the
+loop lists the page once.
 """
 
 from __future__ import annotations
 
 import re
+import time
 from urllib.parse import urlparse
 
 import httpx
@@ -29,6 +36,18 @@ ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "alt
 MAX_RESPONSE_CHARS = 60_000
 FETCH_TIMEOUT_SECONDS = 20.0
 MAX_REDIRECTS = 3
+
+DOCS_HOST = "docs.altinn.studio"
+DOCS_LANGUAGES = ("nb", "en")
+INDEX_FILENAME = "llms.txt"
+MARKDOWN_PAGE = "index.md"
+# The docs site ends each HTML title with this, and the index leaves it out.
+_TITLE_SUFFIX = " – Altinn"
+_INDEX_TTL_SECONDS = 60 * 60
+_INDEX_ENTRY_RE = re.compile(r"^- \[(?P<title>[^\]]+)\]\((?P<url>[^)\s]+)\)", re.MULTILINE)
+
+# Each language's index, as page URL to title, kept for an hour.
+_indexes: dict[str, tuple[float, dict[str, str]]] = {}
 
 _TAG_STRIP_RE = re.compile(r"<(script|style|nav|header|footer)[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE)
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
@@ -71,21 +90,13 @@ class WebFetchTool(Tool[WebFetchArgs]):
         if isinstance(response, ToolResult):
             return response
         text, title = _extract_page(response, args.filter)
-        url = str(response.url)
-        return ToolResult(
-            content=text,
-            metadata={
-                "url": url,
-                "chars": len(text),
-                # Consulted-source record, collected by the loop and shown
-                # in the chat UI.  Ground truth: this page WAS fetched.
-                "source": {
-                    "title": title or _title_from_url(url),
-                    "url": url,
-                    "kind": "docs",
-                },
-            },
-        )
+        metadata: dict[str, object] = {"url": str(response.url), "chars": len(text)}
+        # Consulted-source record, collected by the loop and shown in the
+        # chat UI.  Ground truth: this page WAS fetched.
+        source = await _source(response, title)
+        if source is not None:
+            metadata["source"] = source
+        return ToolResult(content=text, metadata=metadata)
 
 
 def _check_url(url: str) -> ToolResult | None:
@@ -166,6 +177,72 @@ def _page_title(html: str) -> str | None:
         return None
     title = _ANY_WHITESPACE_RE.sub(" ", match.group(1)).strip()
     return title or None
+
+
+async def _source(response: httpx.Response, html_title: str | None) -> dict[str, str] | None:
+    """The page to list as a source, or None for the docs index."""
+    if _is_index(response.url):
+        _keep_index(response.url, response.text)
+        return None
+    page = _page_url(response.url)
+    title = await _index_title(page) or _without_suffix(html_title)
+    if title is None and response.url.path.endswith(f"/{MARKDOWN_PAGE}"):
+        title = await _html_title(page)
+    return {"title": title or _title_from_url(page), "url": page, "kind": "docs"}
+
+
+def _is_index(url: httpx.URL) -> bool:
+    return url.host == DOCS_HOST and url.path.endswith(f"/{INDEX_FILENAME}")
+
+
+def _page_url(url: httpx.URL) -> str:
+    """The URL that opens the page in a browser: without `index.md`, a query or an anchor."""
+    path = url.path.removesuffix(MARKDOWN_PAGE) if url.path.endswith(f"/{MARKDOWN_PAGE}") else url.path
+    return str(url.copy_with(path=path, query=None, fragment=None))
+
+
+async def _index_title(page: str) -> str | None:
+    url = httpx.URL(page)
+    language = url.path.split("/")[1] if url.path.count("/") > 1 else ""
+    if url.host != DOCS_HOST or language not in DOCS_LANGUAGES:
+        return None
+    return (await _index(f"https://{DOCS_HOST}/{language}/{INDEX_FILENAME}")).get(page)
+
+
+async def _index(index_url: str) -> dict[str, str]:
+    kept = _indexes.get(index_url)
+    if kept and time.monotonic() - kept[0] < _INDEX_TTL_SECONDS:
+        return kept[1]
+    response = await _fetch(index_url)
+    if isinstance(response, ToolResult):
+        return {}
+    return _keep_index(response.url, response.text)
+
+
+def _keep_index(url: httpx.URL, text: str) -> dict[str, str]:
+    """Keeps only an index that has entries, so that one bad answer does not last for the whole hour."""
+    titles: dict[str, str] = {}
+    for entry in _INDEX_ENTRY_RE.finditer(text):
+        try:
+            entry_url = httpx.URL(entry["url"])
+        except httpx.InvalidURL:
+            continue
+        titles.setdefault(_page_url(entry_url), entry["title"].strip())
+    if titles:
+        _indexes[_page_url(url)] = (time.monotonic(), titles)
+    return titles
+
+
+async def _html_title(page: str) -> str | None:
+    """The title of the HTML page, for a Markdown page that the index does not list."""
+    response = await _fetch(page)
+    if isinstance(response, ToolResult) or "html" not in response.headers.get("content-type", ""):
+        return None
+    return _without_suffix(_page_title(response.text))
+
+
+def _without_suffix(title: str | None) -> str | None:
+    return (title.removesuffix(_TITLE_SUFFIX) or None) if title else None
 
 
 def _title_from_url(url: str) -> str:

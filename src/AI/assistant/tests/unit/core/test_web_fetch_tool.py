@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from agents.core import LoopContext, WebFetchTool
+from agents.core.tools import web_fetch_tool
 from agents.core.tools.web_fetch_tool import MAX_REDIRECTS, MAX_RESPONSE_CHARS
 
 from .conftest import Handler
@@ -13,6 +14,40 @@ from .conftest import Handler
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
+
+INDEX_URL = "https://docs.altinn.studio/nb/llms.txt"
+PAGE_URL = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/partytype/"
+MARKDOWN_URL = f"{PAGE_URL}index.md"
+INDEX = (
+    "# Altinn dokumentasjon\n\n"
+    f"- [Aktørtyper]({MARKDOWN_URL}): Hvordan sørge for at kun bestemte typer aktører kan bruke en app.\n"
+    "- [Dokumentasjonskilde](https://github.com/altinn/altinn-studio-docs): Kilde for denne dokumentasjonssiden\n"
+)
+
+
+@pytest.fixture(autouse=True)
+def no_kept_index(monkeypatch):
+    monkeypatch.setattr(web_fetch_tool, "_indexes", {})
+
+
+def _docs_site(index: str | None = INDEX) -> Handler:
+    """Serve the index, the page as Markdown and the page as HTML, which sends the URL without a slash on."""
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if url == INDEX_URL and index is not None:
+            return httpx.Response(200, text=index, headers={"content-type": "text/plain; charset=utf-8"})
+        if url == MARKDOWN_URL:
+            return httpx.Response(200, text="## Avgrense tilgang", headers={"content-type": "text/markdown"})
+        if url == PAGE_URL.removesuffix("/"):
+            return httpx.Response(301, headers={"location": PAGE_URL})
+        if url.startswith(PAGE_URL):
+            return httpx.Response(
+                200, text="<title>Aktørtyper – Altinn</title><p>x</p>", headers={"content-type": HTML}
+            )
+        return httpx.Response(404)
+
+    return handle
 
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:
@@ -173,7 +208,7 @@ class TestRedirects:
 
         assert not result.is_error
         assert result.content == "Guides"
-        assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH, DOCS_URL]
+        assert [str(request.url) for request in requests[:2]] == [DOCS_URL_WITHOUT_SLASH, DOCS_URL]
 
     async def test_refuses_a_redirect_to_a_host_that_is_not_allowed(self, serve):
         requests = serve(_redirect_to("https://example.com/guides/"))
@@ -237,3 +272,48 @@ class TestSourceRecord:
         result = await _fetch(url)
 
         assert result.metadata["source"]["title"] == title
+
+    async def test_lists_no_source_for_the_docs_index(self, serve):
+        serve(_docs_site())
+
+        result = await _fetch(INDEX_URL, filter="aktørtyper")
+
+        assert "Aktørtyper" in result.content
+        assert "source" not in result.metadata
+
+    async def test_names_a_markdown_page_after_the_index_and_links_the_html_page(self, serve):
+        serve(_docs_site())
+
+        result = await _fetch(MARKDOWN_URL)
+
+        assert result.metadata["source"] == {"title": "Aktørtyper", "url": PAGE_URL, "kind": "docs"}
+
+    @pytest.mark.parametrize(
+        "html_url", [PAGE_URL, PAGE_URL.removesuffix("/"), f"{PAGE_URL}#avgrense-tilgang", f"{PAGE_URL}?x=1"]
+    )
+    async def test_the_markdown_and_the_html_page_give_one_source(self, serve, html_url):
+        serve(_docs_site())
+
+        markdown = await _fetch(MARKDOWN_URL)
+        html = await _fetch(html_url)
+
+        assert html.metadata["source"] == markdown.metadata["source"]
+
+    @pytest.mark.parametrize("index", ["# Altinn dokumentasjon\n", None], ids=["page not in the index", "no index"])
+    async def test_the_markdown_and_the_html_page_give_one_source_without_the_index(self, serve, index):
+        serve(_docs_site(index))
+
+        markdown = await _fetch(MARKDOWN_URL)
+        html = await _fetch(PAGE_URL)
+
+        assert markdown.metadata["source"] == {"title": "Aktørtyper", "url": PAGE_URL, "kind": "docs"}
+        assert html.metadata["source"] == markdown.metadata["source"]
+
+    async def test_keeps_the_index_that_the_model_searched(self, serve):
+        requests = serve(_docs_site())
+
+        await _fetch(INDEX_URL, filter="aktørtyper")
+        await _fetch(MARKDOWN_URL)
+        await _fetch(PAGE_URL)
+
+        assert [str(request.url) for request in requests] == [INDEX_URL, MARKDOWN_URL, PAGE_URL]
