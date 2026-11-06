@@ -1,9 +1,6 @@
 using Altinn.Studio.Common;
-using Altinn.Studio.Preview.Configuration;
-using Altinn.Studio.Preview.Files;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Preview.Apps;
 
@@ -35,7 +32,7 @@ internal static class PreviewEndpoints
         return endpoints;
     }
 
-    private static IResult ServeAppFile(HttpContext context, string? path, IOptions<PreviewOptions> options)
+    private static IResult ServeAppFile(HttpContext context, string? path)
     {
         if (string.IsNullOrEmpty(path))
         {
@@ -44,9 +41,7 @@ internal static class PreviewEndpoints
 
         PreviewSessionFeature session = context.Features.GetRequiredFeature<PreviewSessionFeature>();
 #pragma warning disable CA2000 // Results.File disposes the stream once the response is written.
-        FileStream? file = AppFolder
-            .Find(options.Value.RepositoryRoot, session.Session.WorkingCopy)
-            ?.OpenRead(AppFilesFolder + path);
+        Stream? file = session.Folder.OpenRead(AppFilesFolder + path);
 #pragma warning restore CA2000
         if (file is null)
         {

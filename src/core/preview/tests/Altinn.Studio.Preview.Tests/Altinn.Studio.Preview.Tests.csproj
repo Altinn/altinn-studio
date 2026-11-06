@@ -14,6 +14,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <!-- Like the service, which opens files with Linux system calls. -->
+    <AssemblyAttribute Include="System.Runtime.Versioning.SupportedOSPlatformAttribute">
+      <_Parameter1>linux</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>

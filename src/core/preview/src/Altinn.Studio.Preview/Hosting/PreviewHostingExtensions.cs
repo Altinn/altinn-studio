@@ -2,6 +2,7 @@ using Altinn.Studio.Common;
 using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Preview.Apps;
 using Altinn.Studio.Preview.Configuration;
+using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Instrumentation.AspNetCore;
@@ -32,6 +33,12 @@ internal static class PreviewHostingExtensions
             .Services.AddOptions<PreviewOptions>()
             .BindConfiguration(PreviewOptions.SectionName)
             .ValidateDataAnnotations()
+            .Validate(
+                options =>
+                    !string.IsNullOrEmpty(options.RepositoryRoot)
+                    && AppFolder.CanOpenRepositoryRoot(options.RepositoryRoot),
+                $"{PreviewOptions.SectionName}:{nameof(PreviewOptions.RepositoryRoot)} must be a directory the service can open."
+            )
             .ValidateOnStart();
 
         builder.Services.TryAddSingleton(TimeProvider.System);
