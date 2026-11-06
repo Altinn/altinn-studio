@@ -6,7 +6,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 {
     /// <summary>
     /// Reads the access packages from the test data. A user's roles for a party also give the packages Access
-    /// Management derives from them.
+    /// Management derives from them, and a person always holds privatperson (PRIV) for their own party, as the
+    /// platform gives every person it from the register.
     /// </summary>
     public class AccessPackagesWrapper : IAccessPackages
     {
@@ -68,7 +69,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     .SelectMany(role => _roleAccessPackages.GetPackages(role.Value, unitType)));
             }
 
+            if (IsOwnPartyOfPerson(data, user, partyId))
+            {
+                packages = packages.Concat(_roleAccessPackages.GetPackages(PrivatePersonRoleCode, null));
+            }
+
             return packages;
         }
+
+        private const string PrivatePersonRoleCode = "priv";
+
+        /// <summary>Whether the party is the user's own and the user is a person (not self-identified).</summary>
+        private static bool IsOwnPartyOfPerson(TestDataModel data, string userId, int partyId) =>
+            data.Profile.User.TryGetValue(userId, out var profile)
+            && profile.PartyId == partyId
+            && !string.IsNullOrEmpty(profile.Party?.SSN);
     }
 }

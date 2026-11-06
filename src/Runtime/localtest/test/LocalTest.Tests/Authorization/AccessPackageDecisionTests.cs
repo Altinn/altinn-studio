@@ -170,6 +170,17 @@ public sealed class AccessPackageDecisionTests
     }
 
     [Fact]
+    public async Task Person_HoldsTheCitizenPackagesForThemselvesWithoutPrivInTheTestData()
+    {
+        using var harness = new AccessPackageHarness();
+
+        // Gjentagende Forelder has no roles on their own party in the test data
+        Assert.Contains("innbygger-arbeidsliv", await harness.AccessPackages.GetAccessPackagesForUser(1002, 510002));
+        Assert.DoesNotContain("innbygger-arbeidsliv", await harness.AccessPackages.GetAccessPackagesForUser(1002, 500000));
+        Assert.DoesNotContain("innbygger-arbeidsliv", await harness.AccessPackages.GetAccessPackagesForUser(1001, 510002));
+    }
+
+    [Fact]
     public async Task AuthorizedParties_ListThePackagesAndRolesPerParty()
     {
         using var harness = new AccessPackageHarness();
