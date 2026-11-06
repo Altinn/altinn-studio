@@ -130,6 +130,7 @@ const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-grafana-manifests.yaml', RUNTIME_ENVS.slice(2)],
   ['deploy-runtime-workflow-engine-app.yaml', RUNTIME_ENVS],
   ['deploy-runtime-apps-config.yaml', RUNTIME_ENVS],
+  ['deploy-runtime-platform-proxy.yaml', RUNTIME_ENVS],
 ];
 
 const SERVICES = [

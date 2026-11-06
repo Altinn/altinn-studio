@@ -1,0 +1,121 @@
+# Forwards apps' requests to the Altinn Platform, see the platform proxy's README. The environment overlays set
+# PLATFORM_PROXY_UPSTREAM_URL.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform-proxy
+  namespace: runtime-platform-proxy
+  annotations:
+    altinn.studio/image: runtime-platform-proxy:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 120
+  # No replicas, so Flux doesn't override the HPA
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: platform-proxy
+  template:
+    metadata:
+      labels:
+        app: platform-proxy
+      annotations:
+        linkerd.io/inject: enabled
+        # Kubernetes stops the Linkerd proxy only after the platform proxy has exited.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        # Never two pods in one zone while another zone has none, so losing a zone leaves a pod running.
+        # Clusters with nodes in a single zone still schedule both there.
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: platform-proxy
+          matchLabelKeys:
+            - pod-template-hash
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: platform-proxy
+          matchLabelKeys:
+            - pod-template-hash
+      serviceAccountName: platform-proxy
+      # The proxy reads the accesstoken Secret through the Kubernetes API.
+      automountServiceAccountToken: true
+      # The readiness drain delay (5s) and the time requests in flight get to finish (45s), in
+      # cmd/platform-proxy, plus 5s for the Linkerd proxy's drain after the platform proxy has exited.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: platform-proxy
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 5040
+              protocol: TCP
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "platform-proxy"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
+            # The issuer of the tokens the proxy signs.
+            - name: PLATFORM_PROXY_SERVICEOWNER
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: serviceowner
+          # Ready once the proxy can sign tokens, so a cluster without the accesstoken Secret gets no traffic
+          # through it. Liveness only reflects the process.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5040
+            periodSeconds: 3
+            failureThreshold: 3
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5040
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
