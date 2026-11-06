@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -33,21 +31,13 @@ var (
 	kustomizationGVR = kustomizev1.GroupVersion.WithResource("kustomizations")
 	ociRepositoryGVR = sourcev1.GroupVersion.WithResource("ocirepositories")
 
-	errKubeClientRequired       = errors.New("kubeClient is required")
-	errUnknownSourceKind        = errors.New("unknown source kind")
-	errFluxBuildInfoUnavailable = errors.New("resolve flux install version: Go build info unavailable")
-	errFluxVersionUnavailable   = errors.New(
-		"resolve flux install version: github.com/fluxcd/flux2/v2 version unavailable in Go build info",
-	)
-	errFluxModuleNotFound = errors.New(
-		"resolve flux install version: github.com/fluxcd/flux2/v2 not found in Go build info",
-	)
+	errKubeClientRequired = errors.New("kubeClient is required")
+	errUnknownSourceKind  = errors.New("unknown source kind")
 )
 
 const (
 	fluxInstallConcurrency      = 8
 	fluxInstallGenerateAttempts = 3
-	fluxModulePath              = "github.com/fluxcd/flux2/v2"
 	yamlDecoderBufferSize       = 4096
 	fluxCABundleConfigMap       = cabundle.KubernetesConfigMapName
 	fluxCABundleKey             = cabundle.KubernetesConfigMapKey
@@ -56,7 +46,7 @@ const (
 )
 
 var (
-	installGenerate               = install.Generate
+	installGenerate               = generateFluxManifest
 	fluxInstallGenerateRetryDelay = 2 * time.Second
 )
 
@@ -120,12 +110,7 @@ func (c *FluxClient) Install(
 	components []string,
 	installOpts InstallOptions,
 ) error {
-	opts, err := defaultInstallOptions(components)
-	if err != nil {
-		return err
-	}
-
-	manifest, err := generateInstallManifest(ctx, opts)
+	manifest, err := generateInstallManifest(ctx, components)
 	if err != nil {
 		return fmt.Errorf("failed to generate flux install manifests: %w", err)
 	}
@@ -152,12 +137,12 @@ func (c *FluxClient) Install(
 	return nil
 }
 
-func generateInstallManifest(ctx context.Context, opts install.Options) (string, error) {
+func generateInstallManifest(ctx context.Context, components []string) (string, error) {
 	var lastErr error
 	for attempt := 1; attempt <= fluxInstallGenerateAttempts; attempt++ {
-		manifest, err := installGenerate(opts, "")
+		manifest, err := installGenerate(ctx, components)
 		if err == nil {
-			return manifest.Content, nil
+			return manifest, nil
 		}
 		lastErr = err
 		if attempt == fluxInstallGenerateAttempts || !isRetryableInstallGenerateError(err) {
@@ -183,6 +168,9 @@ func waitForInstallGenerateRetry(ctx context.Context) error {
 }
 
 func isRetryableInstallGenerateError(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, io.ErrUnexpectedEOF) {
+		return true
+	}
 	message := strings.ToLower(err.Error())
 	retryableFragments := []string{
 		"status: 429",
@@ -202,42 +190,6 @@ func isRetryableInstallGenerateError(err error) bool {
 		}
 	}
 	return false
-}
-
-func defaultInstallOptions(components []string) (install.Options, error) {
-	version, err := fluxInstallVersion()
-	if err != nil {
-		return install.Options{}, err
-	}
-
-	opts := install.MakeDefaultOptions()
-	opts.Version = version
-	opts.Components = components
-	return opts, nil
-}
-
-func fluxInstallVersion() (string, error) {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
-		return "", errFluxBuildInfoUnavailable
-	}
-
-	for _, dep := range info.Deps {
-		if dep.Path != fluxModulePath {
-			continue
-		}
-
-		version := dep.Version
-		if dep.Replace != nil && dep.Replace.Version != "" {
-			version = dep.Replace.Version
-		}
-		if version == "" || version == "(devel)" {
-			return "", errFluxVersionUnavailable
-		}
-		return version, nil
-	}
-
-	return "", errFluxModuleNotFound
 }
 
 func parseManifestYAML(content string) ([]*unstructured.Unstructured, error) {

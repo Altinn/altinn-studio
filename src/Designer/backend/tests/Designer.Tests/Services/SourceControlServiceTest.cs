@@ -1010,7 +1010,7 @@ public class SourceControlServiceTest : IDisposable
         File.WriteAllText(Path.Join(localRepoPath, "test.txt"), "uncommitted change");
         File.WriteAllText(Path.Join(localRepoPath, "untracked.txt"), "untracked");
 
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
 
         using Repository repo = new(localRepoPath);
         Assert.Equal(General.DefaultBranch, repo.Head.FriendlyName);
@@ -1027,12 +1027,12 @@ public class SourceControlServiceTest : IDisposable
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
             repoName,
-            out _,
+            out string localRepoPath,
             out _
         );
 
         Assert.Throws<BranchNotFoundException>(() =>
-            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "missing")
+            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "missing", localRepoPath)
         );
     }
 
@@ -1054,7 +1054,7 @@ public class SourceControlServiceTest : IDisposable
                 new PushOptions()
             );
         }
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release");
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release", localRepoPath);
         using (Repository collaboratorRepo = new(collaboratorRepoPath))
         {
             collaboratorRepo.Network.Push(
@@ -1065,7 +1065,7 @@ public class SourceControlServiceTest : IDisposable
         }
 
         Assert.Throws<BranchNotFoundException>(() =>
-            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release")
+            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release", localRepoPath)
         );
         using Repository localRepo = new(localRepoPath);
         Assert.Null(localRepo.Branches["origin/release"]);
@@ -1084,7 +1084,7 @@ public class SourceControlServiceTest : IDisposable
         WriteFile(localRepoPath, "stale.yaml", "stale manifest");
         WriteFile(localRepoPath, "ignored-folder/manifest.yaml", "stale manifest");
 
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
 
         Assert.False(File.Exists(Path.Join(localRepoPath, ".gitignore")));
         Assert.False(File.Exists(Path.Join(localRepoPath, "stale.yaml")));
@@ -1112,10 +1112,10 @@ public class SourceControlServiceTest : IDisposable
             collaboratorRepo.Commit("ignore apps", signature, signature);
             collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
         }
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
         WriteFile(localRepoPath, "apps/stale.yaml", "stale manifest");
 
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
 
         Assert.False(File.Exists(Path.Join(localRepoPath, "apps", "stale.yaml")));
         Assert.True(File.Exists(Path.Join(localRepoPath, "apps", "tracked.yaml")));
@@ -1134,7 +1134,7 @@ public class SourceControlServiceTest : IDisposable
         WriteFile(localRepoPath, "leftover.txt", "leftover");
         string remoteSha = CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote");
 
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
         WriteFile(localRepoPath, "new.txt", "new content");
         _sourceControlService.CommitAndPushChanges(
             authenticatedContext,
@@ -1176,7 +1176,7 @@ public class SourceControlServiceTest : IDisposable
         }
         CommitLocalChange(otherServerRepoPath, "other-server-only.txt", "other server content", "other server");
 
-        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch);
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
 
         using Repository repo = new(localRepoPath);
         Assert.Equal(remoteSha, repo.Head.Tip.Sha);

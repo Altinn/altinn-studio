@@ -3,7 +3,6 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
@@ -79,7 +78,7 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
           : Promise.resolve({
               data: options,
               headers: {},
-            } as AxiosResponse<IRawOption[]>),
+            }),
       ...rest.queries,
     },
   });
@@ -137,7 +136,7 @@ describe('DropdownComponent', () => {
     fetchOptions.resolve({
       data: countries,
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
@@ -158,7 +157,7 @@ describe('DropdownComponent', () => {
         },
       ],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
     await userEvent.click(await screen.findByRole('combobox'));
@@ -295,9 +294,7 @@ describe('DropdownComponent', () => {
         },
       },
       options: countries,
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

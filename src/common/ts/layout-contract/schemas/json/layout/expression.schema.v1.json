@@ -77,6 +77,7 @@
         { "$ref": "#/definitions/func-frontendSettings" },
         { "$ref": "#/definitions/func-concat" },
         { "$ref": "#/definitions/func-formatDate" },
+        { "$ref": "#/definitions/func-formatNumber" },
         { "$ref": "#/definitions/func-linkToComponent" },
         { "$ref": "#/definitions/func-linkToPage" },
         { "$ref": "#/definitions/func-round" },
@@ -450,6 +451,17 @@
         { "const": "divide" },
         { "$ref": "#/definitions/number" },
         { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-formatNumber": {
+      "title": "Format number function",
+      "description": "Formats a number as a string using the same formatting options as Input and Number. Currency and unit formatting use the selected app language. The formatting object is optional.",
+      "type": "array",
+      "items": [
+        { "const": "formatNumber" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/object" }
       ],
       "additionalItems": false
     },

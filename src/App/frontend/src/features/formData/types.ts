@@ -1,5 +1,9 @@
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
-import type { BackendValidationIssuesWithSource, BuiltInValidationIssueSources } from 'src/features/validation';
+import type {
+  BackendValidationIssueGroups,
+  BackendValidationIssuesWithSource,
+  BuiltInValidationIssueSources,
+} from 'src/features/validation';
 import type { IInstance } from 'src/types/shared';
 
 /**
@@ -51,4 +55,22 @@ export function dataModelPairsToObject(pairs: IDataModelPairResponse[]): { [data
 export interface IDataModelPairResponse {
   dataElementId: string;
   data: object;
+}
+
+export interface UpdatedDataModel {
+  data: unknown;
+  dataType: string;
+  dataElementId: string | undefined; // Can be undefined in stateless apps
+}
+
+export interface FDSaveResult {
+  newDataModels: UpdatedDataModel[];
+  validationIssues: BackendValidationIssueGroups | undefined;
+  instance?: IInstance;
+}
+
+export interface FDSaveFinished extends FDSaveResult {
+  savedData: {
+    [dataType: string]: object;
+  };
 }

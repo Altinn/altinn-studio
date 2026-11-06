@@ -13,6 +13,12 @@ public sealed class HealthEndpointIntegrationTests : IAsyncLifetime
 {
     private static readonly Uri _healthEndpoint = new("/runtime/gateway/api/v1/health", UriKind.Relative);
 
+    // Any endpoint that requires Maskinporten and answers 200 in the kind cluster.
+    private static readonly Uri _authenticatedEndpoint = new(
+        "/runtime/gateway/api/v1/deploy/origin/dev/apps/",
+        UriKind.Relative
+    );
+
     private readonly HttpClient _client;
 
     public HealthEndpointIntegrationTests()
@@ -54,51 +60,67 @@ public sealed class HealthEndpointIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Health_WithValidToken_ReturnsOk()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await _client.GetAsync(_healthEndpoint, ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Health_WithoutToken_ReturnsUnauthorized()
+    public async Task Health_WithoutToken_ReturnsHealthy()
     {
         var ct = TestContext.Current.CancellationToken;
         _client.DefaultRequestHeaders.Authorization = null;
 
         var response = await _client.GetAsync(_healthEndpoint, ct);
 
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.StartsWith(
+            "{\"status\":\"healthy\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task Api_WithValidToken_ReturnsOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
+
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.GetAsync(_authenticatedEndpoint, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Api_WithoutToken_ReturnsUnauthorized()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        _client.DefaultRequestHeaders.Authorization = null;
+
+        var response = await _client.GetAsync(_authenticatedEndpoint, ct);
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
-    public async Task Health_WithWrongScope_ReturnsForbidden()
+    public async Task Api_WithWrongScope_ReturnsForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var token = FakeMaskinportenTokenGenerator.GenerateTokenWithWrongScope();
 
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.GetAsync(_healthEndpoint, ct);
+        var response = await _client.GetAsync(_authenticatedEndpoint, ct);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
-    public async Task Health_WithExpiredToken_ReturnsUnauthorized()
+    public async Task Api_WithExpiredToken_ReturnsUnauthorized()
     {
         var ct = TestContext.Current.CancellationToken;
         var token = FakeMaskinportenTokenGenerator.GenerateExpiredToken();
 
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.GetAsync(_healthEndpoint, ct);
+        var response = await _client.GetAsync(_authenticatedEndpoint, ct);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

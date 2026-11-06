@@ -1,6 +1,6 @@
 import { QueryClient, QueryObserver } from '@tanstack/react-query';
 
-import { createQueryCacheObserver } from 'src/core/queries/expressionQueryReaders';
+import { createQueryCacheObserver } from 'src/core/queries/expressionQueryReaders.queries';
 
 function makeClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });

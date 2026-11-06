@@ -32,15 +32,6 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	}
 
 	cmd.Dir = dir
-	runErr := os.Chdir(cmd.Dir)
-	if runErr != nil {
-		_, err = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", runErr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to write to GinkgoWriter: %w", err)
-		}
-		return nil, fmt.Errorf("change directory to %s: %w", cmd.Dir, runErr)
-	}
-
 	cmd.Env = append(os.Environ(), "GO111MODULE=on")
 	command := strings.Join(cmd.Args, " ")
 	_, err = fmt.Fprintf(GinkgoWriter, "running: %s\n", command)

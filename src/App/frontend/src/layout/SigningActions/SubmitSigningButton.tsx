@@ -2,12 +2,11 @@ import React, { useEffect } from 'react';
 
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { useQueryClient } from '@tanstack/react-query';
 
-import { useProcessNext } from 'src/features/instance/useProcessNext';
+import { useInvalidateSigningQueries } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { signingQueries } from 'src/layout/SigneeList/api';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
@@ -21,11 +20,11 @@ export function SubmitSigningButton({ baseComponentId }: { baseComponentId: stri
     Expressions.SigningActions.textResourceBindings.submitButton,
   );
 
-  const queryClient = useQueryClient();
+  const invalidateSigningQueries = useInvalidateSigningQueries();
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: signingQueries.all });
-  }, [isSuccess, queryClient]);
+    invalidateSigningQueries();
+  }, [isSuccess, invalidateSigningQueries]);
 
   const submitButtonText = submitButton ?? 'signing.submit_button';
 

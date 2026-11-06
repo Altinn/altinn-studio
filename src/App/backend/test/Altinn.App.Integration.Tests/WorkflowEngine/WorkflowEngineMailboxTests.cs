@@ -2,13 +2,10 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
-using Json.Pointer;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
@@ -424,9 +421,13 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new JsonPatch(
-                            PatchOperation.Replace(JsonPointer.Create("property1"), JsonNode.Parse("\"2\"")),
-                            PatchOperation.Replace(JsonPointer.Create("property2"), JsonNode.Parse("\"2\""))
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],

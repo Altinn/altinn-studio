@@ -53,6 +53,14 @@
       "matchStrings": ["ARG GO_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "description": "Update versions that Go code pins below a renovate comment, as customManagers:makefileVersions does for Makefiles",
+      "managerFilePatterns": ["/\\.go$/"],
+      "matchStrings": [
+        "// renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)\\s+\\w+\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ]
     }
   ],
   "separateMultipleMajor": true,
@@ -80,7 +88,8 @@
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["patch"],
       "groupName": "Kubernetes, Flux, and cluster tooling Go dependency patches",
@@ -93,7 +102,8 @@
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["minor", "major"],
       "dependencyDashboardApproval": true

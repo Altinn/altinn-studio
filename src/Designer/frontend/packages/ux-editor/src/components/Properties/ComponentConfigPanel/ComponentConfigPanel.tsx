@@ -10,7 +10,6 @@ import { DataModelBindings } from '../DataModelBindings';
 import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
-import { formItemConfigs } from '../../../data/formItemConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
@@ -35,7 +34,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
     return null;
   }
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+  const isUnknownInternalComponent: boolean = !getComponentDefinition(formItem.type);
   if (isUnknownInternalComponent)
     return (
       <div className={classes.unknownComponentAlert}>
