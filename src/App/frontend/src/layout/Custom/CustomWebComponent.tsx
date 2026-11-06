@@ -88,7 +88,8 @@ export function CustomWebComponent({
   const HtmlTag = config.tagName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wcRef = React.useRef<any>(null);
-  const { formData, setValue } = useDataModelBindings(dataModelBindings);
+  // A summary only displays the data, so it gets it as it is in the data model, objects and lists included.
+  const { formData, setValue } = useDataModelBindings(dataModelBindings, undefined, summaryMode ? 'raw' : 'string');
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
