@@ -33,7 +33,8 @@ internal static class SessionEndpoints
             );
         }
 
-        if (AppFolder.Find(options.Value.RepositoryRoot, workingCopy) is null)
+        using AppFolder? folder = AppFolder.Open(options.Value.RepositoryRoot, workingCopy);
+        if (folder is null)
         {
             return Results.Problem(
                 title: "The developer has no working copy of the app.",

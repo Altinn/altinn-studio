@@ -22,7 +22,12 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
   The [NetworkPolicy](infra/kustomize/base/networkpolicy.yaml) allows only Designer's pods, and the endpoints answer
   on their own port only.
 - A session reads its own working copy and nothing else. [AppFolder](src/Altinn.Studio.Preview/Files/AppFolder.cs)
-  refuses paths that leave it, reach `.git` or pass through a symbolic link.
+  is the only code that opens files, and the build fails on the .NET APIs that open files by path anywhere else
+  ([BannedSymbols.txt](src/Altinn.Studio.Preview/BannedSymbols.txt)). It holds the working copy's directory open
+  and opens each path from it with Linux's `openat2`, so the kernel refuses a path that leaves the working copy or
+  passes through a symbolic link, even one that appears while preview reads. `AppFolder` also refuses `.git`.
+- These rules are in preview's own code. The process can read every working copy on the share, so code running in
+  it could too.
 - Preview can't change a working copy, because the share is mounted read-only.
 - The service keeps its sessions in a Redis of its own, so it has no access to Designer's. Whoever can write a session
   there can read any working copy, so only preview's pods reach it and it requires a password.
@@ -36,7 +41,8 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
 
 The service runs in Designer's [local stack](../../Designer/development/README.md), on <http://preview.localhost>.
 
-From this directory:
+The service opens files with Linux system calls, so it and its tests run on Linux only, such as in a container or
+WSL. From this directory:
 
 ```bash
 dotnet csharpier check .

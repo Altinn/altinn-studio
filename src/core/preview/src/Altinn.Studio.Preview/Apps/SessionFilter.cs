@@ -1,13 +1,16 @@
+using Altinn.Studio.Preview.Configuration;
+using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Preview.Apps;
 
 /// <summary>
 /// Lets a request through only with a session that has not ended, for the app in its path. Every request it lets
-/// through renews the session. Any other request gets the same 404, so a response doesn't tell whether a session
-/// exists.
+/// through renews the session, and gets the session's working copy as an <see cref="AppFolder"/>, the only way an
+/// endpoint reads files. Any other request gets the same 404, so a response doesn't tell whether a session exists.
 /// </summary>
-internal sealed class SessionFilter(SessionStore sessionStore) : IEndpointFilter
+internal sealed class SessionFilter(SessionStore sessionStore, IOptions<PreviewOptions> options) : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -28,11 +31,21 @@ internal sealed class SessionFilter(SessionStore sessionStore) : IEndpointFilter
             return Results.NotFound();
         }
 
-        httpContext.Features.Set(new PreviewSessionFeature(session));
+#pragma warning disable CA2000 // The response disposes the folder once it is written.
+        AppFolder? folder = AppFolder.Open(options.Value.RepositoryRoot, session.WorkingCopy);
+#pragma warning restore CA2000
+        if (folder is null)
+        {
+            return Results.NotFound();
+        }
+
+        httpContext.Response.RegisterForDispose(folder);
+        httpContext.Features.Set(new PreviewSessionFeature(session, folder));
         return await next(context);
     }
 }
 
 /// <summary>The session of a request that <see cref="SessionFilter"/> let through.</summary>
 /// <param name="Session">The request's session.</param>
-internal sealed record PreviewSessionFeature(PreviewSession Session);
+/// <param name="Folder">The session's working copy, open for the rest of the request.</param>
+internal sealed record PreviewSessionFeature(PreviewSession Session, AppFolder Folder);
