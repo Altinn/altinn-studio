@@ -3,70 +3,25 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 public class ProcessStepOptionsResolverTests
 {
-    private static ProcessStepOptionsResolver CreateResolver(Action<IServiceCollection>? register = null)
+    private static ProcessStepOptionsResolver CreateResolver()
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        register?.Invoke(services);
-        var sp = services.BuildServiceProvider();
-        var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
+        var appImplFactory = services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>();
 
         // ExecuteServiceTask is the only command declaring a tier-2 default (10 min) today.
-        return new ProcessStepOptionsResolver(
-            [
-                // Only its DefaultStepOptions are read here; nothing executes.
-                new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
-            ],
-            appImplFactory
-        );
-    }
-
-    private static Mock<IOnTaskStartingHandler> StartingHook(
-        Func<string, bool> shouldRun,
-        ProcessStepOptions? stepOptions
-    )
-    {
-        var mock = new Mock<IOnTaskStartingHandler>();
-        mock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns<string>(t => shouldRun(t));
-        if (stepOptions is not null)
-            mock.Setup(h => h.StepOptions).Returns(stepOptions);
-        return mock;
-    }
-
-    private static Mock<IOnTaskEndingHandler> EndingTaskHook(
-        Func<string, bool> shouldRun,
-        ProcessStepOptions? stepOptions
-    )
-    {
-        var mock = new Mock<IOnTaskEndingHandler>();
-        mock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns<string>(t => shouldRun(t));
-        if (stepOptions is not null)
-            mock.Setup(h => h.StepOptions).Returns(stepOptions);
-        return mock;
-    }
-
-    private static Mock<IOnTaskAbandoningHandler> AbandonHook(
-        Func<string, bool> shouldRun,
-        ProcessStepOptions? stepOptions
-    )
-    {
-        var mock = new Mock<IOnTaskAbandoningHandler>();
-        mock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns<string>(t => shouldRun(t));
-        if (stepOptions is not null)
-            mock.Setup(h => h.StepOptions).Returns(stepOptions);
-        return mock;
+        // Only its DefaultStepOptions are read here; nothing executes.
+        return new ProcessStepOptionsResolver([
+            new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
+        ]);
     }
 
     [Fact]
@@ -74,7 +29,7 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolver();
 
-        var result = resolver.Resolve("StartTask", taskId: "Task_1");
+        var result = resolver.Resolve("StartTask");
 
         Assert.Null(result);
     }
@@ -86,7 +41,7 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolver();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null);
+        var result = resolver.Resolve(ExecuteServiceTask.Key);
 
         Assert.NotNull(result);
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
@@ -100,8 +55,7 @@ public class ProcessStepOptionsResolverTests
 
         var result = resolver.Resolve(
             ExecuteServiceTask.Key,
-            taskId: null,
-            stageOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+            declaredOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
         );
 
         Assert.NotNull(result);
@@ -118,8 +72,7 @@ public class ProcessStepOptionsResolverTests
 
         var result = resolver.Resolve(
             ExecuteServiceTask.Key,
-            taskId: null,
-            stageOptions: new ProcessStepOptions
+            declaredOptions: new ProcessStepOptions
             {
                 MaxExecutionTime = TimeSpan.FromHours(2),
                 RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
@@ -140,8 +93,7 @@ public class ProcessStepOptionsResolverTests
 
         var result = resolver.Resolve(
             ExecuteServiceTask.Key,
-            taskId: null,
-            stageOptions: new ProcessStepOptions
+            declaredOptions: new ProcessStepOptions
             {
                 RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(5), maxRetries: 3),
             }
@@ -162,8 +114,7 @@ public class ProcessStepOptionsResolverTests
 
         var result = resolver.Resolve(
             ExecuteServiceTask.Key,
-            taskId: null,
-            stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) }
+            declaredOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(7) }
         );
 
         Assert.NotNull(result);
@@ -180,8 +131,7 @@ public class ProcessStepOptionsResolverTests
         var ex = Assert.Throws<InvalidOperationException>(() =>
             resolver.Resolve(
                 ExecuteServiceTask.Key,
-                taskId: null,
-                stageOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-1) }
+                declaredOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-1) }
             )
         );
         Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), ex.Message);
@@ -195,8 +145,7 @@ public class ProcessStepOptionsResolverTests
         var ex = Assert.Throws<InvalidOperationException>(() =>
             resolver.Resolve(
                 ExecuteServiceTask.Key,
-                taskId: null,
-                stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.Zero }
+                declaredOptions: new ProcessStepOptions { WaitBudget = TimeSpan.Zero }
             )
         );
 
@@ -227,81 +176,7 @@ public class ProcessStepOptionsResolverTests
         }
 
         // The resolver builds a copy rather than passing the instance through, so every field has to survive it.
-        Assert.Equal(everyField, CreateResolver().Resolve(ExecuteServiceTask.Key, taskId: null, everyField));
-    }
-
-    // ── Task hooks: the matching handler's own options ──────────────────────────────────────────
-
-    // The three task hooks (start/end/abandon) share identical resolution logic — matched by
-    // ShouldRunForTask and gated on a non-null taskId — so they're exercised as theories over the key.
-    public static TheoryData<string> TaskHookKeys =>
-        new() { OnTaskStartingHook.Key, OnTaskEndingHook.Key, OnTaskAbandonHook.Key };
-
-    private static Action<IServiceCollection> RegisterTaskHook(
-        string commandKey,
-        Func<string, bool> shouldRun,
-        ProcessStepOptions stepOptions
-    ) =>
-        commandKey switch
-        {
-            _ when commandKey == OnTaskStartingHook.Key => s =>
-                s.AddSingleton<IOnTaskStartingHandler>(StartingHook(shouldRun, stepOptions).Object),
-            _ when commandKey == OnTaskEndingHook.Key => s =>
-                s.AddSingleton<IOnTaskEndingHandler>(EndingTaskHook(shouldRun, stepOptions).Object),
-            _ when commandKey == OnTaskAbandonHook.Key => s =>
-                s.AddSingleton<IOnTaskAbandoningHandler>(AbandonHook(shouldRun, stepOptions).Object),
-            _ => throw new ArgumentOutOfRangeException(nameof(commandKey), commandKey, "Not a task hook key"),
-        };
-
-    [Theory]
-    [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_MatchingTask_ResolvesImplementationOptions(string commandKey)
-    {
-        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(commandKey, t => t == "Task_1", options));
-
-        var result = resolver.Resolve(commandKey, taskId: "Task_1");
-
-        Assert.NotNull(result);
-        Assert.Equal(options.MaxExecutionTime, result.MaxExecutionTime);
-    }
-
-    [Theory]
-    [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_NoHandlerMatchesTask_ReturnsNull(string commandKey)
-    {
-        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(commandKey, t => t == "Task_2", options));
-
-        var result = resolver.Resolve(commandKey, taskId: "Task_1");
-
-        Assert.Null(result);
-    }
-
-    [Theory]
-    [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_TaskIdNull_ReturnsNull(string commandKey)
-    {
-        // Task hooks (unlike the process-ending hook) require a task to match against, so a null taskId
-        // short-circuits to null even when a handler is registered.
-        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var resolver = CreateResolver(RegisterTaskHook(commandKey, _ => true, options));
-
-        var result = resolver.Resolve(commandKey, taskId: null);
-
-        Assert.Null(result);
-    }
-
-    [Theory]
-    [MemberData(nameof(TaskHookKeys))]
-    public void Resolve_TaskHook_InvalidImplementationOptions_ThrowsAtResolve(string commandKey)
-    {
-        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-1) };
-        var resolver = CreateResolver(RegisterTaskHook(commandKey, _ => true, options));
-
-        var ex = Assert.Throws<InvalidOperationException>(() => resolver.Resolve(commandKey, taskId: "Task_1"));
-
-        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), ex.Message);
+        Assert.Equal(everyField, CreateResolver().Resolve(ExecuteServiceTask.Key, everyField));
     }
 
     // ── The step: its own item's options, found by what it carries ─────────────────────────────
@@ -322,7 +197,7 @@ public class ProcessStepOptionsResolverTests
                 new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) },
                 stepName: null
             )
-            .ToStepRequest(resolver, taskId: null);
+            .ToStepRequest(resolver);
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime); // the handler's own
         Assert.Null(resolved.Command.WaitBudget); // never another item's
@@ -345,7 +220,7 @@ public class ProcessStepOptionsResolverTests
         {
             CommandKey = ExecuteServiceTask.Key,
             OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
-        }.ToStepRequest(resolver, taskId: null);
+        }.ToStepRequest(resolver);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);
     }

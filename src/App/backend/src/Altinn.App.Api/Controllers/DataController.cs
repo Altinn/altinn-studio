@@ -24,7 +24,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -68,7 +67,6 @@ public class DataController : ControllerBase
         IAppModel appModel,
         IPrefill prefillService,
         IAppMetadata appMetadata,
-        InternalPatchService patchService,
         ModelSerializationService modelDeserializer,
         IAuthenticationContext authenticationContext,
         IServiceProvider serviceProvider
@@ -82,7 +80,7 @@ public class DataController : ControllerBase
         _appModel = appModel;
         _appMetadata = appMetadata;
         _prefillService = prefillService;
-        _patchService = patchService;
+        _patchService = serviceProvider.GetRequiredService<InternalPatchService>();
         _modelDeserializer = modelDeserializer;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
@@ -597,7 +595,7 @@ public class DataController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="dataGuid">unique id to identify the data element to update</param>
-    /// <param name="dataPatchRequest">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
+    /// <param name="dataPatchRequest">Container object for the patch operations and list of ignored validators</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
@@ -652,7 +650,7 @@ public class DataController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="dataPatchRequestMultiple">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
+    /// <param name="dataPatchRequestMultiple">Container object for the patch operations and list of ignored validators</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]

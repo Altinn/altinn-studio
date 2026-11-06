@@ -4,7 +4,8 @@ import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutU
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
 import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
-import { formItemConfigs } from '../../../../data/formItemConfig';
+import { getFormItemConfig } from '../../../../data/formItemConfig';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
@@ -66,11 +67,11 @@ const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
 
   const formItem = getItem(layout, id);
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+  const isUnknownInternalComponent: boolean = !getComponentDefinition(formItem.type);
 
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+    : getFormItemConfig(formItem.type).icon;
 
   const labelWrapper = (label: string) => (
     <FormItemTitle duplicateComponents={duplicateComponents} formItem={formItem}>

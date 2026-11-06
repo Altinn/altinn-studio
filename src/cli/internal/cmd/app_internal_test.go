@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -153,6 +155,34 @@ func TestRunEnvFailsWhenTheSecretsDirectoryCannotBePlaced(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "build app environment") {
 		t.Fatalf("runEnv() error = %v, want it to say the environment could not be built", err)
+	}
+}
+
+// The app libraries apply whatever `app env --json` prints when an app starts from an IDE. With app-localtest
+// running, studioctl's ports are wrong for the app, so the command prints nothing and leaves no secrets behind.
+func TestRunEnvFailsWhileLegacyLocaltestIsRunning(t *testing.T) {
+	t.Parallel()
+
+	appRoot := writeEnvCommandApp(t)
+	home := t.TempDir()
+	var out bytes.Buffer
+	command := &AppCommand{
+		out:     ui.NewOutput(&out, io.Discard, false),
+		service: appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")}),
+		checkLegacyLocaltest: func(context.Context) error {
+			return envlocaltest.ErrLegacyLocaltestRunning
+		},
+	}
+
+	err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"})
+	if !errors.Is(err, envlocaltest.ErrLegacyLocaltestRunning) {
+		t.Fatalf("runEnv() error = %v, want ErrLegacyLocaltestRunning", err)
+	}
+	if out.Len() != 0 {
+		t.Fatalf("output = %q, want none", out.String())
+	}
+	if _, err := os.Stat(filepath.Join(home, "apps")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("app secrets were provisioned under %s: %v", home, err)
 	}
 }
 

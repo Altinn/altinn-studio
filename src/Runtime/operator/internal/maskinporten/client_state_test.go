@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"altinn.studio/common/snapshot"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
@@ -115,7 +115,7 @@ func assertReconcileSnapshot(
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 // --- CRD Builder ---
@@ -258,20 +258,20 @@ func commandTypeName(cmd any) string {
 	return strings.TrimSuffix(reflect.TypeOf(cmd).Elem().Name(), "Command")
 }
 
-func toCompactSnapshotJSON(commands CommandList) string {
-	snapshot := toSnapshot(commands)
-	if len(snapshot) == 0 {
-		return "[]"
+func toCompactSnapshotJSON(commands CommandList) []byte {
+	entries := toSnapshot(commands)
+	if len(entries) == 0 {
+		return []byte("[]\n")
 	}
-	lines := make([]string, len(snapshot))
-	for i, cmd := range snapshot {
+	lines := make([]string, len(entries))
+	for i, cmd := range entries {
 		b, err := json.Marshal(cmd)
 		if err != nil {
 			panic(fmt.Sprintf("marshal command snapshot: %v", err))
 		}
 		lines[i] = " " + string(b)
 	}
-	return "[\n" + strings.Join(lines, ",\n") + "\n]"
+	return []byte("[\n" + strings.Join(lines, ",\n") + "\n]\n")
 }
 
 // =============================================================================
@@ -291,7 +291,7 @@ func TestReconcile_FreshCreate(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ApiExistsSecretLost(t *testing.T) {
@@ -318,7 +318,7 @@ func TestReconcile_ApiExistsSecretLost(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ScopesChanged(t *testing.T) {
@@ -352,7 +352,7 @@ func TestReconcile_ScopesChanged(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_AuthorityChanged(t *testing.T) {
@@ -385,7 +385,7 @@ func TestReconcile_AuthorityChanged(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ScopesAndAuthorityChanged(t *testing.T) {
@@ -419,7 +419,7 @@ func TestReconcile_ScopesAndAuthorityChanged(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
@@ -455,7 +455,7 @@ func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_AuthorityAndJwksRotation(t *testing.T) {
@@ -490,7 +490,7 @@ func TestReconcile_AuthorityAndJwksRotation(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_Deletion(t *testing.T) {
@@ -520,7 +520,7 @@ func TestReconcile_Deletion(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_DeletionApiAlreadyGone(t *testing.T) {
@@ -548,7 +548,7 @@ func TestReconcile_DeletionApiAlreadyGone(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_DeletionNoSecretContent(t *testing.T) {
@@ -572,7 +572,7 @@ func TestReconcile_DeletionNoSecretContent(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_DeletionNoApiNoSecretContent(t *testing.T) {
@@ -591,7 +591,7 @@ func TestReconcile_DeletionNoApiNoSecretContent(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestForcedRotation_IgnoredDuringDeletion(t *testing.T) {
@@ -622,7 +622,7 @@ func TestForcedRotation_IgnoredDuringDeletion(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_NoChanges(t *testing.T) {
@@ -655,7 +655,7 @@ func TestReconcile_NoChanges(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
@@ -692,7 +692,7 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_ApiJwksEmpty(t *testing.T) {
@@ -727,7 +727,7 @@ func TestReconcile_ApiJwksEmpty(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Should detect drift and re-upload secret's JWKS to API
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 // =============================================================================
@@ -870,7 +870,7 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 // =============================================================================
@@ -1042,7 +1042,7 @@ func TestReconcile_EmptyScopes(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_NilVsEmptyScopes(t *testing.T) {
@@ -1076,7 +1076,7 @@ func TestReconcile_NilVsEmptyScopes(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestNewClientState_NameWithMultipleHyphens(t *testing.T) {
@@ -1113,7 +1113,7 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }
 
 func TestReconcile_AllChangesAtOnce(t *testing.T) {
@@ -1150,5 +1150,5 @@ func TestReconcile_AllChangesAtOnce(t *testing.T) {
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+	snapshot.Match(t, toCompactSnapshotJSON(commands), "", "json")
 }

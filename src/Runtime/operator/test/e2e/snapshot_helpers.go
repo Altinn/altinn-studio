@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
+	"altinn.studio/common/snapshot"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/fakes"
 	mpmaskinporten "altinn.studio/operator/internal/maskinporten"
@@ -318,6 +318,14 @@ func sameStringSlice(actual []string, expected []string) bool {
 	return true
 }
 
+// matchJSONSnapshot compares value with _snapshots/<name>.json. Specs name their snapshots because Ginkgo's
+// spec text makes a poor file name.
+func matchJSONSnapshot(name string, value any) {
+	ginkgo.GinkgoHelper()
+	t := ginkgo.GinkgoT()
+	snapshot.MatchFile(t, snapshot.JSON(t, value), name+".json")
+}
+
 // marshalJSONNoEscape marshals JSON without escaping HTML characters like < and >.
 func marshalJSONNoEscape(v any) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -601,7 +609,7 @@ func SnapshotMaskinportenClient(client *resourcesv1alpha1.MaskinportenClient, na
 	sanitized, err := marshalJSONNoEscape(obj)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized MaskinportenClient")
 
-	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
+	matchJSONSnapshot(name, sanitized)
 }
 
 // SnapshotSecret takes a sanitized snapshot of a Secret with decoded data.
@@ -623,7 +631,7 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 	sanitized, err := marshalJSONNoEscape(obj)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized Secret")
 
-	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
+	matchJSONSnapshot(name, sanitized)
 }
 
 func sanitizeSecretRotationAnnotations(meta map[string]any) {
@@ -743,14 +751,12 @@ func SnapshotState(
 	if client != nil {
 		SnapshotMaskinportenClient(client, stepName+"-client")
 	} else {
-		snaps.WithConfig(snaps.Filename(stepName+"-client")).
-			MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
+		matchJSONSnapshot(stepName+"-client", []byte(`{"status": "does not exist"}`))
 	}
 	if secret != nil {
 		SnapshotSecret(secret, stepName+"-secret")
 	} else {
-		snaps.WithConfig(snaps.Filename(stepName+"-secret")).
-			MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
+		matchJSONSnapshot(stepName+"-secret", []byte(`{"status": "does not exist"}`))
 	}
 	SnapshotFakesDb(db, stepName+"-db")
 }
@@ -890,7 +896,7 @@ func SnapshotFakesDb(db []fakes.ClientRecord, name string) {
 	data, err := marshalJSONNoEscape(sanitized)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized db")
 
-	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), data)
+	matchJSONSnapshot(name, data)
 }
 
 func newLocalRequest(ctx context.Context, method, rawURL string) (*http.Request, error) {
@@ -1066,7 +1072,7 @@ func SnapshotTokenResponse(resp *TokenResponse, name string) {
 	sanitized, err := marshalJSONNoEscape(obj)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized TokenResponse")
 
-	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
+	matchJSONSnapshot(name, sanitized)
 }
 
 // TriggerPodSecretSync patches pod annotations to force immediate secret volume sync.

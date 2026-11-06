@@ -206,7 +206,7 @@ public class MailboxRelayTests
         return new MailboxRelay(
             new RecordingEngineClient(recorder),
             recorder.Tokens,
-            new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
+            new ProcessStepOptionsResolver([]),
             processEngine.Object
         );
     }
