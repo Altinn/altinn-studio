@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { StudioSpinner } from '@studio/components';
-import { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
 import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
 import { useTranslation } from 'react-i18next';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
@@ -77,5 +77,5 @@ export function ScopeListContainer(): ReactElement {
 }
 
 function isForbiddenError(error: unknown): boolean {
-  return isAxiosError(error) && error.response?.status === ServerCodes.Forbidden;
+  return isHttpError(error) && error.response?.status === ServerCodes.Forbidden;
 }

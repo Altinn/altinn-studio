@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { StudioDropdown } from '@studio/components';
 import { ArrowsCirclepathIcon, MenuElipsisVerticalIcon, TrashIcon } from '@studio/icons';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -25,7 +25,7 @@ export const DataModelMenu = ({ selectedOption }: DataModelMenuProps): ReactElem
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
   const { mutate: replaceDataModel, isPending: replacing } = useReplaceDataModelXsdMutation(
     modelPath,
-    { hideDefaultError: (error: AxiosError<ApiError>) => !error.response?.data?.errorCode },
+    { hideDefaultError: (error: HttpError<ApiError>) => !error.response?.data?.errorCode },
   );
   const { mutate: deleteDataModel } = useDeleteDataModelMutation();
 
@@ -35,7 +35,7 @@ export const DataModelMenu = ({ selectedOption }: DataModelMenuProps): ReactElem
 
   const handleReplace = (file: File): void => {
     replaceDataModel(file, {
-      onError: (error: AxiosError<ApiError>) => {
+      onError: (error: HttpError<ApiError>) => {
         if (!error.response?.data?.errorCode)
           toast.error(t('form_filler.file_uploader_validation_error_upload'));
       },
