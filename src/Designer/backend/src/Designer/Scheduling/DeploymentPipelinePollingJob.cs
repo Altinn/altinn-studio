@@ -189,6 +189,7 @@ public class DeploymentPipelinePollingJob : IJob
                 span.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, result);
             }
             _metrics.RecordResult(
+                editingContext.Org,
                 type,
                 environment,
                 result,

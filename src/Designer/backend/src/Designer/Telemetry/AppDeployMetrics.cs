@@ -10,7 +10,9 @@ namespace Altinn.Studio.Designer.Telemetry;
 /// <summary>
 /// Times app deploys and undeploys from the request to Designer. Each deploy's trace holds the same, but dashboards
 /// count from metrics (https://github.com/Altinn/altinn-studio/issues/21073). The histograms' counts are the number
-/// of pipelines and deploys. A failure carries error.type.
+/// of pipelines and deploys. A failure carries error.type. Only the deploy's duration carries the service owner, so
+/// that dashboards can filter deploys by it: there are a few hundred combinations of service owner, environment and
+/// result, well within the SDK's 2000 per metric.
 /// </summary>
 public sealed class AppDeployMetrics
 {
@@ -64,14 +66,23 @@ public sealed class AppDeployMetrics
         _pipelineDuration.Record(Seconds(duration), tags);
     }
 
+    /// <param name="serviceOwner">The app's service owner.</param>
     /// <param name="type">Whether it was a deploy or an undeploy.</param>
     /// <param name="environment">The environment deployed to.</param>
     /// <param name="result">One of Flux's install, upgrade and uninstall results in snake_case, or a pipeline's.</param>
     /// <param name="errorType">Why the deploy failed, or null when it did not.</param>
     /// <param name="duration">The time since the request.</param>
-    public void RecordResult(PipelineType type, string environment, string result, string? errorType, TimeSpan duration)
+    public void RecordResult(
+        string serviceOwner,
+        PipelineType type,
+        string environment,
+        string result,
+        string? errorType,
+        TimeSpan duration
+    )
     {
         TagList tags = Tags(type, environment);
+        tags.Add(ServiceTelemetry.Attributes.ServiceOwner, serviceOwner.ToLowerInvariant());
         tags.Add(ServiceTelemetry.Attributes.AppDeploy.Result, result);
         if (errorType is not null)
         {

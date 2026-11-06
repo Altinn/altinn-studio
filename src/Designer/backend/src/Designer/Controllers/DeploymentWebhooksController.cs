@@ -127,6 +127,7 @@ public class DeploymentWebhooksController : ControllerBase
         PipelineType type =
             deployment.DeploymentType == DeploymentType.Decommission ? PipelineType.Undeploy : PipelineType.Deploy;
         _metrics.RecordResult(
+            deployment.Org,
             type,
             deployment.EnvName,
             result,

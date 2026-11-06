@@ -298,6 +298,7 @@ public class ReceiveDeployEventTests
         Assert.InRange(deploy.Seconds, 539.99, 540.01);
         Assert.Equal(expectedPipelineType, deploy.Tags["altinn.designer.app_deploy.pipeline.type"]);
         Assert.Equal("at22", deploy.Tags["altinn.environment"]);
+        Assert.Equal("ttd", deploy.Tags["altinn.service_owner"]);
         Assert.Equal(expectedResult, deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.Equal(expectedErrorType, deploy.Tags.GetValueOrDefault("error.type"));
     }

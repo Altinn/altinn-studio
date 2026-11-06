@@ -159,8 +159,10 @@ public class DeploymentPipelinePollingJobTest : IDisposable
 
         RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
         Assert.Equal(420, deploy.Seconds);
+        Assert.Equal("testorg", deploy.Tags["altinn.service_owner"]);
         Assert.Equal("pipeline_failed", deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.Equal("pipeline_failed", deploy.Tags["error.type"]);
+        Assert.False(pipeline.Tags.ContainsKey("altinn.service_owner"));
 
         Activity span = Assert.Single(spans.Stopped);
         Assert.Equal(ActivityStatusCode.Error, span.Status);
