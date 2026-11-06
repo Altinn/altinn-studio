@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
+- Process hooks, service tasks, process task lifecycle stages and a new `IInstantiationProcessor.DataCreation(DataCreationContext)` overload get the actor who started the transition as `Actor`; `IAuthenticationContext.Current` is the app in a workflow-engine callback. Code that creates these contexts, such as a hook's unit test, must set `Actor`. Prefill from `UserProfile` now works for forms created when a task starts. ([#21487](https://github.com/Altinn/altinn-studio/pull/21487))
 
 ### Changed
 

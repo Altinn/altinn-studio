@@ -40,6 +40,7 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
         var hookParameters = new OnProcessEndedContext
         {
             InstanceDataMutator = parameters.InstanceDataMutator,
+            Actor = parameters.Payload.Actor,
             CancellationToken = parameters.CancellationToken,
             WorkflowId = parameters.Payload.WorkflowId,
             StepId = parameters.Payload.StepId,
