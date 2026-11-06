@@ -1,41 +1,38 @@
-export type RequestOptions = {
-  headers?: Record<string, string>;
-  signal?: AbortSignal;
-};
+import { createHttpClient } from './httpClient';
+import type { RequestInterceptor, RequestOptions, ResponseInterceptor } from './httpClient';
 
-export type HttpResponse<T = any> = {
-  status: number;
-  data: T;
+export type { HttpResponse, RequestOptions } from './httpClient';
+export { HttpError, isHttpError, isRequestCancelled } from './httpClient';
+
+/** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
+const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
+const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
+
+const addXsrfToken: RequestInterceptor = ({ url, headers }) => {
+  const token = isSameOrigin(url) ? readCookie(XSRF_COOKIE_NAME) : null;
+  if (token) headers.set(XSRF_HEADER_NAME, token);
 };
 
 /**
- * Thrown when a request fails. A response with a status outside 2xx is on `response`. When the
- * request never got a response, such as on a network failure, `response` is undefined.
+ * The browser follows redirects without telling us, so a request that Gitea redirected to its
+ * login page arrives as a successful response. Send the browser to '/login' instead, so Gitea does
+ * not use its `redirect_to` cookie to send the user to the API path afterwards.
  */
-export class HttpError<T = any> extends Error {
-  readonly response?: HttpResponse<T>;
-
-  constructor(response?: HttpResponse<T>, message?: string, options?: { cause?: unknown }) {
-    super(
-      message ??
-        (response ? `Request failed with status code ${response.status}` : 'Request failed'),
-      options,
-    );
-    this.name = 'HttpError';
-    this.response = response;
+const redirectIfLoginPage: ResponseInterceptor = (response) => {
+  if (response.ok && response.url.endsWith('/repos/user/login')) {
+    window.location.href = '/login';
   }
-}
+};
 
-export const isHttpError = <T = any>(error: unknown): error is HttpError<T> =>
-  error instanceof HttpError;
+const designerClient = createHttpClient({
+  onRequest: [addXsrfToken],
+  onResponse: [redirectIfLoginPage],
+});
 
-/** Whether the request was aborted through its `signal`, such as when TanStack Query cancels it. */
-export const isRequestCancelled = (error: unknown): boolean =>
-  (error as { name?: unknown } | null)?.name === 'AbortError';
-
+// `get` and `post` give null for an empty body, as they did when they wrapped axios.
 export async function get<T = any>(url: string, options?: RequestOptions): Promise<T | null> {
-  const response = await request<T>('GET', url, undefined, options);
-  return response.data ? response.data : null;
+  const { data } = await designerClient.get<T>(url, options);
+  return data ? data : null;
 }
 
 export async function post<T = void, D = any>(
@@ -43,7 +40,7 @@ export async function post<T = void, D = any>(
   data?: D,
   options?: RequestOptions,
 ): Promise<T | null> {
-  const response = await request<T>('POST', url, data || null, options);
+  const response = await designerClient.post<T>(url, data || null, options);
   return response.data ? response.data : null;
 }
 
@@ -52,7 +49,7 @@ export async function put<T = void, D = any>(
   data: D,
   options?: RequestOptions,
 ): Promise<T> {
-  return (await request<T>('PUT', url, data, options)).data;
+  return (await designerClient.put<T>(url, data, options)).data;
 }
 
 export async function patch<T = void, D = any>(
@@ -60,7 +57,7 @@ export async function patch<T = void, D = any>(
   data: D,
   options?: RequestOptions,
 ): Promise<T> {
-  return (await request<T>('PATCH', url, data, options)).data;
+  return (await designerClient.patch<T>(url, data, options)).data;
 }
 
 /** Some Designer endpoints read a body on DELETE, so `data` is sent as the body when given. */
@@ -68,107 +65,8 @@ export async function del<T = void>(
   url: string,
   options?: RequestOptions & { data?: unknown },
 ): Promise<T> {
-  return (await request<T>('DELETE', url, options?.data, options)).data;
+  return (await designerClient.delete<T>(url, options)).data;
 }
-
-async function request<T>(
-  method: string,
-  url: string,
-  data: unknown,
-  options: RequestOptions = {},
-): Promise<HttpResponse<T>> {
-  const fetchResponse = await send(url, {
-    method,
-    headers: createHeaders(url, data, options.headers),
-    body: toBody(data),
-    signal: options.signal,
-  });
-
-  // The type parameter is the caller's claim about what the endpoint returns, as with `Response.json()`.
-  const response: HttpResponse<T> = {
-    status: fetchResponse.status,
-    data: (await withHttpError(readData(fetchResponse), fetchResponse.status)) as T,
-  };
-  if (!fetchResponse.ok) throw new HttpError<T>(response);
-
-  redirectIfLoginPage(fetchResponse);
-  return response;
-}
-
-function send(url: string, init: RequestInit): Promise<Response> {
-  return withHttpError(fetch(url, init));
-}
-
-/**
- * Turns a failure to send the request, or to read the body after the status arrived, into an
- * HttpError. The status is kept when there is one, so a 403 still reads as a 403. An aborted
- * request is rethrown as it is.
- */
-async function withHttpError<R>(promise: Promise<R>, status?: number): Promise<R> {
-  try {
-    return await promise;
-  } catch (error) {
-    if (isRequestCancelled(error)) throw error;
-    const response = status === undefined ? undefined : { status, data: undefined };
-    throw new HttpError(response, (error as Error)?.message, { cause: error });
-  }
-}
-
-function createHeaders(url: string, data: unknown, custom: Record<string, string> = {}): Headers {
-  const headers = new Headers({ Accept: 'application/json, text/plain, */*' });
-  if (isJson(data)) headers.set('Content-Type', 'application/json');
-  Object.entries(custom).forEach(([name, value]) => headers.set(name, value));
-
-  // The browser adds the multipart boundary only when Content-Type is not set.
-  if (data instanceof FormData) headers.delete('Content-Type');
-
-  const xsrfToken = isSameOrigin(url) ? readCookie(XSRF_COOKIE_NAME) : null;
-  if (xsrfToken) headers.set(XSRF_HEADER_NAME, xsrfToken);
-
-  return headers;
-}
-
-/**
- * Sends what fetch can send as it is, such as a string or FormData, and everything else as JSON. A
- * string is never serialized, so a caller that sends a JSON string serializes it first.
- */
-function toBody(data: unknown): BodyInit | undefined {
-  if (data === undefined || data === null) return undefined;
-  return isBodyInit(data) ? data : JSON.stringify(data);
-}
-
-function isJson(data: unknown): boolean {
-  return data !== undefined && data !== null && !isBodyInit(data);
-}
-
-function isBodyInit(data: unknown): data is BodyInit {
-  return (
-    typeof data === 'string' ||
-    data instanceof FormData ||
-    data instanceof URLSearchParams ||
-    data instanceof Blob ||
-    data instanceof ArrayBuffer ||
-    ArrayBuffer.isView(data)
-  );
-}
-
-/**
- * Parses the body as JSON when it is JSON, whatever the Content-Type says, since some endpoints
- * send JSON as text/plain. The rule config is one, through `Content(ruleConfig)` in
- * `AppDevelopmentController`. Any other body, including an empty one, is returned as text.
- */
-async function readData(response: Response): Promise<unknown> {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
-/** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
-const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
-const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 
 // Not `URL.canParse`, since Safari before 17 lacks it.
 function isSameOrigin(url: string): boolean {
@@ -185,15 +83,4 @@ function readCookie(name: string): string | null {
     .map((entry) => entry.trim())
     .find((entry) => entry.startsWith(`${name}=`));
   return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
-}
-
-/**
- * The browser follows redirects without telling us, so a request that Gitea redirected to its
- * login page arrives here as a successful response. Send the browser to '/login' instead, so Gitea
- * does not use its `redirect_to` cookie to send the user to the API path afterwards.
- */
-function redirectIfLoginPage(response: Response): void {
-  if (response.url.endsWith('/repos/user/login')) {
-    window.location.href = '/login';
-  }
 }
