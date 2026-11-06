@@ -92,7 +92,7 @@ The frontend supports these `dataSource` values. It ignores any other and shows 
 - `applicationSettings`: `key` is a setting under `FrontEndSettings` in `App/appsettings*.json`, so the value can
   differ between environments. Start the setting's name with a lower-case letter. The version files say why.
 - `customTextParameters`: `key` is a parameter that C# code sets in `CustomTextParameters` on a validation issue or
-  an instantiation validation result. See the `studio-app-lib` skill.
+  an instantiation validation result. See the `studio-validation` skill.
 
 When the frontend finds no value, it shows the variable's `key`, such as `virksomhet.orgnr`. Set `defaultValue` to
 show something else, or `""` to show nothing.

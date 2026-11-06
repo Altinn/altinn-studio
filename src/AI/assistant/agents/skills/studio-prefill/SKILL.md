@@ -19,7 +19,7 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   (DSF), or about the user from their Altinn profile: `prefill.json`.
 - A value in the link the user opens the app with: query parameters. This works only in a stateless app.
 - Data that a system already has when it creates the instance through the API: send the form data in the
-  instantiation request, as the docs describe.
+  instantiation request, as the HTTP POST page in the version file describes.
 - Anything else, such as data from an external API, computed values, lists, or a choice between ER and DSF: custom
   code in `IInstantiationProcessor.DataCreation`. See the `studio-app-lib` skill.
 
@@ -97,14 +97,11 @@ in the organization a user acts for, use `ER`, never `UserProfile.Party.Organiza
 
 ## Query parameters
 
-- The user opens the app's URL with `/set-query-params?<name>=<value>` added, such as
-  `https://ttd.apps.tt02.altinn.no/ttd/stateless-app/set-query-params?stilling=designer`. The parameters work only
-  on that path. The app answers with an error when it is not stateless, or when no parameter matches a
-  `QueryParameters` entry.
-- The app uses only parameters that some data type lists under `QueryParameters`, and fills the stateless form's
-  data model with them. The `studio-app-settings` skill covers stateless apps.
-- The values come from the user. Check them with `IValidateQueryParamPrefill` before the app uses them. See the
-  `studio-app-lib` skill.
+- Query parameters work only in a stateless app. They fill the stateless form's data model, and only from the
+  parameters that a `QueryParameters` entry names. The query parameter page in the version file shows the link and
+  the setup. The `studio-app-settings` skill covers stateless apps.
+- The values come from the user. Check them with `IValidateQueryParamPrefill` before the app uses them. The query
+  parameter page has an example, and the `studio-app-lib` skill covers registering it.
 - To carry the values into the instance, pass them on when the user starts it, as the version file describes.
 
 ## Before you finish

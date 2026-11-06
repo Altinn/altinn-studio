@@ -11,11 +11,8 @@ file covers what the app needs around it. The version files say how to register 
   add them in Studio.
 - The task's `<altinn:eFormidlingConfig>` in `process.bpmn` describes the shipment:
   - `receiver`: the organization number of the recipient. Only Norwegian organizations can receive.
-  - `process`, `standard`, `type`, `typeVersion` and `securityLevel`: the message type the recipient accepts, such as
-    `arkivmelding`. Ask the recipient. The docs show the values for an `arkivmelding`.
-  - `dpfShipmentType`: the shipment type for a recipient that receives through Fiks.
-  - `dataTypes`: the data types to send, such as the form data, attachments and `ref-data-as-pdf`. Each must exist in
-    `applicationmetadata.json`.
+  - The other elements name the message type, which you ask the recipient for, and the data types to send, which
+    must exist in `applicationmetadata.json`. The eFormidling pages under Docs describe each element.
   - `disabled`: `true` stops the task from sending. The task still completes.
   - Every element takes an `env` attribute, so it can have one value in TT02 and another in production. A value with
     `env` wins over one without.
@@ -41,17 +38,9 @@ file covers what the app needs around it. The version files say how to register 
   `FiksIOSettings--AccountPrivateKeyBase64`. The app needs Key Vault as a configuration provider, as the
   `studio-app-settings` skill says. Leave `ApiHost` and `AmqpHost` out. The app picks KS's test environment
   everywhere except production.
-- `FiksArkivSettings` holds what to send and how to finish:
-  - `Receipt`: the data types the app stores the archive record and the archive's receipt in. Both must exist in
-    `applicationmetadata.json`.
-  - `Recipient`: the Fiks account, identifier, name and organization number of the archive. Each takes a fixed value
-    or a binding to the data model.
-  - `Metadata` and `Documents`: the case and journal entry fields, the primary document and the attachments.
-  - `SuccessHandling` and `ErrorHandling`: what the process does after the task. They differ between the versions.
-- `IFiksArkivPayloadGenerator`, registered with `.WithPayloadGenerator<T>()`, replaces the archive record the app
-  generates.
-- The settings class is `FiksArkivSettings` in `Altinn.App.Clients.Fiks`. Read it for the full list of keys. The
-  docs page lists them too, but may be behind the code.
+- `FiksArkivSettings` says which archive gets what, which data types store the archive record and the receipt, and
+  what the process does after the task. Those data types must exist in `applicationmetadata.json`. The Fiks Arkiv
+  pages under Docs list the keys, and the class in `Altinn.App.Clients.Fiks` has them all.
 
 ## Docs
 
@@ -59,5 +48,6 @@ file covers what the app needs around it. The version files say how to register 
   [eFormidling (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/receive-data/eformidling/): the task
   configuration, the metadata and receiver classes, and testing.
 - [Fiks Arkiv (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/fiks-arkiv/) and
-  [Fiks Arkiv (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/receive-data/fiks-arkiv/): the account, the
-  settings and the process around the task.
+  [Fiks Arkiv (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/receive-data/fiks-arkiv/): the account, every key
+  of `FiksArkivSettings`, the process around the task, and replacing the archive record with an
+  `IFiksArkivPayloadGenerator`. The v9 page's message handler takes a `ServiceTaskContext`, which v9 no longer has.

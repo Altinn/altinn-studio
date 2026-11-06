@@ -175,13 +175,12 @@ pages and components.
 
 ## API signing
 
-- `POST /{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions` with `{"action": "sign"}` signs and
-  leaves the process in the task, so that several people can sign. A user, but not a system user, can add
-  `"onBehalfOf"` with an organization number to sign for an organization signee.
-- `PUT .../process/next` with `{"action": "sign"}` signs and moves the process on, so only one person signs in that
-  task.
-- `GET .../signing` lists the signees and their status.
-- The task, the data types and the policy are the same as with the app's pages.
+- `POST .../actions` with `{"action": "sign"}` signs and leaves the process in the task, so that several people can
+  sign. `PUT .../process/next` with the same body signs and moves the process on.
+- A user, but not a system user, can add `"onBehalfOf"` with an organization number to sign for an organization
+  signee.
+- The task, the data types and the policy are the same as with the app's pages. The API signing page that the
+  version file links has the calls and their responses.
 
 ## Before you finish
 

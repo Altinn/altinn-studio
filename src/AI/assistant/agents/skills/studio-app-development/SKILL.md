@@ -25,7 +25,8 @@ The versions differ in these places. The skill for each topic has the details.
 | eFormidling | An `eFormidling` service task, or the `eFormidling` block in `applicationmetadata.json` | An `eFormidling` service task only. The block fails the build. |
 | Page HTML | `views/Home/Index.cshtml` loads the frontend. Custom CSS and JavaScript go there. | The app builds the page. It links every file directly in `wwwroot/custom-css/` and `wwwroot/custom-js/`, in name order. `config/assets.json` adds external files only, as `{"stylesheets": [{"url": "..."}], "scripts": [{"url": "..."}]}`. If `Index.cshtml` is still there, the app serves it instead. |
 
-[The upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/) lists every other difference.
+[The upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/) describes the other main
+differences.
 
 ## The files of an app
 
@@ -79,18 +80,8 @@ When you add, rename or remove one of these IDs, change every place that refers 
 
 ## Custom code
 
-Custom C# classes implement interfaces from the app libraries, and the app runs them only when `Program.cs` registers
-them. Put the registrations in `RegisterCustomAppServices` at the top of the file, and leave the rest of `Program.cs`
-as the template wrote it:
-
-```csharp
-void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
-{
-    services.AddTransient<IDataWriteProcessor, MyDataWriteProcessor>();
-}
-```
-
-The studio-app-lib skill says which interface does what.
+The app runs a custom C# class only when `RegisterCustomAppServices` at the top of `Program.cs` registers it. The
+studio-app-lib skill says which interface does what and how to register it.
 
 ## Which files a change touches
 
@@ -123,12 +114,13 @@ The studio-app-lib skill says which interface does what.
 
 ## Docs
 
-- [Utvikling (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/): the how-to guides for v8
-  apps.
-- [Logikk (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/): custom code in v8 apps, such as
-  data processing, validation and instantiation.
+- [Utvikling (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/): the start page for people
+  who browse the v8 how-to guides. It lists the guides and holds no text of its own.
+- [Logikk (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/): the start page for people who
+  browse the v8 pages on custom code, such as data processing, validation and instantiation. It holds no text of its
+  own.
 - [Grensesnitt for egen kode (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/extension-points/):
   every interface a v9 app can implement, and the page that describes each one.
 - [Hvorfor v9?](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/): why v9 exists and what it changes.
-- [Slik oppgraderer du appen fra v8 til v9](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/): every
-  change the upgrade makes in an app, for a version difference the table above does not cover.
+- [Slik oppgraderer du appen fra v8 til v9](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/): the
+  main changes the upgrade makes in an app, for a version difference the table above does not cover.

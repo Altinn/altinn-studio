@@ -118,13 +118,11 @@ The version files say what the value names and where the UI's data type comes fr
 
 ## Autosave, shadow fields, file scanning and events
 
-- **Autosave**: `autoSaveBehavior` in the UI settings is `onChangeFormData` by default. `onChangePage` saves only
-  when the user changes page, so server-side data processing also runs only then. The version files say where the
-  setting goes.
-- **Shadow fields**: give the helper fields in the data model a common prefix, and set `appLogic.shadowFields.prefix`
-  on the data type. The data type needs `taskId` and `classRef`. When the task ends, the app removes the fields before
-  it makes the PDF. With `shadowFields.saveToDataType`, the app keeps the original and saves a copy without the
-  fields in that data type, which must exist and have the same `classRef`.
+- **Autosave**: with `autoSaveBehavior` set to `onChangePage`, the app saves, and runs server-side data processing,
+  only when the user changes page. The docs pages in the version files say where the setting goes.
+- **Shadow fields**: `appLogic.shadowFields` removes the data model fields with a common prefix when the task ends,
+  before the PDF, or saves a copy without them. The data type needs `taskId` and `classRef`. The version files link
+  the docs.
 - <a id="file-scanning"></a>**File scanning**: `enableFileScan: true` on a data type makes Storage scan uploads for
   malware. An infected file gives a validation error. `validationErrorOnPendingFileScan: true` also blocks
   submission until the scan is done. Studio turns scanning on for attachment data types it creates. The text keys
@@ -179,4 +177,5 @@ Secrets go in the organization's Azure Key Vault:
 ## Docs
 
 - [Applikasjonsmetadata](https://docs.altinn.studio/nb/api/models/app-metadata/): the properties of
-  `applicationmetadata.json` and their sub-objects.
+  `applicationmetadata.json` and their sub-objects. Parts of it are wrong. The app does use `presentationFields`, it
+  also reads `allowedContributors`, and `onEntry.show` can also name a stateless UI.

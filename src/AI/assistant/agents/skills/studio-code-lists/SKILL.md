@@ -65,13 +65,8 @@ version must match the app version, so read the version file before you add it.
 
 - `services.AddAltinnCodelists();` in `RegisterCustomAppServices` registers all of them under fixed IDs. Use the ID
   as the component's `optionsId`. Several IDs contain æ, ø or å, so copy them exactly.
-- `AddSSBClassifications()`, `AddKartverketAdministrativeUnits()` and `AddPosten()` register one source each.
-- `AddSSBClassificationCodelistProvider(id, classification, ...)` registers one SSB classification under an ID you
-  choose. It also takes a classification number that the `Classification` enum lacks, and default query parameters
-  such as the level.
-- The IDs are on the docs page and in the
-  [package source](https://github.com/Altinn/altinn-studio/tree/main/src/App/codelists/src/Altinn.Codelists). Read
-  them there rather than from memory.
+- The shared code lists page that the version file links lists the IDs, and the methods that register one source or
+  one SSB classification under an ID you choose. Read the IDs there rather than from memory.
 
 The `studio-app-lib` skill covers `Program.cs`.
 
@@ -96,12 +91,13 @@ no registration:
 
 ## Options from a repeating group
 
-`source` builds one option per row of a repeating group in the data model. It needs `group`, `label` and `value`:
+`source` builds one option per row of a repeating group in the data model. It needs `group`, `label` and `value`.
+The page on code lists from repeating structures, which the version file links, covers each of them. Two rules matter
+most:
 
 - `group` is the group's path in the data model, not a component ID.
-- `value` is the path to the field in the row, with `[{0}]` where the row index goes, such as
-  `Person[{0}].Id`. The value must be unique per row. The frontend drops options with a value it has already seen.
-- `label` is a text resource key, which can show fields from the row through variables, or an expression.
+- `value` is the path to the field in the row, with `[{0}]` where the row index goes, such as `Person[{0}].Id`. The
+  value must be unique per row. The frontend keeps the first option with a value and drops the rest.
 
 The `studio-data-model` skill covers the paths.
 

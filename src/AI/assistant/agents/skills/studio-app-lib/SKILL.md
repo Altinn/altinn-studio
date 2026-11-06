@@ -61,26 +61,9 @@ Some of these connections have rules of their own:
 
 ## Text in messages from C#
 
-`ValidationIssue` and `InstantiationValidationResult` take a text key in `CustomTextKey` and its parameters in
-`CustomTextParameters`, a `Dictionary<string, string>`. The text resource declares one variable per parameter, with
-the parameter's name as `key` and `customTextParameters` as `dataSource`. The text refers to the variables by index,
-`{0}` for the first:
-
-```csharp
-CustomTextKey = "error.max-age",
-CustomTextParameters = new() { ["maxAge"] = "67" },
-```
-
-```json
-{
-  "id": "error.max-age",
-  "value": "Alderen kan ikke være over {0} år.",
-  "variables": [{ "key": "maxAge", "dataSource": "customTextParameters" }]
-}
-```
-
-`CustomTextParams`, a list, is obsolete, and the app frontend ignores it. The `studio-text-resources` skill covers
-variables.
+`ValidationIssue` and `InstantiationValidationResult` take a text key in `CustomTextKey` and the values for its
+variables in `CustomTextParameters`. The `studio-validation` skill and the C# validation page in the version file
+show the text resource that goes with them. `CustomTextParams`, a list, is obsolete, and the app frontend ignores it.
 
 ## Register the implementation
 

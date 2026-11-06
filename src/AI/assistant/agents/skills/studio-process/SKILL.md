@@ -94,7 +94,8 @@ The text of `<bpmn:conditionExpression>` is an Altinn expression, the same langu
 
 Every task needs `<bpmn:extensionElements><altinn:taskExtension><altinn:taskType>`. Write the type exactly, in the
 same case. Write service tasks as `<bpmn:serviceTask>` and every other task as `<bpmn:task>`. The exact XML for each
-type is in [references/task-types.md](references/task-types.md).
+type is in [references/task-types.md](references/task-types.md), and for signing and payment tasks in the
+`studio-signing` and `studio-payment` skills.
 
 | `taskType` | Kind | Element | Action a `process/next` without an action needs |
 | --- | --- | --- | --- |
@@ -181,4 +182,5 @@ diagram shapes and edges.
   `studio-policy` skill covers the grants.
 - Every file that names a changed task id uses the new id.
 - New elements have diagram shapes.
-- Build the app, then run an instance through every branch of the process locally.
+- Build the app, then run an instance through every branch of the process locally. In a v9 app,
+  [references/build-rules.md](references/build-rules.md) says what each process rule the build reports means.

@@ -1,8 +1,8 @@
 # Task configuration by type
 
-This file shows the XML each task type needs. The examples leave out `<bpmn:incoming>` and `<bpmn:outgoing>`,
-which every task has. Every element under `altinn:` is in `http://altinn.no/process`. Where v8 and v9 differ, the
-section says so.
+This file shows the XML each task type needs, except signing and payment, which have skills of their own. The
+examples leave out `<bpmn:incoming>` and `<bpmn:outgoing>`, which every task has. Every element under `altinn:` is
+in `http://altinn.no/process`. Where v8 and v9 differ, the section says so.
 
 ## Contents
 
@@ -56,57 +56,13 @@ external system or the service owner moves the process on with `PUT .../process/
 
 ## signing
 
-The minimal configuration. The `studio-signing` skill owns the rest: signee providers, correspondence, the data
-types in `applicationmetadata.json`, the pages and the policy.
-
-```xml
-<bpmn:task id="Task_Signing" name="Signering">
-  <bpmn:extensionElements>
-    <altinn:taskExtension>
-      <altinn:taskType>signing</altinn:taskType>
-      <altinn:actions>
-        <altinn:action>sign</altinn:action>
-        <altinn:action>reject</altinn:action> <!-- only when signees may decline -->
-      </altinn:actions>
-      <altinn:signatureConfig>
-        <altinn:dataTypesToSign>
-          <altinn:dataType>model</altinn:dataType>
-        </altinn:dataTypesToSign>
-        <altinn:signatureDataType>signatures</altinn:signatureDataType>
-      </altinn:signatureConfig>
-    </altinn:taskExtension>
-  </bpmn:extensionElements>
-</bpmn:task>
-```
-
-- `signatureDataType` is required. It names a data type the app stores the signatures in.
-- `signeeProviderId` and `signeeStatesDataTypeId` go together or not at all.
+The `studio-signing` skill has the XML for a signing task, and the signee providers, Correspondence, data types,
+pages and policy that go with it.
 
 ## payment
 
-The minimal configuration. The `studio-payment` skill owns the rest: the data types, the payment processor, the
-pages and the policy.
-
-```xml
-<bpmn:task id="Task_Payment" name="Betaling">
-  <bpmn:extensionElements>
-    <altinn:taskExtension>
-      <altinn:taskType>payment</altinn:taskType>
-      <altinn:actions>
-        <altinn:action>confirm</altinn:action>
-        <altinn:action>pay</altinn:action>
-        <altinn:action>reject</altinn:action>
-      </altinn:actions>
-      <altinn:paymentConfig>
-        <altinn:paymentDataType>paymentInformation</altinn:paymentDataType>
-        <altinn:paymentReceiptPdfDataType>paymentReceiptPdf</altinn:paymentReceiptPdfDataType>
-      </altinn:paymentConfig>
-    </altinn:taskExtension>
-  </bpmn:extensionElements>
-</bpmn:task>
-```
-
-Both data type ids are required.
+The `studio-payment` skill has the XML for a payment task, and the data types, payment processor, pages and policy
+that go with it.
 
 ## pdf
 

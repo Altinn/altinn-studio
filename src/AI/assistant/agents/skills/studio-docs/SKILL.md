@@ -20,12 +20,14 @@ Search the section that matches the question:
 - v8 apps: `/nb/altinn-studio/v8/`. How-to guides are under `guides/`, and configuration and components under
   `reference/`.
 - v9 apps: `/nb/altinn-studio/v9/`. The v9 pages exist only in Norwegian. Most pages are under `develop-a-service/`,
-  and these sections hold the rest:
+  and these sections hold most of the rest:
   - `manage-a-service/`: deploying and undeploying, the runtime environment, firewall and outgoing IP addresses,
     monitoring, access management and maintenance
   - `test-a-service/`: testing locally, with test users and the app's APIs, and in the test environment
   - `plan-a-service/`: service design, texts and tone of voice, and accessibility
   - `getting-started/`: a Studio user, studioctl and local development
+  - `receive-data/`: sending the submitted data on with eFormidling and Fiks Arkiv
+  - `examples-and-patterns/`: a solution of several apps that work together, and how to test it
 - Other products have sections of their own, such as Authorization under `/nb/authorization/`, with access packages
   under `/nb/authorization/what-do-you-get/accesspackages/`. The first list in the index, *Hovedseksjoner*, names
   every product section.
@@ -74,8 +76,10 @@ do not cover it. Do not fetch more pages to look for it.
 
 The v9 docs start with [Hvorfor v9?](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/), which explains why
 v9 exists and what it changes, and
-[the upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/), which lists everything the
-upgrade changes in an app. Link both when a user asks about v9 or about upgrading from v8.
+[the upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/), which explains how to upgrade
+and the main changes the upgrade makes in an app. Link both when a user asks about v9 or about upgrading from v8. The
+guide leaves out smaller changes, such as API renames and removed layout settings. `studioctl app upgrade v9` prints
+each change it makes and what it leaves to the developer.
 
 ## Example apps
 
@@ -103,4 +107,4 @@ Read them for examples, and check what you copy against the version of the app y
 - [Hvorfor v9?](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/): why v9 exists and what it changes for
   service owners and app developers.
 - [Slik oppgraderer du appen fra v8 til v9](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/): how
-  to upgrade, and every change the upgrade makes in an app.
+  to upgrade, and the main changes the upgrade makes in an app.

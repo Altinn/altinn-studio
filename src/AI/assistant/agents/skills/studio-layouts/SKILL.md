@@ -161,9 +161,8 @@ components cannot bind to the subform's data model. A PDF for each entry needs a
   `queryParameters`: the `studio-code-lists` skill.
 - `hidden`, `required` and `readOnly` expressions: the `studio-expressions` skill. Values computed and stored in
   the data model: the `studio-app-lib` skill.
-- Required fields, validation messages and when the frontend validates: the `studio-validation` skill. It covers
-  `validationOnNavigation`, `validateOnNext` and `validateOnPrevious` on `NavigationButtons`, `validateOnForward` and
-  `validateOnBackward` on `NavigationBar`, `validation` on `CustomButton` actions, and `validateOnSaveRow`.
+- Required fields, validation messages and when the frontend validates, also when the user changes page or saves a
+  repeating group row: the `studio-validation` skill.
 
 ## Before you finish
 

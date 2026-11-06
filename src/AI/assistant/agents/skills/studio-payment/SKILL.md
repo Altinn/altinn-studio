@@ -111,7 +111,8 @@ Each part of the setup serves one of these steps:
   }
   ```
 
-- `SecretApiKey`, `BaseUrl` and `TermsUrl` are required. The payment guide describes the optional settings.
+- `SecretApiKey`, `BaseUrl` and `TermsUrl` are required. The Nets Easy page that the version file links describes
+  the optional settings.
 - Never commit the real key. Store it in the app's Azure Key Vault as the secret `NetsPaymentSettings--SecretApiKey`,
   and load Key Vault as a configuration source, as the secrets page describes. Locally, store Nets' test key as the
   .NET user secret `NetsPaymentSettings:SecretApiKey`.

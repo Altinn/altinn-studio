@@ -124,28 +124,21 @@ them. What matters for the user:
   expression and C# messages as soon as the data changes, even when the page opens.
 - When the user submits, the frontend shows every error at its field and in an error summary, and stops if there is
   one. Otherwise it calls `process/next`, and shows the errors the backend returns.
-- The frontend checks pages when the user moves between them only when one of these is set. Each takes an object such
-  as `{ "page": "current", "show": ["All"] }`, where `page` is `current`, `currentAndPrevious` or `all`, and `show`
-  lists validation types:
-  - `validationOnNavigation` in `data` of a page's layout file, or for every page in a settings file. Which settings
-    file takes it differs between the versions, and the `studio-layouts` skill covers it. The page's own setting
-    wins. It overrides the component settings below, and it checks only when the user moves forward.
-  - `validateOnNext` and `validateOnPrevious` on `NavigationButtons`
-  - `validateOnForward` and `validateOnBackward` on `NavigationBar`
-  - `validation` on each item in `actions` on `CustomButton`
+- The frontend checks pages when the user moves between them only when `validationOnNavigation`, `validateOnNext`,
+  `validateOnPrevious`, `validateOnForward`, `validateOnBackward` or `validation` on a `CustomButton` action is set.
+  The navigation page that the version file links says where each key goes and which one wins.
 - `validateOnSaveRow` on a `RepeatingGroup` makes the frontend check a row when the user saves it. It takes a list of
   validation types, such as `["All"]`, not a boolean.
-- Messages on hidden components never show and never stop the user.
+- The frontend never shows messages on hidden components, and they do not stop the user in the browser. The backend
+  still gives a C# validator the data of hidden fields, unless the validator sets `ShouldRunAfterRemovingHiddenData`
+  to `true`. An error it reports on a hidden field stops `process/next`, and the user sees it only in the error
+  summary. The version file says how the data model check treats hidden fields.
 
 ## What the backend checks on process/next
 
-On `process/next` the backend runs every validator for the task, not only those that run on save:
-
-- data annotations on the C# class, always
-- required fields, expression validation and XSD, when their settings are on
-- the data type settings: content type, size, `minCount` and `maxCount`
-- signatures, in signing tasks
-- the app's own C# validators
+On `process/next` the backend runs every validator for the task, not only those that run on save: the app's own C#
+validators, and the built-in checks in the table under "Validering på serveren" on the validation page that the
+version file links. The table says which setting turns each check on or off.
 
 Any issue with severity `error` stops the process with `409 Conflict`, and the response lists the issues. Warnings do
 not stop it. The backend skips all validation in two cases only: the action is `reject` and the task allows it, or
