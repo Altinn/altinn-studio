@@ -66,6 +66,14 @@ describe('networking', () => {
       expect(await get(testUrl)).toBe('plain text');
     });
 
+    it('parses JSON that the server sends as text/plain', async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response('{"data":[]}', { status: 200, headers: { 'Content-Type': 'text/plain' } }),
+      );
+
+      expect(await get(testUrl)).toEqual({ data: [] });
+    });
+
     it('passes the signal on to fetch', async () => {
       const controller = new AbortController();
       fetchSpy.mockResolvedValueOnce(jsonResponse({}));
@@ -116,29 +124,36 @@ describe('networking', () => {
       expect(headers.has('Content-Type')).toBe(false);
     });
 
-    it('sends a string that is already JSON as it is when the caller asks for JSON', async () => {
-      fetchSpy.mockResolvedValueOnce(emptyResponse());
-
-      await post(testUrl, '"newName"', { headers: { 'Content-Type': 'application/json' } });
-
-      expect(lastCall(fetchSpy).init.body).toBe('"newName"');
-    });
-
-    it('serializes a plain string as JSON when the caller asks for JSON', async () => {
-      fetchSpy.mockResolvedValueOnce(emptyResponse());
-
-      await put(testUrl, 'newName', { headers: { 'Content-Type': 'application/json' } });
-
-      expect(lastCall(fetchSpy).init.body).toBe('"newName"');
-    });
-
-    it('sends a string as it is when the caller does not ask for JSON', async () => {
+    it('sends a string as it is, without a Content-Type of its own', async () => {
       fetchSpy.mockResolvedValueOnce(emptyResponse());
 
       await post(testUrl, 'raw text');
 
       const { init, headers } = lastCall(fetchSpy);
       expect(init.body).toBe('raw text');
+      expect(headers.has('Content-Type')).toBe(false);
+    });
+
+    it('sends a string as it is when the caller sets the Content-Type to JSON', async () => {
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await put(testUrl, JSON.stringify('newName'), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const { init, headers } = lastCall(fetchSpy);
+      expect(init.body).toBe('"newName"');
+      expect(headers.get('Content-Type')).toBe('application/json');
+    });
+
+    it('sends URLSearchParams as it is, so the browser sets the Content-Type', async () => {
+      const params = new URLSearchParams({ name: 'test' });
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await post(testUrl, params);
+
+      const { init, headers } = lastCall(fetchSpy);
+      expect(init.body).toBe(params);
       expect(headers.has('Content-Type')).toBe(false);
     });
   });

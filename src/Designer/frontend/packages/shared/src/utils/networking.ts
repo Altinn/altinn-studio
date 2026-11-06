@@ -6,7 +6,6 @@ export type RequestOptions = {
 export type HttpResponse<T = any> = {
   status: number;
   data: T;
-  headers?: Headers;
 };
 
 /**
@@ -72,114 +71,106 @@ export async function del<T = void>(
   return (await request<T>('DELETE', url, options?.data, options)).data;
 }
 
-const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
-const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
-
 async function request<T>(
   method: string,
   url: string,
   data: unknown,
   options: RequestOptions = {},
 ): Promise<HttpResponse<T>> {
-  const headers = new Headers({ Accept: 'application/json, text/plain, */*' });
-  Object.entries(options.headers ?? {}).forEach(([name, value]) => headers.set(name, value));
+  const fetchResponse = await send(url, {
+    method,
+    headers: createHeaders(url, data, options.headers),
+    body: toBody(data),
+    signal: options.signal,
+  });
 
-  const body = serializeBody(data, headers);
-  addXsrfToken(url, headers);
-
-  let fetchResponse: Response;
-  try {
-    fetchResponse = await fetch(url, { method, headers, body, signal: options.signal });
-  } catch (error) {
-    if (isRequestCancelled(error)) throw error;
-    throw new HttpError<T>(undefined, (error as Error)?.message, { cause: error });
-  }
-
+  // The type parameter is the caller's claim about what the endpoint returns, as with `Response.json()`.
   const response: HttpResponse<T> = {
     status: fetchResponse.status,
-    data: await parseBody<T>(fetchResponse),
-    headers: fetchResponse.headers,
+    data: (await readData(fetchResponse)) as T,
   };
-
-  if (!fetchResponse.ok) {
-    throw new HttpError<T>(response);
-  }
+  if (!fetchResponse.ok) throw new HttpError<T>(response);
 
   redirectIfLoginPage(fetchResponse);
   return response;
 }
 
-/**
- * Serializes the body the way the API expects: objects as JSON, and strings as they are unless the
- * caller asks for JSON. FormData keeps no Content-Type, so the browser sets it with the boundary.
- */
-function serializeBody(data: unknown, headers: Headers): BodyInit | undefined {
-  if (data === undefined || data === null) return undefined;
-
-  if (data instanceof FormData) {
-    headers.delete('Content-Type');
-    return data;
+async function send(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (error) {
+    if (isRequestCancelled(error)) throw error;
+    throw new HttpError(undefined, (error as Error)?.message, { cause: error });
   }
+}
 
-  if (
+function createHeaders(url: string, data: unknown, custom: Record<string, string> = {}): Headers {
+  const headers = new Headers({ Accept: 'application/json, text/plain, */*' });
+  if (isJson(data)) headers.set('Content-Type', 'application/json');
+  Object.entries(custom).forEach(([name, value]) => headers.set(name, value));
+
+  // The browser adds the multipart boundary only when Content-Type is not set.
+  if (data instanceof FormData) headers.delete('Content-Type');
+
+  const xsrfToken = isSameOrigin(url) ? readCookie(XSRF_COOKIE_NAME) : null;
+  if (xsrfToken) headers.set(XSRF_HEADER_NAME, xsrfToken);
+
+  return headers;
+}
+
+/**
+ * Sends what fetch can send as it is, such as a string or FormData, and everything else as JSON. A
+ * string is never serialized, so a caller that sends a JSON string serializes it first.
+ */
+function toBody(data: unknown): BodyInit | undefined {
+  if (data === undefined || data === null) return undefined;
+  return isBodyInit(data) ? data : JSON.stringify(data);
+}
+
+function isJson(data: unknown): boolean {
+  return data !== undefined && data !== null && !isBodyInit(data);
+}
+
+function isBodyInit(data: unknown): data is BodyInit {
+  return (
+    typeof data === 'string' ||
+    data instanceof FormData ||
+    data instanceof URLSearchParams ||
     data instanceof Blob ||
     data instanceof ArrayBuffer ||
-    ArrayBuffer.isView(data) ||
-    data instanceof URLSearchParams
-  ) {
-    return data as BodyInit;
-  }
-
-  const hasJsonContentType = headers.get('Content-Type')?.includes('application/json') ?? false;
-  if (typeof data === 'object' || hasJsonContentType) {
-    headers.set('Content-Type', headers.get('Content-Type') ?? 'application/json');
-    return stringifyJson(data);
-  }
-
-  return String(data);
+    ArrayBuffer.isView(data)
+  );
 }
 
-/** A string that already is JSON is sent as it is, so a caller can pass pre-serialized JSON. */
-function stringifyJson(data: unknown): string {
-  if (typeof data === 'string') {
-    try {
-      JSON.parse(data);
-      return data.trim();
-    } catch {
-      return JSON.stringify(data);
-    }
-  }
-  return JSON.stringify(data);
-}
-
-async function parseBody<T>(response: Response): Promise<T> {
+/**
+ * Parses the body as JSON when it is JSON, whatever the Content-Type says, since some endpoints
+ * send JSON as text/plain. The rule config is one, through `Content(ruleConfig)` in
+ * `AppDevelopmentController`. Any other body, including an empty one, is returned as text.
+ */
+async function readData(response: Response): Promise<unknown> {
   const text = await response.text();
-  if (!text) return text as T;
   try {
-    return JSON.parse(text) as T;
+    return JSON.parse(text);
   } catch {
-    return text as T;
+    return text;
   }
 }
 
 /** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
-function addXsrfToken(url: string, headers: Headers): void {
-  if (!isSameOrigin(url)) return;
-  const token = readCookie(XSRF_COOKIE_NAME);
-  if (token) headers.set(XSRF_HEADER_NAME, token);
-}
+const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
+const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 
 function isSameOrigin(url: string): boolean {
-  try {
-    return new URL(url, window.location.href).origin === window.location.origin;
-  } catch {
-    return false;
-  }
+  if (!URL.canParse(url, window.location.href)) return false;
+  return new URL(url, window.location.href).origin === window.location.origin;
 }
 
 function readCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
+  const cookie = document.cookie
+    .split(';')
+    .map((entry) => entry.trim())
+    .find((entry) => entry.startsWith(`${name}=`));
+  return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
 }
 
 /**
@@ -188,7 +179,7 @@ function readCookie(name: string): string | null {
  * does not use its `redirect_to` cookie to send the user to the API path afterwards.
  */
 function redirectIfLoginPage(response: Response): void {
-  if (response.url.match('/repos/user/login$')) {
+  if (response.url.endsWith('/repos/user/login')) {
     window.location.href = '/login';
   }
 }
