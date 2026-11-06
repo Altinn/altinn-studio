@@ -24,10 +24,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public async Task<List<string>> GetAccessPackagesForUser(int userId, int partyId)
         {
             var data = await _testDataService.GetTestData();
-            var packages = HeldFor(data, userId, partyId);
-            if (data.GetParentPartyId(partyId) is int mainUnitPartyId)
+            // Roles give packages by the unit type of the party asked for, also when they are held for its main unit
+            var unitType = data.GetUnitType(partyId);
+            var packages = HeldFor(data, userId, partyId, unitType);
+            if (data.GetInheritedFromPartyId(partyId) is int mainUnitPartyId)
             {
-                packages = packages.Concat(HeldFor(data, userId, mainUnitPartyId));
+                packages = packages.Concat(HeldFor(data, userId, mainUnitPartyId, unitType));
             }
 
             return packages.Distinct().ToList();
@@ -43,7 +45,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             var ownParty = data.GetOrgUnit(systemUser.OrgNumber);
-            if (ownParty is null || (ownParty.PartyId != partyId && data.GetParentPartyId(partyId) != ownParty.PartyId))
+            if (ownParty is null || (ownParty.PartyId != partyId && data.GetInheritedFromPartyId(partyId) != ownParty.PartyId))
             {
                 return [];
             }
@@ -51,7 +53,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return systemUser.AccessPackages.ToList();
         }
 
-        private IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId)
+        private IEnumerable<string> HeldFor(TestDataModel data, int userId, int partyId, string? unitType)
         {
             var user = userId.ToString();
             var party = partyId.ToString();
@@ -63,7 +65,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (data.Authorization.Roles.TryGetValue(user, out var rolesByParty)
                 && rolesByParty.TryGetValue(party, out var roles))
             {
-                var unitType = data.GetUnitType(partyId);
                 packages = packages.Concat(roles
                     .Where(role => !string.IsNullOrEmpty(role.Value))
                     .SelectMany(role => _roleAccessPackages.GetPackages(role.Value, unitType)));

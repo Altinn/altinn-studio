@@ -146,7 +146,8 @@ internal sealed class AccessPackageHarness : IDisposable
         var prp = new Mock<IPolicyRetrievalPoint>();
         prp.Setup(p => p.GetPolicyAsync(It.IsAny<XacmlContextRequest>())).ReturnsAsync(policy);
 
-        var roles = new RolesWrapper(testDataService);
+        Roles = new RolesWrapper(testDataService);
+        var roles = Roles;
         AccessPackages = new AccessPackagesWrapper(testDataService, new RoleAccessPackages(settings));
         var contextHandler = new ContextHandler(
             Mock.Of<IPolicyInformationRepository>(),
@@ -180,6 +181,8 @@ internal sealed class AccessPackageHarness : IDisposable
     }
 
     public AccessPackagesWrapper AccessPackages { get; }
+
+    public RolesWrapper Roles { get; }
 
     /// <summary>Asks for the action (<c>read</c> by default) on the app for the party, as the user or system user.</summary>
     public Task<string> Decide(string subjectAttributeId, string subjectValue, int partyId, string action = "read") =>

@@ -18,6 +18,18 @@ public class TestDataModel
     /// <summary>The main unit of an organization that is a sub-unit.</summary>
     public int? GetParentPartyId(int partyId) => Register.OrgUnits.GetValueOrDefault(partyId.ToString())?.ParentPartyId;
 
+    /// <summary>
+    /// The main unit whose roles and access packages a sub-unit inherits, as Access Management's hierarchy gives them.
+    /// A sub-unit of unit type ADOS (an administrative unit in the public sector) inherits nothing, as in the platform,
+    /// where that inheritance is off unless a feature flag turns it on.
+    /// </summary>
+    public int? GetInheritedFromPartyId(int partyId) =>
+        string.Equals(GetUnitType(partyId), AdministrativeUnitPublicSector, StringComparison.OrdinalIgnoreCase)
+            ? null
+            : GetParentPartyId(partyId);
+
+    private const string AdministrativeUnitPublicSector = "ADOS";
+
     /// <summary>The unit type of an organization (such as <c>AS</c> or <c>BEDR</c>), if the test data has one.</summary>
     public string? GetUnitType(int partyId) => Register.OrgUnits.GetValueOrDefault(partyId.ToString())?.UnitType;
 

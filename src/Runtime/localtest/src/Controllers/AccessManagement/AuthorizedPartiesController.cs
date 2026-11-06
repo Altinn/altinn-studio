@@ -31,25 +31,24 @@ public class AuthorizedPartiesController(IParties parties, IRoles roles, IAccess
         var authorizedParties = new List<AuthorizedPartyDto>();
         foreach (var party in partyList)
         {
-            authorizedParties.Add(await ToDto(userId, party, mainUnitRoles: []));
+            authorizedParties.Add(await ToDto(userId, party));
         }
 
         return Ok(new AuthorizedPartiesResponseDto(new AuthorizedPartiesLinksDto(null), authorizedParties));
     }
 
-    private async Task<AuthorizedPartyDto> ToDto(int userId, Party party, List<string> mainUnitRoles)
+    private async Task<AuthorizedPartyDto> ToDto(int userId, Party party)
     {
         var roleCodes = (await roles.GetDecisionPointRolesForUser(userId, party.PartyId))
             .Select(role => role.Value)
             .Where(code => !string.IsNullOrEmpty(code))
-            .Concat(mainUnitRoles)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         var packages = await accessPackages.GetAccessPackagesForUser(userId, party.PartyId);
         var subunits = new List<AuthorizedPartyDto>();
         foreach (var subunit in party.ChildParties ?? [])
         {
-            subunits.Add(await ToDto(userId, subunit, roleCodes));
+            subunits.Add(await ToDto(userId, subunit));
         }
 
         return new(

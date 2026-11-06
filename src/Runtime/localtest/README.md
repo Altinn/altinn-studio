@@ -26,7 +26,9 @@ Persons in `testData.json` can hold access packages ("tilgangspakker") for a par
 party id, and system users can hold them for their own organization. A package is its identifier, such as `lonn`, or
 its URN, `urn:altinn:accesspackage:lonn`. When an app policy has rules on `urn:altinn:accesspackage`, the PDP adds
 the packages the subject holds for the resource party, as the platform does, so those rules decide the same way
-locally. A sub-unit, an organization with a `parentPartyId`, gets the packages held for its main unit. Packages held
+locally. A sub-unit, an organization with a `parentPartyId`, gets the roles and packages held for its main unit, as in
+Access Management's hierarchy, in decisions and in `authorizedparties`. A role held for the main unit gives the
+packages it gives for the sub-unit's own `unitType`, and a sub-unit of unit type `ADOS` inherits nothing. Packages held
 for the person's own party give no access to other parties. `enduser/authorizedparties` lists the packages and role
 codes per party. Caller-supplied `urn:altinn:accesspackage` subject attributes are ignored.
 
