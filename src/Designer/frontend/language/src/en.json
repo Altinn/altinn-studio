@@ -625,7 +625,7 @@
   "ux_editor.component_dropdown_set_preselected": "Set pre-selected value in dropdown list",
   "ux_editor.component_properties_help_text.data_model_bindings.fileName": "The component fills in the field with the name of the file it sends.",
   "ux_editor.component_properties_help_text.data_model_bindings.fileTransferId": "The component fills in the field with the ID Altinn Broker gives the file transfer. Other components should not be able to change the field.",
-  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "The component fills in the field with the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, Published, AllConfirmedDownloaded or Purged once the file is sent, and Failed if Broker rejects it. The field is empty until the user sends a file. The form can only be submitted once the file is sent.",
+  "ux_editor.component_properties_help_text.data_model_bindings.fileTransferStatus": "The component fills in the field with the file transfer's status in Altinn Broker. Once the file is sent, the status is Published, AllConfirmedDownloaded or Purged, and Failed means Broker rejected the file. The field is empty until the user sends a file, and the form can only be submitted once the file is sent.",
   "ux_editor.component_title.Accordion": "Accordion",
   "ux_editor.component_title.AccordionGroup": "AccordionGroup",
   "ux_editor.component_title.ActionButton": "ActionButton",

@@ -98,6 +98,7 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+formidlingsstatus
 forsendelsestype
 forsendelsestypen
 funksjonsflagg
@@ -220,6 +221,7 @@ signeringssteg
 sikkerhetsnøkkel
 sikkerhetsnøkkelen
 sikkerhetsnøkler
+sjekksum
 skjemabyggeren
 skjemaeditor
 skjemagenerert
