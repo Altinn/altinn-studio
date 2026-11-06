@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 
 import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -132,23 +133,29 @@ function NavigationButtonsComponentInner({
    */
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
+  const validationBlocksNavigation = async (validation: PageValidation | undefined) => {
+    if (!validation) {
+      return false;
+    }
+
+    const pageKey = layoutLookups.componentToPage[baseComponentId];
+    if (!pageKey) {
+      throw new Error(`Could not find page key for component ${baseComponentId}`);
+    }
+
+    const prevScrollPosition = getScrollPosition();
+    const hasErrors = await onPageNavigationValidation(pageKey, validation);
+    if (hasErrors) {
+      resetScrollPosition(prevScrollPosition);
+    }
+    return hasErrors;
+  };
+
   const onClickPrevious = () =>
     performProcess('previous', async () => {
       await maybeSaveOnPageChange();
-
-      const prevScrollPosition = getScrollPosition();
-      if (validateOnBackward) {
-        const pageKey = layoutLookups.componentToPage[baseComponentId];
-        if (!pageKey) {
-          throw new Error(`Could not find page key for component ${baseComponentId}`);
-        }
-
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnBackward);
-        if (hasErrors) {
-          // Block navigation if validation fails
-          resetScrollPosition(prevScrollPosition);
-          return;
-        }
+      if (await validationBlocksNavigation(validateOnBackward)) {
+        return;
       }
 
       await navigateToPreviousPage({ skipAutoSave: true });
@@ -157,19 +164,8 @@ function NavigationButtonsComponentInner({
   const onClickNext = () =>
     performProcess('next', async () => {
       await maybeSaveOnPageChange();
-
-      const prevScrollPosition = getScrollPosition();
-
-      if (validateOnForward) {
-        const pageKey = layoutLookups.componentToPage[baseComponentId];
-        if (!pageKey) {
-          throw new Error(`Could not find page key for component ${baseComponentId}`);
-        }
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
-        if (hasErrors) {
-          resetScrollPosition(prevScrollPosition);
-          return;
-        }
+      if (await validationBlocksNavigation(validateOnForward)) {
+        return;
       }
 
       await navigateToNextPage({ skipAutoSave: true });
@@ -183,15 +179,11 @@ function NavigationButtonsComponentInner({
         return;
       }
 
-      const prevScrollPosition = getScrollPosition();
-      const pageKey = layoutLookups.componentToPage[baseComponentId];
       if (
         validateOnReturn &&
         validateOnReturn.show.length > 0 &&
-        pageKey &&
-        (await onPageNavigationValidation(pageKey, validateOnReturn))
+        (await validationBlocksNavigation(validateOnReturn))
       ) {
-        resetScrollPosition(prevScrollPosition);
         return;
       }
 
