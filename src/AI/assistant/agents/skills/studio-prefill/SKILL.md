@@ -66,9 +66,10 @@ model editor writes this file when you set **Forhåndsutfylling** on a field.
   such as `User` or `Person`, without a message.
 
 Source field names are case-sensitive and match the C# property names: `OrgNumber`, `Party.Person.FirstName`,
-`ProfileSettingPreference.Language`. Take them from the list in the docs. Studio and the prefill schema spell two of
-them wrong: write `Party.IsDeleted`, not `Party.isDeleted`, and `ProfileSettingPreference.DoNotPromptForParty`, not
-`ProfileSettingsPreference.DoNotPromptForParty`.
+`ProfileSettingPreference.Language`. Take them from the list in the docs, with two corrections. Write
+`Party.IsDeleted`, not `Party.isDeleted` as the docs and Studio have it. Write
+`ProfileSettingPreference.DoNotPromptForParty`, not `ProfileSettingsPreference.DoNotPromptForParty` as the v8 docs
+and Studio have it.
 
 ## Whose data each source holds
 
@@ -112,6 +113,6 @@ in the organization a user acts for, use `ER`, never `UserProfile.Party.Organiza
   `appLogic.autoCreate: true`, a subform, the instantiation request or a stateless form.
 - Each `prefill.json` sets `allowOverwrite`.
 - Each target path exists in the data model's JSON schema and is not inside a list.
-- Each source field is spelled exactly as in the docs list.
+- Each source field is spelled exactly as in the docs list, with the corrections above.
 - Each source fits the instance owners that `partyTypesAllowed` allows.
 - Build the app, create an instance locally for each kind of party the app allows, and check the prefilled fields.
