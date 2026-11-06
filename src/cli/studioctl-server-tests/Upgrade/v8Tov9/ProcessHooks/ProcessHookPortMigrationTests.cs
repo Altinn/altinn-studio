@@ -120,16 +120,13 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
         WriteProject();
         _app.Write(HookPath, _hook);
         _app.Write(
-            "logic/Storage.cs",
+            "logic/Blocked.cs",
             InApp(
                 """
-                public class Storage(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) : IProcessTaskEnd
+                public partial class Blocked : IProcessTaskStart
                 {
-                    public async Task End(string taskId, Instance instance)
-                    {
-                        if (taskId != "Task_2") return;
-                        await instanceClient.UpdateDataValues(instance, new() { ["Fagsystem"] = "hego" });
-                    }
+                    public Task Start(string taskId, Instance instance, Dictionary<string, string> prefill) =>
+                        Task.CompletedTask;
                 }
                 """
             )
@@ -138,7 +135,7 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
             "Program.cs",
             Program(
                 "services.AddTransient<IProcessTaskEnd, Hook>();",
-                "services.AddTransient<IProcessTaskEnd, Storage>();"
+                "services.AddTransient<IProcessTaskStart, Blocked>();"
             )
         );
         var output = new StringWriter();
@@ -150,8 +147,8 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
 
         // The removed-API check prints the scanner's paths, which have the OS's separator.
         var text = output.ToString().Replace('\\', '/');
-        Assert.Contains("logic/Storage.cs:11: Storage : IProcessTaskEnd", text);
-        Assert.Contains("Program.cs:12: IProcessTaskEnd", text);
+        Assert.Contains("logic/Blocked.cs:11: Blocked : IProcessTaskStart", text);
+        Assert.Contains("Program.cs:12: IProcessTaskStart", text);
         Assert.DoesNotContain("Hook : IProcessTaskEnd", text);
         Assert.DoesNotContain("Program.cs:11: IProcessTaskEnd", text);
     }
@@ -173,5 +170,45 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
         var report = PortReport.Located(file, root.Members[0], UpgradeMessageStatus.Warning, "a report");
 
         Assert.Equal(("logic/Hook.cs", "logic/Hook.cs:1: a report"), (report.Path, report.Message.Text));
+    }
+
+    public static TheoryData<string, string, bool> AltinnAppReferences =>
+        new()
+        {
+            {
+                "a release before the first that describes the actor",
+                "<PackageReference Include=\"Altinn.App.Api\" Version=\"9.0.0-preview.8\" />",
+                false
+            },
+            {
+                "the first release that describes the actor",
+                $"<PackageReference Include=\"Altinn.App.Api\" Version=\"{V8Tov9Upgrade.FirstVersionWithCallbackActor}\" />",
+                true
+            },
+            {
+                "project references into the libraries' sources",
+                "<ProjectReference Include=\"../../altinn-studio/src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj\" />",
+                true
+            },
+        };
+
+    /// <summary>The upgrade has written the Altinn.App version the app gets by the time the hooks are ported.</summary>
+    [Theory]
+    [MemberData(nameof(AltinnAppReferences))]
+    public void CallbackActorIsKnown_FollowsTheAltinnAppVersionTheAppGets(string label, string reference, bool known)
+    {
+        _ = label;
+        _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                {reference}
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+        Assert.Equal(known, V8Tov9Upgrade.CallbackActorIsKnown(Path.Combine(AppFolder, "App.csproj")));
     }
 }
