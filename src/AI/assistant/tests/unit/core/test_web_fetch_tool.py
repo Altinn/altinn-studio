@@ -157,6 +157,41 @@ class TestPageContent:
 
         assert result.content == "x" * MAX_RESPONSE_CHARS + "\n…[truncated]"
 
+    async def test_filter_keeps_the_lines_that_contain_every_word(self, serve):
+        serve(
+            _respond(
+                "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)\n"
+                "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v8/signing/index.md)\n"
+                "- [Betaling](https://docs.altinn.studio/nb/altinn-studio/v9/payment/index.md)\n",
+                content_type="text/plain",
+            )
+        )
+        tool = WebFetchTool()
+        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
+
+        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="/altinn-studio/v9/ SIGNERING"), ctx)
+
+        assert result.content == "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)"
+
+    async def test_filter_applies_before_truncation(self, serve):
+        serve(_respond("match\n" + "x" * (MAX_RESPONSE_CHARS + 1), content_type="text/plain"))
+        tool = WebFetchTool()
+        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
+
+        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="match"), ctx)
+
+        assert result.content == "match"
+
+    async def test_filter_says_when_no_line_matches(self, serve):
+        serve(_respond("one\ntwo", content_type="text/plain"))
+        tool = WebFetchTool()
+        ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
+
+        result = await tool.run(tool.input_schema(url=DOCS_URL, filter="three"), ctx)
+
+        assert not result.is_error
+        assert result.content == "No lines contain all of: three"
+
 
 class TestRedirects:
     async def test_follows_a_redirect_to_an_allowed_host(self, serve):

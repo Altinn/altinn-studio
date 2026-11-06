@@ -3,7 +3,9 @@
 One tool for all skills (mirroring Claude Code's design): the model
 sees a compact listing of available skills in the system prompt and
 calls `skill(name)` to pull the full body into the conversation as an
-ordinary tool result.
+ordinary tool result.  A skill links further files under `references/`;
+`skill(name, file=...)` loads one of them, since `read_file` cannot reach
+the skill directory.
 
 Compared to per-topic MCP doc tools this saves a network round-trip,
 keeps the tool catalog small, and lets the documentation ship (and be
@@ -14,7 +16,7 @@ from __future__ import annotations
 
 from pydantic import AliasChoices, BaseModel, Field
 
-from agents.core.skills import Skill
+from agents.core.skills import Skill, SkillFileError
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 
@@ -24,10 +26,17 @@ class SkillArgs(BaseModel):
         validation_alias=AliasChoices("skill", "name"),
         description="Name of the skill to load, exactly as it appears in the skill listing.",
     )
+    file: str | None = Field(
+        default=None,
+        description=(
+            "A file the skill links to, relative to the skill, such as `references/access-packages.md`. "
+            "Leave it out to load the skill itself."
+        ),
+    )
 
 
 class SkillTool(Tool[SkillArgs]):
-    """Load a skill's full instructions into the conversation."""
+    """Load a skill's full instructions, or a file it links to."""
 
     name = "skill"
     is_concurrency_safe = True
@@ -37,11 +46,12 @@ class SkillTool(Tool[SkillArgs]):
         self._skills = {s.name: s for s in skills}
         names = ", ".join(sorted(self._skills)) or "(none available)"
         self.description = (
-            "Load the full instructions for a skill — curated domain knowledge for a "
-            "specific Altinn topic (data models, policy, text resources, prefill, "
-            "dynamic expressions, planning). The skill listing in your system prompt "
-            "shows what each skill covers. Call this BEFORE working on a topic you "
-            f"have a skill for; the content is authoritative. Available: {names}."
+            "Load the full instructions for a skill: curated knowledge about one part of an Altinn app. "
+            "The skill listing in your system prompt shows what each skill covers. Load the skill BEFORE "
+            "you work on its topic; the content is authoritative. The text for this app's version "
+            "(`references/v8.md` or `references/v9.md`) is already appended, so do not load it again. "
+            "When a skill links another file under `references/`, load it with `file`. "
+            f"Available: {names}."
         )
 
     async def run(self, args: SkillArgs, ctx: LoopContext) -> ToolResult:
@@ -52,17 +62,22 @@ class SkillTool(Tool[SkillArgs]):
                 content=f"Unknown skill {args.skill!r}. Available skills: {known}.",
                 is_error=True,
             )
+        version_label = ctx.app_version_profile.version_label
         try:
-            body = skill.load_body(ctx.app_version_profile.version_label)
+            content = skill.load_file(args.file) if args.file else skill.load_body(version_label)
+        except SkillFileError as exc:
+            files = ", ".join(skill.linked_files()) or "(none)"
+            return ToolResult(content=f"{exc} Files in this skill: {files}.", is_error=True)
         except OSError as exc:
             return ToolResult(
                 content=f"Failed to load skill {args.skill!r}: {exc}",
                 is_error=True,
             )
         source: dict[str, str] = {"title": skill.title or skill.name, "kind": "skill"}
-        if skill.docs_url:
-            source["url"] = skill.docs_url
-        return ToolResult(
-            content=body,
-            metadata={"skill": skill.name, "source": source},
-        )
+        docs_url = skill.docs_url_for(version_label)
+        if docs_url:
+            source["url"] = docs_url
+        metadata: dict[str, object] = {"skill": skill.name, "source": source}
+        if args.file:
+            metadata["file"] = args.file
+        return ToolResult(content=content, metadata=metadata)

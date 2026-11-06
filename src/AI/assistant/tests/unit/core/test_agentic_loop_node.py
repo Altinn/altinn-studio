@@ -87,9 +87,9 @@ class TestEventBridge:
             lambda evt: seen.append(evt),
         )
         bridge = _make_event_bridge("sess-1")
-        bridge("tool_call", {"id": "1", "name": "skill", "input": {"skill": "altinn-policy"}})
+        bridge("tool_call", {"id": "1", "name": "skill", "input": {"skill": "studio-policy"}})
         assert len(seen) == 1
-        assert "altinn-policy" in seen[0].data["message"]
+        assert "studio-policy" in seen[0].data["message"]
 
     def test_action_tool_call_emits_friendly_status(self, monkeypatch):
         seen: list = []

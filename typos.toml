@@ -72,6 +72,11 @@ extend-exclude = [
     "src/App/template/*/src/App/config/applicationmetadata.json",
     "src/App/template/*/src/App/config/texts/resource.*.json",
     "src/gitea/files/locale/**",
+    # The studio-policy skill's lists of access packages and roles, generated
+    # from Altinn Access Management's Norwegian names and descriptions by
+    # src/AI/assistant/scripts/generate_policy_references.py.
+    "src/AI/assistant/agents/skills/studio-policy/references/access-packages-*.md",
+    "src/AI/assistant/agents/skills/studio-policy/references/roles.md",
 
     # Test-only surface ships nowhere: test projects, colocated test files,
     # test data, mocks, e2e suites and Storybook stories. A typo there costs

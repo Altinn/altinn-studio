@@ -1,7 +1,9 @@
 """`web_fetch` — fetch a documentation page from an allowlisted domain.
 
-Exists so the model can follow the `altinn-docs` skill's llms.txt index:
-scan the index, pick the relevant page, fetch it.  Deliberately narrow:
+Exists so the model can follow the `studio-docs` skill: search the docs
+index (llms.txt) for the relevant page, then fetch it.  The index is far
+larger than the response cap, so `filter` returns only the lines that
+match.  Deliberately narrow:
 
   * Allowlisted hosts only (docs.altinn.studio, altinncdn.no) — this is
     a docs reader, not a general HTTP client.  Keeping the list tight
@@ -37,6 +39,13 @@ _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 class WebFetchArgs(BaseModel):
     url: str = Field(description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio.")
+    filter: str | None = Field(
+        default=None,
+        description=(
+            "Return only the lines that contain every word in this text, ignoring case. Use it to search the "
+            "docs index, for example `/altinn-studio/v9/ signering` on https://docs.altinn.studio/nb/llms.txt."
+        ),
+    )
 
 
 class WebFetchTool(Tool[WebFetchArgs]):
@@ -46,10 +55,10 @@ class WebFetchTool(Tool[WebFetchArgs]):
     description = (
         "Fetch a page from the official Altinn documentation "
         "(docs.altinn.studio) or an official schema (altinncdn.no).  Use "
-        "together with the `altinn-docs` skill: load the skill, scan its "
-        "llms.txt index for the right page, then fetch that page's URL.  "
+        "together with the `studio-docs` skill: search the docs index with "
+        "`filter` for the right page, then fetch that page's URL.  "
         "HTML is reduced to readable text; responses are capped at "
-        f"{MAX_RESPONSE_CHARS} characters."
+        f"{MAX_RESPONSE_CHARS} characters, after `filter` is applied."
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True
@@ -61,7 +70,7 @@ class WebFetchTool(Tool[WebFetchArgs]):
         response = await _fetch(args.url)
         if isinstance(response, ToolResult):
             return response
-        text, title = _extract_page(response)
+        text, title = _extract_page(response, args.filter)
         url = str(response.url)
         return ToolResult(
             content=text,
@@ -108,7 +117,7 @@ async def _fetch(url: str) -> httpx.Response | ToolResult:
         status = exc.response.status_code
         hint = ""
         if status == 404:
-            hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
+            hint = "  Do not guess URLs — load the `studio-docs` skill and take the URL from the docs index."
         return ToolResult(
             content=f"HTTP {status} fetching {exc.response.url}.{hint}",
             is_error=True,
@@ -129,16 +138,26 @@ async def _check_redirect(request: httpx.Request) -> None:
         raise _RefusedRedirectError(f"Redirect to {request.url} refused. {refusal.content}", request=request)
 
 
-def _extract_page(response: httpx.Response) -> tuple[str, str | None]:
+def _extract_page(response: httpx.Response, line_filter: str | None = None) -> tuple[str, str | None]:
     """Return the readable text of the page and its title."""
     text = response.text
     title = None
     if "html" in response.headers.get("content-type", ""):
         title = _page_title(text)
         text = _html_to_text(text)
+    if line_filter and line_filter.split():
+        text = _matching_lines(text, line_filter)
     if len(text) > MAX_RESPONSE_CHARS:
         text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
     return text, title
+
+
+def _matching_lines(text: str, line_filter: str) -> str:
+    words = [word.casefold() for word in line_filter.split()]
+    lines = [line for line in text.splitlines() if all(word in line.casefold() for word in words)]
+    if not lines:
+        return f"No lines contain all of: {line_filter}"
+    return "\n".join(lines)
 
 
 def _page_title(html: str) -> str | None:
