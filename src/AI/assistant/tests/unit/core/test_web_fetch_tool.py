@@ -184,7 +184,7 @@ class TestPageContent:
         assert result.content == "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)"
 
     async def test_filter_applies_before_truncation(self, serve):
-        serve(_respond("match\n" + "x" * (MAX_RESPONSE_CHARS + 1), content_type="text/plain"))
+        serve(_respond("x" * (MAX_RESPONSE_CHARS + 1) + "\nmatch", content_type="text/plain"))
 
         result = await _fetch(DOCS_URL, filter="match")
 
