@@ -120,6 +120,37 @@ public class UpdateMetadataForAttachmentTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UpdateMetadataForAttachment_WhenAppReadsTaskIds_ShouldLeaveTaskBindingUntouched(bool hasTaskIds)
+    {
+        string[] existingTaskIds = hasTaskIds ? ["Task_1", "Task_2"] : null;
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        TestDataHelper.WriteAppLibVersion(TestRepoPath, "9.0.0");
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+        string addPayload = @"{ ""id"": ""testId"", ""maxCount"": 1 }";
+        using var addPayloadContent = new StringContent(addPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var addResponse = await HttpClient.PostAsync(url, addPayloadContent);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "testId", "Task_1", existingTaskIds);
+
+        string updatePayload = @"{ ""id"": ""testId"", ""taskId"": ""Task_2"", ""maxCount"": 2, ""minCount"": 0 }";
+        using var updatePayloadContent = new StringContent(
+            updatePayload,
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using var updateResponse = await HttpClient.PutAsync(url, updatePayloadContent);
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        JsonObject attachmentDataType = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "testId");
+        Assert.Equal("Task_1", (string)attachmentDataType["taskId"]);
+        Assert.Equal(existingTaskIds, DataTypeTaskBindingTestHelper.ReadTaskIds(attachmentDataType));
+        Assert.Equal(2, (int)attachmentDataType["maxCount"]);
+    }
+
+    [Theory]
     [InlineData(
         @"{ ""id"": ""testId"", ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10, ""enableFileScan"": false }",
         false

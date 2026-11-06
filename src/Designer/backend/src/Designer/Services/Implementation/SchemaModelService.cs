@@ -692,7 +692,6 @@ public class SchemaModelService : ISchemaModelService
             logicElement = new DataType
             {
                 Id = dataTypeId,
-                TaskId = null,
                 AllowedContentTypes = new List<string>() { "application/xml" },
                 MaxCount = 1,
                 MinCount = 1,

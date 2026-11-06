@@ -110,7 +110,7 @@ const filterAttachments = (
   return availableDataTypes.filter((dataType) => {
     const noReservedType = !Object.values(reservedDataTypes).includes(dataType.id);
     const noAppLogic = !dataType.appLogic;
-    const hasMatchingTask = tasks?.some((task) => dataType.taskId === task);
+    const hasMatchingTask = tasks?.some((task) => dataType.taskIds?.includes(task));
 
     return noReservedType && noAppLogic && hasMatchingTask;
   });
