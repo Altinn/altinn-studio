@@ -567,7 +567,7 @@ public class GiteaClient(
             nameof(UpdateFileAsync),
             response.StatusCode,
             filePath,
-            branch,
+            branch.WithoutLineBreaks(),
             org.WithoutLineBreaks(),
             app.WithoutLineBreaks()
         );
