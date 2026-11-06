@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
-import { getReturnRoute } from 'src/features/navigation/returnRoute';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useCurrentView, usePageOrder } from 'src/hooks/useNavigatePage';
 
 type ReturnToView = {
@@ -69,55 +69,42 @@ export function ClearInvalidReturnState() {
   const returnToView = FormStore.pageNavigation.useReturnToView();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
-  const currentPage = useCurrentView();
+  const order = usePageOrder();
+  const page = useCurrentView();
+  const mainPage = useNavigationParam('mainPageKey');
+  // Keep watching the parent page while the user edits one of its subforms.
+  const currentPage = mainPage && order.includes(mainPage) ? mainPage : page;
   const [searchParams, setSearchParams] = useSearchParams();
   const backToPage = searchParams.get(SearchParams.BackToPage);
-
-  return (
-    <>
-      {returnToView && (
-        <ClearReturnStateForChangedRoute
-          key={`summary:${currentPage}:${returnToView.pageId}`}
-          pageId={returnToView.pageId}
-          onReset={() => {
-            setReturnToView?.(undefined);
-            setSummaryNodeOfOrigin?.(undefined);
-          }}
-        />
-      )}
-      {backToPage && (
-        <ClearReturnStateForChangedRoute
-          key={`link:${currentPage}:${backToPage}`}
-          pageId={backToPage}
-          onReset={() =>
-            setSearchParams((previous) => {
-              const next = new URLSearchParams(previous);
-              next.delete(SearchParams.BackToPage);
-              return next;
-            }, replaceAndPreventResetOptions)
-          }
-        />
-      )}
-    </>
-  );
-}
-
-function ClearReturnStateForChangedRoute({ pageId, onReset }: { pageId: string; onReset: () => void }) {
-  const order = usePageOrder();
-  const currentPage = useCurrentView();
-  const route = useMemo(() => getReturnRoute(order, currentPage, pageId), [order, currentPage, pageId]);
-  // A return shortcut belongs to one edit detour; undoing an answer must not restore it.
-  const originalRoute = useRef(route);
+  const returnPage = returnToView?.pageId ?? backToPage;
+  const original = useRef<{ from: string | undefined; to: string; pages: string }>(undefined);
 
   useEffect(() => {
-    if (
-      !route ||
-      route.length !== originalRoute.current?.length ||
-      route.some((page, index) => page !== originalRoute.current?.[index])
-    ) {
-      onReset();
+    if (!returnPage) {
+      original.current = undefined;
+      return;
     }
-  }, [route, onReset]);
+    const from = order.indexOf(currentPage ?? '');
+    const to = order.indexOf(returnPage);
+    const pages = from < 0 || to < 0 ? undefined : order.slice(Math.min(from, to), Math.max(from, to) + 1).join('\0');
+
+    // An edit can reveal a page that the return button would skip. Remove the shortcut
+    // when these visible pages change. Keep the original list until the edit ends,
+    // so undoing an answer cannot bring the shortcut back.
+    if (pages && (original.current?.from !== currentPage || original.current?.to !== returnPage)) {
+      original.current = { from: currentPage, to: returnPage, pages };
+    } else if (!pages || pages !== original.current?.pages) {
+      setReturnToView?.(undefined);
+      setSummaryNodeOfOrigin?.(undefined);
+      if (backToPage) {
+        setSearchParams((previous) => {
+          const next = new URLSearchParams(previous);
+          next.delete(SearchParams.BackToPage);
+          return next;
+        }, replaceAndPreventResetOptions);
+      }
+    }
+  }, [returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
 
   return null;
 }
