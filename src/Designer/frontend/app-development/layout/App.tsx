@@ -6,7 +6,7 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { DEFAULT_LANGUAGE, DISPLAY_NAME } from 'app-shared/constants';
 import { appContentWrapperId } from '@studio/testing/testids';
 
 i18next.use(initReactI18next).init({
@@ -27,6 +27,14 @@ i18next.use(initReactI18next).init({
 
 export function App() {
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (!app) return;
+    document.title = `${app} - ${DISPLAY_NAME}`;
+    return () => {
+      document.title = DISPLAY_NAME;
+    };
+  }, [app]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
