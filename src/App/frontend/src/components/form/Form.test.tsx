@@ -8,18 +8,9 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
-import { TextResourceMap } from 'src/features/language/textResources';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
-
-let mockTextResourcesValue: TextResourceMap = {};
-
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
-  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
-  useTextResources: vi.fn(() => mockTextResourcesValue),
-}));
 
 describe('Form', () => {
   const mockLayoutId = 'FormLayout';
@@ -271,8 +262,7 @@ describe('Form', () => {
     layoutTextId = mockLayoutId,
     layoutTextValue = mockLayoutName,
   }: RenderOptions = {}) {
-    // Set the mutable mock value before rendering
-    mockTextResourcesValue = { [layoutTextId]: { value: layoutTextValue } };
+    window.altinnAppGlobalData.textResources!.resources = [{ id: layoutTextId, value: layoutTextValue }];
 
     window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
       ui.folders.Task_1 = {

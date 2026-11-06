@@ -13,13 +13,6 @@ import type { FormStoreState } from 'src/features/form/FormContext';
 import type { CompExternal } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
-export const attachmentMutationKeys = {
-  all: ['attachments'] as const,
-  upload: () => [...attachmentMutationKeys.all, 'upload'] as const,
-  update: () => [...attachmentMutationKeys.all, 'update'] as const,
-  remove: () => [...attachmentMutationKeys.all, 'remove'] as const,
-};
-
 export type AttachmentNode = {
   id: string;
   baseId: string;

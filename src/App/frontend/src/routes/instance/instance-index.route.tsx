@@ -4,16 +4,16 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { getTargetTaskFromProcess } from 'src/features/process/useProcessNext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
 export async function clientLoader({ context, params, request }: LoaderFunctionArgs) {
   const queryClient = context.get(queryClientContext);
-  const { instanceApi } = context.get(apiClientsContext);
+  const instanceApi = context.get(appQueriesContext);
   const { instanceOwnerPartyId, instanceGuid } = params;
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('instance-index loader reached without instanceOwnerPartyId/instanceGuid route params');

@@ -24,6 +24,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
+- When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
