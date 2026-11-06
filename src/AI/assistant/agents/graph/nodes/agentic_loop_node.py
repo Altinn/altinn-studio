@@ -48,7 +48,6 @@ from agents.core.tools.commit_session_branch_tool import unverified_changed_file
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.llm.recent_turns import truncate_to_history_limit
-from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -463,7 +462,7 @@ def _internal_tools(skills: list[Skill]) -> list[Tool]:
         VerifyChangesTool(),
         CommitSessionBranchTool(),
         PreviewRenderCheckTool(),
-        SkillTool(skills, append_version_file=get_config().APPEND_SKILL_VERSION_FILE),
+        SkillTool(skills),
         LayoutPropsTool(),
         PolicySubjectsTool(),
         DatamodelSyncTool(),

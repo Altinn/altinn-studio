@@ -53,10 +53,6 @@ class BaseConfig:
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-6.1-sol")
     LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-6.1-sol")
 
-    # True appends the version file (references/v8.md or v9.md) to each skill. By default the actor loads it when the
-    # skill says to, as other coding agents do, since it did so in every bench build and the two modes score the same.
-    APPEND_SKILL_VERSION_FILE = os.getenv("APPEND_SKILL_VERSION_FILE", "false").lower() == "true"
-
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
     PREVIEW_STUDIO_USER = os.getenv("PREVIEW_STUDIO_USER", "localgiteaadmin")

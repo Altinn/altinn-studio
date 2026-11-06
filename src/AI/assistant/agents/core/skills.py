@@ -10,8 +10,7 @@ model loads it with the `skill` tool.
 
 The loop's `read_file` reads only the app repository, so it can never
 reach a skill's own files.  The `skill` tool therefore loads any file the
-body links to on request, such as the version file for the app.  With
-`APPEND_SKILL_VERSION_FILE`, it appends that file to the body instead.
+body links to on request, such as the version file for the app.
 """
 
 from __future__ import annotations
@@ -66,21 +65,11 @@ class Skill:
             return self.docs_url_v9
         return self.docs_url
 
-    def load_body(self, version_label: str, *, append_version_file: bool = False) -> str:
-        """The body of SKILL.md, followed by `references/<version_label>.md`
-        when the skill has one and `append_version_file` is true."""
+    def load_body(self) -> str:
+        """The body of SKILL.md, without the frontmatter."""
         raw = self.path.read_text(encoding="utf-8")
         match = _FRONTMATTER_PATTERN.match(raw)
-        body = raw[match.end() :] if match else raw
-        sections = [body.strip()]
-        version_file = f"{REFERENCES_DIRNAME}/{version_label}.md"
-        version_path = self.directory / version_file
-        if append_version_file and version_path.is_file():
-            sections.append(
-                f"The app is {version_label}, so {version_file} follows.\n\n"
-                + version_path.read_text(encoding="utf-8").strip()
-            )
-        return "\n\n".join(sections)
+        return (raw[match.end() :] if match else raw).strip()
 
     def load_file(self, relative_path: str) -> str:
         return self._resolve(relative_path).read_text(encoding="utf-8")

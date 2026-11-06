@@ -144,34 +144,16 @@ class TestLoadBody:
         _write_skill(tmp_path, "my-skill", "Desc.", body="# The Guide\nLine two.")
         skill = discover_skills(tmp_path)[0]
 
-        body = skill.load_body("v8")
+        body = skill.load_body()
 
         assert body.startswith("# The Guide")
         assert "description: Desc." not in body
 
-    @pytest.mark.parametrize("version_label", ["v8", "v9"])
-    def test_appends_the_reference_for_the_app_version(self, tmp_path, version_label):
+    def test_body_leaves_out_the_version_files(self, tmp_path):
         skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
         _write_app_version_texts(skill_file)
 
-        body = discover_skills(tmp_path)[0].load_body(version_label, append_version_file=True)
-
-        assert body == (
-            f"# Guide\n\nThe app is {version_label}, so references/{version_label}.md follows.\n\n"
-            f"## In {version_label} apps"
-        )
-
-    def test_body_alone_when_the_version_file_loads_on_demand(self, tmp_path):
-        skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
-        _write_app_version_texts(skill_file)
-
-        assert discover_skills(tmp_path)[0].load_body("v9") == "# Guide"
-
-    def test_body_alone_when_there_is_no_reference_for_the_app_version(self, tmp_path):
-        skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
-        _write_reference(skill_file, "references/v8.md", "## In v8 apps")
-
-        assert discover_skills(tmp_path)[0].load_body("v9", append_version_file=True) == "# Guide"
+        assert discover_skills(tmp_path)[0].load_body() == "# Guide"
 
     def test_body_without_frontmatter_loads_whole_file(self, tmp_path):
         skill_file = tmp_path / "raw" / "SKILL.md"
@@ -179,7 +161,7 @@ class TestLoadBody:
         skill_file.write_text("Just content, no frontmatter.", encoding="utf-8")
         skill = Skill(name="raw", description="d", path=skill_file)
 
-        assert "Just content, no frontmatter." in skill.load_body("v8")
+        assert "Just content, no frontmatter." in skill.load_body()
 
 
 class TestLoadFile:
@@ -234,17 +216,7 @@ class TestSkillTool:
         assert "# Skill body here" in result.content
 
     @pytest.mark.asyncio
-    async def test_appends_the_v9_text_in_a_v9_app(self, tmp_path):
-        skill_file = _write_skill(tmp_path, "known", body="# Skill body here")
-        _write_app_version_texts(skill_file)
-        tool = SkillTool(discover_skills(tmp_path), append_version_file=True)
-
-        result = await tool.run(SkillArgs(skill="known"), _ctx(V9_PROFILE))
-
-        assert result.content.endswith("references/v9.md follows.\n\n## In v9 apps")
-
-    @pytest.mark.asyncio
-    async def test_on_demand_returns_the_skill_and_leaves_the_version_file_to_the_model(self, tmp_path):
+    async def test_returns_the_skill_and_leaves_the_version_file_to_the_model(self, tmp_path):
         skill_file = _write_skill(tmp_path, "known", body="# Skill body here")
         _write_app_version_texts(skill_file)
         tool = SkillTool(discover_skills(tmp_path))
@@ -257,12 +229,8 @@ class TestSkillTool:
 
     def test_the_description_says_how_the_version_file_reaches_the_model(self, tmp_path):
         _write_skill(tmp_path, "known")
-        skills = discover_skills(tmp_path)
 
-        assert "already appended" in SkillTool(skills, append_version_file=True).description
-        on_demand = SkillTool(skills).description
-        assert "already appended" not in on_demand
-        assert "the file for the app's version" in on_demand
+        assert "the file for the app's version" in SkillTool(discover_skills(tmp_path)).description
 
     @pytest.mark.asyncio
     async def test_loads_a_linked_file(self, tmp_path):

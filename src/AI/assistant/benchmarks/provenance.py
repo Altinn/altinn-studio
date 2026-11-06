@@ -194,10 +194,7 @@ def _hash_actor_prompt() -> str:
 
 
 def _hash_tools() -> str:
-    """Hash each tool schema that the actor gets, and every file that the skill tool can return.
-
-    The skill tool's description follows APPEND_SKILL_VERSION_FILE, so each mode has its own digest.
-    """
+    """Hash each tool schema that the actor gets, and every file that the skill tool can return."""
     from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
 

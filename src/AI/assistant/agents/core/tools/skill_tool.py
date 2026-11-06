@@ -40,24 +40,15 @@ class SkillTool(Tool[SkillArgs]):
     is_concurrency_safe = True
     input_schema = SkillArgs
 
-    def __init__(self, skills: list[Skill], *, append_version_file: bool = False) -> None:
+    def __init__(self, skills: list[Skill]) -> None:
         self._skills = {s.name: s for s in skills}
-        self._append_version_file = append_version_file
         names = ", ".join(sorted(self._skills)) or "(none available)"
-        if append_version_file:
-            references = (
-                "The text for this app's version (`references/v8.md` or `references/v9.md`) is already appended, "
-                "so do not load it again. When a skill links another file under `references/`, load it with `file`. "
-            )
-        else:
-            references = (
-                "A skill links files under `references/`, such as the file for the app's version. "
-                "Load one with `file` when the skill tells you to. "
-            )
         self.description = (
             "Load the full instructions for a skill: curated knowledge about one part of an Altinn app. "
             "The skill listing in your system prompt shows what each skill covers. Load the skill BEFORE "
-            f"you work on its topic; the content is authoritative. {references}"
+            "you work on its topic; the content is authoritative. "
+            "A skill links files under `references/`, such as the file for the app's version. "
+            "Load one with `file` when the skill tells you to. "
             f"Available: {names}."
         )
 
@@ -71,10 +62,7 @@ class SkillTool(Tool[SkillArgs]):
             )
         version_label = ctx.app_version_profile.version_label
         try:
-            if args.file:
-                content = skill.load_file(args.file)
-            else:
-                content = skill.load_body(version_label, append_version_file=self._append_version_file)
+            content = skill.load_file(args.file) if args.file else skill.load_body()
         except SkillFileError as exc:
             files = ", ".join(skill.linked_files()) or "(none)"
             return ToolResult(content=f"{exc} Files in this skill: {files}.", is_error=True)

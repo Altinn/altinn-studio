@@ -10,7 +10,6 @@ import pytest
 from agents.altinn import app_version
 from agents.core import skills
 from benchmarks import provenance
-from shared.config import base_config
 
 
 @pytest.fixture
@@ -101,12 +100,6 @@ class TestDigestsCoverEveryAppVersion:
     def test_each_reference_file_moves_the_tools_digest(self, example_skill, reference):
         before = provenance._hash_tools()
         (example_skill / reference).write_text("Changed.\n")
-
-        assert provenance._hash_tools() != before
-
-    def test_appending_the_version_file_moves_the_tools_digest(self, example_skill, monkeypatch):
-        before = provenance._hash_tools()
-        monkeypatch.setattr(base_config.BaseConfig, "APPEND_SKILL_VERSION_FILE", True)
 
         assert provenance._hash_tools() != before
 
