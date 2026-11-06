@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Instantiation notifications work locally. Localtest lists them on the _Messages_ page and reports them delivered, and `studioctl run` provides the app code that signs their send condition. Put `localtest:failed`, `localtest:reserved` or `localtest:pending` in the notification's text for another outcome. ([#21686](https://github.com/Altinn/altinn-studio/pull/21686))
+
 ### Changed
 
 - Breaking: Container runtimes must support Docker API 1.40 or newer for automatic version selection. Upgrade Docker Engine installations older than 19.03. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
