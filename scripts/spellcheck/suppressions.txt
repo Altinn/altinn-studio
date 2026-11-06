@@ -235,12 +235,11 @@ lik
 
 # The Studio Assistant's skills quote Norwegian text verbatim, since agents must
 # match it: Studio's UI texts ("Generer modell"), the chat titles of the skills,
-# docs page titles ("Slik oppgraderer du appen fra v8 til v9"), a role name and
-# the rule description Studio's policy editor writes.
-@paths src/AI/assistant/agents/skills/studio-app-development/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v8.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md src/AI/assistant/agents/skills/studio-data-model/SKILL.md src/AI/assistant/agents/skills/studio-docs/SKILL.md src/AI/assistant/agents/skills/studio-integrations/SKILL.md src/AI/assistant/agents/skills/studio-integrations/references/v8.md src/AI/assistant/agents/skills/studio-integrations/references/v9.md src/AI/assistant/agents/skills/studio-layouts/references/v9.md src/AI/assistant/agents/skills/studio-policy/SKILL.md src/AI/assistant/agents/skills/studio-policy/references/altinn2-roles.md src/AI/assistant/agents/skills/studio-process/SKILL.md src/AI/assistant/agents/skills/studio-process/references/v9.md
+# docs page titles ("Slik oppgraderer du appen fra v8 til v9") and the rule
+# description Studio's policy editor writes.
+@paths src/AI/assistant/agents/skills/studio-app-development/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v8.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md src/AI/assistant/agents/skills/studio-data-model/SKILL.md src/AI/assistant/agents/skills/studio-docs/SKILL.md src/AI/assistant/agents/skills/studio-integrations/SKILL.md src/AI/assistant/agents/skills/studio-integrations/references/v8.md src/AI/assistant/agents/skills/studio-integrations/references/v9.md src/AI/assistant/agents/skills/studio-layouts/references/v9.md src/AI/assistant/agents/skills/studio-policy/SKILL.md src/AI/assistant/agents/skills/studio-process/SKILL.md src/AI/assistant/agents/skills/studio-process/references/v9.md
 Gir
 Lage
-Parallell
 Prosess
 appen
 modell
