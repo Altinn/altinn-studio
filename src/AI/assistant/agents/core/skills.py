@@ -10,8 +10,8 @@ model loads it with the `skill` tool.
 
 The loop's `read_file` reads only the app repository, so it can never
 reach a skill's own files.  The `skill` tool therefore loads any file the
-body links to on request, and by default appends the version file that
-matches the app (`APPEND_SKILL_VERSION_FILE`).
+body links to on request, such as the version file for the app.  With
+`APPEND_SKILL_VERSION_FILE`, it appends that file to the body instead.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ class Skill:
             return self.docs_url_v9
         return self.docs_url
 
-    def load_body(self, version_label: str, *, append_version_file: bool = True) -> str:
+    def load_body(self, version_label: str, *, append_version_file: bool = False) -> str:
         """The body of SKILL.md, followed by `references/<version_label>.md`
         when the skill has one and `append_version_file` is true."""
         raw = self.path.read_text(encoding="utf-8")

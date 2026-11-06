@@ -154,7 +154,7 @@ class TestLoadBody:
         skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
         _write_app_version_texts(skill_file)
 
-        body = discover_skills(tmp_path)[0].load_body(version_label)
+        body = discover_skills(tmp_path)[0].load_body(version_label, append_version_file=True)
 
         assert body == (
             f"# Guide\n\nThe app is {version_label}, so references/{version_label}.md follows.\n\n"
@@ -165,13 +165,13 @@ class TestLoadBody:
         skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
         _write_app_version_texts(skill_file)
 
-        assert discover_skills(tmp_path)[0].load_body("v9", append_version_file=False) == "# Guide"
+        assert discover_skills(tmp_path)[0].load_body("v9") == "# Guide"
 
     def test_body_alone_when_there_is_no_reference_for_the_app_version(self, tmp_path):
         skill_file = _write_skill(tmp_path, "my-skill", body="# Guide")
         _write_reference(skill_file, "references/v8.md", "## In v8 apps")
 
-        assert discover_skills(tmp_path)[0].load_body("v9") == "# Guide"
+        assert discover_skills(tmp_path)[0].load_body("v9", append_version_file=True) == "# Guide"
 
     def test_body_without_frontmatter_loads_whole_file(self, tmp_path):
         skill_file = tmp_path / "raw" / "SKILL.md"
@@ -237,7 +237,7 @@ class TestSkillTool:
     async def test_appends_the_v9_text_in_a_v9_app(self, tmp_path):
         skill_file = _write_skill(tmp_path, "known", body="# Skill body here")
         _write_app_version_texts(skill_file)
-        tool = SkillTool(discover_skills(tmp_path))
+        tool = SkillTool(discover_skills(tmp_path), append_version_file=True)
 
         result = await tool.run(SkillArgs(skill="known"), _ctx(V9_PROFILE))
 
@@ -247,7 +247,7 @@ class TestSkillTool:
     async def test_on_demand_returns_the_skill_and_leaves_the_version_file_to_the_model(self, tmp_path):
         skill_file = _write_skill(tmp_path, "known", body="# Skill body here")
         _write_app_version_texts(skill_file)
-        tool = SkillTool(discover_skills(tmp_path), append_version_file=False)
+        tool = SkillTool(discover_skills(tmp_path))
 
         skill = await tool.run(SkillArgs(skill="known"), _ctx(V9_PROFILE))
         version_file = await tool.run(SkillArgs(skill="known", file="references/v9.md"), _ctx(V9_PROFILE))
@@ -259,8 +259,8 @@ class TestSkillTool:
         _write_skill(tmp_path, "known")
         skills = discover_skills(tmp_path)
 
-        assert "already appended" in SkillTool(skills).description
-        on_demand = SkillTool(skills, append_version_file=False).description
+        assert "already appended" in SkillTool(skills, append_version_file=True).description
+        on_demand = SkillTool(skills).description
         assert "already appended" not in on_demand
         assert "the file for the app's version" in on_demand
 

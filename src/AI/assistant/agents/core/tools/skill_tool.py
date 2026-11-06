@@ -40,7 +40,7 @@ class SkillTool(Tool[SkillArgs]):
     is_concurrency_safe = True
     input_schema = SkillArgs
 
-    def __init__(self, skills: list[Skill], *, append_version_file: bool = True) -> None:
+    def __init__(self, skills: list[Skill], *, append_version_file: bool = False) -> None:
         self._skills = {s.name: s for s in skills}
         self._append_version_file = append_version_file
         names = ", ".join(sorted(self._skills)) or "(none available)"
