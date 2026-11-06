@@ -2,40 +2,52 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 import httpx
 import pytest
 
 from agents.core import LoopContext, WebFetchTool
+from agents.core.tools import web_fetch_tool
 from agents.core.tools.web_fetch_tool import MAX_REDIRECTS, MAX_RESPONSE_CHARS
+
+from .conftest import Handler
 
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
-REAL_CLIENT = httpx.AsyncClient
 
-Handler = Callable[[httpx.Request], httpx.Response]
+INDEX_URL = "https://docs.altinn.studio/nb/llms.txt"
+PAGE_URL = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/partytype/"
+MARKDOWN_URL = f"{PAGE_URL}index.md"
+INDEX = (
+    "# Altinn dokumentasjon\n\n"
+    f"- [Aktørtyper]({MARKDOWN_URL}): Hvordan sørge for at kun bestemte typer aktører kan bruke en app.\n"
+    "- [Dokumentasjonskilde](https://github.com/altinn/altinn-studio-docs): Kilde for denne dokumentasjonssiden\n"
+)
 
 
-@pytest.fixture
-def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
-    """Send the requests of the tool to `handler`, and return the list of requests that it got."""
+@pytest.fixture(autouse=True)
+def no_kept_index(monkeypatch):
+    monkeypatch.setattr(web_fetch_tool, "_indexes", {})
 
-    def install(handler: Handler) -> list[httpx.Request]:
-        requests: list[httpx.Request] = []
 
-        def record(request: httpx.Request) -> httpx.Response:
-            requests.append(request)
-            return handler(request)
+def _docs_site(index: str | None = INDEX) -> Handler:
+    """Serve the index, the page as Markdown and the page as HTML, which sends the URL without a slash on."""
 
-        def make_client(**kwargs) -> httpx.AsyncClient:
-            return REAL_CLIENT(transport=httpx.MockTransport(record), **kwargs)
+    def handle(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if url == INDEX_URL and index is not None:
+            return httpx.Response(200, text=index, headers={"content-type": "text/plain; charset=utf-8"})
+        if url == MARKDOWN_URL:
+            return httpx.Response(200, text="## Avgrense tilgang", headers={"content-type": "text/markdown"})
+        if url == PAGE_URL.removesuffix("/"):
+            return httpx.Response(301, headers={"location": PAGE_URL})
+        if url.startswith(PAGE_URL):
+            return httpx.Response(
+                200, text="<title>Aktørtyper – Altinn</title><p>x</p>", headers={"content-type": HTML}
+            )
+        return httpx.Response(404)
 
-        monkeypatch.setattr("agents.core.tools.web_fetch_tool.httpx.AsyncClient", make_client)
-        return requests
-
-    return install
+    return handle
 
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:
@@ -53,10 +65,10 @@ def _redirect_to(location: str, *, status: int = 200) -> Handler:
     return handle
 
 
-async def _fetch(url: str):
+async def _fetch(url: str, **args):
     tool = WebFetchTool()
     ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
-    return await tool.run(tool.input_schema(url=url), ctx)
+    return await tool.run(tool.input_schema(url=url, **args), ctx)
 
 
 class TestRefusedUrls:
@@ -157,6 +169,35 @@ class TestPageContent:
 
         assert result.content == "x" * MAX_RESPONSE_CHARS + "\n…[truncated]"
 
+    async def test_filter_keeps_the_lines_that_contain_every_word(self, serve):
+        serve(
+            _respond(
+                "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)\n"
+                "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v8/signing/index.md)\n"
+                "- [Betaling](https://docs.altinn.studio/nb/altinn-studio/v9/payment/index.md)\n",
+                content_type="text/plain",
+            )
+        )
+
+        result = await _fetch(DOCS_URL, filter="/altinn-studio/v9/ SIGNERING")
+
+        assert result.content == "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)"
+
+    async def test_filter_applies_before_truncation(self, serve):
+        serve(_respond("x" * (MAX_RESPONSE_CHARS + 1) + "\nmatch", content_type="text/plain"))
+
+        result = await _fetch(DOCS_URL, filter="match")
+
+        assert result.content == "match"
+
+    async def test_filter_says_when_no_line_matches(self, serve):
+        serve(_respond("one\ntwo", content_type="text/plain"))
+
+        result = await _fetch(DOCS_URL, filter="three")
+
+        assert not result.is_error
+        assert result.content == "No lines contain all of: three"
+
 
 class TestRedirects:
     async def test_follows_a_redirect_to_an_allowed_host(self, serve):
@@ -167,7 +208,7 @@ class TestRedirects:
 
         assert not result.is_error
         assert result.content == "Guides"
-        assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH, DOCS_URL]
+        assert [str(request.url) for request in requests[:2]] == [DOCS_URL_WITHOUT_SLASH, DOCS_URL]
 
     async def test_refuses_a_redirect_to_a_host_that_is_not_allowed(self, serve):
         requests = serve(_redirect_to("https://example.com/guides/"))
@@ -231,3 +272,48 @@ class TestSourceRecord:
         result = await _fetch(url)
 
         assert result.metadata["source"]["title"] == title
+
+    async def test_lists_no_source_for_the_docs_index(self, serve):
+        serve(_docs_site())
+
+        result = await _fetch(INDEX_URL, filter="aktørtyper")
+
+        assert "Aktørtyper" in result.content
+        assert "source" not in result.metadata
+
+    async def test_names_a_markdown_page_after_the_index_and_links_the_html_page(self, serve):
+        serve(_docs_site())
+
+        result = await _fetch(MARKDOWN_URL)
+
+        assert result.metadata["source"] == {"title": "Aktørtyper", "url": PAGE_URL, "kind": "docs"}
+
+    @pytest.mark.parametrize(
+        "html_url", [PAGE_URL, PAGE_URL.removesuffix("/"), f"{PAGE_URL}#avgrense-tilgang", f"{PAGE_URL}?x=1"]
+    )
+    async def test_the_markdown_and_the_html_page_give_one_source(self, serve, html_url):
+        serve(_docs_site())
+
+        markdown = await _fetch(MARKDOWN_URL)
+        html = await _fetch(html_url)
+
+        assert html.metadata["source"] == markdown.metadata["source"]
+
+    @pytest.mark.parametrize("index", ["# Altinn dokumentasjon\n", None], ids=["page not in the index", "no index"])
+    async def test_the_markdown_and_the_html_page_give_one_source_without_the_index(self, serve, index):
+        serve(_docs_site(index))
+
+        markdown = await _fetch(MARKDOWN_URL)
+        html = await _fetch(PAGE_URL)
+
+        assert markdown.metadata["source"] == {"title": "Aktørtyper", "url": PAGE_URL, "kind": "docs"}
+        assert html.metadata["source"] == markdown.metadata["source"]
+
+    async def test_keeps_the_index_that_the_model_searched(self, serve):
+        requests = serve(_docs_site())
+
+        await _fetch(INDEX_URL, filter="aktørtyper")
+        await _fetch(MARKDOWN_URL)
+        await _fetch(PAGE_URL)
+
+        assert [str(request.url) for request in requests] == [INDEX_URL, MARKDOWN_URL, PAGE_URL]

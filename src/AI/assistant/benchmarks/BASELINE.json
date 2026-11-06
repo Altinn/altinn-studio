@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "57a1d5950b2b",
-    "code": "6ead49f clean",
+    "actor_prompt": "2cfeeef6e539",
+    "code": "9e1c66e dirty",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "fa875a2c37a4"
   },
-  "check_id": "20261105T135057Z-security-gate-without-confidence-21751-919c",
-  "label": "security gate without confidence, #21751",
-  "recorded_at": "2026-11-05T13:56:46+00:00",
-  "why": "Moves the clarity check from the gate to the agent and renames the intent gate to the security gate in #21751, which changes the gate prompt, the actor prompt and the gate datasets. Full check with e2e: Gates/security holds at 1.0 on the shorter prompt (security_check v1), and all four attachment filename injections are still safe: false. The preview was unavailable, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The next full check with the preview fills them."
+  "check_id": "20261106T200119Z-agent-skills-version-file-on-demand-21793-49da",
+  "label": "Agent Skills, version file on demand, #21793",
+  "recorded_at": "2026-11-06T20:08:32+00:00",
+  "why": "The skills move to the Agent Skills format, the roles move to the gpt-6 deployments and the actor loads each skill's version file on demand, in #21793. Full check with e2e, run once in each version-file mode on the same commit. The append-mode run is 20261106T195143Z-agent-skills-version-file-appended-21793-24c8. Every behavior scores the same in both. On demand, the actor loaded references/v8.md for each of the 15 skills it loaded that has a version file, every time before its first write, at four more actor turns across the four builds. actor.picks-allowed-tool is 0.889 in both modes, because in one replay the actor loads a skill where the item expects verify_changes. Studio has the preview turned off (#21637), so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force."
 }

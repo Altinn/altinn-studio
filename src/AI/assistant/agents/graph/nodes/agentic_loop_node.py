@@ -23,10 +23,12 @@ from agents.core import (
     LayoutPropsTool,
     LoopContext,
     LoopResult,
+    PolicySubjectsTool,
     PreviewRenderCheckTool,
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
+    Skill,
     SkillTool,
     TerminationReason,
     TextBlock,
@@ -66,6 +68,7 @@ _TOOL_STATUS_MESSAGES = {
 
 _ALTINN_TOOL_LABELS = {
     "altinn_layout_props": "Slår opp komponent",
+    "altinn_policy_subjects": "Slår opp tilgangspakker og roller",
     "altinn_datamodel_sync": "Synkroniserer datamodell",
 }
 
@@ -128,6 +131,7 @@ _TOOL_PHASES: dict[str, str] = {
     "skill": _PHASE_READING,
     "web_fetch": _PHASE_READING,
     "altinn_layout_props": _PHASE_READING,
+    "altinn_policy_subjects": _PHASE_READING,
     "edit_file": _PHASE_WRITING,
     "write_file": _PHASE_WRITING,
     "discard_file_changes": _PHASE_WRITING,
@@ -440,15 +444,15 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
+def _build_registry(skills: list[Skill]) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
+    for tool in _internal_tools(skills):
         registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
+def _internal_tools(skills: list[Skill]) -> list[Tool]:
     return [
         ScanRepoTool(),
         ReadFileTool(),
@@ -460,6 +464,7 @@ def _internal_tools(skills: list) -> list[Tool]:
         PreviewRenderCheckTool(),
         SkillTool(skills),
         LayoutPropsTool(),
+        PolicySubjectsTool(),
         DatamodelSyncTool(),
         WebFetchTool(),
     ]

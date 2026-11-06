@@ -12,6 +12,7 @@ from typing import Any
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
+from shared.utils.models import is_claude_model, is_reasoning_model
 
 from .messages import (
     AssistantMessage,
@@ -453,7 +454,7 @@ class OpenAIAdapter(LLMAdapter):
         else:
             raise ValueError("OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY.")
         self.model = model
-        self._is_reasoning = _is_reasoning_model(model)
+        self._is_reasoning = is_reasoning_model(model)
         if max_tokens is not None:
             self.max_tokens = max_tokens
         else:
@@ -631,20 +632,6 @@ def _normalize_openai_stop(reason: str | None) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _is_claude_model(model: str | None) -> bool:
-    if not model:
-        return False
-    m = model.lower()
-    return m.startswith("claude") or "anthropic" in m
-
-
-def _is_reasoning_model(model: str | None) -> bool:
-    if not model:
-        return False
-    m = model.lower()
-    return m.startswith(("o1", "o3", "gpt-5"))
-
-
 def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdapter:
     """Return the adapter configured for the given role."""
     config = get_config()
@@ -659,7 +646,7 @@ def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdap
     else:
         model = config.AZURE_DEPLOYMENT_NAME or config.LLM_MODEL
 
-    if _is_claude_model(model):
+    if is_claude_model(model):
         # Anthropic models don't have a reasoning-token concept here; default
         # max_tokens is fine.  (Claude's extended-thinking is opt-in and
         # billed differently.)

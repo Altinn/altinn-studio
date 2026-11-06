@@ -249,9 +249,10 @@ ITEM_EVALUATORS: list[ItemEvaluator] = [
 
 def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
     """The real tool catalog the loop offers, optionally narrowed."""
+    from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
 
-    schemas = _build_registry().to_schema()
+    schemas = _build_registry(discover_skills()).to_schema()
     if names is None:
         return schemas
     by_name = {schema["name"]: schema for schema in schemas}
@@ -264,6 +265,7 @@ def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
 def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
     """The real loop system prompt, composed for one goal."""
     from agents.core.context import SessionContext, build_system_prompt
+    from agents.core.skills import discover_skills, format_skill_listing
 
     return build_system_prompt(
         SessionContext(
@@ -271,7 +273,8 @@ def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
             repo_path="/tmp/generation-experiment",
             user_goal=goal,
             allow_app_changes=allow_app_changes,
-        )
+        ),
+        skill_listing=format_skill_listing(discover_skills()),
     )
 
 
@@ -304,14 +307,10 @@ def resolve_system_prompt(item_input: dict[str, Any]) -> str:
 
 def adapter_for(model: str, max_tokens: int | None = None) -> Any:
     """An adapter for one named model, bypassing role selection."""
-    from agents.core.llm_adapter import (
-        _ANTHROPIC_MAX_TOKENS,
-        AnthropicAdapter,
-        OpenAIAdapter,
-        _is_claude_model,
-    )
+    from agents.core.llm_adapter import _ANTHROPIC_MAX_TOKENS, AnthropicAdapter, OpenAIAdapter
+    from shared.utils.models import is_claude_model
 
-    if _is_claude_model(model):
+    if is_claude_model(model):
         return AnthropicAdapter(
             model=model,
             max_tokens=max_tokens if max_tokens is not None else _ANTHROPIC_MAX_TOKENS,
