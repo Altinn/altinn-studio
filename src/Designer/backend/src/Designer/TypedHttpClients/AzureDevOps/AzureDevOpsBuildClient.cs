@@ -87,6 +87,8 @@ public class AzureDevOpsBuildClient : IAzureDevOpsBuildClient
         );
 
         HttpResponseMessage response = await _httpClient.PostAsync(requestUri, httpContent, cancellationToken);
+        // Azure DevOps' error body would otherwise parse into a build with ID 0, as if a run had been queued.
+        response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsAsync<Build>(cancellationToken);
     }
 
