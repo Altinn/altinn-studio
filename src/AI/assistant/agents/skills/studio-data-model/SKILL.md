@@ -25,8 +25,8 @@ For a data type with the id `soknad`:
   it, and app code uses it.
 - `App/models/soknad.xsd` is the XML schema, generated from the schema. It describes the data in XML, for example
   for systems that receive it.
-- `App/models/soknad.prefill.json`, `soknad.validation.json` and `soknad.calculation.json` are optional
-  configuration for the same data type. The `studio-prefill` and `studio-validation` skills cover the first two.
+- `App/models/soknad.prefill.json` and `soknad.validation.json` are optional configuration for the same data type.
+  The `studio-prefill` and `studio-validation` skills cover them.
 
 The app finds the schema, the XSD and the configuration files by the data type id, and the C# class by `classRef`. Name
 all of them after the data type id, as Studio does. The data type looks like this:

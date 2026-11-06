@@ -203,14 +203,14 @@
     ],
     "text": ""
   },
-  "applied-expressions-v8-calculation-not-rule": {
+  "applied-expressions-v8-hide-while-empty": {
     "tool_calls": [
       {
         "name": "edit_file",
         "input": {
-          "path": "App/ui/mainlayout/RuleConfiguration.json",
-          "old_string": "      }\n    },\n    \"conditionalRendering\": {}",
-          "new_string": "      },\n      \"tidsbruksum-9db765228f3d\": {\n        \"selectedFunction\": \"sum\",\n        \"inputParams\": {\n          \"a\": \"Tidsbruk.samletInfoMin\",\n          \"b\": \"Tidsbruk.hjelpAvAndreMin\",\n          \"c\": \"Tidsbruk.utfyllingMin\"\n        },\n        \"outParams\": {\n          \"outParam0\": \"Hjelpefelter.hjelpefeltdec6\"\n        }\n      }\n    },\n    \"conditionalRendering\": {}"
+          "path": "App/ui/mainlayout/layouts/S70_Tidsbruk.json",
+          "old_string": "\"id\": \"spm3-29d3286c-cc86-4fd4-a682-fc58d1020a43\",",
+          "new_string": "\"id\": \"spm3-29d3286c-cc86-4fd4-a682-fc58d1020a43\",\n        \"hidden\": [\"lessThanEq\", [\"dataModel\", \"Tidsbruk.utfyllingMin\"], 10],"
         }
       }
     ],

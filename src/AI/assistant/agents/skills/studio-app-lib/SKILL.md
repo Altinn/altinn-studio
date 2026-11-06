@@ -127,7 +127,7 @@ lists any member you missed.
 ## When another skill owns the topic
 
 - Prefill in code, and checking prefill from query parameters: the `studio-prefill` skill.
-- Calculations, hiding and validation that an expression can do without C#: the `studio-expressions` skill. Which
+- Hiding and validation that an expression can do without C#: the `studio-expressions` skill. Which
   validation mechanism to use, and where a C# validator's messages show: the `studio-validation` skill.
 - Option lists and how a component uses them: the `studio-code-lists` skill.
 - Signing and payment end to end: the `studio-signing` and `studio-payment` skills.

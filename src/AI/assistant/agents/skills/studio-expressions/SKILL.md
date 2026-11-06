@@ -1,6 +1,6 @@
 ---
 name: studio-expressions
-description: Write dynamic expressions, the JSON arrays that set hidden, required, readOnly and texts in layouts and drive expression validation, calculated fields and gateway conditions. Covers types, comparisons, functions and common mistakes.
+description: Write dynamic expressions, the JSON arrays that set hidden, required, readOnly and texts in layouts and drive expression validation and gateway conditions. Covers types, comparisons, functions and common mistakes.
 metadata:
   studio-title: Dynamiske uttrykk
   studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/
@@ -39,20 +39,19 @@ cast to. The ones you meet most:
 - on a repeating group: `hiddenRow`, the buttons under `edit`, and `hidden` in `tableColumns`
 - on components with options: `optionFilter`, and the `source` properties for options from the data model
 - outside layouts: `condition` and `message` in `App/models/<dataTypeId>.validation.json` (the `studio-validation`
-  skill), `expression` in `App/models/<dataTypeId>.calculation.json`, and gateway conditions in `process.bpmn` (the
-  `studio-process` skill)
+  skill), and gateway conditions in `process.bpmn` (the `studio-process` skill)
 
 ## Where expressions run
 
 - The frontend evaluates every expression in the layouts again whenever the data it reads changes.
 - The backend evaluates `hidden`, `hiddenRow`, `required` and `removeWhenHidden` when it checks required fields and
-  removes hidden data. It also evaluates validation files, calculation files and gateway conditions. Which of these
+  removes hidden data. It also evaluates validation files and gateway conditions. Which of these
   are on by default differs between the versions.
 - The backend never evaluates `readOnly`, texts or option properties. `readOnly` does not stop an API client from
   writing the field. Check it in C# when it matters.
 - The backend lacks these frontend functions: `displayValue`, `optionLabel`, `linkToPage`, `linkToComponent`,
-  `value`, `authContext` and `externalApi`. Never use them in `hidden`, `required`, validation files or calculation
-  files. `gatewayAction` exists only in the backend, for gateway conditions.
+  `value`, `authContext` and `externalApi`. Never use them in `hidden`, `required`, validation files or gateway
+  conditions. `gatewayAction` exists only in the backend, for gateway conditions.
 - When an expression fails, the frontend logs the error in the browser console and uses the property's default. A
   failing `hidden` therefore shows the component. The backend has no fallback. The request fails, which can stop the
   user from submitting.
@@ -76,8 +75,7 @@ Each function casts its arguments to the types it expects. The casts are strict.
 - `if` takes two or four arguments: `["if", condition, value]` or `["if", condition, value, "else", other]`. Without
   `"else"` it returns `null` when the condition is false.
 - `round` returns a string for display. The backend adds `,` as a thousands separator, as in `"1,234.50"`, and the
-  frontend does not. Never store its result in a number field from `calculation.json`, or compare it as a number in an
-  expression the backend evaluates.
+  frontend does not. Never compare its result as a number in an expression the backend evaluates.
 
 ## Functions agents use most
 
@@ -110,7 +108,7 @@ lists every function. Check the version file before you use one the table does n
 ## Repeating groups
 
 - Leave indexes out inside a row. On a component in a row, `["dataModel", "Ansatte.Alder"]` reads that row, and
-  `component` finds the component in the same row. Validation and calculation files run once per row, the same way.
+  `component` finds the component in the same row. Validation files run once per row, the same way.
 - An explicit index, as in `Ansatte[0].Navn`, always reads that row, for every row.
 - From outside the group, `component` on a component in the group fails, because no row is chosen.
 - To hide a row, use `hiddenRow` on the group, not `hidden` on each child.
@@ -128,24 +126,11 @@ lists every function. Check the version file before you use one the table does n
 
 ## Computed values
 
-Expressions in layouts never change the data. To store a computed value in the data model:
+Expressions in layouts never change the data. To store a computed value in the data model, write C#. The
+`studio-app-lib` skill covers `IDataWriteProcessor`.
 
-- Use `App/models/<dataTypeId>.calculation.json` when one expression gives the value, and the app's version supports
-  it. The key is the path of the target field. Inside a repeating group, leave the index out and the app computes
-  each row.
-
-  ```json
-  {
-    "calculations": {
-      "Regnskap.Sum": {
-        "expression": ["minus", ["dataModel", "Regnskap.Inntekter"], ["dataModel", "Regnskap.Utgifter"]]
-      }
-    }
-  }
-  ```
-
-- Use C# for anything else, such as lookups in other systems or values from several data types. The
-  `studio-app-lib` skill covers `IDataWriteProcessor`.
+- Never create `App/models/<dataTypeId>.calculation.json`. The docs describe calculations with expressions, but they
+  are not released yet.
 - Never add rules to `RuleConfiguration.json` or `RuleHandler.js`. The version files say why.
 
 ## Before you finish
