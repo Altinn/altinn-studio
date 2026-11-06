@@ -3,6 +3,8 @@
   "pages": {
     "validationOnNavigation": { "page": "current", "show": [] },
     "validateOnBackToSummary": { "page": "current", "show": ["Required"] },
+    "navigationTitle": ["concat", "Skjema", "sider"],
+    "hideAppNameInPdf": true,
     "showLanguageSelector": true,
     "showExpandWidthButton": true,
     "groups": [
@@ -30,7 +32,7 @@
       },
       {
         "name": "group.summary",
-        "order": ["feedback", "summary"]
+        "order": ["feedback", "summary", "summary2"]
       }
     ]
   },

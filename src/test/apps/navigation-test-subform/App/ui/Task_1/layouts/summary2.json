@@ -1,0 +1,54 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["commaContains", ["dataModel", "extra"], "summary"],
+    "layout": [
+      {
+        "id": "summary-all",
+        "type": "Summary2",
+        "target": { "type": "layoutSet" },
+        "overrides": [
+          { "pageId": "info1", "hidden": true },
+          { "pageId": "info2", "hidden": true },
+          { "pageId": "important", "hidden": true },
+          { "pageId": "summary", "hidden": true },
+          { "pageId": "summary2", "hidden": true }
+        ]
+      },
+      {
+        "id": "edit-firstname-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Rediger fornavn via lenke", "firstname", true] }
+      },
+      {
+        "id": "edit-age-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToComponent", "Rediger alder via lenke", "age", true] }
+      },
+      {
+        "id": "edit-extra-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Rediger sidevalg via lenke", "extra", true] }
+      },
+      {
+        "id": "edit-info-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Se informasjon med returknapp", "info2", true] }
+      },
+      {
+        "id": "summary2-buttons",
+        "type": "ButtonGroup",
+        "children": ["summary2-navigation", "summary2-submit"]
+      },
+      {
+        "id": "summary2-navigation",
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "summary2-submit",
+        "type": "Button",
+        "textResourceBindings": { "title": "summary.Button-sPjiD2.title" }
+      }
+    ]
+  }
+}
