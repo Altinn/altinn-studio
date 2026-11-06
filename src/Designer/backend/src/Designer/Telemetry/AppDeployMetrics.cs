@@ -17,6 +17,16 @@ public sealed class AppDeployMetrics
     public const string PipelineDurationMetricName = "altinn.designer.app_deploy.pipeline.duration";
     public const string DurationMetricName = "altinn.designer.app_deploy.duration";
 
+    /// <summary>
+    /// The result and error.type of a deploy whose pipeline failed, and the error.type of the failed pipeline.
+    /// </summary>
+    public const string PipelineFailed = "pipeline_failed";
+
+    /// <summary>
+    /// The result of a deploy whose pipeline someone canceled. It is not an error.
+    /// </summary>
+    public const string PipelineCanceled = "pipeline_canceled";
+
     // A deploy's pipeline takes from a few minutes to a quarter of an hour, and Flux adds up to a few minutes.
     private static readonly double[] s_bucketBoundaries = [30, 60, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 3600];
 
@@ -46,35 +56,51 @@ public sealed class AppDeployMetrics
     public void RecordPipeline(PipelineType type, string environment, BuildResult result, TimeSpan duration)
     {
         TagList tags = Tags(type, environment);
-        tags.Add(ServiceTelemetry.Attributes.AppDeploy.PipelineResult, ServiceTelemetry.EnumValue(result));
-        if (result != BuildResult.Succeeded)
+        tags.Add(ServiceTelemetry.Attributes.CicdPipelineResult, PipelineResult(result));
+        if (IsPipelineFailure(result))
         {
-            tags.Add(ServiceTelemetry.Attributes.ErrorType, ServiceTelemetry.EnumValue(result));
+            tags.Add(ServiceTelemetry.Attributes.ErrorType, PipelineFailed);
         }
         _pipelineDuration.Record(Seconds(duration), tags);
     }
 
     /// <param name="type">Whether it was a deploy or an undeploy.</param>
     /// <param name="environment">The environment deployed to.</param>
-    /// <param name="result">PipelineFailed, or one of Flux's install, upgrade and uninstall results.</param>
+    /// <param name="result">One of Flux's install, upgrade and uninstall results in snake_case, or a pipeline's.</param>
+    /// <param name="errorType">Why the deploy failed, or null when it did not.</param>
     /// <param name="duration">The time since the request.</param>
-    public void RecordResult(PipelineType type, string environment, DeployEventType result, TimeSpan duration)
+    public void RecordResult(PipelineType type, string environment, string result, string? errorType, TimeSpan duration)
     {
         TagList tags = Tags(type, environment);
-        tags.Add(ServiceTelemetry.Attributes.AppDeploy.Result, ServiceTelemetry.EnumValue(result));
-        if (IsFailure(result))
+        tags.Add(ServiceTelemetry.Attributes.AppDeploy.Result, result);
+        if (errorType is not null)
         {
-            tags.Add(ServiceTelemetry.Attributes.ErrorType, ServiceTelemetry.EnumValue(result));
+            tags.Add(ServiceTelemetry.Attributes.ErrorType, errorType);
         }
         _duration.Record(Seconds(duration), tags);
     }
 
-    public static bool IsFailure(DeployEventType result) =>
-        result
-            is DeployEventType.PipelineFailed
-                or DeployEventType.InstallFailed
-                or DeployEventType.UpgradeFailed
-                or DeployEventType.UninstallFailed;
+    /// <summary>
+    /// The semantic conventions' cicd.pipeline.result for an Azure DevOps run's result. A partly succeeded run
+    /// is a failure, since Designer goes on with a deploy only after a run that succeeded.
+    /// </summary>
+    public static string PipelineResult(BuildResult result) =>
+        result switch
+        {
+            BuildResult.Succeeded => "success",
+            BuildResult.Failed or BuildResult.PartiallySucceeded => "failure",
+            BuildResult.Canceled => "cancellation",
+            _ => "error",
+        };
+
+    /// <summary>
+    /// Whether a completed run failed, as opposed to succeeding or being canceled.
+    /// </summary>
+    public static bool IsPipelineFailure(BuildResult result) =>
+        result is not (BuildResult.Succeeded or BuildResult.Canceled);
+
+    public static bool IsFluxFailure(DeployEventType result) =>
+        result is DeployEventType.InstallFailed or DeployEventType.UpgradeFailed or DeployEventType.UninstallFailed;
 
     private static TagList Tags(PipelineType type, string environment) =>
         new()

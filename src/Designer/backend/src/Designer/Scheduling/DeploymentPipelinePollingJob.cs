@@ -21,6 +21,8 @@ using Quartz;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
+// Polls of one build never overlap, so the poll that sees the pipeline finish is the only one to record it.
+[DisallowConcurrentExecution]
 public class DeploymentPipelinePollingJob : IJob
 {
     private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
@@ -62,7 +64,11 @@ public class DeploymentPipelinePollingJob : IJob
 
         try
         {
+            // The job run's own span is the poll's entry span, and the deploy trace's span links to it. Both carry
+            // the deploy's attributes, so that searching either finds the poll.
+            Activity jobSpan = RootSpan.OfJob();
             activity = TryStartTraceActivity(context);
+            Activity[] spans = [.. new[] { jobSpan, activity }.OfType<Activity>()];
             var jobDataMap = context.JobDetail.JobDataMap;
 
             string org = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.Org);
@@ -77,16 +83,22 @@ public class DeploymentPipelinePollingJob : IJob
             string environment = jobDataMap.GetRequiredString(
                 DeploymentPipelinePollingJobConstants.Arguments.Environment
             );
-            activity.SetRepository(org, app);
-            activity.SetTargetEnvironment(environment);
-            activity.SetAppDeployBuild(buildId);
-            activity?.SetTag(ServiceTelemetry.Attributes.AppDeploy.PipelineType, ServiceTelemetry.EnumValue(type));
+            foreach (Activity span in spans)
+            {
+                span.SetRepository(org, app);
+                span.SetTargetEnvironment(environment);
+                span.SetAppDeployBuild(buildId);
+                span.SetTag(ServiceTelemetry.Attributes.AppDeploy.PipelineType, ServiceTelemetry.EnumValue(type));
+            }
 
             var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
-            activity?.SetTag(
-                ServiceTelemetry.Attributes.AppDeploy.PipelineStatus,
-                ServiceTelemetry.EnumValue(build.Status)
-            );
+            foreach (Activity span in spans)
+            {
+                span.SetTag(
+                    ServiceTelemetry.Attributes.AppDeploy.PipelineStatus,
+                    ServiceTelemetry.EnumValue(build.Status)
+                );
+            }
 
             var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
@@ -114,7 +126,7 @@ public class DeploymentPipelinePollingJob : IJob
 
             if (build.Status == BuildStatus.Completed)
             {
-                RecordCompletedPipeline(activity, editingContext, type, environment, buildId, build, deploymentEntity);
+                RecordCompletedPipeline(spans, editingContext, type, environment, buildId, build, deploymentEntity);
 
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
@@ -142,11 +154,12 @@ public class DeploymentPipelinePollingJob : IJob
     }
 
     /// <summary>
-    /// Records the pipeline's end once, on the poll that first sees it completed. A pipeline that did not succeed
-    /// ends the deploy, since Designer asks the runtime to reconcile only after one that succeeded.
+    /// Records the pipeline's end, on the poll that first sees it completed. A pipeline that did not succeed ends the
+    /// deploy, since Designer asks the runtime to reconcile only after one that succeeded, unless Flux has already
+    /// reported a result: Flux also reconciles on its own, and the first result is the deploy's.
     /// </summary>
     private void RecordCompletedPipeline(
-        Activity activity,
+        Activity[] spans,
         AltinnRepoEditingContext editingContext,
         PipelineType type,
         string environment,
@@ -156,23 +169,45 @@ public class DeploymentPipelinePollingJob : IJob
     )
     {
         TimeSpan sinceRequest = _timeProvider.GetUtcNow().UtcDateTime - deploymentEntity.Created;
-        activity?.SetTag(
-            ServiceTelemetry.Attributes.AppDeploy.PipelineResult,
-            ServiceTelemetry.EnumValue(build.Result)
-        );
+        string pipelineResult = AppDeployMetrics.PipelineResult(build.Result);
+        foreach (Activity span in spans)
+        {
+            span.SetTag(ServiceTelemetry.Attributes.CicdPipelineResult, pipelineResult);
+        }
         _metrics.RecordPipeline(type, environment, build.Result, sinceRequest);
         if (build.Result == BuildResult.Succeeded)
         {
             return;
         }
 
-        activity?.SetTag(
-            ServiceTelemetry.Attributes.AppDeploy.Result,
-            ServiceTelemetry.EnumValue(DeployEventType.PipelineFailed)
-        );
-        activity?.SetTag(ServiceTelemetry.Attributes.ErrorType, ServiceTelemetry.EnumValue(build.Result));
-        activity?.SetStatus(ActivityStatusCode.Error);
-        _metrics.RecordResult(type, environment, DeployEventType.PipelineFailed, sinceRequest);
+        bool failed = AppDeployMetrics.IsPipelineFailure(build.Result);
+        if (!deploymentEntity.HasFinalEvent)
+        {
+            string result = failed ? AppDeployMetrics.PipelineFailed : AppDeployMetrics.PipelineCanceled;
+            foreach (Activity span in spans)
+            {
+                span.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, result);
+            }
+            _metrics.RecordResult(
+                type,
+                environment,
+                result,
+                failed ? AppDeployMetrics.PipelineFailed : null,
+                sinceRequest
+            );
+        }
+
+        // Someone canceled the run on purpose, which is not an error.
+        if (!failed)
+        {
+            return;
+        }
+
+        foreach (Activity span in spans)
+        {
+            span.SetTag(ServiceTelemetry.Attributes.ErrorType, AppDeployMetrics.PipelineFailed);
+            span.SetStatus(ActivityStatusCode.Error, $"The pipeline's result is {pipelineResult}");
+        }
         _logger.LogError(
             "The {PipelineType} pipeline {BuildId} for {Org}/{App} in {Environment} ended with {BuildResult}",
             ServiceTelemetry.EnumValue(type),

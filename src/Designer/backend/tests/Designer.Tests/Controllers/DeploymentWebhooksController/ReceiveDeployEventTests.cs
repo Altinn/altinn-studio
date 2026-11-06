@@ -290,12 +290,56 @@ public class ReceiveDeployEventTests
         // Assert
         // The repeated event is ignored: 200 for a deploy, and 404 for an undeploy, which is no longer pending.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            deploymentType == DeploymentType.Deploy ? HttpStatusCode.OK : HttpStatusCode.NotFound,
+            repeated.StatusCode
+        );
         RecordedDuration deploy = Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
         Assert.InRange(deploy.Seconds, 539.99, 540.01);
         Assert.Equal(expectedPipelineType, deploy.Tags["altinn.designer.app_deploy.pipeline.type"]);
         Assert.Equal("at22", deploy.Tags["altinn.environment"]);
         Assert.Equal(expectedResult, deploy.Tags["altinn.designer.app_deploy.result"]);
         Assert.Equal(expectedErrorType, deploy.Tags.GetValueOrDefault("error.type"));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_WithFluxResultAfterAFailedPipeline_KeepsThePipelineResult()
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        DeployEventRequest Event(string eventType) =>
+            new()
+            {
+                BuildId = deploymentEntity.Build.Id,
+                EventType = eventType,
+                Message = eventType,
+                Timestamp = DateTimeOffset.UtcNow,
+                Environment = "at22",
+            };
+
+        // Act
+        using var pipelineFailed = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("PipelineFailed"))
+        );
+        using var installSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("InstallSucceeded"))
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, pipelineFailed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, installSucceeded.StatusCode);
+        Assert.Empty(metrics.Measurements(AppDeployMetrics.DurationMetricName));
     }
 
     [Fact]

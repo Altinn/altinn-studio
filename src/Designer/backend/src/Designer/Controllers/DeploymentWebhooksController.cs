@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,7 +106,8 @@ public class DeploymentWebhooksController : ControllerBase
     }
 
     /// <summary>
-    /// Records how the deploy or undeploy ended, once: later copies of a final event return before this.
+    /// Records how the deploy or undeploy ended, once: later copies of a final event return before this, and a
+    /// pipeline that did not succeed has already ended it.
     /// </summary>
     private void RecordFinalEvent(DeploymentEntity deployment, DeployEventType eventType, DeployEventRequest request)
     {
@@ -116,11 +116,23 @@ public class DeploymentWebhooksController : ControllerBase
             return;
         }
 
-        Activity? span = RootSpan.Of(HttpContext);
-        span?.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, ServiceTelemetry.EnumValue(eventType));
+        // The request succeeded even when Flux's result is a failure, so the span keeps its status, as a 4xx would.
+        string result = ServiceTelemetry.EnumValue(eventType);
+        RootSpan.Of(HttpContext)?.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, result);
+        if (deployment.Events.Any(e => e.EventType == DeployEventType.PipelineFailed))
+        {
+            return;
+        }
+
         PipelineType type =
             deployment.DeploymentType == DeploymentType.Decommission ? PipelineType.Undeploy : PipelineType.Deploy;
-        _metrics.RecordResult(type, request.Environment, eventType, request.Timestamp.UtcDateTime - deployment.Created);
+        _metrics.RecordResult(
+            type,
+            deployment.EnvName,
+            result,
+            AppDeployMetrics.IsFluxFailure(eventType) ? result : null,
+            request.Timestamp.UtcDateTime - deployment.Created
+        );
     }
 
     private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)

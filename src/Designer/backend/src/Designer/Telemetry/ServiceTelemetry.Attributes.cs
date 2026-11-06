@@ -15,6 +15,11 @@ internal static partial class ServiceTelemetry
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";
 
+        /// <summary>
+        /// A finished Azure DevOps run's result: success, failure, cancellation or error.
+        /// </summary>
+        public const string CicdPipelineResult = "cicd.pipeline.result";
+
         public const string ServiceOwner = AltinnAttributes.ServiceOwner;
         public const string App = AltinnAttributes.App;
         public const string RepoType = AltinnAttributes.RepoType;
@@ -65,18 +70,14 @@ internal static partial class ServiceTelemetry
             public const string PipelineType = Prefix + "pipeline.type";
 
             /// <summary>
-            /// The Azure DevOps run's status when Designer polled it, such as in_progress or completed.
+            /// The Azure DevOps run's status when Designer polled it, such as in_progress or completed. It is not the
+            /// semantic conventions' cicd.pipeline.run.state, which has no state for a run that has finished.
             /// </summary>
             public const string PipelineStatus = Prefix + "pipeline.status";
 
             /// <summary>
-            /// The completed Azure DevOps run's result: succeeded, partially_succeeded, failed or canceled.
-            /// </summary>
-            public const string PipelineResult = Prefix + "pipeline.result";
-
-            /// <summary>
             /// How the deploy or undeploy ended: Flux's result, such as install_succeeded or upgrade_failed, or
-            /// pipeline_failed when the pipeline did not succeed.
+            /// pipeline_failed or pipeline_canceled when the pipeline did not succeed.
             /// </summary>
             public const string Result = Prefix + "result";
         }

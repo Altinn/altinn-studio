@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -153,8 +154,8 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         Assert.Equal(420, pipeline.Seconds);
         Assert.Equal("deploy", pipeline.Tags["altinn.designer.app_deploy.pipeline.type"]);
         Assert.Equal("tt02", pipeline.Tags["altinn.environment"]);
-        Assert.Equal("failed", pipeline.Tags["altinn.designer.app_deploy.pipeline.result"]);
-        Assert.Equal("failed", pipeline.Tags["error.type"]);
+        Assert.Equal("failure", pipeline.Tags["cicd.pipeline.result"]);
+        Assert.Equal("pipeline_failed", pipeline.Tags["error.type"]);
 
         RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
         Assert.Equal(420, deploy.Seconds);
@@ -163,15 +164,16 @@ public class DeploymentPipelinePollingJobTest : IDisposable
 
         Activity span = Assert.Single(spans.Stopped);
         Assert.Equal(ActivityStatusCode.Error, span.Status);
+        Assert.Equal("The pipeline's result is failure", span.StatusDescription);
         Assert.Equal("12345", span.GetTagItem("altinn.app_deploy.build.id"));
         Assert.Equal("testorg", span.GetTagItem("altinn.service_owner"));
         Assert.Equal("testapp", span.GetTagItem("altinn.app"));
         Assert.Equal("tt02", span.GetTagItem("altinn.environment"));
         Assert.Equal("deploy", span.GetTagItem("altinn.designer.app_deploy.pipeline.type"));
         Assert.Equal("completed", span.GetTagItem("altinn.designer.app_deploy.pipeline.status"));
-        Assert.Equal("failed", span.GetTagItem("altinn.designer.app_deploy.pipeline.result"));
+        Assert.Equal("failure", span.GetTagItem("cicd.pipeline.result"));
         Assert.Equal("pipeline_failed", span.GetTagItem("altinn.designer.app_deploy.result"));
-        Assert.Equal("failed", span.GetTagItem("error.type"));
+        Assert.Equal("pipeline_failed", span.GetTagItem("error.type"));
     }
 
     [Fact]
@@ -192,7 +194,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
         Assert.Equal(300, pipeline.Seconds);
         Assert.Equal("prod", pipeline.Tags["altinn.environment"]);
-        Assert.Equal("succeeded", pipeline.Tags["altinn.designer.app_deploy.pipeline.result"]);
+        Assert.Equal("success", pipeline.Tags["cicd.pipeline.result"]);
         Assert.False(pipeline.Tags.ContainsKey("error.type"));
         Assert.Empty(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
 
@@ -219,14 +221,93 @@ public class DeploymentPipelinePollingJobTest : IDisposable
         Activity span = Assert.Single(spans.Stopped);
         Assert.Equal("undeploy", span.GetTagItem("altinn.designer.app_deploy.pipeline.type"));
         Assert.Equal("in_progress", span.GetTagItem("altinn.designer.app_deploy.pipeline.status"));
-        Assert.Null(span.GetTagItem("altinn.designer.app_deploy.pipeline.result"));
+        Assert.Null(span.GetTagItem("cicd.pipeline.result"));
+    }
+
+    [Fact]
+    public async Task Execute_WhenThePipelineIsCanceled_RecordsTheDeployWithoutAnError()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        string traceParent = CreateValidTraceParent();
+        using var spans = PollSpans(traceParent);
+        SetupPoll(fixture, BuildResult.Canceled, requestedAgo: TimeSpan.FromMinutes(3));
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent));
+
+        // Assert
+        RecordedDuration pipeline = Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        Assert.Equal("cancellation", pipeline.Tags["cicd.pipeline.result"]);
+        Assert.False(pipeline.Tags.ContainsKey("error.type"));
+
+        RecordedDuration deploy = Assert.Single(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.Equal("pipeline_canceled", deploy.Tags["altinn.designer.app_deploy.result"]);
+        Assert.False(deploy.Tags.ContainsKey("error.type"));
+
+        Activity span = Assert.Single(spans.Stopped);
+        Assert.Equal(ActivityStatusCode.Unset, span.Status);
+        Assert.Null(span.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Execute_WhenThePipelineFailsAfterFluxReported_KeepsFluxResult()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        string traceParent = CreateValidTraceParent();
+        using var spans = PollSpans(traceParent);
+        SetupPoll(
+            fixture,
+            BuildResult.Failed,
+            requestedAgo: TimeSpan.FromMinutes(8),
+            events: [new DeployEvent { EventType = DeployEventType.InstallSucceeded }]
+        );
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy, traceParent: traceParent));
+
+        // Assert
+        Assert.Single(_metrics.Measurements(AppDeployMetrics.PipelineDurationMetricName));
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Activity span = Assert.Single(spans.Stopped);
+        Assert.Null(span.GetTagItem("altinn.designer.app_deploy.result"));
+        Assert.Equal(ActivityStatusCode.Error, span.Status);
+    }
+
+    [Fact]
+    public async Task Execute_WithoutTraceContext_SetsTheDeployOnTheJobSpan()
+    {
+        // Arrange
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
+        SetupPoll(fixture, BuildResult.Failed, requestedAgo: TimeSpan.FromMinutes(4));
+        using var jobSpan = new Activity("Quartz.Job.Execute").Start();
+
+        // Act
+        await fixture.Service.Execute(JobExecutionContextFactory(PipelineType.Deploy));
+
+        // Assert
+        Assert.Equal("12345", jobSpan.GetTagItem("altinn.app_deploy.build.id"));
+        Assert.Equal("testorg", jobSpan.GetTagItem("altinn.service_owner"));
+        Assert.Equal("testapp", jobSpan.GetTagItem("altinn.app"));
+        Assert.Equal("tt02", jobSpan.GetTagItem("altinn.environment"));
+        Assert.Equal("failure", jobSpan.GetTagItem("cicd.pipeline.result"));
+        Assert.Equal("pipeline_failed", jobSpan.GetTagItem("error.type"));
+        Assert.Equal(ActivityStatusCode.Error, jobSpan.Status);
+    }
+
+    [Fact]
+    public void PollsOfOneBuild_DoNotOverlap()
+    {
+        Assert.NotNull(typeof(DeploymentPipelinePollingJob).GetCustomAttribute<DisallowConcurrentExecutionAttribute>());
     }
 
     private void SetupPoll(
         Fixture fixture,
         BuildResult result,
         TimeSpan requestedAgo,
-        BuildStatus status = BuildStatus.Completed
+        BuildStatus status = BuildStatus.Completed,
+        DeployEvent[]? events = null
     )
     {
         fixture
@@ -240,6 +321,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
                 {
                     Created = (s_now - requestedAgo).UtcDateTime,
                     Build = new BuildEntity { Status = BuildStatus.None },
+                    Events = [.. events ?? []],
                 }
             );
     }
