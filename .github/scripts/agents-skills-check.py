@@ -40,8 +40,8 @@ XML_TAG = re.compile(r"<[A-Za-z/][^>]*>")
 # body stays under 5,000 tokens and the file under 500 lines.
 MAX_TOKENS = 5_000
 MAX_LINES = 500
-# Our own rule: every other file in a skill gets the same cap. The specification only says to keep reference files
-# focused, but an agent that opens one reads it whole, just as it reads SKILL.md.
+# Neither the specification nor Anthropic limits the size of other files, which an agent reads only when it needs
+# them. The summary shows their sizes.
 # Recommendation in Anthropic's skill authoring best practices: a reference file longer than 100 lines starts with a
 # table of contents, so an agent that reads only the start still sees what the file holds.
 TOC_AFTER_LINES = 100
@@ -180,16 +180,12 @@ def check_sizes(skills: list[Path], report: Report) -> None:
                 size.largest_file = (relative, tokens)
             if relative in VERSION_FILES:
                 size.load_tokens = max(size.load_tokens, body_tokens + tokens)
-            if tokens > MAX_TOKENS:
-                report.error(f"{path} is {tokens:,} tokens, over {MAX_TOKENS:,}", path)
-            if file_lines > MAX_LINES:
-                report.error(f"{path} is {file_lines} lines, over {MAX_LINES}", path)
             if path.suffix == ".md" and file_lines > TOC_AFTER_LINES and not has_contents(content):
                 report.error(f"{path} is {file_lines} lines but does not start with a '## Contents' section", path)
         sizes.append(size)
 
     report.summary += [
-        f"### Skill sizes (o200k_base tokens, at most {MAX_TOKENS:,} tokens and {MAX_LINES} lines per file)",
+        f"### Skill sizes (o200k_base tokens; SKILL.md at most {MAX_TOKENS:,} tokens and {MAX_LINES} lines)",
         "",
         "| Skill | SKILL.md body | SKILL.md lines | Largest other file | SKILL.md with version file |",
         "|---|---:|---:|---:|---:|",

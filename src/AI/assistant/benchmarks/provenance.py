@@ -198,11 +198,17 @@ def _hash_tools() -> str:
     from agents.altinn.app_version import APP_VERSION_PROFILES
     from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
+    from shared.config.base_config import get_config
 
     skills = discover_skills()
     schema = _build_registry(skills).to_schema()
+    # The skill tool's description and the text it returns both follow APPEND_SKILL_VERSION_FILE, so a run with
+    # the version file on demand gets its own digest.
+    append = get_config().APPEND_SKILL_VERSION_FILE
     skill_text = {
-        profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
+        profile.version_label: {
+            skill.name: skill.load_body(profile.version_label, append_version_file=append) for skill in skills
+        }
         for profile in APP_VERSION_PROFILES
     }
     payload = json.dumps({"schema": schema, "skills": skill_text}, sort_keys=True).encode()

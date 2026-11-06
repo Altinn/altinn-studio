@@ -72,8 +72,7 @@ def file_slug(name: str) -> str:
 
 
 def render_access_packages(groups: list[dict[str, Any]]) -> dict[str, str]:
-    """One file per area group, so that an agent reads only the packages for the kind of service it works on.
-    Together the groups are too long for one file an agent reads whole (see .github/scripts/skills-check.py)."""
+    """One file per area group, so that an agent reads only the packages for the kind of service it works on."""
     files: dict[str, str] = {}
     for group in sorted(groups, key=lambda g: (g.get("type") != "Organisasjon", sort_key(g["name"]))):
         areas = sorted(

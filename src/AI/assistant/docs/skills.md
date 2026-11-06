@@ -28,8 +28,14 @@ one with the `file` argument of the `skill` tool, since `read_file` reads only t
 ## App versions
 
 `references/v8.md` and `references/v9.md` hold what applies to apps of that version only. `SKILL.md` holds only what
-is true for both, and tells the reader to read the file for the app's version. The `skill` tool appends that file to
-the body itself, so the model gets it in the same call.
+is true for both, and tells the reader to read the file for the app's version.
+
+By default the `skill` tool appends that file to the body itself, so the model gets it in the same call. With
+`APPEND_SKILL_VERSION_FILE=false`, the tool returns only the body, and the model loads the file when the skill tells it
+to, as other coding agents do. That mode becomes the default only once the [bench](../benchmarks/EVALS.md) shows the
+actor loads the file without being made to, and scores as well as with the default. Run the bench once in each mode,
+and compare how often the actor loads the version file, the scores and the tokens. The two modes give different
+`tools` digests, so the bench does not mix their runs.
 
 ## Format, size and links
 
@@ -41,8 +47,8 @@ rule:
 
 - The requirements in the [specification](https://agentskills.io/specification): the frontmatter fields, and the
   length of `name`, `description` and `compatibility`. Anthropic adds that names and descriptions have no XML tags.
-- The specification's recommendation for `SKILL.md`: a body under 5,000 tokens, in a file under 500 lines. The check
-  holds every other file in a skill to the same cap, since an agent that opens a file reads it whole.
+- The specification's recommendation for `SKILL.md`: a body under 5,000 tokens, in a file under 500 lines. Neither
+  source limits other files, which an agent reads only when it needs them. The check's summary shows their sizes.
 - Anthropic's [best practice](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) for
   reference files: one longer than 100 lines starts with a `## Contents` section.
 

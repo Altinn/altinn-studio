@@ -7,6 +7,7 @@ from dataclasses import replace
 from agents.altinn import app_version
 from agents.core import skills
 from benchmarks import provenance
+from shared.config import base_config
 
 
 class TestModelsAxisProvenance:
@@ -89,6 +90,17 @@ class TestDigestsCoverEveryAppVersion:
         monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
         before = provenance._hash_tools()
         (skill_dir / "references" / "v9.md").write_text("New v9 text.\n")
+
+        assert provenance._hash_tools() != before
+
+    def test_loading_the_version_file_on_demand_moves_the_tools_digest(self, tmp_path, monkeypatch):
+        skill_dir = tmp_path / "studio-example"
+        (skill_dir / "references").mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text("---\nname: studio-example\ndescription: An example.\n---\nBody.\n")
+        (skill_dir / "references" / "v9.md").write_text("v9 text.\n")
+        monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
+        before = provenance._hash_tools()
+        monkeypatch.setattr(base_config.BaseConfig, "APPEND_SKILL_VERSION_FILE", False)
 
         assert provenance._hash_tools() != before
 
