@@ -127,9 +127,9 @@ them. What matters for the user:
 - The frontend checks pages when the user moves between them only when one of these is set. Each takes an object such
   as `{ "page": "current", "show": ["All"] }`, where `page` is `current`, `currentAndPrevious` or `all`, and `show`
   lists validation types:
-  - `validationOnNavigation` in `data` of a page's layout file, or for every page under `pages` in the `Settings.json`
-    next to the `layouts` folder. The page's own setting wins. It overrides the component settings below, and it
-    checks only when the user moves forward.
+  - `validationOnNavigation` in `data` of a page's layout file, or for every page in a settings file. Which settings
+    file takes it differs between the versions, and the `studio-layouts` skill covers it. The page's own setting
+    wins. It overrides the component settings below, and it checks only when the user moves forward.
   - `validateOnNext` and `validateOnPrevious` on `NavigationButtons`
   - `validateOnForward` and `validateOnBackward` on `NavigationBar`
   - `validation` on each item in `actions` on `CustomButton`

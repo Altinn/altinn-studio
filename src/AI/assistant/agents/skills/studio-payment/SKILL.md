@@ -72,12 +72,13 @@ Each part of the setup serves one of these steps:
   the versions.
 - In the policy, scope these grants to the payment task with `urn:altinn:task`. The `studio-policy` skill covers how
   to write rules.
-  - Grant the payer `read`, `pay`, `confirm` and `reject`.
+  - Grant the payer `read`, `write`, `pay`, `confirm` and `reject`. The app saves the payment information with the
+    payer's rights, and Storage requires `write` for that.
   - Grant the service owner `confirm`, in addition to the `read` and `write` every app grants it. Without `confirm`,
     the app cannot move the process on when Nets reports the payment, and the instance waits for the user to come
     back.
-- Studio's process editor adds a rule with the payer's actions but no subject. Add the roles or access packages that
-  may pay. A rule without a subject does not limit who it applies to.
+- Studio's process editor adds a rule with `read`, `pay`, `confirm` and `reject`, but no `write` and no subject. Add
+  `write`, and the roles or access packages that may pay. A rule without a subject does not limit who it applies to.
 
 ## Order details
 

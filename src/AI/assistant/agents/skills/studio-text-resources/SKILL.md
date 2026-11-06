@@ -88,7 +88,7 @@ The frontend supports these `dataSource` values. It ignores any other and shows 
   The frontend warns when a `default` lookup finds nothing, and the default changes when the text appears in another
   task.
 - `instanceContext`: `key` is one of `appId`, `instanceId`, `instanceOwnerPartyId`, `instanceOwnerPartyType`
-  (`org`, `person`, `selfIdentified` or `unknown`) and `instanceOwnerName`. The docs list only the first three.
+  (`org`, `person`, `selfIdentified` or `unknown`) and `instanceOwnerName`.
 - `applicationSettings`: `key` is a setting under `FrontEndSettings` in `App/appsettings*.json`, so the value can
   differ between environments. Start the setting's name with a lower-case letter. The version files say why.
 - `customTextParameters`: `key` is a parameter that C# code sets in `CustomTextParameters` on a validation issue or
