@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
@@ -114,18 +115,34 @@ public class DeploymentService : IDeploymentService
             deploymentEntity.TagName
         );
 
+        // The status is committed to applicationmetadata.json when the release is built, so the app image has it.
+        // Releases built before that have no status, and fall back to the environment's default. A status that a
+        // release cannot carry, such as a hand-written Deprecated, also falls back, since only an undeploy may
+        // deprecate the app.
+        AppStatus? committedAppStatus = await _applicationInformationService.GetAppStatusAsync(
+            authenticatedContext.Org,
+            authenticatedContext.Repo,
+            release.TargetCommitish
+        );
+        AppStatus appStatus =
+            committedAppStatus?.IsReleaseStatus() == true
+                ? committedAppStatus.Value
+                : GetDefaultAppStatus(deployment.EnvName);
+
         await _applicationInformationService.UpdateApplicationMetadataAndPoliciesAsync(
             authenticatedContext.Org,
             authenticatedContext.Repo,
             release.TargetCommitish,
-            deployment.EnvName
+            deployment.EnvName,
+            appStatus
         );
 
         var registryResult = await _applicationInformationService.PublishToResourceRegistryAsync(
             authenticatedContext.Org,
             authenticatedContext.Repo,
             release.TargetCommitish,
-            deployment.EnvName
+            deployment.EnvName,
+            appStatus
         );
 
         deploymentEntity = await _deploymentRepository.Create(deploymentEntity);
@@ -197,6 +214,14 @@ public class DeploymentService : IDeploymentService
         );
         return deploymentEntity;
     }
+
+    private static AppStatus GetDefaultAppStatus(string envName) =>
+        IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
+
+    // Designer names the production environment "production", while AltinnEnvironment expects "prod"
+    private static bool IsProductionEnvironment(string envName) =>
+        envName.Equals("production", StringComparison.OrdinalIgnoreCase)
+        || AltinnEnvironment.FromName(envName).IsProd();
 
     private async Task<bool> AddAppToGitOpsRepoIfNotExists(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
