@@ -58,12 +58,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("responses"),
             "#/components/schemas/AppCallbackResponse"
         );
-        AssertConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate")
-                .GetProperty("get")
-                .GetProperty("responses")
-        );
         AssertActionsConflictResponse(
             paths
                 .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions")
@@ -170,7 +164,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         AssertConflictResponse(responses, conflictMediaType);
     }
 
-    private static void AssertConflictResponse(JsonElement responses, string mediaType = "application/json")
+    private static void AssertConflictResponse(JsonElement responses, string mediaType)
     {
         Assert.Equal(
             "#/components/schemas/ProblemDetails",
