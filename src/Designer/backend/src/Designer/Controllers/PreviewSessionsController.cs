@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.PreviewService;
@@ -19,12 +18,16 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/preview-sessions")]
-public class PreviewSessionsController(IPreviewServiceClient previewServiceClient, IGiteaClient giteaClient)
-    : ControllerBase
+public class PreviewSessionsController(IPreviewServiceClient previewServiceClient) : ControllerBase
 {
     /// <summary>
-    /// Starts a session that previews the developer's working copy of the app, if they may still read the app.
+    /// Starts a session that previews the developer's own working copy of the app.
     /// </summary>
+    /// <remarks>
+    /// Like Designer's other endpoints for a working copy, this doesn't ask Gitea whether the developer may still read
+    /// the app. The developer comes from the login, so they can preview only their own working copy, which they can
+    /// already read and edit in Designer.
+    /// </remarks>
     /// <param name="org">The app's service owner.</param>
     /// <param name="app">The app.</param>
     /// <param name="cancellationToken">A token to cancel the request.</param>
@@ -38,12 +41,6 @@ public class PreviewSessionsController(IPreviewServiceClient previewServiceClien
         CancellationToken cancellationToken
     )
     {
-        // A working copy can outlive the developer's access to the app, so Gitea decides whether they may read it.
-        if (await giteaClient.GetRepository(org, app) is null)
-        {
-            return NotFound();
-        }
-
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         Uri? url = await previewServiceClient.StartSession(developer, org, app, cancellationToken);
         return url is null ? NotFound() : Ok(new PreviewSessionResponse(url));
