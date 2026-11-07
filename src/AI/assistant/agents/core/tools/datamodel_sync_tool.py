@@ -53,34 +53,27 @@ class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
         if not ctx.designer_api_key or not ctx.repo_owner or not ctx.extras.get("app_name"):
             return ToolResult(content="Datamodel generation needs a Designer session for this app.", is_error=True)
 
-        request = _read_generation_request(ctx, args.schema_path)
-        if isinstance(request, ToolResult):
-            return request
-
         try:
+            request = _read_generation_request(ctx, args.schema_path)
             generated = await generate_datamodel(request, ctx.designer_api_key)
-        except DatamodelGenerationError as exc:
+            written = _write_generated_files(ctx, args.schema_path, request.model_name, generated)
+        except (_SyncError, DatamodelGenerationError) as exc:
             return ToolResult(content=str(exc), is_error=True)
-
-        written = _write_generated_files(ctx, args.schema_path, request.model_name, generated)
-        if isinstance(written, ToolResult):
-            return written
 
         return ToolResult(content=json.dumps({"status": "success", "files_written": written}, ensure_ascii=False))
 
 
-def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGenerationRequest | ToolResult:
+class _SyncError(Exception):
+    """The tool stops, and `run` gives the message to the agent as an error."""
+
+
+def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGenerationRequest:
     if not schema_path.endswith(SCHEMA_FILE_SUFFIX):
-        return ToolResult(content=f"schema_path must name a {SCHEMA_FILE_SUFFIX} file: {schema_path}", is_error=True)
+        raise _SyncError(f"schema_path must name a {SCHEMA_FILE_SUFFIX} file: {schema_path}")
     schema = _read_json_file(ctx, schema_path)
-    if isinstance(schema, ToolResult):
-        return schema
     application_metadata = _read_json_file(ctx, APPLICATION_METADATA_PATH)
-    if isinstance(application_metadata, ToolResult):
-        return application_metadata
-    use_nullable_reference_types = _read_use_nullable_reference_types(ctx)
-    if isinstance(use_nullable_reference_types, ToolResult):
-        return use_nullable_reference_types
+    # If the app has no Studio settings file, Designer uses no nullable reference types.
+    settings = _read_json_file(ctx, STUDIO_SETTINGS_PATH, missing_ok=True)
 
     return DatamodelGenerationRequest(
         repo_owner=ctx.repo_owner,
@@ -88,43 +81,32 @@ def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGen
         model_name=Path(schema_path).name.removesuffix(SCHEMA_FILE_SUFFIX),
         schema=schema,
         application_metadata=application_metadata,
-        use_nullable_reference_types=use_nullable_reference_types,
+        use_nullable_reference_types=isinstance(settings, dict) and settings.get("useNullableReferenceTypes") is True,
         is_v9_or_newer=ctx.app_version_profile.major_version >= V9_PROFILE.major_version,
     )
 
 
-def _read_use_nullable_reference_types(ctx: LoopContext) -> bool | ToolResult:
-    """If the app has no Studio settings file, Designer uses no nullable reference types."""
-    try:
-        settings_file = resolve_repo_path(ctx.repo_path, STUDIO_SETTINGS_PATH)
-    except PathError as exc:
-        return ToolResult(content=str(exc), is_error=True)
-    if not settings_file.is_file():
-        return False
-    settings = _read_json_file(ctx, STUDIO_SETTINGS_PATH)
-    if isinstance(settings, ToolResult):
-        return settings
-    return isinstance(settings, dict) and settings.get("useNullableReferenceTypes") is True
-
-
-def _read_json_file(ctx: LoopContext, rel_path: str) -> Any | ToolResult:
+def _read_json_file(ctx: LoopContext, rel_path: str, *, missing_ok: bool = False) -> Any:
+    """Gives None for a missing file if `missing_ok` is true."""
     try:
         file = resolve_repo_path(ctx.repo_path, rel_path)
     except PathError as exc:
-        return ToolResult(content=str(exc), is_error=True)
+        raise _SyncError(str(exc)) from exc
     if not file.is_file():
-        return ToolResult(content=f"File not found: {rel_path}", is_error=True)
+        if missing_ok:
+            return None
+        raise _SyncError(f"File not found: {rel_path}")
     try:
         return json.loads(file.read_text(encoding="utf-8-sig"))
     except OSError as exc:
-        return ToolResult(content=f"Cannot read {rel_path}: {exc}", is_error=True)
+        raise _SyncError(f"Cannot read {rel_path}: {exc}") from exc
     except ValueError as exc:
-        return ToolResult(content=f"{rel_path} is not valid JSON: {exc}", is_error=True)
+        raise _SyncError(f"{rel_path} is not valid JSON: {exc}") from exc
 
 
 def _write_generated_files(
     ctx: LoopContext, schema_path: str, model_name: str, generated: GeneratedDatamodel
-) -> list[str] | ToolResult:
+) -> list[str]:
     """Writes each file that has new content, and marks it as changed and not read.
 
     The agent read the schema and the application metadata before the tool changed them. If the agent writes
@@ -139,22 +121,21 @@ def _write_generated_files(
         str(schema_dir / f"{model_name}.xsd"): generated.xsd,
         APPLICATION_METADATA_PATH: generated.application_metadata,
     }
-    out_paths: dict[str, Path] = {}
-    for rel_path in files:
+    targets: list[tuple[str, Path, str]] = []
+    for rel_path, content in files.items():
         try:
-            out_paths[rel_path] = resolve_repo_path(ctx.repo_path, rel_path)
+            targets.append((rel_path, resolve_repo_path(ctx.repo_path, rel_path), content))
         except PathError as exc:
-            return ToolResult(content=f"Could not write {rel_path}: {exc}", is_error=True)
+            raise _SyncError(f"Could not write {rel_path}: {exc}") from exc
 
     written: list[str] = []
-    for rel_path, content in files.items():
-        out_path = out_paths[rel_path]
+    for rel_path, out_path, content in targets:
         try:
             if out_path.is_file() and out_path.read_text(encoding="utf-8") == content:
                 continue
             out_path.write_text(content, encoding="utf-8")
         except OSError as exc:
-            return ToolResult(content=f"Could not write {rel_path}: {exc}", is_error=True)
+            raise _SyncError(f"Could not write {rel_path}: {exc}") from exc
         written.append(rel_path)
         mark_changed(ctx, rel_path)
         mark_unread(ctx, rel_path)

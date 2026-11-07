@@ -42,7 +42,7 @@ def repo(tmp_path: Path) -> Path:
     (repo / "App" / "models").mkdir(parents=True)
     (repo / "App" / "config").mkdir(parents=True)
     (repo / SCHEMA_PATH).write_text('{"type":"object"}', encoding="utf-8")
-    (repo / "App" / "config" / "applicationmetadata.json").write_text(APPLICATION_METADATA, encoding="utf-8")
+    (repo / APPLICATION_METADATA_PATH).write_text(APPLICATION_METADATA, encoding="utf-8")
     return repo
 
 
@@ -105,13 +105,13 @@ async def test_writes_the_generated_files_and_marks_them_for_verification(repo: 
         SCHEMA_PATH,
         "App/models/model.cs",
         "App/models/model.xsd",
-        "App/config/applicationmetadata.json",
+        APPLICATION_METADATA_PATH,
     }
     assert set(json.loads(result.content)["files_written"]) == written
     assert (repo / SCHEMA_PATH).read_text(encoding="utf-8") == GENERATED.json_schema
     assert (repo / "App/models/model.cs").read_text(encoding="utf-8") == GENERATED.csharp_classes
     assert (repo / "App/models/model.xsd").read_text(encoding="utf-8") == GENERATED.xsd
-    assert (repo / "App/config/applicationmetadata.json").read_text(encoding="utf-8") == GENERATED.application_metadata
+    assert (repo / APPLICATION_METADATA_PATH).read_text(encoding="utf-8") == GENERATED.application_metadata
     assert ctx.extras["changed_files"] == written
     assert ctx.extras["verified_files"] == set()
 
