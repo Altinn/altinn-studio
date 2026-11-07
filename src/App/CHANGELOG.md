@@ -29,6 +29,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 
 ### Removed
 
