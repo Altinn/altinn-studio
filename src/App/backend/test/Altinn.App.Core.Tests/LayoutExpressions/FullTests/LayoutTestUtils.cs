@@ -137,7 +137,7 @@ public static class LayoutTestUtils
                 new()
                 {
                     Id = DataTypeId,
-                    TaskId = TaskId,
+                    TaskIds = [TaskId],
                     AppLogic = new() { ClassRef = modelType.FullName },
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,

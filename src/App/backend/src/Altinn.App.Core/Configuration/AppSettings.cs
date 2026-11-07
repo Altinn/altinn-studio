@@ -120,8 +120,8 @@ public class AppSettings
     public bool UseOpenTelemetryCollector { get; set; }
 
     /// <summary>
-    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutable (using app apis) when the instance is in this task.
-    /// Enabled by default. Enforces that elements of data types with a TaskId can only be mutated when the instance is in that task.
+    /// Enforce that a DataType (applicationmetadata.json) that is bound to tasks (taskIds) is only externally mutable (using app apis) when the instance is in one of them.
+    /// Enabled by default. Enforces that elements of data types bound to tasks can only be mutated when the instance is in one of those tasks.
     /// </summary>
     public bool EnforceDataTypeTaskId { get; set; } = true;
 }

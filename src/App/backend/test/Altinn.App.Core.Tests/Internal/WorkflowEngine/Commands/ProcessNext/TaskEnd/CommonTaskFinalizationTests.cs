@@ -115,7 +115,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -151,7 +151,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "verificationResult",
-                    TaskId = "Verify",
+                    TaskIds = ["Verify"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.VerificationResult" },
                 },
             ],
@@ -187,7 +187,7 @@ public class CommonTaskFinalizationTests
         var dataType = new DataType
         {
             Id = "model",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
@@ -228,7 +228,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "restricted",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Restricted" },
                 },
             ],
@@ -258,7 +258,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_2", // Different task
+                    TaskIds = ["Task_2"], // Different task
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -289,7 +289,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "attachment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = null, // No AppLogic/ClassRef
                 },
             ],
@@ -321,7 +321,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],

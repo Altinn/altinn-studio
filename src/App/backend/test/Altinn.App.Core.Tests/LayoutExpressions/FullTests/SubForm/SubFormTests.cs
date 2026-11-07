@@ -91,14 +91,14 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
             new DataType()
             {
                 Id = DefaultDataType,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new ApplicationLogic() { ClassRef = _classRefMain },
                 MaxCount = 1,
             },
             new DataType()
             {
                 Id = SubformDataType,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new ApplicationLogic() { ClassRef = _classRefSub },
             },
         ],
