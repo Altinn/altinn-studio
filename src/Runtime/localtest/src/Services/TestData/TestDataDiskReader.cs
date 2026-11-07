@@ -22,6 +22,11 @@ public static class TestDataDiskReader
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Org"), testData.Register.Org);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Party"), testData.Register.Party);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Person"), testData.Register.Person);
+        // On disk, the sub-units are the child parties of their main unit, in the register or in the party lists
+        testData.Register.OrgUnits = TestDataOrgUnit.FromParties(
+            testData.Register.Party.Values.Concat(testData.Authorization.PartyList.Values.SelectMany(parties => parties)),
+            testData.Register.Org
+        );
 
         return testData;
     }
@@ -42,7 +47,11 @@ public static class TestDataDiskReader
             {
                 var systemUser = JsonSerializer.Deserialize<TestDataSystemUser>(await File.ReadAllBytesAsync(systemUserData.FullName))
                     ?? throw new Exception("Failed to deserialize system user data");
-                systemUser = systemUser with { SystemId = systemId };
+                systemUser = systemUser with
+                {
+                    SystemId = systemId,
+                    AccessPackages = AccessPackageIdentifier.Normalize(systemUser.AccessPackages),
+                };
                 testData.SystemUsers[systemUser.Id] = systemUser;
                 systemData.SystemUsers[systemUser.Id] = systemUser;
             }
@@ -56,14 +65,29 @@ public static class TestDataDiskReader
         {
             var userId = userFolder.Name.Substring("User_".Length);
             var roleDict = new Dictionary<string, List<Role>>();
+            var accessPackageDict = new Dictionary<string, List<string>>();
             foreach (var partiesFolder in userFolder.GetDirectories())
             {
                 var party = partiesFolder.Name.Substring("party_".Length);
-                var fileBytes = await File.ReadAllBytesAsync(Path.Join(partiesFolder.FullName, "roles.json"));
-                var fileData = JsonSerializer.Deserialize<List<Role>>(fileBytes, _options)!;
-                roleDict[party] = fileData;
+                var rolesFile = Path.Join(partiesFolder.FullName, "roles.json");
+                if (File.Exists(rolesFile))
+                {
+                    var fileBytes = await File.ReadAllBytesAsync(rolesFile);
+                    roleDict[party] = JsonSerializer.Deserialize<List<Role>>(fileBytes, _options)!;
+                }
+
+                var accessPackagesFile = Path.Join(partiesFolder.FullName, "accesspackages.json");
+                if (File.Exists(accessPackagesFile))
+                {
+                    var fileBytes = await File.ReadAllBytesAsync(accessPackagesFile);
+                    accessPackageDict[party] = AccessPackageIdentifier.Normalize(JsonSerializer.Deserialize<List<string?>>(fileBytes, _options));
+                }
             }
             testData.Authorization.Roles[userId] = roleDict;
+            if (accessPackageDict.Count > 0)
+            {
+                testData.Authorization.AccessPackages[userId] = accessPackageDict;
+            }
         }
     }
 
