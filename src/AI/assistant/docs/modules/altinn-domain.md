@@ -2,7 +2,7 @@
 
 Code: `src/AI/assistant/agents/altinn/app_version/`, `src/AI/assistant/agents/altinn/layout/`, `src/AI/assistant/agents/altinn/resources/`
 
-This library is plain Python with no model calls. The tools call it in the same process. It does three jobs: it finds the app version, validates layouts against the official schema, and validates text resources. Designer generates the data model files, so that they are the same as the files that Studio writes (refer to [Tools](tools.md)).
+This library is plain Python with no model calls. The tools call it in the same process. It does three jobs: it finds the app version, validates layouts against the official schema, and validates text resources.
 
 ```mermaid
 flowchart TD
