@@ -18,7 +18,7 @@ When working with Altinn datamodels, change **ONLY** the `.schema.json` file, th
 
 **Keep the C# class name and the XML root element of an existing model.** The JSON schema sets them in two different ways:
 
-- The C# class name is the root type name. If the root refers to a type in `$defs` or `definitions` with `$ref`, also through a `oneOf` with one `$ref`, the root type name is the name of that type. If the root has its own `properties`, the root type name is the `@xsdRootElement` value.
+- The C# class name is the root type name. If the root refers to a type in `$defs` or `definitions` through a `oneOf` with one `$ref`, the root type name is the name of that type. If the root has its own `properties`, the root type name is the `@xsdRootElement` value. Do not put a `$ref` directly on the root, because Designer cannot generate the model from such a schema.
 - The XML root element is the `@xsdRootElement` value.
 
 A new class name breaks the app's C# code. A new root element changes the XML of the data the app stores. So in an existing model, do not change `@xsdRootElement`, do not rename the type that the root refers to, and do not move the root properties into or out of a `$defs` type. A new data model needs a root type name that no other data model in the app uses.
