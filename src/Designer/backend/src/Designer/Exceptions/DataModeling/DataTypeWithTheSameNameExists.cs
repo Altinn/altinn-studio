@@ -3,8 +3,7 @@ using System;
 namespace Altinn.Studio.Designer.Exceptions.DataModeling;
 
 /// <summary>
-/// A new data model has the name of a data type that is not this data model, such as an attachment. Designer does not
-/// let a person add such a data model.
+/// A new data model has the name of another data type, such as an attachment.
 /// </summary>
 /// <param name="dataTypeId">The id of the data type that has the name.</param>
 internal sealed class DataTypeWithTheSameNameExists(string dataTypeId)

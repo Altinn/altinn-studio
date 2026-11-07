@@ -219,11 +219,7 @@ public class SchemaModelService : ISchemaModelService
     }
 
     /// <summary>
-    /// Refuses a new data model that Designer does not let a person add. The frontend refuses a name that a data type
-    /// already has, also if only the case is different. ModelNameValidator refuses a C# class that a data type
-    /// already has. This method does not read the repository, because the caller sends the files from its own
-    /// clone. Thus, here a data model is new if no data type with its name has a C# class. Like Designer, this
-    /// method does not check a data model that is already in the app.
+    /// Refuses a new data model whose name or C# class another data type already has.
     /// </summary>
     private static void ThrowIfNewDatamodelConflicts(
         ApplicationMetadata applicationMetadata,
@@ -251,9 +247,8 @@ public class SchemaModelService : ISchemaModelService
     }
 
     /// <summary>
-    /// Makes the C# classes and the XSD of an app data model. It also adds the data type of the data model to
-    /// <paramref name="applicationMetadata"/>, or changes its class reference. <see cref="UpdateSchema"/> and
-    /// <see cref="GenerateDatamodel"/> both use this method, so that they make the same files.
+    /// Generates the C# classes and the XSD of an app data model, and adds or updates its data type in
+    /// <paramref name="applicationMetadata"/>.
     /// </summary>
     private (string CsharpClasses, XmlSchema Xsd) GenerateAppModelFiles(
         string schemaFileName,

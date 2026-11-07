@@ -146,7 +146,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Gives the JSON text that <see cref="SaveApplicationMetadata"/> writes to the repository.
+    /// Serializes the application metadata to the text of <c>applicationmetadata.json</c>.
     /// </summary>
     public static string SerializeApplicationMetadata(ApplicationMetadata applicationMetadata)
     {

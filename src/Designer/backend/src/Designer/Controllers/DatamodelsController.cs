@@ -146,9 +146,8 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
-    /// Makes the files that Designer saves for a data model, from the app files in the request. This endpoint
-    /// does not read or write a repository. A caller that changes the app in its own clone, such as Studio
-    /// Assistant, uses it to write the same files as Designer.
+    /// Generates the C# classes, the XSD and the application metadata of a data model from the request, without
+    /// reading or writing a repository.
     /// </summary>
     /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
     [HttpPost]
