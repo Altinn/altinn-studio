@@ -298,6 +298,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1998,6 +2001,27 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking the pages of service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Replaces the taskId of the data types in applicationmetadata.json with taskIds, the only task binding v9 reads.
+    /// </summary>
+    static async Task<int> MigrateDataTypeTaskIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Data type taskIds");
+        try
+        {
+            var result = await DataTypeTaskIdsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data type has a taskId",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
         }
     }
 
