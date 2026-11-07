@@ -137,16 +137,12 @@ public class AltinnAppGitRepository : AltinnGitRepository
         cancellationToken.ThrowIfCancellationRequested();
         string appMetadataRelativeFilePath = Path.Combine(ConfigFolderPath, AppMetadataFilename);
         string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
+        ApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<ApplicationMetadata>(
+            fileContent,
+            s_jsonOptions
+        );
 
-        return DeserializeApplicationMetadata(fileContent);
-    }
-
-    /// <summary>
-    /// Reads application metadata from JSON text with the same options as <see cref="GetApplicationMetadata"/>.
-    /// </summary>
-    public static ApplicationMetadata DeserializeApplicationMetadata(string applicationMetadataJson)
-    {
-        return JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataJson, s_jsonOptions);
+        return applicationMetaData;
     }
 
     /// <summary>

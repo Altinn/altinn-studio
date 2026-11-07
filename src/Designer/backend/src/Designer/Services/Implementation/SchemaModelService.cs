@@ -27,6 +27,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
@@ -191,24 +192,16 @@ public class SchemaModelService : ISchemaModelService
     }
 
     /// <inheritdoc/>
-    public async Task<GeneratedDatamodel> GenerateDatamodel(
-        string modelName,
-        string jsonContent,
-        string applicationMetadataJson,
-        bool useNullableReferenceTypes,
-        bool isV9OrNewer
-    )
+    public async Task<GeneratedDatamodel> GenerateDatamodel(GenerateDatamodelRequest request)
     {
-        var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
+        var jsonSchema = JsonSchemaKeywords.FromText(request.Schema.ToJsonString());
         string serializedJsonContent = SerializeJson(jsonSchema);
         ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
-        ApplicationMetadata applicationMetadata = AltinnAppGitRepository.DeserializeApplicationMetadata(
-            applicationMetadataJson
-        );
+        ApplicationMetadata applicationMetadata = request.ApplicationMetadata;
         // When a person adds a data model, ModelNameValidator finds that the model is new because its schema file
         // is not in the repository. This method does not read the repository, because the caller sends the files
         // from its own clone. Thus, here a data model is new if no data type has its name.
-        if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelName))
+        if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == request.ModelName))
         {
             DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
                 applicationMetadata,
@@ -216,12 +209,12 @@ public class SchemaModelService : ISchemaModelService
             );
         }
         (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
-            modelName,
+            request.ModelName,
             jsonSchema,
             modelMetadata,
             applicationMetadata,
-            useNullableReferenceTypes,
-            isV9OrNewer
+            request.UseNullableReferenceTypes,
+            request.IsV9OrNewer
         );
 
         return new GeneratedDatamodel(
@@ -249,8 +242,7 @@ public class SchemaModelService : ISchemaModelService
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         string csharpClasses = CreateCSharpClasses(modelMetadata, applicationMetadata, useNullableReferenceTypes);
         XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
-        string fullTypeName = GetFullTypeName(applicationMetadata, csharpModelName);
-        UpdateApplicationWithAppLogicModel(applicationMetadata, schemaFileName, fullTypeName, isV9OrNewer);
+        UpdateApplicationWithAppLogicModel(applicationMetadata, schemaFileName, csharpModelName, isV9OrNewer);
 
         return (csharpClasses, xsd);
     }
@@ -729,7 +721,6 @@ public class SchemaModelService : ISchemaModelService
     {
         ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
 
-        string fullTypeName = GetFullTypeName(application, csharpModelName);
         bool isV9OrNewer = _appVersionService.IsV9App(
             AltinnRepoEditingContext.FromOrgRepoDeveloper(
                 altinnAppGitRepository.Org,
@@ -737,7 +728,7 @@ public class SchemaModelService : ISchemaModelService
                 altinnAppGitRepository.Developer
             )
         );
-        UpdateApplicationWithAppLogicModel(application, schemaFileName, fullTypeName, isV9OrNewer);
+        UpdateApplicationWithAppLogicModel(application, schemaFileName, csharpModelName, isV9OrNewer);
 
         await altinnAppGitRepository.SaveApplicationMetadata(application);
     }
@@ -748,15 +739,17 @@ public class SchemaModelService : ISchemaModelService
     /// </summary>
     /// <param name="application">The <see cref="Application"/> object to be updated.</param>
     /// <param name="dataTypeId">The id of the datatype to bed added.</param>
-    /// <param name="classRef">The C# class reference of the data type.</param>
+    /// <param name="csharpModelName">The name of the C# class of the data type.</param>
     /// <param name="isV9OrNewer">Whether the app uses the v9 app backend or newer.</param>
-    private static void UpdateApplicationWithAppLogicModel(
+    private void UpdateApplicationWithAppLogicModel(
         ApplicationMetadata application,
         string dataTypeId,
-        string classRef,
+        string csharpModelName,
         bool isV9OrNewer
     )
     {
+        string classRef = GetFullTypeName(application, csharpModelName);
+
         if (application.DataTypes == null)
         {
             application.DataTypes = new List<DataType>();

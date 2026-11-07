@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-[AutoValidateAntiforgeryToken]
+[TypeFilter(typeof(ConditionalAntiforgeryFilter))]
 [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
 public class DatamodelsController : ControllerBase
 {
@@ -153,10 +153,6 @@ public class DatamodelsController : ControllerBase
     /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
     [HttpPost]
     [AllowApiKey]
-    // The AutoValidateAntiforgeryToken filter of the controller does its check only if it is the last
-    // antiforgery policy. It has Order 1000, and an action filter with the same Order is after it. This filter
-    // has the same Order, so that an API key caller can send a request without an antiforgery token.
-    [TypeFilter(typeof(ConditionalAntiforgeryFilter), Order = 1000)]
     [UseSystemTextJson]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -164,15 +160,7 @@ public class DatamodelsController : ControllerBase
     [Route("datamodel/generate")]
     public async Task<ActionResult<GeneratedDatamodel>> GenerateDatamodel([FromBody] GenerateDatamodelRequest request)
     {
-        GeneratedDatamodel generatedDatamodel = await _schemaModelService.GenerateDatamodel(
-            request.ModelName,
-            request.Schema.ToJsonString(),
-            request.ApplicationMetadata.ToJsonString(),
-            request.UseNullableReferenceTypes,
-            request.IsV9OrNewer
-        );
-
-        return Ok(generatedDatamodel);
+        return Ok(await _schemaModelService.GenerateDatamodel(request));
     }
 
     /// <summary>

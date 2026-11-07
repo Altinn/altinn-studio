@@ -76,10 +76,11 @@ public class GenerateDatamodelTests
             _ => ReadFileFromTestRepository(modelPath),
         };
 
-        using HttpResponseMessage generateResponse = await HttpClient.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest(modelName, jsonSchema, useNullableReferenceTypes, isV9OrNewer),
-            JsonSerializerOptions
+        using HttpResponseMessage generateResponse = await PostGenerate(
+            modelName,
+            jsonSchema,
+            useNullableReferenceTypes,
+            isV9OrNewer
         );
         Assert.Equal(HttpStatusCode.OK, generateResponse.StatusCode);
         GeneratedDatamodel generatedDatamodel = await generateResponse.Content.ReadFromJsonAsync<GeneratedDatamodel>(
@@ -104,11 +105,7 @@ public class GenerateDatamodelTests
     {
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
 
-        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest(NewModelName, NewModelJsonSchema, true, true),
-            JsonSerializerOptions
-        );
+        using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema, true, true);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         GeneratedDatamodel generatedDatamodel = await response.Content.ReadFromJsonAsync<GeneratedDatamodel>(
@@ -130,13 +127,15 @@ public class GenerateDatamodelTests
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
 
         // The new model gets the same C# class, because it has the root element of the existing model.
-        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest("kunde", ExistingModelJsonSchema, false, false),
-            JsonSerializerOptions
-        );
+        using HttpResponseMessage response = await PostGenerate("kunde", ExistingModelJsonSchema);
 
-        await AssertModelWithTheSameTypeNameExists(response);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.NotNull(problemDetails);
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, errorCode.ToString());
     }
 
     [Fact]
@@ -145,11 +144,7 @@ public class GenerateDatamodelTests
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
         using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
 
-        using HttpResponseMessage response = await apiKeyClient.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest(NewModelName, NewModelJsonSchema, false, false),
-            JsonSerializerOptions
-        );
+        using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema, client: apiKeyClient);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -160,10 +155,10 @@ public class GenerateDatamodelTests
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
         using HttpClient clientWithoutAntiforgeryToken = CreateTestClientWithAuthHandler<TestAuthHandler>();
 
-        using HttpResponseMessage response = await clientWithoutAntiforgeryToken.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest(NewModelName, NewModelJsonSchema, false, false),
-            JsonSerializerOptions
+        using HttpResponseMessage response = await PostGenerate(
+            NewModelName,
+            NewModelJsonSchema,
+            client: clientWithoutAntiforgeryToken
         );
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -174,11 +169,7 @@ public class GenerateDatamodelTests
     {
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
 
-        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            GenerateUrl,
-            CreateRequest("testModel", JsonSchemaThatWillNotCompile, false, false),
-            JsonSerializerOptions
-        );
+        using HttpResponseMessage response = await PostGenerate("testModel", JsonSchemaThatWillNotCompile);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
@@ -200,31 +191,25 @@ public class GenerateDatamodelTests
         return await HttpClient.SendAsync(saveRequest);
     }
 
-    private static async Task AssertModelWithTheSameTypeNameExists(HttpResponseMessage response)
-    {
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
-            await response.Content.ReadAsStringAsync()
-        );
-        Assert.NotNull(problemDetails);
-        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, errorCode.ToString());
-    }
-
-    private object CreateRequest(
+    private Task<HttpResponseMessage> PostGenerate(
         string modelName,
         string jsonSchema,
-        bool useNullableReferenceTypes,
-        bool isV9OrNewer
+        bool useNullableReferenceTypes = false,
+        bool isV9OrNewer = false,
+        HttpClient client = null
     ) =>
-        new
-        {
-            modelName,
-            schema = JsonNode.Parse(jsonSchema),
-            applicationMetadata = JsonNode.Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json")),
-            useNullableReferenceTypes,
-            isV9OrNewer,
-        };
+        (client ?? HttpClient).PostAsJsonAsync(
+            GenerateUrl,
+            new
+            {
+                modelName,
+                schema = JsonNode.Parse(jsonSchema),
+                applicationMetadata = JsonNode.Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json")),
+                useNullableReferenceTypes,
+                isV9OrNewer,
+            },
+            JsonSerializerOptions
+        );
 
     private void WriteAppSettings(bool useNullableReferenceTypes, bool isV9OrNewer)
     {

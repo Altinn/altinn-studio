@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -60,19 +61,9 @@ public interface ISchemaModelService
     /// app files from the caller, and it does not save a file. Designer does not let a person add a data model if a
     /// data type already has its C# class. This method also does not accept such a new data model.
     /// </summary>
-    /// <param name="modelName">The name of the JSON schema file of the data model, without <c>.schema.json</c>. It is also the <c>id</c> of the data type.</param>
-    /// <param name="jsonContent">The JSON schema of the data model.</param>
-    /// <param name="applicationMetadataJson">The JSON text of the application metadata of the app.</param>
-    /// <param name="useNullableReferenceTypes">If true, the C# classes use nullable reference types.</param>
-    /// <param name="isV9OrNewer">If true, the app uses version 9 or a newer version of the app backend.</param>
+    /// <param name="request">The JSON schema of the data model, and the app files that the generation reads.</param>
     /// <returns>The JSON schema, C# classes, XSD and application metadata, with the text that Designer saves.</returns>
-    Task<GeneratedDatamodel> GenerateDatamodel(
-        string modelName,
-        string jsonContent,
-        string applicationMetadataJson,
-        bool useNullableReferenceTypes,
-        bool isV9OrNewer
-    );
+    Task<GeneratedDatamodel> GenerateDatamodel(GenerateDatamodelRequest request);
 
     /// <summary>
     /// Builds a JSON schema based on the uploaded XSD.
