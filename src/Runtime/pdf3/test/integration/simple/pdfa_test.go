@@ -3,6 +3,7 @@ package simple
 import (
 	"testing"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
@@ -35,12 +36,12 @@ func assertConvertedGeneratedPDFIsPDFA(t *testing.T, url string, waitFor *types.
 
 	input := harness.MakePdfDeterministic(t, resp.Data)
 	if snapshotInput {
-		harness.Snapshot(t, input, "input", "pdf")
-		harness.Snapshot(t, input, "input", "txt")
+		snapshot.Match(t, input, "input", "pdf")
+		snapshot.Match(t, input, "input", "txt")
 
 		inputValidation := harness.ValidatePDFWithVeraPDF(t, input)
 		inputReport := harness.NormalizeVeraPDFXML(inputValidation.Stdout)
-		harness.Snapshot(t, []byte(inputReport), "input_verapdf", "xml")
+		snapshot.Match(t, []byte(inputReport), "input_verapdf", "xml")
 	}
 
 	converter := pdfa.NewConverter()
@@ -49,10 +50,10 @@ func assertConvertedGeneratedPDFIsPDFA(t *testing.T, url string, waitFor *types.
 		t.Fatalf("Conversion failed: %v", err)
 	}
 
-	harness.Snapshot(t, output, "output", "pdf")
-	harness.Snapshot(t, output, "output", "txt")
+	snapshot.Match(t, output, "output", "pdf")
+	snapshot.Match(t, output, "output", "txt")
 
 	result := harness.ValidatePDFWithVeraPDF(t, output)
 	report := harness.NormalizeVeraPDFXML(result.Stdout)
-	harness.Snapshot(t, []byte(report), "verapdf", "xml")
+	snapshot.Match(t, []byte(report), "verapdf", "xml")
 }

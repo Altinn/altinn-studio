@@ -9,7 +9,13 @@ spec:
   image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
-  replicas: 1
+  # All of a cluster's telemetry passes through this collector, so a second pod keeps it flowing
+  # while one is evicted or cannot be scheduled on a full node. The spread below puts them in
+  # different zones where it can. The router sends each trace to one pod by its trace ID, so tail
+  # sampling still sees whole traces.
+  replicas: 2
+  podDisruptionBudget:
+    maxUnavailable: 1
   resources:
     requests:
       cpu: 100m
@@ -106,7 +112,9 @@ spec:
           include:
             match_type: regexp
             metric_names:
-              - '^(altinn|http|signalr\.server)([._].*)?$'
+              # cicd: Designer's cicd.pipeline.run.duration for the Azure DevOps runs that deploy
+              # apps, about 1000 series per Designer process.
+              - '^(altinn|cicd|http|signalr\.server)([._].*)?$'
               # The router's and the gateway's own metrics (service.telemetry): each exporter's
               # queue, in its sizer's unit, and the items it sent, failed to send after its
               # retries, or could not queue; and how many gateways the router's ring holds. A

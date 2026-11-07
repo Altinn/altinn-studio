@@ -3,46 +3,43 @@ import { screen } from '@testing-library/react';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../../test/testUtils';
-import { build, environment, pipelineDeployment, runningApp } from 'app-shared/mocks/mocks';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { BuildResult } from 'app-shared/types/Build';
+import { environment, runningApp } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { DeploymentStatusProps } from './DeploymentStatus';
 
 vi.mock('./DeploymentStatus', () => ({
-  DeploymentStatus: ({ lastPublishedDate }: DeploymentStatusProps) => (
-    <div>published {lastPublishedDate}</div>
+  DeploymentStatus: ({ envName, runningApp: running, isStatusUnknown }: DeploymentStatusProps) => (
+    <div>
+      {envName}: {isStatusUnknown ? 'unknown' : (running?.version ?? 'not running')}
+    </div>
   ),
 }));
 
-const deploy = (buildId: string, finished: string): PipelineDeployment => ({
-  ...pipelineDeployment,
-  envName: 'tt02',
-  tagName: '2',
-  build: { ...build, id: buildId, result: BuildResult.succeeded, finished },
-});
-
 describe('DeploymentStatusList', () => {
-  it('shows when the running build was published, though its tag was deployed again since', () => {
+  it('shows what runs in each environment, and where that is unknown', () => {
     renderWithProviders(
       <DeploymentStatusList
-        orgEnvironmentList={[{ ...environment, name: 'tt02', type: 'test' }]}
-        pipelineDeploymentList={[
-          deploy('300', '2026-10-02T12:00:00Z'),
-          deploy('100', '2026-10-01T12:00:00Z'),
-        ]}
-        runningAppList={[
+        orgEnvironmentList={['tt02', 'at22', 'production'].map((name) => ({
+          ...environment,
+          name,
+          type: 'test',
+        }))}
+        pipelineDeploymentList={[]}
+        environmentList={[
           {
-            ...runningApp,
             environment: 'tt02',
-            version: '2',
-            buildId: '100',
+            state: 'running',
+            runningApp: { ...runningApp, environment: 'tt02', version: '2' },
           },
+          { environment: 'at22', state: 'notRunning' },
+          { environment: 'production', state: 'unknown' },
         ]}
       />,
       { startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}` },
     );
 
-    expect(screen.getByText('published 2026-10-01T12:00:00Z')).toBeInTheDocument();
+    expect(screen.getByText('tt02: 2')).toBeInTheDocument();
+    expect(screen.getByText('at22: not running')).toBeInTheDocument();
+    expect(screen.getByText('production: unknown')).toBeInTheDocument();
   });
 });

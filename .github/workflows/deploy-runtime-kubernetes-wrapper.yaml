@@ -51,6 +51,13 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      # Ubuntu 26.04 runners give BuildKit RUN steps a stacked AppArmor label (docker-default//&unconfined), and
+      # the docker-default profile then denies signals between a container's own processes. .NET's GC relies on
+      # such a signal, so csc dies with exit code 139. Remove when Docker ships the profile fix for
+      # https://github.com/moby/moby/issues/54099.
+      - name: Let container processes signal each other (moby/moby#54099)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
+
       - name: Build docker image
         run: |
           SHA="${GITHUB_SHA::10}"

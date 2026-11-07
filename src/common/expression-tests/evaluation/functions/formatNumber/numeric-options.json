@@ -1,0 +1,116 @@
+{
+  "name": "Numeric options",
+  "disabledBackend": true,
+  "dataModel": {
+    "amount": "1234.5",
+    "unit": "kg"
+  },
+  "testCases": [
+    {
+      "name": "Grouping and decimal separators",
+      "expression": [
+        "formatNumber",
+        12345.678,
+        [
+          "object",
+          "number",
+          ["object", "thousandSeparator", " ", "decimalSeparator", ",", "decimalScale", 2]
+        ]
+      ],
+      "expects": "12 345,67"
+    },
+    {
+      "name": "Fixed decimals preserve trailing zeros",
+      "expression": [
+        "formatNumber",
+        12.5,
+        ["object", "number", ["object", "decimalScale", 2, "fixedDecimalScale", true]]
+      ],
+      "expects": "12.50"
+    },
+    {
+      "name": "Prefix and suffix are returned unchanged",
+      "expression": [
+        "formatNumber",
+        1234.5,
+        [
+          "object",
+          "number",
+          [
+            "object",
+            "thousandSeparator",
+            " ",
+            "decimalSeparator",
+            ",",
+            "decimalScale",
+            2,
+            "fixedDecimalScale",
+            true,
+            "prefix",
+            "NOK ",
+            "suffix",
+            " kr"
+          ]
+        ]
+      ],
+      "expects": "NOK 1 234,50 kr"
+    },
+    {
+      "name": "Negative numeric input",
+      "expression": [
+        "formatNumber",
+        -1234.5,
+        ["object", "number", ["object", "thousandSeparator", " ", "decimalSeparator", ","]]
+      ],
+      "expects": "-1 234,5"
+    },
+    {
+      "name": "Negative signs follow the formatter configuration",
+      "expression": [
+        "formatNumber",
+        -1234,
+        ["object", "number", ["object", "thousandSeparator", true, "allowNegative", false]]
+      ],
+      "expects": "1,234"
+    },
+    {
+      "name": "Alternate grouping styles are supported",
+      "expression": [
+        "formatNumber",
+        12345678,
+        ["object", "number", ["object", "thousandSeparator", true, "thousandsGroupStyle", "lakh"]]
+      ],
+      "expects": "1,23,45,678"
+    },
+    {
+      "name": "Alignment has no effect on the returned text",
+      "expression": ["formatNumber", 42, ["object", "align", "right"]],
+      "expects": "42"
+    },
+    {
+      "name": "Dynamic options are evaluated before formatting",
+      "expression": [
+        "formatNumber",
+        ["dataModel", "amount"],
+        [
+          "object",
+          "number",
+          [
+            "object",
+            "thousandSeparator",
+            " ",
+            "decimalSeparator",
+            ",",
+            "decimalScale",
+            2,
+            "fixedDecimalScale",
+            true,
+            "suffix",
+            ["concat", " ", ["dataModel", "unit"]]
+          ]
+        ]
+      ],
+      "expects": "1 234,50 kg"
+    }
+  ]
+}

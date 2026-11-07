@@ -105,11 +105,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }),
-      },
-    },
+    queries: { getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }) },
   });
 };
 

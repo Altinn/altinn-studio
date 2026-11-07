@@ -106,7 +106,6 @@ public class InstancesController : ControllerBase
         IOrganizationClient orgClient,
         IHostEnvironment env,
         ModelSerializationService serializationService,
-        InternalPatchService patchService,
         ITranslationService translationService,
         IServiceProvider serviceProvider
     )
@@ -128,7 +127,7 @@ public class InstancesController : ControllerBase
         _orgClient = orgClient;
         _env = env;
         _serializationService = serializationService;
-        _patchService = patchService;
+        _patchService = serviceProvider.GetRequiredService<InternalPatchService>();
         _translationService = translationService;
         _fileService = serviceProvider.GetRequiredService<IFileService>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();

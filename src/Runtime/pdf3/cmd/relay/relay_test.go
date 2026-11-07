@@ -287,7 +287,7 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	rl := newTestRelay(t, upstream.URL+"/pdf/v3/generate")
+	rl := newTestRelay(t, upstream.URL+"/pdf/v3")
 	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
@@ -806,7 +806,7 @@ func TestRelayDoesNotRetryResponseHeaderTimeout(t *testing.T) {
 }
 
 func TestRelayDoesNotRetryTLSHandshakeAfterDeadline(t *testing.T) {
-	rl := newTestRelay(t, "https://upstream/pdf")
+	rl := newTestRelay(t, "https://upstream/pdf/v3")
 	rl.timeout = 100 * time.Millisecond
 	var dials atomic.Int32
 	transport := &http.Transport{
@@ -1006,7 +1006,7 @@ func TestRelayReturnsBadGatewayWhenUpstreamIsDown(t *testing.T) {
 		t.Fatalf("Close() error = %v", err)
 	}
 
-	rl := newTestRelay(t, "http://"+addr+"/pdf")
+	rl := newTestRelay(t, "http://"+addr+"/pdf/v3")
 	start := time.Now()
 	rec := post(t, rl.handler(), nil)
 
@@ -1230,8 +1230,9 @@ func TestRelaySendsItsOwnServiceOwner(t *testing.T) {
 
 func TestParseUpstreamURL(t *testing.T) {
 	for upstream, want := range map[string]bool{
-		"https://platform.tt02.altinn.no/pdf/v3/generate": true,
-		"http://pdf3-proxy.pdf3.svc.cluster.local/pdf":    true,
+		"https://studio.platform.tt02.altinn.cloud/pdf/v3":  true,
+		"http://pdf3-proxy.pdf3.svc.cluster.local/pdf":      true,
+		"https://studio.platform.tt02.altinn.cloud/pdf/v3/": false,
 		"":                                  false,
 		"/pdf/v3/generate":                  false,
 		"ftp://platform.tt02.altinn.no/pdf": false,
@@ -1281,7 +1282,7 @@ func TestReadUpstream(t *testing.T) {
 				os.Environ(),
 				readUpstreamEnv+"=1",
 				"PDF3_ENVIRONMENT=tt02",
-				"PDF3_UPSTREAM_URL=https://platform.tt02.altinn.no/pdf/v3/generate",
+				"PDF3_UPSTREAM_BASE_URL=https://studio.platform.tt02.altinn.cloud/pdf/v3",
 				config.ServiceOwnerEnv+"=",
 				config.APIKeysFileEnv+"=",
 				"PDF3_UPSTREAM_API_KEY_FILE=",
@@ -1298,7 +1299,7 @@ func TestReadUpstream(t *testing.T) {
 }
 
 func TestRelayRecordsWhyItFailedBeforeTheUpstreamResponded(t *testing.T) {
-	rl := newTestRelay(t, "http://pdf3.invalid/generate")
+	rl := newTestRelay(t, "http://pdf3.invalid/pdf/v3")
 	rl.client.Transport = &http.Transport{
 		DialContext: func(_ context.Context, network, _ string) (net.Conn, error) {
 			return nil, &net.OpError{Op: "dial", Net: network, Err: errConnectionRefused}

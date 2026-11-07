@@ -1,8 +1,9 @@
 # The public endpoint is POST /pdf/v3/generate on DIS Edge's platform host (in at22
 # https://platform.at22.altinn.cloud/pdf/v3/generate), which forwards to this host. Whether Edge
 # keeps the /pdf/v3 prefix is not confirmed yet, so /pdf/v3/generate and /generate are both
-# routed, and rewritten to the proxy's /pdf; remove the one Edge doesn't send once it is.
-# Nothing else is routed, not the proxy's /pdf nor its health endpoints. The hostname is set per
+# routed, and rewritten to the proxy's /pdf; remove the one Edge doesn't send once it is. GET
+# /pdf/v3/health is routed the same way to the proxy's /pdf/health, which the relays check pdf3
+# through. Nothing else is routed, not the proxy's /pdf nor its probes. The hostname is set per
 # environment.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -36,6 +37,31 @@ spec:
               replaceFullPath: /pdf
         # Traefik's Linkerd proxy routes to the Service rather than the pod IP Traefik picked,
         # so the proxy's policy and topology-aware routing apply.
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: l5d-dst-override
+                value: pdf3-proxy.product-studio-pdf3.svc.cluster.local:80
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: pdf3-proxy
+          port: 80
+    - matches:
+        - method: GET
+          path:
+            type: Exact
+            value: /pdf/v3/health
+        - method: GET
+          path:
+            type: Exact
+            value: /health
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /pdf/health
         - type: RequestHeaderModifier
           requestHeaderModifier:
             set:

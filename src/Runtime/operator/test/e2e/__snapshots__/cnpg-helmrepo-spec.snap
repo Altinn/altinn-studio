@@ -1,8 +1,0 @@
-
-[cnpgsync should create CNPG HelmRepository - 1]
-{
- "interval": "1h0m0s",
- "provider": "generic",
- "url": "https://cloudnative-pg.github.io/charts"
-}
----

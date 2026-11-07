@@ -2,11 +2,14 @@ package config
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/signal"
 	"reflect"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -14,7 +17,6 @@ import (
 	commontelemetry "altinn.studio/common/telemetry"
 
 	"github.com/go-logr/logr"
-	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -92,7 +94,7 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 	ctx, span := m.tracer.Start(ctx, "ConfigMonitor.refresh")
 	defer span.End()
 
-	newBaseConfig, err := loadFromKoanf(ctx, m.configFilePath)
+	newBaseConfig, err := loadFromFile(ctx, m.configFilePath)
 	if err != nil {
 		commontelemetry.SetError(span, "load_config_file", err)
 		return fmt.Errorf("failed to reload config file: %w", err)
@@ -113,8 +115,7 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 		}
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(&cfg); err != nil {
+	if err := validateConfig(&cfg); err != nil {
 		commontelemetry.SetError(span, "validate_config", err)
 		return fmt.Errorf("config validation failed: %w", err)
 	}
@@ -139,32 +140,104 @@ func configEqual(a, b *Config) bool {
 }
 
 type Config struct {
-	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"         validate:"required"`
-	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"             validate:"required"`
-	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller"  validate:"required"`
-	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
+	MaskinportenApi        MaskinportenApiConfig
+	OrgRegistry            OrgRegistryConfig
+	MaskinportenController MaskinportenControllerConfig
+	KeyVaultSyncController KeyVaultSyncControllerConfig
 }
 
 type MaskinportenApiConfig struct {
-	ClientId       string `koanf:"client_id"        validate:"required"`
-	AuthorityUrl   string `koanf:"authority_url"    validate:"required,http_url"`
-	SelfServiceUrl string `koanf:"self_service_url" validate:"required,http_url"`
-	Jwk            string `koanf:"jwk"              validate:"required,json"`
-	Scope          string `koanf:"scope"            validate:"required"`
+	ClientId       string
+	AuthorityUrl   string
+	SelfServiceUrl string
+	Jwk            string
+	Scope          string
 }
 
 type MaskinportenControllerConfig struct {
-	RequeueAfter         time.Duration `koanf:"requeue_after"          validate:"required,min=5s,max=72h"`
-	JwkRotationThreshold time.Duration `koanf:"jwk_rotation_threshold" validate:"required"`
-	JwkExpiry            time.Duration `koanf:"jwk_expiry"             validate:"required"`
+	RequeueAfter         time.Duration
+	JwkRotationThreshold time.Duration
+	JwkExpiry            time.Duration
 }
 
 type KeyVaultSyncControllerConfig struct {
-	PollInterval time.Duration `koanf:"poll_interval" validate:"required,min=1m,max=24h"`
+	PollInterval time.Duration
 }
 
 type OrgRegistryConfig struct {
-	URL string `koanf:"url" validate:"required,http_url"`
+	URL string
+}
+
+// validationErrors lists the fields that failed validation, one per line.
+type validationErrors []string
+
+func (e validationErrors) Error() string {
+	return strings.Join(e, "\n")
+}
+
+// validateConfig checks that every value is set and in range. A section with no values set fails as a whole.
+func validateConfig(c *Config) error {
+	var errs validationErrors
+	fail := func(field, rule string) {
+		name := field[strings.LastIndex(field, ".")+1:]
+		errs = append(errs, fmt.Sprintf("Key: 'Config.%s' Error:Field validation for '%s' failed on the '%s' tag",
+			field, name, rule))
+	}
+	str := func(field, value, rule string, valid func(string) bool) {
+		if value == "" {
+			fail(field, "required")
+		} else if valid != nil && !valid(value) {
+			fail(field, rule)
+		}
+	}
+	duration := func(field string, value, minValue, maxValue time.Duration) {
+		switch {
+		case value == 0:
+			fail(field, "required")
+		case minValue != 0 && value < minValue:
+			fail(field, "min")
+		case maxValue != 0 && value > maxValue:
+			fail(field, "max")
+		}
+	}
+
+	if api := c.MaskinportenApi; api == (MaskinportenApiConfig{}) {
+		fail("MaskinportenApi", "required")
+	} else {
+		str("MaskinportenApi.ClientId", api.ClientId, "", nil)
+		str("MaskinportenApi.AuthorityUrl", api.AuthorityUrl, "http_url", isHTTPURL)
+		str("MaskinportenApi.SelfServiceUrl", api.SelfServiceUrl, "http_url", isHTTPURL)
+		str("MaskinportenApi.Jwk", api.Jwk, "json", func(s string) bool { return json.Valid([]byte(s)) })
+		str("MaskinportenApi.Scope", api.Scope, "", nil)
+	}
+	if c.OrgRegistry == (OrgRegistryConfig{}) {
+		fail("OrgRegistry", "required")
+	} else {
+		str("OrgRegistry.URL", c.OrgRegistry.URL, "http_url", isHTTPURL)
+	}
+	if mp := c.MaskinportenController; mp == (MaskinportenControllerConfig{}) {
+		fail("MaskinportenController", "required")
+	} else {
+		duration("MaskinportenController.RequeueAfter", mp.RequeueAfter, 5*time.Second, 72*time.Hour)
+		duration("MaskinportenController.JwkRotationThreshold", mp.JwkRotationThreshold, 0, 0)
+		duration("MaskinportenController.JwkExpiry", mp.JwkExpiry, 0, 0)
+	}
+	if kv := c.KeyVaultSyncController; kv == (KeyVaultSyncControllerConfig{}) {
+		fail("KeyVaultSyncController", "required")
+	} else {
+		duration("KeyVaultSyncController.PollInterval", kv.PollInterval, time.Minute, 24*time.Hour)
+	}
+
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
+// isHTTPURL reports whether s is an absolute http or https URL with a host, in any case.
+func isHTTPURL(s string) bool {
+	u, err := url.Parse(strings.ToLower(s))
+	return err == nil && u.Host != "" && (u.Scheme == "http" || u.Scheme == "https")
 }
 
 func KeyVaultURL(environment string) string {
@@ -242,7 +315,7 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 		return nil, err
 	}
 
-	cfg, err := loadFromKoanf(ctx, resolvedPath)
+	cfg, err := loadFromFile(ctx, resolvedPath)
 	if err != nil {
 		return nil, err
 	}
@@ -268,8 +341,7 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 		monitor.current.Store(cfg)
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	if err := validate.Struct(monitor.Get()); err != nil {
+	if err := validateConfig(monitor.Get()); err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 

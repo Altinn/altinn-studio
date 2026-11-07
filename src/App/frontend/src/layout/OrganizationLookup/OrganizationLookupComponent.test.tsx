@@ -8,16 +8,12 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
-import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import { httpGet } from 'src/utils/network/networking';
+import { httpResponse, renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-vi.mock('src/utils/network/networking', () => ({
-  httpGet: vi.fn(),
-}));
-
-const mockedHttpGet = vi.mocked(httpGet);
+const fetchOrg = vi.fn<Pick<AppQueries, 'fetchPerson' | 'fetchOrg'>['fetchOrg']>();
 
 const validOrgNr = '043871668';
 const orgName = 'Skog og Fjell Consulting';
@@ -45,7 +41,9 @@ const render = async ({
       },
       ...component,
     },
+    ...rest,
     queries: {
+      fetchOrg,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.dataModels[defaultDataTypeMock].initialData = {
@@ -56,7 +54,6 @@ const render = async ({
         }),
       ...queries,
     },
-    ...rest,
   });
 
 const layoutWithSiblingText: ILayoutCollection = {
@@ -96,7 +93,7 @@ const layoutWithSiblingText: ILayoutCollection = {
 
 describe('OrganizationLookupComponent', () => {
   beforeEach(() => {
-    mockedHttpGet.mockReset();
+    fetchOrg.mockReset();
   });
 
   it('renders lookup field and submit button', async () => {
@@ -113,7 +110,7 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
     expect(document.querySelector('[data-field="validation"]')).toHaveTextContent(/Organisasjonsnummeret er ugyldig/i);
-    expect(mockedHttpGet).not.toHaveBeenCalled();
+    expect(fetchOrg).not.toHaveBeenCalled();
 
     const statusRegion = screen.getByTestId('organization-lookup-status');
     await waitFor(() => {
@@ -122,12 +119,12 @@ describe('OrganizationLookupComponent', () => {
   });
 
   it('fetches organization, announces details, and allows clearing', async () => {
-    mockedHttpGet.mockResolvedValue({
-      success: true,
-      organisationDetails: {
+    fetchOrg.mockResolvedValue({
+      org: {
         orgNr: validOrgNr,
         name: orgName,
       },
+      error: null,
     });
 
     const { mutations } = await render({
@@ -147,10 +144,10 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), validOrgNr);
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
-    await waitFor(() => expect(mockedHttpGet).toHaveBeenCalled());
+    await waitFor(() => expect(fetchOrg).toHaveBeenCalled());
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalled());
-    mutations.doPatchMultipleFormData.resolve({
-      data: {
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse({
         validationIssues: [],
         newDataModels: [
           {
@@ -163,8 +160,8 @@ describe('OrganizationLookupComponent', () => {
           },
         ],
         instance: getInstanceDataMock(),
-      },
-    });
+      }),
+    );
     await waitFor(() => expect(screen.getByRole('button', { name: /Fjern/i })).toBeInTheDocument());
 
     expect(screen.getByLabelText('Organisasjonsnavn')).toHaveTextContent(orgName);
@@ -182,26 +179,23 @@ describe('OrganizationLookupComponent', () => {
   });
 
   it('submits lookup on Enter key', async () => {
-    mockedHttpGet.mockResolvedValue({
-      success: true,
-      organisationDetails: {
+    fetchOrg.mockResolvedValue({
+      org: {
         orgNr: validOrgNr,
         name: orgName,
       },
+      error: null,
     });
 
     await render();
 
     await userEvent.type(screen.getByRole('textbox', { name: /Organisasjonsnummer/i }), `${validOrgNr}{Enter}`);
 
-    await waitFor(() => expect(mockedHttpGet).toHaveBeenCalled());
+    await waitFor(() => expect(fetchOrg).toHaveBeenCalled());
   });
 
   it('shows not found error when lookup returns no organization', async () => {
-    mockedHttpGet.mockResolvedValue({
-      success: false,
-      organisationDetails: null,
-    });
+    fetchOrg.mockResolvedValue({ org: null, error: 'organization_lookup.validation_error_not_found' });
 
     await render();
 
@@ -216,7 +210,7 @@ describe('OrganizationLookupComponent', () => {
   });
 
   it('shows invalid response error when lookup response is invalid', async () => {
-    mockedHttpGet.mockResolvedValue({ unexpected: true });
+    fetchOrg.mockResolvedValue({ org: null, error: 'organization_lookup.validation_invalid_response_from_server' });
 
     await render();
 
@@ -231,7 +225,7 @@ describe('OrganizationLookupComponent', () => {
   });
 
   it('shows unknown error when lookup request fails', async () => {
-    mockedHttpGet.mockRejectedValue(new Error('network error'));
+    fetchOrg.mockResolvedValue({ org: null, error: 'organization_lookup.unknown_error' });
 
     await render();
 

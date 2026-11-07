@@ -1007,7 +1007,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -1744,7 +1744,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -7915,164 +7915,6 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate": {
-      "get": {
-        "tags": [
-          "Validate"
-        ],
-        "summary": "Validate a single data element (deprecated).\nUse `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "Unique identifier of the organization responsible for the app.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "Application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerId",
-            "in": "path",
-            "description": "Unique id of the party that is the owner of the instance.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceId",
-            "in": "path",
-            "description": "Unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "dataGuid",
-            "in": "path",
-            "description": "Unique id identifying specific data element",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}": {
       "post": {
         "tags": [
@@ -9542,7 +9384,110 @@
         "type": "object",
         "properties": {
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations."
           },
           "ignoredValidators": {
             "type": "array",
@@ -10565,53 +10510,6 @@
         },
         "additionalProperties": false
       },
-      "JsonNode": {
-        "type": "object",
-        "properties": {
-          "options": {
-            "$ref": "#/components/schemas/JsonNodeOptions"
-          },
-          "parent": {
-            "$ref": "#/components/schemas/JsonNode"
-          },
-          "root": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonNodeOptions": {
-        "type": "object",
-        "properties": {
-          "propertyNameCaseInsensitive": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPatch": {
-        "type": "object",
-        "properties": {
-          "operations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PatchOperation"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPointer": {
-        "type": "object",
-        "properties": {
-          "segmentCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
       "KeyValueEntry": {
         "type": "object",
         "properties": {
@@ -10764,18 +10662,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "OperationType": {
-        "enum": [
-          "Unknown",
-          "add",
-          "remove",
-          "replace",
-          "move",
-          "copy",
-          "test"
-        ],
-        "type": "string"
       },
       "OrderDetails": {
         "required": [
@@ -11064,29 +10950,114 @@
             "format": "uuid"
           },
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations"
           }
         },
         "additionalProperties": false,
         "description": "Item class for the list of patches with Id"
-      },
-      "PatchOperation": {
-        "type": "object",
-        "properties": {
-          "op": {
-            "$ref": "#/components/schemas/OperationType"
-          },
-          "from": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "path": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "value": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
       },
       "Payer": {
         "type": "object",

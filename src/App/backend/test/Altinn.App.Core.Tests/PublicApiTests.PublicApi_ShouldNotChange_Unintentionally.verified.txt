@@ -2201,27 +2201,35 @@ namespace Altinn.App.Core.Features.Process
         public OnProcessEndedContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskAbandoningContext
     {
         public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class PipelineBuilder
     {
@@ -5384,12 +5392,6 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Validation.FrontendSeverityConverter?))]
         public Altinn.App.Core.Models.Validation.ValidationIssueSeverity? Severity { get; set; }
     }
-    public class ValidationException : Altinn.App.Core.Exceptions.AltinnException
-    {
-        public ValidationException() { }
-        public ValidationException(string message) { }
-        public ValidationException(string message, System.Exception inner) { }
-    }
     public class ValidationIssue
     {
         public ValidationIssue() { }
@@ -5441,7 +5443,6 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementFileInfected { get; }
             public static string DataElementFileScanPending { get; }
             public static string DataElementTooLarge { get; }
-            public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
             public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }

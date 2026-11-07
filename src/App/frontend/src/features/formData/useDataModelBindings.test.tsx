@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -9,7 +10,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('useDataModelBindings', () => {
   beforeAll(() => {
@@ -169,7 +170,7 @@ describe('useDataModelBindings', () => {
       validationIssues: [],
       instance: getInstanceDataMock(),
     };
-    mutations.doPatchMultipleFormData.resolve({ data: response });
+    mutations.doPatchMultipleFormData.resolve(httpResponse(response));
 
     const fullDecimal = '-1.53';
     await user.type(screen.getByTestId('input-decimal'), fullDecimal.slice(1));
@@ -219,7 +220,7 @@ describe('useDataModelBindings', () => {
       validationIssues: [],
       instance: getInstanceDataMock(),
     };
-    mutations.doPatchMultipleFormData.resolve({ data: response2 });
+    mutations.doPatchMultipleFormData.resolve(httpResponse(response2));
 
     const fullInteger = '-15 3';
     await user.type(screen.getByTestId('input-integer'), fullInteger.slice(1));
@@ -275,4 +276,3 @@ describe('useDataModelBindings', () => {
     expect(screen.getByTestId('value-boolean')).toHaveTextContent('"true"');
   });
 });
-import type { Mock } from 'vitest';
