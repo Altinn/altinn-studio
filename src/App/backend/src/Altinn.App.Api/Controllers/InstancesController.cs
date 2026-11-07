@@ -1557,10 +1557,7 @@ public class InstancesController : ControllerBase
 
         List<DataType> dts = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
-            .Where(dt =>
-                dt.TaskId != null
-                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
-            )
+            .Where(dt => dt.IsBoundToTask(targetInstance.Process.CurrentTask.ElementId))
             .ToList();
         List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
 
@@ -1641,10 +1638,7 @@ public class InstancesController : ControllerBase
 
         List<DataType> binaryDataTypes = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef == null)
-            .Where(dt =>
-                dt.TaskId != null
-                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
-            )
+            .Where(dt => dt.IsBoundToTask(targetInstance.Process.CurrentTask.ElementId))
             .ToList();
 
         foreach (DataElement de in sourceInstance.Data)
