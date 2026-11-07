@@ -13,6 +13,8 @@ import { useAppContext } from '../../../../../hooks';
 import classNames from 'classnames';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { useSearchParams } from 'react-router-dom';
+import { componentSearchParam } from '../../../../../AppContext';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -26,6 +28,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const { updateLayoutsForPreview } = useAppContext();
   const { layoutSet } = useUxEditorParams();
   const { handleDiscard } = useFormItemContext();
+  const [, setSearchParams] = useSearchParams();
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -35,12 +38,22 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id, {
         onSuccess: async () => {
+          // Before the await: setSearchParams builds on the params of this render, so a later call
+          // would undo a page change made during the preview refresh.
+          setSearchParams(
+            (params) => {
+              params.delete(componentSearchParam);
+              params.sort();
+              return params;
+            },
+            { replace: true },
+          );
           await updateLayoutsForPreview(layoutSet, true);
           handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, updateLayoutsForPreview, layoutSet, handleDiscard]);
+  }, [formItem, t, deleteItem, updateLayoutsForPreview, layoutSet, handleDiscard, setSearchParams]);
 
   return (
     <div

@@ -54,6 +54,18 @@ type AppContextProviderProps = {
   onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
+const layoutSearchParam = 'layout';
+export const componentSearchParam = 'component';
+
+const getInitialSelectedItem = (
+  layout: string | null,
+  component: string | null,
+): SelectedItem | null => {
+  if (component) return { type: ItemType.Component, id: component };
+  if (layout) return { type: ItemType.Page, id: layout };
+  return null;
+};
+
 export const AppContextProvider = ({
   children,
   shouldReloadPreview,
@@ -65,14 +77,45 @@ export const AppContextProvider = ({
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
-  const [searchParams] = useSearchParams();
-  const layout = searchParams.get('layout');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const layout = searchParams.get(layoutSearchParam);
+  const component = searchParams.get(componentSearchParam);
 
-  const { selectedFormLayoutName, setSelectedFormLayoutName } =
-    useSelectedFormLayoutName(layoutSet);
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(layoutSet);
 
-  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(
-    layout ? { type: ItemType.Page, id: layout } : null,
+  const [selectedItem, setSelectedItemState] = useState<SelectedItem | null>(
+    getInitialSelectedItem(layout, component),
+  );
+
+  // Writes the page and drops the component in one update, because a second setSearchParams call in
+  // the same event starts from the params of the last render and would undo the first.
+  const setSelectedFormLayoutName = useCallback(
+    (layoutName: string) => {
+      setSearchParams((params) => {
+        params.delete(componentSearchParam);
+        if (layoutName) params.set(layoutSearchParam, layoutName);
+        else params.delete(layoutSearchParam);
+        params.sort();
+        return params;
+      });
+    },
+    [setSearchParams],
+  );
+
+  const setSelectedItem = useCallback(
+    (item: SelectedItem | null) => {
+      setSelectedItemState(item);
+      if (item?.type !== ItemType.Component) return;
+      setSearchParams(
+        (params) => {
+          params.set(componentSearchParam, item.id);
+          params.sort();
+          return params;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
 
   const refetch = useCallback(
