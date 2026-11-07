@@ -1,10 +1,7 @@
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -12,7 +9,6 @@ using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -23,110 +19,166 @@ public class GenerateDatamodelTests
     : DesignerEndpointsTestsBase<GenerateDatamodelTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private const string Org = "ttd";
-    private const string Repo = "hvem-er-hvem";
-    private const string Developer = "testUser";
+    // The endpoint reads no repository, so this app does not exist.
+    private const string GenerateUrl = "/designer/api/ttd/my-app/datamodels/datamodel/generate";
+
     private const string NewModelName = "model";
 
-    // The class reference of the data type of this model is Altinn.App.Models.HvemErHvem_M. The class is not
-    // in a namespace of its own.
-    private const string ExistingModelName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
+    // Like the data model in the app template.
+    private const string NewModelJsonSchema = """
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "model.schema.json",
+          "type": "object",
+          "@xsdRootElement": "model",
+          "properties": { "name": { "type": "string" }, "age": { "type": "integer" } },
+          "required": ["name"]
+        }
+        """;
 
-    // The JSON schema of this model is in the test repository. It has its types in definitions.
-    private const string ModelWithTypesName = "HvemErHvem_InternalTypes";
+    // An existing data model of an older app, whose class is not in a namespace of its own.
+    private const string ExistingModelName = "skjema";
+    private const string ExistingModelClassRef = "Altinn.App.Models.Skjema";
 
-    // This JSON schema is like the data model in the app template.
-    private const string NewModelJsonSchema =
-        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"model.schema.json\",\"type\":\"object\",\"@xsdRootElement\":\"model\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\"]}";
+    private const string ExistingModelJsonSchema = """
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "skjema.schema.json",
+          "type": "object",
+          "@xsdRootElement": "Skjema",
+          "properties": { "navn": { "type": "string" } }
+        }
+        """;
 
-    private const string ExistingModelJsonSchema =
-        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"@xsdRootElement\":\"HvemErHvem_M\",\"properties\":{\"navn\":{\"type\":\"string\"}}}";
+    private const string AttachmentDataTypeId = "ref-data-as-pdf";
 
-    private const string JsonSchemaThatWillNotCompile =
-        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
+    private const string ApplicationMetadata = $$"""
+        {
+          "id": "ttd/my-app",
+          "org": "ttd",
+          "dataTypes": [
+            { "id": "{{AttachmentDataTypeId}}", "allowedContentTypes": ["application/pdf"] },
+            {
+              "id": "{{ExistingModelName}}",
+              "allowedContentTypes": ["application/xml"],
+              "appLogic": { "autoCreate": true, "classRef": "{{ExistingModelClassRef}}" }
+            }
+          ]
+        }
+        """;
 
-    private string TargetTestRepository { get; }
+    private const string JsonSchemaThatWillNotCompile = """
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "schema.json",
+          "type": "object",
+          "properties": { "root": { "$ref": "#/$defs/rootType" } },
+          "$defs": { "rootType": { "properties": { "keyword": { "type": "string" } } } }
+        }
+        """;
 
     public GenerateDatamodelTests(WebApplicationFactory<Program> factory)
-        : base(factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task GenerateDatamodel_NewModel_ReturnsItsSchemaClassAndXsd()
     {
-        TargetTestRepository = TestDataHelper.GenerateTestRepoName();
-    }
+        using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema);
 
-    private string GenerateUrl => $"/designer/api/{Org}/{TargetTestRepository}/datamodels/datamodel/generate";
-
-    [Theory]
-    [InlineData(ExistingModelName, false, false)]
-    [InlineData(ModelWithTypesName, false, false)]
-    [InlineData(NewModelName, false, false)]
-    [InlineData(NewModelName, true, true)]
-    public async Task GenerateDatamodel_ReturnsTheFilesThatSavingTheDatamodelWrites(
-        string modelName,
-        bool useNullableReferenceTypes,
-        bool isV9OrNewer
-    )
-    {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
-        WriteAppSettings(useNullableReferenceTypes, isV9OrNewer);
-        string modelPath = $"App/models/{modelName}.schema.json";
-        string jsonSchema = modelName switch
-        {
-            NewModelName => NewModelJsonSchema,
-            ExistingModelName => ExistingModelJsonSchema,
-            _ => ReadFileFromTestRepository(modelPath),
-        };
-
-        using HttpResponseMessage generateResponse = await PostGenerate(
-            modelName,
-            jsonSchema,
-            useNullableReferenceTypes,
-            isV9OrNewer
+        GeneratedDatamodel generatedDatamodel = await ReadGeneratedDatamodel(response);
+        Assert.True(
+            JsonNode.DeepEquals(JsonNode.Parse(NewModelJsonSchema), JsonNode.Parse(generatedDatamodel.JsonSchema))
         );
-        Assert.Equal(HttpStatusCode.OK, generateResponse.StatusCode);
-        GeneratedDatamodel generatedDatamodel = await generateResponse.Content.ReadFromJsonAsync<GeneratedDatamodel>(
-            JsonSerializerOptions
-        );
-
-        using HttpResponseMessage saveResponse = await SaveDatamodel(modelPath, jsonSchema);
-        Assert.Equal(HttpStatusCode.NoContent, saveResponse.StatusCode);
-
-        Assert.NotNull(generatedDatamodel);
-        Assert.Equal(ReadFileFromTestRepository(modelPath), generatedDatamodel.JsonSchema);
-        Assert.Equal(ReadFileFromTestRepository($"App/models/{modelName}.cs"), generatedDatamodel.CsharpClasses);
-        Assert.Equal(ReadFileFromTestRepository($"App/models/{modelName}.xsd"), generatedDatamodel.Xsd);
-        Assert.Equal(
-            ReadFileFromTestRepository("App/config/applicationmetadata.json"),
-            generatedDatamodel.ApplicationMetadata
-        );
+        Assert.Contains("namespace Altinn.App.Models.model", generatedDatamodel.CsharpClasses);
+        Assert.Contains("[XmlRoot(ElementName=\"model\")]", generatedDatamodel.CsharpClasses);
+        Assert.Contains("public class model", generatedDatamodel.CsharpClasses);
+        Assert.Contains("<xs:element name=\"model\"", generatedDatamodel.Xsd);
     }
 
     [Fact]
-    public async Task GenerateDatamodel_NewModel_AddsItsDataTypeInItsOwnNamespace()
+    public async Task GenerateDatamodel_NewModel_AddsItsDataTypeWithItsClass()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
+        using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema);
 
-        using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema, true, true);
+        JsonNode dataType = FindDataType(await ReadGeneratedDatamodel(response), NewModelName);
+        Assert.Equal("Altinn.App.Models.model.model", dataType?["appLogic"]?["classRef"]?.GetValue<string>());
+        Assert.Equal("application/xml", dataType?["allowedContentTypes"]?[0]?.GetValue<string>());
+    }
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        GeneratedDatamodel generatedDatamodel = await response.Content.ReadFromJsonAsync<GeneratedDatamodel>(
-            JsonSerializerOptions
+    [Theory]
+    [InlineData(true, "#nullable enable")]
+    [InlineData(false, "#nullable disable")]
+    public async Task GenerateDatamodel_UseNullableReferenceTypes_SetsTheNullableContextOfTheClass(
+        bool useNullableReferenceTypes,
+        string expectedDirective
+    )
+    {
+        using HttpResponseMessage response = await PostGenerate(
+            NewModelName,
+            NewModelJsonSchema,
+            useNullableReferenceTypes: useNullableReferenceTypes
         );
-        Assert.NotNull(generatedDatamodel);
-        Assert.Contains("namespace Altinn.App.Models.model", generatedDatamodel.CsharpClasses);
-        Assert.Contains("#nullable enable", generatedDatamodel.CsharpClasses);
-        JsonNode newDataType = JsonNode
-            .Parse(generatedDatamodel.ApplicationMetadata)
-            ?["dataTypes"]?.AsArray()
-            .SingleOrDefault(dataType => dataType?["id"]?.GetValue<string>() == NewModelName);
-        Assert.Equal("Altinn.App.Models.model.model", newDataType?["appLogic"]?["classRef"]?.GetValue<string>());
+
+        Assert.Contains(expectedDirective, (await ReadGeneratedDatamodel(response)).CsharpClasses);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, null)]
+    public async Task GenerateDatamodel_NewModel_TurnsOffPdfCreationOnlyBeforeV9(
+        bool isV9OrNewer,
+        bool? expectedEnablePdfCreation
+    )
+    {
+        using HttpResponseMessage response = await PostGenerate(
+            NewModelName,
+            NewModelJsonSchema,
+            isV9OrNewer: isV9OrNewer
+        );
+
+        JsonNode dataType = FindDataType(await ReadGeneratedDatamodel(response), NewModelName);
+        Assert.Equal(expectedEnablePdfCreation, dataType?["enablePdfCreation"]?.GetValue<bool>());
+    }
+
+    [Fact]
+    public async Task GenerateDatamodel_ExistingModelOutsideANamespaceOfItsOwn_KeepsItsClass()
+    {
+        using HttpResponseMessage response = await PostGenerate(ExistingModelName, ExistingModelJsonSchema);
+
+        GeneratedDatamodel generatedDatamodel = await ReadGeneratedDatamodel(response);
+        Assert.Contains("namespace Altinn.App.Models\n", generatedDatamodel.CsharpClasses.ReplaceLineEndings("\n"));
+        Assert.Contains("public class Skjema", generatedDatamodel.CsharpClasses);
+        JsonNode dataType = FindDataType(generatedDatamodel, ExistingModelName);
+        Assert.Equal(ExistingModelClassRef, dataType?["appLogic"]?["classRef"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task GenerateDatamodel_RootThatRefersToAType_NamesTheClassAfterTheType()
+    {
+        const string jsonSchema = """
+            {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "$id": "soknad.schema.json",
+              "type": "object",
+              "@xsdRootElement": "melding",
+              "oneOf": [{ "$ref": "#/$defs/Soknad" }],
+              "$defs": { "Soknad": { "type": "object", "properties": { "navn": { "type": "string" } } } }
+            }
+            """;
+
+        using HttpResponseMessage response = await PostGenerate("soknad", jsonSchema);
+
+        GeneratedDatamodel generatedDatamodel = await ReadGeneratedDatamodel(response);
+        Assert.Contains("[XmlRoot(ElementName=\"melding\")]", generatedDatamodel.CsharpClasses);
+        Assert.Contains("public class Soknad", generatedDatamodel.CsharpClasses);
+        JsonNode dataType = FindDataType(generatedDatamodel, "soknad");
+        Assert.Equal("Altinn.App.Models.Soknad.Soknad", dataType?["appLogic"]?["classRef"]?.GetValue<string>());
     }
 
     [Fact]
     public async Task GenerateDatamodel_NewModelWithTheClassOfAnotherDataType_ReturnsUnprocessableEntity()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
-
-        // The new model gets the same C# class, because it has the root element of the existing model.
+        // The root element of the existing data model gives the new data model the same class.
         using HttpResponseMessage response = await PostGenerate("kunde", ExistingModelJsonSchema);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
@@ -134,16 +186,12 @@ public class GenerateDatamodelTests
     }
 
     [Theory]
-    // The data type of an attachment. It has no C# class.
-    [InlineData("ref-data-as-pdf")]
-    // The name of the existing data model, with a different case.
-    [InlineData("kursdomene_hvemerhvem_m_2021-04-08_5742_34627_seres")]
+    [InlineData(AttachmentDataTypeId)]
+    [InlineData("SKJEMA")]
     public async Task GenerateDatamodel_NewModelWithTheNameOfAnotherDataType_ReturnsUnprocessableEntity(
         string modelName
     )
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
-
         using HttpResponseMessage response = await PostGenerate(modelName, NewModelJsonSchema);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
@@ -153,10 +201,7 @@ public class GenerateDatamodelTests
     [Fact]
     public async Task GenerateDatamodel_ApplicationMetadataWithoutDataTypes_AddsTheDataType()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
-        JsonObject applicationMetadata = JsonNode
-            .Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json"))
-            .AsObject();
+        JsonObject applicationMetadata = JsonNode.Parse(ApplicationMetadata).AsObject();
         applicationMetadata.Remove("dataTypes");
 
         using HttpResponseMessage response = await PostGenerate(
@@ -165,11 +210,7 @@ public class GenerateDatamodelTests
             applicationMetadata: applicationMetadata
         );
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        GeneratedDatamodel generatedDatamodel = await response.Content.ReadFromJsonAsync<GeneratedDatamodel>(
-            JsonSerializerOptions
-        );
-        Assert.NotNull(generatedDatamodel);
+        GeneratedDatamodel generatedDatamodel = await ReadGeneratedDatamodel(response);
         JsonArray dataTypes = JsonNode.Parse(generatedDatamodel.ApplicationMetadata)?["dataTypes"]?.AsArray();
         Assert.NotNull(dataTypes);
         JsonNode dataType = Assert.Single(dataTypes);
@@ -179,7 +220,6 @@ public class GenerateDatamodelTests
     [Fact]
     public async Task GenerateDatamodel_ApiKeyCaller_ReturnsTheGeneratedFiles()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
         using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
 
         using HttpResponseMessage response = await PostGenerate(NewModelName, NewModelJsonSchema, client: apiKeyClient);
@@ -190,7 +230,6 @@ public class GenerateDatamodelTests
     [Fact]
     public async Task GenerateDatamodel_SignedInCallerWithoutAntiforgeryToken_IsRejected()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
         using HttpClient clientWithoutAntiforgeryToken = CreateTestClientWithAuthHandler<TestAuthHandler>();
 
         using HttpResponseMessage response = await PostGenerate(
@@ -205,8 +244,6 @@ public class GenerateDatamodelTests
     [Fact]
     public async Task GenerateDatamodel_SchemaThatWillNotCompile_ReturnsBadRequestWithTheCompilerErrors()
     {
-        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
-
         using HttpResponseMessage response = await PostGenerate("testModel", JsonSchemaThatWillNotCompile);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -215,18 +252,6 @@ public class GenerateDatamodelTests
         );
         Assert.NotNull(problemDetails);
         Assert.Contains("customErrorMessages", problemDetails.Extensions.Keys);
-    }
-
-    private async Task<HttpResponseMessage> SaveDatamodel(string modelPath, string jsonSchema)
-    {
-        using var saveRequest = new HttpRequestMessage(
-            HttpMethod.Put,
-            $"/designer/api/{Org}/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}"
-        )
-        {
-            Content = new StringContent(jsonSchema, Encoding.UTF8, MediaTypeNames.Application.Json),
-        };
-        return await HttpClient.SendAsync(saveRequest);
     }
 
     private Task<HttpResponseMessage> PostGenerate(
@@ -243,13 +268,28 @@ public class GenerateDatamodelTests
             {
                 modelName,
                 schema = JsonNode.Parse(jsonSchema),
-                applicationMetadata = applicationMetadata
-                    ?? JsonNode.Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json")),
+                applicationMetadata = applicationMetadata ?? JsonNode.Parse(ApplicationMetadata),
                 useNullableReferenceTypes,
                 isV9OrNewer,
             },
             JsonSerializerOptions
         );
+
+    private async Task<GeneratedDatamodel> ReadGeneratedDatamodel(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        GeneratedDatamodel generatedDatamodel = await response.Content.ReadFromJsonAsync<GeneratedDatamodel>(
+            JsonSerializerOptions
+        );
+        Assert.NotNull(generatedDatamodel);
+        return generatedDatamodel;
+    }
+
+    private static JsonNode FindDataType(GeneratedDatamodel generatedDatamodel, string dataTypeId) =>
+        JsonNode
+            .Parse(generatedDatamodel.ApplicationMetadata)
+            ?["dataTypes"]?.AsArray()
+            .SingleOrDefault(dataType => dataType?["id"]?.GetValue<string>() == dataTypeId);
 
     private static async Task<string> ReadErrorCode(HttpResponseMessage response)
     {
@@ -259,21 +299,4 @@ public class GenerateDatamodelTests
         Assert.NotNull(problemDetails);
         return ((JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode]).ToString();
     }
-
-    private void WriteAppSettings(bool useNullableReferenceTypes, bool isV9OrNewer)
-    {
-        string appLibVersion = isV9OrNewer ? "9.0.0" : "8.0.0";
-        Directory.CreateDirectory(Path.Combine(TestRepoPath, ".altinnstudio"));
-        File.WriteAllText(
-            Path.Combine(TestRepoPath, ".altinnstudio", "settings.json"),
-            $"{{\"repoType\":\"App\",\"useNullableReferenceTypes\":{(useNullableReferenceTypes ? "true" : "false")}}}"
-        );
-        File.WriteAllText(
-            Path.Combine(TestRepoPath, "App", "App.csproj"),
-            $"<Project Sdk=\"Microsoft.NET.Sdk.Web\"><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"{appLibVersion}\" /></ItemGroup></Project>"
-        );
-    }
-
-    private string ReadFileFromTestRepository(string relativePath) =>
-        TestDataHelper.GetFileFromRepo(Org, TargetTestRepository, Developer, relativePath);
 }
