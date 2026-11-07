@@ -26,6 +26,7 @@ from .utils.repo_files import PathError, mark_changed, mark_unread, resolve_repo
 SCHEMA_FILE_SUFFIX = ".schema.json"
 APPLICATION_METADATA_PATH = "App/config/applicationmetadata.json"
 STUDIO_SETTINGS_PATH = ".altinnstudio/settings.json"
+NULLABLE_REFERENCE_TYPES_SETTING = "useNullableReferenceTypes"
 
 
 class DatamodelSyncArgs(BaseModel):
@@ -72,7 +73,6 @@ def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGen
         raise _SyncError(f"schema_path must name a {SCHEMA_FILE_SUFFIX} file: {schema_path}")
     schema = _read_json_file(ctx, schema_path)
     application_metadata = _read_json_file(ctx, APPLICATION_METADATA_PATH)
-    # If the app has no Studio settings file, Designer uses no nullable reference types.
     settings = _read_json_file(ctx, STUDIO_SETTINGS_PATH, missing_ok=True)
 
     return DatamodelGenerationRequest(
@@ -81,8 +81,21 @@ def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGen
         model_name=Path(schema_path).name.removesuffix(SCHEMA_FILE_SUFFIX),
         schema=schema,
         application_metadata=application_metadata,
-        use_nullable_reference_types=isinstance(settings, dict) and settings.get("useNullableReferenceTypes") is True,
+        use_nullable_reference_types=_uses_nullable_reference_types(settings),
         is_v9_or_newer=ctx.app_version_profile.major_version >= V9_PROFILE.major_version,
+    )
+
+
+def _uses_nullable_reference_types(settings: Any) -> bool:
+    """Reads the setting as Designer does.
+
+    Designer finds the key in any case. If the app has no Studio settings file, Designer uses no nullable
+    reference types.
+    """
+    if not isinstance(settings, dict):
+        return False
+    return any(
+        key.lower() == NULLABLE_REFERENCE_TYPES_SETTING.lower() and value is True for key, value in settings.items()
     )
 
 

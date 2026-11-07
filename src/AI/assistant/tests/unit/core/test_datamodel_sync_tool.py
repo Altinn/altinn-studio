@@ -95,6 +95,16 @@ async def test_an_app_without_studio_settings_has_no_nullable_reference_types(re
     assert request.is_v9_or_newer is False
 
 
+async def test_reads_the_nullable_setting_with_any_case_of_the_key_as_designer_does(repo: Path, generation_requests):
+    (repo / ".altinnstudio").mkdir()
+    (repo / ".altinnstudio" / "settings.json").write_text('{"UseNullableReferenceTypes": true}', encoding="utf-8")
+
+    await _run(_ctx(repo))
+
+    [request] = generation_requests
+    assert request.use_nullable_reference_types is True
+
+
 async def test_writes_the_generated_files_and_marks_them_for_verification(repo: Path, generation_requests):
     ctx = _ctx(repo)
     ctx.extras["verified_files"] = {"App/models/model.cs"}
