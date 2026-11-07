@@ -130,12 +130,50 @@ public class GenerateDatamodelTests
         using HttpResponseMessage response = await PostGenerate("kunde", ExistingModelJsonSchema);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
-            await response.Content.ReadAsStringAsync()
+        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, await ReadErrorCode(response));
+    }
+
+    [Theory]
+    // The data type of an attachment. It has no C# class.
+    [InlineData("ref-data-as-pdf")]
+    // The name of the existing data model, with a different case.
+    [InlineData("kursdomene_hvemerhvem_m_2021-04-08_5742_34627_seres")]
+    public async Task GenerateDatamodel_NewModelWithTheNameOfAnotherDataType_ReturnsUnprocessableEntity(
+        string modelName
+    )
+    {
+        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
+
+        using HttpResponseMessage response = await PostGenerate(modelName, NewModelJsonSchema);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(DataModelingErrorCodes.DataTypeWithTheSameNameExists, await ReadErrorCode(response));
+    }
+
+    [Fact]
+    public async Task GenerateDatamodel_ApplicationMetadataWithoutDataTypes_AddsTheDataType()
+    {
+        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
+        JsonObject applicationMetadata = JsonNode
+            .Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json"))
+            .AsObject();
+        applicationMetadata.Remove("dataTypes");
+
+        using HttpResponseMessage response = await PostGenerate(
+            NewModelName,
+            NewModelJsonSchema,
+            applicationMetadata: applicationMetadata
         );
-        Assert.NotNull(problemDetails);
-        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
-        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, errorCode.ToString());
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        GeneratedDatamodel generatedDatamodel = await response.Content.ReadFromJsonAsync<GeneratedDatamodel>(
+            JsonSerializerOptions
+        );
+        Assert.NotNull(generatedDatamodel);
+        JsonArray dataTypes = JsonNode.Parse(generatedDatamodel.ApplicationMetadata)?["dataTypes"]?.AsArray();
+        Assert.NotNull(dataTypes);
+        JsonNode dataType = Assert.Single(dataTypes);
+        Assert.Equal(NewModelName, dataType?["id"]?.GetValue<string>());
     }
 
     [Fact]
@@ -196,7 +234,8 @@ public class GenerateDatamodelTests
         string jsonSchema,
         bool useNullableReferenceTypes = false,
         bool isV9OrNewer = false,
-        HttpClient client = null
+        HttpClient client = null,
+        JsonNode applicationMetadata = null
     ) =>
         (client ?? HttpClient).PostAsJsonAsync(
             GenerateUrl,
@@ -204,12 +243,22 @@ public class GenerateDatamodelTests
             {
                 modelName,
                 schema = JsonNode.Parse(jsonSchema),
-                applicationMetadata = JsonNode.Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json")),
+                applicationMetadata = applicationMetadata
+                    ?? JsonNode.Parse(ReadFileFromTestRepository("App/config/applicationmetadata.json")),
                 useNullableReferenceTypes,
                 isV9OrNewer,
             },
             JsonSerializerOptions
         );
+
+    private static async Task<string> ReadErrorCode(HttpResponseMessage response)
+    {
+        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.NotNull(problemDetails);
+        return ((JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode]).ToString();
+    }
 
     private void WriteAppSettings(bool useNullableReferenceTypes, bool isV9OrNewer)
     {

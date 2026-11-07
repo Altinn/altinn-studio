@@ -23,6 +23,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Exceptions.DataModeling;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -198,16 +199,8 @@ public class SchemaModelService : ISchemaModelService
         string serializedJsonContent = SerializeJson(jsonSchema);
         ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         ApplicationMetadata applicationMetadata = request.ApplicationMetadata;
-        // When a person adds a data model, ModelNameValidator finds that the model is new because its schema file
-        // is not in the repository. This method does not read the repository, because the caller sends the files
-        // from its own clone. Thus, here a data model is new if no data type has its name.
-        if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == request.ModelName))
-        {
-            DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
-                applicationMetadata,
-                modelMetadata.GetRootElement().TypeName
-            );
-        }
+        applicationMetadata.DataTypes ??= [];
+        ThrowIfNewDatamodelConflicts(applicationMetadata, request.ModelName, modelMetadata.GetRootElement().TypeName);
         (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
             request.ModelName,
             jsonSchema,
@@ -223,6 +216,38 @@ public class SchemaModelService : ISchemaModelService
             await AltinnGitRepository.SerializeXsdToString(xsd),
             AltinnAppGitRepository.SerializeApplicationMetadata(applicationMetadata)
         );
+    }
+
+    /// <summary>
+    /// Refuses a new data model that Designer does not let a person add. The frontend refuses a name that a data type
+    /// already has, also if only the case is different. ModelNameValidator refuses a C# class that a data type
+    /// already has. This method does not read the repository, because the caller sends the files from its own
+    /// clone. Thus, here a data model is new if no data type with its name has a C# class. Like Designer, this
+    /// method does not check a data model that is already in the app.
+    /// </summary>
+    private static void ThrowIfNewDatamodelConflicts(
+        ApplicationMetadata applicationMetadata,
+        string modelName,
+        string typeName
+    )
+    {
+        bool isExistingDatamodel = applicationMetadata.DataTypes.Exists(dataType =>
+            dataType.Id == modelName && dataType.AppLogic?.ClassRef is not null
+        );
+        if (isExistingDatamodel)
+        {
+            return;
+        }
+
+        DataType dataTypeWithTheName = applicationMetadata.DataTypes.Find(dataType =>
+            string.Equals(dataType.Id, modelName, StringComparison.OrdinalIgnoreCase)
+        );
+        if (dataTypeWithTheName is not null)
+        {
+            throw new DataTypeWithTheSameNameExists(dataTypeWithTheName.Id);
+        }
+
+        DataModelClassRef.ThrowIfAnotherDataTypeHasClass(applicationMetadata, typeName);
     }
 
     /// <summary>
