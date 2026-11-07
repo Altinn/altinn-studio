@@ -69,6 +69,8 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
         Assert.Contains("ttd/myapp", description, StringComparison.Ordinal);
         Assert.Contains("config/authorization/policy.xml", description, StringComparison.Ordinal);
         Assert.Contains("read, write", description, StringComparison.Ordinal);
+        Assert.Contains("[complete] in the process state", description, StringComparison.Ordinal);
+        Assert.Contains("[delete] if the app deletes", description, StringComparison.Ordinal);
         Assert.Contains("v8 to v9 upgrade", description, StringComparison.Ordinal);
     }
 

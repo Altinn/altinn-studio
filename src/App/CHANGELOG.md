@@ -26,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
 - Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
