@@ -118,10 +118,4 @@ public class AppSettings
     /// Use OpenTelemetry collector via OTLP exporter instead of Azure Monitor exporters.
     /// </summary>
     public bool UseOpenTelemetryCollector { get; set; }
-
-    /// <summary>
-    /// Enforce that a DataType (applicationmetadata.json) that is bound to tasks (taskIds) is only externally mutable (using app apis) when the instance is in one of them.
-    /// Enabled by default. Enforces that elements of data types bound to tasks can only be mutated when the instance is in one of those tasks.
-    /// </summary>
-    public bool EnforceDataTypeTaskId { get; set; } = true;
 }

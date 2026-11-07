@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` removes `AppSettings:EnforceDataTypeTaskId` from the appsettings files, and points out when it was off, since the app APIs now always refuse writes to a data type outside the tasks it is bound to. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
+
 ### Changed
 
 - Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, also during a process transition. Once the process has ended it allows only the deletion `autoDeleteOnProcessEnd` asks for. A mutation that sets the process state cannot also change data elements. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))

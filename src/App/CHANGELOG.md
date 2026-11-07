@@ -37,6 +37,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Removed
 
 - Breaking: `GET .../data/{dataGuid}/validate` is removed, with `ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask`, the issue code only it returned, and `Altinn.App.Core.Models.Validation.ValidationException`, which only it threw. Call `GET .../instances/{instanceOwnerPartyId}/{instanceGuid}/validate` instead, with the appropriate query parameters. ([#21783](https://github.com/Altinn/altinn-studio/pull/21783))
+- Breaking: `AppSettings.EnforceDataTypeTaskId` is removed: the app APIs always refuse writes to a data type outside its tasks. Bind a data type your app writes in several tasks to each of them with `taskIds`. `studioctl app upgrade v9` removes the setting. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

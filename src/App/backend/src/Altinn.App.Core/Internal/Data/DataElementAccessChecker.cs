@@ -1,4 +1,3 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
@@ -10,7 +9,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -25,22 +23,19 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
     private readonly IAuthorizationService _authorizationService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAppMetadata _appMetadata;
-    private readonly IOptions<AppSettings> _appSettings;
     private readonly IAuthenticationContext _authenticationContext;
 
     public DataElementAccessChecker(
         IAuthorizationService authorizationService,
         IHttpContextAccessor httpContextAccessor,
         IAuthenticationContext authenticationContext,
-        IAppMetadata appMetadata,
-        IOptions<AppSettings> appSettings
+        IAppMetadata appMetadata
     )
     {
         _authorizationService = authorizationService;
         _httpContextAccessor = httpContextAccessor;
         _authenticationContext = authenticationContext;
         _appMetadata = appMetadata;
-        _appSettings = appSettings;
     }
 
     /// <inheritdoc />
@@ -114,7 +109,7 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
             };
         }
 
-        if (_appSettings.Value.EnforceDataTypeTaskId && !dataType.IsWritableInCurrentTask(instance))
+        if (!dataType.IsWritableInCurrentTask(instance))
         {
             string boundTasks = string.Join(", ", dataType.TaskIds ?? []);
             string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
