@@ -57,7 +57,7 @@ public interface ISchemaModelService
 
     /// <summary>
     /// Makes the files that <see cref="UpdateSchema"/> writes for a data model in an app repository. It reads the
-    /// app files from the caller, and it does not save a file. Studio does not let a person add a data model if a
+    /// app files from the caller, and it does not save a file. Designer does not let a person add a data model if a
     /// data type already has its C# class. This method also does not accept such a new data model.
     /// </summary>
     /// <param name="modelName">The name of the JSON schema file of the data model, without <c>.schema.json</c>. It is also the <c>id</c> of the data type.</param>

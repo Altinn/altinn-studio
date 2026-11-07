@@ -205,8 +205,9 @@ public class SchemaModelService : ISchemaModelService
         ApplicationMetadata applicationMetadata = AltinnAppGitRepository.DeserializeApplicationMetadata(
             applicationMetadataJson
         );
-        // A data model is new if no data type has its name. Studio cannot do this check, because the caller saves
-        // the files in its own clone.
+        // When a person adds a data model, ModelNameValidator finds that the model is new because its schema file
+        // is not in the repository. This method does not read the repository, because the caller sends the files
+        // from its own clone. Thus, here a data model is new if no data type has its name.
         if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelName))
         {
             DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
