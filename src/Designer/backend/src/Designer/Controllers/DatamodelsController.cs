@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-[TypeFilter(typeof(ConditionalAntiforgeryFilter))]
+[AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
 public class DatamodelsController : ControllerBase
 {
@@ -153,6 +153,8 @@ public class DatamodelsController : ControllerBase
     /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
     [HttpPost]
     [AllowApiKey]
+    [IgnoreAntiforgeryToken]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [UseSystemTextJson]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
