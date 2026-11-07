@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
   - `move`, `copy` and `#`-prefixed paths get `400 Bad Request`, and a failed `test` has a new `detail` text
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
+- An app no longer starts when it registers an `IServiceTask` whose `Type` is that of a built-in service task, such as `pdf` or `eFormidling`. Built-in service tasks cannot be replaced, and which of the two ran depended on registration order. Give your task its own type. ([#20919](https://github.com/Altinn/altinn-studio/issues/20919))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
 ### Fixed

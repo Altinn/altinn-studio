@@ -1,7 +1,14 @@
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
@@ -188,5 +195,86 @@ public class ServiceTaskRegistrationValidatorTests
 
         Assert.NotNull(exception);
         Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
+    }
+
+    // ── Built-in task types ──────────────────────────────────────────────────────────────────
+
+    private static PdfServiceTask BuiltInPdfTask() =>
+        new(
+            Mock.Of<IPdfService>(),
+            Mock.Of<ITranslationService>(),
+            Mock.Of<IProcessReader>(),
+            Mock.Of<IAppResources>(),
+            NullLogger<PdfServiceTask>.Instance
+        );
+
+    private static EFormidlingServiceTask BuiltInEFormidlingTask() =>
+        new(NullLogger<EFormidlingServiceTask>.Instance, Mock.Of<IProcessReader>(), Mock.Of<IHostEnvironment>());
+
+    private sealed class AppPdfTask : IServiceTask
+    {
+        public string Type => "pdf";
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(NoopFinally);
+    }
+
+    private sealed class AppEFormidlingTask : IServiceTask
+    {
+        public string Type => "eFormidling";
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline.Stage(NoopStage).Finally(NoopFinally);
+    }
+
+    [Fact]
+    public async Task BuiltInTasksAlone_PassValidation()
+    {
+        var exception = await Validate(s =>
+        {
+            s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
+            s.AddSingleton<IServiceTask>(_ => BuiltInEFormidlingTask());
+        });
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task AppTaskRegisteredBeforeTheBuiltIn_FailsStartup()
+    {
+        // The v9 template registers app services before AddAltinnAppServices, so without the check the built-in wins.
+        var exception = await Validate(s =>
+        {
+            s.AddSingleton<IServiceTask, AppPdfTask>();
+            s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
+        });
+
+        AssertBuiltInTypeReused(exception, typeof(AppPdfTask), "pdf", nameof(PdfServiceTask));
+    }
+
+    [Fact]
+    public async Task AppTaskRegisteredAfterTheBuiltIn_FailsStartup()
+    {
+        // Without the check the app task would win, because it is registered last.
+        var exception = await Validate(s =>
+        {
+            s.AddSingleton<IServiceTask>(_ => BuiltInEFormidlingTask());
+            s.AddSingleton<IServiceTask, AppEFormidlingTask>();
+        });
+
+        AssertBuiltInTypeReused(exception, typeof(AppEFormidlingTask), "eFormidling", nameof(EFormidlingServiceTask));
+    }
+
+    private static void AssertBuiltInTypeReused(
+        InvalidOperationException? exception,
+        Type appTask,
+        string taskType,
+        string builtIn
+    )
+    {
+        Assert.NotNull(exception);
+        Assert.Contains(appTask.FullName!, exception.Message, StringComparison.Ordinal);
+        Assert.Contains($"'{taskType}'", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(builtIn, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("cannot be replaced", exception.Message, StringComparison.Ordinal);
     }
 }
