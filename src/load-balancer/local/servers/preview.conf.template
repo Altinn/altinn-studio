@@ -6,7 +6,8 @@
 # - The error log takes only critical errors, since nginx writes the whole request line into an error, such as a
 #   failed connection to preview. The access log still shows those requests' 502s.
 # - nginx doesn't trace preview's requests, since its spans would record the whole URI. The preview service traces
-#   them itself, without the ID.
+#   them itself, without the ID. nginx also sends no trace context, since with tracing off it would send an
+#   unsampled one, and preview would then drop its spans too.
 upstream preview_service {
   server ${PREVIEW_SERVICE_HOST};
 }
@@ -26,6 +27,7 @@ server {
   access_log /var/log/nginx/access.log preview;
   error_log /var/log/nginx/error.log crit;
   otel_trace off;
+  otel_trace_context ignore;
 
   # Quoted, because nginx reads an unquoted brace as the start of a block.
   location ~ "^/[0-9a-f]{32}/" {
