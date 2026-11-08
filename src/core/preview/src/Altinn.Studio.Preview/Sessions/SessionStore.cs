@@ -13,6 +13,9 @@ internal sealed partial class SessionStore(IDistributedCache cache, TimeProvider
     /// <summary>What the keys of the sessions start with in Redis.</summary>
     public const string KeyPrefix = "session:";
 
+    /// <summary>A key no session has, since a session's key is a hash of its ID.</summary>
+    private const string ProbeKey = "probe";
+
     public async Task<SessionId> Start(WorkingCopy workingCopy, CancellationToken cancellationToken)
     {
         var sessionId = SessionId.New();
@@ -40,6 +43,11 @@ internal sealed partial class SessionStore(IDistributedCache cache, TimeProvider
             ? null
             : JsonSerializer.Deserialize(entry, StoredSessionJsonContext.Default.StoredSession)?.ToSession();
     }
+
+    /// <summary>
+    /// Reads a key that no session has, which fails when Redis is down or refuses the service's password.
+    /// </summary>
+    public Task CheckReachable(CancellationToken cancellationToken) => cache.GetAsync(ProbeKey, cancellationToken);
 
     internal sealed record StoredSession(string Developer, string Org, string App, DateTimeOffset StartedAt)
     {
