@@ -65,9 +65,10 @@ ConfigMap. The overlays, the deploy workflow and the load balancer's route come 
 certificate, which [altinn-studio-infra](https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra)
 configures.
 
-altinn-studio-infra also generates the Redis password and keeps it in the Studio Key Vault as
-`preview-redis-password`. The [ExternalSecret](infra/kustomize/base/externalsecret.yaml) copies it into the cluster.
-Redis and preview read it when they start, so restart both after the password changes.
+External Secrets generates the Redis password in the cluster, since nothing outside it needs the password. Redis and
+preview read it only when they start, so the [ExternalSecret](infra/kustomize/base/externalsecret.yaml) creates the
+Secret once and never changes it. To change the password, delete the `altinn-preview-redis` Secret, then restart Redis
+and preview.
 
 The route must do what the [local one](../../load-balancer/local/servers/preview.conf.template) does:
 
