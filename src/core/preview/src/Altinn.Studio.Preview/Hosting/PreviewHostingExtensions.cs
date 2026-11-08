@@ -4,6 +4,7 @@ using Altinn.Studio.Preview.Apps;
 using Altinn.Studio.Preview.Configuration;
 using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Instrumentation.AspNetCore;
 
@@ -15,6 +16,9 @@ internal static class PreviewHostingExtensions
 
     /// <summary>The <c>url.path</c> attribute of the ASP.NET Core instrumentation's spans.</summary>
     private const string UrlPathAttribute = "url.path";
+
+    /// <summary>The tag of the health checks that decide whether a pod gets requests.</summary>
+    private const string ReadyTag = "ready";
 
     public static WebApplicationBuilder AddPreview(this WebApplicationBuilder builder)
     {
@@ -52,7 +56,14 @@ internal static class PreviewHostingExtensions
         builder.Services.AddSingleton<SessionStore>();
 
         builder.Services.AddProblemDetails();
-        builder.Services.AddHealthChecks();
+        builder
+            .Services.AddHealthChecks()
+            .AddCheck<SessionStoreHealthCheck>(
+                "session-store",
+                tags: [ReadyTag],
+                // Below the readiness probe's timeout, so the probe gets an answer.
+                timeout: TimeSpan.FromSeconds(2)
+            );
         builder.AddPreviewTelemetry();
 
         return builder;
@@ -69,8 +80,14 @@ internal static class PreviewHostingExtensions
         app.UseExceptionHandler();
 
         // Probes aren't traffic: the shared telemetry setup keeps them out of traces, and these out of request metrics.
-        app.MapHealthChecks("/health/live").DisableHttpMetrics();
-        app.MapHealthChecks("/health/ready").DisableHttpMetrics();
+        // Liveness runs no checks, since restarting the service doesn't bring its Redis back. Readiness takes a pod out of
+        // the Services while it can't reach its sessions.
+        app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).DisableHttpMetrics();
+        app.MapHealthChecks(
+                "/health/ready",
+                new HealthCheckOptions { Predicate = check => check.Tags.Contains(ReadyTag) }
+            )
+            .DisableHttpMetrics();
 
         app.MapSessionEndpoints();
         app.MapPreviewEndpoints();
