@@ -53,6 +53,8 @@ services:
         rm -f /etc/nginx/extra-upstreams/* /etc/nginx/extra-locations/* /etc/nginx/extra-servers/* /etc/nginx/ssl/* /etc/nginx/logging/*
         # Servers only the local stack has, such as preview's
         cp /etc/nginx/local-servers/*.conf.template /etc/nginx/extra-servers/
+        # The container runtime's DNS server, which preview's route asks for preview's address
+        export PREVIEW_RESOLVER="$$(awk '$$1 == "nameserver" && $$2 ~ /^[0-9.]+$$/ { print $$2; exit }' /etc/resolv.conf)"
         [ "$$DEVELOP_BACKEND" = "1" ] && export DESIGNER_HOST="host.docker.internal:5000"
         # Override SPA hosts and disable rewrite for vite dev servers
         disable_rewrite() { sed -i "s/$$1   *1/$$1   0/" /etc/nginx/nginx.conf.template; }
@@ -102,9 +104,6 @@ services:
         condition: service_healthy
       studio_designer_ready:
         condition: service_completed_successfully
-      # nginx resolves its upstreams when it starts.
-      studio_preview:
-        condition: service_started
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 

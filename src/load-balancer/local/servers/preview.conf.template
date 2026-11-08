@@ -8,9 +8,10 @@
 # - nginx doesn't trace preview's requests, since its spans would record the whole URI. The preview service traces
 #   them itself, without the ID. nginx also sends no trace context, since with tracing off it would send an
 #   unsampled one, and preview would then drop its spans too.
-upstream preview_service {
-  server ${PREVIEW_SERVICE_HOST};
-}
+#
+# nginx looks preview's address up on each request, so the load balancer starts without preview and follows preview
+# to a new address. PREVIEW_RESOLVER is the container runtime's DNS server, since nginx's resolver doesn't read
+# /etc/resolv.conf.
 
 map $request_uri $preview_logged_uri {
   "~^/[0-9a-f]{32}(?<preview_rest>/.*)?$" "/{sessionId}$preview_rest";
@@ -31,10 +32,13 @@ server {
 
   # Quoted, because nginx reads an unquoted brace as the start of a block.
   location ~ "^/[0-9a-f]{32}/" {
+    resolver ${PREVIEW_RESOLVER} valid=10s ipv6=off;
+    resolver_timeout 5s;
+    set $preview_service ${PREVIEW_SERVICE_HOST};
+    proxy_pass http://$preview_service;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_pass http://preview_service;
   }
 
   location / {
