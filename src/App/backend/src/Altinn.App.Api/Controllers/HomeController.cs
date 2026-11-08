@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
@@ -367,7 +368,7 @@ public class HomeController : Controller
         }
 
         return application.DataTypes.Find(d => d.Id == layoutSettings.DefaultDataType)
-            ?? application.DataTypes.Find(d => d.TaskId == onEntryFolderId && d.AppLogic?.ClassRef is not null)
+            ?? application.DataTypes.Find(d => d.IsBoundToTask(onEntryFolderId) && d.AppLogic?.ClassRef is not null)
             ?? application.DataTypes.Find(d => d.AppLogic?.ClassRef is not null);
     }
 }

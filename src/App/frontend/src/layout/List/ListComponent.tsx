@@ -24,7 +24,7 @@ import type { IDataModelBindingsForList } from '@app/layout-contract/generated/c
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
+import { useDataListQuery } from 'src/core/queries/dataLists';
 import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -38,7 +38,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { Filter } from 'src/features/dataLists/useDataListQuery';
+import type { Filter } from 'src/core/queries/dataLists';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Row = Record<string, string | number | boolean>;

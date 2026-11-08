@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -10,7 +9,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Data;
@@ -361,6 +359,59 @@ public class DataElementAccessCheckerTest
         Assert.False(canDelete);
     }
 
+    [Theory]
+    [InlineData(null, "Task_1", null)]
+    [InlineData(null, null, null)]
+    [InlineData(new string[0], "Task_2", null)]
+    [InlineData(new[] { "Task_1" }, "Task_1", null)]
+    [InlineData(new[] { "Task_1" }, "Task_2", "Task_1")]
+    [InlineData(new[] { "Task_1" }, null, "Task_1")]
+    [InlineData(new[] { "Task_1" }, "task_1", "Task_1")]
+    [InlineData(new[] { "Task_1", "Task_2" }, "Task_2", null)]
+    [InlineData(new[] { "Task_1", "Task_2" }, "Task_3", "Task_1, Task_2")]
+    [InlineData(new[] { "Task_1", "Task_2" }, null, "Task_1, Task_2")]
+    public async Task Mutators_AreAllowedOnlyInTheTasksTheDataTypeBelongsTo(
+        string[]? taskIds,
+        string? currentTaskId,
+        string? expectedTasksInProblem
+    )
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var instance = fixture.Data.DefaultInstance;
+        var dataType = fixture.Data.DataTypeA;
+        dataType.TaskIds = taskIds?.ToList();
+        instance.Process = new ProcessState
+        {
+            CurrentTask = currentTaskId is null ? null : new ProcessElementInfo { ElementId = currentTaskId },
+        };
+
+        // Act
+        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
+        var updateResult = await fixture.DataElementAccessChecker.GetUpdateProblem(instance, dataType);
+        var deleteResult = await fixture.DataElementAccessChecker.GetDeleteProblem(instance, dataType, Guid.Empty);
+
+        // Assert
+        if (expectedTasksInProblem is null)
+        {
+            Assert.Null(createResult);
+            Assert.Null(updateResult);
+            Assert.Null(deleteResult);
+            return;
+        }
+
+        string currentTask = currentTaskId is null ? "no current task" : $"current task {currentTaskId}";
+        foreach (var problem in new[] { createResult, updateResult, deleteResult })
+        {
+            Assert.NotNull(problem);
+            Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
+            Assert.Equal(
+                $"Data element of type {dataType.Id} can only be modified in {expectedTasksInProblem} ({currentTask})",
+                problem.Detail
+            );
+        }
+    }
+
     [Fact]
     public async Task Mutators_BlockPdfDataType()
     {
@@ -428,8 +479,7 @@ public class DataElementAccessCheckerTest
                     mocks.AuthorizationServiceMock.Object,
                     mocks.HttpContextAccessorMock.Object,
                     mocks.AuthenticationContextMock.Object,
-                    mocks.AppMetadataMock.Object,
-                    Options.Create(data.AppSettings)
+                    mocks.AppMetadataMock.Object
                 ),
             };
         }
@@ -450,8 +500,6 @@ public class DataElementAccessCheckerTest
             public DataElement DataElementA { get; }
             public DataElement DataElementB { get; }
             public ApplicationMetadata AppMetadata { get; }
-
-            public AppSettings AppSettings { get; } = new() { EnforceDataTypeTaskId = true };
 
             public FixtureData()
             {

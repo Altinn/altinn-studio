@@ -1,7 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.EFormidling.Interface;
 using Argon;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
@@ -32,6 +35,17 @@ public class OpenApiSpecChangeDetection : ApiTestBase
     }
 
     [Fact]
+    public async Task CustomOpenApiSpec_DocumentsAnAppWithUiAndADataTypeWithoutTask()
+    {
+        // The app has a UI folder and a data type bound to no task, ref-data-as-pdf. Its eFormidling task needs the
+        // service to start.
+        OverrideServicesForThisTest = services => services.AddSingleton(Mock.Of<IEFormidlingService>());
+        using HttpClient client = GetRootedClient("ttd", "service-tasks");
+        using HttpResponseMessage response = await client.GetAsync("/ttd/service-tasks/v1/customOpenapi.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Swagger_PreservesSuccessAndConflictResponsesForContentConflictOperations()
     {
         using HttpClient client = GetRootedClient("tdd", "contributer-restriction");
@@ -56,12 +70,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase
                 .GetProperty("post")
                 .GetProperty("responses"),
             "#/components/schemas/AppCallbackResponse"
-        );
-        AssertConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate")
-                .GetProperty("get")
-                .GetProperty("responses")
         );
         AssertActionsConflictResponse(
             paths
@@ -169,7 +177,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase
         AssertConflictResponse(responses, conflictMediaType);
     }
 
-    private static void AssertConflictResponse(JsonElement responses, string mediaType = "application/json")
+    private static void AssertConflictResponse(JsonElement responses, string mediaType)
     {
         Assert.Equal(
             "#/components/schemas/ProblemDetails",

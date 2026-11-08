@@ -1,25 +1,23 @@
 import React from 'react';
 
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- This test needs an isolated real query cache and provider.
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useQuery } from 'src/core/queries/reactQuery';
+import { useLogoSvg } from 'src/core/queries/logo';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
-function QueryResult({ load, attribute }: { load: () => Promise<string>; attribute?: string }) {
-  const { data, isPending } = useQuery({ queryKey: ['options'], queryFn: load, retry: false });
-  if (isPending) {
+function QueryResult({ attribute }: { attribute?: string }) {
+  const { data } = useLogoSvg();
+  if (data === undefined) {
     return <div data-loading />;
   }
   return attribute ? <div {...{ [attribute]: true }} /> : <div>{data}</div>;
 }
 
-function renderWithQueries(children: React.ReactNode) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const view = render(<QueryClientProvider client={client}>{children}</QueryClientProvider>);
-  return { ...view, client };
+function renderWithQueries(children: React.ReactNode, load?: () => Promise<string>) {
+  const queryTest = createQueryTestWrapper({ queries: { fetchLogo: load } });
+  return render(children, { wrapper: queryTest.wrapper });
 }
 
 describe('ReadyForPrint', () => {
@@ -38,12 +36,10 @@ describe('ReadyForPrint', () => {
       try {
         renderWithQueries(
           <>
-            <QueryResult
-              load={() => result.promise}
-              attribute={attribute}
-            />
+            <QueryResult attribute={attribute} />
             <ReadyForPrint type='print' />
           </>,
+          () => result.promise,
         );
         await act(async () => {
           await waitForAnimationFrames(2);
@@ -64,9 +60,10 @@ describe('ReadyForPrint', () => {
     const result = Promise.withResolvers<string>();
     const { container } = renderWithQueries(
       <>
-        <QueryResult load={() => result.promise} />
+        <QueryResult />
         <ReadyForPrint type='print' />
       </>,
+      () => result.promise,
     );
     const marker = container.lastElementChild;
     expect(marker).toHaveStyle({ display: 'none' });
@@ -78,20 +75,19 @@ describe('ReadyForPrint', () => {
   });
 
   it('waits for another request that starts before readiness is published', async () => {
-    const { client } = renderWithQueries(<ReadyForPrint type='print' />);
     const result = Promise.withResolvers<string>();
-    let request: Promise<string>;
-    await act(async () => {
-      request = client.fetchQuery({ queryKey: ['later'], queryFn: () => result.promise });
-    });
+    const { rerender } = renderWithQueries(<ReadyForPrint type='print' />, () => result.promise);
+    rerender(
+      <>
+        <QueryResult />
+        <ReadyForPrint type='print' />
+      </>,
+    );
     await act(async () => {
       await waitForAnimationFrames(2);
     });
     expect(document.getElementById('readyForPrint')).toBeNull();
-    await act(async () => {
-      result.resolve('Done');
-      await request;
-    });
+    await act(async () => result.resolve('Done'));
     await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
   });
 

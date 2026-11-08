@@ -454,7 +454,7 @@ internal sealed class ProcessNextRequestFactory
 
                 // Task-end/abandon steps go in the first group, task-start steps in the second.
                 // CommitProcessState goes between them, so each group runs while Storage holds the task it
-                // belongs to.
+                // belongs to: Storage checks a data type's taskIds against the stored current task.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
                     taskEndSteps.AddRange(

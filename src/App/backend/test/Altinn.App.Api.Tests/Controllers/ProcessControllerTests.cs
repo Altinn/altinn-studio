@@ -909,7 +909,7 @@ public class ProcessControllerTests : ApiTestBase
                             new DataType()
                             {
                                 Id = saveToDataType,
-                                TaskId = "Task_1",
+                                TaskIds = ["Task_1"],
                                 AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef },
                             }
                         );

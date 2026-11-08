@@ -1,6 +1,12 @@
 import { numericFormatter, patternFormatter } from 'react-number-format';
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
+import type { IFormatting } from '@app/layout-contract/generated/common.generated';
+
+import type { ExprResolved } from 'src/features/expressions/types';
+
+type Formatting = ExprResolved<IFormatting>;
+
 type FormattingResult = {
   thousandSeparator: string | undefined;
   decimalSeparator: string | undefined;
@@ -76,4 +82,32 @@ export const formatNumericText = (text: string, format?: NumericFormatProps | Pa
   } else {
     return text;
   }
+};
+
+export const getMapToReactNumberConfig = (
+  formatting: Formatting | undefined,
+  value = '',
+  selectedLanguage: string,
+): { number?: NumericFormatProps | PatternFormatProps } => {
+  if (!formatting?.currency && !formatting?.unit) {
+    return formatting ?? {};
+  }
+
+  const createOptions = (config: Formatting): CurrencyFormattingOptions | UnitFormattingOptions | undefined => {
+    if (config.currency) {
+      return { style: 'currency', currency: config.currency };
+    }
+    if (config.unit) {
+      return { style: 'unit', unit: config.unit };
+    }
+    return undefined;
+  };
+  // Check if position has been configured in dynamic formatting. Either prefix or suffix
+  const position = formatting?.position || undefined;
+
+  const numberFormatResult = {
+    ...formatNumber(value, selectedLanguage, createOptions(formatting), position),
+    ...formatting.number,
+  };
+  return { ...formatting, number: numberFormatResult };
 };

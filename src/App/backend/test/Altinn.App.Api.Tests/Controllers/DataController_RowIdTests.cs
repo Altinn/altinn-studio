@@ -600,7 +600,11 @@ public sealed class DataControllerRowIdTests : ApiTestBase
                 AppId = $"{Org}/{App}",
                 Org = Org,
                 InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
-                Process = new ProcessState { Status = status },
+                Process = new ProcessState
+                {
+                    Status = status,
+                    CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+                },
                 Data =
                 [
                     new DataElement

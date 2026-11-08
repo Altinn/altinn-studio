@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { Mock } from 'vitest';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -13,7 +14,6 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchExternalApi } from 'src/queries/queries';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
@@ -21,22 +21,15 @@ import {
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
-import type * as QueriesModule from 'src/queries/queries';
-import type { AppQueries } from 'src/queries/types';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-vi.mock('src/queries/queries', async () => {
-  const actual = await vi.importActual<typeof QueriesModule>('src/queries/queries');
-  return {
-    ...actual,
-    fetchExternalApi: vi.fn(),
-  };
-});
+const fetchExternalApi = vi.fn<Pick<AppQueries, 'fetchExternalApi'>['fetchExternalApi']>();
 
 interface Props {
   context: SharedTestFunctionContext | undefined;
@@ -217,15 +210,15 @@ function createApplicationMetadata({
       ...(dataModels.map((dm) => ({
         id: dm.dataElement.dataType,
         appLogic: { classRef: 'some-class' },
-        taskId: 'Task_1',
+        taskIds: ['Task_1'],
       })) as IDataType[]),
     );
   }
   if (!applicationMetadata.dataTypes.find((d) => d.id === 'default')) {
     applicationMetadata.dataTypes.push({
       id: 'default',
-      appLogic: { classRef: 'some-class', taskId: 'Task_1' },
-    } as unknown as IDataType);
+      appLogic: { classRef: 'some-class' },
+    } as IDataType);
   }
   return applicationMetadata;
 }
@@ -309,27 +302,26 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
         <StatelessRouter initialPage={context?.currentLayout ?? 'FormLayout'}>{children}</StatelessRouter>
       ),
       renderer,
-      queries,
+      queries: { ...queries, fetchExternalApi },
     });
   } else {
     await renderWithInstanceAndLayout({
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
-      queries,
-      apis: {
-        instanceApi: {
-          getInstance: async () => ({
-            ...createInstanceData(test),
-            process: createProcess(test) ?? getProcessDataMock(),
-          }),
-        },
+      queries: {
+        ...queries,
+        getInstance: async () => ({
+          ...createInstanceData(test),
+          process: createProcess(test) ?? getProcessDataMock(),
+        }),
+        fetchExternalApi,
       },
     });
   }
 }
 
 function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): Partial<AppQueries> {
-  const { frontendSettings, codeLists } = test;
+  const { codeLists } = test;
   const bootstrapFn = async () =>
     getFormBootstrapMock((obj) => {
       obj.layouts = createLayouts(test, expression);
@@ -352,7 +344,6 @@ function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<Exp
   return {
     fetchFormBootstrapForInstance: bootstrapFn,
     fetchFormBootstrapForStateless: bootstrapFn,
-    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
   };
 }
 
@@ -425,4 +416,3 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
 
   vi.clearAllMocks();
 }
-import type { Mock } from 'vitest';

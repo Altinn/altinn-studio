@@ -12,10 +12,10 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
+import { useIsProcessNextPending, useIsRunningProcessNext } from 'src/core/queries/process';
+import { useWaitForQueries } from 'src/core/queries/useWaitForQueries';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import {
   findProcessTask,
   useGetTaskTypeById,
@@ -29,9 +29,9 @@ import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
 import { useFollowProcess } from 'src/features/process/useFollowProcess';
+import { getTargetTaskFromProcess } from 'src/features/process/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
@@ -136,7 +136,8 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const { isProcessNextPending, isInitialProcessNextPending } = useProcessNextState();
+  const isRunningProcessNext = useIsRunningProcessNext();
+  const isProcessNextPending = useIsProcessNextPending();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
@@ -160,11 +161,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   // Mounting mid-mutation waits for the response, except on a service task's page: the URL moves
   // there while the call is pending, and no form on it is part of the call.
-  if (
-    isInitialProcessNextPending === null ||
-    (isInitialProcessNextPending && !isServiceTaskPage) ||
-    isWrongTask === null
-  ) {
+  if (isRunningProcessNext === null || (isRunningProcessNext && !isServiceTaskPage) || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
   }
 
@@ -348,28 +345,6 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
       </Flex>
     </>
   );
-}
-
-function useProcessNextState() {
-  const isProcessNextPending = useIsProcessNextPending();
-  const [isInitialProcessNextPending, setIsInitialProcessNextPending] = useState<boolean | null>(null);
-
-  // Only block a task mounted mid-mutation, and release it when that mutation settles. Navigation can mount the
-  // destination before process/next finishes, so keeping the initial pending state would leave its loader forever.
-  // A later mutation must not start blocking: the mutation's pre-request phase
-  // (beforeProcessNext -> onFormSubmitValidation -> useWaitForValidation) only resolves while the
-  // form/validation providers stay mounted. Blocking as soon as a later mutation starts would swap the task tree
-  // for the <Loader />, unmounting those providers and deadlocking the mutation - it
-  // never reaches process/next and never settles, so the Loader stays forever. This check only
-  // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
-  // workflow annotation instead.
-  useEffect(() => {
-    setIsInitialProcessNextPending((wasPending) =>
-      wasPending === null ? isProcessNextPending : wasPending && isProcessNextPending,
-    );
-  }, [isProcessNextPending]);
-
-  return { isProcessNextPending, isInitialProcessNextPending };
 }
 
 function useIsWrongTask(taskId: string | undefined) {

@@ -4,10 +4,10 @@ import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type AttachmentNode, isCanonicalAttachmentData } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getComponentBehaviors } from 'src/layout';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';

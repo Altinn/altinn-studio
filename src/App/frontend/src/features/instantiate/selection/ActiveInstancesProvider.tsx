@@ -1,31 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { activeInstancesQuery } from 'src/core/queries/instance/instance.queries';
+import { useActiveInstancesQuery } from 'src/core/queries/instance';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
-import { useSelectedParty } from 'src/features/party/PartiesProvider';
-
-const useActiveInstancesQuery = () => {
-  const selectedParty = useSelectedParty();
-  const instanceApi = useInstanceApi();
-  const partyId = String(selectedParty?.partyId ?? '');
-
-  const utils = useQuery({
-    ...activeInstancesQuery({ partyId, instanceApi }),
-    enabled: Boolean(selectedParty?.partyId),
-  });
-
-  useEffect(() => {
-    utils.error && window.logError('Fetching active instances failed:\n', utils.error);
-  }, [utils.error]);
-
-  return utils;
-};
 
 const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({

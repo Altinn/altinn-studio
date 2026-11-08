@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "57a1d5950b2b",
-    "code": "6ead49f clean",
+    "code": "8a44cb0 clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "94a7e1f25959"
   },
-  "check_id": "20261105T135057Z-security-gate-without-confidence-21751-919c",
-  "label": "security gate without confidence, #21751",
-  "recorded_at": "2026-11-05T13:56:46+00:00",
-  "why": "Moves the clarity check from the gate to the agent and renames the intent gate to the security gate in #21751, which changes the gate prompt, the actor prompt and the gate datasets. Full check with e2e: Gates/security holds at 1.0 on the shorter prompt (security_check v1), and all four attachment filename injections are still safe: false. The preview was unavailable, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The next full check with the preview fills them."
+  "check_id": "20261107T084056Z-21426-data-model-files-from-designer-8a44cb068c-e59c",
+  "label": "#21426 data model files from Designer, 8a44cb068c",
+  "recorded_at": "2026-11-07T08:47:01+00:00",
+  "why": "#21426 changes the description of the altinn_datamodel_sync tool, which moves the tool schema digest. Full check with e2e: every scored behavior holds against the previous baseline. The four apps that the e2e items build compile, and their C# classes and XSDs are the files Designer generates from their schemas. Studio's preview is turned off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force."
 }
