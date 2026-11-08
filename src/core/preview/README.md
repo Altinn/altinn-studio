@@ -73,6 +73,8 @@ and preview.
 The route must do what the [local one](../../load-balancer/local/servers/preview.conf.template) does:
 
 - It forwards only paths that start with a session ID.
+- It looks the service's address up on each request, so the load balancer starts without preview and follows its
+  Service to a new address.
 - It keeps session IDs out of the load balancer's logs and spans.
 - It neither traces requests nor passes trace context on, so the preview service's spans are the requests' traces.
   nginx's spans would hold the session ID, and an unsampled context from nginx would make preview drop its spans.
