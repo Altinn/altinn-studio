@@ -33,7 +33,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataControllerPatchTests : ApiTestBase
 {
     internal static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -62,8 +62,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     private HttpClient GetClient() => _client ??= GetRootedUserClient(Org, App, UserId, InstanceOwnerPartyId);
 
     // Constructor with common setup
-    public DataControllerPatchTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public DataControllerPatchTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
