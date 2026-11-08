@@ -1939,6 +1939,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<ProcessChangeResult> EnqueueNextForApp(
+            Instance instance,
+            StorageVersionMetadata instanceVersions,
+            string action,
+            Actor actor,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<ProcessChangeResult> ResumeCurrentTask(
             ProcessNextRequest request,
             CancellationToken cancellationToken = default

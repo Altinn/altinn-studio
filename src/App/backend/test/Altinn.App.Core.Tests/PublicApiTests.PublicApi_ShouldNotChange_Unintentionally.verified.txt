@@ -2030,6 +2030,7 @@ namespace Altinn.App.Core.Features.Payment.Models
     public class PaymentInformation
     {
         public PaymentInformation() { }
+        public string? Language { get; set; }
         public required Altinn.App.Core.Features.Payment.Models.OrderDetails OrderDetails { get; set; }
         public Altinn.App.Core.Features.Payment.Models.PaymentDetails? PaymentDetails { get; set; }
         public required Altinn.App.Core.Features.Payment.Models.PaymentStatus Status { get; set; }
@@ -2066,6 +2067,7 @@ namespace Altinn.App.Core.Features.Payment.Models
         Failed = 3,
         Cancelled = 4,
         Skipped = 5,
+        Authorized = 6,
     }
     public class PhoneNumber
     {

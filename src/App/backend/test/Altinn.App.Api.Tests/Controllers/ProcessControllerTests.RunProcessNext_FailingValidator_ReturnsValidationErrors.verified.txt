@@ -141,6 +141,11 @@
       HasParent: true
     },
     {
+      Name: ProcessReader.GetFlowElement,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: SerializationService.DeserializeXml,
       IdFormat: W3C,
       Tags: [
