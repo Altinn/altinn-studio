@@ -10,8 +10,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+
 ### Fixed
 
+- List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
+- Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 
 ## [9.0.0-preview.10] - 2026-11-09

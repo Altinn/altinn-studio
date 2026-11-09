@@ -6,8 +6,6 @@ from typing import Any
 
 import regex
 
-from ..cdn import fetch_cdn_schema
-
 with warnings.catch_warnings():
     # RefResolver is deprecated in jsonschema, but we still rely on it here.
     # Filter its deprecation warning locally to avoid noisy startup logs.
@@ -33,18 +31,10 @@ _SchemaValidator = validators.extend(Draft7Validator, {"pattern": _check_ecma_pa
 
 
 class BaseValidator(ABC):
-    """Base class for schema-driven validators with custom business rules"""
+    """Base class for validators that check data against a JSON schema, and custom business rules"""
 
-    def __init__(self, schema_url: str):
-        self.schema_url = schema_url
-        self.schema = None
-
-    def _load_schema(self) -> dict[str, Any]:
-        """Load schema from URL"""
-        try:
-            return fetch_cdn_schema(self.schema_url)
-        except Exception as e:
-            raise Exception(f"Failed to load schema from {self.schema_url}: {e}") from e
+    def __init__(self, schema: dict[str, Any]):
+        self.schema = schema
 
     def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
         """
@@ -53,9 +43,6 @@ class BaseValidator(ABC):
         Returns:
             Tuple of (is_valid, error_messages)
         """
-        if not self.schema:
-            self.schema = self._load_schema()
-
         errors = []
         try:
             resolver = RefResolver.from_schema(self.schema)
@@ -105,5 +92,4 @@ class BaseValidator(ABC):
             "errors": all_errors,
             "warnings": business_result.get("warnings", []),
             "suggestions": business_result.get("suggestions", {}),
-            "schema_url": self.schema_url,
         }

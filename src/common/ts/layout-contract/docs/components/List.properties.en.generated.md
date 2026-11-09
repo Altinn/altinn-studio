@@ -277,6 +277,18 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages. Additional property names are allowed. Value type: string.</div></div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="tablecolumns">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="tableColumns">tableColumns</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths. Additional property names are allowed. Value type: object.</div></div>
+</details>
+
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
