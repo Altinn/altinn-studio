@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
-import { previewPage, previewPageV9 } from 'app-shared/api/paths';
+import { previewSessionPage } from 'app-shared/api/paths';
 import {
   StudioAlert,
   StudioCenter,
@@ -15,11 +15,9 @@ import {
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
 import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
-import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
-import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { useUserQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
+import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
+import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
@@ -72,56 +70,24 @@ const NoSelectedPageMessage = () => {
   );
 };
 
+// The preview service shows the developer's working copy on a domain of its own. The page uses one session, and an
+// instance at the task of each layout set it shows. In a v9 app, a layout set has the name of its task.
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
-  const { t } = useTranslation();
-  const { data: appVersion, isPending: isAppVersionPending } = useAppVersionQuery(org, app);
-  const { data: user, isPending: isUserPending } = useUserQuery();
-  const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
-  const derivedTaskId = useSelectedTaskId(layoutSet);
-
-  if (isAppVersionPending || isUserPending || isLayoutSetsPending) {
-    return (
-      <StudioCenter>
-        <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
-      </StudioCenter>
-    );
-  }
-
-  const isV9App = !isBelowSupportedVersion(appVersion?.backendVersion ?? '', 9);
-  const taskId = isV9App ? layoutSet : derivedTaskId;
-
-  return <PreviewIframe partyId={user.id} taskId={taskId} isV9App={isV9App} />;
-};
-
-type PreviewIframeProps = {
-  partyId: number;
-  taskId: string;
-  isV9App: boolean;
-};
-
-// The actual preview frame that displays the selected page
-const PreviewIframe = ({ partyId, taskId, isV9App }: PreviewIframeProps) => {
-  const { org, app } = useStudioEnvironmentParams();
   const { previewIframeRef, selectedFormLayoutName, shouldReloadPreview, previewHasLoaded } =
     useAppContext();
-  const { layoutSet } = useUxEditorParams();
   const { t } = useTranslation();
   const checksum = useChecksum(shouldReloadPreview);
-  const {
-    mutate: createInstance,
-    data: instance,
-    isError: createInstanceError,
-    isPending: createInstancePending,
-  } = useCreatePreviewInstanceMutation(org, app);
-
+  const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
   const currentLayoutSet = useGetLayoutSetByName({ name: layoutSet, org, app });
-  const isSubform = currentLayoutSet?.type === 'subform';
-
-  useEffect(() => {
-    createInstance({ partyId, taskId });
-  }, [createInstance, partyId, taskId]);
+  const { data: session, isError: isSessionError } = usePreviewSessionQuery(org, app);
+  const { data: instance, isError: isInstanceError } = usePreviewSessionInstanceQuery(
+    org,
+    app,
+    session?.url,
+    layoutSet,
+  );
 
   useEffect(() => {
     return () => {
@@ -129,25 +95,28 @@ const PreviewIframe = ({ partyId, taskId, isV9App }: PreviewIframeProps) => {
     };
   }, [previewIframeRef]);
 
-  if (createInstancePending || !instance) {
+  if (isSessionError || isInstanceError) {
     return (
       <StudioCenter>
-        {createInstanceError ? (
-          <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
-        ) : (
-          <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
-        )}
+        <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
       </StudioCenter>
     );
   }
-  const buildPreviewUrl = isV9App ? previewPageV9 : previewPage;
-  const previewURL = buildPreviewUrl(
-    org,
-    app,
+
+  if (isLayoutSetsPending || !session || !instance) {
+    return (
+      <StudioCenter>
+        <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
+      </StudioCenter>
+    );
+  }
+
+  const isSubform = currentLayoutSet?.type === 'subform';
+  const previewURL = previewSessionPage(
+    session.url,
+    instance.instanceId,
     layoutSet,
-    taskId,
     selectedFormLayoutName,
-    instance?.id,
   );
 
   return (
