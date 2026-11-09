@@ -130,6 +130,10 @@
             "age": "Alder",
             "profession": "Yrke"
           },
+          "tableColumns": {
+            "name": { "width": "55%" },
+            "profession": { "width": "25%" }
+          },
           "sortableColumns": ["age"],
           "pagination": {
             "alternatives": [5, 10],

@@ -301,7 +301,12 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       baseComponentId={baseComponentId}
       isSummary={isSummary}
     >
-      <Table className={classes.listTable}>
+      <Table
+        className={cn(classes.listTable, {
+          [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
+        })}
+      >
         {isSummary ? (
           (title || description || help) && (
             <Caption
@@ -323,6 +328,17 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             )}
           </caption>
         ) : null}
+        {config.tableColumns && (
+          <colgroup>
+            {!readOnly && <col className={classes.selectionColumn} />}
+            {Object.keys(config.tableHeaders).map((key) => (
+              <col
+                key={key}
+                style={{ width: config.tableColumns?.[key]?.width }}
+              />
+            ))}
+          </colgroup>
+        )}
         <Table.Head>
           <Table.Row>
             {!readOnly && (
