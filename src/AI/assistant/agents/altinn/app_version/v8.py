@@ -1,4 +1,4 @@
-"""Altinn app v8: layout sets, and the layout schema of app frontend v4."""
+"""Altinn app v8: layout sets, and the schemas of app frontend v4."""
 
 from __future__ import annotations
 
@@ -7,6 +7,10 @@ from agents.altinn.layout.properties import VERSION_NEUTRAL_BINDING_CONSTRAINTS
 from .profile import AppVersionProfile
 
 _LAYOUT_SCHEMA_URL = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+# The versioned copy. The unversioned copy under altinncdn.no/schemas/json/ is out of date.
+_TEXT_RESOURCES_SCHEMA_URL = (
+    "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/text-resources/text-resources.schema.v1.json"
+)
 
 _UI_ANATOMY_PROMPT = """\
 - **Layout sets** (`App/ui/layout-sets.json`) map each layout set id to the process task(s) and data type it belongs to.  An app can have more than one set (form, receipt, subforms).  Read this file first to find which set belongs to the task the user is talking about, then edit the layouts under `App/ui/<layoutSetId>/layouts/`.
@@ -29,6 +33,7 @@ V8_PROFILE = AppVersionProfile(
     version_rules_prompt=_VERSION_RULES_PROMPT,
     layout_schema_location=_LAYOUT_SCHEMA_URL,
     layout_schema_display_url=_LAYOUT_SCHEMA_URL,
+    text_resources_schema_location=_TEXT_RESOURCES_SCHEMA_URL,
     binding_constraints={
         **VERSION_NEUTRAL_BINDING_CONSTRAINTS,
         "Datepicker": _DATEPICKER_CONSTRAINTS,

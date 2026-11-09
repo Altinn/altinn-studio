@@ -14,7 +14,7 @@ hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
 Validation runs in-process — no network round-trip except the (cached)
-v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
+v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
 """
 
 from __future__ import annotations
@@ -470,9 +470,16 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tup
         metadata={"span_type": "TOOL", "file_path": file_path, "language": language},
     ) as span:
         span.update(input={"file_content": resource_json})
+        try:
+            schema = get_layout_schema(ctx.app_version_profile.text_resources_schema_location)
+        except Exception as exc:
+            span.update(output={"error": str(exc)})
+            return False, [f"{file_path}: could not load text resource schema — {exc}"]
+
         result = resource_validator_tool(
             user_goal="verify_changes",
             resource_json=resource_json,
+            schema=schema,
             language=language,
             repo_path=ctx.repo_path,
         )
