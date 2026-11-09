@@ -53,3 +53,21 @@ def commit(message: str, repo_path: str | None = None, branch_name: str | None =
 
     except subprocess.CalledProcessError as e:
         raise Exception(f"Git commit failed: {e}") from e
+
+
+def uncommitted_files(repo_path: str) -> list[str]:
+    """Return the paths that are different from the last commit, and the untracked paths.
+
+    Raise `subprocess.CalledProcessError` if `repo_path` is not a git repository.
+    """
+    tracked = subprocess.run(
+        ["git", "diff", "--name-only", "-z", "HEAD"], cwd=repo_path, capture_output=True, text=True, check=True
+    ).stdout
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return sorted({path for path in f"{tracked}{untracked}".split("\0") if path})

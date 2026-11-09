@@ -6,16 +6,20 @@ without a real LLM.
 
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
 from typing import Any
 
 import pytest
 
 from agents.core import (
+    CommitSessionBranchTool,
     LoopContext,
     LoopResult,
     TerminationReason,
     ToolResult,
 )
+from agents.core.tools.utils.repo_files import mark_changed
 from agents.graph.nodes import agentic_loop_node as node
 from agents.graph.nodes.agentic_loop_node import (
     _apply_result_to_state,
@@ -27,6 +31,9 @@ from agents.graph.nodes.agentic_loop_node import (
     handle,
 )
 from agents.graph.state import AgentState
+from agents.services.git import git_ops
+
+from .git_repo import create_committed_repo, git, write_files
 
 
 def _state(**overrides: Any) -> AgentState:
@@ -169,7 +176,7 @@ class TestEventBridge:
         assert seen == []
 
 
-_COMMITTED = "Endringene jeg rakk å gjøre, er commitet til sesjons-grenen."
+_SAVED = "Endringene jeg rakk å gjøre, er lagret i sesjons-grenen."
 
 
 class TestFinalSummaryText:
@@ -180,11 +187,11 @@ class TestFinalSummaryText:
             final_text="Lagt til feltet 'epost'.",
             turns=3,
         )
-        assert _final_summary_text(result, changes=_COMMITTED) == "Lagt til feltet 'epost'."
+        assert _final_summary_text(result, changes=_SAVED) == "Lagt til feltet 'epost'."
 
     def test_completed_without_text_has_neutral_fallback(self):
         result = LoopResult(reason=TerminationReason.COMPLETED, messages=[], turns=1)
-        assert _final_summary_text(result, changes=_COMMITTED) == "Ferdig."
+        assert _final_summary_text(result, changes=_SAVED) == "Ferdig."
 
     def test_completed_strips_trailing_sources_line(self):
         result = LoopResult(
@@ -196,18 +203,18 @@ class TestFinalSummaryText:
             ),
             turns=2,
         )
-        assert _final_summary_text(result, changes=_COMMITTED) == "Uttrykk lar deg styre synlighet dynamisk."
+        assert _final_summary_text(result, changes=_SAVED) == "Uttrykk lar deg styre synlighet dynamisk."
 
     def test_max_turns_explains_what_happened(self):
         result = LoopResult(reason=TerminationReason.MAX_TURNS, messages=[], turns=20)
-        summary = _final_summary_text(result, changes=_COMMITTED)
+        summary = _final_summary_text(result, changes=_SAVED)
         assert "20 steg" in summary
         assert "ikke" in summary.lower()
         assert "Workflow completed" not in summary
 
     def test_cancelled_signals_cancellation(self):
         result = LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
-        assert "avbrutt" in _final_summary_text(result, changes=_COMMITTED).lower()
+        assert "avbrutt" in _final_summary_text(result, changes=_SAVED).lower()
 
     def test_error_says_what_happened_without_quoting_the_provider(self):
         """A provider error names keys, endpoints and regions; the user got all of it."""
@@ -218,16 +225,14 @@ class TestFinalSummaryText:
             turns=1,
         )
 
-        summary = _final_summary_text(result, changes=_COMMITTED)
+        summary = _final_summary_text(result, changes=_SAVED)
 
         assert "Noe gikk galt" in summary
-        assert "sesjons-grenen" in summary
         assert "subscription key" not in summary
         assert "401" not in summary
 
 
 _NOTHING_CHANGED = "Jeg gjorde ingen endringer."
-_FAILED_VERIFICATION = "Endringene i `a.json` er ikke commitet, fordi de ikke besto valideringen."
 
 
 class TestStoppedRunSummary:
@@ -255,31 +260,16 @@ class TestStoppedRunSummary:
             ),
         ],
     )
-    @pytest.mark.parametrize("changes", [_COMMITTED, _FAILED_VERIFICATION, _NOTHING_CHANGED])
-    def test_the_middle_sentence_says_what_became_of_the_changes(self, reason, first, last, changes):
+    def test_the_changes_sentence_replaces_the_middle_sentence(self, reason, first, last):
         result = LoopResult(reason=reason, messages=[], turns=20)
 
-        assert _final_summary_text(result, changes=changes) == f"{first}  {changes}  {last}"
+        assert _final_summary_text(result, changes=_NOTHING_CHANGED) == f"{first}  {_NOTHING_CHANGED}  {last}"
 
 
-class TestChangesSentence:
-    def test_committed(self):
-        assert _changes_sentence(["a.json"], committed=True, failed_verification=False) == _COMMITTED
+def test_the_changes_sentence_names_every_changed_file_in_a_norwegian_list():
+    sentence = _changes_sentence(["a.json", "b.json", "c.json"], pushed=False, failed_verification=True)
 
-    def test_nothing_changed(self):
-        assert _changes_sentence([], committed=False, failed_verification=False) == _NOTHING_CHANGED
-
-    def test_verification_that_stopped_the_commit_names_every_changed_file(self):
-        sentence = _changes_sentence(["a.json", "b.json", "c.json"], committed=False, failed_verification=True)
-
-        assert sentence == (
-            "Endringene i `a.json`, `b.json` og `c.json` er ikke commitet, fordi de ikke besto valideringen."
-        )
-
-    def test_a_commit_that_failed_after_verification_does_not_blame_validation(self):
-        sentence = _changes_sentence(["a.json"], committed=False, failed_verification=False)
-
-        assert sentence == "Endringene i `a.json` er ikke commitet."
+    assert sentence == "Endringene i `a.json`, `b.json` og `c.json` er ikke lagret, fordi de ikke besto valideringen."
 
 
 class TestApplyResultToState:
@@ -373,7 +363,7 @@ class TestEmitWorkflowCompletion:
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
         state = _state()
         state.trace_id = state_trace_id
-        _emit_workflow_completion(state, result, ctx, committed=True)
+        _emit_workflow_completion(state, result, ctx, unsaved_files=[])
         return next(e for e in stub.events if e.type == "assistant_message")
 
     def test_assistant_message_carries_trace_id(self, monkeypatch):
@@ -595,31 +585,69 @@ def _verify_returning(passed: bool, seen: list | None = None):
     return run
 
 
-def _commit_returning(pushed: bool):
-    """A stand-in for CommitSessionBranchTool.run, which needs a real repo and remote."""
-
-    def run(_self, _args, ctx):
-        async def _coro():
-            # Like the real tool, record the hash before pushing.
-            ctx.extras["commit"] = "deadbee0"
-            if not pushed:
-                return ToolResult(content="Committed deadbee0 to branch, but the push was rejected.", is_error=True)
-            ctx.extras["session_committed"] = True
-            return ToolResult(content="Committed deadbee0 to branch and pushed.")
-
-        return _coro()
-
-    return run
+_ORIGINAL = '{"data": {"layout": []}}'
 
 
-def _loop_ending(reason: TerminationReason, *, changed: tuple[str, ...] = (), model_committed: bool = False):
+@pytest.fixture
+def repo(tmp_path) -> Path:
+    path = create_committed_repo(tmp_path / "app", {"App/ui/a.json": _ORIGINAL, "App/ui/b.json": _ORIGINAL})
+    git(path, "config", "user.name", "Test")
+    git(path, "config", "user.email", "test@example.com")
+    return path
+
+
+def _head(repo: Path) -> str:
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()[:8]
+
+
+class _Remote:
+    """Replaces the push to Gitea."""
+
+    def __init__(self, accepts: bool):
+        self.accepts = accepts
+
+    def push_branch(self, session_id, branch_name):
+        return self.accepts
+
+
+def _use_remote(monkeypatch, *, accepts: bool) -> None:
+    monkeypatch.setattr("agents.services.git.repo_manager.get_repo_manager", lambda: _Remote(accepts))
+
+
+def _edit(ctx: LoopContext, path: str, content: str = '{"edited": true}') -> None:
+    write_files(Path(ctx.repo_path), {path: content})
+    mark_changed(ctx, path)
+
+
+async def _commit_as_the_model(ctx: LoopContext) -> None:
+    ctx.extras.setdefault("verified_files", set()).update(ctx.extras.get("changed_files") or set())
+    tool = CommitSessionBranchTool()
+    outcome = await tool.run(tool.input_schema.model_validate({"message": "feat: model commit"}), ctx)
+    assert not outcome.is_error, outcome.content
+
+
+async def _run_steps(
+    ctx: LoopContext,
+    *,
+    edits: tuple[str, ...] = (),
+    model_commits: bool = False,
+    edits_after_commit: tuple[str, ...] = (),
+    undone: tuple[str, ...] = (),
+) -> None:
+    for path in edits:
+        _edit(ctx, path)
+    if model_commits:
+        await _commit_as_the_model(ctx)
+    for path in edits_after_commit:
+        _edit(ctx, path, '{"edited": "again"}')
+    for path in undone:
+        _edit(ctx, path)
+        _edit(ctx, path, _ORIGINAL)
+
+
+def _loop_ending(reason: TerminationReason, **steps):
     async def fake_run_loop(**kwargs):
-        extras = kwargs["ctx"].extras
-        if changed:
-            extras["changed_files"] = set(changed)
-        if model_committed:
-            extras["session_committed"] = True
-            extras["commit"] = "c0ffee0"
+        await _run_steps(kwargs["ctx"], **steps)
         final_text = "Ferdig." if reason is TerminationReason.COMPLETED else None
         return LoopResult(reason=reason, messages=[], final_text=final_text, turns=20)
 
@@ -628,6 +656,7 @@ def _loop_ending(reason: TerminationReason, *, changed: tuple[str, ...] = (), mo
 
 async def _finish(
     monkeypatch,
+    repo: Path,
     fake_run_loop,
     *,
     allow_app_changes: bool = True,
@@ -640,19 +669,35 @@ async def _finish(
     _patch_loop(monkeypatch, fake_run_loop)
     monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", events.append)
     monkeypatch.setattr(node.VerifyChangesTool, "run", _verify_returning(verifies))
-    monkeypatch.setattr(node.CommitSessionBranchTool, "run", _commit_returning(pushed))
+    _use_remote(monkeypatch, accepts=pushed)
     checks = list(render_checks or [_outcome(is_error=True, unavailable=True)])
 
+    # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
     async def render_check(_self, _args, _ctx):
         return checks.pop(0)
 
     monkeypatch.setattr(node.PreviewRenderCheckTool, "run", render_check)
 
-    state = await handle(_state(allow_app_changes=allow_app_changes))
+    state = await handle(_state(allow_app_changes=allow_app_changes, repo_path=str(repo)))
 
     message = next(e for e in events if e.type == "assistant_message")
     done = next(e for e in events if e.type == "done")
     return state, message.data["content"], done.data["success"]
+
+
+def _repair_run(*, second_round: dict, second_reason: TerminationReason):
+    """The model commits `a.json`. The render check fails. Then a repair round runs."""
+    rounds = {"n": 0}
+
+    async def fake_run_loop(**kwargs):
+        rounds["n"] += 1
+        if rounds["n"] == 1:
+            await _run_steps(kwargs["ctx"], edits=("App/ui/a.json",), model_commits=True)
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=3)
+        await _run_steps(kwargs["ctx"], **second_round)
+        return LoopResult(reason=second_reason, messages=[], turns=20)
+
+    return fake_run_loop
 
 
 class TestAutoCommitSafetyNet:
@@ -830,162 +875,223 @@ class TestAutoCommitSafetyNet:
 
 class TestMaybeAutoCommitResult:
     @pytest.mark.parametrize(
-        ("changed", "model_committed", "verifies", "pushed", "expected"),
+        ("steps", "verifies", "pushed", "expected"),
         [
-            pytest.param((), False, True, True, False, id="nothing changed"),
-            pytest.param(("a.json",), True, False, False, True, id="the model committed"),
-            pytest.param(("a.json",), False, True, True, True, id="the auto-commit committed"),
-            pytest.param(("a.json",), False, False, True, False, id="verification failed"),
-            pytest.param(("a.json",), False, True, False, False, id="the push was rejected"),
+            pytest.param({}, True, True, True, id="nothing changed"),
+            pytest.param({"edits": ("App/ui/a.json",), "model_commits": True}, False, True, True, id="model saved"),
+            pytest.param({"edits": ("App/ui/a.json",)}, True, True, True, id="auto-commit saved"),
+            pytest.param({"edits": ("App/ui/a.json",)}, False, True, False, id="verification failed"),
+            pytest.param({"edits": ("App/ui/a.json",)}, True, False, False, id="push rejected"),
+            pytest.param(
+                {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)},
+                True,
+                True,
+                True,
+                id="edit after the model commit",
+            ),
+            pytest.param({"undone": ("App/ui/a.json",)}, False, True, True, id="edit undone"),
         ],
     )
-    async def test_returns_whether_the_changes_are_committed(
-        self, monkeypatch, changed, model_committed, verifies, pushed, expected
+    async def test_returns_whether_all_changes_are_on_the_session_branch(
+        self, monkeypatch, repo, steps, verifies, pushed, expected
     ):
         monkeypatch.setattr(node.VerifyChangesTool, "run", _verify_returning(verifies))
-        monkeypatch.setattr(node.CommitSessionBranchTool, "run", _commit_returning(pushed))
-        ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
-        ctx.extras["changed_files"] = set(changed)
-        ctx.extras["session_committed"] = model_committed
-        state = _state(changed_files=list(changed))
+        _use_remote(monkeypatch, accepts=True)
+        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
+        await _run_steps(ctx, **steps)
+        _use_remote(monkeypatch, accepts=pushed)
         result = LoopResult(reason=TerminationReason.MAX_TURNS, messages=[], turns=20)
 
-        assert await node._maybe_auto_commit(state, result, ctx) is expected
+        assert await node._maybe_auto_commit(_state(repo_path=str(repo)), result, ctx) is expected
+        assert (node._unsaved_files(ctx) == []) is expected
 
 
-class TestSuccessRequiresCommittedChanges:
-    async def test_a_completed_run_whose_changes_are_committed_succeeds(self, monkeypatch):
+class TestSuccessRequiresSavedChanges:
+    async def test_a_completed_run_with_saved_changes_succeeds(self, monkeypatch, repo):
         _, _, success = await _finish(
-            monkeypatch, _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",))
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",))
         )
 
         assert success is True
 
-    async def test_a_completed_run_whose_changes_fail_verification_does_not_succeed(self, monkeypatch):
+    async def test_changes_that_fail_verification_cause_a_failure(self, monkeypatch, repo):
+        state, _, success = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), verifies=False
+        )
+
+        assert success is False
+        assert state.verify_notes == ["These changes are not on the session branch: App/ui/a.json"]
+
+    async def test_a_rejected_push_causes_a_failure(self, monkeypatch, repo):
+        _, _, success = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), pushed=False
+        )
+
+        assert success is False
+
+    async def test_a_chat_answer_succeeds(self, monkeypatch, repo):
+        _, _, success = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED), allow_app_changes=False
+        )
+
+        assert success is True
+
+    async def test_a_run_that_changed_nothing_succeeds(self, monkeypatch, repo):
+        _, _, success = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED))
+
+        assert success is True
+
+    async def test_an_undone_edit_succeeds(self, monkeypatch, repo):
+        _, _, success = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, undone=("App/ui/a.json",)), verifies=False
+        )
+
+        assert success is True
+
+    async def test_the_auto_commit_saves_an_edit_after_the_model_commit(self, monkeypatch, repo):
+        steps = {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)}
+
+        _, _, success = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps))
+
+        assert success is True
+        assert git_ops.uncommitted_files(str(repo)) == []
+
+    async def test_an_edit_after_the_model_commit_that_fails_verification_causes_a_failure(self, monkeypatch, repo):
+        steps = {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)}
+
+        state, _, success = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps), verifies=False
+        )
+
+        assert success is False
+        assert state.verify_notes == ["These changes are not on the session branch: App/ui/b.json"]
+
+    async def test_a_page_that_still_fails_to_render_keeps_its_notes(self, monkeypatch, repo):
+        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+        fake_run_loop = _repair_run(
+            second_round={"edits": ("App/ui/b.json",)}, second_reason=TerminationReason.COMPLETED
+        )
+
         state, _, success = await _finish(
             monkeypatch,
-            _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",)),
+            repo,
+            fake_run_loop,
             verifies=False,
+            render_checks=[_outcome(is_error=True), _outcome(is_error=True)],
         )
-
-        assert success is False
-        assert state.verify_notes == ["The changes were not committed: App/ui/x.json"]
-
-    async def test_a_completed_run_whose_push_was_rejected_does_not_succeed(self, monkeypatch):
-        _, _, success = await _finish(
-            monkeypatch,
-            _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",)),
-            pushed=False,
-        )
-
-        assert success is False
-
-    async def test_a_chat_answer_succeeds(self, monkeypatch):
-        _, _, success = await _finish(monkeypatch, _loop_ending(TerminationReason.COMPLETED), allow_app_changes=False)
-
-        assert success is True
-
-    async def test_a_write_run_that_changed_nothing_succeeds(self, monkeypatch):
-        _, _, success = await _finish(monkeypatch, _loop_ending(TerminationReason.COMPLETED))
-
-        assert success is True
-
-    async def test_a_page_that_still_fails_to_render_keeps_its_notes(self, monkeypatch):
-        """The render failure explains the run better than the uncommitted repair does."""
-        loops = {"n": 0}
-
-        async def fake_run_loop(**kwargs):
-            loops["n"] += 1
-            kwargs["ctx"].extras["changed_files"] = {"App/ui/x.json"}
-            kwargs["ctx"].extras["session_committed"] = loops["n"] == 1
-            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=3)
-
-        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
-        failures = [_outcome(is_error=True), _outcome(is_error=True)]
-
-        state, _, success = await _finish(monkeypatch, fake_run_loop, verifies=False, render_checks=failures)
 
         assert success is False
         assert state.verify_notes[0].startswith("A page still fails to render")
         assert any("never committed" in note for note in state.verify_notes)
 
 
-class TestStoppedRunReportsTheCommit:
-    async def test_changes_the_model_committed(self, monkeypatch):
+class TestStoppedRunReportsWhatIsSaved:
+    async def test_changes_the_model_saved(self, monkeypatch, repo):
         _, content, success = await _finish(
             monkeypatch,
-            _loop_ending(TerminationReason.STUCK, changed=("App/ui/x.json",), model_committed=True),
+            repo,
+            _loop_ending(TerminationReason.STUCK, edits=("App/ui/a.json",), model_commits=True),
         )
 
-        assert _COMMITTED in content
+        assert _SAVED in content
         assert success is False
 
-    async def test_changes_the_auto_commit_committed(self, monkeypatch):
+    async def test_changes_the_auto_commit_saved(self, monkeypatch, repo):
         _, content, _ = await _finish(
-            monkeypatch, _loop_ending(TerminationReason.MAX_TURNS, changed=("App/ui/x.json",))
+            monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, edits=("App/ui/a.json",))
         )
 
-        assert _COMMITTED in content
+        assert _SAVED in content
 
-    async def test_changes_that_failed_verification_are_named_without_the_errors(self, monkeypatch):
+    async def test_changes_that_failed_verification_are_named_without_the_errors(self, monkeypatch, repo):
         _, content, _ = await _finish(
             monkeypatch,
-            _loop_ending(TerminationReason.MAX_TURNS, changed=("App/ui/b.json", "App/ui/a.json")),
+            repo,
+            _loop_ending(TerminationReason.MAX_TURNS, edits=("App/ui/b.json", "App/ui/a.json")),
             verifies=False,
         )
 
         assert (
-            "Endringene i `App/ui/a.json` og `App/ui/b.json` er ikke commitet, fordi de ikke besto valideringen."
+            "Endringene i `App/ui/a.json` og `App/ui/b.json` er ikke lagret, fordi de ikke besto valideringen."
             in content
         )
         assert "boom" not in content
-        assert "Eventuelle" not in content
 
-    async def test_a_rejected_push_is_not_blamed_on_validation(self, monkeypatch):
+    async def test_a_rejected_push_is_not_blamed_on_validation(self, monkeypatch, repo):
         _, content, _ = await _finish(
-            monkeypatch,
-            _loop_ending(TerminationReason.STUCK, changed=("App/ui/x.json",)),
-            pushed=False,
+            monkeypatch, repo, _loop_ending(TerminationReason.STUCK, edits=("App/ui/a.json",)), pushed=False
         )
 
-        assert "Endringene i `App/ui/x.json` er ikke commitet." in content
+        assert "Endringene i `App/ui/a.json` er ikke lagret." in content
         assert "valideringen" not in content
 
-    async def test_no_changes(self, monkeypatch):
-        _, content, _ = await _finish(monkeypatch, _loop_ending(TerminationReason.ERROR))
+    async def test_no_changes(self, monkeypatch, repo):
+        _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.ERROR))
 
         assert _NOTHING_CHANGED in content
-        assert "sesjons-grenen" not in content
+
+    async def test_an_undone_edit(self, monkeypatch, repo):
+        _, content, _ = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.STUCK, undone=("App/ui/a.json",)), verifies=False
+        )
+
+        assert _NOTHING_CHANGED in content
+
+    async def test_a_repair_round_without_edits_keeps_the_saved_changes(self, monkeypatch, repo):
+        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+
+        _, content, _ = await _finish(
+            monkeypatch,
+            repo,
+            _repair_run(second_round={}, second_reason=TerminationReason.STUCK),
+            render_checks=[_outcome(is_error=True), _outcome(is_error=True)],
+        )
+
+        assert _SAVED in content
+
+    async def test_a_repair_round_names_only_the_files_it_did_not_save(self, monkeypatch, repo):
+        monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+
+        _, content, _ = await _finish(
+            monkeypatch,
+            repo,
+            _repair_run(second_round={"edits": ("App/ui/b.json",)}, second_reason=TerminationReason.MAX_TURNS),
+            verifies=False,
+            render_checks=[_outcome(is_error=True), _outcome(is_error=True)],
+        )
+
+        assert "Endringene i `App/ui/b.json` er ikke lagret, fordi de ikke besto valideringen." in content
 
 
 class TestTraceRecordsTheCommit:
-    """The runner puts `assistant_response["commit"]` in the trace output."""
-
-    async def test_a_commit_only_the_auto_commit_made(self, monkeypatch):
-        state, _, _ = await _finish(monkeypatch, _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",)))
-
-        assert state.assistant_response is not None
-        assert state.assistant_response["commit"] == "deadbee0"
-
-    async def test_a_stopped_run_without_final_text(self, monkeypatch):
-        state, _, _ = await _finish(monkeypatch, _loop_ending(TerminationReason.MAX_TURNS, changed=("App/ui/x.json",)))
-
-        assert state.assistant_response == {"text": None, "sources": [], "commit": "deadbee0"}
-
-    async def test_the_model_s_own_commit(self, monkeypatch):
+    async def test_a_commit_that_only_the_auto_commit_made(self, monkeypatch, repo):
         state, _, _ = await _finish(
-            monkeypatch,
-            _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",), model_committed=True),
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",))
         )
 
         assert state.assistant_response is not None
-        assert state.assistant_response["commit"] == "c0ffee0"
+        assert state.assistant_response["commit"] == _head(repo)
 
-    async def test_no_commit_when_nothing_was_committed(self, monkeypatch):
+    async def test_a_stopped_run_without_final_text(self, monkeypatch, repo):
+        state, _, _ = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, edits=("App/ui/a.json",))
+        )
+
+        assert state.assistant_response == {"text": None, "sources": [], "commit": _head(repo)}
+
+    async def test_the_model_commit(self, monkeypatch, repo):
         state, _, _ = await _finish(
             monkeypatch,
-            _loop_ending(TerminationReason.STUCK, changed=("App/ui/x.json",)),
-            verifies=False,
+            repo,
+            _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",), model_commits=True),
+        )
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["commit"] == _head(repo)
+
+    async def test_no_commit(self, monkeypatch, repo):
+        state, _, _ = await _finish(
+            monkeypatch, repo, _loop_ending(TerminationReason.STUCK, edits=("App/ui/a.json",)), verifies=False
         )
 
         assert state.assistant_response is not None
@@ -1056,11 +1162,11 @@ class TestEnforcedRenderCheck:
         reran = []
         monkeypatch.setattr(node, "run_loop", lambda **kw: reran.append(kw))
 
-        result, committed = await node._repair_render_failures(
+        result, saved = await node._repair_render_failures(
             _state(),
             _loop_result(),
             _committed_ctx(tmp_path),
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1070,7 +1176,7 @@ class TestEnforcedRenderCheck:
         assert check.calls == 1
         assert reran == []
         assert result.reason is TerminationReason.COMPLETED
-        assert committed is True
+        assert saved is True
 
     async def test_unavailable_check_is_not_treated_as_a_failure(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=True, unavailable=True)])
@@ -1082,7 +1188,7 @@ class TestEnforcedRenderCheck:
             _state(),
             _loop_result(),
             _committed_ctx(tmp_path),
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1112,7 +1218,7 @@ class TestEnforcedRenderCheck:
             state,
             _loop_result(),
             ctx,
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1142,7 +1248,7 @@ class TestEnforcedRenderCheck:
             _state(),
             _loop_result(),
             ctx,
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1171,7 +1277,7 @@ class TestEnforcedRenderCheck:
             state,
             _loop_result(),
             _committed_ctx(tmp_path),
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1197,7 +1303,7 @@ class TestEnforcedRenderCheck:
             _state(),
             _loop_result(),
             _committed_ctx(tmp_path),
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1215,7 +1321,7 @@ class TestEnforcedRenderCheck:
             _state(),
             _loop_result(),
             ctx,
-            committed=False,
+            saved=False,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1233,7 +1339,7 @@ class TestEnforcedRenderCheck:
             _state(),
             cancelled,
             _committed_ctx(tmp_path),
-            committed=True,
+            saved=True,
             registry=None,
             adapter=None,
             system_prompt="",
@@ -1250,7 +1356,7 @@ class TestEnforcedRenderCheck:
 
         async def fake_repair(state, result, ctx, **kwargs):
             called.append(state.session_id)
-            return result, kwargs["committed"]
+            return result, kwargs["saved"]
 
         monkeypatch.setattr(node, "run_loop", fake_run_loop)
         monkeypatch.setattr(node, "build_adapter", lambda role: object())
@@ -1270,7 +1376,7 @@ class TestEnforcedRenderCheck:
 
         async def fake_repair(state, result, ctx, **kwargs):
             called.append(state.session_id)
-            return result, kwargs["committed"]
+            return result, kwargs["saved"]
 
         monkeypatch.setattr(node, "run_loop", fake_run_loop)
         monkeypatch.setattr(node, "build_adapter", lambda role: object())

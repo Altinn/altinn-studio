@@ -82,7 +82,7 @@ Code: `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`
 
 This node prepares the loop and handles the result. It finds the app version (v8 or v9), builds the system prompt and registers the tools. In chat mode it connects the permission broker, so a write tool can ask the user.
 
-After the loop, workflow mode has two safety steps. If the model changed files but did not commit, the node verifies and commits the files. If the commit exists, the node runs the render check. On a failure, it gives the error to the model for one more loop run. The node reports success only when the run committed its changes or changed nothing, because changes that stay in the container never reach the user.
+After the loop, workflow mode has two safety steps. If git shows changes that are not on the session branch, the node verifies, commits and pushes them. If the commit exists, the node runs the render check. On a failure, it gives the error to the model for one more loop run. The node reports success only if all changes are on the session branch. The user cannot see changes that stay in the container.
 
 ```mermaid
 flowchart TD

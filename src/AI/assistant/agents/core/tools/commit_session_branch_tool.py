@@ -114,6 +114,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             repo_manager = get_repo_manager()
             pushed = repo_manager.push_branch(ctx.session_id, branch)
         except Exception as exc:
+            ctx.extras["session_committed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but push failed: {exc}"),
                 is_error=True,
@@ -121,15 +122,15 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             )
 
         if not pushed:
+            ctx.extras["session_committed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but the push was rejected."),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
-        # Record that the session has committed at least once so the
-        # agentic node's auto-commit safety net doesn't fire a duplicate
-        # commit when the loop finishes normally.
+        # The remote branch has the latest commit. A failed push sets this flag
+        # to False, because the remote branch does not have the local commit.
         ctx.extras["session_committed"] = True
         return ToolResult(
             content=f"Committed {commit_hash} to {branch} and pushed.",

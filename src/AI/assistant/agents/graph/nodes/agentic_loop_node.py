@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import time
 from typing import Any
 
@@ -45,6 +46,7 @@ from agents.core import (
 from agents.core.tools.commit_session_branch_tool import unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
+from agents.services.git import git_ops
 from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
@@ -249,30 +251,32 @@ async def handle(state: AgentState) -> AgentState:
     )
 
     _apply_result_to_state(state, result, ctx)
-    committed = False
+    # A read-only run cannot change files.
+    saved = True
     if state.allow_app_changes:
-        committed = await _maybe_auto_commit(state, result, ctx)
-        result, committed = await _repair_render_failures(
+        saved = await _maybe_auto_commit(state, result, ctx)
+        result, saved = await _repair_render_failures(
             state,
             result,
             ctx,
-            committed=committed,
+            saved=saved,
             registry=registry,
             adapter=adapter,
             system_prompt=system_prompt,
             on_event=on_event,
         )
-    _fail_if_uncommitted(state, committed)
+    unsaved_files = [] if saved else _unsaved_files(ctx)
+    _fail_if_unsaved(state, unsaved_files)
     _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
-    _emit_workflow_completion(state, result, ctx, committed=committed)
+    _emit_workflow_completion(state, result, ctx, unsaved_files=unsaved_files)
     return state
 
 
 def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
-    """Record what the trace output reports, after the auto-commit, so the
-    commit hash includes a commit the model did not make itself."""
+    """Record the response for the trace output. Do this after the auto-commit,
+    because the auto-commit can make the commit."""
     state.assistant_response = {
         "text": result.final_text,
         "sources": ctx.extras.get("sources", []),
@@ -280,13 +284,34 @@ def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) ->
     }
 
 
-def _fail_if_uncommitted(state: AgentState, committed: bool) -> None:
-    """A run that leaves its changes uncommitted has not delivered them, even
-    when the model said it was done."""
-    if not state.tests_passed or committed or not state.changed_files:
+def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
+    """The run fails if a change is not on the session branch, also if the model
+    says that the task is complete."""
+    if not state.tests_passed or not unsaved_files:
         return
     state.tests_passed = False
-    state.verify_notes = [f"The changes were not committed: {', '.join(state.changed_files)}"]
+    state.verify_notes = [f"These changes are not on the session branch: {', '.join(unsaved_files)}"]
+
+
+def _unsaved_files(ctx: LoopContext) -> list[str]:
+    """Return the files with changes that are not on the remote session branch.
+
+    The function gets the changes on disk from git, because the edit list of the
+    tools can be incorrect. An edit after a commit makes a file unsaved again.
+    An edit that the model undoes gives no change. If a push failed, the files
+    of that commit are also unsaved.
+    """
+    changed: set[str] = ctx.extras.get("changed_files") or set()
+    pushed = bool(ctx.extras.get("session_committed"))
+    try:
+        on_disk = set(git_ops.uncommitted_files(ctx.repo_path))
+    except (OSError, subprocess.SubprocessError) as exc:
+        log.warning(
+            "Cannot read the working tree of session %s. The node uses the commit flag: %s", ctx.session_id, exc
+        )
+        on_disk = set() if pushed else set(changed)
+    unpushed = changed if ctx.extras.get("commit") and not pushed else set()
+    return sorted(on_disk | unpushed)
 
 
 MAX_RENDER_REPAIR_ROUNDS = 1
@@ -297,20 +322,21 @@ async def _repair_render_failures(
     result: LoopResult,
     ctx: LoopContext,
     *,
-    committed: bool,
+    saved: bool,
     registry,
     adapter,
     system_prompt: str,
     on_event,
 ) -> tuple[LoopResult, bool]:
-    """Render-check the committed app and send failures back to the model.
+    """Do a render check of the pushed app, and send failures to the model.
 
-    The prompt asks the model to run the check, but a skipped one looks exactly
-    like a clean one. Bounded by MAX_RENDER_REPAIR_ROUNDS. Returns the last
-    loop result and whether its changes are committed.
+    The prompt tells the model to do the check. But if the model does not do the
+    check, the result looks the same as a check that passed.
+    MAX_RENDER_REPAIR_ROUNDS sets the limit. Return the last loop result, and
+    True if all changes are on the session branch.
     """
-    if result.reason is TerminationReason.CANCELLED or not committed:
-        return result, committed
+    if result.reason is TerminationReason.CANCELLED or not saved or not ctx.extras.get("session_committed"):
+        return result, saved
 
     check = PreviewRenderCheckTool()
     args = check.input_schema.model_validate({})
@@ -320,11 +346,11 @@ async def _repair_render_failures(
             outcome = await check.run(args, ctx)
         except Exception:
             log.exception("Render check raised for session %s", state.session_id)
-            return result, committed
+            return result, saved
         if outcome.metadata.get("unavailable") or not outcome.is_error:
-            return result, committed
+            return result, saved
         if sink.is_cancelled(state.session_id):
-            return result, committed
+            return result, saved
         if attempt == MAX_RENDER_REPAIR_ROUNDS:
             log.warning(
                 "Render check still failing for session %s after %s repair round(s)",
@@ -337,10 +363,9 @@ async def _repair_render_failures(
                 state.verify_notes.append(
                     "A repair round was never committed, so the last check ran against the previous commit."
                 )
-            return result, committed
+            return result, saved
 
         log.info("Render check failed for session %s; asking the model to fix", state.session_id)
-        ctx.extras["session_committed"] = False
         repair_message, history = _framed_turn(state, outcome.content)
         result = await run_loop(
             user_message=repair_message,
@@ -356,15 +381,15 @@ async def _repair_render_failures(
         _apply_result_to_state(state, result, ctx)
         if result.reason is TerminationReason.CANCELLED:
             return result, False
-        committed = await _maybe_auto_commit(state, result, ctx)
-        if not committed:
+        saved = await _maybe_auto_commit(state, result, ctx)
+        if not saved:
             uncommitted_repair = True
             log.warning(
-                "Repair round %d for session %s produced no commit; the next render check sees the previous commit",
+                "Repair round %d for session %s did not save all changes. The next render check uses the previous commit.",
                 attempt + 1,
                 state.session_id,
             )
-    return result, committed
+    return result, saved
 
 
 async def _maybe_auto_commit(
@@ -372,19 +397,15 @@ async def _maybe_auto_commit(
     result: LoopResult,
     ctx: LoopContext,
 ) -> bool:
-    """Commit uncommitted changes left behind by a max_turns or stuck exit, so
-    partial progress is inspectable instead of stranded in the container.
+    """Commit and push the changes that are not on the session branch.
 
-    Returns whether the session's changes are committed, by the model or here.
-    Nothing is committed when nothing changed, the changes do not verify, or
-    the run was cancelled.
+    Return True if all changes are then on the session branch, also if there are
+    no changes. A cancelled run always returns False.
     """
     if result.reason is TerminationReason.CANCELLED:
         return False
-    if ctx.extras.get("session_committed"):
+    if not _unsaved_files(ctx):
         return True
-    if not state.changed_files:
-        return False
 
     if not await _verified_for_auto_commit(state, ctx):
         return False
@@ -619,15 +640,15 @@ def _emit_workflow_completion(
     result: LoopResult,
     ctx: LoopContext,
     *,
-    committed: bool,
+    unsaved_files: list[str],
 ) -> None:
     """Emit the final `assistant_message` and `done` the frontend needs to close
     out a session; without both it renders empty bubbles and never runs its
     post-workflow logic, such as checking out the session branch.
     """
     changes = _changes_sentence(
-        state.changed_files,
-        committed=committed,
+        unsaved_files,
+        pushed=bool(ctx.extras.get("session_committed")),
         failed_verification=bool(unverified_changed_files(ctx)),
     )
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))
@@ -720,20 +741,20 @@ def _strip_sources_line(text: str) -> str:
     return _SOURCES_LINE_RE.sub("", text)
 
 
-def _changes_sentence(changed_files: list[str], *, committed: bool, failed_verification: bool) -> str:
-    """What became of the changes, for a run that stopped before the model could say.
+def _changes_sentence(unsaved_files: list[str], *, pushed: bool, failed_verification: bool) -> str:
+    """Tell the user what occurred to the changes, if the run stopped before the end.
 
-    Names the files rather than the validator's errors, which are written for
-    the model.
+    The sentence gives the file names, not the errors from the validator. The
+    errors are for the model.
     """
-    if committed:
-        return "Endringene jeg rakk å gjøre, er commitet til sesjons-grenen."
-    if not changed_files:
-        return "Jeg gjorde ingen endringer."
-    files = _norwegian_list([f"`{path}`" for path in changed_files])
-    if failed_verification:
-        return f"Endringene i {files} er ikke commitet, fordi de ikke besto valideringen."
-    return f"Endringene i {files} er ikke commitet."
+    if unsaved_files:
+        files = _norwegian_list([f"`{path}`" for path in unsaved_files])
+        if failed_verification:
+            return f"Endringene i {files} er ikke lagret, fordi de ikke besto valideringen."
+        return f"Endringene i {files} er ikke lagret."
+    if pushed:
+        return "Endringene jeg rakk å gjøre, er lagret i sesjons-grenen."
+    return "Jeg gjorde ingen endringer."
 
 
 def _norwegian_list(items: list[str]) -> str:
@@ -746,8 +767,7 @@ def _final_summary_text(result: LoopResult, *, changes: str) -> str:
     """User-facing summary chosen by termination reason.
 
     Only COMPLETED has the model's own final text; the others bailed mid-flight
-    and fall back to a Norwegian explanation rather than implying success, with
-    `changes` saying what became of the changes.
+    and fall back to a Norwegian explanation rather than implying success.
     """
     if result.reason is TerminationReason.COMPLETED:
         return _strip_sources_line(result.final_text or "Ferdig.").strip()
