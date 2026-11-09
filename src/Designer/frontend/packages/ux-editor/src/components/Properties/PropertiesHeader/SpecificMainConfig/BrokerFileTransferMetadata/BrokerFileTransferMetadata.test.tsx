@@ -138,6 +138,75 @@ describe('BrokerFileTransferMetadata', () => {
     );
   });
 
+  it('keeps the other entries when one is deleted', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMetadata(
+      { category: 'invoice', priority: 'high' },
+      handleComponentChange,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'category' }));
+    await user.click(screen.getByRole('button', { name: text('delete') }));
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ metadata: { priority: 'high' } }),
+    );
+  });
+
+  it('drops a new entry that is deleted before it is saved', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMetadata({ category: 'invoice' }, handleComponentChange);
+
+    await user.click(screen.getByRole('button', { name: text('add') }));
+    await user.click(screen.getByRole('button', { name: text('delete') }));
+
+    expect(handleComponentChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: text('add') })).toBeInTheDocument();
+  });
+
+  it('shows the data model field an entry reads from when the entry is opened', async () => {
+    const user = userEvent.setup();
+    renderBrokerFileTransferMetadata({ caseNumber: [DataLookupFuncName.DataModel, 'field1'] });
+
+    await user.click(screen.getByRole('button', { name: 'caseNumber' }));
+
+    await screen.findByRole('option', { name: 'field1' });
+    expect(screen.getByRole('combobox', { name: text('field') })).toHaveValue('field1');
+  });
+
+  it('refuses a key longer than the 50 characters Broker allows', async () => {
+    const user = userEvent.setup();
+    renderBrokerFileTransferMetadata();
+
+    await user.click(screen.getByRole('button', { name: text('add') }));
+    await user.type(keyField(), 'a'.repeat(51));
+
+    expect(screen.getByText(text('key_too_long'))).toBeInTheDocument();
+    expect(saveButton()).toBeDisabled();
+  });
+
+  it('reads the value from a data model field again after fixed text was chosen', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMetadata(undefined, handleComponentChange);
+
+    await user.click(screen.getByRole('button', { name: text('add') }));
+    await user.type(keyField(), 'caseNumber');
+    await user.click(screen.getByRole('radio', { name: text('source_text') }));
+    await user.click(screen.getByRole('radio', { name: text('source_field') }));
+    await screen.findByRole('option', { name: 'field1' });
+    await user.selectOptions(screen.getByRole('combobox', { name: text('field') }), 'field1');
+    await user.click(saveButton());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { caseNumber: [DataLookupFuncName.DataModel, 'field1'] },
+      }),
+    );
+  });
+
   it('stops offering to add entries at the 10 Broker allows', () => {
     renderBrokerFileTransferMetadata(
       Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`key${index}`, 'value'])),

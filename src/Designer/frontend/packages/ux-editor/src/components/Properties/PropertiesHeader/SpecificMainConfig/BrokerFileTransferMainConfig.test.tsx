@@ -82,6 +82,18 @@ describe('BrokerFileTransferMainConfig', () => {
     );
   });
 
+  it('specifies recipients when the recipients switch is turned on', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMainConfig(brokerFileTransferComponent, handleComponentChange);
+
+    await user.click(recipientsSwitch());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ hasCustomRecipients: true }),
+    );
+  });
+
   it('asks for an optional checksum when the checksum field is switched on', async () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
@@ -107,6 +119,21 @@ describe('BrokerFileTransferMainConfig', () => {
 
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({ checksum: 'required' }),
+    );
+  });
+
+  it('makes a required checksum optional again with the second switch', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferMainConfig(
+      { ...brokerFileTransferComponent, checksum: 'required' },
+      handleComponentChange,
+    );
+
+    await user.click(checksumRequiredSwitch());
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ checksum: 'optional' }),
     );
   });
 

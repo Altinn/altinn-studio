@@ -44,6 +44,22 @@ describe('BrokerFileTransferRecipients', () => {
     expect(fieldSelect()).toHaveValue('field1');
   });
 
+  it('removes the recipients when no data model field is chosen', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = vi.fn();
+    renderBrokerFileTransferRecipients(
+      [DataLookupFuncName.DataModel, 'field1'],
+      handleComponentChange,
+    );
+
+    await screen.findByRole('option', { name: 'field1' });
+    await user.selectOptions(fieldSelect(), '');
+
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ recipients: undefined }),
+    );
+  });
+
   it('saves fixed recipients as they are written', async () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
