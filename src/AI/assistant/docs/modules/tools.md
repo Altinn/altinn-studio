@@ -51,3 +51,5 @@ flowchart LR
 ```
 
 _How `verify_changes` picks a validator. It also checks text keys and page navigation._
+
+`verify_changes` compares text resources and text keys with the files at `HEAD`. An error that the change did not cause is a warning, so that old errors in an app do not stop a correct change to it. An error in a text resource is the change's when the change added or edited that text resource. The system prompt tells the model to name the warnings in its final message and offer to fix them.

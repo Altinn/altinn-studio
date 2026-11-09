@@ -148,7 +148,7 @@ class TestVerifyChanges:
             requested_locations.append(schema_location)
             return schema
 
-        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path):
+        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path, previous_resource_json):
             seen.update(schema=schema, language=language, repo_path=repo_path)
             return {"valid": True, "errors": [], "warnings": []}
 
@@ -718,9 +718,7 @@ class TestTextKeysResolveInEveryLanguage:
     """A key present in nb and missing in en renders as the key for English users,
     and removing it from a resource file leaves every layout still pointing at it."""
 
-    def _app(self, tmp_path: Path, *, en_has_key: bool):
-        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
-        layouts.mkdir(parents=True)
+    def _files(self, *, en_ids: list[str]) -> dict[str, str]:
         page = {
             "data": {
                 "layout": [
@@ -732,15 +730,15 @@ class TestTextKeysResolveInEveryLanguage:
                 ]
             }
         }
-        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
-        texts = tmp_path / "App" / "config" / "texts"
-        texts.mkdir(parents=True)
-        for language, has in (("nb", True), ("en", en_has_key)):
-            ids = ["app.button.submit"] if has else ["appName"]
-            (texts / f"resource.{language}.json").write_text(
-                json.dumps({"language": language, "resources": [{"id": i, "value": i} for i in ids]}),
-                encoding="utf-8",
+        files = {"App/ui/form/layouts/Side1.json": json.dumps(page)}
+        for language, ids in (("nb", ["app.button.submit"]), ("en", en_ids)):
+            files[f"App/config/texts/resource.{language}.json"] = json.dumps(
+                {"language": language, "resources": [{"id": i, "value": i} for i in ids]}
             )
+        return files
+
+    def _app(self, tmp_path: Path, *, en_has_key: bool):
+        write_files(tmp_path, self._files(en_ids=["app.button.submit"] if en_has_key else ["appName"]))
 
     async def _verify(self, tmp_path: Path, changed: set[str]):
         ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
@@ -770,3 +768,62 @@ class TestTextKeysResolveInEveryLanguage:
 
         assert result.is_error
         assert any("Side1.json" in note for note in body["notes"])
+
+    async def test_removing_a_key_that_a_layout_uses_fails(self, tmp_path: Path, permissive_schema):
+        create_committed_repo(tmp_path, self._files(en_ids=["app.button.submit"]))
+        write_files(tmp_path, self._files(en_ids=["appName"]))
+
+        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+
+        assert result.is_error
+        assert any("Side1.json" in note and "`app.button.submit`" in note for note in body["notes"])
+
+    async def test_a_key_that_was_missing_before_the_change_is_a_warning(self, tmp_path: Path, permissive_schema):
+        create_committed_repo(tmp_path, self._files(en_ids=["appName"]))
+        write_files(tmp_path, self._files(en_ids=["appName", "app.title"]))
+
+        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+
+        assert not result.is_error
+        assert any("Side1.json: warning:" in note and "`app.button.submit`" in note for note in body["notes"])
+
+
+class TestTextResourceErrorsBeforeTheChange:
+    """Old errors in a text resource file must not block a correct change to it."""
+
+    RESOURCE_PATH = "App/config/texts/resource.nb.json"
+    OLD_ERROR = {
+        "id": "greeting",
+        "value": "Hei {0}",
+        "variables": [{"key": "Person Navn", "dataSource": "dataModel.default"}],
+    }
+
+    def _resource_file(self, *resources: dict[str, Any]) -> dict[str, str]:
+        return {self.RESOURCE_PATH: json.dumps({"language": "nb", "resources": list(resources)})}
+
+    async def _verify(self, repo: Path):
+        ctx = _write_ctx(repo_path=str(repo), changed={self.RESOURCE_PATH})
+        # The v9 profile reads the text resource schema from disk.
+        ctx.app_version_profile = V9_PROFILE
+        result = await _verify(ctx)
+        return result, json.loads(result.content)
+
+    async def test_a_correct_change_passes_despite_an_old_error(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, self._resource_file(self.OLD_ERROR))
+        write_files(repo, self._resource_file(self.OLD_ERROR, {"id": "title", "value": "Tittel"}))
+
+        result, body = await self._verify(repo)
+
+        assert not result.is_error, body["notes"]
+        assert any("warning" in note and "'Person Navn'" in note for note in body["notes"])
+
+    async def test_an_error_in_the_change_fails(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, self._resource_file(self.OLD_ERROR))
+        new_error = {**self.OLD_ERROR, "id": "farewell", "variables": [{"key": "Ny Nøkkel", "dataSource": "x"}]}
+        write_files(repo, self._resource_file(self.OLD_ERROR, new_error))
+
+        result, body = await self._verify(repo)
+
+        assert result.is_error
+        assert any("[resources.1.variables.0" in note for note in body["notes"])
+        assert not any("[resources.0." in note and "warning" not in note for note in body["notes"])

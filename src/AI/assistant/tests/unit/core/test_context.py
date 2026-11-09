@@ -183,3 +183,12 @@ class TestFinalAnswerContract:
         assert "Tables are NOT" in prompt or "tables are not" in prompt.lower()
         # And it should give an example of the preferred shape.
         assert "bullet list" in prompt.lower()
+
+    def test_reports_errors_from_before_the_change_without_fixing_them(self):
+        """verify_changes lets old errors through as warnings, so the user hears of them only from the summary."""
+        prompt = build_system_prompt(_base_ctx())
+
+        assert (
+            "errors that were in the app before your change, name them after the files and offer to fix them" in prompt
+        )
+        assert "Don't fix them unasked" in prompt
