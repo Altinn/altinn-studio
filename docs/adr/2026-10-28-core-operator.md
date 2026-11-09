@@ -210,10 +210,7 @@ is such a host, in the Studio cluster. It has one command, which calls the opera
 workflow. The host knows no domain. The steps are in the operator, in Go. The src folder ADR names this project
 `operator-workflows`.
 
-A new domain, for example app deployments, is a new group of steps in the operator and a new namespace in the
-engine. The operator then knows what a release is, and D5 does not permit that. Before deployments move into the
-operator, the team must make one of two changes. D5 applies only to the content of an app, or deployments stay
-out of the operator. This ADR does not decide the deployment change.
+A new domain, for example app deployments, is a new group of steps in the operator and a new namespace in the engine. 
 
 ## Appendix A: The components that have a Kubernetes client in the Studio cluster now
 
