@@ -58,6 +58,67 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
     }
 
     /// <summary>
+    /// Lists the service owner's apps as they run, keyed by app. Each app's pods are read only when its status depends
+    /// on them, as for <see cref="GetRunning"/>, so listing apps that run as they should costs one read.
+    /// </summary>
+    public async Task<Dictionary<string, RunningAppDeployment>> ListRunning(
+        string org,
+        string @namespace,
+        CancellationToken cancellationToken
+    )
+    {
+        var deployments = await _kubernetes.AppsV1.ListNamespacedDeploymentAsync(
+            @namespace,
+            labelSelector: ReleaseLabel,
+            cancellationToken: cancellationToken
+        );
+        var now = _timeProvider.GetUtcNow();
+        var running = await Task.WhenAll(
+            AppDeploymentsOf(org, deployments.Items)
+                .Select(async app =>
+                    (
+                        app.App,
+                        Running: ToRunningAppDeployment(
+                            app.Release,
+                            app.Deployment,
+                            await StatusOf(
+                                app.Deployment,
+                                () => CurrentPods(app.Deployment, @namespace, cancellationToken),
+                                now
+                            )
+                        )
+                    )
+                )
+        );
+        return running.ToDictionary(app => app.App, app => app.Running);
+    }
+
+    /// <summary>
+    /// The org's app Deployments, by the app their <c>release</c> label names after the org. When two Deployments
+    /// carry the same release, the first counts, as it does for <see cref="GetRunning"/>.
+    /// </summary>
+    internal static IEnumerable<(string App, string Release, V1Deployment Deployment)> AppDeploymentsOf(
+        string org,
+        IEnumerable<V1Deployment> deployments
+    )
+    {
+        var prefix = ReleaseOf(org, string.Empty);
+        var apps = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var deployment in deployments)
+        {
+            if (
+                Annotation(deployment.Metadata?.Labels, ReleaseLabel) is { } release
+                && release.Length > prefix.Length
+                && release.StartsWith(prefix, StringComparison.Ordinal)
+                && apps.Add(release[prefix.Length..])
+            )
+            {
+                yield return (release[prefix.Length..], release, deployment);
+            }
+        }
+    }
+
+    /// <summary>
     /// Restarts the app by stamping its pod template, as <c>kubectl rollout restart</c> does, so Kubernetes replaces
     /// its pods with the same version, as it would on a deploy. Flux leaves the annotation alone, since app HelmReleases do not
     /// detect drift, and Helm keeps it on the next deploy, since no chart manifest sets it.

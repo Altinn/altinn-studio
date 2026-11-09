@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -210,7 +211,12 @@ public class ReportServiceTests
     private static string NorwegianNumber(int value) => value.ToString("#,0", CultureInfo.GetCultureInfo("nb-NO"));
 
     private ReportService CreateService() =>
-        new(_runtimeGatewayClient.Object, _appResourcesService.Object, _notificationService.Object, _timeProvider);
+        new(
+            _runtimeGatewayClient.Object,
+            new AppLibVersionService(_appResourcesService.Object, new MemoryCache(new MemoryCacheOptions())),
+            _notificationService.Object,
+            _timeProvider
+        );
 
     private void SetupReportMetrics(ReportMetrics reportMetrics) =>
         _runtimeGatewayClient

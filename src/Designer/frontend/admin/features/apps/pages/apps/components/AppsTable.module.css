@@ -32,3 +32,13 @@
   font-size: 1rem;
   font-weight: bold;
 }
+
+.noErrors {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.cellSkeleton {
+  display: inline-block;
+  width: 4rem;
+  height: 1.5rem;
+}

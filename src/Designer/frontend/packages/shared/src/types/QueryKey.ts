@@ -79,6 +79,7 @@ export enum QueryKey {
   AppHealthMetrics = 'AppHealthMetrics',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
+  PublishedAppStatuses = 'PublishedAppStatuses',
   AppInstancesWorkflowHealth = 'AppInstancesWorkflowHealth',
   AppInstanceWorkflows = 'AppInstanceWorkflows',
   AppWorkflowProblems = 'AppWorkflowProblems',

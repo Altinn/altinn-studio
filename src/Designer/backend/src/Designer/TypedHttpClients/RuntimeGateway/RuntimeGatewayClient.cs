@@ -83,6 +83,32 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<string, RunningAppDeployment>?> GetRunningAppDeployments(
+        string org,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/running";
+
+        using var response = await client.GetAsync(requestUrl, cancellationToken);
+        if (response.StatusCode is HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Dictionary<string, RunningAppDeployment>>(cancellationToken)
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing the running app deployments."
+            );
+    }
+
+    /// <inheritdoc />
     public async Task<RunningAppDeployment?> GetRunningAppDeployment(
         string org,
         string app,

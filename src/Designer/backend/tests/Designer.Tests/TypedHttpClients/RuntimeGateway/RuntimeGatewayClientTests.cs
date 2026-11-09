@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -88,6 +89,56 @@ public class RuntimeGatewayClientTests
             "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/running",
             handler.RequestUri?.ToString()
         );
+    }
+
+    [Fact]
+    public async Task GetRunningAppDeployments_ReturnsTheDeploymentsTheGatewayReportsByApp()
+    {
+        using var handler = new RespondingHandler(
+            HttpStatusCode.OK,
+            new Dictionary<string, object>
+            {
+                ["my-app"] = new
+                {
+                    release = "ttd-my-app",
+                    imageTag = "8",
+                    buildId = "1234",
+                    sourceEnvironment = "prod",
+                    deploymentId = "42",
+                    status = "degraded",
+                    restartedAt = (string)null,
+                },
+            }
+        );
+        var client = CreateClient(handler);
+
+        var deployments = await client.GetRunningAppDeployments(
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.NotNull(deployments);
+        Assert.Equal(new RunningAppDeployment("8", "1234", "prod", "degraded", null), deployments["my-app"]);
+        Assert.Equal(
+            "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/running",
+            handler.RequestUri?.ToString()
+        );
+    }
+
+    [Fact]
+    public async Task GetRunningAppDeployments_WhenTheGatewayPredatesTheList_ReturnsNull()
+    {
+        using var handler = new RespondingHandler(HttpStatusCode.NotFound);
+        var client = CreateClient(handler);
+
+        var deployments = await client.GetRunningAppDeployments(
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.Null(deployments);
     }
 
     [Theory]

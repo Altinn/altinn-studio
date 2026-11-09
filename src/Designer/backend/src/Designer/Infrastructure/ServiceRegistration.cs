@@ -128,6 +128,7 @@ public static class ServiceRegistration
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();
         services.AddTransient<IReportService, ReportService>();
+        services.AddTransient<IAppLibVersionService, AppLibVersionService>();
         services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
         services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
         services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();

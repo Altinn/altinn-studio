@@ -20,6 +20,7 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(AppDeployment))]
 [JsonSerializable(typeof(List<AppDeployment>))]
 [JsonSerializable(typeof(RunningAppDeployment))]
+[JsonSerializable(typeof(Dictionary<string, RunningAppDeployment>))]
 [JsonSerializable(typeof(IEnumerable<GrafanaAlertRule>))]
 [JsonSerializable(typeof(IEnumerable<AlertRule>))]
 [JsonSerializable(typeof(AlertPayload))]
