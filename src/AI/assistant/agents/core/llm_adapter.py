@@ -566,9 +566,6 @@ def _message_to_openai(message: Message) -> list[dict[str, Any]]:
                 )
             elif isinstance(block, TextBlock):
                 text_parts.append(block.text)
-        # OpenAI rejects a request where anything comes between an
-        # assistant's tool calls and their results, so the loop's notices
-        # (wrap-up, truncation) go after the tool messages.
         if text_parts:
             results.append({"role": "user", "content": "\n".join(text_parts)})
         return results
