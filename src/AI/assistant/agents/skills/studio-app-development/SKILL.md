@@ -29,6 +29,9 @@ The versions differ in these places. The skill for each topic has the details.
 [The upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/) describes the other main
 differences.
 
+A v9 app checks its configuration files when it builds. Each error or warning has a code that starts with
+`ALTINNAPP`, names the file and says what to change. The skills' version files state the rules it checks.
+
 ## The files of an app
 
 The app's behavior is mostly configuration in `App/`:
@@ -110,7 +113,7 @@ studio-app-lib skill says which interface does what and how to register it.
 - Every ID you added or renamed resolves: task IDs, data type IDs, bindings, text keys and `optionsId`.
 - Every `resource.<lang>.json` in the app has each new text key.
 - Each JSON file you changed is valid against its `$schema`.
-- In a v9 app, your changes break none of the `ALTINNAPP` build rules that the skills' version files list.
+- In a v9 app, your changes follow the rules in the skills' version files.
 
 ## Docs
 

@@ -17,7 +17,8 @@ format. The loader reads these fields:
 Write a skill for every agent that loads it: the assistant, and coding agents in a local clone of the app once the
 skills ship with studioctl. The assistant cannot build or run an app, so a skill never tells the reader to. Each item
 under "Before you finish" is one the reader can check in the app's files. Where the build checks a rule, state the
-rule. Coding agents get the build and run steps from the
+rule, and leave out its `ALTINNAPP` code. The build's message names the code and the fix, and the rules change with
+each release of the app libraries. Coding agents get the build and run steps from the
 [app-development](../../../../agents/_skills/app-development/SKILL.md) skill.
 
 Files the body links to go in `references/`. The model loads one with the `file` argument of the `skill` tool, since

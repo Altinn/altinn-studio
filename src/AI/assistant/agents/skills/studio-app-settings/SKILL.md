@@ -172,7 +172,7 @@ Secrets go in the organization's Azure Key Vault:
   C# code refer to it.
 - After a change to `title`, `appName` has the same name in every `resource.<lang>.json`.
 - No secret is in the repository.
-- In a v9 app, `applicationmetadata.json` breaks none of the build rules that the version file lists.
+- In a v9 app, `applicationmetadata.json` follows the rules in the version file.
 
 ## Docs
 
