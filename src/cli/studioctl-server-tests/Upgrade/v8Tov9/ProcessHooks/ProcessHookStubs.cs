@@ -22,6 +22,7 @@ internal static class ProcessHookStubs
     public const string OnTaskAbandoningContext = "global::Altinn.App.Core.Features.Process.OnTaskAbandoningContext";
     public const string OnProcessEndedContext = "global::Altinn.App.Core.Features.Process.OnProcessEndedContext";
     public const string HandlerResult = "global::Altinn.App.Core.Features.Process.HandlerResult";
+    public const string IInstanceDataMutator = "global::Altinn.App.Core.Features.IInstanceDataMutator";
     public const string FailedHandlerResult = "global::Altinn.App.Core.Features.Process.FailedHandlerResult";
 
     /// <summary>The usings a fixture's hook class needs; the v8 app template has no implicit usings.</summary>
