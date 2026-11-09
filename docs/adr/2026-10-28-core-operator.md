@@ -11,6 +11,10 @@ runs, reconciliation and, later, deployments. Kubernetes is one backend of the o
 service that starts such work, for example a sandbox run of app code, sends a request to the operator through an
 API.
 
+The operator keeps no state of a run. Each run is a workflow in a host of the
+[workflow engine](../../src/Runtime/workflow-engine/README.md), which has a Postgres database. The Job keeps the
+archive and the result. The operator has no volume and no database.
+
 The core operator is also the one Studio component that has a Kubernetes client. The services have no Kubernetes
 permission. The conditions in "Conditions for operator work" tell you which work the operator does and which work
 stays in the service.
@@ -107,24 +111,22 @@ different quota.
 - Good, because the pod specification and the microVM from the accepted ADR do not change. The admission policy,
   the network policy and the job host change only their subject and their client. Their protection does not
   change (D3).
-- Good, because the operator controls the run after the request returns. The operator puts the run in a queue,
-  monitors it, stops it after a timeout and deletes it. A caller that starts again gets the run by its id. This
-  applies after the job host changes so that a run continues when its client disconnects (D4).
-- Good, because it is Go with controller-runtime. This is the stack of the runtime operator, and the same squad
-  operates it (D7).
-- Bad, because it is a new deployment that the team must build, operate and monitor. It is also a second
-  controller-runtime code base that the team must keep current with the runtime operator (D7).
-- Bad, because each run from each caller goes through the operator. With one replica, a restart of the operator
-  stops all the runs that are not complete. This changes only if the job host changes so that a run continues
-  without its client (D4).
+- Good, because the engine keeps the run after the request returns. The engine calls a step again after an error,
+  waits with a budget and cancels. A caller that starts again finds its run. A restart of the operator stops the
+  run API for some seconds, and the runs that are not complete continue. The operator builds no scheduler (D4).
+- Good, because the operator is Go with controller-runtime, the stack of the runtime operator. The engine host
+  composes the workflow engine that the runtime clusters use. The team knows both stacks (D7).
+- Bad, because the operator and the engine host are two deployments that the team must build, operate and monitor.
+  The engine host needs a Postgres server and an identity in `altinn-studio-infra`. The server continues to exist
+  after a revert. The operator is also a second controller-runtime code base next to the runtime operator (D7).
 - Bad, because the operator does not control the sandbox capacity. The KEDA runner Jobs use the same KVM slots.
   Thus the quotas of the operator cannot make sure that a run starts (D2).
 - Bad, because if the operator does the work of `runner-org-sync`, the Gitea admin token is in the pod that creates
   the Jobs. This token makes tokens for all organizations. Thus this work must stay out of the operator, or it
   must have a separate identity (D1).
 - Bad, because the run API becomes a versioned contract between Go, C# and Python. Separate workflows deploy the
-  three sides at different rates. Each change must stay compatible with the previous clients. This effect is not
-  related to the drivers.
+  three sides at different rates. Each change must stay compatible with the previous clients. The callbacks
+  between the engine host and the operator are a second contract. This effect is not related to the drivers.
 
 ## Conditions for operator work
 
@@ -159,9 +161,14 @@ this decision specifies.
 - **Contract.** A caller creates a run with a kind from a fixed catalog and with arguments. The caller then polls
   the run by its id, gets the result and can cancel the run. A caller never gives a command. A caller authenticates
   with its projected ServiceAccount token, which the operator examines with TokenReview. There is no new secret.
-- **Results.** The operator does not keep the results in Kubernetes objects.
-- **Structure.** The API, the catalog and the run model do not depend on controller-runtime. The code that uses
-  controller-runtime and the Kubernetes API is in a sub-package. A new backend adds a sub-package and a kind.
+- **Results.** The operator does not keep the results in Kubernetes objects. The Job keeps the archive and the
+  result until the caller has fetched the result.
+- **State.** The operator has no volume and no database. Each run is a workflow in the engine host. The engine
+  supplies the retries, the waits, the wait budgets and the cancellation. The engine host needs a Postgres
+  database, which `altinn-studio-infra` supplies.
+- **Structure.** One package in the operator uses controller-runtime and the Kubernetes API, behind a contract
+  with no Kubernetes types. The API, the catalog and the run steps do not depend on that package. A new domain
+  adds a package and a group of steps.
 
 ```mermaid
 flowchart LR
@@ -169,10 +176,15 @@ flowchart LR
     assistant["Assistant"]
     k8s["Kubernetes API"]
 
+    pg[("Postgres")]
+
     subgraph operator["core-operator"]
         api["Run API"]
-        rec["Job reconciler"]
+        steps["Run steps"]
+        kube["Kubernetes package"]
     end
+
+    engine["Engine host"]
 
     subgraph runnerPod["Job pod, no secrets"]
         host["Job host"]
@@ -181,25 +193,27 @@ flowchart LR
 
     designer -->|"create run, poll, get result"| api
     assistant -->|"create run, poll, get result"| api
-    api --> rec
-    rec -->|"create, watch, delete Job"| k8s
+    api -->|"enqueue, status, cancel"| engine
+    engine -->|"one callback for each step"| steps
+    engine --- pg
+    steps --> kube
+    kube -->|"create, watch, delete Job"| k8s
     k8s -->|"starts"| runnerPod
-    rec -->|"archive in, result and patch out"| host
+    api -->|"archive in, result out"| host
     host --> vm
 ```
 
 ## Relation to the workflow engine
 
-The src folder ADR plans a project `operator-workflows` next to the operator. The
-[workflow engine](../../src/Runtime/workflow-engine/README.md) is a .NET library that a host composes, and the host
-adds its commands. A host in the Studio cluster that composes the engine is a caller of the operator in this ADR.
-Its workflows keep the intent and the record. The operator does the steps that use the cluster. This split follows
-the Go ADR: domain logic in .NET, Kubernetes in Go.
+The workflow engine is a .NET library. A host composes it and adds its commands. The engine host of the operator
+is such a host, in the Studio cluster. It has one command, which calls the operator back for each step of a
+workflow. The host knows no domain. The steps are in the operator, in Go. The src folder ADR names this project
+`operator-workflows`.
 
-If the app deployments move from Azure DevOps to such workflows, the deployment logic goes in `operator-workflows`
-and the cluster steps go in the operator. D5 then applies to the operator and not to the workflows. A run that a
-workflow step starts is one request to the operator. The workflow engine keeps the queue of the workflow. The
-operator keeps the queue of the run. This ADR does not decide the deployment change.
+A new domain, for example app deployments, is a new group of steps in the operator and a new namespace in the
+engine. The operator then knows what a release is, and D5 does not permit that. Before deployments move into the
+operator, the team must make one of two changes. D5 applies only to the content of an app, or deployments stay
+out of the operator. This ADR does not decide the deployment change.
 
 ## Appendix A: The components that have a Kubernetes client in the Studio cluster now
 
