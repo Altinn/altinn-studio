@@ -21,6 +21,9 @@ browsers.
   [observability-proxy](../src/observability-proxy) to VictoriaMetrics, VictoriaTraces and VictoriaLogs.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
   `altinn-studio-logs` and `altinn-studio-traces-logsql`.
+- In DIS Core, our services share the collectors in the namespace `product-studio-obs`. Services that reported to the
+  platform's Azure Monitor before they moved there, such as Storage, keep reporting to it: the router also sends
+  their telemetry, unsampled, to the platform's collector, which samples it by its own rules.
 
 [infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
@@ -303,7 +306,9 @@ section.
 - The router sets `deployment.environment.name` from the cluster, overwriting any value a service sets.
 - In a service owner's own cluster, the router sets `altinn.service_owner` on the resource, unless the service has set
   it.
-- The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`.
+- The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`. In DIS Core,
+  where the collectors may not read pods, the deployment sets the pod's metadata in `OTEL_RESOURCE_ATTRIBUTES`
+  instead, as pdf3's does.
 - The router drops logs below WARN.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
