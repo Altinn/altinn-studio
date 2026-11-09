@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agents.core.llm_adapter import OpenAIAdapter, _usage_details
+from agents.core.llm_adapter import AnthropicAdapter, LLMAdapter, OpenAIAdapter, _usage_details
 from agents.core.messages import Message, UserMessage
 
 MESSAGES: list[Message] = [UserMessage(content="say ok")]
@@ -30,14 +30,37 @@ def _completion(prompt_tokens: int, cached: int | None):
     )
 
 
-async def _chat(adapter: OpenAIAdapter, completion) -> tuple[dict, dict]:
-    adapter._client = MagicMock()
-    adapter._client.chat.completions.create = AsyncMock(return_value=completion)
+def _anthropic_message(cache_read: int | None, cache_creation: int | None):
+    # The SDK types both cache counts as optional, with None when the endpoint leaves them out.
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="text", text="ok")],
+        stop_reason="end_turn",
+        usage=SimpleNamespace(
+            input_tokens=2,
+            output_tokens=610,
+            cache_read_input_tokens=cache_read,
+            cache_creation_input_tokens=cache_creation,
+        ),
+    )
+
+
+async def _traced_chat(adapter: LLMAdapter) -> tuple[dict, dict]:
     span = MagicMock()
     with patch("agents.core.llm_adapter.trace_generation") as traced:
         traced.return_value.__enter__.return_value = span
         assistant = await adapter.chat(messages=MESSAGES, system_prompt="s", tool_schemas=[])
     return assistant.usage, span.update.call_args.kwargs["usage_details"]
+
+
+async def _chat(adapter: OpenAIAdapter, completion) -> tuple[dict, dict]:
+    adapter._client = MagicMock()
+    adapter._client.chat.completions.create = AsyncMock(return_value=completion)
+    return await _traced_chat(adapter)
+
+
+async def _chat_anthropic(adapter: AnthropicAdapter, message) -> tuple[dict, dict]:
+    adapter._stream_or_fallback = AsyncMock(return_value=message)
+    return await _traced_chat(adapter)
 
 
 @pytest.fixture
@@ -48,6 +71,15 @@ def adapter():
     made.max_tokens = 1024
     made._is_reasoning = True
     made._reasoning_effort = "low"
+    return made
+
+
+@pytest.fixture
+def claude():
+    with patch.object(AnthropicAdapter, "__init__", lambda self, **kw: None):
+        made = AnthropicAdapter(model="claude-sonnet-5-5")
+    made.model = "claude-sonnet-5-5"
+    made.max_tokens = 1024
     return made
 
 
@@ -77,6 +109,29 @@ class TestCachedPromptTokens:
         assert details["input"] == 1821
 
 
+class TestAnthropicCacheTokens:
+    """Langfuse counts a usage key it has no price for as free, so a cache kind
+    under another name drops out of the cost."""
+
+    async def test_cache_reads_and_writes_reach_the_trace_under_the_names_langfuse_prices(self, claude):
+        _, details = await _chat_anthropic(claude, _anthropic_message(cache_read=37082, cache_creation=221))
+
+        assert details == {
+            "input": 2,
+            "output": 610,
+            "input_cache_read": 37082,
+            "input_cache_creation": 221,
+            "total": 37915,
+        }
+
+    async def test_an_endpoint_that_omits_the_cache_counts_is_treated_as_a_miss(self, claude):
+        usage, details = await _chat_anthropic(claude, _anthropic_message(cache_read=None, cache_creation=None))
+
+        assert usage["cache_read_input_tokens"] == 0
+        assert usage["cache_creation_input_tokens"] == 0
+        assert details["total"] == 612
+
+
 class TestTotalIsComparableAcrossProviders:
     """Anthropic omits cache reads from input, Azure includes them, so the total
     cannot be built from either provider's own input figure."""
@@ -94,19 +149,3 @@ class TestTotalIsComparableAcrossProviders:
 
     def test_a_turn_with_no_caching_is_input_plus_output(self):
         assert _usage_details(fresh=1821, output=7)["total"] == 1828
-
-
-class TestKeysAreTheNamesLangfusePrices:
-    """Langfuse counts a usage key it has no price for as free, so a cache kind
-    under another name drops out of the cost."""
-
-    def test_every_token_kind_is_reported_under_its_priced_name(self):
-        details = _usage_details(fresh=2, output=610, cache_read=37082, cache_creation=221)
-
-        assert details == {
-            "input": 2,
-            "output": 610,
-            "input_cache_read": 37082,
-            "input_cache_creation": 221,
-            "total": 37915,
-        }

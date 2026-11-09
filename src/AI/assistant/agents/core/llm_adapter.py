@@ -296,8 +296,9 @@ class AnthropicAdapter(LLMAdapter):
             usage = {
                 "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
-                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) if usage_obj else 0,
-                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
+                # The SDK leaves these None when the endpoint omits them.
+                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) or 0,
+                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) or 0,
             }
 
             assistant = AssistantMessage(
