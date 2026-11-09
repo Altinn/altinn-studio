@@ -12,18 +12,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 from .utils.repo_files import PathError, mark_read, resolve_repo_path
-from .utils.text_parts import MAX_PART_CHARS, text_part
+from .utils.text_parts import MAX_PART_CHARS, PartLimit, PartOffset, text_part
 
 
 class ReadFileArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     path: str = Field(min_length=1, description="Repo-relative path.")
-    offset: int = Field(default=1, ge=1, description="Line number to start reading from. The first line is 1.")
-    limit: int | None = Field(
-        default=None,
-        ge=1,
-        description="Maximum number of lines to read. Leave out to read as much as one call returns.",
-    )
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class ReadFileTool(Tool[ReadFileArgs]):

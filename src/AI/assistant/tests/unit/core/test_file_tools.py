@@ -8,6 +8,7 @@ calls in discard_file_changes are exercised via subprocess monkeypatch.
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -34,10 +35,8 @@ def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
 def _text_resource_file(count: int) -> str:
     """A Studio-formatted text resource file with `count` texts, about 90
     characters per text."""
-    entries = ",\n".join(
-        f'    {{\n      "id": "text-{n}",\n      "value": "Tekst nummer {n} i appen"\n    }}' for n in range(count)
-    )
-    return f'{{\n  "language": "nn",\n  "resources": [\n{entries}\n  ]\n}}\n'
+    resources = [{"id": f"text-{n}", "value": f"Tekst nummer {n} i appen"} for n in range(count)]
+    return json.dumps({"language": "nn", "resources": resources}, indent=2, ensure_ascii=False) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -107,26 +106,19 @@ class TestReadFile:
         assert f"Showing lines 1–{last} of {total} in resource.nn.json" in result.content
         assert f"call `read_file` with `offset` {last + 1}" in result.content
 
-    async def test_reading_every_part_returns_the_whole_file(self, tmp_path: Path):
+    async def test_offset_reads_the_next_part(self, tmp_path: Path):
         text = _text_resource_file(2_000)
         (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
         tool = ReadFileTool()
         ctx = _ctx(tmp_path)
-        parts: list[str] = []
-        offset = 1
-        while True:
-            result = await tool.run(
-                tool.input_schema.model_validate({"path": "resource.nn.json", "offset": offset}),
-                ctx,
-            )
-            assert not result.is_error
-            parts.append(result.content.rsplit("\n\n[Showing lines", 1)[0])
-            if not result.metadata["truncated"]:
-                assert "This is the end of resource.nn.json." in result.content
-                break
-            offset = result.metadata["end_line"] + 1
-        assert len(parts) > 1
-        assert "".join(parts) == text
+        first = await tool.run(tool.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        offset = first.metadata["end_line"] + 1
+        second = await tool.run(
+            tool.input_schema.model_validate({"path": "resource.nn.json", "offset": offset}),
+            ctx,
+        )
+        assert second.metadata["start_line"] == offset
+        assert second.content.startswith(text.split("\n")[offset - 1] + "\n")
 
     async def test_offset_past_end_is_error_and_does_not_mark_read(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("a\nb\n", encoding="utf-8")

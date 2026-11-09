@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
-from .utils.text_parts import MAX_PART_CHARS, text_part
+from .utils.text_parts import MAX_PART_CHARS, PartLimit, PartOffset, text_part
 
 ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "altinn.studio"}
 FETCH_TIMEOUT_SECONDS = 20.0
@@ -38,14 +38,8 @@ _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 class WebFetchArgs(BaseModel):
     url: str = Field(description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio.")
-    offset: int = Field(
-        default=1, ge=1, description="Line of the page text to start reading from. The first line is 1."
-    )
-    limit: int | None = Field(
-        default=None,
-        ge=1,
-        description="Maximum number of lines to read. Leave out to read as much as one call returns.",
-    )
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class WebFetchTool(Tool[WebFetchArgs]):

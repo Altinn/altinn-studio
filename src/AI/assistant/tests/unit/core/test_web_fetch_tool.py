@@ -172,7 +172,8 @@ class TestPageContent:
         result = await _fetch(DOCS_URL, offset=5)
 
         assert result.is_error
-        assert result.content == f"offset 5 is past the end of {DOCS_URL}, which has 1 lines."
+        # An error result must not record the page as a consulted source.
+        assert "source" not in result.metadata
 
 
 class TestRedirects:

@@ -73,8 +73,7 @@ def cap_tool_result(content: str, max_chars: int) -> str:
     omitted = len(content) - max_chars
     return (
         f"{head}\n\n[…truncated {omitted} chars.  You have not seen the rest of this result, so do not "
-        "treat it as read or handled.  If you need the rest, call the tool again for a smaller part, "
-        "such as `read_file` with a later `offset`.]"
+        "treat it as read or handled.  If you need the rest, call the tool again for a smaller part.]"
     )
 
 

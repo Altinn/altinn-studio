@@ -8,12 +8,23 @@ part starts, so the model can read all of it.
 
 from __future__ import annotations
 
+from typing import Annotated
+
+from pydantic import Field
+
 from agents.core.compaction import DEFAULT_MAX_RESULT_CHARS
 from agents.core.tool import ToolResult
 
 # Room under the loop's cap for the note at the end of a part.
 _NOTE_RESERVE_CHARS = 1_000
 MAX_PART_CHARS = DEFAULT_MAX_RESULT_CHARS - _NOTE_RESERVE_CHARS
+
+# The `offset` and `limit` arguments of a tool that returns text in parts.
+PartOffset = Annotated[int, Field(ge=1, description="Line to start reading from. The first line is 1.")]
+PartLimit = Annotated[
+    int | None,
+    Field(ge=1, description="Maximum number of lines to read. Leave out to read as much as one call returns."),
+]
 
 
 def text_part(text: str, *, offset: int, limit: int | None, source: str, next_call: str) -> ToolResult:
@@ -35,25 +46,22 @@ def text_part(text: str, *, offset: int, limit: int | None, source: str, next_ca
 
     start = offset - 1
     stop = total if limit is None else min(total, start + limit)
-    # Always take the first line.  A line whose text fills a whole part is
-    # one character over, because of its line break.
-    end = max(_fit_lines(lines, start, stop, MAX_PART_CHARS), min(start + 1, stop))
+    end = _fit_lines(lines, start, stop)
     part = "".join(lines[start:end])
     metadata = {"chars": len(text), "lines": total}
     if start == 0 and end == total:
         return ToolResult(content=part, metadata=metadata)
 
-    first, last = start + 1, end
-    note = f"[Showing lines {first}–{last} of {total} in {source}."
+    note = f"[Showing lines {offset}–{end} of {total} in {source}."
     if total > len(whole_lines):
         note += f"  Lines longer than {MAX_PART_CHARS:,} characters count as several lines here."
-    if last < total:
-        note += f"  To read the next part, {next_call} `offset` {last + 1}."
+    if end < total:
+        note += f"  To read the next part, {next_call} `offset` {end + 1}."
     else:
         note += f"  This is the end of {source}."
     return ToolResult(
         content=f"{part}\n\n{note}]",
-        metadata={**metadata, "truncated": last < total, "start_line": first, "end_line": last},
+        metadata={**metadata, "truncated": end < total, "start_line": offset, "end_line": end},
     )
 
 
@@ -79,12 +87,14 @@ def _split_long_line(line: str) -> list[str]:
     return pieces
 
 
-def _fit_lines(lines: list[str], start: int, stop: int, max_chars: int) -> int:
+def _fit_lines(lines: list[str], start: int, stop: int) -> int:
     """Return the end index of the longest run of lines from `start`, at
-    most to `stop`, whose total length fits in `max_chars`."""
+    most to `stop`, that fits in a part.  The first line is always taken:
+    a line whose text fills a whole part is one character over, because
+    of its line break."""
     size = 0
     end = start
-    while end < stop and size + len(lines[end]) <= max_chars:
+    while end < stop and (end == start or size + len(lines[end]) <= MAX_PART_CHARS):
         size += len(lines[end])
         end += 1
     return end
