@@ -59,7 +59,10 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
       <ContentTag className={classes.labelContainer}>
         <ContentTag className={classes.labelContent}>
           {typeof label === 'string' ? <Lang id={label} /> : label}
-          <RequiredIndicator required={required} />
+          <RequiredIndicator
+            required={required}
+            readOnly={readOnly}
+          />
           <OptionalIndicator
             readOnly={readOnly}
             required={required}

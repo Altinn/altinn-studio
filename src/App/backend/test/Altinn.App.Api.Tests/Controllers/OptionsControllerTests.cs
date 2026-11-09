@@ -4,17 +4,16 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class OptionsControllerTests : ApiTestBase
 {
-    public OptionsControllerTests(ITestOutputHelper outputHelper, WebApplicationFactory<Program> factory)
-        : base(factory, outputHelper) { }
+    public OptionsControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task Get_ShouldReturnParametersInHeader()

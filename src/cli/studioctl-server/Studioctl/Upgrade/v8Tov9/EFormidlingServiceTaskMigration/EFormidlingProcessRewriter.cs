@@ -352,8 +352,9 @@ internal sealed class EFormidlingProcessRewriter
                     _warnings.Add(
                         $"Gateway '{gatewayId}' evaluates expressions and previously inferred its data model "
                             + $"from task '{sourceTaskId}', which the inserted eFormidling service task now "
-                            + "precedes. The data type could not be determined from applicationmetadata.json - "
-                            + "please set <altinn:connectedDataTypeId> on the gateway manually."
+                            + "precedes. The task's UI settings name no data model, so nothing was pinned - set "
+                            + "<altinn:connectedDataTypeId> on the gateway if its expressions read the data model "
+                            + "without naming a data type."
                     );
                 }
                 else
@@ -375,8 +376,8 @@ internal sealed class EFormidlingProcessRewriter
                         $"Gateway '{gatewayId}' evaluates expressions and previously inferred its data model "
                             + $"from task '{sourceTaskId}', which the inserted eFormidling service task now "
                             + $"precedes. Set <altinn:connectedDataTypeId>{dataTypeId}</altinn:connectedDataTypeId> "
-                            + "on the gateway to preserve that behavior - adjust it if the gateway expressions "
-                            + "target a different data model."
+                            + "on the gateway, the data model of the task's UI settings (its layout set in v8), to "
+                            + "preserve that behavior."
                     );
                 }
             }

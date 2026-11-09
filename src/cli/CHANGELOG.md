@@ -9,6 +9,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` removes `AppSettings:EnforceDataTypeTaskId` from the appsettings files, and points out when it was off, since the app APIs now always refuse writes to a data type outside the tasks it is bound to. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
+- `studioctl app upgrade v9` replaces `taskId` with `taskIds` on the data types in `applicationmetadata.json`, so each data type stays bound to its task in v9. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+
+### Changed
+
+- Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, also during a process transition. Once the process has ended it allows only the deletion `autoDeleteOnProcessEnd` asks for. A mutation that sets the process state cannot also change data elements. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+
+### Fixed
+
+- `studioctl app upgrade v9` points the gateways after an eFormidling service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the task's first form in `applicationmetadata.json`. A gateway the PDF service task step already pinned keeps its value; without a layout-set data model it asks you to set it. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+
 ## [0.1.0-preview.31] - 2026-11-06
 
 ### Added

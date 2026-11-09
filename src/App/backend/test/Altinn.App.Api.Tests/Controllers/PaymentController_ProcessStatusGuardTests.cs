@@ -7,7 +7,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -15,19 +14,14 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public sealed class PaymentControllerProcessStatusGuardTests
-    : ApiTestBase,
-        IClassFixture<WebApplicationFactory<Program>>
+public sealed class PaymentControllerProcessStatusGuardTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
 
-    public PaymentControllerProcessStatusGuardTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public PaymentControllerProcessStatusGuardTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]

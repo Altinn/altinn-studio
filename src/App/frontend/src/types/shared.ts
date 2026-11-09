@@ -56,7 +56,7 @@ export interface IDataType {
   allowedContributers?: string[] | null;
   allowedContributors?: string[] | null;
   appLogic?: IApplicationLogic | null;
-  taskId?: string | null;
+  taskIds?: string[] | null;
   maxSize?: number | null;
   maxCount: number;
   minCount: number;

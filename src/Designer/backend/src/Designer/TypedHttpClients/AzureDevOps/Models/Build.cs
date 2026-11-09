@@ -17,6 +17,12 @@ public class Build
     public int Id { get; set; }
 
     /// <summary>
+    /// The time that the build was queued.
+    /// </summary>
+    [JsonPropertyName("queueTime")]
+    public DateTime? QueueTime { get; set; }
+
+    /// <summary>
     /// The time that the build was started.
     /// </summary>
     [JsonPropertyName("startTime")]
@@ -41,4 +47,19 @@ public class Build
     [JsonPropertyName("result")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public BuildResult Result { get; set; }
+
+    /// <summary>
+    /// The pipeline the build runs.
+    /// </summary>
+    [JsonPropertyName("definition")]
+    public BuildDefinition Definition { get; set; }
+}
+
+/// <summary>
+/// The pipeline a build runs, as Azure DevOps returns it with the build.
+/// </summary>
+public class BuildDefinition
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
 }

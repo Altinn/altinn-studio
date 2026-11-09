@@ -35,7 +35,6 @@ using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -43,15 +42,12 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class InstancesController_PostNewInstanceTests : ApiTestBase
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new();
 
-    public InstancesController_PostNewInstanceTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper)
+    public InstancesController_PostNewInstanceTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
