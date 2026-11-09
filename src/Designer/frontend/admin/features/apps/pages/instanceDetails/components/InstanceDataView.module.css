@@ -32,6 +32,12 @@
   align-items: center;
 }
 
+.data-element-task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 .data-element-icon {
   font-size: 22px;
   margin-right: 0.25rem;

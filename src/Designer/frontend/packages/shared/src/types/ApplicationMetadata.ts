@@ -81,6 +81,7 @@ export interface DataTypeElement {
   maxSize?: number;
   minCount?: number;
   taskId?: string;
+  taskIds?: string[];
   validationErrorOnPendingFileScan?: boolean;
 }
 
