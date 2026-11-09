@@ -10,7 +10,7 @@ namespace Altinn.Studio.Preview.Apps;
 /// through renews the session, and gets the session's working copy as an <see cref="AppFolder"/>, the only way an
 /// endpoint reads files. Any other request gets the same 404, so a response doesn't tell whether a session exists.
 /// </summary>
-internal sealed class SessionFilter(SessionStore sessionStore, IOptions<PreviewOptions> options) : IEndpointFilter
+internal sealed class SessionFilter(ISessionStore sessionStore, IOptions<PreviewOptions> options) : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {

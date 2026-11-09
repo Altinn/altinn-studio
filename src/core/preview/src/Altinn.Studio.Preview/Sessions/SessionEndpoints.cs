@@ -20,7 +20,7 @@ internal static class SessionEndpoints
 
     private static async Task<IResult> Start(
         StartSessionRequest request,
-        SessionStore sessionStore,
+        ISessionStore sessionStore,
         IOptions<PreviewOptions> options,
         CancellationToken cancellationToken
     )

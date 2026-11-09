@@ -1,10 +1,10 @@
 using System.Globalization;
 using Altinn.Studio.Preview.Hosting;
+using Altinn.Studio.Preview.Sessions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,9 +13,9 @@ namespace Altinn.Studio.Preview.Tests;
 
 /// <summary>
 /// The service in process, over a repository root in a temporary directory, with sessions in memory unless a test
-/// passes a cache of its own.
+/// passes a store of its own.
 /// </summary>
-internal sealed class PreviewApplicationFactory(IDistributedCache? sessionCache = null) : WebApplicationFactory<Program>
+internal sealed class PreviewApplicationFactory(ISessionStore? sessionStore = null) : WebApplicationFactory<Program>
 {
     public const string PublicBaseUrl = "https://preview.test";
     public const string StudioOrigin = "https://studio.test";
@@ -51,15 +51,8 @@ internal sealed class PreviewApplicationFactory(IDistributedCache? sessionCache 
         );
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll<IDistributedCache>();
-            if (sessionCache is null)
-            {
-                services.AddDistributedMemoryCache();
-            }
-            else
-            {
-                services.AddSingleton(sessionCache);
-            }
+            services.RemoveAll<ISessionStore>();
+            services.AddSingleton(sessionStore ?? new InMemorySessionStore());
             services.AddSingleton<IStartupFilter, LocalPortFromHeader>();
         });
     }
