@@ -40,8 +40,8 @@ spec:
         - ports:
             - port: "5031"
               protocol: TCP
-  # Chrome loads whatever page a request names, so the workers may only reach DNS, their
-  # collector and the public internet. A CIDR rule never matches pods or nodes in the cluster, so
+  # Chrome loads whatever page a request names, so the workers may only reach DNS, the
+  # collectors and the public internet. A CIDR rule never matches pods or nodes in the cluster, so
   # the allow rule below doesn't reach the cluster's pods, Services or nodes. It allows every
   # address; the private and link-local ranges are excluded once, in egressDeny, which wins over
   # this and every other allow.
@@ -56,6 +56,19 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+    # Studio's collectors in DIS Core (infra/observability/dis-core), by the labels the
+    # OpenTelemetry Operator gives the router's pods.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: product-studio-obs
+            app.kubernetes.io/component: opentelemetry-collector
+            app.kubernetes.io/instance: product-studio-obs.otel-router
+      toPorts:
+        - ports:
+            - port: "4317"
+              protocol: TCP
+    # pdf3's own collector, which workers from before the switch to Studio's collectors still
+    # send to while they drain.
     - toEndpoints:
         - matchLabels:
             app: pdf3-collector
