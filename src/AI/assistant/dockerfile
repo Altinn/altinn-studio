@@ -27,7 +27,7 @@ COPY src/AI/assistant/api/ ./api/
 COPY src/AI/assistant/services/ ./services/
 COPY src/AI/assistant/shared/ ./shared/
 # The layout contract schemas, where the schema paths in BaseConfig point from /app. The CDN
-# serves only the v8 layout contract, and its copy of the text resource schema is out of date.
+# serves only the v8 contract.
 COPY src/common/ts/layout-contract/schemas/json/ /common/ts/layout-contract/schemas/json/
 
 EXPOSE 8071

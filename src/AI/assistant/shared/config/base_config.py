@@ -65,8 +65,7 @@ class BaseConfig:
     PROJECT_ROOT = Path(__file__).parent.parent.parent
     _LAYOUT_CONTRACT_SCHEMAS_DIR = PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json"
     LAYOUT_SCHEMA_V9_DIR = _LAYOUT_CONTRACT_SCHEMAS_DIR / "layout"
-    # The CDN copy of this schema lacks variable features that app frontend accepts.
-    TEXT_RESOURCES_SCHEMA_PATH = _LAYOUT_CONTRACT_SCHEMAS_DIR / "text-resources" / "text-resources.schema.v1.json"
+    TEXT_RESOURCES_SCHEMA_V9_PATH = _LAYOUT_CONTRACT_SCHEMAS_DIR / "text-resources" / "text-resources.schema.v1.json"
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")

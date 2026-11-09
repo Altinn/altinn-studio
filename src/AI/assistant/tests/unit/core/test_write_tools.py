@@ -4,7 +4,7 @@ commit_session_branch.
 
 The behavior of the file tools is tested in `test_file_tools.py`.
 
-External services (git_ops, repo_manager, the layout-schema CDN fetch)
+External services (git_ops, repo_manager, the CDN schema fetches)
 are monkeypatched or stubbed — nothing in here touches the network.  The
 v9 tests read the in-repo v9 schema and use real git repos in tmp_path.
 """
@@ -60,7 +60,7 @@ def _write_ctx(
 
 @pytest.fixture
 def permissive_schema(monkeypatch):
-    """Layout schema fetch → empty schema (accepts any layout)."""
+    """Schema fetch → empty schema (accepts any layout or text resource file)."""
     monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", lambda url: {})
 
 
@@ -140,12 +140,19 @@ class TestVerifyChanges:
         resource_path.parent.mkdir(parents=True)
         resource_path.write_text('{"resources": []}', encoding="utf-8")
 
+        requested_locations: list[str] = []
+        schema = {"$id": "text-resources"}
         seen: dict[str, Any] = {}
 
-        def fake_resource_validator(*, user_goal, resource_json, language, repo_path):
-            seen.update(language=language, repo_path=repo_path)
+        def load_schema(schema_location: str) -> dict:
+            requested_locations.append(schema_location)
+            return schema
+
+        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path):
+            seen.update(schema=schema, language=language, repo_path=repo_path)
             return {"valid": True, "errors": [], "warnings": []}
 
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", load_schema)
         monkeypatch.setattr(
             "agents.core.tools.verify_changes_tool.resource_validator_tool",
             fake_resource_validator,
@@ -155,12 +162,43 @@ class TestVerifyChanges:
             repo_path=str(tmp_path),
             changed={"App/config/texts/resource.nb.json"},
         )
+        ctx.app_version_profile = replace(
+            V8_PROFILE, text_resources_schema_location="other-version/text-resources.schema.v1.json"
+        )
         result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
 
         assert not result.is_error
+        # The schema is the app version's.
+        assert requested_locations == ["other-version/text-resources.schema.v1.json"]
+        assert seen["schema"] is schema
         # Language was inferred from the filename.
         assert seen["language"] == "nb"
         assert seen["repo_path"] == str(tmp_path)
+
+    async def test_a_text_resource_schema_that_cannot_load_is_not_blamed_on_the_file(self, tmp_path: Path, monkeypatch):
+        resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"
+        resource_path.parent.mkdir(parents=True)
+        resource_path.write_text('{"language": "nb", "resources": []}', encoding="utf-8")
+
+        def fail_to_load(schema_location: str) -> dict:
+            raise FileNotFoundError(schema_location)
+
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", fail_to_load)
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/config/texts/resource.nb.json"},
+        )
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        body = json.loads(result.content)
+        assert result.is_error
+        assert any(
+            note.startswith("App/config/texts/resource.nb.json: could not load text resource schema")
+            for note in body["notes"]
+        )
+        assert not any("resource validation failed" in note for note in body["notes"])
+        assert not ctx.extras.get("verified_files")
 
     async def test_other_json_uses_basic_parse_check(self, tmp_path: Path):
         misc_path = tmp_path / "App" / "config" / "applicationmetadata.json"

@@ -1,9 +1,7 @@
 """Base validator class for schema-driven validation with business rules"""
 
-import json
 import warnings
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any
 
 import regex
@@ -33,10 +31,10 @@ _SchemaValidator = validators.extend(Draft7Validator, {"pattern": _check_ecma_pa
 
 
 class BaseValidator(ABC):
-    """Base class for validators that check data against a JSON schema on disk, and custom business rules"""
+    """Base class for validators that check data against a JSON schema, and custom business rules"""
 
-    def __init__(self, schema_path: Path):
-        self.schema: dict[str, Any] = json.loads(schema_path.read_text(encoding="utf-8"))
+    def __init__(self, schema: dict[str, Any]):
+        self.schema = schema
 
     def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
         """

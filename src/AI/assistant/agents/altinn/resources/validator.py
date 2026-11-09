@@ -4,16 +4,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from shared.config.base_config import get_config
-
 from .base_validator import BaseValidator
 
 
 class ResourceValidator(BaseValidator):
     """Validator for Altinn text resource files"""
-
-    def __init__(self):
-        super().__init__(get_config().TEXT_RESOURCES_SCHEMA_PATH)
 
     def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """
@@ -185,12 +180,13 @@ class ResourceValidator(BaseValidator):
 def resource_validator_tool(
     user_goal: str,
     resource_json: str,
+    schema: dict[str, Any],
     language: str = "nb",
     layout_files: list[str] | None = None,
     repo_path: str | None = None,
 ) -> dict[str, Any]:
     """
-    Validate text resource JSON with schema and business rules
+    Validate text resource JSON against the schema and the business rules
     """
     try:
         # Parse input
@@ -208,7 +204,7 @@ def resource_validator_tool(
             }
 
         # Create validator and run validation
-        validator = ResourceValidator()
+        validator = ResourceValidator(schema)
 
         context: dict[str, Any] = {"language": language}
         if layout_files:

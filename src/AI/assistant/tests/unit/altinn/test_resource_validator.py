@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from agents.altinn.app_version import V9_PROFILE
+from agents.altinn.layout import get_layout_schema
 from agents.altinn.resources.validator import ResourceValidator
 
 
 @pytest.fixture
 def validator() -> ResourceValidator:
-    return ResourceValidator()
+    return ResourceValidator(get_layout_schema(V9_PROFILE.text_resources_schema_location))
 
 
 def _resources_with_variable_key(key: str) -> dict:
@@ -40,7 +42,7 @@ def test_rejects_a_variable_key_that_does_not_match_the_pattern(validator: Resou
 
 
 def test_accepts_a_default_value_and_custom_text_parameters(validator: ResourceValidator):
-    """App frontend accepts both, but the copy of the schema on altinncdn.no does not."""
+    """App frontend accepts both, but the unversioned copy of the schema on altinncdn.no does not."""
     data = {
         "language": "nb",
         "resources": [
