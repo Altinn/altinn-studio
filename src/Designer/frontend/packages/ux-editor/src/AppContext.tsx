@@ -1,6 +1,5 @@
 import type { MutableRefObject, ReactElement, ReactNode } from 'react';
 import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -10,11 +9,6 @@ import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
 import useUxEditorParams from './hooks/useUxEditorParams';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
-import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
-
-export interface WindowWithQueryClient extends Window {
-  queryClient?: QueryClient;
-}
 
 export type SelectedItem =
   | {
@@ -75,27 +69,11 @@ export const AppContextProvider = ({
     layout ? { type: ItemType.Page, id: layout } : null,
   );
 
-  const refetch = useCallback(
-    async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
-      const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
-
-      resetQueries
-        ? await contentWindow?.queryClient?.resetQueries({
-            queryKey,
-          })
-        : await contentWindow?.queryClient?.invalidateQueries({
-            queryKey,
-          });
-    },
-    [],
-  );
-
-  const updateLayoutsForPreview = useCallback(
-    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([AppsQueryKey.AppFormBootstrap], resetQueries);
-    },
-    [refetch],
-  );
+  // Preview runs on a domain of its own, where the editors can't reach the app frontend's queries, so they reload
+  // the frame. The frame's session keeps the instance and its form data.
+  const updateLayoutsForPreview = useCallback(async (): Promise<void> => {
+    doReloadPreview();
+  }, [doReloadPreview]);
 
   const updateLayoutSetsForPreview = useCallback(async (): Promise<void> => {
     doReloadPreview();

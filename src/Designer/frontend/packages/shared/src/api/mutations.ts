@@ -51,6 +51,8 @@ import {
   selectedMaskinportenScopesPath,
   appSettingsPath,
   createInstancePath,
+  previewSessionInstancesPath,
+  previewSessionsPath,
   dataTypePath,
   optionListPath,
   undeployAppFromEnvPath,
@@ -139,6 +141,7 @@ import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyRe
 import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type { PreviewSession, PreviewSessionInstance } from 'app-shared/types/api/PreviewSession';
 
 const headers = {
   Accept: 'application/json',
@@ -233,6 +236,8 @@ export const updateResource = (org: string, repo: string, payload: Resource) => 
 
 // Preview
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
+export const startPreviewSession = (org: string, app: string) => post<PreviewSession>(previewSessionsPath(org, app));
+export const createPreviewSessionInstance = (org: string, app: string, sessionUrl: string, taskId: string) => post<PreviewSessionInstance>(previewSessionInstancesPath(org, app), { sessionUrl, taskId });
 
 // ProcessEditor
 

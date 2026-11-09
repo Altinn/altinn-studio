@@ -123,8 +123,10 @@ export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
-// v9 app-frontend uses browser routing, so point straight at the browser-router URL and skip its hash redirect
-export const previewPageV9 = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/${org}/${app}/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}?${s({ selectedLayoutSet })}`;
+export const previewSessionsPath = (org, app) => `${apiBasePath}/${org}/${app}/preview-sessions`; // Post
+export const previewSessionInstancesPath = (org, app) => `${previewSessionsPath(org, app)}/instances`; // Post
+// A page of an instance in a preview session. The session's URL is the app's root on the preview service's domain.
+export const previewSessionPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}instance/${instanceId}/${taskId}/${selectedLayout}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
