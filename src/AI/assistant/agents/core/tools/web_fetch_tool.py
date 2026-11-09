@@ -51,13 +51,7 @@ class WebFetchTool(Tool[WebFetchArgs]):
         "(docs.altinn.studio) or an official schema (altinncdn.no).  Use "
         "together with the `altinn-docs` skill: load the skill, scan its "
         "llms.txt index for the right page, then fetch that page's URL.  "
-        "HTML is reduced to readable text.\n\n"
-        "A long page comes back in parts.  The note at the end of a part "
-        "names the lines you have not read yet and the `offset` of each part "
-        "that holds them.  Call `web_fetch` again with the same `url` and "
-        "each `offset`, in one turn if you like.  Take each `offset` from a "
-        "note: parts end where the characters run out, not after a set "
-        "number of lines."
+        "HTML is reduced to readable text."
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True

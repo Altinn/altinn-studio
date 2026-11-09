@@ -45,10 +45,7 @@ class SkillTool(Tool[SkillArgs]):
             "specific Altinn topic (data models, policy, text resources, prefill, "
             "dynamic expressions, planning). The skill listing in your system prompt "
             "shows what each skill covers. Call this BEFORE working on a topic you "
-            f"have a skill for; the content is authoritative. Available: {names}.\n\n"
-            "A long skill comes back in parts.  The note at the end of a part "
-            "names the `offset` of each part you have not read; call `skill` "
-            "again with the same `skill` and each `offset`, in one turn if you like."
+            f"have a skill for; the content is authoritative. Available: {names}."
         )
 
     async def run(self, args: SkillArgs, ctx: LoopContext) -> ToolResult:

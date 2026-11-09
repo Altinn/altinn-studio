@@ -29,8 +29,7 @@ class WriteFileTool(WriteTool[WriteFileArgs]):
         "  - You are creating a brand-new file (the path does not exist), or\n"
         "  - You are doing a wholesale rewrite of a small file.\n\n"
         "PRECONDITION (existing files): you MUST call `read_file` first so "
-        "your replacement is informed by current content.  When `read_file` "
-        "returns a long file in parts, read every part first.  For new files "
+        "your replacement is informed by current content.  For new files "
         "this is skipped — there's nothing to read.\n\n"
         "Parent directories are created as needed."
     )

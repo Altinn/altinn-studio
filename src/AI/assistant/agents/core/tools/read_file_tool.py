@@ -17,7 +17,7 @@ from .utils.text_parts import PartLimit, PartOffset, text_part
 
 class ReadFileArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    path: str = Field(min_length=1, description="Repo-relative path.")
+    path: str = Field(min_length=1, description="Repo-relative path, with no leading `/` and no `..`.")
     offset: PartOffset = 1
     limit: PartLimit = None
 
@@ -31,14 +31,9 @@ class ReadFileTool(Tool[ReadFileArgs]):
         "use it whenever you need to confirm the exact current text of a "
         "section (for example, before constructing an `edit_file` "
         "`old_string`).\n\n"
-        "A long file comes back in parts.  The note at the end of a part "
-        "names the lines you have not read yet and the `offset` of each part "
-        "that holds them.  Parts end where the characters run out, not after "
-        "a set number of lines, so take each `offset` from a note instead of "
-        "working it out.  You can read all the parts a note names in one "
-        "turn.  Read every part before you act on the whole file, such as "
-        "when you translate or check every text in a text resource file.\n\n"
-        "`path` is repo-relative (no leading `/`, no `..`)."
+        "A long file comes back in parts.  Read every part before you act on "
+        "the whole file, such as when you translate or check every text in a "
+        "text resource file."
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
