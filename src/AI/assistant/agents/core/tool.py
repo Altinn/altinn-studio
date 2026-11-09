@@ -20,6 +20,8 @@ from pydantic import BaseModel
 
 from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
 
+from .compaction import DEFAULT_MAX_RESULT_CHARS
+
 
 @dataclass
 class LoopContext:
@@ -51,6 +53,10 @@ class LoopContext:
     # The commit the session started from. `verify_changes` compares with it to tell
     # the errors the session made from the errors the app had. None when it is unknown.
     start_commit: str | None = None
+    # The loop cuts every tool result at this many characters.  `run_loop`
+    # sets it from its CompactionConfig, so a tool that returns long text
+    # in parts can size each part to fit.
+    max_result_chars: int = DEFAULT_MAX_RESULT_CHARS
     extras: dict[str, Any] = field(default_factory=dict)
 
 
