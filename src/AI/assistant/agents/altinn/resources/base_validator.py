@@ -38,16 +38,6 @@ class BaseValidator:
     def __init__(self, schema: dict[str, Any]):
         self.schema = schema
 
-    def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
-        """
-        Validate data against JSON schema
-
-        Returns:
-            Tuple of (is_valid, error_messages)
-        """
-        errors = [message for _path, message in self.iter_schema_errors(data)]
-        return len(errors) == 0, errors
-
     def iter_schema_errors(self, data: dict[str, Any]) -> Iterator[tuple[SchemaPath, str]]:
         """Yield the location of each schema error in the data, and its message."""
         try:

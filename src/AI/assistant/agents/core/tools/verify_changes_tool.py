@@ -33,7 +33,7 @@ from pydantic import BaseModel, ConfigDict
 
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
-from agents.altinn.resources.validator import resource_validator_tool
+from agents.altinn.resources.validator import resource_validator_tool, text_resource_ids
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from shared.utils.langfuse_utils import trace_span
 
@@ -252,14 +252,25 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[s
     if not by_language:
         return True, []  # no readable text resources — nothing to resolve against
 
+    missing_by_layout = {
+        layout: missing
+        for layout in _select_layouts_to_check(repo, changed)
+        if (missing := _missing_text_keys(_read_json(layout), by_language))
+    }
+    if not missing_by_layout:
+        return True, []
+
+    # Only a missing key needs HEAD, to tell whether the change made it missing.
     head_by_language = _head_text_keys_by_language(repo, by_language)
     errors: list[str] = []
     warnings: list[str] = []
-    for layout in _select_layouts_to_check(repo, changed):
-        layout_errors, layout_warnings = _describe_missing_text_keys(repo, layout, by_language, head_by_language)
+    for layout, missing in missing_by_layout.items():
+        layout_path = layout.relative_to(repo).as_posix()
+        head_missing = _missing_text_keys(_read_head_json(repo, layout_path), head_by_language)
+        layout_errors, layout_warnings = _describe_missing_text_keys(layout_path, missing, head_missing)
         errors.extend(layout_errors)
         warnings.extend(layout_warnings)
-    return not errors, errors + _limit_warnings(warnings)
+    return not errors, errors + _limit_warnings(warnings, "warning(s) about missing text keys")
 
 
 def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[Path]:
@@ -269,44 +280,45 @@ def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[Path]:
     return [repo / f for f in changed if _is_layout_file(f)]
 
 
+def _missing_text_keys(parsed_layout: Any, by_language: dict[str, set[str]]) -> dict[str, set[str]]:
+    """The keys the layout references that each language lacks, for the languages that lack any."""
+    referenced = _referenced_text_keys(parsed_layout)
+    return {language: missing for language, known in by_language.items() if (missing := referenced - known)}
+
+
 def _describe_missing_text_keys(
-    repo: Path,
-    layout: Path,
-    by_language: dict[str, set[str]],
-    head_by_language: dict[str, set[str]],
+    layout_path: str,
+    missing: dict[str, set[str]],
+    head_missing: dict[str, set[str]],
 ) -> tuple[list[str], list[str]]:
-    """Notes on the keys the layout misses: the ones the change caused, and the ones missing at HEAD too."""
-    layout_path = layout.relative_to(repo).as_posix()
-    referenced = _referenced_text_keys(_read_json(layout))
-    head_referenced = _referenced_text_keys(_read_head_json(repo, layout_path))
+    """Notes on the keys the layout misses: the ones the change caused, and the ones missing at HEAD too.
+
+    A language without a resource file at HEAD missed no keys there.
+    """
     errors: list[str] = []
     warnings: list[str] = []
-    for language, known in sorted(by_language.items()):
-        missing = sorted(key for key in referenced if key not in known)
-        head_known = head_by_language.get(language)
-        # A language without a resource file at HEAD missed no keys there.
-        head_missing = head_referenced - head_known if head_known is not None else set()
-        new = [key for key in missing if key not in head_missing]
-        old = [key for key in missing if key in head_missing]
+    for language, keys in sorted(missing.items()):
+        old = keys & head_missing.get(language, set())
+        new = keys - old
         if new:
             errors.append(
-                f"{layout_path}: text key(s) {_list_text_keys(new)} have no entry in "
-                f"`App/config/texts/resource.{language}.json`, so the page shows the "
-                "key instead of the text in that language."
+                f"{layout_path}: text key(s) {_list_text_keys(sorted(new))} have no entry in "
+                f"`{_resource_file(language)}`, so the page shows the key instead of the text in that language."
             )
         if old:
             warnings.append(
-                f"{layout_path}: warning: text key(s) {_list_text_keys(old)} have no entry in "
-                f"`App/config/texts/resource.{language}.json`.  They were missing before "
-                "this change too, so they do not block the commit."
+                f"{layout_path}: warning: text key(s) {_list_text_keys(sorted(old))} have no entry in "
+                f"`{_resource_file(language)}`.  They were missing before this change too, so they do not "
+                "block the commit."
             )
     return errors, warnings
 
 
-def _limit_warnings(warnings: list[str]) -> list[str]:
+def _limit_warnings(warnings: list[str], what: str) -> list[str]:
+    """The first warnings, and how many `what` it leaves out."""
     listed = warnings[:_MAX_LISTED_WARNINGS]
     if len(warnings) > _MAX_LISTED_WARNINGS:
-        listed.append(f"…and {len(warnings) - _MAX_LISTED_WARNINGS} more warning(s) about missing text keys")
+        listed.append(f"…and {len(warnings) - _MAX_LISTED_WARNINGS} more {what}")
     return listed
 
 
@@ -332,19 +344,19 @@ def _head_text_keys_by_language(repo: Path, languages: Iterable[str]) -> dict[st
     """The ids each `resource.<language>.json` defined at HEAD."""
     by_language: dict[str, set[str]] = {}
     for language in languages:
-        keys = _text_keys(_read_head_json(repo, f"App/config/texts/resource.{language}.json"))
+        keys = _text_keys(_read_head_json(repo, _resource_file(language)))
         if keys is not None:
             by_language[language] = keys
     return by_language
 
 
+def _resource_file(language: str) -> str:
+    return f"App/config/texts/resource.{language}.json"
+
+
 def _text_keys(parsed: Any) -> set[str] | None:
-    if not isinstance(parsed, dict):
-        return None
-    resources = parsed.get("resources")
-    if not isinstance(resources, list):
-        return set()
-    return {entry["id"] for entry in resources if isinstance(entry, dict) and isinstance(entry.get("id"), str)}
+    """The ids a parsed resource file defines, or None when it is not a resource file."""
+    return set(text_resource_ids(parsed)) if isinstance(parsed, dict) else None
 
 
 def _all_layout_files(repo: Path) -> list[Path]:
@@ -402,27 +414,16 @@ def _read_json(path: Path) -> Any:
 
 def _read_head_json(repo: Path, file_path: str) -> Any:
     """The parsed file as of HEAD, or None when HEAD does not have it readable."""
-    text = _read_head_text(str(repo), file_path)
-    if text is None:
-        return None
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return None
-
-
-def _read_head_text(repo_path: str, file_path: str) -> str | None:
-    """The file as of HEAD, or None when HEAD does not have it."""
     result = subprocess.run(
         ["git", "show", f"HEAD:{file_path}"],
-        cwd=repo_path,
+        cwd=repo,
         capture_output=True,
     )
     if result.returncode != 0:
         return None
     try:
-        return result.stdout.decode(_JSON_FILE_ENCODING)
-    except UnicodeDecodeError:
+        return json.loads(result.stdout.decode(_JSON_FILE_ENCODING))
+    except UnicodeDecodeError, json.JSONDecodeError:
         return None
 
 
@@ -557,11 +558,11 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tup
             schema=schema,
             language=language,
             repo_path=ctx.repo_path,
-            previous_resource_json=_read_head_text(ctx.repo_path, file_path),
+            previous_resource=_read_head_json(Path(ctx.repo_path), file_path),
         )
         span.update(output={"result": {"valid": result.get("valid")}})
 
-    warnings = [f"  - warning: {w}" for w in (result.get("warnings") or [])[:_MAX_LISTED_WARNINGS]]
+    warnings = [f"  - warning: {w}" for w in _limit_warnings(result.get("warnings") or [], "warning(s)")]
     if result.get("valid") is True:
         return True, [f"{file_path}: resource schema valid", *warnings]
 

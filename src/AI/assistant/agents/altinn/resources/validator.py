@@ -32,7 +32,6 @@ class ResourceValidator(BaseValidator):
 
         Context keys:
             - language: Language code (nb, nn, en)
-            - layout_files: List of layout file paths to check usage
             - repo_path: Path to repository root
 
         `previous` is the file before the change. An error that the change did not cause is
@@ -40,23 +39,23 @@ class ResourceValidator(BaseValidator):
         Without `previous`, every error is reported as an error.
         """
         context = context or {}
-        issues = self.find_issues(data, context)
-        if previous is None:
+        issues = self.find_issues(data)
+        if previous is None or not issues:
             caused, existing = issues, []
         else:
-            caused, existing = _split_by_cause(issues, data, previous, self.find_issues(previous, context))
+            caused, existing = _split_by_cause(issues, data, previous, self.find_issues(previous))
 
-        hints = self.find_hints(data, context)
+        warnings, suggestions = self.find_hints(data, context)
         existing_warnings = [f"Existing error that this change did not cause: {issue.message}" for issue in existing]
 
         return {
             "valid": len(caused) == 0,
             "errors": [issue.message for issue in caused],
-            "warnings": existing_warnings + hints["warnings"],
-            "suggestions": hints["suggestions"],
+            "warnings": existing_warnings + warnings,
+            "suggestions": suggestions,
         }
 
-    def find_issues(self, data: dict[str, Any], context: dict[str, Any]) -> list[ResourceIssue]:
+    def find_issues(self, data: dict[str, Any]) -> list[ResourceIssue]:
         """The schema errors and the business rule errors"""
         issues = [ResourceIssue(message, _entries_at(path)) for path, message in self.iter_schema_errors(data)]
 
@@ -67,34 +66,17 @@ class ResourceValidator(BaseValidator):
 
         # Rule 1: Check for duplicate resource IDs
         issues.extend(_duplicate_id_issues(entries))
-
-        # Rule 2: Check for resources referenced in layouts but not defined
-        layout_files = context.get("layout_files", [])
-        if layout_files:
-            missing = self._extract_text_refs_from_layouts(layout_files) - set(_resource_ids(entries))
-            if missing:
-                issues.append(ResourceIssue(f"Resources referenced in layouts but not defined: {sorted(missing)}"))
-
         return issues
 
-    def find_hints(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+    def find_hints(self, data: dict[str, Any], context: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
         """Warnings and suggestions, which do not make the file invalid"""
-        warnings = []
-        suggestions = {}
+        warnings: list[str] = []
+        suggestions: dict[str, Any] = {}
 
         entries = _entries(data)
         resource_ids = _resource_ids(entries)
 
-        # Rule 2: Check if resources are actually used in layouts
-        layout_files = context.get("layout_files", [])
-        if layout_files:
-            unused = set(resource_ids) - self._extract_text_refs_from_layouts(layout_files)
-            if unused:
-                warnings.append(f"Unused resources (not referenced in layouts): {list(unused)[:5]}")
-                if len(unused) > 5:
-                    warnings.append(f"... and {len(unused) - 5} more unused resources")
-
-        # Rule 3: Check for missing translations
+        # Rule 2: Check for missing translations
         language = context.get("language", "nb")
         repo_path = context.get("repo_path")
 
@@ -113,45 +95,17 @@ class ResourceValidator(BaseValidator):
                 if missing_in_other:
                     suggestions[f"add_to_{lang}_file"] = list(missing_in_other)[:5]
 
-        # Rule 4: Check for empty values
+        # Rule 3: Check for empty values
         empty_values = [entry.get("id") for entry in _objects(entries) if _is_blank(entry.get("value", ""))]
         if empty_values:
             warnings.append(f"Resources with empty values: {empty_values}")
 
-        # Rule 5: Suggest next ID based on pattern
+        # Rule 4: Suggest next ID based on pattern
         if resource_ids:
             suggestions["id_pattern_detected"] = self._detect_resource_id_pattern(resource_ids)
             suggestions["next_suggested_id"] = self._suggest_next_id(resource_ids)
 
-        return {"warnings": warnings, "suggestions": suggestions}
-
-    def _extract_text_refs_from_layouts(self, layout_files: list[str]) -> set[str]:
-        return {ref for layout_file in layout_files for ref in self._extract_text_refs_from_layout(layout_file)}
-
-    def _extract_text_refs_from_layout(self, layout_path: str) -> list[str]:
-        """Extract all textResourceBindings references from a layout file"""
-        try:
-            with open(layout_path, encoding="utf-8") as f:
-                data = json.load(f)
-
-            # Extract components
-            if "data" in data and "layout" in data["data"]:
-                components = data["data"]["layout"]
-            elif isinstance(data, list):
-                components = data
-            else:
-                return []
-
-            refs = []
-            for comp in components:
-                text_bindings = comp.get("textResourceBindings", {})
-                for value in text_bindings.values():
-                    if value:
-                        refs.append(value)
-
-            return refs
-        except Exception:
-            return []
+        return warnings, suggestions
 
     def _get_other_language_resources(self, repo_path: str, current_lang: str) -> dict[str, list[str]]:
         """Get resource IDs from other language files"""
@@ -169,7 +123,7 @@ class ResourceValidator(BaseValidator):
                     try:
                         with open(resource_file, encoding="utf-8") as f:
                             data = json.load(f)
-                        other_resources[lang] = _resource_ids(_entries(data))
+                        other_resources[lang] = text_resource_ids(data)
                     except Exception:
                         continue
 
@@ -218,6 +172,11 @@ class ResourceValidator(BaseValidator):
             return "label_new_field"
 
         return "new_field"
+
+
+def text_resource_ids(data: Any) -> list[str]:
+    """The ids in a parsed text resource file, in file order. Entries without a readable id are left out."""
+    return _resource_ids(_entries(data))
 
 
 def _entries(data: Any) -> list[Any]:
@@ -309,31 +268,19 @@ def _canonical(entry: Any) -> str:
     return json.dumps(entry, sort_keys=True)
 
 
-def _parse_previous(previous_resource_json: str | None) -> dict[str, Any] | None:
-    """The file before the change, or None when there is no readable previous version to compare with"""
-    if previous_resource_json is None:
-        return None
-    try:
-        previous = json.loads(previous_resource_json)
-    except json.JSONDecodeError:
-        return None
-    return previous if isinstance(previous, dict) else None
-
-
 def resource_validator_tool(
     user_goal: str,
     resource_json: str,
     schema: dict[str, Any],
     language: str = "nb",
-    layout_files: list[str] | None = None,
     repo_path: str | None = None,
-    previous_resource_json: str | None = None,
+    previous_resource: Any = None,
 ) -> dict[str, Any]:
     """
     Validate text resource JSON against the schema and the business rules
 
-    With `previous_resource_json`, the file before the change, errors that the change did not
-    cause are warnings.
+    With `previous_resource`, the parsed file before the change, errors that the change did not
+    cause are warnings. A previous version that is not a JSON object is not compared with.
     """
     try:
         # Parse input
@@ -354,12 +301,11 @@ def resource_validator_tool(
         validator = ResourceValidator(schema)
 
         context: dict[str, Any] = {"language": language}
-        if layout_files:
-            context["layout_files"] = layout_files
         if repo_path:
             context["repo_path"] = repo_path
 
-        return validator.validate(data, context, _parse_previous(previous_resource_json))
+        previous = previous_resource if isinstance(previous_resource, dict) else None
+        return validator.validate(data, context, previous)
 
     except Exception as e:
         return {

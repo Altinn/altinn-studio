@@ -19,7 +19,7 @@ from typing import Any
 
 import pytest
 
-from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import (
     CommitSessionBranchTool,
     DatamodelSyncTool,
@@ -148,7 +148,7 @@ class TestVerifyChanges:
             requested_locations.append(schema_location)
             return schema
 
-        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path, previous_resource_json):
+        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path, previous_resource):
             seen.update(schema=schema, language=language, repo_path=repo_path)
             return {"valid": True, "errors": [], "warnings": []}
 
@@ -427,6 +427,13 @@ def _heading(component_type: str = "Heading", **properties: Any) -> dict[str, An
 
 async def _verify(ctx: LoopContext):
     return await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+
+async def _verify_notes(repo: Path, changed: set[str], profile: AppVersionProfile = V8_PROFILE):
+    ctx = _write_ctx(repo_path=str(repo), changed=changed)
+    ctx.app_version_profile = profile
+    result = await _verify(ctx)
+    return result, json.loads(result.content)
 
 
 class TestVerifyChangesInAV9App:
@@ -737,34 +744,26 @@ class TestTextKeysResolveInEveryLanguage:
             )
         return files
 
-    def _app(self, tmp_path: Path, *, en_has_key: bool):
-        write_files(tmp_path, self._files(en_ids=["app.button.submit"] if en_has_key else ["appName"]))
-
-    async def _verify(self, tmp_path: Path, changed: set[str]):
-        ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
-        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
-        return result, json.loads(result.content)
-
     async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
-        self._app(tmp_path, en_has_key=False)
+        write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        result, body = await _verify_notes(tmp_path, {"App/ui/form/layouts/Side1.json"})
 
         assert result.is_error
         assert any("resource.en.json" in note for note in body["notes"])
 
     async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
-        self._app(tmp_path, en_has_key=True)
+        write_files(tmp_path, self._files(en_ids=["app.button.submit"]))
 
-        _, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        _, body = await _verify_notes(tmp_path, {"App/ui/form/layouts/Side1.json"})
 
         assert body["passed"]
 
     async def test_changing_a_resource_file_rechecks_untouched_layouts(self, tmp_path: Path, permissive_schema):
         """The layout is unchanged, so a per-file check would never look at it."""
-        self._app(tmp_path, en_has_key=False)
+        write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+        result, body = await _verify_notes(tmp_path, {"App/config/texts/resource.en.json"})
 
         assert result.is_error
         assert any("Side1.json" in note for note in body["notes"])
@@ -773,7 +772,7 @@ class TestTextKeysResolveInEveryLanguage:
         create_committed_repo(tmp_path, self._files(en_ids=["app.button.submit"]))
         write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+        result, body = await _verify_notes(tmp_path, {"App/config/texts/resource.en.json"})
 
         assert result.is_error
         assert any("Side1.json" in note and "`app.button.submit`" in note for note in body["notes"])
@@ -782,7 +781,7 @@ class TestTextKeysResolveInEveryLanguage:
         create_committed_repo(tmp_path, self._files(en_ids=["appName"]))
         write_files(tmp_path, self._files(en_ids=["appName", "app.title"]))
 
-        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+        result, body = await _verify_notes(tmp_path, {"App/config/texts/resource.en.json"})
 
         assert not result.is_error
         assert any("Side1.json: warning:" in note and "`app.button.submit`" in note for note in body["notes"])
@@ -792,6 +791,8 @@ class TestTextResourceErrorsBeforeTheChange:
     """Old errors in a text resource file must not block a correct change to it."""
 
     RESOURCE_PATH = "App/config/texts/resource.nb.json"
+    # The v9 profile reads the text resource schema from disk.
+    PROFILE = V9_PROFILE
     OLD_ERROR = {
         "id": "greeting",
         "value": "Hei {0}",
@@ -801,18 +802,11 @@ class TestTextResourceErrorsBeforeTheChange:
     def _resource_file(self, *resources: dict[str, Any]) -> dict[str, str]:
         return {self.RESOURCE_PATH: json.dumps({"language": "nb", "resources": list(resources)})}
 
-    async def _verify(self, repo: Path):
-        ctx = _write_ctx(repo_path=str(repo), changed={self.RESOURCE_PATH})
-        # The v9 profile reads the text resource schema from disk.
-        ctx.app_version_profile = V9_PROFILE
-        result = await _verify(ctx)
-        return result, json.loads(result.content)
-
     async def test_a_correct_change_passes_despite_an_old_error(self, tmp_path: Path):
         repo = create_committed_repo(tmp_path, self._resource_file(self.OLD_ERROR))
         write_files(repo, self._resource_file(self.OLD_ERROR, {"id": "title", "value": "Tittel"}))
 
-        result, body = await self._verify(repo)
+        result, body = await _verify_notes(repo, {self.RESOURCE_PATH}, self.PROFILE)
 
         assert not result.is_error, body["notes"]
         assert any("warning" in note and "'Person Navn'" in note for note in body["notes"])
@@ -822,7 +816,7 @@ class TestTextResourceErrorsBeforeTheChange:
         new_error = {**self.OLD_ERROR, "id": "farewell", "variables": [{"key": "Ny Nøkkel", "dataSource": "x"}]}
         write_files(repo, self._resource_file(self.OLD_ERROR, new_error))
 
-        result, body = await self._verify(repo)
+        result, body = await _verify_notes(repo, {self.RESOURCE_PATH}, self.PROFILE)
 
         assert result.is_error
         assert any("[resources.1.variables.0" in note for note in body["notes"])
