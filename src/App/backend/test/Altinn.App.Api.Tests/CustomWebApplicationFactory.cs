@@ -27,7 +27,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests;
 
-public class ApiTestBase
+public class ApiTestBase : IAsyncLifetime
 {
     internal static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
     {
@@ -37,16 +37,27 @@ public class ApiTestBase
 
     protected readonly ITestOutputHelper OutputHelper;
     protected string? OverrideEnvironment { get; set; }
-    private readonly WebApplicationFactory<Program> _factory;
 
-    protected IServiceProvider Services { get; private set; }
+    // Every client gets a host of its own from WithWebHostBuilder, so this factory only holds the shared
+    // configuration and is never started. Disposing it disposes the hosts derived from it.
+    private readonly WebApplicationFactory<Program> _factory = new();
 
-    protected ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
+    private IServiceProvider? _services;
+
+    /// <summary>
+    /// The services of the host behind the client that was created last.
+    /// </summary>
+    protected IServiceProvider Services =>
+        _services ?? throw new InvalidOperationException("Create a client before using the services of its host.");
+
+    protected ApiTestBase(ITestOutputHelper outputHelper)
     {
-        _factory = factory;
-        Services = _factory.Services;
         OutputHelper = outputHelper;
     }
+
+    public virtual Task InitializeAsync() => Task.CompletedTask;
+
+    public virtual async Task DisposeAsync() => await _factory.DisposeAsync();
 
     internal class ApiTestBaseStartupFilter : IStartupFilter
     {
@@ -191,7 +202,7 @@ public class ApiTestBase
                 });
             }
         });
-        var services = Services = factory.Services;
+        var services = _services = factory.Services;
         _ = services.GetService<TelemetrySink>(); // The sink starts listening when it is constructed, so we make sure to construct here
 
         var client = includeTraceContext

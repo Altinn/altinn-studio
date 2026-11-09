@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
@@ -21,17 +20,14 @@ namespace Altinn.App.Api.Tests.Controllers;
 /// Covers the one branch that turns a bare platform 403 into an explanation: a command that fails
 /// because Altinn Authorization refused the app while it acted as the service owner.
 /// </summary>
-public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
 
-    public WorkflowEngineCallbackControllerDenialTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public WorkflowEngineCallbackControllerDenialTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     /// <summary>
     /// Stands in for any command whose platform call is refused. The status code is all the app has to
