@@ -160,7 +160,7 @@ public class WorkflowEngineCommandRegistrationTests
     {
         IEnumerable<PlannedStep> steps = stepSet
             .LifecycleSteps.Concat(stepSet.PrimaryPostCommitSteps)
-            .Concat(stepSet.AuxiliarySteps);
+            .Concat(stepSet.AuxiliaryWorkflows.SelectMany(workflow => workflow));
         foreach (PlannedStep step in steps)
         {
             keys.Add(step.CommandKey);
