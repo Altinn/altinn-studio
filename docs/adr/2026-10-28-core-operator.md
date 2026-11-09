@@ -1,6 +1,6 @@
 # A Core Operator for Studio cluster work
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team
 - Date: 28.10.2026
 
