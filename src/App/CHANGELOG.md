@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- List tables with many text cells render faster, including read-only tables.
+
 ## [9.0.0-preview.10] - 2026-11-09
 
 ### Added
