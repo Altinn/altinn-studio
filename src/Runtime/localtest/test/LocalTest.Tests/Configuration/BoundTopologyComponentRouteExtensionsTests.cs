@@ -16,6 +16,7 @@ public sealed class BoundTopologyComponentRouteExtensionsTests
         "http://workflow-engine.local.altinn.cloud:8100/"
     )]
     [InlineData("http://local.altinn.cloud", WorkflowEngineHost, "", "http://workflow-engine.local.altinn.cloud/")]
+    [InlineData("https://local.altinn.cloud", WorkflowEngineHost, "", "https://workflow-engine.local.altinn.cloud/")]
     [InlineData(
         "http://local.altinn.cloud:8000",
         "local.altinn.cloud",
