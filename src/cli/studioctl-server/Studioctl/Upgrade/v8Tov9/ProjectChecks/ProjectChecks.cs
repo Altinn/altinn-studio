@@ -88,16 +88,6 @@ internal sealed class ProjectChecks
             .All(version => HasMajorVersion(version, 9));
     }
 
-    public bool HasPackageVersionsAtLeast(string minimumVersion)
-    {
-        var minimum = NuGetVersion.Parse(minimumVersion);
-        var packages = (GetAltinnAppApiElement() ?? []).Concat(GetAltinnAppCoreElement() ?? []).ToList();
-        return packages.Count > 0
-            && packages.All(package =>
-                PinnedPackageVersion.Parse(package.Attribute("Version")?.Value) is { } version && version >= minimum
-            );
-    }
-
     public bool HasAmbiguousPackageVersions() =>
         (GetAltinnAppApiElement() ?? [])
             .Concat(GetAltinnAppCoreElement() ?? [])
