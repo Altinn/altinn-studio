@@ -19,15 +19,21 @@ internal sealed record AppDefinition(ProcessDefinition? Process, IReadOnlyList<D
 internal static class MockInstances
 {
     /// <summary>
-    /// Creates an instance at the process's first task, with the form data elements the task's data types start with.
+    /// Creates an instance at the process's first task, or at <paramref name="startTask"/>, with the form data
+    /// elements the task's data types start with.
     /// </summary>
+    /// <param name="startTask">
+    /// The task the instance starts at instead, as the editors ask for the task they show. It may be a service task,
+    /// or a task the process doesn't have yet, which then counts as a data task.
+    /// </param>
     public static Instance Create(
         MockState state,
         AppDefinition app,
         string org,
         string appName,
         int instanceOwnerPartyId,
-        DateTimeOffset now
+        DateTimeOffset now,
+        string? startTask = null
     )
     {
         Guid instanceGuid = Guid.NewGuid();
@@ -45,7 +51,17 @@ internal static class MockInstances
                 Process = new ProcessState { Started = now, StartEvent = app.Process?.StartEvent },
             },
         };
-        Enter(instance, instanceGuid, app, app.Process?.First(), now);
+        if (startTask is null)
+        {
+            Enter(instance, instanceGuid, app, app.Process?.First(), now);
+        }
+        else
+        {
+            ProcessTaskDefinition task =
+                app.Process?.Task(startTask) ?? new ProcessTaskDefinition(startTask, startTask, "data", "Task");
+            Enter(instance, instanceGuid, app, new ProcessStep(task, EndEvent: null), now, passServiceTasks: false);
+        }
+
         state.Instances[instanceGuid] = instance;
         return instance.Instance;
     }
@@ -123,12 +139,13 @@ internal static class MockInstances
         Guid instanceGuid,
         AppDefinition app,
         ProcessStep? step,
-        DateTimeOffset now
+        DateTimeOffset now,
+        bool passServiceTasks = true
     )
     {
         ProcessState process = instance.Instance.Process;
         int flow = process.CurrentTask?.Flow ?? 1;
-        while (step?.Task is { IsServiceTask: true } serviceTask && app.Process is not null)
+        while (passServiceTasks && step?.Task is { IsServiceTask: true } serviceTask && app.Process is not null)
         {
             step = app.Process.Next(serviceTask.ElementId);
         }
