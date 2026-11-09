@@ -128,7 +128,12 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                   {Object.entries(config.tableHeaders).map(([key]) => {
                     const binding = dataModelBindings?.[key];
                     if (!binding || !dataModelBindings?.group) {
-                      return null;
+                      return (
+                        <Table.Cell
+                          key={key}
+                          align='left'
+                        />
+                      );
                     }
                     const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
                     const data = dot.pick(relativePath, row);
