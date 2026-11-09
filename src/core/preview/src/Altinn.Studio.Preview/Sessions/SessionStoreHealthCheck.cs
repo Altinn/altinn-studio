@@ -7,7 +7,7 @@ namespace Altinn.Studio.Preview.Sessions;
 /// Redis is down, or refuses its password, is not ready. The health check service reports the exception of a failed
 /// read as unhealthy.
 /// </summary>
-internal sealed class SessionStoreHealthCheck(SessionStore sessionStore) : IHealthCheck
+internal sealed class SessionStoreHealthCheck(ISessionStore sessionStore) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,

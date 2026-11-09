@@ -6,7 +6,9 @@ using Altinn.Studio.Preview.Files;
 using Altinn.Studio.Preview.Sessions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.AspNetCore;
+using StackExchange.Redis;
 
 namespace Altinn.Studio.Preview.Hosting;
 
@@ -46,14 +48,16 @@ internal static class PreviewHostingExtensions
             .ValidateOnStart();
 
         builder.Services.TryAddSingleton(TimeProvider.System);
-        builder.Services.AddStackExchangeRedisCache(redis =>
+        builder.Services.AddSingleton<IConnectionMultiplexer>(services =>
         {
-            redis.Configuration = builder.Configuration[
-                $"{PreviewOptions.SectionName}:{nameof(PreviewOptions.RedisConnectionString)}"
-            ];
-            redis.InstanceName = SessionStore.KeyPrefix;
+            var redis = ConfigurationOptions.Parse(
+                services.GetRequiredService<IOptions<PreviewOptions>>().Value.RedisConnectionString
+            );
+            // The service starts without its Redis and connects once Redis answers. Until then its pods aren't ready.
+            redis.AbortOnConnectFail = false;
+            return ConnectionMultiplexer.Connect(redis);
         });
-        builder.Services.AddSingleton<SessionStore>();
+        builder.Services.AddSingleton<ISessionStore, SessionStore>();
 
         builder.Services.AddProblemDetails();
         builder
