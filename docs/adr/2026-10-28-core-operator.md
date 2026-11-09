@@ -1,4 +1,4 @@
-# A core operator does all cluster work in a Studio cluster
+# A core operator does the work that continues after a request in a Studio cluster
 
 - Status: Proposed
 - Deciders: Team
@@ -6,10 +6,14 @@
 
 ## Result
 
-A3: We add a core operator to the Studio cluster. The core operator is the one Studio component that has a
-Kubernetes client. A service that starts cluster work, for example a sandbox run of app code, sends a request to
-the operator through an API. The services have no Kubernetes permission. The conditions in "Conditions for operator
-work" tell you which work the operator does and which work stays in the service.
+A3: We add a core operator to the Studio cluster. The core operator does the work that continues after a request:
+runs, reconciliation and, later, deployments. Kubernetes is one backend of the operator, not its definition. A
+service that starts such work, for example a sandbox run of app code, sends a request to the operator through an
+API.
+
+The core operator is also the one Studio component that has a Kubernetes client. The services have no Kubernetes
+permission. The conditions in "Conditions for operator work" tell you which work the operator does and which work
+stays in the service.
 
 The accepted ADR [Isolate assistant tools that can run code](2026-10-13-assistant-code-running-tools.md) continues
 to apply. Each run has one Job, a new microVM and a pod without secrets. Only the component that creates the Job is
@@ -124,16 +128,15 @@ different quota.
 
 ## Conditions for operator work
 
-A feature that must use something in the Studio cluster goes in the core operator when one of these conditions
-applies:
+A feature in the Studio cluster goes in the core operator when one of these conditions applies:
 
-- It must use the Kubernetes API, for example to create, watch or delete pods, Jobs, secrets, config or scaled
-  resources.
+- It must continue after one request or one pod. Examples are queues, quotas, timeouts, retries and cleanup.
 - It must use a sandbox node, for example to run code that an app repository controls, or code that the caller did
   not write.
-- It must continue after one request or one pod. Examples are queues, quotas, timeouts, retries and cleanup.
 - It uses data that does not come from Designer. Examples are the list of organizations, the condition of the
   cluster, and the capacity of the sandbox pool.
+- It must use the Kubernetes API, for example to create, watch or delete pods, Jobs, secrets, config or scaled
+  resources. This is one backend of the operator. The three conditions above apply to each backend.
 
 If no condition applies, the feature stays in the service that uses it. The service controls the intent and the
 record. The operator controls the run and the resources. The run API is the interface between them.
@@ -157,6 +160,8 @@ this decision specifies.
   the run by its id, gets the result and can cancel the run. A caller never gives a command. A caller authenticates
   with its projected ServiceAccount token, which the operator examines with TokenReview. There is no new secret.
 - **Results.** The operator does not keep the results in Kubernetes objects.
+- **Structure.** The API, the catalog and the run model do not depend on controller-runtime. The code that uses
+  controller-runtime and the Kubernetes API is in a sub-package. A new backend adds a sub-package and a kind.
 
 ```mermaid
 flowchart LR
@@ -182,6 +187,19 @@ flowchart LR
     rec -->|"archive in, result and patch out"| host
     host --> vm
 ```
+
+## Relation to the workflow engine
+
+The src folder ADR plans a project `operator-workflows` next to the operator. The
+[workflow engine](../../src/Runtime/workflow-engine/README.md) is a .NET library that a host composes, and the host
+adds its commands. A host in the Studio cluster that composes the engine is a caller of the operator in this ADR.
+Its workflows keep the intent and the record. The operator does the steps that use the cluster. This split follows
+the Go ADR: domain logic in .NET, Kubernetes in Go.
+
+If the app deployments move from Azure DevOps to such workflows, the deployment logic goes in `operator-workflows`
+and the cluster steps go in the operator. D5 then applies to the operator and not to the workflows. A run that a
+workflow step starts is one request to the operator. The workflow engine keeps the queue of the workflow. The
+operator keeps the queue of the run. This ADR does not decide the deployment change.
 
 ## Appendix A: The components that have a Kubernetes client in the Studio cluster now
 
