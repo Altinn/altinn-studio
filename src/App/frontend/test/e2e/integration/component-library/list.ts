@@ -31,11 +31,6 @@ describe('List component', () => {
   });
 
   it('Adds and removes data properly when using group and soft deletion', () => {
-    cy.interceptLayout('Task_1', (component) => {
-      if (component.type === 'List' && component.id === 'ListPage-ListWithCheckboxesComponent') {
-        component.tableColumns = { profession: { width: '25%' }, name: { width: '55%' } };
-      }
-    });
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Liste (tabell)');
 
