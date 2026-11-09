@@ -8,6 +8,49 @@ const ICON_COMPLETE = '[data-testid=state-complete]';
 const ICON_ERROR = '[data-testid=state-error]';
 
 describe('navigation', () => {
+  it('preserves task UI settings through the backend', { retries: 0 }, () => {
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
+    cy.waitForLoad();
+
+    cy.window()
+      .its('altinnAppGlobalData.ui.folders.Task_1.pages')
+      .should('deep.include', {
+        navigationTitle: ['concat', 'Skjema', 'sider'],
+        hideAppNameInPdf: true,
+      });
+    cy.window()
+      .its('altinnAppGlobalData.ui.folders.subform.pages')
+      .should('deep.include', {
+        navigationTitle: 'Skjemasider for kjøretøy',
+        hideAppNameInPdf: false,
+        validationOnNavigation: { page: 'current', show: ['Required'] },
+      });
+    cy.findByRole('heading', { name: 'Skjemasider' }).should('be.visible');
+
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
+    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('heading', { name: 'Skjemasider for kjøretøy' }).should('be.visible');
+
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'registreringsnummer');
+    cy.findByRole('textbox', { name: /Registreringsnummer/ })
+      .should('be.visible')
+      .type('AB12345');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.get('#brand').should('be.visible');
+    cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+    cy.waitForLoad();
+
+    cy.testPdf({
+      freeze: false,
+      callback: () => {
+        cy.get('#pdfView').should('contain.text', 'AB12345');
+        cy.findByRole('heading', { level: 1, name: 'Navigasjonstest' }).should('not.exist');
+      },
+    });
+  });
+
   const viewportSizes = {
     desktop: { width: 1440, height: 900 }, // Desktop
     tablet: { width: 810, height: 1080 }, // iPad
