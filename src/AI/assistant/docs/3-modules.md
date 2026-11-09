@@ -115,6 +115,7 @@ The conversation history for follow-up questions is also lost. Designer keeps th
 | Stop as "stuck"                      | 3 × same call in 5 turns  | `src/AI/assistant/agents/core/loop.py`                     |
 | Parallel tool calls                  | 10                        | `ALTINITY_MAX_TOOL_USE_CONCURRENCY`                        |
 | Size of one tool result              | 24 000 chars              | `src/AI/assistant/agents/core/compaction.py`               |
+| One part of a long file or docs page | 23 000 chars              | `src/AI/assistant/agents/core/tools/utils/text_parts.py`   |
 | History compaction starts at         | 480 000 chars             | `src/AI/assistant/agents/core/compaction.py`               |
 | Earlier turns replayed into the loop | 12 messages × 6 000 chars | `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py` |
 | Claude output tokens for each turn   | 64 000                    | `ANTHROPIC_MAX_TOKENS`                                     |

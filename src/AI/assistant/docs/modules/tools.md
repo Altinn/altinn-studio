@@ -7,7 +7,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | Tool                    | Job                                              | Parallel | Needs write mode |
 | ----------------------- | ------------------------------------------------ | -------- | ---------------- |
 | `scan_repo`             | List layouts, models, text resources and locales | Yes      | No               |
-| `read_file`             | Read a file, in parts of up to 23 000 chars      | Yes      | No               |
+| `read_file`             | Read one file, or one part of a long file        | Yes      | No               |
 | `edit_file`             | Replace one string in one file                   | No       | Yes              |
 | `write_file`            | Make or replace a whole file                     | No       | Yes              |
 | `discard_file_changes`  | Reset one file to HEAD                           | No       | Yes              |
@@ -18,6 +18,8 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `altinn_layout_props`   | Get the allowed properties of a component type   | Yes      | No               |
 | `altinn_datamodel_sync` | Make XSD and C# from a JSON Schema model         | No       | Yes              |
 | `web_fetch`             | Get a page from the Altinn docs hosts only       | Yes      | No               |
+
+The loop cuts every tool result at a fixed size, and the model cannot get the cut text back. So `read_file` and `web_fetch` return a long file or page in parts that fit under that size, and each part says where the next one starts.
 
 There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` gets the files from the Designer API at `DESIGNER_BASE_URL`. The model must read a file that this tool wrote again before it changes the file. `preview_render_check` is off by default (`PREVIEW_CHECK_ENABLED=false`) and works only with the local Designer stack.
 

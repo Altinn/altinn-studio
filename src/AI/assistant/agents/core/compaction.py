@@ -41,8 +41,8 @@ _CHARS_PER_TOKEN = 4
 
 # Default knobs.  Tune via CompactionConfig per LLMAdapter when the
 # target model has a known context window.
-# `read_file` returns long files in parts that fit under the default
-# result cap, so change the two together.
+# `read_file` and `web_fetch` return long text in parts sized to fit
+# under the default result cap (tools/utils/text_parts.py).
 DEFAULT_MAX_RESULT_CHARS = 24_000  # ~6k tokens per tool result
 DEFAULT_COMPACT_THRESHOLD_CHARS = 480_000  # ~120k tokens before compacting
 DEFAULT_KEEP_RECENT_MESSAGES = 6
