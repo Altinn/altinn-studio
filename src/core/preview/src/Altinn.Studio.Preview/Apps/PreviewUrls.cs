@@ -20,6 +20,21 @@ internal static class PreviewUrls
         new($"{publicBaseUrl.AbsoluteUri.TrimEnd('/')}/{sessionId}/{workingCopy.Org}/{workingCopy.App}/");
 
     /// <summary>
+    /// The session that a URL from <see cref="AppRoot"/> opens, or <c>null</c> when the URL isn't one.
+    /// </summary>
+    public static SessionId? SessionIdOf(Uri url, Uri publicBaseUrl)
+    {
+        string root = $"{publicBaseUrl.AbsoluteUri.TrimEnd('/')}/";
+        if (!url.IsAbsoluteUri || !url.AbsoluteUri.StartsWith(root, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        string firstSegment = url.AbsoluteUri[root.Length..].Split('/')[0];
+        return SessionId.TryParse(firstSegment, out SessionId sessionId) ? sessionId : null;
+    }
+
+    /// <summary>
     /// The path with its session ID replaced, or <c>null</c> when it doesn't start with one. Telemetry records this
     /// rather than the path, because the ID opens the session.
     /// </summary>

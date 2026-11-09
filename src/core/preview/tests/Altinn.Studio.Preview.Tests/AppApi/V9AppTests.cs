@@ -173,6 +173,63 @@ public sealed class V9AppTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("Task_1", "data")]
+    [InlineData("PdfTask", "pdf")]
+    [InlineData("TaskTheProcessLacks", "data")]
+    public async Task EditorInstance_StartsAtTheTask(string taskId, string taskType)
+    {
+        Uri appRoot = await StartSession();
+
+        using HttpResponseMessage response = await CreateEditorInstance("developer", appRoot, taskId);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonObject>(TestContext.Current.CancellationToken);
+        string instanceId = Value(body?["instanceId"]);
+        JsonObject enriched = await Send(HttpMethod.Get, new Uri(appRoot, $"instances/{instanceId}/enriched"));
+        Assert.Equal(taskId, (string?)enriched["process"]?["currentTask"]?["elementId"]);
+        Assert.Equal(taskType, (string?)enriched["process"]?["currentTask"]?["altinnTaskType"]);
+    }
+
+    [Fact]
+    public async Task EditorInstance_IsNotFound_InAnotherDevelopersSession()
+    {
+        _factory.Root.AddWorkingCopy("other-developer", "ttd", "my-app");
+        Uri appRoot = await StartSession();
+
+        using HttpResponseMessage response = await CreateEditorInstance("other-developer", appRoot, "Task_1");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(true, "Task_1")]
+    [InlineData(false, "../Task_1")]
+    public async Task EditorInstance_RefusesAUrlOfAnotherSiteOrAnUnsafeTask(bool anotherSite, string taskId)
+    {
+        Uri appRoot = await StartSession();
+        Uri sessionUrl = anotherSite ? new Uri($"https://elsewhere.test{appRoot.AbsolutePath}") : appRoot;
+
+        using HttpResponseMessage response = await CreateEditorInstance("developer", sessionUrl, taskId);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EditorInstance_IsNotServedOnThePublicPort()
+    {
+        Uri appRoot = await StartSession();
+
+        using HttpResponseMessage response = await CreateEditorInstance(
+            "developer",
+            appRoot,
+            "Task_1",
+            _factory.CreatePublicClient()
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     internal static void AddV9App(string workingCopy, string appLibVersion)
     {
         RepositoryRoot.AddFile(workingCopy, "App/App.csproj", Project(appLibVersion));
@@ -234,6 +291,25 @@ public sealed class V9AppTests : IDisposable
         );
         return body?.Url ?? throw new InvalidOperationException("No session URL.");
     }
+
+    private Task<HttpResponseMessage> CreateEditorInstance(
+        string developer,
+        Uri sessionUrl,
+        string taskId,
+        HttpClient? client = null
+    ) =>
+        (client ?? _factory.CreateInternalClient()).PostAsJsonAsync(
+            "/sessions/instances",
+            new
+            {
+                developer,
+                org = "ttd",
+                app = "my-app",
+                sessionUrl,
+                taskId,
+            },
+            TestContext.Current.CancellationToken
+        );
 
     private Task<HttpResponseMessage> Get(Uri url) =>
         _factory.CreatePublicClient().GetAsync(url, TestContext.Current.CancellationToken);
