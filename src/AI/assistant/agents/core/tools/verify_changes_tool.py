@@ -72,9 +72,12 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         "or basic JSON parse for everything else.  Returns "
         "`{passed, checked_files, notes, old_errors}` where notes list "
         "per-file outcomes and the errors to fix.\n\n"
-        "`old_errors` lists errors the app already had when this session "
-        "started.  They don't block the commit, and you don't fix them "
-        "unless the user asks: name them in your final message instead.\n\n"
+        "`old_errors` lists errors in text resources and text keys that the "
+        "app already had when this session started.  They don't block the "
+        "commit, and you don't fix them unless the user asks: name them in "
+        "your final message instead.  The other checks have no `old_errors`: "
+        "they fail on every error in the files you changed, including ones "
+        "that were there before, so fix what the notes report.\n\n"
         "WHEN to call: between your last edit and `commit_session_branch`.  "
         "Always.  `commit_session_branch` refuses to run if any changed "
         "file has not been verified since its last edit.\n\n"
@@ -300,23 +303,25 @@ def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[str]:
 
 
 def _missing_text_keys(files: AppFiles, layouts: list[str]) -> list[Finding]:
-    """A finding for each key that a layout references and a language lacks.
+    """A finding for each binding whose key a language lacks.
 
-    Without readable text resources there is nothing to resolve the keys against.
+    The finding is at the component, so a new component that uses a key the
+    page already lacked is a new finding.  Without readable text resources
+    there is nothing to resolve the keys against.
     """
     by_language = _text_keys_by_language(files)
     findings: list[Finding] = []
     for layout in layouts:
-        referenced = _referenced_text_keys(_parse_json(files.read_text(layout)))
-        for language, known in sorted(by_language.items()):
+        for binding in _text_key_bindings(_parse_json(files.read_text(layout))):
             findings.extend(
                 Finding(
                     "missing-text-key",
-                    layout,
-                    f"text key `{key}` has no entry in `{_resource_file(language)}`, so the page shows the key "
-                    "instead of the text in that language.",
+                    f"{layout}: {binding.component_id}" if binding.component_id else layout,
+                    f"`{binding.name}` uses text key `{binding.key}`, which has no entry in "
+                    f"`{_resource_file(language)}`, so the page shows the key instead of the text in that language.",
                 )
-                for key in sorted(referenced - known)
+                for language, known in sorted(by_language.items())
+                if binding.key not in known
             )
     return findings
 
@@ -347,18 +352,27 @@ def _all_layout_files(repo: Path) -> list[str]:
     return sorted(p for p in paths if _is_layout_file(p))
 
 
-def _referenced_text_keys(parsed_layout: Any) -> set[str]:
-    keys: set[str] = set()
+@dataclass(frozen=True)
+class _TextKeyBinding:
+    component_id: str | None
+    name: str
+    key: str
+
+
+def _text_key_bindings(parsed_layout: Any) -> list[_TextKeyBinding]:
+    found: list[_TextKeyBinding] = []
     # An unreadable layout has no keys here: the schema validator owns unreadable layouts.
     for component in _layout_components(parsed_layout) or []:
-        if isinstance(component, dict):
-            keys.update(_get_bound_text_keys(component))
-    return keys
-
-
-def _get_bound_text_keys(component: dict[str, Any]) -> set[str]:
-    bindings = component.get("textResourceBindings") or {}
-    return {value for value in bindings.values() if isinstance(value, str) and value.strip()}
+        bindings = component.get("textResourceBindings") if isinstance(component, dict) else None
+        if not isinstance(bindings, dict):
+            continue
+        component_id = component.get("id") if isinstance(component.get("id"), str) else None
+        found.extend(
+            _TextKeyBinding(component_id, name, key)
+            for name, key in bindings.items()
+            if isinstance(key, str) and key.strip()
+        )
+    return found
 
 
 def _read_page_order(settings_path: Path) -> list[str] | None:
@@ -518,6 +532,13 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
     ) as span:
         span.update(input={"file_content": resource_json})
         try:
+            resource = json.loads(resource_json)
+        except json.JSONDecodeError as exc:
+            # No error in a file that does not parse can be told from one the
+            # start had, and none of the session's edits in it can be checked.
+            span.update(output={"result": {"valid": False}})
+            return _Result(False, [f"{file_path}: invalid JSON — {exc}"])
+        try:
             schema = get_layout_schema(ctx.app_version_profile.text_resources_schema_location)
         except Exception as exc:
             span.update(output={"error": str(exc)})
@@ -529,14 +550,11 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
 
     result = _findings_result(split, file_path)
     status = [] if split.new else [f"{file_path}: no new errors"]
-    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, validator, resource_json, language)]
+    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, validator, resource, language)]
     return _Result(result.passed, [*status, *result.notes, *hints], result.old_errors)
 
 
-def _resource_warnings(ctx: LoopContext, validator: ResourceValidator, resource_json: str, language: str) -> list[str]:
-    resource = _parse_json(resource_json)
-    if resource is None:
-        return []
+def _resource_warnings(ctx: LoopContext, validator: ResourceValidator, resource: Any, language: str) -> list[str]:
     ids_by_language = _text_keys_by_language(WorkingTreeFiles(Path(ctx.repo_path)))
     ids_by_language.pop(language, None)
     return _limit(validator.find_warnings(resource, ids_by_language), _MAX_LISTED_WARNINGS, "warning(s)")

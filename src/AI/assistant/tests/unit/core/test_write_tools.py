@@ -735,19 +735,14 @@ class TestTextKeysResolveInEveryLanguage:
 
     EN = "App/config/texts/resource.en.json"
 
-    def _files(self, *, en_ids: list[str]) -> dict[str, str]:
-        page = {
-            "data": {
-                "layout": [
-                    {
-                        "id": "submit",
-                        "type": "Button",
-                        "textResourceBindings": {"title": "app.button.submit"},
-                    }
-                ]
-            }
-        }
-        files = {"App/ui/form/layouts/Side1.json": json.dumps(page)}
+    SIDE1 = "App/ui/form/layouts/Side1.json"
+
+    def _files(self, *, en_ids: list[str], button_ids: tuple[str, ...] = ("submit",)) -> dict[str, str]:
+        buttons = [
+            {"id": button_id, "type": "Button", "textResourceBindings": {"title": "app.button.submit"}}
+            for button_id in button_ids
+        ]
+        files = {self.SIDE1: json.dumps({"data": {"layout": buttons}})}
         for language, ids in (("nb", ["app.button.submit"]), ("en", en_ids)):
             files[f"App/config/texts/resource.{language}.json"] = json.dumps(
                 {"language": language, "resources": [{"id": i, "value": i} for i in ids]}
@@ -796,9 +791,23 @@ class TestTextKeysResolveInEveryLanguage:
         assert not result.is_error, body["notes"]
         assert not any("has no entry" in note for note in body["notes"])
         assert body["old_errors"] == [
-            "App/ui/form/layouts/Side1.json: text key `app.button.submit` has no entry in "
-            "`App/config/texts/resource.en.json`, so the page shows the key instead of the text in that language."
+            "App/ui/form/layouts/Side1.json: submit: `title` uses text key `app.button.submit`, which has no entry "
+            "in `App/config/texts/resource.en.json`, so the page shows the key instead of the text in that language."
         ]
+
+    async def test_a_new_component_fails_for_a_key_its_page_was_missing_before(self, tmp_path: Path, permissive_schema):
+        """The page already showed the key on one button. A second button that shows it is the session's error."""
+        start_commit = _start_session(tmp_path, self._files(en_ids=["appName"]))
+        write_files(tmp_path, self._files(en_ids=["appName"], button_ids=("submit", "send")))
+
+        result, body = await _verify_notes(tmp_path, {self.SIDE1}, start_commit=start_commit)
+
+        assert result.is_error
+        assert [note for note in body["notes"] if "app.button.submit" in note] == [
+            "App/ui/form/layouts/Side1.json: send: `title` uses text key `app.button.submit`, which has no entry "
+            "in `App/config/texts/resource.en.json`, so the page shows the key instead of the text in that language."
+        ]
+        assert len(body["old_errors"]) == 1
 
     async def test_a_page_the_session_added_fails_for_a_key_that_was_missing_before(
         self, tmp_path: Path, permissive_schema
@@ -807,12 +816,12 @@ class TestTextKeysResolveInEveryLanguage:
         files = self._files(en_ids=["appName"])
         start_commit = _start_session(tmp_path, files)
         side2 = "App/ui/form/layouts/Side2.json"
-        write_files(tmp_path, {side2: files["App/ui/form/layouts/Side1.json"]})
+        write_files(tmp_path, {side2: files[self.SIDE1]})
 
         result, body = await _verify_notes(tmp_path, {side2}, start_commit=start_commit)
 
         assert result.is_error
-        assert any(note.startswith(f"{side2}: text key `app.button.submit`") for note in body["notes"])
+        assert any(note.startswith(f"{side2}: submit: `title` uses text key") for note in body["notes"])
 
 
 class TestTextResourceErrorsBeforeTheSession:
@@ -867,6 +876,18 @@ class TestTextResourceErrorsBeforeTheSession:
         result, body = await self._verify(tmp_path, start_commit)
 
         assert result.is_error
+        assert body["old_errors"] == []
+
+    async def test_a_file_that_does_not_parse_fails_with_the_parse_error_it_had_at_the_start(self, tmp_path: Path):
+        """The parser stops where it stopped at the start, so the session's broken text after that goes unchecked."""
+        start_commit = _start_session(tmp_path, {self.RESOURCE_PATH: '{"language": "nb" "resources": []}'})
+        broken_text = '{"language": "nb" "resources": [{"id": "title", "value": 42}]}'
+        write_files(tmp_path, {self.RESOURCE_PATH: broken_text})
+
+        result, body = await self._verify(tmp_path, start_commit)
+
+        assert result.is_error
+        assert body["notes"][0].startswith(f"{self.RESOURCE_PATH}: invalid JSON — Expecting ',' delimiter")
         assert body["old_errors"] == []
 
     async def test_a_file_the_session_added_has_only_new_errors(self, tmp_path: Path):

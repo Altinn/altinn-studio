@@ -111,7 +111,16 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 - A file went wrong → `discard_file_changes(path)`; other files stay."""
 
 
-_FINAL_ANSWER_READ_ONLY = """\
+# A session that starts read-only and gets permission keeps the read-only
+# contract, so both contracts carry this rule.
+_OLD_ERRORS_RULE = (
+    "If `verify_changes` listed `old_errors`, errors that were in the app before this session, name them after the "
+    "files and offer to fix them.  Don't fix them unasked: the user didn't ask for those changes, and some need their "
+    "judgment, such as which of two texts with the same id to keep."
+)
+
+
+_FINAL_ANSWER_READ_ONLY = f"""\
 ## When you are done (read-only mode)
 
 This session started WITHOUT write permission.  Read tools all work: scan
@@ -134,10 +143,11 @@ and read the repo, load skills, look up component schemas, fetch docs.
   and finish.  Never claim you cannot change the app without having tried: the
   permission prompt is the user's to answer, not yours to assume.
 - Match the user's language.  If the goal was written in Norwegian, answer in
-  Norwegian."""
+  Norwegian.
+- {_OLD_ERRORS_RULE}"""
 
 
-_FINAL_ANSWER = """\
+_FINAL_ANSWER = f"""\
 ## When you are done
 
 Your loop has one good ending: edits land → `verify_changes` passes → `commit_session_branch` succeeds → `preview_render_check` passes (or reports itself unavailable) → a final assistant message.  Anything else is the wrong path.
@@ -150,7 +160,7 @@ Specifically:
 ## Final response format
 Send a final assistant message with no tool calls.  Format depends on what you did:
 
-- **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.  If `verify_changes` listed `old_errors`, errors that were in the app before this session, name them after the files and offer to fix them.  Don't fix them unasked: the user didn't ask for those changes, and some need their judgment, such as which of two texts with the same id to keep.
+- **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.  {_OLD_ERRORS_RULE}
 - **You answered a question**: keep it conversational, short paragraphs, minimal markdown.  You may link a docs page inline as `[tittel](url)`, but ONLY with a URL that appears verbatim in content you fetched this session (a `web_fetch` result or a skill's page index) — never write a docs URL from memory; guessed URLs 404.  Do NOT append a `SOURCES:` line — the chat UI attaches the sources you consulted automatically, with working links.
 - **You stopped without finishing**: lead with what did land — the commit hash and the files you touched, same as above — and only then what blocked you and what you'd need to continue.  Anything you committed is already on the user's session branch, so a message naming only the blocker reads as though nothing happened and leaves them hunting for changes you never mentioned.  Don't pretend the partial progress is complete either: say which part is unfinished.
 

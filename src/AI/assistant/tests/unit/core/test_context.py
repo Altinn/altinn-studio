@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date
 
+import pytest
+
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import SessionContext, build_system_prompt
 
@@ -184,9 +186,13 @@ class TestFinalAnswerContract:
         # And it should give an example of the preferred shape.
         assert "bullet list" in prompt.lower()
 
-    def test_reports_errors_from_before_the_session_without_fixing_them(self):
-        """verify_changes lets old errors through, so the user hears of them only from the summary."""
-        prompt = build_system_prompt(_base_ctx())
+    @pytest.mark.parametrize("allow_app_changes", [True, False])
+    def test_reports_errors_from_before_the_session_without_fixing_them(self, allow_app_changes: bool):
+        """verify_changes lets old errors through, so the user hears of them only from the summary.
+
+        A read-only session that gets permission keeps the read-only contract, so it needs the rule too.
+        """
+        prompt = build_system_prompt(_base_ctx(allow_app_changes=allow_app_changes))
 
         assert "listed `old_errors`" in prompt
         assert "name them after the files and offer to fix them" in prompt
