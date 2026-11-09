@@ -41,6 +41,8 @@ _CHARS_PER_TOKEN = 4
 
 # Default knobs.  Tune via CompactionConfig per LLMAdapter when the
 # target model has a known context window.
+# `read_file` returns long files in parts that fit under the default
+# result cap, so change the two together.
 DEFAULT_MAX_RESULT_CHARS = 24_000  # ~6k tokens per tool result
 DEFAULT_COMPACT_THRESHOLD_CHARS = 480_000  # ~120k tokens before compacting
 DEFAULT_KEEP_RECENT_MESSAGES = 6
@@ -69,7 +71,11 @@ def cap_tool_result(content: str, max_chars: int) -> str:
         return content
     head = content[:max_chars]
     omitted = len(content) - max_chars
-    return f"{head}\n\n[…truncated {omitted} chars — call the tool again with a narrower query if you need more]"
+    return (
+        f"{head}\n\n[…truncated {omitted} chars.  You have not seen the rest of this result, so do not "
+        "treat it as read or handled.  If you need the rest, call the tool again for a smaller part, "
+        "such as `read_file` with a later `offset`.]"
+    )
 
 
 def message_chars(message: Message) -> int:

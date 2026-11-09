@@ -1,4 +1,4 @@
-"""`read_file` — read one file from the session repository.
+"""`read_file` — read one file, or one part of it, from the session repository.
 
 Marks the file as read, so `edit_file` and `write_file` may change it.
 """
@@ -9,34 +9,48 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from agents.core.compaction import DEFAULT_MAX_RESULT_CHARS
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 from .utils.repo_files import PathError, mark_read, resolve_repo_path
 
-# Cap on a single read's payload — without this, a 200kB schema file
-# would dominate the model's context budget.  Truncation marker mirrors
-# the compaction layer's style so the model recognizes it.
-_MAX_READ_CHARS = 60_000
+# The loop cuts every tool result at DEFAULT_MAX_RESULT_CHARS and the
+# model cannot get the cut text back.  A part must fit under that cap
+# together with the note that tells the model where the next part starts.
+_NOTE_RESERVE_CHARS = 1_000
+_MAX_PART_CHARS = DEFAULT_MAX_RESULT_CHARS - _NOTE_RESERVE_CHARS
 
 
 class ReadFileArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     path: str = Field(min_length=1, description="Repo-relative path.")
+    offset: int = Field(default=1, ge=1, description="Line number to start reading from. The first line is 1.")
+    limit: int | None = Field(
+        default=None,
+        ge=1,
+        description="Maximum number of lines to read. Leave out to read as much as one call returns.",
+    )
 
 
 class ReadFileTool(Tool[ReadFileArgs]):
     name = "read_file"
     description = (
-        "Read a file from the session repository and return its contents.\n\n"
+        "Read a file from the session repository and return its text.\n\n"
         "USE this BEFORE editing or overwriting any file — `edit_file` and "
         "`write_file` will refuse to touch a file you haven't read.  Also "
         "use it whenever you need to confirm the exact current text of a "
         "section (for example, before constructing an `edit_file` "
         "`old_string`).\n\n"
-        "Returns the file's full text.  Very large files are truncated; if "
-        "the truncation marker appears, narrow your inspection by reading a "
-        "more specific file or using one of the `altinn_*` lookup tools.\n\n"
-        "Takes one input: `path` — repo-relative (no leading `/`, no `..`)."
+        f"One call returns at most {_MAX_PART_CHARS:,} characters, in whole lines.  "
+        "When a file is longer, the result ends with a note that names the "
+        "lines you got, the file's line count and the `offset` of the next "
+        "part.  You have not seen the lines after that note: read the "
+        "remaining parts before you act on the whole file, such as when you "
+        "translate or check every text in a text resource file.\n\n"
+        "Inputs:\n"
+        "  - `path` — repo-relative (no leading `/`, no `..`).\n"
+        "  - `offset` — line to start at, from 1.  Default 1.\n"
+        "  - `limit` — maximum number of lines.  Default: as many as fit."
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
@@ -49,18 +63,77 @@ class ReadFileTool(Tool[ReadFileArgs]):
         if isinstance(text, ToolResult):
             return text
 
+        lines = _split_lines(text)
+        total = len(lines)
+        if args.offset > max(total, 1):
+            return ToolResult(
+                content=f"offset {args.offset} is past the end of {args.path}, which has {total} lines.",
+                is_error=True,
+            )
+
         mark_read(ctx, args.path)
 
-        if len(text) > _MAX_READ_CHARS:
-            head = text[:_MAX_READ_CHARS]
+        start = args.offset - 1
+        stop = total if args.limit is None else min(total, start + args.limit)
+        # Always include the first line, even when it alone is over budget.
+        end = max(_fit_lines(lines, start, stop, _MAX_PART_CHARS), min(start + 1, stop))
+        part = "".join(lines[start:end])
+        metadata = {"chars": len(text), "lines": total}
+
+        line = part.removesuffix("\n")
+        if len(line) > _MAX_PART_CHARS:
+            # One line alone is longer than a part.  Show its start rather
+            # than nothing, and say that the rest of the line is out of reach.
+            line_no = start + 1
             return ToolResult(
                 content=(
-                    head + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
-                    "Use a more specific tool or read a smaller file if you need the rest.]"
+                    line[:_MAX_PART_CHARS] + f"\n\n[Line {line_no} of {args.path} has "
+                    f"{len(line):,} characters.  This shows only its first "
+                    f"{_MAX_PART_CHARS:,}, and `read_file` cannot show the rest of the line."
+                    + _next_part_hint(line_no, total)
+                    + "]"
                 ),
-                metadata={"truncated": True, "chars": len(text)},
+                metadata={**metadata, "truncated": True, "start_line": line_no, "end_line": line_no},
             )
-        return ToolResult(content=text, metadata={"chars": len(text)})
+
+        if start == 0 and end == total:
+            return ToolResult(content=part, metadata=metadata)
+
+        first, last = start + 1, end
+        note = f"[Showing lines {first}–{last} of {total} in {args.path}."
+        note += _next_part_hint(last, total) + "]"
+        return ToolResult(
+            content=f"{part}\n\n{note}",
+            metadata={**metadata, "truncated": last < total, "start_line": first, "end_line": last},
+        )
+
+
+def _split_lines(text: str) -> list[str]:
+    """Split on `\\n` only, keeping each line's ending, so the parts join
+    back into the exact text.  `str.splitlines` also splits on characters
+    such as U+2028 that editors do not count as line breaks."""
+    pieces = text.split("\n")
+    lines = [piece + "\n" for piece in pieces[:-1]]
+    if pieces[-1]:
+        lines.append(pieces[-1])
+    return lines
+
+
+def _fit_lines(lines: list[str], start: int, stop: int, max_chars: int) -> int:
+    """Return the end index of the longest run of whole lines from
+    `start`, at most to `stop`, whose total length fits in `max_chars`."""
+    size = 0
+    end = start
+    while end < stop and size + len(lines[end]) <= max_chars:
+        size += len(lines[end])
+        end += 1
+    return end
+
+
+def _next_part_hint(last_line: int, total: int) -> str:
+    if last_line >= total:
+        return "  This is the end of the file."
+    return f"  To read the next part, call `read_file` with `offset` {last_line + 1}."
 
 
 def _find_file(ctx: LoopContext, rel_path: str) -> Path | ToolResult:

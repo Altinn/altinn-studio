@@ -7,7 +7,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | Tool                    | Job                                              | Parallel | Needs write mode |
 | ----------------------- | ------------------------------------------------ | -------- | ---------------- |
 | `scan_repo`             | List layouts, models, text resources and locales | Yes      | No               |
-| `read_file`             | Read one file, max 60 000 chars                  | Yes      | No               |
+| `read_file`             | Read a file, in parts of up to 23 000 chars      | Yes      | No               |
 | `edit_file`             | Replace one string in one file                   | No       | Yes              |
 | `write_file`            | Make or replace a whole file                     | No       | Yes              |
 | `discard_file_changes`  | Reset one file to HEAD                           | No       | Yes              |

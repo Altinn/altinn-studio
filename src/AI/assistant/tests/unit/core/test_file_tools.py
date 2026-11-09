@@ -21,6 +21,8 @@ from agents.core import (
     ReadFileTool,
     WriteFileTool,
 )
+from agents.core.compaction import DEFAULT_MAX_RESULT_CHARS, cap_tool_result
+from agents.core.tools.read_file_tool import _MAX_PART_CHARS
 
 
 def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
@@ -29,6 +31,15 @@ def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
         repo_path=str(repo),
         allow_app_changes=allow_app_changes,
     )
+
+
+def _text_resource_file(count: int) -> str:
+    """A Studio-formatted text resource file with `count` texts, about 90
+    characters per text."""
+    entries = ",\n".join(
+        f'    {{\n      "id": "text-{n}",\n      "value": "Tekst nummer {n} i appen"\n    }}' for n in range(count)
+    )
+    return f'{{\n  "language": "nn",\n  "resources": [\n{entries}\n  ]\n}}\n'
 
 
 # ---------------------------------------------------------------------------
@@ -84,18 +95,90 @@ class TestReadFile:
         # need it to refuse and not actually read.
         assert "not allowed" in result.content or "escapes" in result.content
 
-    async def test_large_file_truncated(self, tmp_path: Path):
-        # 70k chars > _MAX_READ_CHARS (60k).
-        big = "x" * 70_000
-        (tmp_path / "big.txt").write_text(big, encoding="utf-8")
+    async def test_large_file_returns_first_part_with_next_offset(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
         tool = ReadFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate({"path": "big.txt"}),
+            tool.input_schema.model_validate({"path": "resource.nn.json"}),
             _ctx(tmp_path),
         )
         assert not result.is_error
-        assert "truncated" in result.content
+        total = text.count("\n")
+        last = result.metadata["end_line"]
         assert result.metadata.get("truncated") is True
+        assert f"Showing lines 1–{last} of {total}" in result.content
+        assert f"`offset` {last + 1}" in result.content
+
+    async def test_part_fits_under_the_loop_cap(self, tmp_path: Path):
+        # The loop cuts every result at DEFAULT_MAX_RESULT_CHARS.  If it cut a
+        # part, the model would lose lines and the note with the next offset.
+        (tmp_path / "big.txt").write_text(("y" * 79 + "\n") * 5_000, encoding="utf-8")
+        tool = ReadFileTool()
+        result = await tool.run(tool.input_schema.model_validate({"path": "big.txt"}), _ctx(tmp_path))
+        assert cap_tool_result(result.content, DEFAULT_MAX_RESULT_CHARS) == result.content
+
+    async def test_reading_every_part_returns_the_whole_file(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
+        tool = ReadFileTool()
+        ctx = _ctx(tmp_path)
+        parts: list[str] = []
+        offset = 1
+        while True:
+            result = await tool.run(
+                tool.input_schema.model_validate({"path": "resource.nn.json", "offset": offset}),
+                ctx,
+            )
+            assert not result.is_error
+            end = result.metadata["end_line"]
+            parts.append(result.content.rsplit("\n\n[Showing lines", 1)[0])
+            if not result.metadata["truncated"]:
+                assert "This is the end of the file." in result.content
+                break
+            offset = end + 1
+        assert len(parts) > 1
+        assert "".join(parts) == text
+
+    async def test_offset_and_limit_return_those_lines(self, tmp_path: Path):
+        (tmp_path / "f.txt").write_text("".join(f"line {n}\n" for n in range(1, 11)), encoding="utf-8")
+        tool = ReadFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "offset": 3, "limit": 2}),
+            _ctx(tmp_path),
+        )
+        assert not result.is_error
+        assert result.content.startswith("line 3\nline 4\n\n")
+        assert "line 5" not in result.content
+        assert "Showing lines 3–4 of 10" in result.content
+        assert "`offset` 5" in result.content
+
+    async def test_offset_past_end_is_error(self, tmp_path: Path):
+        (tmp_path / "f.txt").write_text("a\nb\n", encoding="utf-8")
+        tool = ReadFileTool()
+        ctx = _ctx(tmp_path)
+        result = await tool.run(tool.input_schema.model_validate({"path": "f.txt", "offset": 3}), ctx)
+        assert result.is_error
+        assert "has 2 lines" in result.content
+        assert "f.txt" not in ctx.extras.get("read_set", set())
+
+    async def test_line_longer_than_a_part_is_cut_and_says_so(self, tmp_path: Path):
+        (tmp_path / "min.json").write_text("x" * 50_000 + "\nnext\n", encoding="utf-8")
+        tool = ReadFileTool()
+        result = await tool.run(tool.input_schema.model_validate({"path": "min.json"}), _ctx(tmp_path))
+        assert not result.is_error
+        assert "Line 1 of min.json has 50,000 characters" in result.content
+        assert "`offset` 2" in result.content
+        assert cap_tool_result(result.content, DEFAULT_MAX_RESULT_CHARS) == result.content
+
+    async def test_line_exactly_as_long_as_a_part_is_whole(self, tmp_path: Path):
+        # The line break pushes this line one character over a part, but the
+        # text itself fits, so the model gets the whole line.
+        (tmp_path / "f.txt").write_text("x" * _MAX_PART_CHARS + "\nnext\n", encoding="utf-8")
+        tool = ReadFileTool()
+        result = await tool.run(tool.input_schema.model_validate({"path": "f.txt"}), _ctx(tmp_path))
+        assert result.content.startswith("x" * _MAX_PART_CHARS + "\n\n\n[Showing lines 1–1 of 2")
+        assert cap_tool_result(result.content, DEFAULT_MAX_RESULT_CHARS) == result.content
 
 
 # ---------------------------------------------------------------------------
