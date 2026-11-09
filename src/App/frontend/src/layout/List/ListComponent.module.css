@@ -30,6 +30,10 @@
   font-size: 16px;
 }
 
+.readOnly tr {
+  cursor: default;
+}
+
 .selectedRow,
 .selectedRowCell {
   background-color: var(--ds-color-accent-surface-tinted);

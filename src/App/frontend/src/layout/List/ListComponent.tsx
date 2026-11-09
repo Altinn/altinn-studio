@@ -304,6 +304,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       <Table
         className={cn(classes.listTable, {
           [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
         })}
       >
         {isSummary ? (
