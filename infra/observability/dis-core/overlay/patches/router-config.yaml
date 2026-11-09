@@ -113,7 +113,10 @@ spec:
             port: '4317'
       # The platform's collector, which sends traces and logs to Application Insights and metrics
       # to an Azure Monitor Workspace. It finds each service's pod by its k8s.pod.uid, so labels
-      # on the service's Deployment, such as dis.otel/sampling, still apply. A slow or unavailable
+      # on the service's Deployment, such as dis.otel/sampling, still apply. Without k8s.pod.uid
+      # it takes the connection's pod, this router. k8s_attributes in passthrough mode would set
+      # k8s.pod.ip here instead, but the operator would then ask for a ClusterRole to read pods,
+      # which DIS Core doesn't give us. A slow or unavailable
       # collector must not hold up the export to Victoria: the queue drops data instead of
       # blocking once it is full, and a failed export is retried for a minute.
       otlp_grpc/platform:

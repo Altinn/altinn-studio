@@ -22,8 +22,10 @@ browsers.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
   `altinn-studio-logs` and `altinn-studio-traces-logsql`.
 - In DIS Core, our services share the collectors in the namespace `product-studio-obs`. Services that reported to the
-  platform's Azure Monitor before they moved there, such as Storage, keep reporting to it: the router also sends
-  their telemetry, unsampled, to the platform's collector, which samples it by its own rules.
+  platform's Azure Monitor before they moved there, such as Storage, also report to the platform's collector. The
+  router sends it their telemetry unsampled. The platform's collector samples and filters it by its own rules, and
+  stores it in the cluster's Application Insights and Azure Monitor Workspace. It finds each service's pod by
+  `k8s.pod.uid`, so without it the telemetry looks like the router's.
 
 [infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
