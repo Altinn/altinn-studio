@@ -47,9 +47,9 @@ an empty field shows an error before the user has started.
 
 - The frontend checks the data against the JSON schema, such as `maxLength`, `pattern`, `minimum` and `enum`. The
   backend checks the attributes on the C# class, such as `[MaxLength]`, `[RegularExpression]` and `[Range]`.
-- Change only the JSON schema, then generate the C# class from it, as the `studio-data-model` skill describes. Until
-  the class is generated, the backend checks the old rules, and a value the browser accepts can fail when the user
-  submits, with the attribute's own message.
+- Change the JSON schema, then bring the C# class up to date with it, as the `studio-data-model` skill describes.
+  Until the class matches the schema, the backend checks the old rules, and a value the browser accepts can fail when
+  the user submits, with the attribute's own message.
 - The frontend shows a built-in message for each keyword. To give a field its own message, add `errorMessage` with a
   text key to the schema object that holds the failing keyword. When the keyword sits in a definition under `$defs`,
   the message goes there and applies to every field that uses the definition. The backend does not read
