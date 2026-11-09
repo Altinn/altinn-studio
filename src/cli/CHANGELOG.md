@@ -9,9 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.33] - 2026-11-09
+
 ### Changed
 
-- `studioctl app upgrade v9` moves the Altinn.App packages to the latest v9 release also for apps already on v9, and to at least `9.0.0-preview.10`, the first release that reads `taskIds`. Apps on `9.0.0-preview.8` or `9.0.0-preview.9` used to keep their version, which reads only `taskId`, so their data types lost their tasks. ([#21816](https://github.com/Altinn/altinn-studio/pull/21816))
+- `studioctl app upgrade v9` moves the Altinn.App packages to the latest v9 release, at least `9.0.0-preview.10`, also for apps already on v9. An app on `9.0.0-preview.8` or `9.0.0-preview.9` with `taskIds` in `applicationmetadata.json` has lost its data types' tasks: run the upgrade again. ([#21816](https://github.com/Altinn/altinn-studio/pull/21816))
 
 ## [0.1.0-preview.32] - 2026-11-09
 
