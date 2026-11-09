@@ -21,7 +21,8 @@ public class ServiceTaskRegistrationValidatorTests
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         var validator = new ServiceTaskRegistrationValidator(
             provider.GetRequiredService<IServiceScopeFactory>(),
-            NullLogger<ServiceTaskRegistrationValidator>.Instance
+            NullLogger<ServiceTaskRegistrationValidator>.Instance,
+            new ServiceTaskRegistrationValidator.ServiceRegistrations(services)
         );
         return (InvalidOperationException?)
             await Record.ExceptionAsync(() => validator.StartAsync(CancellationToken.None));
@@ -262,6 +263,36 @@ public class ServiceTaskRegistrationValidatorTests
         });
 
         AssertBuiltInTypeReused(exception, typeof(AppEFormidlingTask), "eFormidling", nameof(EFormidlingServiceTask));
+    }
+
+    private sealed class UnconstructibleTask : IServiceTask
+    {
+        public UnconstructibleTask() => throw new InvalidOperationException("not at startup");
+
+        public string Type => "unconstructible";
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(NoopFinally);
+    }
+
+    [Fact]
+    public async Task AppTaskReusingABuiltInType_FailsStartup_WhenAnotherTaskCannotBeConstructed()
+    {
+        var exception = await Validate(s =>
+        {
+            s.AddSingleton<IServiceTask>(_ => BuiltInPdfTask());
+            s.AddSingleton<IServiceTask, UnconstructibleTask>();
+            s.AddSingleton<IServiceTask, AppPdfTask>();
+        });
+
+        AssertBuiltInTypeReused(exception, typeof(AppPdfTask), "pdf", nameof(PdfServiceTask));
+    }
+
+    [Fact]
+    public async Task TaskThatCannotBeConstructed_DoesNotFailStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, UnconstructibleTask>());
+
+        Assert.Null(exception);
     }
 
     private static void AssertBuiltInTypeReused(
