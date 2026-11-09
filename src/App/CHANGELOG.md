@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Forms with many Datepicker components render and respond faster while their calendars are closed.
+
 ## [9.0.0-preview.10] - 2026-11-09
 
 ### Added
