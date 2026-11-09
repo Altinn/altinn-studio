@@ -192,8 +192,6 @@ pages and components.
   `write`.
 - User-controlled signing: one registered provider per `signeeProviderId`, the delegation rule, and a
   `correspondenceResource` for every environment the app runs in.
-- Build and start the app, and sign once. Localtest has no Correspondence, so test notifications and receipts in a
-  test environment.
 
 ## Docs
 

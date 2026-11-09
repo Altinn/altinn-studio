@@ -109,8 +109,7 @@ studio-app-lib skill says which interface does what and how to register it.
 - Every ID you added or renamed resolves: task IDs, data type IDs, bindings, text keys and `optionsId`.
 - Every `resource.<lang>.json` in the app has each new text key.
 - Each JSON file you changed is valid against its `$schema`.
-- The app builds, for example with `dotnet build App/App.csproj`. A v9 app also checks its configuration, such as the
-  process and the data types, when it builds, and reports problems as `ALTINNAPP` errors and warnings.
+- In a v9 app, your changes break none of the `ALTINNAPP` build rules that the skills' version files list.
 
 ## Docs
 

@@ -67,7 +67,7 @@ it shows "Du har endringer som ikke er generert". Until the C# class matches the
 - Otherwise, as in a local clone of the app, change the schema, the C# class and the XSD together. Write the two files
   as Studio Designer would generate them. Follow the app's existing `.cs` and `.xsd` files, and the DataModeling
   library where they show no example. For instance, Studio Designer gives each class that an array holds an
-  `AltinnRowId` property. Then build the app, and fix the files until it builds.
+  `AltinnRowId` property.
 - In both cases, put nothing in the C# class that the schema does not describe. Generating the model in Studio later
   replaces both files.
 - Generation also sets `classRef`, and adds the data type when it is missing. When you write the files yourself, set
@@ -144,4 +144,3 @@ Studio's editor writes these keywords:
 - The app's C# code uses the current class names.
 - Every binding, text variable, expression and prefill target that used a changed path uses the new one.
 - Every `taskId` names a task in `App/config/process/process.bpmn`.
-- Build the app.

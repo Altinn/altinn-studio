@@ -120,5 +120,3 @@ The List component is not a selection component. It gets rows from a data list p
 - No file, provider and package code list share an ID.
 - Every text resource key in an options file exists in every language.
 - A renamed code list ID is renamed everywhere it is used: in components, and in `optionLabel` expressions.
-- The app builds. Open the page and check that each component shows its options. The response from
-  `{org}/{app}/api/options/{optionsId}` shows what the backend serves.

@@ -97,15 +97,15 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 Members change between versions, and some changed within v8. Hand-written copies, in the docs or in earlier answers,
 go stale. Read the signature from the package version that `App/App.csproj` references:
 
-- The package ships XML docs next to the assembly. After a restore or build, NuGet keeps them in its packages
+- The package ships XML docs next to the assembly. Once NuGet has fetched the package, they are in its packages
   folder, by default `~/.nuget/packages/altinn.app.core/<version>/lib/<framework>/Altinn.App.Core.xml`. Search it
   for `T:` and the interface name, then for `M:` and the interface name for its members.
 - In an IDE, go to the interface's definition.
 - The source at the release tag, linked in the version file.
 
 Implement the members without a default body. Several interfaces have members with defaults, such as
-`ValidationSource` or `NoIncrementalValidation`. Override those only when you need another value. The compiler
-lists any member you missed.
+`ValidationSource` or `NoIncrementalValidation`. Override those only when you need another value. A class that
+misses one does not compile.
 
 ## When another skill owns the topic
 
@@ -122,5 +122,5 @@ lists any member you missed.
 - Every ID in the class matches the file that names it, character for character: `DataType`, `TaskId`, `Id`,
   `GatewayId` and `Type`.
 - The policy gives every action and task type the code depends on.
-- The app builds without new errors or warnings about obsolete members.
-- Run the app and take an instance through the step that calls the code.
+- Each class implements every member without a default body, with the signature from the package version the app
+  references. No class implements an obsolete interface, such as `IInstanceValidator`, or calls an obsolete member.

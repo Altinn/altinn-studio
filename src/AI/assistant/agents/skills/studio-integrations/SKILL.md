@@ -135,4 +135,3 @@ approves it must hold those rights through roles or access packages. The `studio
 - No key, password, client ID or token is in the repository.
 - Every client class is registered in `Program.cs`.
 - The resource, policy and Maskinporten scopes for Correspondence are in place before the first send.
-- The app builds, for example with `dotnet build App/App.csproj`.

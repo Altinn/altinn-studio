@@ -145,5 +145,3 @@ The `studio-layouts` skill covers pages and components.
   subject.
 - `IOrderDetailsCalculator` is registered, and its `PaymentProcessorId` names a registered processor.
 - No `appsettings*.json` file in the repository holds the real key.
-- Build and start the app, and pay with a Nets test card. Test that the process moves on by itself in a test
-  environment, since a local run gets no callback from Nets.

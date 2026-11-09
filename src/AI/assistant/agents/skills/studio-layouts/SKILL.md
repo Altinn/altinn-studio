@@ -172,8 +172,6 @@ components cannot bind to the subform's data model. A PDF for each entry needs a
 - Every binding path exists in the folder's data model, and every repeating group child starts with the group's path.
 - Every text resource key exists in every language.
 - A task with several pages has `NavigationButtons` on each page, and its last page can submit.
-- Build and run the app, and open every page you changed in LocalTest with the browser console open. The frontend
-  shows configuration errors on the page and in the console.
 
 ## Docs
 

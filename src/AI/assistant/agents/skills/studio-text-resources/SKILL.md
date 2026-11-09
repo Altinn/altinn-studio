@@ -126,4 +126,3 @@ frontend reads the row that the component showing the text belongs to.
 - Every `{n}` in a value has an entry at position `n` in `variables`, in every language.
 - Every `dataModel.<data type id>` names a data type in `applicationmetadata.json`, and the field path exists in its
   JSON schema.
-- Run the app, switch between the languages, and check that no raw keys show.

@@ -182,5 +182,4 @@ diagram shapes and edges.
   `studio-policy` skill covers the grants.
 - Every file that names a changed task id uses the new id.
 - New elements have diagram shapes.
-- Build the app, then run an instance through every branch of the process locally. In a v9 app,
-  [references/build-rules.md](references/build-rules.md) says what each process rule the build reports means.
+- In a v9 app, the process breaks none of the rules in [references/build-rules.md](references/build-rules.md).

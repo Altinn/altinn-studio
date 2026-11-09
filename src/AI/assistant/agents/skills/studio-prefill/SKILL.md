@@ -112,4 +112,3 @@ in the organization a user acts for, use `ER`, never `UserProfile.Party.Organiza
 - Each target path exists in the data model's JSON schema and is not inside a list.
 - Each source field is spelled exactly as in the docs list, with the corrections above.
 - Each source fits the instance owners that `partyTypesAllowed` allows.
-- Build the app, create an instance locally for each kind of party the app allows, and check the prefilled fields.

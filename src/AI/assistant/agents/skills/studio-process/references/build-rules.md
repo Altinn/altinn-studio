@@ -1,7 +1,7 @@
 # Build rules for the process in a v9 app
 
-`dotnet build` runs these rules. The rules that have a docs page link to it. ALTINNAPP1004 to ALTINNAPP1023 have no
-page yet, so read the build message, which says what to change.
+A v9 app checks these rules when it builds, and an error stops the build. The rules that have a docs page link to
+it.
 
 | Rule | Severity | What it reports |
 | --- | --- | --- |

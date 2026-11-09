@@ -135,8 +135,6 @@ Expressions in layouts never change the data. To store a computed value in the d
 - Every `dataModel` path exists in the data model, and every `component` id exists and has a `simpleBinding`.
 - Expressions that the backend evaluates use only functions the backend has.
 - The layout file still validates against its `$schema`.
-- Run the app and open every page you changed with the browser console open. Errors there name the failing
-  expression. The app's developer tools (Ctrl+Shift+K, the tab "Uttrykk") evaluate an expression for a component you
-  pick.
-- Change the values each expression reads and check that the result follows. In a repeating group, test with two
-  rows.
+- Each expression gives the result you want when a value it reads is `null`, such as an empty field or a hidden
+  component.
+- Inside a repeating group, an expression that should read its own row has no index.

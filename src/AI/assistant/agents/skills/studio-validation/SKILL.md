@@ -151,8 +151,3 @@ protect data that an API client sends.
 - The file name of each validation file matches a data type id, and every key and `dataModel` path in it exists in
   the data model.
 - The settings in `App/appsettings.json` turn on the backend checks the rules need. See the version file.
-- The app builds.
-- Run the app locally. Enter a wrong value and check the message at the field, then a right value and check that the
-  message goes away. Try to submit with an empty required field. Test repeating group rows and hidden fields.
-- Call `GET {org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` on the running app. It returns every
-  issue `process/next` would find for the current task.
