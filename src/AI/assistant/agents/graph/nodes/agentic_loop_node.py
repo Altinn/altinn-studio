@@ -263,10 +263,21 @@ async def handle(state: AgentState) -> AgentState:
             on_event=on_event,
         )
     _fail_if_uncommitted(state, committed)
+    _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
     _emit_workflow_completion(state, result, ctx, committed=committed)
     return state
+
+
+def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
+    """Record what the trace output reports, after the auto-commit, so the
+    commit hash includes a commit the model did not make itself."""
+    state.assistant_response = {
+        "text": result.final_text,
+        "sources": ctx.extras.get("sources", []),
+        "commit": ctx.extras.get("commit"),
+    }
 
 
 def _fail_if_uncommitted(state: AgentState, committed: bool) -> None:
@@ -774,13 +785,6 @@ def _apply_result_to_state(
 
     changed = ctx.extras.get("changed_files") or set()
     state.changed_files = sorted(changed)
-
-    if result.final_text:
-        state.assistant_response = {
-            "text": result.final_text,
-            "sources": ctx.extras.get("sources", []),
-            "commit": ctx.extras.get("commit"),
-        }
 
     if result.reason is TerminationReason.COMPLETED:
         state.tests_passed = True

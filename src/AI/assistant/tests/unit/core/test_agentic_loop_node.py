@@ -305,11 +305,6 @@ class TestApplyResultToState:
         assert state.tests_passed is True
         assert state.verify_notes == []
         assert state.changed_files == ["Side1/layout.json"]
-        assert state.assistant_response == {
-            "text": "Added date field.",
-            "sources": [],
-            "commit": None,
-        }
         assert state.next_action == "stop"
 
     def test_max_turns_marks_failed_with_explanation(self):
@@ -605,6 +600,8 @@ def _commit_returning(pushed: bool):
 
     def run(_self, _args, ctx):
         async def _coro():
+            # Like the real tool, record the hash before pushing.
+            ctx.extras["commit"] = "deadbee0"
             if not pushed:
                 return ToolResult(content="Committed deadbee0 to branch, but the push was rejected.", is_error=True)
             ctx.extras["session_committed"] = True
@@ -622,7 +619,9 @@ def _loop_ending(reason: TerminationReason, *, changed: tuple[str, ...] = (), mo
             extras["changed_files"] = set(changed)
         if model_committed:
             extras["session_committed"] = True
-        return LoopResult(reason=reason, messages=[], final_text="Ferdig.", turns=20)
+            extras["commit"] = "c0ffee0"
+        final_text = "Ferdig." if reason is TerminationReason.COMPLETED else None
+        return LoopResult(reason=reason, messages=[], final_text=final_text, turns=20)
 
     return fake_run_loop
 
@@ -957,6 +956,40 @@ class TestStoppedRunReportsTheCommit:
 
         assert _NOTHING_CHANGED in content
         assert "sesjons-grenen" not in content
+
+
+class TestTraceRecordsTheCommit:
+    """The runner puts `assistant_response["commit"]` in the trace output."""
+
+    async def test_a_commit_only_the_auto_commit_made(self, monkeypatch):
+        state, _, _ = await _finish(monkeypatch, _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",)))
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["commit"] == "deadbee0"
+
+    async def test_a_stopped_run_without_final_text(self, monkeypatch):
+        state, _, _ = await _finish(monkeypatch, _loop_ending(TerminationReason.MAX_TURNS, changed=("App/ui/x.json",)))
+
+        assert state.assistant_response == {"text": None, "sources": [], "commit": "deadbee0"}
+
+    async def test_the_model_s_own_commit(self, monkeypatch):
+        state, _, _ = await _finish(
+            monkeypatch,
+            _loop_ending(TerminationReason.COMPLETED, changed=("App/ui/x.json",), model_committed=True),
+        )
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["commit"] == "c0ffee0"
+
+    async def test_no_commit_when_nothing_was_committed(self, monkeypatch):
+        state, _, _ = await _finish(
+            monkeypatch,
+            _loop_ending(TerminationReason.STUCK, changed=("App/ui/x.json",)),
+            verifies=False,
+        )
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["commit"] is None
 
 
 class TestGraphBuilder:
