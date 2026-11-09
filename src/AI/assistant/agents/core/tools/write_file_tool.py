@@ -76,10 +76,7 @@ class WriteFileTool(WriteTool[WriteFileArgs]):
 
 
 def _refuse_partly_read(ctx: LoopContext, rel_path: str, full: Path) -> ToolResult | None:
-    """Refuse to replace a file when the model has read only some of its parts.
-
-    The model would write the file from what it has seen, and lose the rest.
-    """
+    """Refuse to replace a file when the model has read only some of its parts."""
     try:
         current = full.read_text(encoding="utf-8")
     except UnicodeDecodeError, OSError:

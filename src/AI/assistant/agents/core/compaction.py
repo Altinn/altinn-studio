@@ -41,9 +41,6 @@ _CHARS_PER_TOKEN = 4
 
 # Default knobs.  Tune via CompactionConfig per LLMAdapter when the
 # target model has a known context window.
-# Tools that return long text in parts (tools/utils/text_parts.py) size
-# each part to fit under `max_result_chars`, which run_loop passes to
-# them in LoopContext.
 DEFAULT_MAX_RESULT_CHARS = 24_000  # ~6k tokens per tool result
 DEFAULT_COMPACT_THRESHOLD_CHARS = 480_000  # ~120k tokens before compacting
 DEFAULT_KEEP_RECENT_MESSAGES = 6

@@ -91,8 +91,6 @@ class EditFileTool(WriteTool[EditFileArgs]):
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         mark_changed(ctx, args.path)
-        # Lines that moved keep counting as read, so a long file read in
-        # parts does not need reading again after each edit.
         record_edit(ctx, file_key(args.path), text, formatted_text)
         note = describe_formatting(
             is_reformatted=formatted_text != edit.new_text,

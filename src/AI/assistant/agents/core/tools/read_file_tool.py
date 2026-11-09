@@ -37,12 +37,8 @@ class ReadFileTool(Tool[ReadFileArgs]):
         "a set number of lines, so take each `offset` from a note instead of "
         "working it out.  You can read all the parts a note names in one "
         "turn.  Read every part before you act on the whole file, such as "
-        "when you translate or check every text in a text resource file.  "
-        "`write_file` will not replace a file you have read only part of.\n\n"
-        "Inputs:\n"
-        "  - `path` — repo-relative (no leading `/`, no `..`).\n"
-        "  - `offset` — line to start at, from 1.  Default 1.\n"
-        "  - `limit` — maximum number of lines.  Default: as many as fit."
+        "when you translate or check every text in a text resource file.\n\n"
+        "`path` is repo-relative (no leading `/`, no `..`)."
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
