@@ -222,6 +222,8 @@ async def run_loop(
     have context.  It is prepended verbatim before `user_message`.
     """
     compaction = compaction or CompactionConfig()
+    # Tools that return long text in parts size each part to fit this cap.
+    ctx.max_result_chars = compaction.max_result_chars
     messages: list[Message] = [*(history or []), UserMessage(content=user_message)]
     total_usage = {"input_tokens": 0, "output_tokens": 0}
     # Sliding window of per-turn tool signatures, used to detect when

@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
-from .utils.text_parts import MAX_PART_CHARS, PartLimit, PartOffset, text_part
+from .utils.text_parts import PartLimit, PartOffset, text_part
 
 ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "altinn.studio"}
 FETCH_TIMEOUT_SECONDS = 20.0
@@ -52,10 +52,12 @@ class WebFetchTool(Tool[WebFetchArgs]):
         "together with the `altinn-docs` skill: load the skill, scan its "
         "llms.txt index for the right page, then fetch that page's URL.  "
         "HTML is reduced to readable text.\n\n"
-        f"One call returns at most {MAX_PART_CHARS:,} characters.  When a "
-        "page is longer, the result ends with a note that gives the `offset` "
-        "of the next part.  To read on, call `web_fetch` again with the same "
-        "`url` and that `offset`."
+        "A long page comes back in parts.  The note at the end of a part "
+        "names the lines you have not read yet and the `offset` of each part "
+        "that holds them.  Call `web_fetch` again with the same `url` and "
+        "each `offset`, in one turn if you like.  Take each `offset` from a "
+        "note: parts end where the characters run out, not after a set "
+        "number of lines."
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True
@@ -70,11 +72,14 @@ class WebFetchTool(Tool[WebFetchArgs]):
         text, title = _extract_page(response)
         url = str(response.url)
         result = text_part(
+            ctx,
             text,
             offset=args.offset,
             limit=args.limit,
+            key=f"url:{url}",
             source=url,
-            next_call="call `web_fetch` with the same `url` and",
+            tool=self.name,
+            same_args="the same `url`",
         )
         if result.is_error:
             return result

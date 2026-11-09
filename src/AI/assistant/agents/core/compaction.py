@@ -41,8 +41,9 @@ _CHARS_PER_TOKEN = 4
 
 # Default knobs.  Tune via CompactionConfig per LLMAdapter when the
 # target model has a known context window.
-# `read_file` and `web_fetch` return long text in parts sized to fit
-# under the default result cap (tools/utils/text_parts.py).
+# Tools that return long text in parts (tools/utils/text_parts.py) size
+# each part to fit under `max_result_chars`, which run_loop passes to
+# them in LoopContext.
 DEFAULT_MAX_RESULT_CHARS = 24_000  # ~6k tokens per tool result
 DEFAULT_COMPACT_THRESHOLD_CHARS = 480_000  # ~120k tokens before compacting
 DEFAULT_KEEP_RECENT_MESSAGES = 6
@@ -73,7 +74,8 @@ def cap_tool_result(content: str, max_chars: int) -> str:
     omitted = len(content) - max_chars
     return (
         f"{head}\n\n[…truncated {omitted} chars.  You have not seen the rest of this result, so do not "
-        "treat it as read or handled.  If you need the rest, call the tool again for a smaller part.]"
+        "treat it as read or handled.  The same call returns the same cut result, so do not repeat it.  "
+        "If you need the rest, ask for less, such as one file with `read_file`.]"
     )
 
 

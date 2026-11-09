@@ -11,8 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
-from .utils.repo_files import PathError, mark_read, resolve_repo_path
-from .utils.text_parts import MAX_PART_CHARS, PartLimit, PartOffset, text_part
+from .utils.repo_files import PathError, file_key, mark_read, resolve_repo_path
+from .utils.text_parts import PartLimit, PartOffset, text_part
 
 
 class ReadFileArgs(BaseModel):
@@ -31,12 +31,14 @@ class ReadFileTool(Tool[ReadFileArgs]):
         "use it whenever you need to confirm the exact current text of a "
         "section (for example, before constructing an `edit_file` "
         "`old_string`).\n\n"
-        f"One call returns at most {MAX_PART_CHARS:,} characters.  "
-        "When a file is longer, the result ends with a note that names the "
-        "lines you got, the file's line count and the `offset` of the next "
-        "part.  You have not seen the lines after that note: read the "
-        "remaining parts before you act on the whole file, such as when you "
-        "translate or check every text in a text resource file.\n\n"
+        "A long file comes back in parts.  The note at the end of a part "
+        "names the lines you have not read yet and the `offset` of each part "
+        "that holds them.  Parts end where the characters run out, not after "
+        "a set number of lines, so take each `offset` from a note instead of "
+        "working it out.  You can read all the parts a note names in one "
+        "turn.  Read every part before you act on the whole file, such as "
+        "when you translate or check every text in a text resource file.  "
+        "`write_file` will not replace a file you have read only part of.\n\n"
         "Inputs:\n"
         "  - `path` — repo-relative (no leading `/`, no `..`).\n"
         "  - `offset` — line to start at, from 1.  Default 1.\n"
@@ -54,11 +56,13 @@ class ReadFileTool(Tool[ReadFileArgs]):
             return text
 
         result = text_part(
+            ctx,
             text,
             offset=args.offset,
             limit=args.limit,
+            key=file_key(args.path),
             source=args.path,
-            next_call="call `read_file` with",
+            tool=self.name,
         )
         if not result.is_error:
             mark_read(ctx, args.path)

@@ -14,8 +14,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from .utils.repo_files import PathError, is_read, mark_changed, resolve_repo_path
+from .utils.repo_files import PathError, file_key, is_read, mark_changed, resolve_repo_path
 from .utils.studio_json import describe_formatting, format_json_like_studio
+from .utils.text_parts import record_edit
 
 _STRUCTURAL_CHARS = frozenset("{}[](),:;")
 _QUOTE_CHARS = frozenset("\"'`")
@@ -90,6 +91,9 @@ class EditFileTool(WriteTool[EditFileArgs]):
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         mark_changed(ctx, args.path)
+        # Lines that moved keep counting as read, so a long file read in
+        # parts does not need reading again after each edit.
+        record_edit(ctx, file_key(args.path), text, formatted_text)
         note = describe_formatting(
             is_reformatted=formatted_text != edit.new_text,
             matched_on_whitespace=edit.matched_on_whitespace,
