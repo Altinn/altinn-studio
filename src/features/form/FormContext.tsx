@@ -20,11 +20,8 @@ import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 export interface FormContext {
-  // Set this if this form context is provided somewhere it's not expected we should write data to the data model.
-  // By setting this to true, no effects like 'preselectedOptionIndex' runs (which might try to change the data model).
-  // This should always be set to true when summarizing a previous task. It's important to note that it doesn't
-  // prevent any write operations from happening in case components inside try to write new form data, but it will
-  // prevent automatic effects from happening.
+  // Suppress automatic component effects and prevent writes to form data.
+  // Use this when rendering a summary or an immutable PDF preview.
   readOnly?: boolean;
 }
 
@@ -40,8 +37,11 @@ export function useIsInFormContext() {
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
-export function FormProvider({ children, readOnly = false }: React.PropsWithChildren<FormContext>) {
-  const isEmbedded = useIsInFormContext();
+export function FormProvider({ children, readOnly: ownReadOnly = false }: React.PropsWithChildren<FormContext>) {
+  const parent = useLaxCtx();
+  const isEmbedded = parent !== ContextNotProvided;
+  // Embedded subforms must preserve a read-only summary or preview context.
+  const readOnly = ownReadOnly || (parent !== ContextNotProvided && parent.readOnly === true);
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
@@ -56,7 +56,7 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
               <PageNavigationProvider>
                 <DynamicsProvider>
                   <MaybeRulesProvider isEmbedded={isEmbedded}>
-                    <FormDataWriteProvider>
+                    <FormDataWriteProvider readOnly={readOnly}>
                       <ValidationProvider>
                         <NodesProvider
                           readOnly={readOnly}

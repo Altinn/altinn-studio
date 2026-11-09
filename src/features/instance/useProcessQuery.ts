@@ -65,9 +65,9 @@ export function useGetTaskTypeById() {
 
   return (taskId: string | undefined) => {
     const task =
-      (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
+      processData?.currentTask?.elementId === taskId
         ? processData?.currentTask
-        : undefined;
+        : processData?.processTasks?.find((t) => t.elementId === taskId);
 
     if (isStateless || taskId === TaskKeys.CustomReceipt || behavesLikeDataTask(taskId, layoutSets)) {
       // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,

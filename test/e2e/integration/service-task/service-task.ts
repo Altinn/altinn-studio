@@ -92,12 +92,10 @@ describe('Service task', () => {
   });
 
   it('should display something sensible when there is no layout-set for the service task', { retries: 0 }, () => {
-    cy.intercept('**/layoutsets', (req) => {
+    cy.intercept({ url: '**/layoutsets', times: 1 }, (req) => {
       req.on('response', (res) => {
-        // We do some trickery here. Ordinarily it's the PDF service task we would test, but we can't really reach
-        // that from the test (it will only be reached from the real PDF generator). However, the 'Fail' task is also
-        // a service task, so we can remove the custom layout-set here to simulate what happens in the PDF generator
-        // for a PDF-generating service-task.
+        // Remove the custom layout for the initial failure-screen check only.
+        // The PDF reload below uses the real automatic-PDF task and unmodified layout sets.
         const layoutSets: ILayoutSets = JSON.parse(res.body);
         layoutSets.sets = layoutSets.sets.filter((set) => set.id !== 'Fail');
         res.send(layoutSets);
@@ -122,8 +120,8 @@ describe('Service task', () => {
           queryArgs.append(SearchParams.PdfForTask, task);
         }
 
-        const baseUrl = href.split('?')[0];
-        return `${baseUrl}?${queryArgs.toString()}`;
+        const appInstanceUrl = href.split('/Task_Fail')[0];
+        return `${appInstanceUrl}/Task_PDF_Auto?${queryArgs.toString()}`;
       },
       callback: () => {
         cy.expectPageBreaks(2);

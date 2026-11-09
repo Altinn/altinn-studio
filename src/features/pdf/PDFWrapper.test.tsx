@@ -25,7 +25,7 @@ enum RenderAs {
   ServiceOwner,
 }
 
-const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>) => {
+const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>, taskType = 'data') => {
   jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
     getIncomingApplicationMetadataMock((m) => {
       m.org = 'brg';
@@ -35,6 +35,8 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
   );
   jest.mocked(fetchProcessState).mockImplementation(async () =>
     getProcessDataMock((p) => {
+      p.currentTask!.altinnTaskType = taskType;
+      p.currentTask!.elementType = taskType === 'data' ? 'Task' : 'ServiceTask';
       p.processTasks = [p.currentTask!];
     }),
   );
@@ -79,6 +81,42 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
 };
 
 describe('PDFWrapper', () => {
+  it.each(['data', 'pdf', 'subformPdf'])(
+    'honors backend formatter exclusions for the current %s task',
+    async (taskType) => {
+      const result = await render(
+        RenderAs.User,
+        {
+          fetchLayoutSettings: async () => ({ pages: { order: ['Included', 'ExcludedPage'] } }),
+          fetchLayouts: async () => ({
+            Included: {
+              data: {
+                layout: ['Visible content', 'Excluded component'].map((id) => ({
+                  id,
+                  type: 'Paragraph',
+                  textResourceBindings: { title: id },
+                })),
+              },
+            },
+            ExcludedPage: {
+              data: {
+                layout: [{ id: 'page-content', type: 'Paragraph', textResourceBindings: { title: 'Excluded page' } }],
+              },
+            },
+          }),
+          fetchPdfFormat: async () => ({ excludedPages: ['ExcludedPage'], excludedComponents: ['Excluded component'] }),
+        },
+        taskType,
+      );
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+
+      expect(screen.getByText('Visible content')).toBeInTheDocument();
+      expect(screen.queryByText('Excluded component')).not.toBeInTheDocument();
+      expect(screen.queryByText('Excluded page')).not.toBeInTheDocument();
+    },
+  );
+
   it('should render PDF with correct sender for user', async () => {
     const result = await render(RenderAs.User);
 

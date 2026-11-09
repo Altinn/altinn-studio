@@ -66,13 +66,15 @@ export const App = () => (
       <Route
         path=':taskId'
         element={
-          <FixWrongReceiptType>
-            <ProcessWrapper>
-              <FormProvider>
-                <Outlet />
-              </FormProvider>
-            </ProcessWrapper>
-          </FixWrongReceiptType>
+          <PdfWrapper isTaskRoute>
+            <FixWrongReceiptType>
+              <ProcessWrapper>
+                <FormProvider>
+                  <Outlet />
+                </FormProvider>
+              </ProcessWrapper>
+            </FixWrongReceiptType>
+          </PdfWrapper>
         }
       >
         <Route

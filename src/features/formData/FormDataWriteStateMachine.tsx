@@ -293,7 +293,7 @@ function makeActions(
 
         // Run rules again, against current data. Now that we have updates from the backend, some rules may
         // have caused data to change.
-        if (isDefault) {
+        if (isDefault && !state.dataModels[dataType].readonly) {
           const ruleResults = runLegacyRules(
             ruleConnections,
             savedData[dataType],
@@ -332,7 +332,7 @@ function makeActions(
         continue;
       }
 
-      if (isDefault) {
+      if (isDefault && !state.dataModels[dataType].readonly) {
         const ruleChanges = runLegacyRules(
           ruleConnections,
           state.dataModels[dataType].debouncedCurrentData,

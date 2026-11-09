@@ -344,6 +344,12 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
 function useIsInTaskTransition() {
   const currentTask = useProcessQuery().data?.currentTask?.elementId;
   const taskIdFromUrl = useNavigationParam('taskId');
+  const readOnly = Store.useSelector((state) => state.readOnly);
+
+  // Read-only forms can intentionally render another process task.
+  if (readOnly) {
+    return false;
+  }
 
   if ([TaskKeys.ProcessEnd, TaskKeys.CustomReceipt].includes(taskIdFromUrl as TaskKeys) && !currentTask) {
     // Receipt indicates that the process ended - it cannot be compared directly with the taskId

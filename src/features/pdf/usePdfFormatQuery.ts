@@ -7,6 +7,9 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import type { IPdfFormat } from 'src/features/pdf/types';
 
 // Also used for prefetching @see formPrefetcher.ts
@@ -16,10 +19,14 @@ export function usePdfFormatQueryDef(
   dataElementId?: string,
 ): QueryDefinition<IPdfFormat> {
   const { fetchPdfFormat } = useAppQueries();
+  const taskId = useProcessTaskId();
+  const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
+  // The legacy formatter uses the current process task, regardless of its type.
+  const isOtherTaskPdf = useIsPdf() && taskId !== currentTaskId;
   return {
-    queryKey: ['fetchPdfFormat', { instanceId, dataElementId }],
+    queryKey: ['fetchPdfFormat', { instanceId, dataElementId, isOtherTaskPdf }],
     queryFn: instanceId && dataElementId ? () => fetchPdfFormat(instanceId, dataElementId) : skipToken,
-    enabled: enabled && !!instanceId && !!dataElementId,
+    enabled: enabled && !isOtherTaskPdf && !!instanceId && !!dataElementId,
     gcTime: 0,
   };
 }
