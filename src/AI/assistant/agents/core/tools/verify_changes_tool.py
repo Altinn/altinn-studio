@@ -40,11 +40,9 @@ from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import ResourceValidator, text_resource_ids
 from agents.core.tool import LoopContext, ToolResult, WriteTool
-from agents.services.git.app_files import AppFiles, CommitFiles, WorkingTreeFiles
+from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
 
-# App files can start with a UTF-8 BOM.
-_JSON_FILE_ENCODING = "utf-8-sig"
 _TEXTS_DIR = "App/config/texts"
 _MAX_LISTED_ERRORS = 10
 _MAX_LISTED_WARNINGS = 5
@@ -166,6 +164,16 @@ def _compare_with_start(ctx: LoopContext, check: _Check) -> FindingSplit:
     return split_new_and_old(findings, check(CommitFiles(repo, ctx.start_commit)))
 
 
+def _findings_result(split: FindingSplit, file_path: str | None = None) -> _Result:
+    """Only new findings fail a check.  `file_path` prefixes findings whose location is inside that file."""
+    prefix = f"{file_path}: " if file_path else ""
+    return _Result(
+        passed=not split.new,
+        notes=_limit([prefix + finding.describe() for finding in split.new], _MAX_LISTED_ERRORS, "error(s)"),
+        old_errors=[prefix + finding.describe() for finding in split.old],
+    )
+
+
 def _limit(items: list[str], limit: int, what: str) -> list[str]:
     listed = items[:limit]
     if len(items) > limit:
@@ -257,7 +265,7 @@ def _describe_missing_navigation(repo: Path, file_path: str) -> str | None:
         return None  # single-page set (or unreadable settings) — nothing to navigate
     if Path(file_path).stem not in order:
         return None  # not part of the ordered page flow
-    if _has_navigation_component(repo / file_path):
+    if _has_navigation_component(repo, file_path):
         return None
     return (
         f"{file_path}: page is in a multi-page flow ({len(order)} pages in "
@@ -279,12 +287,9 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> _Result:
     A key missing from one language renders as the key itself in that language.
     """
     layouts = _select_layouts_to_check(Path(ctx.repo_path), changed)
-    split = _compare_with_start(ctx, lambda files: _missing_text_keys(files, layouts))
-    return _Result(
-        passed=not split.new,
-        notes=_limit([finding.describe() for finding in split.new], _MAX_LISTED_ERRORS, "missing text key(s)"),
-        old_errors=[finding.describe() for finding in split.old],
-    )
+    if not layouts:
+        return _Result(True, [])
+    return _findings_result(_compare_with_start(ctx, lambda files: _missing_text_keys(files, layouts)))
 
 
 def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[str]:
@@ -359,7 +364,7 @@ def _get_bound_text_keys(component: dict[str, Any]) -> set[str]:
 def _read_page_order(settings_path: Path) -> list[str] | None:
     """Return `pages.order` from a layout-set Settings.json, or None."""
     try:
-        settings = json.loads(settings_path.read_text(encoding=_JSON_FILE_ENCODING))
+        settings = json.loads(settings_path.read_text(encoding=APP_FILE_ENCODING))
     except OSError, json.JSONDecodeError:
         return None
     order = (settings.get("pages") or {}).get("order")
@@ -368,9 +373,9 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
     return None
 
 
-def _has_navigation_component(layout_path: Path) -> bool:
+def _has_navigation_component(repo: Path, file_path: str) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
-    components = _layout_components(_read_json(layout_path))
+    components = _layout_components(_parse_json(WorkingTreeFiles(repo).read_text(file_path)))
     if components is None:
         return True  # unreadable/invalid JSON is the schema validator's problem
     return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in components)
@@ -381,13 +386,6 @@ def _layout_components(parsed: Any) -> list[Any] | None:
     data = parsed.get("data") if isinstance(parsed, dict) else None
     layout = data.get("layout") if isinstance(data, dict) else None
     return layout if isinstance(layout, list) else None
-
-
-def _read_json(path: Path) -> Any:
-    try:
-        return _parse_json(path.read_text(encoding=_JSON_FILE_ENCODING))
-    except OSError, UnicodeDecodeError:
-        return None
 
 
 def _parse_json(text: str | None) -> Any:
@@ -441,7 +439,7 @@ _CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden
 def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
     """Validate a layout JSON in-process against the app version's layout schema."""
     try:
-        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        json_content = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -509,7 +507,7 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
     defaults to `nb` when the pattern doesn't match.
     """
     try:
-        resource_json = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        resource_json = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
         return _Result(False, [f"{file_path}: cannot read — {exc}"])
 
@@ -529,28 +527,24 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
         split = _compare_with_start(ctx, lambda files: _text_resource_errors(validator, files, file_path))
         span.update(output={"result": {"valid": not split.new}})
 
+    result = _findings_result(split, file_path)
+    status = [] if split.new else [f"{file_path}: no new errors"]
+    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, validator, resource_json, language)]
+    return _Result(result.passed, [*status, *result.notes, *hints], result.old_errors)
+
+
+def _resource_warnings(ctx: LoopContext, validator: ResourceValidator, resource_json: str, language: str) -> list[str]:
     resource = _parse_json(resource_json)
-    warnings = [] if resource is None else validator.find_warnings(resource, language, ctx.repo_path)
-    return _describe_resource_result(file_path, split, warnings)
+    if resource is None:
+        return []
+    ids_by_language = _text_keys_by_language(WorkingTreeFiles(Path(ctx.repo_path)))
+    ids_by_language.pop(language, None)
+    return _limit(validator.find_warnings(resource, ids_by_language), _MAX_LISTED_WARNINGS, "warning(s)")
 
 
 def _text_resource_errors(validator: ResourceValidator, files: AppFiles, file_path: str) -> list[Finding]:
     content = files.read_text(file_path)
     return [] if content is None else validator.find_errors_in_text(content)
-
-
-def _describe_resource_result(file_path: str, split: FindingSplit, warnings: list[str]) -> _Result:
-    hints = [f"  - warning: {w}" for w in _limit(warnings, _MAX_LISTED_WARNINGS, "warning(s)")]
-    old_errors = [f"{file_path}: {finding.describe()}" for finding in split.old]
-    if split.new:
-        notes = [f"{file_path}: resource validation failed ({len(split.new)} error(s))"]
-        notes.extend(_format_errors([finding.describe() for finding in split.new]))
-        return _Result(False, [*notes, *hints], old_errors)
-    if split.old:
-        summary = f"{file_path}: no new errors; {len(split.old)} error(s) the app already had are in `old_errors`"
-    else:
-        summary = f"{file_path}: resource schema valid"
-    return _Result(True, [summary, *hints], old_errors)
 
 
 def _infer_resource_language(file_path: str) -> str:
@@ -572,7 +566,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
     `input.file_content` shape.
     """
     try:
-        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        json_content = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -594,7 +588,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
 def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Last-resort check — does the file parse as JSON?"""
     try:
-        with full_path.open("r", encoding=_JSON_FILE_ENCODING) as handle:
+        with full_path.open("r", encoding=APP_FILE_ENCODING) as handle:
             json.load(handle)
     except json.JSONDecodeError as exc:
         return False, [f"{file_path}: invalid JSON — {exc}"]
@@ -604,10 +598,8 @@ def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]
 
 
 def _format_errors(errors: list[Any]) -> list[str]:
-    formatted = [f"  - {_describe_error(e)}" for e in errors[:_MAX_LISTED_ERRORS]]
-    if len(errors) > _MAX_LISTED_ERRORS:
-        formatted.append(f"  - …and {len(errors) - _MAX_LISTED_ERRORS} more")
-    return formatted
+    described = [_describe_error(e) for e in errors]
+    return [f"  - {line}" for line in _limit(described, _MAX_LISTED_ERRORS, "error(s)")]
 
 
 def _describe_error(err: Any) -> str:

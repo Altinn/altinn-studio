@@ -13,13 +13,15 @@ def write_files(repo: Path, files: dict[str, str]) -> None:
         file_path.write_text(content, encoding="utf-8")
 
 
-def git(repo: Path, *args: str) -> None:
-    subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
+def git(repo: Path, *args: str) -> str:
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
 
 
-def commit_all(repo: Path, message: str) -> None:
+def commit_all(repo: Path, message: str) -> str:
+    """Commit every change, and return the commit"""
     git(repo, "add", "-A")
     git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", message)
+    return git(repo, "rev-parse", "HEAD")
 
 
 def create_committed_repo(repo: Path, files: dict[str, str]) -> Path:

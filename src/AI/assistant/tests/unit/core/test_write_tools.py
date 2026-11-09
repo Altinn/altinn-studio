@@ -30,9 +30,8 @@ from agents.core import (
     VerifyChangesTool,
     WriteFileTool,
 )
-from agents.services.git.git_ops import head_commit
 
-from .git_repo import commit_all, create_committed_repo, write_files
+from .git_repo import commit_all, create_committed_repo, git, write_files
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -165,7 +164,10 @@ class TestVerifyChanges:
         assert not result.is_error
         assert requested_locations == ["other-version/text-resources.schema.v1.json"]
         # The warning compares the file with the other languages in the repo, so it knows the file is `nb`.
-        assert "  - warning: Missing translations from en: ['subtitle']" in json.loads(result.content)["notes"]
+        assert (
+            "App/config/texts/resource.nb.json: warning: Missing translations from en: ['subtitle']"
+            in json.loads(result.content)["notes"]
+        )
 
     async def test_a_text_resource_schema_that_cannot_load_is_not_blamed_on_the_file(self, tmp_path: Path, monkeypatch):
         resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"
@@ -439,9 +441,7 @@ async def _verify_notes(
 def _start_session(repo: Path, files: dict[str, str]) -> str:
     """Commit the files as the app the session starts from, and return that commit."""
     create_committed_repo(repo, files)
-    start_commit = head_commit(str(repo))
-    assert start_commit
-    return start_commit
+    return git(repo, "rev-parse", "HEAD")
 
 
 class TestVerifyChangesInAV9App:

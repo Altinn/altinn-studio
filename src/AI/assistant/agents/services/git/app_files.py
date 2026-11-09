@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 from typing import Protocol
 
 # App files can start with a UTF-8 BOM.
-_ENCODING = "utf-8-sig"
+APP_FILE_ENCODING = "utf-8-sig"
 
 
 class AppFiles(Protocol):
@@ -33,7 +33,7 @@ class WorkingTreeFiles:
 
     def read_text(self, path: str) -> str | None:
         try:
-            return (self._repo / path).read_text(encoding=_ENCODING)
+            return (self._repo / path).read_text(encoding=APP_FILE_ENCODING)
         except OSError, UnicodeDecodeError:
             return None
 
@@ -56,7 +56,7 @@ class CommitFiles:
         if result.returncode != 0:
             return None
         try:
-            return result.stdout.decode(_ENCODING)
+            return result.stdout.decode(APP_FILE_ENCODING)
         except UnicodeDecodeError:
             return None
 

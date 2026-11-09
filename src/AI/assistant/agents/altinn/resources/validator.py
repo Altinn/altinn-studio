@@ -2,7 +2,6 @@
 
 import json
 from collections import Counter
-from pathlib import Path
 from typing import Any
 
 from agents.altinn.findings import Finding
@@ -22,66 +21,31 @@ class ResourceValidator(BaseValidator):
         return self.find_errors(data)
 
     def find_errors(self, data: Any) -> list[Finding]:
-        """The schema errors and the business rule errors"""
+        """The schema errors, and the text resource IDs used more than once"""
         entries = _entries(data)
         findings = [_schema_finding(path, message, entries) for path, message in self.iter_schema_errors(data)]
         if not entries:
             findings.append(Finding("no-resources", "", "No resources found in file"))
-            return findings
+        return findings + _duplicate_id_findings(entries)
 
-        # Rule 1: Check for duplicate resource IDs
-        findings.extend(_duplicate_id_findings(entries))
-        return findings
-
-    def find_warnings(self, data: Any, language: str, repo_path: str | None) -> list[str]:
-        """Hints about the file, which never make it invalid"""
+    def find_warnings(self, data: Any, ids_in_other_languages: dict[str, set[str]]) -> list[str]:
+        """Hints about the file, which never make it invalid: translations it lacks, and empty texts"""
         warnings: list[str] = []
-
         entries = _entries(data)
-        resource_ids = _resource_ids(entries)
+        resource_ids = set(_resource_ids(entries))
 
-        # Rule 2: Check for missing translations
-        if repo_path:
-            other_resources = self._get_other_language_resources(repo_path, language)
+        for language, other_ids in sorted(ids_in_other_languages.items()):
+            missing = sorted(other_ids - resource_ids)
+            if missing:
+                warnings.append(f"Missing translations from {language}: {missing[:3]}")
+                if len(missing) > 3:
+                    warnings.append(f"... and {len(missing) - 3} more")
 
-            for lang, other_ids in other_resources.items():
-                missing_in_current = set(other_ids) - set(resource_ids)
-
-                if missing_in_current:
-                    warnings.append(f"Missing translations from {lang}: {list(missing_in_current)[:3]}")
-                    if len(missing_in_current) > 3:
-                        warnings.append(f"... and {len(missing_in_current) - 3} more")
-
-        # Rule 3: Check for empty values
         empty_values = [entry.get("id") for entry in _objects(entries) if _is_blank(entry.get("value", ""))]
         if empty_values:
             warnings.append(f"Resources with empty values: {empty_values}")
 
         return warnings
-
-    def _get_other_language_resources(self, repo_path: str, current_lang: str) -> dict[str, list[str]]:
-        """Get resource IDs from other language files"""
-        try:
-            resource_dir = Path(repo_path) / "App" / "config" / "texts"
-            if not resource_dir.exists():
-                return {}
-
-            other_resources = {}
-            for resource_file in resource_dir.glob("resource.*.json"):
-                # Extract language code (e.g., 'nb' from 'resource.nb.json')
-                lang = resource_file.stem.split(".")[-1]
-
-                if lang != current_lang:
-                    try:
-                        with open(resource_file, encoding="utf-8") as f:
-                            data = json.load(f)
-                        other_resources[lang] = text_resource_ids(data)
-                    except Exception:
-                        continue
-
-            return other_resources
-        except Exception:
-            return {}
 
 
 def text_resource_ids(data: Any) -> list[str]:

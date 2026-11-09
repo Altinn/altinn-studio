@@ -2,35 +2,21 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 from agents.services.git.app_files import CommitFiles, WorkingTreeFiles
-from agents.services.git.git_ops import head_commit
+
+from ...core.git_repo import create_committed_repo, git, write_files
 
 TEXTS = "App/config/texts"
 
 
-def _write(repo: Path, path: str, content: str) -> None:
-    (repo / path).parent.mkdir(parents=True, exist_ok=True)
-    (repo / path).write_text(content, encoding="utf-8")
-
-
 def _repo_with_a_changed_texts_folder(repo: Path) -> str:
     """nb and en at the commit. On disk, en is gone and nn is new."""
-    _write(repo, f"{TEXTS}/resource.nb.json", "nb")
-    _write(repo, f"{TEXTS}/resource.en.json", "en")
-    for args in (
-        ("init",),
-        ("add", "-A"),
-        ("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "start"),
-    ):
-        subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
+    create_committed_repo(repo, {f"{TEXTS}/resource.nb.json": "nb", f"{TEXTS}/resource.en.json": "en"})
     (repo / f"{TEXTS}/resource.en.json").unlink()
-    _write(repo, f"{TEXTS}/resource.nn.json", "nn")
-    commit = head_commit(str(repo))
-    assert commit
-    return commit
+    write_files(repo, {f"{TEXTS}/resource.nn.json": "nn"})
+    return git(repo, "rev-parse", "HEAD")
 
 
 def test_the_commit_has_the_files_as_they_were(tmp_path: Path):
