@@ -40,12 +40,13 @@ internal sealed class SessionFilter(ISessionStore sessionStore, IOptions<Preview
         }
 
         httpContext.Response.RegisterForDispose(folder);
-        httpContext.Features.Set(new PreviewSessionFeature(session, folder));
+        httpContext.Features.Set(new PreviewSessionFeature(sessionId, session, folder));
         return await next(context);
     }
 }
 
 /// <summary>The session of a request that <see cref="SessionFilter"/> let through.</summary>
+/// <param name="Id">The session's ID, which its state is kept under.</param>
 /// <param name="Session">The request's session.</param>
 /// <param name="Folder">The session's working copy, open for the rest of the request.</param>
-internal sealed record PreviewSessionFeature(PreviewSession Session, AppFolder Folder);
+internal sealed record PreviewSessionFeature(SessionId Id, PreviewSession Session, AppFolder Folder);
