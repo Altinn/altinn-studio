@@ -59,7 +59,7 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   `dataFields` copy values to the instance's `dataValues`. Each entry has an `id`, a `path` in the data model and a
   `dataTypeId`. Give each entry for a data type its own `id`.
 - `copyInstanceSettings.enabled: true` lets users make a new instance from an archived one. The app copies only the
-  data types whose `taskId` is the first task. The other keys exclude data types or fields, or copy attachments, the
+  data types bound to the first task. The other keys exclude data types or fields, or copy attachments, the
   due date, `dataValues` and presentation texts.
 
 ### Name and service description
@@ -85,7 +85,8 @@ is the data type it uploads to.
   is not listed. The app compares the file name's extension with the `Content-Type` of the upload.
 - `maxSize` is in megabytes. Leave it out for no limit.
 - `minCount` and `maxCount` apply when the data type's task is validated. `0` means no limit.
-- `taskId` ties the data type to a task. The `studio-process` skill covers tasks.
+- `taskId` binds the data type to a task in v8. v9 reads only `taskIds`, a list of tasks. The `studio-process` skill
+  covers tasks.
 - `appLogic` marks form data. `classRef` names the C# model, and the `studio-data-model` skill owns those settings.
   `allowAnonymousOnStateless`, `disallowUserCreate`, `disallowUserDelete`, `autoDeleteOnProcessEnd` and
   `shadowFields` are also under `appLogic`.
@@ -121,7 +122,7 @@ The version files say what the value names and where the UI's data type comes fr
 - **Autosave**: with `autoSaveBehavior` set to `onChangePage`, the app saves, and runs server-side data processing,
   only when the user changes page. The docs pages in the version files say where the setting goes.
 - **Shadow fields**: `appLogic.shadowFields` removes the data model fields with a common prefix when the task ends,
-  before the PDF, or saves a copy without them. The data type needs `taskId` and `classRef`. The version files link
+  before the PDF, or saves a copy without them. The data type needs a task and `classRef`. The version files link
   the docs.
 - <a id="file-scanning"></a>**File scanning**: `enableFileScan: true` on a data type makes Storage scan uploads for
   malware. An infected file gives a validation error. `validationErrorOnPendingFileScan: true` also blocks
@@ -139,8 +140,8 @@ The version files say what the value names and where the UI's data type comes fr
   `AccessTokenSettings`, `CacheSettings`, `kvSetting`, `FrontEndSettings`, `FeatureManagement` and
   `ApplicationInsights`. Put the app's own settings in a section of their own.
 - `AppSettings` holds switches for the app libraries. Apps mostly set `RegisterEventsWithEventsComponent`,
-  `RemoveHiddenData`, `RequiredValidation`, `ExpressionValidation` and `EnforceDataTypeTaskId`. Their defaults differ
-  between the versions. The `studio-validation` skill says what the validation switches do.
+  `RemoveHiddenData`, `RequiredValidation`, `ExpressionValidation` and, in v8, `EnforceDataTypeTaskId`. Their
+  defaults differ between the versions. The `studio-validation` skill says what the validation switches do.
 - `GeneralSettings` holds the prefixes that mark validation messages from C# as soft, such as `*WARNING*`.
 - `PlatformSettings` holds the platform endpoints. In TT02 and production the platform provides them. Keep the
   template's local values.

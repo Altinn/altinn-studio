@@ -19,6 +19,7 @@ The versions differ in these places. The skill for each topic has the details.
 | Topic | v8 | v9 |
 | --- | --- | --- |
 | UI folder | `ui/layout-sets.json` lists the layout sets. Each names its folder, its tasks and its data type. | `ui/<taskId>/` for each task with a UI, and a folder for each subform. `defaultDataType` in its `Settings.json` names the data type. |
+| Task of a data type | `taskId` in `applicationmetadata.json` names one task. | `taskIds` lists the tasks. A `taskId` fails the build. |
 | Component names | `Header`, `OrganisationLookup`, `FileUploadWithTag` | `Heading`, `OrganizationLookup`, `FileUpload` |
 | Computed values and dynamics | C# data processors and expressions. The old `RuleHandler.js` and `RuleConfiguration.json` in a layout set folder still run. | C# data processors and expressions. Rule files no longer run. |
 | PDF | A `pdf` service task, or `enablePdfCreation` on a data type, which counts as `true` when left out | A `pdf` service task only. `enablePdfCreation: true` fails the build. |
@@ -61,7 +62,7 @@ Not every app has every file, and many apps have more.
 When you add, rename or remove one of these IDs, change every place that refers to it in the same change.
 
 - **Task ID**: the `id` of a task in `process.bpmn`. These refer to it:
-  - `dataTypes[].taskId` in `applicationmetadata.json`
+  - `dataTypes[].taskId` in v8 and `dataTypes[].taskIds` in v9, in `applicationmetadata.json`
   - the UI folder: a layout set's `tasks` in v8, the folder name in v9
   - `urn:altinn:task` in policy rules for the task
   - other configuration, such as `autoPdfTaskIds` in a PDF task and `target.taskId` in a Summary2 component
@@ -90,7 +91,7 @@ studio-app-lib skill says which interface does what and how to register it.
 | Add a field to a form | the data model, a component that binds to the field, and its text keys in every `resource.<lang>.json` |
 | Add a page | a file in `ui/<folder>/layouts/` and its name in the page order in `Settings.json`. The studio-layouts skill says what else a page needs, such as `NavigationButtons`. |
 | Add a choice list | a code list and `optionsId` on the component. The studio-code-lists skill says which kind of code list to use. |
-| Add, rename or remove a task | `process.bpmn`, `dataTypes[].taskId`, the UI folder, and the policy rules for the task |
+| Add, rename or remove a task | `process.bpmn`, the task of each data type, the UI folder, and the policy rules for the task |
 | Add a data model | the files in `models/`, a data type in `applicationmetadata.json`, and the task or UI folder that uses it |
 | Add custom C# | a class under `App/` and its registration in `Program.cs` |
 

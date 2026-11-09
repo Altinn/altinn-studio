@@ -30,7 +30,8 @@ in `http://altinn.no/process`. Where v8 and v9 differ, the section says so.
 </bpmn:task>
 ```
 
-A data task usually has pages, and a data type whose `taskId` is the task's id.
+A data task usually has pages, and a data type bound to the task: its `taskId` is the task's id in v8, and its
+`taskIds` lists the task's id in v9.
 
 ## confirmation
 

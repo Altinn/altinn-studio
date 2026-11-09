@@ -88,7 +88,6 @@ task:
   "id": "signatures",
   "allowedContentTypes": ["application/json"],
   "allowedContributors": ["app:owned"],
-  "taskId": "SigningTask",
   "minCount": 1,
   "maxCount": 0
 }
@@ -96,8 +95,9 @@ task:
 
 - The signature and signee-states data types have `allowedContributors` exactly `["app:owned"]`, so that no one can
   change them through the app's API. Both hold `application/json`.
-- Set the signature data type's `taskId` to the signing task. Storage rejects every signature when it names another
-  task, and the app checks `maxCount` only for data types whose `taskId` is the task.
+- Bind the signature data type to the signing task: `"taskId": "SigningTask"` in v8 and `"taskIds": ["SigningTask"]`
+  in v9. Storage rejects every signature when the data type is bound to another task, and the app checks `maxCount`
+  only for data types bound to the task.
 - The app stores each signature as a data element of its own. Set `minCount` to the number of signatures the task
   needs, and `maxCount` to at least the number of signers, or 0 for no limit. The app checks both counts when the
   process leaves the task.
@@ -106,7 +106,7 @@ task:
   restrict them, set `actionRequiredToRead` and `actionRequiredToWrite` to `signature-access` on the signature and
   signee-states data types, and grant the service owner `signature-access` in the policy. The app then reads and writes
   them as the service owner, through Maskinporten.
-- When you add a signing task in Studio's process editor, Studio creates the data types with `taskId`,
+- When you add a signing task in Studio's process editor, Studio creates the data types bound to the task, with
   `["app:owned"]` and `maxCount` 1. Raise `maxCount` when more than one person signs. Studio leaves
   `dataTypesToSign` empty, and also `signeeProviderId` for user-controlled signing. Fill them in.
 
@@ -185,8 +185,8 @@ pages and components.
 ## Before you finish
 
 - Every data type ID in `signatureConfig` exists in `applicationmetadata.json`, written the same way.
-- The signature data type is app-owned, its `taskId` is the signing task, and its `minCount` and `maxCount` fit the
-  number of signers.
+- The signature data type is app-owned, is bound to the signing task, and has a `minCount` and `maxCount` that fit
+  the number of signers.
 - The data to sign exists when the task starts.
 - The task lists `sign`, and `reject` if used. The policy grants them on the task ID, and someone who submits has
   `write`.

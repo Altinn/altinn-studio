@@ -22,7 +22,7 @@ it.
 | ALTINNAPP1014 | error | A PDF task has no `ref-data-as-pdf` data type |
 | ALTINNAPP1015 | error | A data type cannot hold what the task stores in it |
 | ALTINNAPP1016 | warning | A signing or payment data type is not app-owned |
-| ALTINNAPP1017 | warning | A data type's `taskId` names no task |
+| ALTINNAPP1017 | warning | An entry in a data type's `taskIds` names no task |
 | ALTINNAPP1018 | warning | The process names a data type that the app skips |
 | ALTINNAPP1019 | warning | A gateway's `connectedDataTypeId` is not declared |
 | ALTINNAPP1020 | error | A task setting is missing or invalid in an environment |

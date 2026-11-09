@@ -29,14 +29,14 @@ For a data type with the id `soknad`:
   The `studio-prefill` and `studio-validation` skills cover them.
 
 The app finds the schema, the XSD and the configuration files by the data type id, and the C# class by `classRef`. Name
-all of them after the data type id, as Studio does. The data type looks like this:
+all of them after the data type id, as Studio does. The data type looks like this, with the task binding that the
+version file describes:
 
 ```json
 {
   "id": "soknad",
   "allowedContentTypes": ["application/xml"],
   "appLogic": { "autoCreate": true, "classRef": "Altinn.App.Models.Soknad.Soknad" },
-  "taskId": "Task_1",
   "maxCount": 1,
   "minCount": 1
 }
@@ -47,10 +47,11 @@ all of them after the data type id, as Studio does. The data type looks like thi
   with a single `$ref`, as most uploaded XSDs do, that is the definition's name. Otherwise it is the
   `@xsdRootElement`. Studio Designer refuses a `$ref` directly on the root. Older models use
   `Altinn.App.Models.<Class>`, and Studio keeps that form for a model that has it.
-- `taskId` is the task the model belongs to. Users can change the data during that task. When the task ends, the app
-  locks the data element, and later tasks can only read it.
+- The data type names the task the model belongs to: `"taskId": "Task_1"` in v8 and `"taskIds": ["Task_1"]` in v9.
+  Users can change the data during that task. When the task ends, the app locks the data element, and later tasks
+  can only read it.
 - With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
-  else creates the element, such as a user who adds a subform entry. A stateless form's model has no `taskId`.
+  else creates the element, such as a user who adds a subform entry. A stateless form's model names no task.
 - Several data types can share a task. The version file says which one is the default for the task's pages.
 - The `studio-app-settings` skill covers the other data type settings.
 
@@ -71,8 +72,9 @@ it shows "Du har endringer som ikke er generert". Until the C# class matches the
 - In both cases, put nothing in the C# class that the schema does not describe. Generating the model in Studio later
   replaces both files.
 - Generation also sets `classRef`, and adds the data type when it is missing. When you write the files yourself, set
-  `classRef` and add the data type yourself. Studio adds a new data type without a `taskId`. Connect it to a task in
-  Studio's process editor, or set `taskId` and the task's default data model yourself as the version file says.
+  `classRef` and add the data type yourself. Studio adds a new data type that names no task. Connect it to a task in
+  Studio's process editor, or bind it to the task and set the task's default data model yourself as the version file
+  says.
 
 ## Binding paths
 
@@ -143,4 +145,4 @@ Studio's editor writes these keywords:
 - An existing model has the `@xsdRootElement` it had, unless the user said that no instance has data in it.
 - The app's C# code uses the current class names.
 - Every binding, text variable, expression and prefill target that used a changed path uses the new one.
-- Every `taskId` names a task in `App/config/process/process.bpmn`.
+- Every task ID in a data type's `taskId` or `taskIds` names a task in `App/config/process/process.bpmn`.

@@ -122,7 +122,7 @@ subform needs four parts:
 1. A data type for the subform's model in `applicationmetadata.json`. `minCount` and `maxCount` set how many entries
    the user must and may add, and `maxCount: 0` sets no upper limit. The frontend shows an error while there are
    fewer than `minCount`, and the backend refuses an entry beyond `maxCount`. With `appLogic.autoCreate: true`, the
-   app creates one entry when the task in the data type's `taskId` starts. With `appLogic.disallowUserCreate: true`,
+   app creates one entry when a task the data type is bound to starts. With `appLogic.disallowUserCreate: true`,
    the Subform component needs `showAddButton: false`.
 2. A UI folder for the subform, tied to that data type. The version files say how.
 3. The subform's pages. Give each page a `CustomButton` with the client action `closeSubform`, which takes the user

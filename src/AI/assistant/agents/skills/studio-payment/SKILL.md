@@ -60,8 +60,8 @@ Each part of the setup serves one of these steps:
 - The receipt data type allows `application/pdf`, has no `appLogic`, and has `"maxCount": 1`.
 - Give each payment task its own two data types. A task that shares the payment data type with an earlier payment
   task finds that payment paid and refuses to start a new one.
-- When you add a payment task in Studio's process editor, Studio creates both data types, app-owned and with `taskId`
-  set to the task.
+- When you add a payment task in Studio's process editor, Studio creates both data types, app-owned and bound to the
+  task.
 
 ## Actions, gateway and policy
 

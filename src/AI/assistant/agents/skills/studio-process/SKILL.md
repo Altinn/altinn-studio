@@ -146,9 +146,9 @@ List the actions users take on a task in its `taskExtension`:
 
 When you add, rename or remove a task, update everything that names its id:
 
-- `dataTypes[].taskId` in `App/config/applicationmetadata.json`: the data types the task creates
-  (`appLogic.autoCreate`), edits and validates. The id must match exactly. The `studio-app-settings` skill
-  covers the file.
+- The task binding of `dataTypes` in `App/config/applicationmetadata.json`, `taskId` in v8 and `taskIds` in v9: the
+  data types the task creates (`appLogic.autoCreate`), edits and validates. The id must match exactly. The
+  `studio-app-settings` skill covers the file.
 - The task's pages, for data, signing and payment tasks. The version files say where they live.
 - Policy rules scoped to the task with `urn:altinn:task`. See the `studio-policy` skill.
 - `target.taskId` in Summary2 components. See the `studio-layouts` skill.
@@ -167,8 +167,8 @@ diagram shapes and edges.
 - When it loads a file, Studio drops every later element that repeats an id. The next save from Studio deletes them.
 - The editor accepts ids of ASCII letters, digits, `_` and `-`, at most 50 characters, unique ignoring case, and not
   starting with `custom` in any case. Use such ids so the file stays editable in Studio.
-- When you add, rename or remove a task in the editor, Studio updates the UI, data types, `taskId` references and
-  policy rules it knows about. When you edit the file by hand, nothing does. Update them yourself.
+- When you add, rename or remove a task in the editor, Studio updates the UI, the data types bound to the task and
+  the policy rules it knows about. When you edit the file by hand, nothing does. Update them yourself.
 - The editor warns when a Fiks Arkiv task is not followed by a gateway with branches.
 - Its custom service task leaves `<altinn:taskType>` empty. Fill it in.
 

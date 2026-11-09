@@ -27,7 +27,8 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
 
 The app prefills a form data element once, when it creates it:
 
-- when a task starts, for each data type whose `taskId` is that task and whose `appLogic.autoCreate` is `true`
+- when a task starts, for each data type bound to that task whose `appLogic.autoCreate` is `true`, if the instance
+  has no element of that type yet
 - when the data API creates an element, such as a new subform entry
 - when the instantiation request carries form data, or the instance is a copy of another
 - when a stateless form loads its data
