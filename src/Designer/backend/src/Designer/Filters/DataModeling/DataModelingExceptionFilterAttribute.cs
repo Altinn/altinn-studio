@@ -135,5 +135,19 @@ public class DataModelingExceptionFilterAttribute : HandledExceptionFilterAttrib
                 StatusCode = (int)HttpStatusCode.UnprocessableContent,
             };
         }
+
+        if (context.Exception is DataTypeWithTheSameNameExists)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    DataModelingErrorCodes.DataTypeWithTheSameNameExists,
+                    HttpStatusCode.UnprocessableEntity
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.UnprocessableContent,
+            };
+        }
     }
 }

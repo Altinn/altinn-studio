@@ -234,6 +234,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -293,6 +296,9 @@ internal static class V8Tov9Upgrade
         // holds v9 layouts.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
@@ -1356,6 +1362,29 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes AppSettings:EnforceDataTypeTaskId from the appsettings files: v9 always refuses changes through the app
+    /// APIs to a data type's data outside the tasks it is bound to.
+    /// </summary>
+    static async Task<int> RemoveEnforceDataTypeTaskIdSetting(string projectFile)
+    {
+        UpgradeConsole.BeginStep("EnforceDataTypeTaskId setting");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await EnforceDataTypeTaskIdMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No AppSettings:EnforceDataTypeTaskId in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing AppSettings:EnforceDataTypeTaskId from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1972,6 +2001,27 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking the pages of service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Replaces the taskId of the data types in applicationmetadata.json with taskIds, the only task binding v9 reads.
+    /// </summary>
+    static async Task<int> MigrateDataTypeTaskIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Data type taskIds");
+        try
+        {
+            var result = await DataTypeTaskIdsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data type has a taskId",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
         }
     }
 

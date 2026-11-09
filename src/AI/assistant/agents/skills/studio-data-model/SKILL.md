@@ -43,9 +43,10 @@ all of them after the data type id, as Studio does. The data type looks like thi
 ```
 
 - `appLogic.classRef` is the full name of the C# class. Studio writes `Altinn.App.Models.<Class>.<Class>`, where
-  `<Class>` is the name of the root's type without hyphens. When the root refers to a definition with `$ref`, as most
-  uploaded XSDs do, that is the definition's name. Otherwise it is the `@xsdRootElement`. Older models use
-  `Altinn.App.Models.<Class>`, and Studio keeps that form for a model that has it.
+  `<Class>` is the name of the root's type without hyphens. When the root refers to a definition through a `oneOf`
+  with a single `$ref`, as most uploaded XSDs do, that is the definition's name. Otherwise it is the
+  `@xsdRootElement`. The generator refuses a `$ref` directly on the root. Older models use `Altinn.App.Models.<Class>`,
+  and Studio keeps that form for a model that has it.
 - `taskId` is the task the model belongs to. Users can change the data during that task. When the task ends, the app
   locks the data element, and later tasks can only read it.
 - With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
@@ -61,8 +62,11 @@ all of them after the data type id, as Studio does. The data type looks like thi
   only when you click **Generer modell**. While they are behind the schema, it shows "Du har endringer som ikke er
   generert". The generator is the DataModeling library in Designer, `src/Designer/backend/src/DataModeling` in the
   altinn-studio repository.
-- Until the files are generated, the backend still uses the old class. When you change a schema outside Studio and
-  cannot generate the files yourself, tell the user to open the model in Studio and click **Generer modell**.
+- Until the files are generated, the backend still uses the old class. Generate them after every change to the
+  schema. When you change a schema outside Studio and cannot generate the files yourself, tell the user to open the
+  model in Studio and click **Generer modell**.
+- When generation fails, for example with a C# compiler error, fix the schema and generate again. Never change the
+  `.cs` or `.xsd` to make the error go away.
 - Generation also sets `classRef`, and adds the data type when it is missing. Studio adds a new data type without a
   `taskId`. Connect it to a task in Studio's process editor, or set `taskId` and the task's default data model
   yourself as the version file says.
@@ -90,6 +94,9 @@ Studio's editor checks these rules, and the generator depends on them:
 - `@xsdRootElement` names the root element in XML. The C# class is named after the root's type, as `classRef`
   above describes. Two models in one app may share a root element, but not a class name. Both C# files would
   declare the same class, so the app would not build, and Studio refuses such a model.
+- An existing model keeps its class name and its root element. A new class name breaks the app's C# code, and a new
+  root element changes the XML of the data the app stores. So do not change `@xsdRootElement`, rename the definition
+  the root refers to, or move the root's properties into or out of `$defs`.
 - A property name starts with a letter, where `æ`, `ø` and `å` count, followed by letters, digits, `_` and `-`. It is
   not a C# keyword and is unique among its siblings. The generator drops `-` from the C# name and keeps the full name
   in JSON and XML.
@@ -126,7 +133,7 @@ Studio's editor writes these keywords:
 - The schema, the C# file and the XSD are named after the data type id, and `classRef` names the class that the C#
   file declares.
 - The C# class and the XSD are generated from the current schema, or you have told the user to generate them.
-- No two data types have the same C# class.
+- No two data types have the same C# class, and an existing model has the class name and root element it had.
 - Every binding, text variable, expression and prefill target that used a changed path uses the new one.
 - Every `taskId` names a task in `App/config/process/process.bpmn`.
 - Build the app.
