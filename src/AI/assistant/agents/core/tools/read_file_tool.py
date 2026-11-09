@@ -54,6 +54,7 @@ class ReadFileTool(Tool[ReadFileArgs]):
             key=file_key(args.path),
             source=args.path,
             tool=self.name,
+            same_args="the same `path`",
         )
         if not result.is_error:
             mark_read(ctx, args.path)

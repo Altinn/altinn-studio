@@ -104,7 +104,7 @@ class TestReadFile:
         last, total = result.metadata["end_line"], result.metadata["lines"]
         assert total == text.count("\n")
         assert f"Showing lines 1–{last} of {total} in resource.nn.json" in result.content
-        assert f"call `read_file` with `offset` {last + 1}" in result.content
+        assert f"call `read_file` with the same `path` and `offset` {last + 1}" in result.content
 
     async def test_offset_reads_the_next_part(self, tmp_path: Path):
         text = _text_resource_file(2_000)
