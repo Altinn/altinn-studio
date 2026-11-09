@@ -56,7 +56,7 @@ class TestCachedPromptTokens:
         usage, details = await _chat(adapter, _completion(1821, 1818))
 
         assert usage["cache_read_input_tokens"] == 1818
-        assert details["cache_read_input"] == 1818
+        assert details["input_cache_read"] == 1818
         assert details["input"] == 3
 
     async def test_the_total_still_counts_every_prompt_token(self, adapter):
@@ -94,3 +94,19 @@ class TestTotalIsComparableAcrossProviders:
 
     def test_a_turn_with_no_caching_is_input_plus_output(self):
         assert _usage_details(fresh=1821, output=7)["total"] == 1828
+
+
+class TestKeysAreTheNamesLangfusePrices:
+    """Langfuse counts a usage key it has no price for as free, so a cache kind
+    under another name drops out of the cost."""
+
+    def test_every_token_kind_is_reported_under_its_priced_name(self):
+        details = _usage_details(fresh=2, output=610, cache_read=37082, cache_creation=221)
+
+        assert details == {
+            "input": 2,
+            "output": 610,
+            "input_cache_read": 37082,
+            "input_cache_creation": 221,
+            "total": 37915,
+        }

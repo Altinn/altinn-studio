@@ -381,7 +381,9 @@ def _block_to_anthropic(block: ContentBlock) -> dict[str, Any]:
 
 
 def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0) -> dict[str, int]:
-    """Token kinds as the provider reports them, and a total counting all of them.
+    """A call's token kinds under the names Langfuse prices, and a total counting all of them.
+
+    Langfuse prices each key on its own and counts a key it has no price for as free.
 
     Anthropic excludes cache reads from `input_tokens` and Azure includes them, so
     a total built from each provider's own input figure is not comparable.
@@ -389,8 +391,8 @@ def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creati
     return {
         "input": fresh,
         "output": output,
-        "cache_read_input": cache_read,
-        "cache_creation_input": cache_creation,
+        "input_cache_read": cache_read,
+        "input_cache_creation": cache_creation,
         "total": fresh + output + cache_read + cache_creation,
     }
 
