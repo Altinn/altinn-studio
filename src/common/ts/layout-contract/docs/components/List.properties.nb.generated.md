@@ -277,6 +277,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter. Andre egenskapsnavn er tillatt. Verditype: string.</div></div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="tablecolumns">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="tableColumns">tableColumns</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde. Andre egenskapsnavn er tillatt. Verditype: object.</div></div>
+</details>
+
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>

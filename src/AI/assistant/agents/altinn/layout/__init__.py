@@ -14,7 +14,7 @@ _schema_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 def get_layout_schema(schema_location: str) -> dict[str, Any]:
-    """Load (and memoize) a layout schema from a URL or a file path.
+    """Load (and memoize) a layout or text resource schema from a URL or a file path.
 
     The underlying loaders refetch on every call; a verify pass over N
     layout files would otherwise hit the CDN N times.  One in-process

@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from .utils.repo_files import PathError, resolve_repo_path
+from .utils.repo_files import PathError, mark_unread, resolve_repo_path
 
 
 class DiscardFileChangesArgs(BaseModel):
@@ -67,5 +67,6 @@ def _forget_file(ctx: LoopContext, rel_path: str) -> None:
     Its in-memory state is no longer "the version we modified" nor "the
     version we read", and its prior verification badge no longer applies.
     """
-    for tracking_key in ("changed_files", "read_set", "verified_files"):
+    for tracking_key in ("changed_files", "verified_files"):
         (ctx.extras.get(tracking_key) or set()).discard(rel_path)
+    mark_unread(ctx, rel_path)
