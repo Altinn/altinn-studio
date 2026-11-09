@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- List tables can configure column widths using `tableColumns`.
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 
 ## [9.0.0-preview.10] - 2026-11-09
 
