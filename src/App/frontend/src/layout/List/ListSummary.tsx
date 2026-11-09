@@ -103,6 +103,16 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 }
               />
             )}
+            {config.tableColumns && (
+              <colgroup>
+                {Object.keys(config.tableHeaders).map((key) => (
+                  <col
+                    key={key}
+                    style={{ width: config.tableColumns?.[key]?.width }}
+                  />
+                ))}
+              </colgroup>
+            )}
             <Table.Head>
               <Table.Row>
                 {Object.entries(config.tableHeaders).map(([key, value]) => (
