@@ -42,7 +42,6 @@ def test_rejects_a_variable_key_that_does_not_match_the_pattern(validator: Resou
 
 
 def test_accepts_a_default_value_and_custom_text_parameters(validator: ResourceValidator):
-    """App frontend accepts both, but the unversioned copy of the schema on altinncdn.no does not."""
     data = {
         "language": "nb",
         "resources": [

@@ -168,7 +168,6 @@ class TestVerifyChanges:
         result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
 
         assert not result.is_error
-        # The schema is the app version's.
         assert requested_locations == ["other-version/text-resources.schema.v1.json"]
         assert seen["schema"] is schema
         # Language was inferred from the filename.

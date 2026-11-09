@@ -14,6 +14,4 @@ flowchart TD
 
 _App version detection. It follows the same rule as Designer._
 
-A version profile holds the prompt text, the locations of the layout and text resource schemas, and the binding rules for one app version. The v8 schemas come from the app frontend v4 toolkit on `altinncdn.no`. The v9 schemas come from `src/common/ts/layout-contract` in this repository. The service keeps a loaded schema in memory for 1 hour.
-
-The unversioned copy of the text resource schema on `altinncdn.no`, under `/schemas/json/`, is out of date. It rejects variables that app frontend accepts, such as `defaultValue`.
+A version profile holds what the assistant does differently per app version. The v8 schemas come from the app frontend v4 toolkit on `altinncdn.no`. The v9 schemas come from `src/common/ts/layout-contract` in this repository. The service keeps a loaded schema in memory for 1 hour.
