@@ -10,9 +10,6 @@ from .base_validator import BaseValidator
 class ResourceValidator(BaseValidator):
     """Validator for Altinn text resource files"""
 
-    def __init__(self):
-        super().__init__("https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json")
-
     def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """
         Validate resource-specific business rules
@@ -183,12 +180,13 @@ class ResourceValidator(BaseValidator):
 def resource_validator_tool(
     user_goal: str,
     resource_json: str,
+    schema: dict[str, Any],
     language: str = "nb",
     layout_files: list[str] | None = None,
     repo_path: str | None = None,
 ) -> dict[str, Any]:
     """
-    Validate text resource JSON with schema and business rules
+    Validate text resource JSON against the schema and the business rules
     """
     try:
         # Parse input
@@ -201,13 +199,12 @@ def resource_validator_tool(
                 "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {e!s}"],
                 "warnings": [],
                 "suggestions": {},
-                "schema_url": None,
                 "hint": "Check for: missing quotes, trailing commas, unescaped characters in the JSON.",
                 "retry_allowed": False,
             }
 
         # Create validator and run validation
-        validator = ResourceValidator()
+        validator = ResourceValidator(schema)
 
         context: dict[str, Any] = {"language": language}
         if layout_files:
@@ -225,5 +222,4 @@ def resource_validator_tool(
             "errors": [f"Validation error: {e!s}"],
             "warnings": [],
             "suggestions": {},
-            "schema_url": None,
         }

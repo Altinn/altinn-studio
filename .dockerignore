@@ -40,7 +40,7 @@
 !src/common/dotnet/Altinn.Studio.Common/**
 !src/common/ts
 !src/common/ts/**
-!src/common/ts/layout-contract/schemas/json/layout
+!src/common/ts/layout-contract/schemas/json
 !yarn.lock
 **/.DS_Store
 **/.cache

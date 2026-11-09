@@ -2,24 +2,16 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 
+from agents.altinn.app_version import V9_PROFILE
+from agents.altinn.layout import get_layout_schema
 from agents.altinn.resources.validator import ResourceValidator
-
-_SCHEMA_PATH = (
-    Path(__file__).resolve().parents[5]
-    / "common/ts/layout-contract/schemas/json/text-resources/text-resources.schema.v1.json"
-)
 
 
 @pytest.fixture
 def validator() -> ResourceValidator:
-    resource_validator = ResourceValidator()
-    resource_validator.schema = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
-    return resource_validator
+    return ResourceValidator(get_layout_schema(V9_PROFILE.text_resources_schema_location))
 
 
 def _resources_with_variable_key(key: str) -> dict:
@@ -49,6 +41,25 @@ def test_rejects_a_variable_key_that_does_not_match_the_pattern(validator: Resou
     assert errors == [f"[resources.0.variables.0.key] 'Person Navn' does not match {_pattern(validator)!r}"]
 
 
+def test_accepts_a_default_value_and_custom_text_parameters(validator: ResourceValidator):
+    data = {
+        "language": "nb",
+        "resources": [
+            {
+                "id": "greeting",
+                "value": "Hei {0}, du har {1} feil",
+                "variables": [
+                    {"key": "Person.Navn", "dataSource": "dataModel.default", "defaultValue": "deg"},
+                    {"key": "count", "dataSource": "customTextParameters"},
+                ],
+            }
+        ],
+    }
+
+    is_valid, errors = validator.validate_against_schema(data)
+
+    assert is_valid, errors
+
+
 def _pattern(validator: ResourceValidator) -> str:
-    assert validator.schema is not None
     return validator.schema["definitions"]["variable"]["properties"]["key"]["pattern"]
