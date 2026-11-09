@@ -245,7 +245,6 @@ appen
 modell
 prosess
 ser
-som
 
 # Norwegian working notes for the augmenter agent.
 @paths src/AI/augmenter-agent/TODO-coderabbit.md
