@@ -1,8 +1,8 @@
 # Altinn domain library
 
-Code: `src/AI/assistant/agents/altinn/app_version/`, `src/AI/assistant/agents/altinn/layout/`, `src/AI/assistant/agents/altinn/resources/`
+Code: `src/AI/assistant/agents/altinn/app_version/`, `src/AI/assistant/agents/altinn/layout/`, `src/AI/assistant/agents/altinn/resources/`, `src/AI/assistant/agents/altinn/findings.py`
 
-This library is plain Python with no model calls. The tools call it in the same process. It does three jobs: it finds the app version, validates layouts against the official schema, and validates text resources.
+This library is plain Python with no model calls. The tools call it in the same process. It does three jobs: it finds the app version, validates layouts against the official schema, and validates text resources. The text resource validator returns its errors as findings, which `verify_changes` compares with the app at the start of the session, as [Tools](tools.md) describes.
 
 ```mermaid
 flowchart TD

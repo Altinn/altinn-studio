@@ -38,16 +38,13 @@ class BaseValidator:
     def __init__(self, schema: dict[str, Any]):
         self.schema = schema
 
-    def iter_schema_errors(self, data: dict[str, Any]) -> Iterator[tuple[SchemaPath, str]]:
-        """Yield the location of each schema error in the data, and its message."""
-        try:
-            resolver = RefResolver.from_schema(self.schema)
-            validator = _SchemaValidator(self.schema, resolver=resolver)
+    def iter_schema_errors(self, data: Any) -> Iterator[tuple[SchemaPath, str]]:
+        """Yield the path of each schema error in the data, and its message.
 
-            for error in validator.iter_errors(data):
-                path = tuple(error.absolute_path)
-                location = ".".join(str(p) for p in path) if path else "root"
-                yield path, f"[{location}] {error.message}"
-
-        except Exception as e:
-            yield (), f"Schema validation error: {e!s}"
+        A schema that cannot be used raises: that is no error in the data, and must not pass as one that the
+        data had before a change too.
+        """
+        resolver = RefResolver.from_schema(self.schema)
+        validator = _SchemaValidator(self.schema, resolver=resolver)
+        for error in validator.iter_errors(data):
+            yield tuple(error.absolute_path), error.message

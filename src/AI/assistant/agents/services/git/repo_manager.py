@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
+from agents.services.git import git_ops
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 
@@ -25,6 +26,9 @@ class RepoManager:
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: dict[str, Path] = {}  # session_id -> repo_path
         self.session_api_keys: dict[str, str] = {}  # session_id -> api key
+        # session_id -> the commit the session started from. HEAD moves when the session commits,
+        # so only this commit tells the errors the session made from the errors the app had.
+        self.start_commits: dict[str, str] = {}
 
     def _apply_base_url(self, repo_url: str) -> str:
         """Replace the host/port from the incoming URL with GITEA_BASE_URL."""
@@ -126,6 +130,7 @@ class RepoManager:
 
             # Store the active repo mapping (token already persisted above)
             self.active_repos[session_id] = repo_path
+            self._record_start_commit(session_id, repo_path)
 
             return repo_path
 
@@ -133,6 +138,18 @@ class RepoManager:
             error_msg = f"Failed to clone repository {repo_url}: {e.stderr}"
             log.error(error_msg)
             raise Exception(error_msg) from e
+
+    def _record_start_commit(self, session_id: str, repo_path: Path) -> None:
+        start_commit = git_ops.head_commit(str(repo_path))
+        if start_commit:
+            self.start_commits[session_id] = start_commit
+        else:
+            self.start_commits.pop(session_id, None)
+            log.warning(f"No start commit for session {session_id}: {repo_path} has no commits")
+
+    def get_session_start_commit(self, session_id: str) -> str | None:
+        """The commit the session's clone started on. A later start that reuses the clone keeps it."""
+        return self.start_commits.get(session_id)
 
     def push_branch(self, session_id: str, branch_name: str) -> bool:
         """
@@ -192,6 +209,7 @@ class RepoManager:
             del self.active_repos[session_id]
             if session_id in self.session_api_keys:
                 del self.session_api_keys[session_id]
+            self.start_commits.pop(session_id, None)
             log.info(f"Successfully cleaned up session {session_id}")
 
         except Exception as e:

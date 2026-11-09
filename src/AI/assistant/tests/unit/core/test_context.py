@@ -184,11 +184,10 @@ class TestFinalAnswerContract:
         # And it should give an example of the preferred shape.
         assert "bullet list" in prompt.lower()
 
-    def test_reports_errors_from_before_the_change_without_fixing_them(self):
-        """verify_changes lets old errors through as warnings, so the user hears of them only from the summary."""
+    def test_reports_errors_from_before_the_session_without_fixing_them(self):
+        """verify_changes lets old errors through, so the user hears of them only from the summary."""
         prompt = build_system_prompt(_base_ctx())
 
-        assert (
-            "errors that were in the app before your change, name them after the files and offer to fix them" in prompt
-        )
+        assert "listed `old_errors`" in prompt
+        assert "name them after the files and offer to fix them" in prompt
         assert "Don't fix them unasked" in prompt

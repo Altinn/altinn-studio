@@ -2,7 +2,7 @@
 
 Code: `src/AI/assistant/agents/services/git/repo_manager.py`, `src/AI/assistant/agents/services/git/git_ops.py`, `src/AI/assistant/agents/services/repo/repo_discovery.py`
 
-`RepoManager` clones the app into a temporary folder for each session. It replaces the host in the repo URL with `GITEA_BASE_URL`. It adds the API key as an HTTP header for each git command. It does not write the key into the git configuration. The clone starts on the branch that the user has open in Designer. The first commit makes the session branch from there.
+`RepoManager` clones the app into a temporary folder for each session. It replaces the host in the repo URL with `GITEA_BASE_URL`. It adds the API key as an HTTP header for each git command. It does not write the key into the git configuration. The clone starts on the branch that the user has open in Designer. The first commit makes the session branch from there. `RepoManager` records the commit that the clone starts on. A later start in the same session reuses the clone and keeps that start commit. `verify_changes` compares with it to tell the errors that the session caused from the errors that the app had.
 
 ```mermaid
 sequenceDiagram

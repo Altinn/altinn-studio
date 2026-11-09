@@ -48,6 +48,9 @@ class LoopContext:
     # in read-only sessions; None means denials are final.
     permission_requester: Callable[[str], Awaitable[bool]] | None = None
     app_version_profile: AppVersionProfile = V8_PROFILE
+    # The commit the session started from. `verify_changes` compares with it to tell
+    # the errors the session made from the errors the app had. None when it is unknown.
+    start_commit: str | None = None
     extras: dict[str, Any] = field(default_factory=dict)
 
 

@@ -41,6 +41,7 @@ def _stubbed_agent_start(repo_path):
     """Stub the side effects of a successful start so the body returns 200 without cloning."""
     repo_manager = Mock()
     repo_manager.clone_repo_for_session.return_value = str(repo_path)
+    repo_manager.get_session_start_commit.return_value = "0123abcd"
     sink_stub = Mock()
     sink_stub.get_conversation_history.return_value = []
     with (
@@ -145,6 +146,15 @@ class TestCostOrg:
         state = run_in_background.call_args.args[0]
         assert state.repo_owner == "kari"
         assert state.cost_org == "ttd"
+
+
+class TestStartCommit:
+    def test_the_session_gets_the_commit_its_clone_started_on(self, tmp_path):
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.run_in_background") as run_in_background:
+            response = _post_start(TestClient(app), "kari")
+
+        assert response.status_code == 200
+        assert run_in_background.call_args.args[0].start_commit == "0123abcd"
 
     def test_rejects_a_request_without_cost_org(self, tmp_path):
         payload = _start_payload()

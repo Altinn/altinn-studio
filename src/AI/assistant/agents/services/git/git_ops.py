@@ -4,6 +4,19 @@ import subprocess
 from datetime import datetime
 
 
+def head_commit(repo_path: str) -> str | None:
+    """The full hash of HEAD, or None when the repository has no commits."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "HEAD^{commit}"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
 def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash, or None when nothing changed"""
     try:
