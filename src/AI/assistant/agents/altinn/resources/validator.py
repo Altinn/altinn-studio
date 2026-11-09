@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from shared.config.base_config import get_config
+
 from .base_validator import BaseValidator
 
 
@@ -11,7 +13,7 @@ class ResourceValidator(BaseValidator):
     """Validator for Altinn text resource files"""
 
     def __init__(self):
-        super().__init__("https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json")
+        super().__init__(get_config().TEXT_RESOURCES_SCHEMA_PATH)
 
     def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """
@@ -201,7 +203,6 @@ def resource_validator_tool(
                 "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {e!s}"],
                 "warnings": [],
                 "suggestions": {},
-                "schema_url": None,
                 "hint": "Check for: missing quotes, trailing commas, unescaped characters in the JSON.",
                 "retry_allowed": False,
             }
@@ -225,5 +226,4 @@ def resource_validator_tool(
             "errors": [f"Validation error: {e!s}"],
             "warnings": [],
             "suggestions": {},
-            "schema_url": None,
         }

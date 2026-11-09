@@ -14,7 +14,8 @@ hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
 Validation runs in-process — no network round-trip except the (cached)
-v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
+v8 layout schema fetch from altinncdn.no.  The v9 layout schema and the
+text resource schema are read from disk.
 """
 
 from __future__ import annotations

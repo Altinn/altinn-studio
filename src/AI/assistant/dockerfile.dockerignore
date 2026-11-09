@@ -1,10 +1,11 @@
 # Build context: repository root
-# The agents image builds from the repo root so it can bundle the v9 layout schemas from src/common.
+# The agents image builds from the repo root so it can bundle the layout contract schemas from src/common.
 # Ignore everything, then include only what the image needs.
 *
 
 !src/AI/assistant
 !src/common/ts/layout-contract/schemas/json/layout
+!src/common/ts/layout-contract/schemas/json/text-resources
 
 # Heavy or irrelevant paths inside the included dirs.
 **/bin
