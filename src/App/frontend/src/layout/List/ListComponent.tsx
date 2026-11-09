@@ -59,7 +59,7 @@ type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponent
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
   const isMobile = useIsMobile();
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
@@ -106,9 +106,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
     (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
   );
-  const selectedRow = !isMultipleSelection
-    ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
-    : '';
+  const selectedRow =
+    !readOnly && !isMultipleSelection
+      ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
+      : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
     if (instanceLocked) {
       return;
@@ -120,6 +121,9 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     setValues(next);
   }
   function isRowSelected(row: Row): boolean {
+    if (readOnly) {
+      return false;
+    }
     if (isMultipleSelection) {
       return isChecked(row);
     }
@@ -173,7 +177,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         <strong>
           <Lang id={tableHeaders[key]} />
         </strong>
-        <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
+        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
@@ -411,7 +415,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
-                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>
