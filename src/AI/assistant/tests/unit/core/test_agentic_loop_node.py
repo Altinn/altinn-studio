@@ -835,7 +835,7 @@ class TestMaybeAutoCommitResult:
         [
             pytest.param((), False, True, True, False, id="nothing changed"),
             pytest.param(("a.json",), True, False, False, True, id="the model committed"),
-            pytest.param(("a.json",), False, True, True, True, id="the net committed"),
+            pytest.param(("a.json",), False, True, True, True, id="the auto-commit committed"),
             pytest.param(("a.json",), False, False, True, False, id="verification failed"),
             pytest.param(("a.json",), False, True, False, False, id="the push was rejected"),
         ],
@@ -921,7 +921,7 @@ class TestStoppedRunReportsTheCommit:
         assert _COMMITTED in content
         assert success is False
 
-    async def test_changes_the_net_committed(self, monkeypatch):
+    async def test_changes_the_auto_commit_committed(self, monkeypatch):
         _, content, _ = await _finish(
             monkeypatch, _loop_ending(TerminationReason.MAX_TURNS, changed=("App/ui/x.json",))
         )
