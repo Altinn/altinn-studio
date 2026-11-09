@@ -7,8 +7,9 @@ import type { InstanceSummaryDataObject } from '@app/form-component';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useAppReceiver } from 'src/core/texts/appTexts';
-import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { toTimeZonedDate } from 'src/utils/dateUtils';

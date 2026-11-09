@@ -1,12 +1,12 @@
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { ensureInstanceData } from 'src/core/queries/instance';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 
 export async function clientLoader({ context, params }: LoaderFunctionArgs): Promise<null> {
   const queryClient = context.get(queryClientContext);
-  const { instanceApi } = context.get(apiClientsContext);
+  const instanceApi = context.get(appQueriesContext);
   const { instanceOwnerPartyId, instanceGuid } = params;
   // Await cache freshness before the route renders, so URL and cache transition together.
   // With staleTime: Infinity on the instance query this is a no-op when the cache is already

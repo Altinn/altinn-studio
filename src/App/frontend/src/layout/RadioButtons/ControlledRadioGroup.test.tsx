@@ -3,14 +3,13 @@ import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/queries/types';
+import type { AppQueries } from 'src/core/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -58,8 +57,7 @@ const render = async ({
     queries: {
       fetchOptions: () =>
         options
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
+          ? Promise.resolve({ data: options, headers: {} })
           : Promise.reject(new Error('No options provided to render()')),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
@@ -269,9 +267,7 @@ describe('RadioButtonsContainerComponent', () => {
         },
       },
       options: [],
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

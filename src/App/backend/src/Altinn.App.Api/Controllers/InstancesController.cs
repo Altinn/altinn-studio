@@ -106,7 +106,6 @@ public class InstancesController : ControllerBase
         IOrganizationClient orgClient,
         IHostEnvironment env,
         ModelSerializationService serializationService,
-        InternalPatchService patchService,
         ITranslationService translationService,
         IServiceProvider serviceProvider
     )
@@ -128,7 +127,7 @@ public class InstancesController : ControllerBase
         _orgClient = orgClient;
         _env = env;
         _serializationService = serializationService;
-        _patchService = patchService;
+        _patchService = serviceProvider.GetRequiredService<InternalPatchService>();
         _translationService = translationService;
         _fileService = serviceProvider.GetRequiredService<IFileService>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
@@ -1558,10 +1557,7 @@ public class InstancesController : ControllerBase
 
         List<DataType> dts = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
-            .Where(dt =>
-                dt.TaskId != null
-                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
-            )
+            .Where(dt => dt.IsBoundToTask(targetInstance.Process.CurrentTask.ElementId))
             .ToList();
         List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
 
@@ -1642,10 +1638,7 @@ public class InstancesController : ControllerBase
 
         List<DataType> binaryDataTypes = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef == null)
-            .Where(dt =>
-                dt.TaskId != null
-                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
-            )
+            .Where(dt => dt.IsBoundToTask(targetInstance.Process.CurrentTask.ElementId))
             .ToList();
 
         foreach (DataElement de in sourceInstance.Data)

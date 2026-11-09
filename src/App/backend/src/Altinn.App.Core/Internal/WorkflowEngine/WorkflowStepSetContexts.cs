@@ -33,6 +33,12 @@ internal sealed record TaskStartContext
     public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
+    /// The <see cref="IOnTaskStartingHandler"/> that runs for the task, whose step options its hook step carries, or
+    /// null when none does and no hook step is planned.
+    /// </summary>
+    public required IOnTaskStartingHandler? StartingHook { get; init; }
+
+    /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>
     public required bool IsInitialTaskStart { get; init; }
@@ -65,6 +71,12 @@ internal sealed record TaskStartContext
 /// </summary>
 internal sealed record ProcessEndContext
 {
+    /// <summary>
+    /// The app's <see cref="IOnProcessEndedHandler"/>, whose step options its hook step carries, or null when the
+    /// app registers none and no hook step is planned.
+    /// </summary>
+    public required IOnProcessEndedHandler? ProcessEndedHook { get; init; }
+
     /// <summary>
     /// Whether to register events with the events component.
     /// </summary>

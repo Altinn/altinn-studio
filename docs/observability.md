@@ -15,6 +15,8 @@ browsers.
 
 - Services export traces, metrics and logs over OTLP to the router collector in their cluster.
 - The router adds Kubernetes metadata and the environment, and passes everything to the gateway collector.
+  Each cluster runs two of each collector, so one pod that is evicted or cannot be scheduled doesn't stop its
+  telemetry.
 - The gateway samples traces, filters metrics and sends all three signals through the
   [observability-proxy](../src/observability-proxy) to VictoriaMetrics, VictoriaTraces and VictoriaLogs.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
@@ -305,9 +307,9 @@ section.
 - The router drops logs below WARN.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
-  namespaces that our services emit, such as `http.*`, `signalr.server.*` and the language runtimes' `dotnet.*` and
-  `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
-  process.
+  namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'
+  `dotnet.*` and `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series
+  it adds per process.
 - The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.
 

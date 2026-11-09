@@ -73,7 +73,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi
         .fn()
         .mockImplementation(() =>
-          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [] }),
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList: [] }),
         ),
     });
     await waitForElementToBeRemoved(() =>

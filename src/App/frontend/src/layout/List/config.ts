@@ -73,6 +73,19 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
+      'tableColumns',
+      new CG.obj()
+        .additionalProperties(CG.common('ITableColumnWidth'))
+        .optional()
+        .setTitle('Table columns', 'Tabellkolonner')
+        .setDescription(
+          'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+          'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+        ),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
       'sortableColumns',
       new CG.arr(new CG.str())
         .optional()

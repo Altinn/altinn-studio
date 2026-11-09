@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Configuration
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FormLayoutJSONFileName { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
@@ -5392,12 +5391,6 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Validation.FrontendSeverityConverter?))]
         public Altinn.App.Core.Models.Validation.ValidationIssueSeverity? Severity { get; set; }
     }
-    public class ValidationException : Altinn.App.Core.Exceptions.AltinnException
-    {
-        public ValidationException() { }
-        public ValidationException(string message) { }
-        public ValidationException(string message, System.Exception inner) { }
-    }
     public class ValidationIssue
     {
         public ValidationIssue() { }
@@ -5449,7 +5442,6 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementFileInfected { get; }
             public static string DataElementFileScanPending { get; }
             public static string DataElementTooLarge { get; }
-            public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
             public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }

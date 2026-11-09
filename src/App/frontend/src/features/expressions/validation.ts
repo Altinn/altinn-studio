@@ -72,7 +72,9 @@ function validateFunctionArg(
     const expectedTypeReadable = expectedType.replaceAll('_', '');
 
     if (actualType === undefined) {
-      if (targetType.nullable) {
+      const omittedOptionalArgument =
+        idx >= actual.length && ExprFunctionDefinitions[func].args[idx]?.variant === 'optional';
+      if (targetType.nullable || omittedOptionalArgument) {
         return;
       }
       addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedTypeReadable, 'null');

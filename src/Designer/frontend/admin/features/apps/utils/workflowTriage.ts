@@ -6,6 +6,7 @@ import type {
 import { FAILED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { WorkflowHealth } from './workflowHealth';
 import { ACTIVE_WORKFLOW_STATUSES } from './workflowRefetch';
+import appWorkflowLabels from './appWorkflowLabels.json';
 
 /** The verdicts that mean an operator may have to act. */
 export const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
@@ -36,16 +37,16 @@ export const isActiveWorkflow = (workflow: WorkflowStatus): boolean =>
  * The labels the app runtime puts on the workflows of one process transition, all three alike: the
  * workflow that takes the instance, the transition itself, and the auxiliary workflows it spawned.
  * They name the task the transition left, the flow number of that visit to it (so two visits to the
- * same task differ), and the task it enters. The app runtime defines them in
- * `ProcessNextRequestFactory`; a rename there must be made here too.
+ * same task differ), and the task it enters. Their names are in `appWorkflowLabels.json`, which
+ * the app's tests check against the app's own constants.
  *
  * The transition that starts the process leaves no task, so it and its auxiliary workflows carry the
  * target alone, as do the workflows a task runs after a message arrives. A transition that ends the
  * process enters no task, so it carries the source alone.
  */
-export const SOURCE_TASK_LABEL = 'processNextSourceTask';
-export const SOURCE_FLOW_LABEL = 'processNextSourceFlow';
-export const TARGET_TASK_LABEL = 'processNextTargetTask';
+export const SOURCE_TASK_LABEL = appWorkflowLabels.sourceTask;
+export const SOURCE_FLOW_LABEL = appWorkflowLabels.sourceFlow;
+export const TARGET_TASK_LABEL = appWorkflowLabels.targetTask;
 
 /** The one step of the workflow that takes the instance before a transition the user asked for. */
 const ACQUIRE_STEP = 'AcquireProcessingStatus';

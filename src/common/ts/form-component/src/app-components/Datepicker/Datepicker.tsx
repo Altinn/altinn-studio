@@ -82,20 +82,22 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
           setIsDialogOpen={setIsDialogOpen}
           trigger={<CalendarIcon title={calendarIconTitle} />}
         >
-          <DatePickerCalendar
-            id={id}
-            locale={locale}
-            selectedDate={dayPickerDate}
-            onSelect={(date) => {
-              handleDayPickerSelect(date);
-              setIsDialogOpen(false);
-              inputRef.current?.focus();
-            }}
-            minDate={minDate}
-            maxDate={maxDate}
-            required={required}
-            DropdownCaption={DropdownCaption}
-          />
+          {isDialogOpen && (
+            <DatePickerCalendar
+              id={id}
+              locale={locale}
+              selectedDate={dayPickerDate}
+              onSelect={(date) => {
+                handleDayPickerSelect(date);
+                setIsDialogOpen(false);
+                inputRef.current?.focus();
+              }}
+              minDate={minDate}
+              maxDate={maxDate}
+              required={required}
+              DropdownCaption={DropdownCaption}
+            />
+          )}
         </DatePickerDialog>
       </div>
     </Flex>

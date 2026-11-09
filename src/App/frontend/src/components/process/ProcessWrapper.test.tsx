@@ -9,17 +9,17 @@ import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { useProcessNextOutsideFormProvider } from 'src/features/process/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { doProcessNext } from 'src/queries/queries';
 import Page from 'src/routes/page/page.route';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppQueriesContext } from 'src/core/queries/types';
 import type { IProcess, IProcessWorkflow } from 'src/types/shared';
 
 type RouterRef = { current: ReturnType<typeof createMemoryRouter> | undefined };
-type ProcessNextResponse = Awaited<ReturnType<typeof doProcessNext>>;
+type ProcessNextResponse = Awaited<ReturnType<AppQueriesContext['doProcessNext']>>;
 
 function SubmitProbe() {
   const processNext = useProcessNextOutsideFormProvider();
@@ -107,11 +107,7 @@ async function renderProcessWrapper(workflow?: IProcessWorkflow, waitUntilLoaded
     ),
     waitUntilLoaded,
     query,
-    apis: {
-      instanceApi: {
-        getInstance: async () => getInstanceWithWorkflow(workflow),
-      },
-    },
+    queries: { getInstance: async () => getInstanceWithWorkflow(workflow) },
   });
 }
 
@@ -165,11 +161,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByTestId('task-content')).toBeInTheDocument();
@@ -190,11 +182,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByTestId('task-content')).toBeInTheDocument();
@@ -216,11 +204,7 @@ describe('ProcessWrapper workflow state machine', () => {
           </ProcessWrapper>
         ),
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => instance,
-          },
-        },
+        queries: { getInstance: async () => instance },
       });
 
       await act(async () => {
@@ -250,11 +234,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <Page />
         </ProcessWrapper>
       ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     const firstComponent = await screen.findByRole('heading', { name: /you haven't added any components yet/i });
@@ -279,11 +259,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
@@ -308,11 +284,7 @@ describe('ProcessWrapper workflow state machine', () => {
         ),
         router: ({ children }) => <InstanceRouter taskId='Task_Service'>{children}</InstanceRouter>,
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => getInstanceOnTask('Task_Service', workflow),
-          },
-        },
+        queries: { getInstance: async () => getInstanceOnTask('Task_Service', workflow) },
       });
 
       await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', reason));
@@ -340,11 +312,7 @@ describe('ProcessWrapper workflow state machine', () => {
       ),
       waitUntilLoaded: false,
       taskId: 'Task_Service',
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     await expectWorkflowLoader();
@@ -494,11 +462,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByRole('button', { name: /prøv igjen/i })).toBeInTheDocument();
@@ -530,23 +494,21 @@ describe('ProcessWrapper workflow state machine', () => {
         ),
         router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => {
-              const instance = getInstanceWithProcessMock();
-              instance.process.processTasks = [
-                { altinnTaskType: 'data', elementId: 'Task_1' },
-                { altinnTaskType: 'data', elementId: 'Task_2' },
-              ];
-              if (committed) {
-                instance.process.currentTask!.elementId = 'Task_2';
-                instance.process.currentTask!.name = 'Task_2';
-                instance.process.workflow = { status: 'idle' };
-              } else {
-                instance.process.workflow = { status: 'processing', targetTask: 'Task_2' };
-              }
-              return instance;
-            },
+        queries: {
+          getInstance: async () => {
+            const instance = getInstanceWithProcessMock();
+            instance.process.processTasks = [
+              { altinnTaskType: 'data', elementId: 'Task_1' },
+              { altinnTaskType: 'data', elementId: 'Task_2' },
+            ];
+            if (committed) {
+              instance.process.currentTask!.elementId = 'Task_2';
+              instance.process.currentTask!.name = 'Task_2';
+              instance.process.workflow = { status: 'idle' };
+            } else {
+              instance.process.workflow = { status: 'processing', targetTask: 'Task_2' };
+            }
+            return instance;
           },
         },
       });
@@ -593,11 +555,7 @@ describe('ProcessWrapper workflow state machine', () => {
       ),
       taskId: 'Task_Pdf',
       query: 'pdf=1&task=Task_1',
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     await waitFor(() => expect(document.getElementById('pdfView')).not.toBeNull());
@@ -632,11 +590,7 @@ describe('ProcessWrapper workflow state machine', () => {
         ),
         taskId: 'Task_Pdf',
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => instance,
-          },
-        },
+        queries: { getInstance: async () => instance },
       });
 
       expect(await screen.findByText(/denne delen av skjemaet er ikke tilgjengelig/i)).toBeInTheDocument();
@@ -676,36 +630,34 @@ describe('ProcessWrapper workflow state machine', () => {
           </InstanceRouter>
         ),
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => {
-              const instance = getInstanceWithProcessMock();
-              instance.process.processTasks = [
-                { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
-                { altinnTaskType: 'externalApproval', elementId: 'Approval', elementType: 'ServiceTask' },
-                { altinnTaskType: 'signing', elementId: 'Sign', elementType: 'Task' },
-              ];
-              if (committed) {
-                instance.process.currentTask = {
-                  ...instance.process.currentTask!,
-                  elementId: 'Sign',
-                  name: 'Sign',
-                  altinnTaskType: 'signing',
-                  elementType: 'Task',
-                };
-                instance.process.workflow = { status: 'idle' };
-              } else {
-                instance.process.currentTask = {
-                  ...instance.process.currentTask!,
-                  elementId: 'Approval',
-                  name: 'Approval',
-                  altinnTaskType: 'externalApproval',
-                  elementType: 'ServiceTask',
-                };
-                instance.process.workflow = { status: 'processing', targetTask: 'Approval' };
-              }
-              return instance;
-            },
+        queries: {
+          getInstance: async () => {
+            const instance = getInstanceWithProcessMock();
+            instance.process.processTasks = [
+              { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
+              { altinnTaskType: 'externalApproval', elementId: 'Approval', elementType: 'ServiceTask' },
+              { altinnTaskType: 'signing', elementId: 'Sign', elementType: 'Task' },
+            ];
+            if (committed) {
+              instance.process.currentTask = {
+                ...instance.process.currentTask!,
+                elementId: 'Sign',
+                name: 'Sign',
+                altinnTaskType: 'signing',
+                elementType: 'Task',
+              };
+              instance.process.workflow = { status: 'idle' };
+            } else {
+              instance.process.currentTask = {
+                ...instance.process.currentTask!,
+                elementId: 'Approval',
+                name: 'Approval',
+                altinnTaskType: 'externalApproval',
+                elementType: 'ServiceTask',
+              };
+              instance.process.workflow = { status: 'processing', targetTask: 'Approval' };
+            }
+            return instance;
           },
         },
       });
@@ -741,20 +693,18 @@ describe('ProcessWrapper workflow state machine', () => {
         ),
         waitUntilLoaded: false,
         taskId: 'Task_Unsupported',
-        apis: {
-          instanceApi: {
-            getInstance: async () => {
-              const instance = getInstanceWithProcessMock();
-              instance.process.currentTask = {
-                ...instance.process.currentTask!,
-                elementId: 'Task_Unsupported',
-                name: 'Task_Unsupported',
-                altinnTaskType,
-                elementType: 'Task',
-              };
-              instance.process.processTasks = [{ elementId: 'Task_Unsupported', altinnTaskType, elementType: 'Task' }];
-              return instance;
-            },
+        queries: {
+          getInstance: async () => {
+            const instance = getInstanceWithProcessMock();
+            instance.process.currentTask = {
+              ...instance.process.currentTask!,
+              elementId: 'Task_Unsupported',
+              name: 'Task_Unsupported',
+              altinnTaskType,
+              elementType: 'Task',
+            };
+            instance.process.processTasks = [{ elementId: 'Task_Unsupported', altinnTaskType, elementType: 'Task' }];
+            return instance;
           },
         },
       });
@@ -796,14 +746,12 @@ describe('ProcessWrapper workflow state machine', () => {
           </ProcessWrapper>
         ),
         waitUntilLoaded: false,
-        apis: {
-          instanceApi: {
-            getInstance: async () => {
-              fetchCount++;
-              return getInstanceWithWorkflow(
-                resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } },
-              );
-            },
+        queries: {
+          getInstance: async () => {
+            fetchCount++;
+            return getInstanceWithWorkflow(
+              resumedByOps ? undefined : { status: 'failed', failure: { kind: 'stepFailed' } },
+            );
           },
         },
       });
@@ -841,7 +789,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     setServiceTaskPages(['page1']);
     let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
     let phase: 'form' | 'serviceTask' | 'continuing' | 'nextCommitted' = 'form';
-    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+    const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>().mockImplementationOnce(() => {
       phase = 'serviceTask';
       return new Promise((resolve) => {
         resolveProcessNext = resolve;
@@ -861,22 +809,21 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       ),
       router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            switch (phase) {
-              case 'form':
-                return getInstanceOnTask('Task_1', { status: 'idle' });
-              case 'serviceTask':
-                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
-              case 'continuing':
-                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_2' });
-              case 'nextCommitted':
-                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
-            }
-          },
+      queries: {
+        getInstance: async () => {
+          switch (phase) {
+            case 'form':
+              return getInstanceOnTask('Task_1', { status: 'idle' });
+            case 'serviceTask':
+              return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+            case 'continuing':
+              return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_2' });
+            case 'nextCommitted':
+              return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+          }
         },
       },
+      mutations: { doProcessNext },
     });
 
     expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
@@ -923,14 +870,17 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
   });
 
-  it('shows the page when moving to the service task remounts ProcessWrapper mid-transition', async () => {
+  it('shows the service page mid-transition and releases a task mounted before the response', async () => {
     // In the app, the URL moving to the service task mounts a new ProcessWrapper while process/next
     // is still pending. That mount must show the page, not wait for the response on the loader.
     setServiceTaskPages(['page1']);
-    let requestStarted = false;
-    vi.mocked(doProcessNext).mockImplementationOnce(() => {
-      requestStarted = true;
-      return new Promise(() => {});
+    let instance = getInstanceOnTask('Task_1', { status: 'idle' });
+    let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
+    const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>().mockImplementationOnce(() => {
+      instance = getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+      return new Promise((resolve) => {
+        resolveProcessNext = resolve;
+      });
     });
 
     const routerRef: RouterRef = { current: undefined };
@@ -942,14 +892,8 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       ),
       router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () =>
-            requestStarted
-              ? getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' })
-              : getInstanceOnTask('Task_1', { status: 'idle' }),
-        },
-      },
+      queries: { getInstance: async () => instance },
+      mutations: { doProcessNext },
     });
 
     expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
@@ -961,6 +905,31 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+
+    // A task can mount before the mutation finishes. It must wait for the response, then unblock.
+    await act(async () => {
+      instance = getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+      await vi.advanceTimersByTimeAsync(1_000);
+      await routerRef.current!.navigate(
+        routerRef.current!.state.location.pathname.replace('/ttd/test', '').replace('/Task_Service', '/Task_2'),
+      );
+    });
+    expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'process-wrapper');
+
+    await act(async () => {
+      instance = getInstanceOnTask('Task_2', { status: 'idle' });
+      resolveProcessNext({
+        data: instance,
+        status: 200,
+        statusText: 'OK',
+        headers: new AxiosHeaders(),
+        config: { headers: new AxiosHeaders() },
+      });
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 
   it('keeps the page when process/next answers with the parked service task, until the next task', async () => {
@@ -970,7 +939,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     setServiceTaskPages(['page1']);
     let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
     let phase: 'form' | 'serviceTask' | 'nextCommitted' | 'nextSettled' = 'form';
-    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+    const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>().mockImplementationOnce(() => {
       phase = 'serviceTask';
       return new Promise((resolve) => {
         resolveProcessNext = resolve;
@@ -986,22 +955,21 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       ),
       router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            switch (phase) {
-              case 'form':
-                return getInstanceOnTask('Task_1', { status: 'idle' });
-              case 'serviceTask':
-                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
-              case 'nextCommitted':
-                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
-              case 'nextSettled':
-                return getInstanceOnTask('Task_2', { status: 'idle' });
-            }
-          },
+      queries: {
+        getInstance: async () => {
+          switch (phase) {
+            case 'form':
+              return getInstanceOnTask('Task_1', { status: 'idle' });
+            case 'serviceTask':
+              return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+            case 'nextCommitted':
+              return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+            case 'nextSettled':
+              return getInstanceOnTask('Task_2', { status: 'idle' });
+          }
         },
       },
+      mutations: { doProcessNext },
     });
     mirrorRouterUrl(routerRef);
 
@@ -1060,7 +1028,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     // chained workflows keeps the page, and the URL may follow the process from there.
     setServiceTaskPages(['page1']);
     let phase: 'form' | 'serviceTask' | 'gap' | 'noPage' | 'nextCommitted' = 'form';
-    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+    const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>().mockImplementationOnce(() => {
       phase = 'serviceTask';
       return new Promise(() => {});
     });
@@ -1074,27 +1042,26 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       ),
       router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            switch (phase) {
-              case 'form':
-                return getInstanceOnTask('Task_1', { status: 'idle' });
-              case 'serviceTask':
-                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
-              case 'gap':
-                return getInstanceOnTask('Task_Service', { status: 'idle' });
-              case 'noPage':
-                return getInstanceOnTask('Task_ServiceNoPage', {
-                  status: 'processing',
-                  targetTask: 'Task_ServiceNoPage',
-                });
-              case 'nextCommitted':
-                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
-            }
-          },
+      queries: {
+        getInstance: async () => {
+          switch (phase) {
+            case 'form':
+              return getInstanceOnTask('Task_1', { status: 'idle' });
+            case 'serviceTask':
+              return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+            case 'gap':
+              return getInstanceOnTask('Task_Service', { status: 'idle' });
+            case 'noPage':
+              return getInstanceOnTask('Task_ServiceNoPage', {
+                status: 'processing',
+                targetTask: 'Task_ServiceNoPage',
+              });
+            case 'nextCommitted':
+              return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+          }
         },
       },
+      mutations: { doProcessNext },
     });
 
     expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
@@ -1140,11 +1107,9 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       ),
       router: ({ children }) => <InstanceRouter taskId='Task_Service'>{children}</InstanceRouter>,
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () =>
-            getInstanceOnTask('Task_ServiceNoPage', { status: 'processing', targetTask: 'Task_ServiceNoPage' }),
-        },
+      queries: {
+        getInstance: async () =>
+          getInstanceOnTask('Task_ServiceNoPage', { status: 'processing', targetTask: 'Task_ServiceNoPage' }),
       },
     });
 
@@ -1173,11 +1138,9 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
         </InstanceRouter>
       ),
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () =>
-            getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' }),
-        },
+      queries: {
+        getInstance: async () =>
+          getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' }),
       },
     });
 
@@ -1209,25 +1172,23 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
         </InstanceRouter>
       ),
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            const instance = getInstanceWithProcessMock();
-            instance.process.processTasks = [
-              { altinnTaskType: 'feedback', elementId: 'Task_Feedback', elementType: 'Task' },
-              { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
-            ];
-            instance.process.currentTask = advanced
-              ? instance.process.currentTask
-              : {
-                  ...instance.process.currentTask!,
-                  elementId: 'Task_Feedback',
-                  name: 'Task_Feedback',
-                  altinnTaskType: 'feedback',
-                  elementType: 'Task',
-                };
-            return instance;
-          },
+      queries: {
+        getInstance: async () => {
+          const instance = getInstanceWithProcessMock();
+          instance.process.processTasks = [
+            { altinnTaskType: 'feedback', elementId: 'Task_Feedback', elementType: 'Task' },
+            { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
+          ];
+          instance.process.currentTask = advanced
+            ? instance.process.currentTask
+            : {
+                ...instance.process.currentTask!,
+                elementId: 'Task_Feedback',
+                name: 'Task_Feedback',
+                altinnTaskType: 'feedback',
+                elementType: 'Task',
+              };
+          return instance;
         },
       },
     });

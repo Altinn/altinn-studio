@@ -76,14 +76,16 @@ public class AssistantProxyHubTests
         );
     }
 
-    [Fact]
-    public async Task RegisterSession_ThrowsArgumentException_WhenOrgIsInvalidPathSegment()
+    [Theory]
+    [InlineData("../etc")]
+    [InlineData("..")]
+    [InlineData("org/sub")]
+    [InlineData("org\\sub")]
+    public async Task RegisterSession_ThrowsArgumentException_WhenOrgIsInvalidPathSegment(string org)
     {
         var hub = CreateHub();
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            hub.RegisterSession("../etc", TestApp, Guid.NewGuid().ToString())
-        );
+        await Assert.ThrowsAsync<ArgumentException>(() => hub.RegisterSession(org, TestApp, Guid.NewGuid().ToString()));
 
         _chatServiceMock.Verify(
             s =>
@@ -253,12 +255,12 @@ public class AssistantProxyHubTests
             .ReturnsAsync(resolvedCostOrg);
     }
 
-    private void SetupApiKey()
+    private void SetupApiKey(string developer = TestDeveloper)
     {
         _apiKeyServiceMock
             .Setup(a =>
                 a.CreateAsync(
-                    TestDeveloper,
+                    developer,
                     It.IsAny<string>(),
                     It.IsAny<ApiKeyType>(),
                     It.IsAny<DateTimeOffset>(),
@@ -294,21 +296,26 @@ public class AssistantProxyHubTests
         Assert.Equal($"http://test-repos/{TestOrg}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
-    [Fact]
-    public async Task StartWorkflow_ForwardsResolvedCostOrg_IgnoringCostOrgFromClient()
+    [Theory]
+    [InlineData(TestDeveloper)]
+    // In a developer's own repository, org is the username, which can contain a dot.
+    [InlineData("test.user")]
+    public async Task StartWorkflow_ForwardsOwnRepositoryUrlAndResolvedCostOrg_IgnoringCostOrgFromClient(
+        string developer
+    )
     {
         var threadId = Guid.NewGuid();
-        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
-        SetupCostOrg(TestDeveloper, resolvedCostOrg: "nfk");
-        SetupApiKey();
-        var hub = CreateHub();
-        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
+        SetupThreadOwnership(threadId, developer, TestApp);
+        SetupCostOrg(developer, resolvedCostOrg: "nfk");
+        SetupApiKey(developer);
+        var hub = CreateHub(developer);
+        await hub.RegisterSession(developer, TestApp, threadId.ToString());
 
         var request = JsonSerializer.SerializeToElement(
             new
             {
                 session_id = threadId.ToString(),
-                org = TestDeveloper,
+                org = developer,
                 app = TestApp,
                 cost_org = "other-org",
             }
@@ -318,7 +325,7 @@ public class AssistantProxyHubTests
 
         JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
         Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
-        Assert.Equal($"http://test-repos/{TestDeveloper}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
+        Assert.Equal($"http://test-repos/{developer}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -352,10 +359,10 @@ public class AssistantProxyHubTests
         Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
     }
 
-    private AssistantProxyHub CreateHub()
+    private AssistantProxyHub CreateHub(string developer = TestDeveloper)
     {
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(a => a.HttpContext).Returns(GetHttpContextForDeveloper(TestDeveloper));
+        httpContextAccessor.Setup(a => a.HttpContext).Returns(GetHttpContextForDeveloper(developer));
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient(_agentHttpHandler));

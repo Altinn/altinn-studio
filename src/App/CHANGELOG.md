@@ -12,14 +12,45 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+
+### Fixed
+
+- List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
+- Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
+
+## [9.0.0-preview.10] - 2026-11-09
+
+### Added
+
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
 
 ### Changed
 
+- Breaking: the data patch API in `Altinn.App.Api` no longer exposes JsonPatch.Net: ([#21762](https://github.com/Altinn/altinn-studio/pull/21762))
+  - `DataPatchRequest.Patch` and `PatchListItem.Patch` are a `List<JsonPatchOperation>`, built with `JsonPatchOperation.ParseList`
+  - `InternalPatchService` and `DataPatchResult` are internal, and the controller constructors no longer take the service
+  - `move`, `copy` and `#`-prefixed paths get `400 Bad Request`, and a failed `test` has a new `detail` text
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - An app no longer starts when it registers an `IServiceTask` whose `Type` is that of a built-in service task, such as `pdf` or `eFormidling`. Built-in service tasks cannot be replaced, and which of the two ran depended on registration order. Give your task its own type. ([#20919](https://github.com/Altinn/altinn-studio/issues/20919))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Build check `ALTINNAPP1017` reports each `taskIds` entry that names no task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0603` and `ALTINNAPP0604` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those from process hooks, service tasks and `IDataClient` calls with the app's own token. Add those tasks to `taskIds`. Task-start hooks run after the new task is saved, so they write in that task. After process end, only `autoDeleteOnProcessEnd` deletions are allowed. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+
+### Fixed
+
+- Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
+- When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Read-only fields that are required, such as calculated sums, no longer show the "Må fylles ut" tag, since the user cannot fill them in. ([#21565](https://github.com/Altinn/altinn-studio/issues/21565))
+
+### Removed
+
+- Breaking: `GET .../data/{dataGuid}/validate` is removed, with `ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask`, the issue code only it returned, and `Altinn.App.Core.Models.Validation.ValidationException`, which only it threw. Call `GET .../instances/{instanceOwnerPartyId}/{instanceGuid}/validate` instead, with the appropriate query parameters. ([#21783](https://github.com/Altinn/altinn-studio/pull/21783))
+- Breaking: `AppSettings.EnforceDataTypeTaskId` is removed: the app APIs always refuse writes to a data type outside its tasks. Bind a data type your app writes in several tasks to each of them with `taskIds`. `studioctl app upgrade v9` removes the setting. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

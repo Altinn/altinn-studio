@@ -1,16 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
 import { CustomButton } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useServerActionMutation } from 'src/core/queries/actions';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
@@ -21,40 +20,16 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { ActionResult } from 'src/core/api-client/actions.api';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
-import type { IInstance } from 'src/types/shared';
-
-type UpdatedDataModels = {
-  [dataElementId: string]: object;
-};
-
-/**
- * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unnecessary,
- * and so this mapping is simply un-done after receiving it. To avoid breaking changes which would require handling multiple
- * formats in app-frontend, we decided to leave it as is for now, as it does not have any practical consequences. In a future
- * major/breaking release which would require a specific backend version, this could be changed to simply return a single BackendValidationIssueGroups object.
- */
-type UpdatedValidationIssues = {
-  [dataElementId: string]: BackendValidationIssueGroups;
-};
 
 type FormDataLocking = ReturnType<typeof FormStore.data.useLocking>;
 type FormDataLock = Awaited<ReturnType<FormDataLocking>>;
-
-export type ActionResult = {
-  instance: IInstance | undefined;
-  updatedDataModels?: UpdatedDataModels;
-  updatedValidationIssues?: UpdatedValidationIssues;
-  clientActions?: CBTypes.ClientAction[];
-  redirectUrl: string;
-};
 
 type UseHandleClientActions = {
   handleClientActions: (actions: CBTypes.ClientAction[]) => Promise<void>;
@@ -134,48 +109,6 @@ function useHandleClientActions(): UseHandleClientActions {
   return { handleClientActions, handleDataModelUpdate };
 }
 
-type PerformActionMutationProps = {
-  action: CBTypes.CustomAction;
-  buttonId: string;
-};
-
-function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
-  const { instanceOwnerPartyId, instanceGuid } = useParams();
-  const selectedLanguage = useCurrentLanguage();
-  const queryClient = useQueryClient();
-  const { doPerformAction } = useAppMutations();
-  const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
-
-  return async ({ action, buttonId }: PerformActionMutationProps) => {
-    const lock = await acquireLock();
-    if (!instanceGuid || !instanceOwnerPartyId) {
-      throw Error('Cannot perform action without partyId and instanceGuid');
-    }
-
-    try {
-      const result = await doPerformAction(
-        instanceOwnerPartyId,
-        instanceGuid,
-        { action: action.id, buttonId },
-        selectedLanguage,
-        queryClient,
-      );
-
-      await handleDataModelUpdate(lock, result);
-      if (result.clientActions) {
-        await handleClientActions(result.clientActions);
-      }
-
-      return result;
-    } catch (error) {
-      if (lock.isLocked()) {
-        lock.unlock();
-      }
-      throw error;
-    }
-  };
-}
-
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
   const config = useComponentConfig(baseComponentId, 'CustomButton');
   const componentId = useIndexedId(baseComponentId);
@@ -186,10 +119,35 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
 
   const acquireLock = FormStore.data.useLocking(componentId);
   const isAuthorized = useIsAuthorized();
-  const { handleClientActions } = useHandleClientActions();
-  const { mutateAsync: handleServerAction, error } = useMutation({
-    mutationFn: useHandleServerActionMutationFn(acquireLock),
-  });
+  const clientActions = useHandleClientActions();
+  const { handleClientActions } = clientActions;
+  const { mutateAsync: performServerAction } = useServerActionMutation();
+  const { instanceOwnerPartyId, instanceGuid } = useParams();
+  const language = useCurrentLanguage();
+
+  async function handleServerAction(action: CBTypes.ServerAction) {
+    if (!instanceOwnerPartyId || !instanceGuid) {
+      throw new Error('Cannot perform action without partyId and instanceGuid');
+    }
+    const lock = await acquireLock();
+    try {
+      const result = await performServerAction({
+        instanceOwnerPartyId,
+        instanceGuid,
+        language,
+        action: { action: action.id, buttonId: componentId },
+      });
+      await clientActions.handleDataModelUpdate(lock, result);
+      if (result.clientActions) {
+        await handleClientActions(result.clientActions);
+      }
+    } catch (error) {
+      if (lock.isLocked()) {
+        lock.unlock();
+      }
+      throw error;
+    }
+  }
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
@@ -225,15 +183,6 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   if (isSubformCloseButton && !buttonText) {
     buttonText = 'general.done';
   }
-  useEffect(() => {
-    if (error) {
-      if (isAxiosError(error) && error.response?.data?.error?.message !== undefined) {
-        toast(<Lang id={error.response.data.error.message} />, { type: 'error' });
-      } else {
-        toast(<Lang id='custom_actions.general_error' />, { type: 'error' });
-      }
-    }
-  }, [error]);
   const onClick = () =>
     performProcess(async () => {
       for (const action of config.actions) {
@@ -260,9 +209,13 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
           await handleClientActions([action]);
         } else if (isServerAction(action)) {
           try {
-            await handleServerAction({ action, buttonId: componentId });
-          } catch {
-            // Error is handled elsewhere
+            await handleServerAction(action);
+          } catch (error) {
+            if (isAxiosError(error) && error.response?.data?.error?.message !== undefined) {
+              toast(<Lang id={error.response.data.error.message} />, { type: 'error' });
+            } else {
+              toast(<Lang id='custom_actions.general_error' />, { type: 'error' });
+            }
           }
         }
       }
