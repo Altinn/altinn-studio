@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - src/AI/assistant/**
-      - src/common/ts/layout-contract/schemas/json/layout/**
-      - src/common/ts/layout-contract/schemas/json/text-resources/**
+      - src/common/ts/layout-contract/schemas/**
       - .github/workflows/deploy-studio-ai-agents.yaml
   workflow_dispatch:
     inputs:

@@ -733,31 +733,3 @@ class TestTextKeysResolveInEveryLanguage:
 
         assert result.is_error
         assert any("Side1.json" in note for note in body["notes"])
-
-
-class TestVerifyTextResources:
-    """Text resource files go through the real validator and the in-repo schema."""
-
-    RESOURCE_PATH = "App/config/texts/resource.nb.json"
-
-    def _resource_file(self, *resources: dict[str, Any]) -> dict[str, str]:
-        return {self.RESOURCE_PATH: json.dumps({"language": "nb", "resources": list(resources)})}
-
-    async def _verify(self, repo: Path):
-        result = await _verify(_write_ctx(repo_path=str(repo), changed={self.RESOURCE_PATH}))
-        return result, json.loads(result.content)
-
-    async def test_accepts_a_default_value_and_custom_text_parameters(self, tmp_path: Path):
-        greeting = {
-            "id": "greeting",
-            "value": "Hei {0}, du har {1} feil",
-            "variables": [
-                {"key": "Person.Navn", "dataSource": "dataModel.default", "defaultValue": "deg"},
-                {"key": "count", "dataSource": "customTextParameters"},
-            ],
-        }
-        write_files(tmp_path, self._resource_file(greeting))
-
-        result, body = await self._verify(tmp_path)
-
-        assert not result.is_error, body["notes"]

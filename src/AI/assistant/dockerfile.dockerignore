@@ -4,8 +4,7 @@
 *
 
 !src/AI/assistant
-!src/common/ts/layout-contract/schemas/json/layout
-!src/common/ts/layout-contract/schemas/json/text-resources
+!src/common/ts/layout-contract/schemas/json
 
 # Heavy or irrelevant paths inside the included dirs.
 **/bin

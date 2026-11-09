@@ -36,14 +36,7 @@ class BaseValidator(ABC):
     """Base class for validators that check data against a JSON schema on disk, and custom business rules"""
 
     def __init__(self, schema_path: Path):
-        self.schema_path = schema_path
-        self.schema = None
-
-    def _load_schema(self) -> dict[str, Any]:
-        try:
-            return json.loads(self.schema_path.read_text(encoding="utf-8"))
-        except Exception as e:
-            raise Exception(f"Failed to load schema from {self.schema_path}: {e}") from e
+        self.schema: dict[str, Any] = json.loads(schema_path.read_text(encoding="utf-8"))
 
     def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
         """
@@ -52,9 +45,6 @@ class BaseValidator(ABC):
         Returns:
             Tuple of (is_valid, error_messages)
         """
-        if not self.schema:
-            self.schema = self._load_schema()
-
         errors = []
         try:
             resolver = RefResolver.from_schema(self.schema)

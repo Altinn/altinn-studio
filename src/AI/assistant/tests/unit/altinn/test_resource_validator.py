@@ -61,5 +61,4 @@ def test_accepts_a_default_value_and_custom_text_parameters(validator: ResourceV
 
 
 def _pattern(validator: ResourceValidator) -> str:
-    assert validator.schema is not None
     return validator.schema["definitions"]["variable"]["properties"]["key"]["pattern"]
