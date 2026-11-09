@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio|admin|dis)-/, '')
+    .replace(/^deploy-(runtime|studio|admin)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -125,6 +125,7 @@ const ADMIN_WORKFLOWS = [
 const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-gateway.yaml', RUNTIME_ENVS],
   ['deploy-runtime-operator.yaml', RUNTIME_ENVS],
+  ['deploy-runtime-observability.yaml', RUNTIME_ENVS],
   ['deploy-runtime-flux-config.yaml', RUNTIME_ENVS],
   ['deploy-runtime-grafana-manifests.yaml', RUNTIME_ENVS.slice(2)],
   ['deploy-runtime-workflow-engine-app.yaml', RUNTIME_ENVS],
@@ -144,11 +145,7 @@ const SERVICES = [
     ['dis-core', DIS_CORE_ENVS],
   ]),
   service('deploy-runtime-pdf3-edge.yaml', [['dis-edge', DIS_EDGE_ENVS]]),
-  // Tags the runtime collectors per ring and DIS Core's collectors per Core environment.
-  service('deploy-runtime-observability.yaml', [
-    ['runtime', RUNTIME_ENVS],
-    ['dis-core', DIS_CORE_ENVS],
-  ]),
+  service('deploy-dis-core-observability.yaml', [['dis-core', DIS_CORE_ENVS]]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
