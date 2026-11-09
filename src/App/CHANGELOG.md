@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- List tables with many text cells render faster, including read-only tables.
+- List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
 
 ## [9.0.0-preview.10] - 2026-11-09
 
