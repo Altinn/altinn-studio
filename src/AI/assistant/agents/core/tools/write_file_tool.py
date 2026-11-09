@@ -78,8 +78,11 @@ def _refuse_partly_read(ctx: LoopContext, rel_path: str, full: Path) -> ToolResu
     """Refuse to replace a file when the model has read only some of its parts."""
     try:
         current = full.read_text(encoding="utf-8")
-    except UnicodeDecodeError, OSError:
-        return None
+    except (UnicodeDecodeError, OSError) as exc:
+        return ToolResult(
+            content=f"Could not read {rel_path} to check that you have read all of it: {exc}",
+            is_error=True,
+        )
     unread = describe_unread(ctx, file_key(rel_path), current)
     if unread is None:
         return None

@@ -319,6 +319,21 @@ class TestWriteFile:
         assert f"you have not read lines {first.metadata['end_line'] + 1}–{total} of {total}" in result.content
         assert (tmp_path / "resource.nn.json").read_text() == text
 
+    async def test_refuses_when_it_cannot_check_the_file(self, tmp_path: Path):
+        (tmp_path / "resource.nn.json").write_text(_text_resource_file(2_000), encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        read = ReadFileTool()
+        await read.run(read.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        # Something else makes the file invalid UTF-8 after the model read part of it.
+        (tmp_path / "resource.nn.json").write_bytes(b"\xff\xfe not utf-8")
+        tool = WriteFileTool()
+
+        result = await tool.run(tool.input_schema.model_validate({"path": "resource.nn.json", "content": "{}"}), ctx)
+
+        assert result.is_error
+        assert "Could not read resource.nn.json to check that you have read all of it" in result.content
+        assert (tmp_path / "resource.nn.json").read_bytes() == b"\xff\xfe not utf-8"
+
     async def test_replaces_a_long_file_once_every_part_is_read(self, tmp_path: Path):
         (tmp_path / "resource.nn.json").write_text(_text_resource_file(2_000), encoding="utf-8")
         ctx = _ctx(tmp_path)

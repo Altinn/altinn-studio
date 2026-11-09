@@ -176,10 +176,9 @@ def _remap(record: _Record, new_lines: list[str], *, by_model: bool) -> None:
     line numbers.  Changed or added lines count as read only when the model
     made the change and had read every line it replaced.
     """
-    matcher = difflib.SequenceMatcher(None, record.lines, new_lines)
     read: list[LineRange] = []
     renumbered = False
-    for tag, old_start, old_end, new_start, new_end in matcher.get_opcodes():
+    for tag, old_start, old_end, new_start, new_end in _line_changes(record.lines, new_lines):
         if tag == "equal":
             shift = new_start - old_start
             renumbered = renumbered or shift != 0
@@ -194,6 +193,34 @@ def _remap(record: _Record, new_lines: list[str], *, by_model: bool) -> None:
     record.read = _merge(read)
     record.renumbered = record.renumbered or renumbered
     record.changed_elsewhere = record.changed_elsewhere or not by_model
+
+
+def _line_changes(old: list[str], new: list[str]) -> list[tuple[str, int, int, int, int]]:
+    """`difflib` opcodes from `old` to `new`.
+
+    The unchanged lines at the start and the end are matched first.  `difflib`
+    treats a line that fills much of a long text as noise, so in a file of
+    repeated lines it would otherwise count an edit at one end as replacing
+    everything.
+    """
+    same_start = 0
+    while same_start < min(len(old), len(new)) and old[same_start] == new[same_start]:
+        same_start += 1
+    same_end = 0
+    while (
+        same_end < min(len(old), len(new)) - same_start and old[len(old) - 1 - same_end] == new[len(new) - 1 - same_end]
+    ):
+        same_end += 1
+
+    middle = difflib.SequenceMatcher(None, old[same_start : len(old) - same_end], new[same_start : len(new) - same_end])
+    changes = [("equal", 0, same_start, 0, same_start)] if same_start else []
+    changes += [
+        (tag, i1 + same_start, i2 + same_start, j1 + same_start, j2 + same_start)
+        for tag, i1, i2, j1, j2 in middle.get_opcodes()
+    ]
+    if same_end:
+        changes.append(("equal", len(old) - same_end, len(old), len(new) - same_end, len(new)))
+    return changes
 
 
 def _note(

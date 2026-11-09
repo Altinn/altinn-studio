@@ -188,6 +188,21 @@ def test_changed_lines_count_as_read_when_the_model_had_read_them():
     )
 
 
+def test_an_edit_at_one_end_of_repeated_lines_keeps_the_read_lines():
+    # difflib treats a line that fills much of a text as noise.  Without
+    # matching the unchanged end first, this edit would count as replacing
+    # every line.
+    ctx = _ctx()
+    before = "unique header\n" + ("x" * 80 + "\n") * 5_000
+    first = _part(ctx, before)
+    end = first.metadata["end_line"]
+
+    after = "changed header\n" + before.split("\n", 1)[1]
+    record_edit(ctx, KEY, before, after)
+
+    assert describe_unread(ctx, KEY, after) == f"lines {end + 1}–5001 of 5001"
+
+
 def test_a_change_the_model_did_not_make_is_reported():
     ctx = _ctx()
     before = "".join(f"line {n}\n" for n in range(1, 4_001))
