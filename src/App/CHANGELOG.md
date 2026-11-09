@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- List tables can configure column widths using `tableColumns`.
+
 ## [9.0.0-preview.10] - 2026-11-09
 
 ### Added
