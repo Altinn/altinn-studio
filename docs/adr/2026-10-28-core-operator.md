@@ -1,4 +1,4 @@
-# A core operator does the work that continues after a request in a Studio cluster
+# A Core Operator for Studio cluster work
 
 - Status: Proposed
 - Deciders: Team
