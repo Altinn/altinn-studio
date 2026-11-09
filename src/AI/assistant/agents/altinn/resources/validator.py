@@ -36,7 +36,6 @@ class ResourceValidator(BaseValidator):
 
         `previous` is the file before the change. An error that the change did not cause is
         reported as a warning, so that old errors in a file do not block a correct change.
-        Without `previous`, every error is reported as an error.
         """
         context = context or {}
         issues = self.find_issues(data)
@@ -278,9 +277,6 @@ def resource_validator_tool(
 ) -> dict[str, Any]:
     """
     Validate text resource JSON against the schema and the business rules
-
-    With `previous_resource`, the parsed file before the change, errors that the change did not
-    cause are warnings. A previous version that is not a JSON object is not compared with.
     """
     try:
         # Parse input

@@ -13,10 +13,6 @@ so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
-Errors in text resources that were there before the change are warnings,
-so old errors in an app do not block a correct change.  The files as of
-HEAD tell which errors are old.
-
 Validation runs in-process — no network round-trip except the (cached)
 v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
 """
@@ -315,7 +311,6 @@ def _describe_missing_text_keys(
 
 
 def _limit_warnings(warnings: list[str], what: str) -> list[str]:
-    """The first warnings, and how many `what` it leaves out."""
     listed = warnings[:_MAX_LISTED_WARNINGS]
     if len(warnings) > _MAX_LISTED_WARNINGS:
         listed.append(f"…and {len(warnings) - _MAX_LISTED_WARNINGS} more {what}")
@@ -341,7 +336,6 @@ def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
 
 
 def _head_text_keys_by_language(repo: Path, languages: Iterable[str]) -> dict[str, set[str]]:
-    """The ids each `resource.<language>.json` defined at HEAD."""
     by_language: dict[str, set[str]] = {}
     for language in languages:
         keys = _text_keys(_read_head_json(repo, _resource_file(language)))
@@ -405,7 +399,6 @@ def _layout_components(parsed: Any) -> list[Any] | None:
 
 
 def _read_json(path: Path) -> Any:
-    """The parsed file, or None when it is unreadable."""
     try:
         return json.loads(path.read_text(encoding=_JSON_FILE_ENCODING))
     except OSError, UnicodeDecodeError, json.JSONDecodeError:
@@ -413,7 +406,6 @@ def _read_json(path: Path) -> Any:
 
 
 def _read_head_json(repo: Path, file_path: str) -> Any:
-    """The parsed file as of HEAD, or None when HEAD does not have it readable."""
     result = subprocess.run(
         ["git", "show", f"HEAD:{file_path}"],
         cwd=repo,
