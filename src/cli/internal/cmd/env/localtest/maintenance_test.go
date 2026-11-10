@@ -90,7 +90,7 @@ func TestPreflightForgetsThePortOfAGoneEnvironment(t *testing.T) {
 	}
 }
 
-// The scheduled reset removes the containers, but the environment and its port stay (R3).
+// The scheduled reset removes the containers, but the environment and its port stay.
 func TestPreflightKeepsThePortThroughAScheduledWorkflowEngineReset(t *testing.T) {
 	t.Parallel()
 
