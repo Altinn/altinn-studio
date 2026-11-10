@@ -15,6 +15,8 @@ namespace Altinn.App.Analyzers;
 /// referenced package is not seen.
 /// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported; calls that target another
 /// instance on purpose can suppress the warning.
+/// The mutator cannot set a substatus or confirm the instance as complete, so for those calls the message says that
+/// instead of pointing at it.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
@@ -22,6 +24,17 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
     private const string InstanceClientTypeName = "Altinn.App.Core.Internal.Instances.IInstanceClient";
     private const string GetInstancesMethodName = "GetInstances";
     private const string StageContextTypeName = "Altinn.App.Core.Features.Process.StageContext";
+
+    // The message format ends each of these with a period.
+    private const string UseTheMutator = "Use the instance data mutator from the context for the current instance";
+    private const string NoMutatorReplacement =
+        "Storage refuses this call then, and the instance data mutator has no replacement for it";
+
+    private static readonly string[] _instanceClientMethodsWithoutReplacement =
+    [
+        "AddCompleteConfirmation",
+        "UpdateSubstatus",
+    ];
 
     private static readonly string[] _clientTypeNames =
     [
@@ -148,13 +161,18 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (hook is null)
             return;
 
+        bool hasNoReplacement =
+            SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
+            && _instanceClientMethodsWithoutReplacement.Contains(target.Name);
+
         context.ReportDiagnostic(
             Diagnostic.Create(
                 Diagnostics.CodeSmells.StorageClientInProcessHook,
                 context.Operation.Syntax.GetLocation(),
                 client.Name,
                 target.Name,
-                hook
+                hook,
+                hasNoReplacement ? NoMutatorReplacement : UseTheMutator
             )
         );
     }

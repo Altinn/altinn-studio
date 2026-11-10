@@ -229,6 +229,7 @@ public class ProcessHookStorageClientAnalyzerTests
         Diagnostic diagnostic = Assert.Single(diagnostics);
         Assert.Equal("ALTINNAPP0501", diagnostic.Id);
         Assert.Contains($"'{hookMember}'", diagnostic.GetMessage(), StringComparison.Ordinal);
+        Assert.Contains("Use the instance data mutator", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -281,6 +282,31 @@ public class ProcessHookStorageClientAnalyzerTests
         Diagnostic diagnostic = Assert.Single(diagnostics);
         Assert.Equal("ALTINNAPP0501", diagnostic.Id);
         Assert.Contains("'IDataClient.GetFormData'", diagnostic.GetMessage(), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("AddCompleteConfirmation(1337, System.Guid.Empty)")]
+    [InlineData("UpdateSubstatus(1337, System.Guid.Empty, new Substatus())")]
+    public async Task Does_Not_Point_At_The_Mutator_For_A_Call_It_Cannot_Replace(string call)
+    {
+        var diagnostics = await Analyze(
+            $$"""
+            public sealed class Hook(IInstanceClient instanceClient) : IOnTaskEndingHandler
+            {
+                public bool ShouldRunForTask(string taskId) => true;
+                public async Task<HandlerResult> Execute(OnTaskEndingContext context)
+                {
+                    await instanceClient.{{call}};
+                    return HandlerResult.Success();
+                }
+            }
+            """
+        );
+
+        Diagnostic diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("ALTINNAPP0501", diagnostic.Id);
+        Assert.Contains("has no replacement for it", diagnostic.GetMessage(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Use the instance data mutator", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
     [Fact]

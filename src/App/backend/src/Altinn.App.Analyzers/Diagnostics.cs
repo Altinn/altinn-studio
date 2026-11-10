@@ -30,7 +30,7 @@ public static class Diagnostics
             Category.CodeSmells,
             "Storage client used in process transition code",
             "'{0}.{1}' writes to or reads from Storage directly in '{2}', which can run while the process is "
-                + "transitioning. Use the instance data mutator from the context for the current instance."
+                + "transitioning. {3}."
         );
     }
 
