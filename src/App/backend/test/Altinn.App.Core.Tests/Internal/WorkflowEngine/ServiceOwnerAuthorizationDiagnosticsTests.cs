@@ -87,12 +87,23 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     }
 
     [Fact]
-    public void A_Failed_Result_Flags_The_Denial_And_Keeps_The_Commands_Retry_Classification()
+    public void Says_That_A_Temporary_Authorization_Failure_Gives_The_Same_403()
+    {
+        // Storage answers 403 both for a missing grant and when Altinn Authorization fails to decide, so a
+        // reader who finds the policy in order must not be left looking for a gap that is not there.
+        string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
+
+        Assert.Contains("temporary failure in Altinn Authorization", description, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_Failed_Result_Flags_The_Denial_Without_Changing_The_Retry_Classification()
     {
         var result = FailedWorkflowEngineCommandResult.Retryable(Platform(HttpStatusCode.Forbidden));
 
         Assert.True(result.ServiceOwnerAuthorizationDenied);
-        // The callback, not the result, turns a denial into a permanent failure.
+        // The diagnosis is an explanation, not a reclassification: a 403 stays retryable so the
+        // engine's behaviour and the caller's response are unchanged.
         Assert.False(result.NonRetryable);
     }
 

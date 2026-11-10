@@ -173,12 +173,12 @@ public class WorkflowEngineCallbackController : ControllerBase
                 }
             );
         }
-        // A command that lets a 403 escape, such as app code it runs, fails like one that reports it: the result
-        // carries the denial, and the failed branch below answers it permanently. Other exceptions still reach
-        // the engine as a retryable 500.
+        // A command that lets a 403 escape, such as from app code it runs, gets the same diagnosis as one that
+        // reports it. The exception still reaches the engine as a retryable 500, like any other a command throws.
         catch (Exception ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
         {
-            result = FailedWorkflowEngineCommandResult.Retryable(ex);
+            ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
+            throw;
         }
 
         switch (result)
@@ -262,11 +262,17 @@ public class WorkflowEngineCallbackController : ControllerBase
                     ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
                     activity?.SetStatus(ActivityStatusCode.Error, rejection);
 
-                    // Permanent, like a 403 inside a command. Retrying cannot clear a missing grant, and a
-                    // terminal failure raises the engine's failure alert at once instead of when the retries run
-                    // out. Storage authorizes before it commits anything, so once a policy fix is deployed,
-                    // resuming the workflow runs this step again and the save goes through.
-                    return NonRetryableProblem(ex.GetType().Name, rejection, StatusCodes.Status422UnprocessableEntity);
+                    // Retryable, like a 403 inside a command. Storage also answers 403 when Altinn Authorization
+                    // fails to reach a decision, and nothing in the response tells that from a missing grant, so a
+                    // permanent failure would fail every in-flight step during an Authorization outage. Storage
+                    // authorizes before it commits anything, so the same step saves once the cause is gone. The
+                    // answer is a 500 and not Storage's 403 because the engine's default retry strategy stops on
+                    // a 403.
+                    return Problem(
+                        title: ex.GetType().Name,
+                        detail: rejection,
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
                 }
 
                 string updatedState = await _workflowCallbackStateService.CaptureState(
@@ -400,9 +406,7 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
 
-                // A service-owner 403 fails permanently even when the command reported it as retryable, for the
-                // same reasons as a 403 on the save above.
-                if (failed.NonRetryable || failed.ServiceOwnerAuthorizationDenied)
+                if (failed.NonRetryable)
                 {
                     return NonRetryableProblem(
                         failed.ExceptionType,
@@ -428,7 +432,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    // A service-owner 403 reads as a platform failure but is a policy gap. It is logged and tagged separately so
+    // A service-owner 403 reads as a platform failure but is usually a policy gap. It is logged and tagged separately so
     // ops can tell a policy change from a redrive. The app's own metadata names the app, because route values are
     // caller-supplied.
     private void ReportServiceOwnerDenial(string commandKey, InstanceIdentifier instanceId, Activity? activity)

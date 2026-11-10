@@ -104,10 +104,9 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase
             content
         );
 
-        // The command reported the 403 as retryable, but retrying cannot clear a missing grant.
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.True(problem.RootElement.GetProperty("nonRetryable").GetBoolean());
+        // A retryable failure is still answered with 500 so the engine retries it - the diagnosis does
+        // not change the classification.
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         var snapshot = await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 0);
         Assert.NotNull(snapshot.Activities);

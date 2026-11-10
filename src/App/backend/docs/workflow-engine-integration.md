@@ -53,12 +53,12 @@ and returns the re-signed state.
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
 | 404                     | No command has the key.                                                                       |
 | 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
-| 422                     | A permanent failure, such as invalid state, an actor mismatch, a stale save or a 403.         |
+| 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
-  and retries it as transient. A 403 is the exception, as [saving to Storage](#saving-to-storage) describes.
+  and retries it as transient.
 - Commands and app hooks stage changes on the instance data unit of work and never write to Storage. While the
   instance is processing, Storage rejects data and process writes that do not come from the workflow's own save.
 - A deferral saves nothing and returns the incoming state, so the next attempt starts where this one did. A deferring
@@ -102,10 +102,14 @@ service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/
 lists. Storage always lets the app owner commit a process transition.
 
 A 403 on a callback's save, or on a call a command makes as the service owner, usually means the policy lacks one of
-those rights. A 403 from a platform call that an app's own handler makes can have another cause, so check which call
-was denied before changing the policy. Either way the callback logs which policy to check and fails the step
-permanently, since retrying cannot clear it, so the engine's failure alert fires at once. Storage commits nothing when
-it denies a save, so once the cause is fixed, resuming the workflow runs the same step again.
+those rights, and the callback logs which policy to check. A 403 from a platform call that an app's own handler makes
+can have another cause, so check which call was denied before changing the policy.
+
+The step stays retryable. Storage also answers 403 when Altinn Authorization fails to reach a decision, and nothing in
+the response tells that from a missing right, so a permanent failure would fail every step that saves during an
+Authorization outage. On the save the callback answers a 500, because the engine's
+[default retry strategy](../../../Runtime/workflow-engine-app/src/WorkflowEngine.App/appsettings.json) stops on a 403.
+Storage commits nothing when it denies a save, so the same step saves once the cause is gone.
 
 The gateways also run as the service owner, through the data accessor they are given. A gateway that calls
 `IDataClient` directly acts as the caller, and the accessor does not see what it changes.

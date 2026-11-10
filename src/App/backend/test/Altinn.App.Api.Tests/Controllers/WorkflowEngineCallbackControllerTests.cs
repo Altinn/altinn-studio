@@ -760,7 +760,7 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_FailsPermanently_AndAResumeSavesAfterAPolicyFix()
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_DiagnosesIt_AndTheSameStepSavesAfterAPolicyFix()
     {
         await using ControllerSetup setup = CreateSetup(services =>
         {
@@ -773,9 +773,9 @@ public class WorkflowEngineCallbackControllerTests
         IActionResult denied = await setup.Execute(AddBinaryDataCommand.Key, stepId);
 
         var objectResult = Assert.IsType<ObjectResult>(denied);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
         Assert.True(LoggedDenialDiagnosis(setup));
         Activity callback = Assert.Single(
             setup.ServiceProvider.GetRequiredService<TelemetrySink>().CapturedActivities,
@@ -786,10 +786,9 @@ public class WorkflowEngineCallbackControllerTests
 
         setup.Services.Storage.ForbidMutations = false;
 
-        // A resume runs the failed step again, with the same step ID.
-        IActionResult resumed = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+        IActionResult retried = await setup.Execute(AddBinaryDataCommand.Key, stepId);
 
-        Assert.IsType<OkObjectResult>(resumed);
+        Assert.IsType<OkObjectResult>(retried);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.Single(storedInstance.Data);
     }
@@ -806,16 +805,14 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenCommandThrowsAWrappedForbidden_FailsPermanentlyWithTheDiagnosis()
+    public async Task ExecuteCommand_WhenCommandThrowsAWrappedForbidden_PropagatesWithTheDiagnosis()
     {
         await using ControllerSetup setup = CreateSetup(new ThrowWrappedForbiddenCommand());
 
-        IActionResult result = await setup.Execute(ThrowWrappedForbiddenCommand.Key, Guid.NewGuid());
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.Execute(ThrowWrappedForbiddenCommand.Key, Guid.NewGuid())
+        );
 
-        var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.True((bool)problem.Extensions["nonRetryable"]!);
         Assert.True(LoggedDenialDiagnosis(setup));
         Assert.Empty(GetMutationRequests(setup.Services));
     }
