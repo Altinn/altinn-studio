@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
 	"slices"
 	"strings"
@@ -66,8 +67,23 @@ func (e *Env) checkPortFree(ctx context.Context, port string) error {
 		return nil
 	}
 
+	// Both addresses: Linux refuses a loopback bind beside a program on every address, but macOS lets one through.
+	for _, host := range []string{components.PublishedHostIP, "0.0.0.0"} {
+		if err := tryListen(ctx, host, port); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// tryListen listens on the address and closes it again. A port this user may not listen on, such as one below 1024 on
+// Linux, passes: a rootful container runtime can still publish it, so the runtime decides.
+func tryListen(ctx context.Context, host, port string) error {
 	var listenConfig net.ListenConfig
-	listener, err := listenConfig.Listen(ctx, "tcp", net.JoinHostPort(components.PublishedHostIP, port))
+	listener, err := listenConfig.Listen(ctx, "tcp4", net.JoinHostPort(host, port))
+	if errors.Is(err, fs.ErrPermission) {
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("%w: port %s (%w); choose another --port", errPortInUse, port, err)
 	}

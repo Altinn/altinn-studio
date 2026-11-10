@@ -22,7 +22,7 @@ type ContainerStatus struct {
 
 // Status is the localtest-specific runtime status payload.
 type Status struct {
-	// URL is where localtest serves the environment, set while any of its containers runs.
+	// URL is where localtest serves the environment, set while the localtest container runs.
 	URL        string            `json:"url,omitempty"`
 	Containers []ContainerStatus `json:"containers"`
 	Running    bool              `json:"running"`

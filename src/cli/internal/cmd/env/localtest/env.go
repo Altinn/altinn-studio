@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -105,15 +106,11 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
-	recorded, err := ReadState(e.cfg)
+	recorded, hasRecord, err := ReadState(e.cfg)
 	if err != nil {
 		return err
 	}
-	exists, err := e.hasManagedResources(ctx)
-	if err != nil {
-		return err
-	}
-	state := startState(opts.Port, recorded, exists)
+	state := startState(opts.Port, recorded, hasRecord)
 	topology := state.Topology()
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
@@ -321,10 +318,18 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		e.containerImages(ctx, graph.All(), snapshot),
 		opts.RequireDesired,
 	)
-	if status.AnyRunning {
+	if localtestServes(status) {
 		status.URL = resourceOpts.Topology.LocaltestURL()
 	}
 	return status, nil
+}
+
+// localtestServes reports whether the localtest container runs, so that the environment's URL answers.
+func localtestServes(status *Status) bool {
+	return slices.ContainsFunc(status.Containers, func(container ContainerStatus) bool {
+		return container.Name == components.ContainerLocaltest &&
+			container.Status == localtestStatusString(executor.StatusReady)
+	})
 }
 
 // containerImages resolves the image behind each container that exists, keyed by container
@@ -442,6 +447,9 @@ func (e *Env) runForeground(
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
 	if err := e.destroyResources(teardownCtx, destroyManifest.Resources, ""); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
+		return err
+	}
+	if err := RemoveState(e.cfg); err != nil {
 		return err
 	}
 	e.out.Println("Environment stopped.")

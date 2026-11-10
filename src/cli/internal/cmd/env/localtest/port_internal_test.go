@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"net"
+	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -124,6 +126,53 @@ func TestCheckPortFreeAcceptsTheRunningLocaltestsOwnPort(t *testing.T) {
 	}
 }
 
+func TestCheckPortFreeRefusesAHeldPortAStoppedLocaltestPublished(t *testing.T) {
+	t.Parallel()
+
+	port, _ := listenOnLoopback(t)
+	env := newPortTestEnv(t, containertypes.ContainerInfo{
+		Ports: []containertypes.PublishedPort{{HostPort: port, ContainerPort: components.LocaltestServicePort}},
+		State: containertypes.ContainerState{Status: "exited", Running: false},
+	})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse", err)
+	}
+}
+
+func TestCheckPortFreeRefusesAHeldPortTheRunningLocaltestDoesNotPublish(t *testing.T) {
+	t.Parallel()
+
+	port, _ := listenOnLoopback(t)
+	env := newPortTestEnv(t, containertypes.ContainerInfo{
+		Ports: []containertypes.PublishedPort{{HostPort: "8000", ContainerPort: components.LocaltestServicePort}},
+		State: containertypes.ContainerState{Status: "running", Running: true},
+	})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse", err)
+	}
+}
+
+// Linux keeps ports below net.ipv4.ip_unprivileged_port_start from other users, but a rootful container runtime can
+// still publish them.
+func TestCheckPortFreeLeavesAPortThisUserMayNotListenOnToTheRuntime(t *testing.T) {
+	t.Parallel()
+
+	raw, err := os.ReadFile("/proc/sys/net/ipv4/ip_unprivileged_port_start")
+	if err != nil || os.Geteuid() == 0 {
+		t.Skip("needs Linux and a user other than root")
+	}
+	if start, err := strconv.Atoi(strings.TrimSpace(string(raw))); err != nil || start <= 80 {
+		t.Skip("port 80 is open to every user here")
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), "80"); err != nil {
+		t.Fatalf("checkPortFree(80) error = %v, want nil", err)
+	}
+}
+
 func TestCheckPortFreeAcceptsAFreePort(t *testing.T) {
 	t.Parallel()
 
@@ -159,11 +208,12 @@ func listenOnLoopback(t *testing.T) (string, func()) {
 }
 
 // newPortTestEnv is an Env whose localtest container inspects as localtest; the zero ContainerInfo means none.
+// A localtest with a state but not running is a stopped container.
 func newPortTestEnv(t *testing.T, localtest containertypes.ContainerInfo) *Env {
 	t.Helper()
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (containertypes.ContainerInfo, error) {
-		if nameOrID != components.ContainerLocaltest || !localtest.State.Running {
+		if nameOrID != components.ContainerLocaltest || localtest.State.Status == "" {
 			return containertypes.ContainerInfo{}, containertypes.ErrContainerNotFound
 		}
 		return localtest, nil

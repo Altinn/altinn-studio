@@ -36,27 +36,27 @@ func (s State) Topology() envtopology.Local {
 
 // RecordedTopology is the environment's public URLs at the port it was last started with, or at the default port.
 func RecordedTopology(cfg *config.Config) (envtopology.Local, error) {
-	state, err := ReadState(cfg)
+	state, _, err := ReadState(cfg)
 	if err != nil {
 		return envtopology.Local{}, err
 	}
 	return state.Topology(), nil
 }
 
-// ReadState returns the recorded state, or the zero State when there is none.
-func ReadState(cfg *config.Config) (State, error) {
+// ReadState returns the recorded state and whether there is one. Without one, it is the zero State.
+func ReadState(cfg *config.Config) (State, bool, error) {
 	data, err := os.ReadFile(statePath(cfg))
 	if errors.Is(err, os.ErrNotExist) {
-		return State{PublicPort: 0}, nil
+		return State{PublicPort: 0}, false, nil
 	}
 	if err != nil {
-		return State{}, fmt.Errorf("read localtest state: %w", err)
+		return State{}, false, fmt.Errorf("read localtest state: %w", err)
 	}
 	var state State
 	if err := json.Unmarshal(data, &state); err != nil {
-		return State{}, fmt.Errorf("parse localtest state %s: %w", statePath(cfg), err)
+		return State{}, false, fmt.Errorf("parse localtest state %s: %w", statePath(cfg), err)
 	}
-	return state, nil
+	return state, true, nil
 }
 
 // WriteState records the state the environment is started with.
@@ -86,13 +86,14 @@ func RemoveState(cfg *config.Config) error {
 	return nil
 }
 
-// startState is the state env up starts the environment with: --port when it is given, the recorded port while the
-// environment exists, and the default otherwise.
-func startState(port int, recorded State, exists bool) State {
+// startState is the state env up starts the environment with: --port when it is given, the recorded port until
+// env down or env reset forgets it, and the default otherwise. The record, not the containers, decides: studioctl
+// itself removes the containers without forgetting the port, as a scheduled workflow-engine data reset does.
+func startState(port int, recorded State, hasRecord bool) State {
 	switch {
 	case port != 0:
 		return State{PublicPort: port}
-	case exists:
+	case hasRecord:
 		return recorded
 	default:
 		return State{PublicPort: 0}
