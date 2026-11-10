@@ -111,8 +111,8 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 - A file went wrong → `discard_file_changes(path)`; other files stay."""
 
 
-# A session that starts read-only and gets permission keeps the read-only
-# contract, so both contracts carry this rule.
+# A session that starts read-only and then gets permission keeps the
+# read-only contract.  Thus the two contracts have this rule.
 _OLD_ERRORS_RULE = (
     "If `verify_changes` listed `old_errors`, errors that were in the app before this session, name them after the "
     "files and offer to fix them.  Don't fix them unasked: the user didn't ask for those changes, and some need their "

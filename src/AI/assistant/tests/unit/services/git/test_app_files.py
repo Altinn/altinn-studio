@@ -1,4 +1,4 @@
-"""Reading the app's files on disk and at a commit."""
+"""The files of the app on disk and at a commit."""
 
 from __future__ import annotations
 

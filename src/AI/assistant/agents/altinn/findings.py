@@ -1,4 +1,4 @@
-"""The errors a check finds in an app, and which of them a change caused."""
+"""The errors that a check finds in an app, and which of them a change caused."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ from dataclasses import dataclass
 class Finding:
     """One error that a check found.
 
-    `location` names the thing with the error, such as a text resource ID, and never its position,
-    such as `resources.60`. Positions shift when a change adds something above, and the same error must
-    compare equal before and after the change.
+    `location` is the name of the item that has the error, for example a text resource ID. It is not the
+    position of the item, for example `resources.60`. The position changes when a change adds an item above
+    it, and an error must be equal before and after the change.
     """
 
     rule: str
@@ -26,17 +26,17 @@ class Finding:
 
 @dataclass(frozen=True)
 class FindingSplit:
-    """The findings a change caused, and the ones that were there before it."""
+    """The findings that a change caused, and the findings that were there before the change."""
 
     new: list[Finding]
     old: list[Finding]
 
 
 def split_new_and_old(findings: Iterable[Finding], findings_before: Iterable[Finding]) -> FindingSplit:
-    """Split the findings by whether the version before the change has them too.
+    """Split the findings into new and old. A finding is old if the version before the change has it too.
 
-    The two are compared as multisets: each finding before the change matches one finding after it, so a
-    second copy of an old error is new.
+    The comparison is a multiset comparison. Each finding before the change agrees with one finding after
+    the change, so a second copy of an old error is new.
     """
     unmatched = Counter(findings_before)
     new: list[Finding] = []

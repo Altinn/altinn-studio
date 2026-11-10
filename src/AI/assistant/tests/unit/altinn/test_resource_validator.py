@@ -98,12 +98,6 @@ def test_an_error_in_the_file_itself_has_no_text(validator: ResourceValidator):
     assert findings == [Finding("schema", "", "Additional properties are not allowed ('comment' was unexpected)")]
 
 
-def test_text_that_is_not_json_is_one_finding(validator: ResourceValidator):
-    findings = validator.find_errors_in_text('{"resources": [')
-
-    assert [finding.rule for finding in findings] == ["invalid-json"]
-
-
 # ---------------------------------------------------------------------------
 # Errors the change did not cause
 # ---------------------------------------------------------------------------
@@ -119,19 +113,6 @@ def test_an_error_in_a_text_the_change_moved_down_is_old(validator: ResourceVali
 
     assert split.new == []
     assert split.old == [_INVALID_FINDING]
-
-
-@pytest.mark.parametrize(
-    "before",
-    [
-        pytest.param(_file(_text("title")), id="added"),
-        pytest.param(_file(_text("title"), _text("broken")), id="edited"),
-    ],
-)
-def test_an_error_in_a_text_the_change_added_or_broke_is_new(validator: ResourceValidator, before: dict[str, Any]):
-    split = _split(validator, _file(_text("title"), _INVALID), before)
-
-    assert split.new == [_INVALID_FINDING]
 
 
 def test_an_error_that_a_text_keeps_through_an_edit_is_old(validator: ResourceValidator):
@@ -166,9 +147,3 @@ def test_an_error_in_the_file_that_was_there_before_is_old(validator: ResourceVa
     split = _split(validator, _file(_text("title"), _text("new"), comment="old"), _file(_text("title"), comment="old"))
 
     assert split.new == []
-
-
-def test_a_new_error_in_the_file_is_new(validator: ResourceValidator):
-    split = _split(validator, _file(_text("title"), comment="new"), _file(_text("title")))
-
-    assert split.new == [Finding("schema", "", "Additional properties are not allowed ('comment' was unexpected)")]

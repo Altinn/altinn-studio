@@ -188,9 +188,9 @@ class TestFinalAnswerContract:
 
     @pytest.mark.parametrize("allow_app_changes", [True, False])
     def test_reports_errors_from_before_the_session_without_fixing_them(self, allow_app_changes: bool):
-        """verify_changes lets old errors through, so the user hears of them only from the summary.
+        """`verify_changes` does not stop for old errors, so only the final message tells the user about them.
 
-        A read-only session that gets permission keeps the read-only contract, so it needs the rule too.
+        A read-only session that gets permission keeps the read-only contract, so the two contracts have the rule.
         """
         prompt = build_system_prompt(_base_ctx(allow_app_changes=allow_app_changes))
 

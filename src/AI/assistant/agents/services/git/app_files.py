@@ -1,8 +1,8 @@
-"""The app's files as they are on disk, or as they were at a commit.
+"""The files of the app as they are on disk, or as they were at a commit.
 
-A check that reads the app through `AppFiles` runs the same way on both, so
-`verify_changes` can run it on the commit the session started from and see
-which errors were there before.
+A check that reads the app through `AppFiles` operates the same on the two.
+Thus `verify_changes` can do the check at the start commit of the session
+and find the old errors.
 """
 
 from __future__ import annotations
@@ -17,11 +17,11 @@ APP_FILE_ENCODING = "utf-8-sig"
 
 class AppFiles(Protocol):
     def read_text(self, path: str) -> str | None:
-        """The text of the file at the repo-relative `path`, or None when there is no such text file."""
+        """The text of the file at `path`, or None if there is no such text file. `path` is relative to the repo."""
         ...
 
     def list_dir(self, directory: str) -> list[str]:
-        """The repo-relative paths of the entries in `directory`, sorted. Empty when there is no such directory."""
+        """The paths of the entries in `directory`, sorted and relative to the repo. Empty if there is no directory."""
         ...
 
 

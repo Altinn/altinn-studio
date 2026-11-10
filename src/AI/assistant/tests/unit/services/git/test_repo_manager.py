@@ -1,4 +1,4 @@
-"""The commit a session starts from, which `verify_changes` compares with."""
+"""The start commit of a session, which `verify_changes` compares the app with."""
 
 from __future__ import annotations
 

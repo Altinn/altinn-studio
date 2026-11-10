@@ -13,12 +13,12 @@ so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
-Only errors the session caused stop the commit.  A check that returns
-findings runs through `_compare_with_start`, which runs it again on the
-commit the session started from: the errors found there too are old,
-and the result lists them in `old_errors` without failing.  Text
-resources and text keys work this way; the other checks still fail on
-every error.
+Only the errors that the session caused stop the commit.  A check that
+returns findings goes through `_compare_with_start`, which does the check
+on disk and at the start commit of the session.  An error that the start
+commit also has is old: the result shows it in `old_errors` and does not
+fail.  Only the text resource check and the text key check return
+findings.  The other checks fail for each error.
 
 Validation runs in-process — no network round-trip except the (cached)
 v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
@@ -26,19 +26,20 @@ v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import subprocess
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.altinn.findings import Finding, FindingSplit, split_new_and_old
+from agents.altinn.findings import Finding, split_new_and_old
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
-from agents.altinn.resources.validator import ResourceValidator, text_resource_ids
+from agents.altinn.resources.validator import ResourceValidator, text_resource_ids, text_resource_warnings
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
@@ -100,7 +101,7 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
                 is_error=True,
             )
 
-        results = _verify_files(ctx, changed) + [check(ctx, changed) for check in _CROSS_FILE_CHECKS]
+        results = await asyncio.to_thread(_run_checks, ctx, changed)
         passed = all(result.passed for result in results)
 
         # Only mark files verified-passed on the assertion that *this whole
@@ -126,11 +127,16 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
 
 @dataclass(frozen=True)
 class _Result:
-    """The outcome of one check: `passed` depends only on errors the session caused."""
+    """The result of one check.  The `old_errors` do not make `passed` false."""
 
     passed: bool
     notes: list[str]
     old_errors: list[str] = field(default_factory=list)
+
+
+def _run_checks(ctx: LoopContext, changed: list[str]) -> list[_Result]:
+    """The checks read files and start git.  Thus `run` does them in a thread, not on the event loop."""
+    return _verify_files(ctx, changed) + [check(ctx, changed) for check in _CROSS_FILE_CHECKS]
 
 
 def _verify_files(ctx: LoopContext, changed: list[str]) -> list[_Result]:
@@ -148,27 +154,21 @@ def _verify_files(ctx: LoopContext, changed: list[str]) -> list[_Result]:
 # ---------------------------------------------------------------------------
 
 
-_Check = Callable[[AppFiles], list[Finding]]
+def _compare_with_start(
+    ctx: LoopContext, check: Callable[[AppFiles], list[Finding]], file_path: str | None = None
+) -> _Result:
+    """Do the check on the app on disk, and on the app at the start commit of the session.
 
-
-def _compare_with_start(ctx: LoopContext, check: _Check) -> FindingSplit:
-    """Run the check on the app as it is, and on the app at the commit the session started from.
-
-    A finding that the start has too is old.  A file the start does not have
-    has no findings there, so all of its findings are new.  Without a known
-    start commit every finding is new.  A check plugs in by reading the app
-    only through the `AppFiles` it gets, and naming each finding's location by
-    the thing, not by its position.
+    A finding that the start commit also has is old.  All other findings are
+    new, and only new findings make the check fail.  If the start commit is
+    unknown, each finding is new.  The check must read the app only through
+    its `AppFiles`.  `file_path` goes before each finding, for a check whose
+    locations are in that file.
     """
     repo = Path(ctx.repo_path)
     findings = check(WorkingTreeFiles(repo))
-    if not findings or ctx.start_commit is None:
-        return FindingSplit(new=findings, old=[])
-    return split_new_and_old(findings, check(CommitFiles(repo, ctx.start_commit)))
-
-
-def _findings_result(split: FindingSplit, file_path: str | None = None) -> _Result:
-    """Only new findings fail a check.  `file_path` prefixes findings whose location is inside that file."""
+    at_start = check(CommitFiles(repo, ctx.start_commit)) if findings and ctx.start_commit else []
+    split = split_new_and_old(findings, at_start)
     prefix = f"{file_path}: " if file_path else ""
     return _Result(
         passed=not split.new,
@@ -292,7 +292,7 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> _Result:
     layouts = _select_layouts_to_check(Path(ctx.repo_path), changed)
     if not layouts:
         return _Result(True, [])
-    return _findings_result(_compare_with_start(ctx, lambda files: _missing_text_keys(files, layouts)))
+    return _compare_with_start(ctx, lambda files: _missing_text_keys(files, layouts))
 
 
 def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[str]:
@@ -303,11 +303,11 @@ def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[str]:
 
 
 def _missing_text_keys(files: AppFiles, layouts: list[str]) -> list[Finding]:
-    """A finding for each binding whose key a language lacks.
+    """One finding for each binding with a key that a language does not have.
 
-    The finding is at the component, so a new component that uses a key the
-    page already lacked is a new finding.  Without readable text resources
-    there is nothing to resolve the keys against.
+    The location is the component.  Thus a new component that uses a missing
+    key is a new finding, also when the page had that missing key before.
+    If no text resource file is readable, there are no findings.
     """
     by_language = _text_keys_by_language(files)
     findings: list[Finding] = []
@@ -318,7 +318,8 @@ def _missing_text_keys(files: AppFiles, layouts: list[str]) -> list[Finding]:
                     "missing-text-key",
                     f"{layout}: {binding.component_id}" if binding.component_id else layout,
                     f"`{binding.name}` uses text key `{binding.key}`, which has no entry in "
-                    f"`{_resource_file(language)}`, so the page shows the key instead of the text in that language.",
+                    f"`{_TEXTS_DIR}/resource.{language}.json`, so the page shows the key instead of the text "
+                    "in that language.",
                 )
                 for language, known in sorted(by_language.items())
                 if binding.key not in known
@@ -332,19 +333,10 @@ def _text_keys_by_language(files: AppFiles) -> dict[str, set[str]]:
     for path in files.list_dir(_TEXTS_DIR):
         if not PurePosixPath(path).match("resource.*.json"):
             continue
-        keys = _text_keys(_parse_json(files.read_text(path)))
-        if keys is not None:
-            by_language[_infer_resource_language(path)] = keys
+        parsed = _parse_json(files.read_text(path))
+        if isinstance(parsed, dict):
+            by_language[_infer_resource_language(path)] = set(text_resource_ids(parsed))
     return by_language
-
-
-def _resource_file(language: str) -> str:
-    return f"{_TEXTS_DIR}/resource.{language}.json"
-
-
-def _text_keys(parsed: Any) -> set[str] | None:
-    """The ids a parsed resource file defines, or None when it is not a resource file."""
-    return set(text_resource_ids(parsed)) if isinstance(parsed, dict) else None
 
 
 def _all_layout_files(repo: Path) -> list[str]:
@@ -534,8 +526,9 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
         try:
             resource = json.loads(resource_json)
         except json.JSONDecodeError as exc:
-            # No error in a file that does not parse can be told from one the
-            # start had, and none of the session's edits in it can be checked.
+            # A file that is not JSON always fails, also when the syntax error
+            # is old.  The parser stops at the syntax error, so the check cannot
+            # find the errors that the session caused.
             span.update(output={"result": {"valid": False}})
             return _Result(False, [f"{file_path}: invalid JSON — {exc}"])
         try:
@@ -545,24 +538,30 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
             return _Result(False, [f"{file_path}: could not load text resource schema — {exc}"])
 
         validator = ResourceValidator(schema)
-        split = _compare_with_start(ctx, lambda files: _text_resource_errors(validator, files, file_path))
-        span.update(output={"result": {"valid": not split.new}})
+        result = _compare_with_start(ctx, lambda files: _text_resource_errors(validator, files, file_path), file_path)
+        span.update(output={"result": {"valid": result.passed}})
 
-    result = _findings_result(split, file_path)
-    status = [] if split.new else [f"{file_path}: no new errors"]
-    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, validator, resource, language)]
-    return _Result(result.passed, [*status, *result.notes, *hints], result.old_errors)
+    status = [f"{file_path}: no new errors"] if result.passed else []
+    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, resource, language)]
+    return replace(result, notes=[*status, *result.notes, *hints])
 
 
-def _resource_warnings(ctx: LoopContext, validator: ResourceValidator, resource: Any, language: str) -> list[str]:
+def _resource_warnings(ctx: LoopContext, resource: Any, language: str) -> list[str]:
     ids_by_language = _text_keys_by_language(WorkingTreeFiles(Path(ctx.repo_path)))
     ids_by_language.pop(language, None)
-    return _limit(validator.find_warnings(resource, ids_by_language), _MAX_LISTED_WARNINGS, "warning(s)")
+    return _limit(text_resource_warnings(resource, ids_by_language), _MAX_LISTED_WARNINGS, "warning(s)")
 
 
 def _text_resource_errors(validator: ResourceValidator, files: AppFiles, file_path: str) -> list[Finding]:
+    """A file that is missing or is not JSON has no findings.  `_validate_resource` makes such a file on disk fail."""
     content = files.read_text(file_path)
-    return [] if content is None else validator.find_errors_in_text(content)
+    if content is None:
+        return []
+    try:
+        resource = json.loads(content)
+    except json.JSONDecodeError:
+        return []
+    return validator.find_errors(resource)
 
 
 def _infer_resource_language(file_path: str) -> str:

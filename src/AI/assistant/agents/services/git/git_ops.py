@@ -12,9 +12,7 @@ def head_commit(repo_path: str) -> str | None:
         capture_output=True,
         text=True,
     )
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip() or None
+    return result.stdout.strip() if result.returncode == 0 else None
 
 
 def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:

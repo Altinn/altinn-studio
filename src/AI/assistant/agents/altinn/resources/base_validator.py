@@ -39,10 +39,10 @@ class BaseValidator:
         self.schema = schema
 
     def iter_schema_errors(self, data: Any) -> Iterator[tuple[SchemaPath, str]]:
-        """Yield the path of each schema error in the data, and its message.
+        """Yield the path and the message of each schema error in the data.
 
-        A schema that cannot be used raises: that is no error in the data, and must not pass as one that the
-        data had before a change too.
+        If the validator cannot use the schema, it raises an exception. That is not an error in the data,
+        so it must not become an old error.
         """
         resolver = RefResolver.from_schema(self.schema)
         validator = _SchemaValidator(self.schema, resolver=resolver)

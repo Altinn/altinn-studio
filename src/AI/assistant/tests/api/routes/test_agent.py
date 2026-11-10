@@ -147,6 +147,14 @@ class TestCostOrg:
         assert state.repo_owner == "kari"
         assert state.cost_org == "ttd"
 
+    def test_rejects_a_request_without_cost_org(self, tmp_path):
+        payload = _start_payload()
+        del payload["cost_org"]
+        with _stubbed_agent_start(tmp_path):
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 422
+
 
 class TestStartCommit:
     def test_the_session_gets_the_commit_its_clone_started_on(self, tmp_path):
@@ -155,14 +163,6 @@ class TestStartCommit:
 
         assert response.status_code == 200
         assert run_in_background.call_args.args[0].start_commit == "0123abcd"
-
-    def test_rejects_a_request_without_cost_org(self, tmp_path):
-        payload = _start_payload()
-        del payload["cost_org"]
-        with _stubbed_agent_start(tmp_path):
-            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
-
-        assert response.status_code == 422
 
 
 class TestRepoUrl:

@@ -439,7 +439,7 @@ async def _verify_notes(
 
 
 def _start_session(repo: Path, files: dict[str, str]) -> str:
-    """Commit the files as the app the session starts from, and return that commit."""
+    """Commit the files as the app that the session starts from, and return that commit."""
     create_committed_repo(repo, files)
     return git(repo, "rev-parse", "HEAD")
 
@@ -734,8 +734,13 @@ class TestTextKeysResolveInEveryLanguage:
     and removing it from a resource file leaves every layout still pointing at it."""
 
     EN = "App/config/texts/resource.en.json"
-
     SIDE1 = "App/ui/form/layouts/Side1.json"
+
+    def _missing_key_note(self, component_id: str) -> str:
+        return (
+            f"{self.SIDE1}: {component_id}: `title` uses text key `app.button.submit`, which has no entry "
+            f"in `{self.EN}`, so the page shows the key instead of the text in that language."
+        )
 
     def _files(self, *, en_ids: list[str], button_ids: tuple[str, ...] = ("submit",)) -> dict[str, str]:
         buttons = [
@@ -752,7 +757,7 @@ class TestTextKeysResolveInEveryLanguage:
     async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
         write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await _verify_notes(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        result, body = await _verify_notes(tmp_path, {self.SIDE1})
 
         assert result.is_error
         assert any("resource.en.json" in note for note in body["notes"])
@@ -760,7 +765,7 @@ class TestTextKeysResolveInEveryLanguage:
     async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
         write_files(tmp_path, self._files(en_ids=["app.button.submit"]))
 
-        _, body = await _verify_notes(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        _, body = await _verify_notes(tmp_path, {self.SIDE1})
 
         assert body["passed"]
 
@@ -768,7 +773,7 @@ class TestTextKeysResolveInEveryLanguage:
         """The layout is unchanged, so a per-file check would never look at it."""
         write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await _verify_notes(tmp_path, {"App/config/texts/resource.en.json"})
+        result, body = await _verify_notes(tmp_path, {self.EN})
 
         assert result.is_error
         assert any("Side1.json" in note for note in body["notes"])
@@ -790,10 +795,7 @@ class TestTextKeysResolveInEveryLanguage:
 
         assert not result.is_error, body["notes"]
         assert not any("has no entry" in note for note in body["notes"])
-        assert body["old_errors"] == [
-            "App/ui/form/layouts/Side1.json: submit: `title` uses text key `app.button.submit`, which has no entry "
-            "in `App/config/texts/resource.en.json`, so the page shows the key instead of the text in that language."
-        ]
+        assert body["old_errors"] == [self._missing_key_note("submit")]
 
     async def test_a_new_component_fails_for_a_key_its_page_was_missing_before(self, tmp_path: Path, permissive_schema):
         """The page already showed the key on one button. A second button that shows it is the session's error."""
@@ -803,10 +805,7 @@ class TestTextKeysResolveInEveryLanguage:
         result, body = await _verify_notes(tmp_path, {self.SIDE1}, start_commit=start_commit)
 
         assert result.is_error
-        assert [note for note in body["notes"] if "app.button.submit" in note] == [
-            "App/ui/form/layouts/Side1.json: send: `title` uses text key `app.button.submit`, which has no entry "
-            "in `App/config/texts/resource.en.json`, so the page shows the key instead of the text in that language."
-        ]
+        assert [note for note in body["notes"] if "app.button.submit" in note] == [self._missing_key_note("send")]
         assert len(body["old_errors"]) == 1
 
     async def test_a_page_the_session_added_fails_for_a_key_that_was_missing_before(
@@ -825,7 +824,7 @@ class TestTextKeysResolveInEveryLanguage:
 
 
 class TestTextResourceErrorsBeforeTheSession:
-    """Errors a text resource file had when the session started must not block a correct change to it."""
+    """The errors that a text resource file had at the start of the session must not stop a correct change to it."""
 
     RESOURCE_PATH = "App/config/texts/resource.nb.json"
     # The v9 profile reads the text resource schema from disk.
@@ -879,7 +878,7 @@ class TestTextResourceErrorsBeforeTheSession:
         assert body["old_errors"] == []
 
     async def test_a_file_that_does_not_parse_fails_with_the_parse_error_it_had_at_the_start(self, tmp_path: Path):
-        """The parser stops where it stopped at the start, so the session's broken text after that goes unchecked."""
+        """The parser stops where it stopped at the start, so no check sees the broken text that the session added."""
         start_commit = _start_session(tmp_path, {self.RESOURCE_PATH: '{"language": "nb" "resources": []}'})
         broken_text = '{"language": "nb" "resources": [{"id": "title", "value": 42}]}'
         write_files(tmp_path, {self.RESOURCE_PATH: broken_text})

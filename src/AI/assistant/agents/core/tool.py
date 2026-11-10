@@ -50,8 +50,8 @@ class LoopContext:
     # in read-only sessions; None means denials are final.
     permission_requester: Callable[[str], Awaitable[bool]] | None = None
     app_version_profile: AppVersionProfile = V8_PROFILE
-    # The commit the session started from. `verify_changes` compares with it to tell
-    # the errors the session made from the errors the app had. None when it is unknown.
+    # The commit that the session started from, or None if it is unknown.
+    # `verify_changes` compares the app with this commit.
     start_commit: str | None = None
     # The loop cuts every tool result at this many characters.  `run_loop`
     # sets it from its CompactionConfig, so a tool that returns long text
