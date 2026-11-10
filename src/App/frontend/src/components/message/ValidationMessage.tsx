@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { Children, cloneElement, isValidElement } from 'react';
+import type { ReactNode } from 'react';
 
 import {
   CheckmarkCircleIcon,
@@ -11,10 +12,8 @@ import classes from 'src/components/message/ValidationMessage.module.css';
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
-import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import utilClasses from 'src/styles/utils.module.css';
-import { DataModelLocationProviderFromNode, useCurrentRowContexts } from 'src/utils/layout/DataModelLocation';
-import { useLabelData } from 'src/utils/layout/useLabelData';
+import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export const validationSeverityPresentation = {
@@ -27,24 +26,22 @@ export const validationSeverityPresentation = {
 export function ValidationMessage({
   validation,
   onNavigate,
-  showFieldLink = true,
+  navigateToField = true,
 }: {
   validation: NodeRefValidation;
   onNavigate?: () => void;
-  showFieldLink?: boolean;
+  navigateToField?: boolean;
 }) {
   return (
     <DataModelLocationProviderFromNode
       nodeId={validation.nodeId}
       replace
     >
-      <FormComponentContextProvider value={{ baseComponentId: validation.baseComponentId }}>
-        <MessageContent
-          validation={validation}
-          onNavigate={onNavigate}
-          showFieldLink={showFieldLink}
-        />
-      </FormComponentContextProvider>
+      <MessageContent
+        validation={validation}
+        onNavigate={onNavigate}
+        navigateToField={navigateToField}
+      />
     </DataModelLocationProviderFromNode>
   );
 }
@@ -52,18 +49,25 @@ export function ValidationMessage({
 function MessageContent({
   validation,
   onNavigate,
-  showFieldLink,
+  navigateToField,
 }: {
   validation: NodeRefValidation;
   onNavigate?: () => void;
-  showFieldLink: boolean;
+  navigateToField: boolean;
 }) {
-  const { title } = useLabelData({ baseComponentId: validation.baseComponentId, overrideDisplay: undefined });
-  const rowContexts = useCurrentRowContexts();
-  const { langAsString } = useLanguage();
+  const { lang } = useLanguage();
   const navigate = useNavigateToComponent();
   const { Icon, color } = validationSeverityPresentation[validation.severity];
-  const rowPath = rowContexts.map((row) => langAsString('group.row_number', [row.rowIndex + 1])).join(' / ');
+  const message = lang(
+    validation.message.key,
+    validation.message.params,
+    validation.message.customTextParameters,
+    validation.message.fallback,
+  );
+  const handleNavigate = () => {
+    onNavigate?.();
+    void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
+  };
 
   return (
     <div className={classes.message}>
@@ -77,26 +81,97 @@ function MessageContent({
         </span>
       </span>
       <div>
-        {showFieldLink && (
-          <button
-            type='button'
-            className={classes.fieldLink}
-            onClick={() => {
-              onNavigate?.();
-              void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
-            }}
-            data-target-node={validation.nodeId}
+        {navigateToField ? (
+          <NavigableMessage
+            onNavigate={handleNavigate}
+            nodeId={validation.nodeId}
           >
-            {title ? <Lang id={title} /> : <LangReference reference={validation.message} />}
-            {rowContexts.length > 1 && <span className={classes.rowPath}> ({rowPath})</span>}
-          </button>
-        )}
-        {(!showFieldLink || title) && (
-          <div>
-            <LangReference reference={validation.message} />
-          </div>
+            {message}
+          </NavigableMessage>
+        ) : (
+          <LangReference reference={validation.message} />
         )}
       </div>
     </div>
   );
+}
+
+// Parsed messages can contain external or app-specific links. Leave those links independent
+// of field navigation so they keep their own destinations and never sit inside a button.
+function containsLink(node: ReactNode): boolean {
+  return Children.toArray(node).some(
+    (child) =>
+      isValidElement<{ children?: ReactNode }>(child) && (isMessageLink(child) || containsLink(child.props.children)),
+  );
+}
+
+function isMessageLink(node: React.ReactElement<{ children?: ReactNode }>): boolean {
+  return 'href' in node.props || 'to' in node.props || 'setting' in node.props;
+}
+
+function NavigableMessage({
+  children,
+  onNavigate,
+  nodeId,
+}: {
+  children: ReactNode;
+  onNavigate: () => void;
+  nodeId: string;
+}): ReactNode {
+  const parts: ReactNode[] = [];
+  let text: ReactNode[] = [];
+  const flushText = () => {
+    if (text.length === 0) {
+      return;
+    }
+    if (text.every((part) => typeof part === 'string' && part.trim() === '')) {
+      parts.push(...text);
+      text = [];
+      return;
+    }
+    const lastPart = text.at(-1);
+    const trailingSpace = typeof lastPart === 'string' ? lastPart.match(/\s+$/)?.[0] : undefined;
+    if (trailingSpace && typeof lastPart === 'string') {
+      text[text.length - 1] = lastPart.trimEnd();
+    }
+    parts.push(
+      <button
+        key={parts.length}
+        type='button'
+        className={classes.messageLink}
+        onClick={onNavigate}
+        data-target-node={nodeId}
+      >
+        {text}
+      </button>,
+    );
+    if (trailingSpace) {
+      parts.push(trailingSpace);
+    }
+    text = [];
+  };
+
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement<{ children?: ReactNode }>(child) || !containsLink(child)) {
+      text.push(child);
+      continue;
+    }
+    flushText();
+    parts.push(
+      isMessageLink(child)
+        ? child
+        : cloneElement(
+            child,
+            {},
+            <NavigableMessage
+              onNavigate={onNavigate}
+              nodeId={nodeId}
+            >
+              {child.props.children}
+            </NavigableMessage>,
+          ),
+    );
+  }
+  flushText();
+  return parts;
 }

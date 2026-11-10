@@ -33,7 +33,7 @@
   height: 1.25em;
 }
 
-.fieldLink {
+.messageLink {
   background: none;
   border: none;
   padding: 0;
@@ -44,15 +44,11 @@
   cursor: pointer;
 }
 
-.fieldLink:hover {
+.messageLink:hover {
   text-decoration-thickness: 2px;
 }
 
-.fieldLink:focus-visible {
+.messageLink:focus-visible {
   outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
   outline-offset: var(--ds-border-width-focus);
-}
-
-.rowPath {
-  font-size: 0.875em;
 }

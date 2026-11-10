@@ -147,7 +147,7 @@ function FieldMessages({
         <li key={getUniqueKey(validation)}>
           <ValidationMessage
             validation={validation}
-            showFieldLink={false}
+            navigateToField={false}
           />
         </li>
       ))}
