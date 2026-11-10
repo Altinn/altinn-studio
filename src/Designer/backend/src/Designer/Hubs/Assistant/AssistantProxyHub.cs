@@ -194,7 +194,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         }
 
         // The assistant service sends no events on a new connection until it gets a session frame.
-        await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(sessionId, developer);
 
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);

@@ -18,7 +18,7 @@ public interface IAssistantWebSocketService
 
     /// <summary>
     /// Sends a session frame on the developer's connection, so that the assistant service
-    /// sends the events of the session on that connection.
+    /// sends the events of the session on that connection. Opens the connection first if it is closed.
     /// </summary>
     Task RegisterSessionAsync(string sessionId, string developer);
 

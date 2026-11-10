@@ -272,6 +272,11 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (!threadId) return;
 
       const assistantMessage = event.data;
+      // Designer saves the answer before it forwards the event. The first copy can come from a
+      // replica that could not save the answer, so each copy gets the messages again.
+      // If you save a copy here, the thread shows the answer two times.
+      refreshMessages(threadId);
+
       // eventId is stamped on every answer; traceId only exists when Langfuse is on.
       const dedupeId = assistantMessage.eventId ?? assistantMessage.traceId;
       const dedupeKey = dedupeId ? `${threadId}:${dedupeId}` : null;
@@ -286,10 +291,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
-
-      // Designer saves the answer before it forwards the event, so refreshMessages gets it.
-      // If you save a copy here, the thread shows the answer two times.
-      refreshMessages(threadId);
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);

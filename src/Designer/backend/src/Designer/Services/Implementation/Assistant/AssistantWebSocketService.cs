@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -114,11 +115,13 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
     public async Task RegisterSessionAsync(string sessionId, string developer)
     {
+        // The agent's WebSocket can close while the developer's SignalR connection stays open, such as when
+        // the assistant service restarts.
+        await EnsureConnectedAsync(developer);
+
         if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
         {
-            throw new InvalidOperationException(
-                $"No live agents WebSocket for developer {developer}. Call EnsureConnectedAsync first."
-            );
+            throw new InvalidOperationException($"No live agents WebSocket for developer {developer}.");
         }
 
         var frame = JsonSerializer.SerializeToUtf8Bytes(
@@ -273,24 +276,41 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 return;
             }
 
-            JsonNode? data = message["data"];
+            if (message["data"] is not JsonObject data)
+            {
+                return;
+            }
 
             // The answer is in the first of these fields that is set.
             string? content =
-                data?["response"]?.GetValue<string>()
-                ?? data?["message"]?.GetValue<string>()
-                ?? data?["content"]?.GetValue<string>();
+                ReadOptional(data, "response", AsString)
+                ?? ReadOptional(data, "message", AsString)
+                ?? ReadOptional(data, "content", AsString);
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;
             }
 
-            List<string>? filesChanged = data!["filesChanged"]?.Deserialize<List<string>>();
-            List<ChatSourceEntity>? sources = data["sources"]
-                ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
-            string? traceId = data["traceId"]?.GetValue<string>();
-            string? eventId = data["eventId"]?.GetValue<string>();
-            bool? attachmentInstructionFlagged = data["attachmentInstructionFlagged"]?.GetValue<bool>();
+            List<string>? filesChanged = ReadOptional(data, "filesChanged", node => node.Deserialize<List<string>>());
+            List<ChatSourceEntity>? sources = ReadOptional(
+                data,
+                "sources",
+                node => node.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions)
+            );
+            string? traceId = ReadOptional(data, "traceId", AsString);
+            bool? attachmentInstructionFlagged = ReadOptional<bool?>(
+                data,
+                "attachmentInstructionFlagged",
+                node => node.GetValue<bool>()
+            );
+
+            string? eventId = ReadOptional(data, "eventId", AsString);
+            if (string.IsNullOrEmpty(eventId))
+            {
+                // The database keeps one message for each event id, so each replica must use the same id.
+                eventId = DeriveEventId(threadId, traceId, data["timestamp"]?.ToJsonString(), content);
+                data["eventId"] = eventId;
+            }
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -321,6 +341,8 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 return;
             }
 
+            // A browser tab that still runs an older version of Designer saves its own copy of the answer
+            // when the event has no persistedMessageId.
             data["persistedMessageId"] = created.Id.ToString();
             _logger.LogInformation(
                 "Persisted assistant message {MessageId} for session {SessionId}",
@@ -332,6 +354,40 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         {
             _logger.LogError(ex, "Failed to save the assistant message; forwarding it without the message id");
         }
+    }
+
+    private static string? AsString(JsonNode node) => node.GetValue<string>();
+
+    /// <summary>
+    /// Reads a field that the save can do without. A value of an unexpected type costs that field, not the answer.
+    /// </summary>
+    private T? ReadOptional<T>(JsonObject data, string field, Func<JsonNode, T?> read)
+    {
+        try
+        {
+            JsonNode? node = data[field];
+            return node is null ? default : read(node);
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Ignored the field {Field} of an assistant message, because its value has an unexpected type",
+                field
+            );
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Makes an event id for an answer that came without one. The id comes only from the answer, so each replica
+    /// makes the same id. Two answers with the same text in one thread get the same id when the assistant service
+    /// sends no trace id and no timestamp, and the thread then keeps only the first of them.
+    /// </summary>
+    private static string DeriveEventId(Guid threadId, string? traceId, string? timestamp, string content)
+    {
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{threadId:N}\n{traceId}\n{timestamp}\n{content}"));
+        return Convert.ToHexStringLower(hash.AsSpan(0, 16));
     }
 
     private static bool IsInternalHandshakeMessage(string json)

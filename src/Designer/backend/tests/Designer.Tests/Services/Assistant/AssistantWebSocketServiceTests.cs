@@ -161,6 +161,78 @@ public class AssistantWebSocketServiceTests
     }
 
     [Fact]
+    public async Task TryPersistAssistantMessage_SavesTheAnswerWhenOtherFieldsHaveUnexpectedTypes()
+    {
+        List<CreateChatMessageRequest> requests = SetupSavesAndCaptureRequests();
+        AssistantWebSocketService service = CreateService();
+        JsonNode message = JsonNode.Parse(
+            $$"""
+            {
+              "type": "assistant_message",
+              "session_id": "{{s_threadId}}",
+              "data": {
+                "content": "Svar",
+                "filesChanged": "App/ui/form/layouts/Side1.json",
+                "sources": [{"url": "https://docs.altinn.studio/x"}],
+                "traceId": 123,
+                "attachmentInstructionFlagged": "yes",
+                "eventId": "event-123"
+              }
+            }
+            """
+        )!;
+
+        await service.TryPersistAssistantMessageAsync(Developer, message);
+
+        CreateChatMessageRequest request = Assert.Single(requests);
+        Assert.Equal("Svar", request.Content);
+        Assert.Equal("event-123", request.EventId);
+        Assert.Null(request.FilesChanged);
+        Assert.Null(request.Sources);
+        Assert.Null(request.TraceId);
+        Assert.Null(request.AttachmentInstructionFlagged);
+        Assert.NotNull(message["data"]!["persistedMessageId"]);
+    }
+
+    [Fact]
+    public async Task TryPersistAssistantMessage_GivesEachCopyOfAnAnswerWithoutEventIdTheSameEventId()
+    {
+        List<CreateChatMessageRequest> requests = SetupSavesAndCaptureRequests();
+        AssistantWebSocketService service = CreateService();
+
+        // Each replica gets its own copy of the event.
+        JsonNode firstCopy = CreateAssistantMessageWithoutEventId("Svar");
+        JsonNode secondCopy = CreateAssistantMessageWithoutEventId("Svar");
+        JsonNode otherAnswer = CreateAssistantMessageWithoutEventId("Et annet svar");
+        await service.TryPersistAssistantMessageAsync(Developer, firstCopy);
+        await service.TryPersistAssistantMessageAsync(Developer, secondCopy);
+        await service.TryPersistAssistantMessageAsync(Developer, otherAnswer);
+
+        Assert.Equal(3, requests.Count);
+        Assert.False(string.IsNullOrEmpty(requests[0].EventId));
+        Assert.Equal(requests[0].EventId, requests[1].EventId);
+        Assert.NotEqual(requests[0].EventId, requests[2].EventId);
+        // The browser uses the id to handle the copies of one answer one time.
+        Assert.Equal(requests[0].EventId, firstCopy["data"]!["eventId"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RegisterSession_OpensTheConnectionWhenItIsClosed()
+    {
+        var firstFrame = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using WebApplication agent = await StartAgentThatReadsOneFrameAsync(firstFrame);
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+
+        // No EnsureConnectedAsync first, as when the assistant service closed the connection after the hub connected.
+        await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+
+        JsonNode frame = JsonNode.Parse(await firstFrame.Task.WaitAsync(TimeSpan.FromSeconds(10)))!;
+        Assert.Equal("session", frame["type"]!.GetValue<string>());
+        Assert.Equal(s_threadId.ToString(), frame["session_id"]!.GetValue<string>());
+        Assert.Equal(Developer, frame["developer"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task TryPersistAssistantMessage_SkipsMessagesWithoutContent()
     {
         AssistantWebSocketService service = CreateService();
@@ -254,6 +326,54 @@ public class AssistantWebSocketServiceTests
         });
         await agent.StartAsync();
         return agent;
+    }
+
+    private static async Task<WebApplication> StartAgentThatReadsOneFrameAsync(TaskCompletionSource<string> firstFrame)
+    {
+        WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        WebApplication agent = builder.Build();
+        agent.UseWebSockets();
+        agent.Run(async context =>
+        {
+            using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            byte[] buffer = new byte[1024];
+            try
+            {
+                WebSocketReceiveResult frame = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                firstFrame.TrySetResult(Encoding.UTF8.GetString(buffer, 0, frame.Count));
+                await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+            }
+            catch (WebSocketException) { }
+        });
+        await agent.StartAsync();
+        return agent;
+    }
+
+    private List<CreateChatMessageRequest> SetupSavesAndCaptureRequests()
+    {
+        var requests = new List<CreateChatMessageRequest>();
+        _chatServiceMock
+            .Setup(s =>
+                s.CreateMessageInDeveloperThreadAsync(
+                    s_threadId,
+                    Developer,
+                    Capture.In(requests),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(CreateMessageEntity());
+        return requests;
+    }
+
+    private static JsonNode CreateAssistantMessageWithoutEventId(string content)
+    {
+        return new JsonObject
+        {
+            ["type"] = "assistant_message",
+            ["session_id"] = s_threadId.ToString(),
+            ["data"] = new JsonObject { ["content"] = content },
+        };
     }
 
     private AssistantWebSocketService CreateService(
