@@ -16,8 +16,10 @@ namespace LocalTest.Notifications.LocalTestNotifications;
 /// sends nothing, and only reports a status, so that an app can place an order and follow it up.
 /// </summary>
 /// <remarks>
-/// A shipment has no status before its requested send time. After it, every channel the order asked for is
-/// delivered, unless the order's text contains one of these markers, which pick another outcome:
+/// A shipment has no status before its requested send time. Once that has passed, a shipment with a send condition
+/// asks the app whether it should still go out, as Notifications does, and goes no further when the app says no. A
+/// shipment that goes out is delivered on every channel the order asked for, unless the order's text contains one of
+/// these markers, which pick another outcome:
 /// <list type="bullet">
 /// <item><c>localtest:failed</c>: the email bounces and the SMS goes to an invalid number.</item>
 /// <item><c>localtest:reserved</c>: the recipient has reserved themselves against notifications.</item>
@@ -25,8 +27,19 @@ namespace LocalTest.Notifications.LocalTestNotifications;
 /// </list>
 /// </remarks>
 [ApiController]
-public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> settings) : ControllerBase
+public class LocalFutureOrdersController(
+    IOptions<LocalPlatformSettings> settings,
+    IHttpClientFactory httpClientFactory,
+    ILogger<LocalFutureOrdersController> logger
+) : ControllerBase
 {
+    /// <summary>The HTTP client the send condition is checked with.</summary>
+    public const string SendConditionClient = nameof(LocalFutureOrdersController) + ".SendCondition";
+
+    private const string ConditionMet = "met";
+    private const string ConditionNotMet = "notMet";
+    private const string ConditionInconclusive = "inconclusive";
+
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
     private static readonly JsonSerializerOptions _serializerOptions = new()
@@ -56,11 +69,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             FileInfo orderFile = OrderFile(idempotencyId);
             if (orderFile.Exists)
             {
-                var existing = JsonSerializer.Deserialize<StoredOrder>(
-                    await System.IO.File.ReadAllTextAsync(orderFile.FullName),
-                    _serializerOptions
-                )!;
-                return Ok(existing.Response);
+                return Ok((await Read<StoredOrder>(orderFile)).Response);
             }
 
             string text = request.ToJsonString();
@@ -76,10 +85,14 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 return BadRequest("requestedSendTime must be a date and time, such as 2026-11-10T12:00:00Z.");
             }
             DateTimeOffset sendTime = requestedSendTime ?? DateTimeOffset.UtcNow;
+            if (!TryReadConditionEndpoint(request["conditionEndpoint"], out string? conditionEndpoint))
+            {
+                return BadRequest(ConditionEndpointRefused);
+            }
 
             var shipments = new List<StoredShipment>
             {
-                new(Guid.NewGuid(), "Notification", sendersReference, sendTime, channels, outcome),
+                new(Guid.NewGuid(), "Notification", sendersReference, sendTime, channels, outcome, conditionEndpoint),
             };
             var shipmentRecipients = new List<JsonObject> { recipient };
             foreach (JsonNode? reminder in request["reminders"]?.AsArray() ?? [])
@@ -91,6 +104,11 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                     );
                 }
 
+                if (!TryReadConditionEndpoint(reminder?["conditionEndpoint"], out string? reminderConditionEndpoint))
+                {
+                    return BadRequest(ConditionEndpointRefused);
+                }
+
                 JsonObject reminderRecipient = reminder?["recipient"] as JsonObject ?? recipient;
                 shipments.Add(
                     new(
@@ -99,7 +117,8 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                         reminder?["sendersReference"]?.GetValue<string>(),
                         reminderSendTime,
                         Channels(reminderRecipient),
-                        outcome
+                        outcome,
+                        reminderConditionEndpoint
                     )
                 );
                 shipmentRecipients.Add(reminderRecipient);
@@ -129,7 +148,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
     }
 
     /// <summary>
-    /// The shipment's status, and each channel's once its requested send time has passed.
+    /// The shipment's status, and each channel's once its requested send time has passed and it goes out.
     /// </summary>
     [HttpGet("notifications/api/v1/future/shipment/{id:guid}")]
     [Produces("application/json")]
@@ -141,18 +160,26 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             return NotFound();
         }
 
-        var shipment = JsonSerializer.Deserialize<StoredShipment>(
-            await System.IO.File.ReadAllTextAsync(file.FullName),
-            _serializerOptions
-        )!;
+        var shipment = await Read<StoredShipment>(file);
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        if (now >= shipment.RequestedSendTime)
+        {
+            shipment = await CheckSendCondition(file, shipment);
+        }
 
         string status;
-        object[] recipients;
+        object[] recipients = [];
         if (now < shipment.RequestedSendTime)
         {
             status = "Order_Registered";
-            recipients = [];
+        }
+        else if (shipment.SendCondition is ConditionNotMet)
+        {
+            status = "Order_SendConditionNotMet";
+        }
+        else if (shipment.SendCondition is ConditionInconclusive)
+        {
+            status = "Order_Retrying";
         }
         else
         {
@@ -180,6 +207,113 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 recipients,
             }
         );
+    }
+
+    /// <summary>
+    /// Asks the app whether the shipment should still go out, as Notifications does once the send time has passed.
+    /// The first answer is kept, so the app is asked once. When the app cannot be asked, the shipment is retried:
+    /// the next status read asks again, and if that fails too it goes out regardless, as in Notifications.
+    /// </summary>
+    private async Task<StoredShipment> CheckSendCondition(FileInfo file, StoredShipment shipment)
+    {
+        if (shipment.ConditionEndpoint is null || shipment.SendCondition is ConditionMet or ConditionNotMet)
+        {
+            return shipment;
+        }
+
+        string result = await SendConditionMet(new Uri(shipment.ConditionEndpoint)) switch
+        {
+            true => ConditionMet,
+            false => ConditionNotMet,
+            null when shipment.SendCondition is ConditionInconclusive => ConditionMet,
+            null => ConditionInconclusive,
+        };
+
+        await _lock.WaitAsync();
+        try
+        {
+            // Another status read may have asked meanwhile; its answer stands.
+            StoredShipment current = await Read<StoredShipment>(file);
+            if (current.SendCondition != shipment.SendCondition)
+            {
+                return current;
+            }
+
+            current = current with { SendCondition = result };
+            await Write(file, current);
+            return current;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <summary>
+    /// The app's answer to whether a shipment should go out, read the way Notifications reads it: a success status
+    /// with a <c>sendNotification</c> flag. <c>null</c> when there is no such answer.
+    /// </summary>
+    private async Task<bool?> SendConditionMet(Uri endpoint)
+    {
+        // The query holds the token the app checks, which is not for the log.
+        string where = endpoint.GetLeftPart(UriPartial.Path);
+        try
+        {
+            using HttpClient client = httpClientFactory.CreateClient(SendConditionClient);
+            using HttpResponseMessage response = await client.GetAsync(endpoint);
+            string body = await response.Content.ReadAsStringAsync();
+            if (
+                response.IsSuccessStatusCode
+                && JsonNode.Parse(body) is JsonObject answer
+                && TryRead(answer["sendNotification"], out bool? sendNotification)
+                && sendNotification is { } send
+            )
+            {
+                logger.LogInformation("The send condition at {Endpoint} says {Send}", where, send ? "send" : "do not send");
+                return send;
+            }
+
+            logger.LogWarning(
+                "The send condition at {Endpoint} gave no answer: {StatusCode} {Body}",
+                where,
+                (int)response.StatusCode,
+                body.Length > 200 ? body[..200] : body
+            );
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            logger.LogWarning(e, "The send condition at {Endpoint} could not be checked", where);
+        }
+
+        return null;
+    }
+
+    private const string ConditionEndpointRefused = "conditionEndpoint must be an absolute http or https URL.";
+
+    /// <summary>
+    /// Reads a send condition that may be left out. Notifications refuses one that is not an absolute http or https
+    /// URL, which is <c>false</c> here.
+    /// </summary>
+    private static bool TryReadConditionEndpoint(JsonNode? node, out string? endpoint)
+    {
+        endpoint = null;
+        if (node is null)
+        {
+            return true;
+        }
+
+        if (
+            node is JsonValue value
+            && value.TryGetValue(out string? text)
+            && Uri.IsWellFormedUriString(text, UriKind.Absolute)
+            && new Uri(text).Scheme is "http" or "https"
+        )
+        {
+            endpoint = text;
+            return true;
+        }
+
+        return false;
     }
 
     private static string ChannelStatus(string channel, string outcome) =>
@@ -314,6 +448,9 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
     /// Writes the whole file under a temporary name first. A write cut short then cannot leave a truncated order that
     /// fails every retry, and the Messages page never reads a partly written one.
     /// </summary>
+    private static async Task<T> Read<T>(FileInfo file) =>
+        JsonSerializer.Deserialize<T>(await System.IO.File.ReadAllTextAsync(file.FullName), _serializerOptions)!;
+
     private static async Task Write<T>(FileInfo file, T value)
     {
         file.Directory?.Create();
@@ -353,13 +490,19 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
 
     private sealed record StoredOrder(OrderResponse Response);
 
+    /// <param name="SendCondition">
+    /// Whether the app said the shipment should go out, or <c>inconclusive</c> when it gave no answer. <c>null</c>
+    /// until the app is asked.
+    /// </param>
     private sealed record StoredShipment(
         Guid ShipmentId,
         string Type,
         string? SendersReference,
         DateTimeOffset RequestedSendTime,
         string[] Channels,
-        string Outcome
+        string Outcome,
+        string? ConditionEndpoint = null,
+        string? SendCondition = null
     );
 
     private sealed record OrderResponse(

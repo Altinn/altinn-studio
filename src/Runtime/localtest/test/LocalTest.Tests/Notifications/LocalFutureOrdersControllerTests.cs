@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using LocalTest.Configuration;
@@ -16,17 +18,49 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
 {
     private const string ExternalIdentity = "urn:altinn:person:idporten-email:ola@example.com";
 
+    /// <summary>The send condition as the app gives it in a local run: its own address, with a token.</summary>
+    private const string ConditionEndpoint =
+        "http://local.altinn.cloud:8000/ttd/app/api/v1/notification-webhook-listener/1337/abc?code=token";
+
     private readonly string _storagePath = Path.Join(Path.GetTempPath(), $"localtest-future-orders-{Guid.NewGuid():N}");
+    private readonly AppStub _app = new();
     private readonly LocalFutureOrdersController _controller;
 
     public LocalFutureOrdersControllerTests()
     {
-        _controller = new LocalFutureOrdersController(
-            Options.Create(
-                new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath + Path.DirectorySeparatorChar }
-            )
-        );
+        _controller = Controller(_storagePath + Path.DirectorySeparatorChar);
     }
+
+    private LocalFutureOrdersController Controller(string storageBasePath) =>
+        new(
+            Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = storageBasePath }),
+            _app,
+            NullLogger<LocalFutureOrdersController>.Instance
+        );
+
+    /// <summary>
+    /// The app's send condition. It says send unless told otherwise, and records each time it is asked.
+    /// </summary>
+    private sealed class AppStub : HttpMessageHandler, IHttpClientFactory
+    {
+        public Queue<Func<HttpResponseMessage>> Answers { get; } = [];
+
+        public List<Uri> Asked { get; } = [];
+
+        public HttpClient CreateClient(string name) => new(this, disposeHandler: false);
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Asked.Add(request.RequestUri!);
+            return Task.FromResult(Answers.TryDequeue(out var answer) ? answer() : SendNotification(true));
+        }
+    }
+
+    private static HttpResponseMessage SendNotification(bool send) =>
+        Respond(HttpStatusCode.OK, $$"""{ "sendNotification": {{(send ? "true" : "false")}} }""");
+
+    private static HttpResponseMessage Respond(HttpStatusCode status, string body) =>
+        new(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
     public void Dispose()
     {
@@ -36,7 +70,13 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
         }
     }
 
-    private static JsonObject Order(string idempotencyId, DateTimeOffset sendTime, string channel, string subject = "Hello") =>
+    private static JsonObject Order(
+        string idempotencyId,
+        DateTimeOffset sendTime,
+        string channel,
+        string subject = "Hello",
+        string conditionEndpoint = $"\"{ConditionEndpoint}\""
+    ) =>
         JsonNode
             .Parse(
                 $$"""
@@ -44,6 +84,7 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
                   "idempotencyId": "{{idempotencyId}}",
                   "sendersReference": "app-1337/abc",
                   "requestedSendTime": "{{sendTime:O}}",
+                  "conditionEndpoint": {{conditionEndpoint}},
                   "recipient": {
                     "recipientPerson": {
                       "nationalIdentityNumber": "01899699552",
@@ -65,7 +106,7 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
         JsonNode.Parse(
             $$"""
             {
-              "conditionEndpoint": "http://local.altinn.cloud/ttd/app/api/v1/notification-webhook-listener/1337/abc?code=token",
+              "conditionEndpoint": "{{ConditionEndpoint}}",
               {{schedule}}
               "recipient": {
                 "recipientPerson": {
@@ -108,10 +149,14 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
                   "idempotencyId": "{{Guid.NewGuid()}}",
                   "sendersReference": "app-1337/abc",
                   "requestedSendTime": "{{sendTime:O}}",
-                  "conditionEndpoint": "http://local.altinn.cloud/ttd/app/api/v1/notification-webhook-listener/1337/abc?code=token",
+                  "conditionEndpoint": "{{ConditionEndpoint}}",
                   "recipient": {{ExternalIdentityRecipient(channelSchema, "Notification")}},
                   "reminders": [
-                    { "delayDays": 7, "recipient": {{ExternalIdentityRecipient(channelSchema, "Reminder")}} }
+                    {
+                      "conditionEndpoint": "{{ConditionEndpoint}}",
+                      "delayDays": 7,
+                      "recipient": {{ExternalIdentityRecipient(channelSchema, "Reminder")}}
+                    }
                   ]
                 }
                 """
@@ -168,6 +213,7 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
 
         Assert.Equal("Order_Registered", shipment.GetProperty("status").GetString());
         Assert.Equal(0, shipment.GetProperty("recipients").GetArrayLength());
+        Assert.Empty(_app.Asked);
     }
 
     [Theory]
@@ -395,13 +441,136 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
     [Fact]
     public async Task Post_StorageBasePathWithoutSeparator_ListsTheOrderOnTheMessagesPage()
     {
-        var controller = new LocalFutureOrdersController(
-            Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath })
-        );
+        var controller = Controller(_storagePath);
 
         await controller.Post(Order("order-11", DateTimeOffset.UtcNow, "4"));
 
         Assert.Single(await MessagesPageOrdersBySendTime(_storagePath));
+    }
+
+    [Fact]
+    public async Task GetShipment_AfterTheSendTime_AsksTheAppOnceAtTheUrlItGave()
+    {
+        var order = Body(await _controller.Post(Order("order-12", DateTimeOffset.UtcNow.AddMinutes(-1), "4")));
+
+        await Shipment(ShipmentId(order));
+        var shipment = await Shipment(ShipmentId(order));
+
+        Assert.Equal("Order_Completed", shipment.GetProperty("status").GetString());
+        Assert.Equal([new Uri(ConditionEndpoint)], _app.Asked);
+    }
+
+    [Fact]
+    public async Task GetShipment_SendConditionNotMet_IsNotSent()
+    {
+        _app.Answers.Enqueue(() => SendNotification(false));
+        var order = Body(await _controller.Post(Order("order-13", DateTimeOffset.UtcNow.AddMinutes(-1), "4")));
+
+        await Shipment(ShipmentId(order));
+        var shipment = await Shipment(ShipmentId(order));
+
+        Assert.Equal("Order_SendConditionNotMet", shipment.GetProperty("status").GetString());
+        Assert.Equal(0, shipment.GetProperty("recipients").GetArrayLength());
+        Assert.Single(_app.Asked);
+    }
+
+    [Fact]
+    public async Task GetShipment_WithoutASendCondition_DoesNotAskTheApp()
+    {
+        var order = Body(
+            await _controller.Post(
+                Order("order-14", DateTimeOffset.UtcNow.AddMinutes(-1), "4", conditionEndpoint: "null")
+            )
+        );
+
+        var shipment = await Shipment(ShipmentId(order));
+
+        Assert.Equal("Order_Completed", shipment.GetProperty("status").GetString());
+        Assert.Empty(_app.Asked);
+    }
+
+    [Fact]
+    public async Task GetShipment_ReminderAfterTheInstanceNoLongerNeedsIt_IsNotSent()
+    {
+        // The app is asked at each shipment's send time, so its answer can change in between.
+        _app.Answers.Enqueue(() => SendNotification(true));
+        _app.Answers.Enqueue(() => SendNotification(false));
+        var request = Order("order-15", DateTimeOffset.UtcNow.AddDays(-8), "4");
+        request["reminders"] = new JsonArray(Reminder(SevenDaysLater));
+        var order = Body(await _controller.Post(request));
+
+        var notification = await Shipment(ShipmentId(order));
+        var reminder = await Shipment(ReminderShipmentId(order));
+
+        Assert.Equal("Order_Completed", notification.GetProperty("status").GetString());
+        Assert.Equal("Order_SendConditionNotMet", reminder.GetProperty("status").GetString());
+        Assert.Equal(2, _app.Asked.Count);
+    }
+
+    private static Func<HttpResponseMessage> UnansweredBy(string kind) =>
+        kind switch
+        {
+            "unreachable" => () => throw new HttpRequestException("Connection refused"),
+            "server error" => () => Respond(HttpStatusCode.InternalServerError, "{}"),
+            "no flag" => () => Respond(HttpStatusCode.OK, "{}"),
+            "not JSON" => () => Respond(HttpStatusCode.OK, "<html></html>"),
+            _ => () => Respond(HttpStatusCode.OK, """{ "sendNotification": "yes" }"""),
+        };
+
+    [Theory]
+    [InlineData("unreachable")]
+    [InlineData("server error")]
+    [InlineData("no flag")]
+    [InlineData("not JSON")]
+    [InlineData("flag not a boolean")]
+    public async Task GetShipment_SendConditionUnanswered_IsRetriedThenSentRegardless(string unanswered)
+    {
+        _app.Answers.Enqueue(UnansweredBy(unanswered));
+        _app.Answers.Enqueue(UnansweredBy(unanswered));
+        var order = Body(await _controller.Post(Order("order-16", DateTimeOffset.UtcNow.AddMinutes(-1), "4")));
+
+        var first = await Shipment(ShipmentId(order));
+        var second = await Shipment(ShipmentId(order));
+        await Shipment(ShipmentId(order));
+
+        Assert.Equal("Order_Retrying", first.GetProperty("status").GetString());
+        Assert.Equal(0, first.GetProperty("recipients").GetArrayLength());
+        Assert.Equal("Order_Completed", second.GetProperty("status").GetString());
+        Assert.Equal(2, second.GetProperty("recipients").GetArrayLength());
+        Assert.Equal(2, _app.Asked.Count);
+    }
+
+    [Fact]
+    public async Task GetShipment_SendConditionAnsweredOnRetry_KeepsThatAnswer()
+    {
+        _app.Answers.Enqueue(UnansweredBy("unreachable"));
+        _app.Answers.Enqueue(() => SendNotification(false));
+        var order = Body(await _controller.Post(Order("order-17", DateTimeOffset.UtcNow.AddMinutes(-1), "4")));
+
+        await Shipment(ShipmentId(order));
+        var shipment = await Shipment(ShipmentId(order));
+
+        Assert.Equal("Order_SendConditionNotMet", shipment.GetProperty("status").GetString());
+    }
+
+    [Theory]
+    // Notifications refuses a send condition that is not an absolute http or https URL.
+    [InlineData("\"not a url\"")]
+    [InlineData("\"/ttd/app/api/v1/notification-webhook-listener/1337/abc\"")]
+    [InlineData("\"ftp://local.altinn.cloud/condition\"")]
+    [InlineData("42")]
+    public async Task Post_UnusableConditionEndpoint_IsRefusedAndStoresNothing(string conditionEndpoint)
+    {
+        var onTheOrder = Order("order-18", DateTimeOffset.UtcNow, "4", conditionEndpoint: conditionEndpoint);
+        var onAReminder = Order("order-18", DateTimeOffset.UtcNow, "4");
+        var reminder = Reminder(SevenDaysLater);
+        reminder["conditionEndpoint"] = JsonNode.Parse(conditionEndpoint);
+        onAReminder["reminders"] = new JsonArray(reminder);
+
+        Assert.IsType<BadRequestObjectResult>(await _controller.Post(onTheOrder));
+        Assert.IsType<BadRequestObjectResult>(await _controller.Post(onAReminder));
+
+        Assert.Empty(await MessagesPageOrdersBySendTime());
     }
 
     [Fact]
