@@ -22,7 +22,8 @@ namespace Altinn.App.Core.Tests.Features.Signing;
 
 /// <summary>
 /// When a signing task ends, the rights delegated to its signees are revoked from the parties they were delegated
-/// to. This runs the end of the task through the real signee state, signature documents and delegation service.
+/// to, whoever signed. This runs the end of the task through the real signee state, signature documents and
+/// delegation service.
 /// </summary>
 public sealed class SigneeRightsRevocationTests : IDisposable
 {
@@ -97,6 +98,12 @@ public sealed class SigneeRightsRevocationTests : IDisposable
         PartyUuid = Guid.NewGuid(),
         SSN = "01017012345",
         Name = "Instance Owner",
+    };
+
+    private static readonly AltinnSignatureConfiguration _signatureConfiguration = new()
+    {
+        SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        SignatureDataType = SignatureDataTypeId,
     };
 
     private readonly ServiceProvider _serviceProvider;
@@ -184,16 +191,15 @@ public sealed class SigneeRightsRevocationTests : IDisposable
         {
             SigneeInfo = new StorageSignee { PersonNumber = _personParty.SSN, OrganisationNumber = "312345678" },
         };
-        IInstanceDataMutator instanceDataMutator = CreateInstanceDataMutator(OrganizationSigneeState, signDocument);
+        IInstanceDataMutator instanceDataMutator = CreateInstanceDataMutator(
+            OrganizationSigneeState,
+            JsonSerializer.SerializeToUtf8Bytes(signDocument)
+        );
 
         // Act
         await _signingService.RevokeSigneeRightsOnTaskEnd(
             instanceDataMutator,
-            new AltinnSignatureConfiguration
-            {
-                SigneeStatesDataTypeId = SigneeStatesDataTypeId,
-                SignatureDataType = SignatureDataTypeId,
-            },
+            _signatureConfiguration,
             CancellationToken.None
         );
 
@@ -204,7 +210,27 @@ public sealed class SigneeRightsRevocationTests : IDisposable
         Assert.Equal(["read", "sign", "reject"], revocation.Rights.Select(right => right.Action!.Value));
     }
 
-    private static IInstanceDataMutator CreateInstanceDataMutator(string signeeState, SignDocument signDocument)
+    [Fact]
+    public async Task RevokeSigneeRightsOnTaskEnd_WhenASignatureCannotBeRead_StillRevokes()
+    {
+        // Arrange
+        IInstanceDataMutator instanceDataMutator = CreateInstanceDataMutator(
+            OrganizationSigneeState,
+            Encoding.UTF8.GetBytes("not a signature document")
+        );
+
+        // Act
+        await _signingService.RevokeSigneeRightsOnTaskEnd(
+            instanceDataMutator,
+            _signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(OrgPartyUuid, Assert.Single(_revocations).To!.Value);
+    }
+
+    private static IInstanceDataMutator CreateInstanceDataMutator(string signeeState, byte[] signature)
     {
         DataElement signeeStateElement = new() { Id = Guid.NewGuid().ToString(), DataType = SigneeStatesDataTypeId };
         DataElement signatureElement = new() { Id = Guid.NewGuid().ToString(), DataType = SignatureDataTypeId };
@@ -227,9 +253,7 @@ public sealed class SigneeRightsRevocationTests : IDisposable
         instanceDataMutator
             .Setup(x => x.GetBinaryData(signeeStateElement))
             .ReturnsAsync(Encoding.UTF8.GetBytes(signeeState));
-        instanceDataMutator
-            .Setup(x => x.GetBinaryData(signatureElement))
-            .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(signDocument));
+        instanceDataMutator.Setup(x => x.GetBinaryData(signatureElement)).ReturnsAsync(signature);
         return instanceDataMutator.Object;
     }
 }

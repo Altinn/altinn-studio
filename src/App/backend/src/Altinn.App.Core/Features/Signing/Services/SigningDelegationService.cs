@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models.Shared;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
-using static Altinn.App.Core.Features.Signing.Models.Signee;
 using static Altinn.App.Core.Features.Telemetry.DelegationConst;
 
 namespace Altinn.App.Core.Features.Signing.Services;
@@ -105,7 +104,7 @@ internal sealed class SigningDelegationService(
         {
             if (signeeContext.SigneeState.IsAccessDelegated is true)
             {
-                Guid? partyUuid = GetDelegatedPartyUuid(signeeContext.Signee);
+                Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
                 logger.LogInformation(
                     "Revoking signee rights from {PartyUuid} to {AppResourceId} by {InstanceOwnerPartyUuid}",
                     partyUuid,
@@ -142,16 +141,6 @@ internal sealed class SigningDelegationService(
         }
         return (signeeContexts, success);
     }
-
-    /// <summary>
-    /// The party the signee's rights were delegated to. That is the signee's own party, except for a person who signed
-    /// on behalf of an organization signee: the signee became that person when they signed, but the rights went to the
-    /// organization.
-    /// </summary>
-    private static Guid? GetDelegatedPartyUuid(Signee signee) =>
-        signee is PersonOnBehalfOfOrgSignee personOnBehalfOfOrgSignee
-            ? personOnBehalfOfOrgSignee.OnBehalfOfOrg.OrgParty.PartyUuid
-            : signee.GetParty().PartyUuid;
 
     private static Guid ParseInstanceGuid(string instanceIdCombo)
     {

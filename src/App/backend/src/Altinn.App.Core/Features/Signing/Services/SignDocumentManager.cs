@@ -111,7 +111,6 @@ internal sealed class SignDocumentManager(
                 SigneeState = context.SigneeState,
                 SignDocument = context.SignDocument,
                 CommunicationConfig = context.CommunicationConfig,
-                AdditionalActionsToDelegate = context.AdditionalActionsToDelegate,
             }),
         ];
 
@@ -217,7 +216,6 @@ internal sealed class SignDocumentManager(
             SigneeState = signeeContext.SigneeState,
             SignDocument = matchedSignDocument,
             CommunicationConfig = signeeContext.CommunicationConfig,
-            AdditionalActionsToDelegate = signeeContext.AdditionalActionsToDelegate,
         };
 
         if (signeeContext.Signee is OrganizationSignee orgSignee)
@@ -261,7 +259,6 @@ internal sealed class SignDocumentManager(
             SigneeState = context.SigneeState,
             SignDocument = context.SignDocument,
             CommunicationConfig = context.CommunicationConfig,
-            AdditionalActionsToDelegate = context.AdditionalActionsToDelegate,
         };
     }
 
