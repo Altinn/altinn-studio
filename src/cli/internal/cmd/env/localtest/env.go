@@ -120,11 +120,8 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
 
 	manifest := components.NewManifest(buildOpts)
-	if err := checkPublicPort(manifest.Resources, topology.IngressPort()); err != nil {
-		return err
-	}
-	if err := e.checkPortFree(ctx, topology.IngressPort()); err != nil {
-		return err
+	if err := e.checkPort(ctx, manifest.Resources, topology.IngressPort()); err != nil {
+		return fmt.Errorf("%w; choose another --port", err)
 	}
 	// Recorded before anything starts, so that a start that fails half-way leaves every other command pointing at
 	// the containers it did create.

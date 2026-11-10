@@ -32,6 +32,14 @@ func ValidatePublicPort(port int, field string) error {
 	return nil
 }
 
+// checkPort refuses a public port env up can't serve the environment on.
+func (e *Env) checkPort(ctx context.Context, resources []resource.Resource, port string) error {
+	if err := checkPublicPort(resources, port); err != nil {
+		return err
+	}
+	return e.checkPortFree(ctx, port)
+}
+
 // checkPublicPort refuses a public port that one of the environment's containers also publishes on the host, which
 // would keep that container from starting. The ports come from the containers env up is about to start, so they
 // follow the options: the OpenTelemetry collector's only with --monitoring, for example.
@@ -61,7 +69,7 @@ func checkPublicPort(resources []resource.Resource, port string) error {
 	}
 	slices.Sort(others)
 	return fmt.Errorf(
-		"%w: %s also publishes port %s on the host; choose another --port",
+		"%w: %s also publishes port %s on the host",
 		errPortPublished,
 		strings.Join(slices.Compact(others), ", "),
 		port,
@@ -94,7 +102,7 @@ func tryListen(ctx context.Context, host, port string) error {
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(ctx, "tcp4", net.JoinHostPort(host, port))
 	if err != nil {
-		return fmt.Errorf("%w: port %s (%w); choose another --port", errPortInUse, port, err)
+		return fmt.Errorf("%w: port %s (%w)", errPortInUse, port, err)
 	}
 	if err := listener.Close(); err != nil {
 		return fmt.Errorf("release port %s after checking it: %w", port, err)
