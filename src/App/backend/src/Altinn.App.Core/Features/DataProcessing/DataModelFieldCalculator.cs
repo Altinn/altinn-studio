@@ -12,11 +12,9 @@ namespace Altinn.App.Core.Features.DataProcessing;
 
 internal sealed class DataModelFieldCalculator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly ILogger<DataModelFieldCalculator> _logger;
     private readonly IAppResources _appResourceService;
@@ -135,10 +133,7 @@ internal sealed class DataModelFieldCalculator
         JsonDocument calculationConfigDocument;
         try
         {
-            calculationConfigDocument = JsonDocument.Parse(
-                rawCalculationConfig,
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip }
-            );
+            calculationConfigDocument = JsonDocument.Parse(rawCalculationConfig, AppFileJson.DocumentOptions);
         }
         catch (JsonException e)
         {

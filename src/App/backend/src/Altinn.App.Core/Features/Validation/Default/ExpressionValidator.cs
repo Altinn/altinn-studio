@@ -18,11 +18,9 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 internal sealed class ExpressionValidator : IValidator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
@@ -379,7 +377,10 @@ internal sealed class ExpressionValidator : IValidator
         ILogger logger
     )
     {
-        using var expressionValidationConfigDocument = JsonDocument.Parse(validationConfig);
+        using var expressionValidationConfigDocument = JsonDocument.Parse(
+            validationConfig,
+            AppFileJson.DocumentOptions
+        );
         var expressionValidationDefinitions = new Dictionary<string, RawExpressionValidation>();
         var hasDefinitions = expressionValidationConfigDocument.RootElement.TryGetProperty(
             "definitions",
