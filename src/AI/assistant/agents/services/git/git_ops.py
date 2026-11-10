@@ -86,11 +86,6 @@ def unpushed_files(repo_path: str) -> list[str]:
     return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
 
 
-def head_commit(repo_path: str) -> str:
-    """Return the short hash of the last commit, in the format that `commit` returns."""
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, cwd=repo_path).strip()[:8]
-
-
 def _paths(repo_path: str, *args: str) -> set[str]:
     """Run a git command that prints paths with `-z`, and return the paths.
 

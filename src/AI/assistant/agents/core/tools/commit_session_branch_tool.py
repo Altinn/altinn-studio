@@ -102,7 +102,9 @@ def _commit_to_push_again(ctx: LoopContext) -> str | None:
     """
     if not git_ops.unpushed_files(ctx.repo_path):
         return None
-    return git_ops.head_commit(ctx.repo_path)
+    head = git_ops.head_commit(ctx.repo_path)
+    # The short hash, in the format that `git_ops.commit` returns.
+    return head[:8] if head else None
 
 
 class CommitSessionBranchArgs(BaseModel):
