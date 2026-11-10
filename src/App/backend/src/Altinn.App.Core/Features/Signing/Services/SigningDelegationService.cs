@@ -68,7 +68,6 @@ internal sealed class SigningDelegationService(
                 // earlier attempt already reached.
                 await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
                 state.IsAccessDelegated = true;
-                state.DelegatedToPartyUuid = partyUuid;
                 state.DelegationFailedReason = null;
                 telemetry?.RecordDelegation(DelegationResult.Success);
             }
@@ -106,7 +105,7 @@ internal sealed class SigningDelegationService(
         {
             if (signeeContext.SigneeState.IsAccessDelegated is true)
             {
-                Guid? partyUuid = GetDelegatedPartyUuid(signeeContext);
+                Guid? partyUuid = GetDelegatedPartyUuid(signeeContext.Signee);
                 logger.LogInformation(
                     "Revoking signee rights from {PartyUuid} to {AppResourceId} by {InstanceOwnerPartyUuid}",
                     partyUuid,
@@ -145,20 +144,14 @@ internal sealed class SigningDelegationService(
     }
 
     /// <summary>
-    /// Signee states saved before <see cref="SigneeContextState.DelegatedToPartyUuid"/> existed lack it, so the party is
-    /// then derived from the signee. Rights for an organization signee went to the organization, also when a person
-    /// later signed on its behalf.
+    /// The party the signee's rights were delegated to. That is the signee's own party, except for a person who signed
+    /// on behalf of an organization signee: the signee became that person when they signed, but the rights went to the
+    /// organization.
     /// </summary>
-    private static Guid? GetDelegatedPartyUuid(SigneeContext signeeContext) =>
-        signeeContext.SigneeState.DelegatedToPartyUuid
-        ?? signeeContext.Signee switch
-        {
-            PersonOnBehalfOfOrgSignee personOnBehalfOfOrgSignee => personOnBehalfOfOrgSignee
-                .OnBehalfOfOrg
-                .OrgParty
-                .PartyUuid,
-            _ => signeeContext.Signee.GetParty().PartyUuid,
-        };
+    private static Guid? GetDelegatedPartyUuid(Signee signee) =>
+        signee is PersonOnBehalfOfOrgSignee personOnBehalfOfOrgSignee
+            ? personOnBehalfOfOrgSignee.OnBehalfOfOrg.OrgParty.PartyUuid
+            : signee.GetParty().PartyUuid;
 
     private static Guid ParseInstanceGuid(string instanceIdCombo)
     {

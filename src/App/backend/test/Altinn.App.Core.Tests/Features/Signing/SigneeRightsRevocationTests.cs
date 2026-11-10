@@ -32,10 +32,10 @@ public sealed class SigneeRightsRevocationTests : IDisposable
     private const string OrgPartyUuid = "8f5b2b0c-4a2f-4bde-9f3e-1c0f2b6a7d11";
 
     /// <summary>
-    /// The signee state an app on v8 saved when it delegated to an organization signee. v8 did not record the party
-    /// it delegated to.
+    /// The signee state an app saves when it delegates to an organization signee. Apps on v8 save the same format, so
+    /// this also covers instances whose signing task started before the app was upgraded.
     /// </summary>
-    private const string OrganizationSigneeStateSavedByV8 = """
+    private const string OrganizationSigneeState = """
         {
           "$id": "1",
           "$values": [
@@ -176,26 +176,15 @@ public sealed class SigneeRightsRevocationTests : IDisposable
         );
     }
 
-    [Theory]
-    [InlineData("v8")]
-    [InlineData("v9")]
-    public async Task RevokeSigneeRightsOnTaskEnd_AfterAPersonSignedForTheOrganization_RevokesFromTheOrganization(
-        string savedBy
-    )
+    [Fact]
+    public async Task RevokeSigneeRightsOnTaskEnd_AfterAPersonSignedForTheOrganization_RevokesFromTheOrganization()
     {
         // Arrange
-        string signeeState =
-            savedBy == "v8"
-                ? OrganizationSigneeStateSavedByV8
-                : OrganizationSigneeStateSavedByV8.Replace(
-                    "\"isAccessDelegated\": true,",
-                    $"\"isAccessDelegated\": true, \"delegatedToPartyUuid\": \"{OrgPartyUuid}\","
-                );
         SignDocument signDocument = new()
         {
             SigneeInfo = new StorageSignee { PersonNumber = _personParty.SSN, OrganisationNumber = "312345678" },
         };
-        IInstanceDataMutator instanceDataMutator = CreateInstanceDataMutator(signeeState, signDocument);
+        IInstanceDataMutator instanceDataMutator = CreateInstanceDataMutator(OrganizationSigneeState, signDocument);
 
         // Act
         await _signingService.RevokeSigneeRightsOnTaskEnd(

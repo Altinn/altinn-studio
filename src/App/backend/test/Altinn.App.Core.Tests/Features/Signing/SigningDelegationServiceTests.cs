@@ -770,57 +770,6 @@ public class SigningDelegationServiceTests
         return accessManagementClient;
     }
 
-    [Theory]
-    [InlineData("person")]
-    [InlineData("organization")]
-    public async Task RevokeSigneeRights_RevokesFromThePartyTheRightsWereDelegatedTo(string signeeKind)
-    {
-        // Arrange
-        List<DelegationRequest> delegations = [];
-        List<DelegationRequest> revocations = [];
-        var accessManagementClient = CreateRecordingAccessManagementClient(delegations, revocations);
-        var service = new SigningDelegationService(
-            accessManagementClient.Object,
-            new Mock<ILogger<SigningDelegationService>>().Object
-        );
-        InternalSignee signee = signeeKind == "person" ? CreatePersonSignee() : CreateOrganizationSignee();
-        string instanceId = "instanceOwnerPartyId/" + Guid.NewGuid();
-        var appIdentifier = new AppIdentifier("testOrg", "testApp");
-        List<SigneeContext> signeeContexts =
-        [
-            new()
-            {
-                TaskId = "taskId",
-                SigneeState = new SigneeState(),
-                Signee = signee,
-            },
-        ];
-        await service.DelegateSigneeRights(
-            "taskId",
-            instanceId,
-            Guid.NewGuid(),
-            appIdentifier,
-            signeeContexts,
-            CancellationToken.None
-        );
-
-        // Act
-        (_, bool success) = await service.RevokeSigneeRights(
-            "taskId",
-            instanceId,
-            Guid.NewGuid(),
-            appIdentifier,
-            signeeContexts,
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.True(success);
-        Assert.Equal(signee.GetParty().PartyUuid, signeeContexts[0].SigneeState.DelegatedToPartyUuid);
-        Assert.Equal(signee.GetParty().PartyUuid.ToString(), Assert.Single(delegations).To!.Value);
-        Assert.Equal(signee.GetParty().PartyUuid.ToString(), Assert.Single(revocations).To!.Value);
-    }
-
     [Fact]
     public async Task RevokeSigneeRights_AfterAPersonSignedForTheOrganization_RevokesFromTheOrganization()
     {
@@ -909,7 +858,7 @@ public class SigningDelegationServiceTests
     [InlineData("organization", true)]
     [InlineData("personOnBehalfOfOrg", true)]
     [InlineData("systemUser", true)]
-    public async Task RevokeSigneeRights_WhenTheStateHasNoDelegatedParty_RevokesFromTheSigneesDelegatee(
+    public async Task RevokeSigneeRights_RevokesFromThePartyTheSigneesRightsWentTo(
         string signeeKind,
         bool revokesFromOrganization
     )
