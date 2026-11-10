@@ -77,6 +77,13 @@ Altinn Studio platform developers may use `dev` or `staging`.
 `studioctl app upgrade v9` migrates the app and reports what it will not change for you. Read its output before
 changing anything yourself; it names every file and configuration path it found.
 
+For navigation validation TODOs, keep the reported settings until you have reviewed the intended behavior. In v9,
+explicit component settings take priority over page, task and app validation. Keep a component setting if its
+validation is intended, or remove the reported forward setting to inherit validation again. Removing the reported
+backward setting leaves backward navigation without that validation. Test both directions before deploying.
+An empty `show` list still checks errors configured to appear immediately. See the
+[navigation validation upgrade guidance](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger).
+
 Maskinporten needs deliberate handling. A v9 app has **one** Maskinporten identity and never configures its own
 credentials: it reads whatever the platform provisions for it. Deployed, that is the client Studio provisions. On a
 local run studioctl is the platform, and it cannot yet hand over the credentials Studio issues - so to test against a
