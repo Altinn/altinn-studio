@@ -7,8 +7,8 @@ export interface AssistantMessageData {
   timestamp?: string | number;
   filesChanged?: string[];
   sources?: Source[];
-  mode?: 'chat' | 'edit';
-  no_branch_operations?: boolean;
+  /** The session branch that the assistant pushed a commit to. Designer checks out only this branch. */
+  pushedBranch?: string;
   traceId?: string;
   attachmentInstructionFlagged?: boolean;
   eventId?: string;
