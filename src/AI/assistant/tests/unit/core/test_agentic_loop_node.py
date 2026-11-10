@@ -349,7 +349,7 @@ class _SinkStub:
 
 
 class TestEmitWorkflowCompletion:
-    def _emit(self, monkeypatch, trace_id=None, state_trace_id=None, pushed_branch=None):
+    def _emit(self, monkeypatch, trace_id, state_trace_id=None):
         stub = _SinkStub()
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
         monkeypatch.setattr(
@@ -363,8 +363,6 @@ class TestEmitWorkflowCompletion:
             turns=1,
         )
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
-        if pushed_branch:
-            ctx.extras["pushed_branch"] = pushed_branch
         state = _state()
         state.trace_id = state_trace_id
         _emit_workflow_completion(state, result, ctx, saved=True, unsaved_files=[])
@@ -385,16 +383,6 @@ class TestEmitWorkflowCompletion:
     def test_state_trace_id_takes_precedence_over_the_live_lookup(self, monkeypatch):
         message = self._emit(monkeypatch, trace_id="trace-live", state_trace_id="trace-root")
         assert message.data["traceId"] == "trace-root"
-
-    def test_names_the_branch_that_the_turn_pushed(self, monkeypatch):
-        message = self._emit(monkeypatch, pushed_branch="assistant_sess-1")
-        assert message.data["pushedBranch"] == "assistant_sess-1"
-        assert "no_branch_operations" not in message.data
-
-    def test_a_turn_that_pushed_nothing_asks_designer_to_leave_the_branch(self, monkeypatch):
-        message = self._emit(monkeypatch)
-        assert "pushedBranch" not in message.data
-        assert message.data["no_branch_operations"] is True
 
 
 class TestHandle:
@@ -1360,25 +1348,21 @@ class TestPushedBranchInFinalMessage:
     """Designer checks out the branch that the final message names. A turn
     names it only if a push of the turn reached Gitea."""
 
-    async def test_a_turn_that_changes_nothing_names_no_branch(self, monkeypatch, repo):
-        _, message, _ = await _handle_events(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED))
+    @pytest.mark.parametrize(
+        ("edits", "outcome"),
+        [
+            pytest.param((), {}, id="nothing changed"),
+            pytest.param(("App/ui/a.json",), {"verifies": False}, id="changes do not verify"),
+            pytest.param(("App/ui/a.json",), {"pushed": False}, id="push rejected"),
+        ],
+    )
+    async def test_a_turn_that_pushed_nothing_names_no_branch(self, monkeypatch, repo, edits, outcome):
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=edits), **outcome
+        )
 
         assert "pushedBranch" not in message
         assert message["no_branch_operations"] is True
-
-    async def test_changes_that_do_not_verify_name_no_branch(self, monkeypatch, repo):
-        _, message, _ = await _handle_events(
-            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), verifies=False
-        )
-
-        assert "pushedBranch" not in message
-
-    async def test_a_rejected_push_names_no_branch(self, monkeypatch, repo):
-        _, message, _ = await _handle_events(
-            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), pushed=False
-        )
-
-        assert "pushedBranch" not in message
 
     async def test_a_pushed_commit_names_the_branch(self, monkeypatch, repo):
         _, message, _ = await _handle_events(

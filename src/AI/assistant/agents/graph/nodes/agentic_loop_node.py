@@ -697,6 +697,7 @@ def _emit_workflow_completion(
     else:
         # Designer tabs loaded before `pushedBranch` existed check out the
         # session branch unless this flag is set, and that branch may not exist.
+        # Remove the flag when no open tab runs that frontend.
         message_data["no_branch_operations"] = True
     trace_id = state.trace_id or get_current_trace_id()
     if trace_id:

@@ -309,7 +309,6 @@ describe('useAssistantWorkflow', () => {
         session_id: 'thread-a',
         data: {
           content: 'Svar',
-          mode: 'chat',
           traceId: 'trace-1',
           persistedMessageId: 'server-message-id',
         },
@@ -348,7 +347,7 @@ describe('useAssistantWorkflow', () => {
     const duplicatedEvent: AssistantMessageEvent = {
       type: 'assistant_message',
       session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-1', mode: 'chat' },
+      data: { content: 'Svar', traceId: 'trace-1' },
     };
 
     await act(async () => {
@@ -425,7 +424,7 @@ describe('useAssistantWorkflow', () => {
     const duplicatedEvent: AssistantMessageEvent = {
       type: 'assistant_message',
       session_id: 'thread-a',
-      data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
+      data: { content: 'Svar', eventId: 'event-1' },
     };
 
     await act(async () => {
@@ -466,7 +465,7 @@ describe('useAssistantWorkflow', () => {
     const event: AssistantMessageEvent = {
       type: 'assistant_message',
       session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-retry', mode: 'chat' },
+      data: { content: 'Svar', traceId: 'trace-retry' },
     };
 
     await act(async () => {
@@ -1595,7 +1594,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', mode: 'edit', pushedBranch: 'assistant_thread-a' },
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-a' },
       });
     });
 
@@ -1635,7 +1634,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', mode: 'edit' },
+        data: { content: 'Svar' },
       });
     });
 
@@ -1673,7 +1672,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-from-other-app',
-        data: { content: 'Svar', mode: 'edit', pushedBranch: 'assistant_thread-from-other-app' },
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-from-other-app' },
       });
     });
 

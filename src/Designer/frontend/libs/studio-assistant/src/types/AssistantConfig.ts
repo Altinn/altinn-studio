@@ -7,7 +7,6 @@ export interface AssistantMessageData {
   timestamp?: string | number;
   filesChanged?: string[];
   sources?: Source[];
-  mode?: 'chat' | 'edit';
   /** The session branch that the run pushed to Gitea. Absent when the run pushed nothing. */
   pushedBranch?: string;
   traceId?: string;
