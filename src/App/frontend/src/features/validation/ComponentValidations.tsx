@@ -4,8 +4,7 @@ import { ValidationMessages } from '@app/form-component';
 
 import { LangReference } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
-import { useCurrentComponentId, useFormComponentCtx } from 'src/layout/FormComponentContext';
-import utilClasses from 'src/styles/utils.module.css';
+import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -45,7 +44,6 @@ function AllComponentValidationsFor({ baseComponentId }: { baseComponentId: stri
 
 export function ComponentValidations({ validations, baseComponentId }: Props) {
   const indexedId = useIndexedId(baseComponentId);
-  const compactTableValidations = useFormComponentCtx()?.overrideDisplay?.compactTableValidations;
   const config = useComponentConfig(baseComponentId);
   const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
@@ -68,7 +66,7 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
     return null;
   }
 
-  const messages = (
+  return (
     <ValidationMessages
       id={`${indexedId}-validations`}
       dataValidation={indexedId}
@@ -79,7 +77,4 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
       }))}
     />
   );
-
-  // Keep field descriptions available when the table renders compact indicators and row errors.
-  return compactTableValidations ? <div className={utilClasses.visuallyHidden}>{messages}</div> : messages;
 }

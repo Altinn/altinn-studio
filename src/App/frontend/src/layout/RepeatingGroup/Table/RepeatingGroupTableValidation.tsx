@@ -38,7 +38,6 @@ export function RepeatingGroupTableField({ baseComponentId }: { baseComponentId:
             renderedInTable: true,
             renderLabel: false,
             renderLegend: false,
-            compactTableValidations: true,
           }}
           overrideItemProps={{ grid: {} }}
         />
