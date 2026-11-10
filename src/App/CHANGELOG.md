@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845))
+- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 
 ### Fixed
 
