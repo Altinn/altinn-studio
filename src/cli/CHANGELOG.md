@@ -13,6 +13,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 
+## [0.1.0-preview.33] - 2026-11-09
+
+### Changed
+
+- `studioctl app upgrade v9` moves the Altinn.App packages to the latest v9 release, at least `9.0.0-preview.10`, also for apps already on v9. An app on `9.0.0-preview.8` or `9.0.0-preview.9` with `taskIds` in `applicationmetadata.json` has lost its data types' tasks: run the upgrade again. ([#21816](https://github.com/Altinn/altinn-studio/pull/21816))
+
 ## [0.1.0-preview.32] - 2026-11-09
 
 ### Added

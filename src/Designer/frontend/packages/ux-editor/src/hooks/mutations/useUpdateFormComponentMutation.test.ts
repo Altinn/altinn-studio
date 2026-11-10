@@ -297,6 +297,7 @@ describe('useUpdateFormComponentMutation', () => {
     const newId = 'newId';
     const oldDataType = {
       id: oldId,
+      taskIds: ['Task_1', 'Task_2'],
       allowedContentTypes: ['application/pdf'],
       validationErrorOnPendingFileScan: true,
       enableFileScan: false,
@@ -330,7 +331,7 @@ describe('useUpdateFormComponentMutation', () => {
     };
     const imageUploadDataType = {
       id: oldId,
-      taskId: 'Task_1',
+      taskIds: ['Task_1', 'Task_2'],
       maxCount: 1,
       minCount: 0,
       maxSize: 5,

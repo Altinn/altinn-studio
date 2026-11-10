@@ -21,6 +21,7 @@ import { InstanceStatus } from 'admin/features/apps/pages/instances/components/I
 import { useAppMetadataQuery } from 'admin/features/apps/hooks/queries/useAppMetadataQuery';
 import { useReduceQueries } from 'admin/features/apps/hooks/useReduceQueries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { getTaskIdsForDataType } from 'admin/features/apps/utils/dataTypeUtils';
 import {
   FileTextIcon,
   PaperclipIcon,
@@ -364,20 +365,31 @@ function getDataTypeLabel(
   return `${dataType} (${count})`;
 }
 
-function getTaskName(
+type TaskLabel = {
+  id: string;
+  name: string;
+};
+
+function getTaskLabels(
   dataType: string,
   appMetadata: ApplicationMetadata,
   processMetadata: ProcessTaskMetadata[],
-): string | undefined {
-  const taskId = appMetadata.dataTypes?.find((dt) => dt.id === dataType)?.taskId;
-  if (taskId) {
-    return processMetadata.find((task) => task.id === taskId)?.name ?? taskId;
+): TaskLabel[] {
+  const dataTypeDef = appMetadata.dataTypes?.find((dt) => dt.id === dataType);
+  const taskIds = dataTypeDef ? getTaskIdsForDataType(dataTypeDef) : [];
+  if (taskIds.length > 0) {
+    return taskIds.map((taskId) => ({
+      id: taskId,
+      name: processMetadata.find((task) => task.id === taskId)?.name ?? taskId,
+    }));
   }
 
   const processTaskMetadata = processMetadata.find((pm) =>
     pm.dataTypeTags.find((dtt) => dtt.dataTypeId === dataType),
   );
-  return processTaskMetadata?.name ?? processTaskMetadata?.id;
+  return processTaskMetadata
+    ? [{ id: processTaskMetadata.id, name: processTaskMetadata.name ?? processTaskMetadata.id }]
+    : [];
 }
 
 const DataElementGroup = ({
@@ -397,7 +409,7 @@ const DataElementGroup = ({
   const type = getDataTypeType(dataType, appMetadata, processMetadata);
   const Icon = DataTypeIcons[type];
   const label = getDataTypeLabel(dataType, dataElements.length, appMetadata);
-  const taskName = getTaskName(dataType, appMetadata, processMetadata);
+  const taskLabels = getTaskLabels(dataType, appMetadata, processMetadata);
 
   return (
     <StudioField>
@@ -407,10 +419,14 @@ const DataElementGroup = ({
             <Icon />
             {label}
           </div>
-          {taskName && (
-            <StudioTag data-size='sm' color='first'>
-              {taskName}
-            </StudioTag>
+          {taskLabels.length > 0 && (
+            <span className={classes['data-element-task-tags']}>
+              {taskLabels.map((task) => (
+                <StudioTag key={task.id} data-size='sm' color='first'>
+                  {task.name}
+                </StudioTag>
+              ))}
+            </span>
           )}
         </span>
       </StudioLabel>

@@ -40,14 +40,14 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           appAttachmentMetadataMutation.mutate({
             id: newId,
-            taskId: taskId,
+            taskIds: [taskId],
             ...getFileUploadMetadataProperties(fileUploadComponent as FormFileUploaderComponent),
           });
         }
         if (componentType === ComponentType.ImageUpload) {
           appAttachmentMetadataMutation.mutate({
             id: newId,
-            taskId: taskId,
+            taskIds: [taskId],
             ...imageUploadDefaultDataType,
           });
         }
