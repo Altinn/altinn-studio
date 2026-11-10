@@ -689,7 +689,14 @@ def _emit_workflow_completion(
                 "Ignoring the report for session %s: the turn had no attachment content",
                 state.session_id,
             )
-    if not state.allow_app_changes:
+    pushed_branch = ctx.extras.get("pushed_branch")
+    if pushed_branch:
+        # Designer checks out only this branch. A turn that pushed nothing
+        # leaves the user's repository and branch as they were.
+        message_data["pushedBranch"] = pushed_branch
+    else:
+        # Designer tabs loaded before `pushedBranch` existed check out the
+        # session branch unless this flag is set, and that branch may not exist.
         message_data["no_branch_operations"] = True
     trace_id = state.trace_id or get_current_trace_id()
     if trace_id:

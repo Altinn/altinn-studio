@@ -26,7 +26,6 @@ import {
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
-  shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
 
@@ -258,9 +257,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [threads.chatThreads],
   );
 
-  const resetRepoForSession = useCallback(
-    (sessionId: string) => {
-      const branch = buildSessionBranchName(sessionId);
+  const switchToPushedBranch = useCallback(
+    (branch: string) => {
       resetRepository(undefined, {
         onSuccess: () => {
           checkoutBranch(branch);
@@ -328,11 +326,12 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      if (!shouldSkipBranchOps(assistantMessage)) {
-        resetRepoForSession(threadId);
+      // A run that pushed nothing names no branch, so the user's repository and branch stay as they were.
+      if (assistantMessage.pushedBranch) {
+        switchToPushedBranch(assistantMessage.pushedBranch);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
+    [switchToPushedBranch, markWorkflowCompleted, createMessage, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -615,13 +614,6 @@ function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number
     if (steps[index].toolUseId === toolUseId) return index;
   }
   return -1;
-}
-
-function buildSessionBranchName(sessionId: string): string {
-  const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
-    ? sessionId.substring(8, 16)
-    : sessionId.substring(0, 8);
-  return `assistant_${uniqueIdWithoutPrefix}`;
 }
 
 function createThreadTitle(messageContent: string): string {

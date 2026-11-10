@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
 import type {
   AgentResponse,
@@ -11,6 +11,7 @@ import type {
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@studio/testing/testids';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from './useAssistantWorkflow';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
@@ -1564,8 +1565,9 @@ describe('useAssistantWorkflow', () => {
     expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
   });
 
-  it('resets the repository when the finished run belongs to this app', async () => {
+  it('checks out the branch that the finished run pushed', async () => {
     const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    const checkoutBranch = vi.fn().mockResolvedValue({});
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
@@ -1587,7 +1589,47 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads, { resetRepoChanges });
+    renderUseAssistantWorkflow(threads, { resetRepoChanges, checkoutBranch });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', mode: 'edit', pushedBranch: 'assistant_thread-a' },
+      });
+    });
+
+    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'assistant_thread-a'),
+    );
+  });
+
+  it('leaves the repository and branch as they were when the finished run pushed nothing', async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    const checkoutBranch = vi.fn().mockResolvedValue({});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+      createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: vi.fn(),
+      cancelWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
+      registerSession: vi.fn(),
+      onAgentMessage: vi.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads, { resetRepoChanges, checkoutBranch });
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -1597,7 +1639,9 @@ describe('useAssistantWorkflow', () => {
       });
     });
 
-    expect(resetRepoChanges).toHaveBeenCalled();
+    expect(threads.createMessage).toHaveBeenCalled();
+    expect(resetRepoChanges).not.toHaveBeenCalled();
+    expect(checkoutBranch).not.toHaveBeenCalled();
   });
 
   it("does not reset this app's repository for a run belonging to another app", async () => {
@@ -1629,7 +1673,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-from-other-app',
-        data: { content: 'Svar', mode: 'edit' },
+        data: { content: 'Svar', mode: 'edit', pushedBranch: 'assistant_thread-from-other-app' },
       });
     });
 

@@ -349,7 +349,7 @@ class _SinkStub:
 
 
 class TestEmitWorkflowCompletion:
-    def _emit(self, monkeypatch, trace_id, state_trace_id=None):
+    def _emit(self, monkeypatch, trace_id=None, state_trace_id=None, pushed_branch=None):
         stub = _SinkStub()
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
         monkeypatch.setattr(
@@ -363,6 +363,8 @@ class TestEmitWorkflowCompletion:
             turns=1,
         )
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        if pushed_branch:
+            ctx.extras["pushed_branch"] = pushed_branch
         state = _state()
         state.trace_id = state_trace_id
         _emit_workflow_completion(state, result, ctx, saved=True, unsaved_files=[])
@@ -383,6 +385,16 @@ class TestEmitWorkflowCompletion:
     def test_state_trace_id_takes_precedence_over_the_live_lookup(self, monkeypatch):
         message = self._emit(monkeypatch, trace_id="trace-live", state_trace_id="trace-root")
         assert message.data["traceId"] == "trace-root"
+
+    def test_names_the_branch_that_the_turn_pushed(self, monkeypatch):
+        message = self._emit(monkeypatch, pushed_branch="assistant_sess-1")
+        assert message.data["pushedBranch"] == "assistant_sess-1"
+        assert "no_branch_operations" not in message.data
+
+    def test_a_turn_that_pushed_nothing_asks_designer_to_leave_the_branch(self, monkeypatch):
+        message = self._emit(monkeypatch)
+        assert "pushedBranch" not in message.data
+        assert message.data["no_branch_operations"] is True
 
 
 class TestHandle:
@@ -706,7 +718,7 @@ def _loop_ending(reason: TerminationReason, **steps):
     return fake_run_loop
 
 
-async def _finish(
+async def _handle_events(
     monkeypatch,
     repo: Path,
     fake_run_loop,
@@ -717,7 +729,7 @@ async def _finish(
     pushes: tuple[bool | Exception, ...] = (),
     render_checks: list[ToolResult] | None = None,
 ):
-    """Run `handle` and return the final state, message and `done` success.
+    """Run `handle` and return the final state, and the data of the final message and of `done`.
 
     `pushes` gives the result of each push in sequence. Without it, `pushed` is
     the result of all pushes.
@@ -739,7 +751,13 @@ async def _finish(
 
     message = next(e for e in events if e.type == "assistant_message")
     done = next(e for e in events if e.type == "done")
-    return state, message.data["content"], done.data["success"]
+    return state, message.data, done.data
+
+
+async def _finish(monkeypatch, repo: Path, fake_run_loop, **kwargs):
+    """Run `handle` and return the final state, message and `done` success."""
+    state, message, done = await _handle_events(monkeypatch, repo, fake_run_loop, **kwargs)
+    return state, message["content"], done["success"]
 
 
 def _repair_run(*, second_round: dict, second_reason: TerminationReason):
@@ -1336,6 +1354,50 @@ class TestTraceRecordsTheCommit:
 
         assert state.assistant_response is not None
         assert state.assistant_response["commit"] is None
+
+
+class TestPushedBranchInFinalMessage:
+    """Designer checks out the branch that the final message names. A turn
+    names it only if a push of the turn reached Gitea."""
+
+    async def test_a_turn_that_changes_nothing_names_no_branch(self, monkeypatch, repo):
+        _, message, _ = await _handle_events(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED))
+
+        assert "pushedBranch" not in message
+        assert message["no_branch_operations"] is True
+
+    async def test_changes_that_do_not_verify_name_no_branch(self, monkeypatch, repo):
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), verifies=False
+        )
+
+        assert "pushedBranch" not in message
+
+    async def test_a_rejected_push_names_no_branch(self, monkeypatch, repo):
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",)), pushed=False
+        )
+
+        assert "pushedBranch" not in message
+
+    async def test_a_pushed_commit_names_the_branch(self, monkeypatch, repo):
+        _, message, _ = await _handle_events(
+            monkeypatch,
+            repo,
+            _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",), model_commits=True),
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
+        assert "no_branch_operations" not in message
+
+    async def test_a_later_rejected_push_keeps_the_branch_that_gitea_has(self, monkeypatch, repo):
+        steps = {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)}
+
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps), pushes=(True, False)
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
 
 
 class TestGraphBuilder:
