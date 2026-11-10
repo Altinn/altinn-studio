@@ -175,7 +175,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', traceId: 'trace-run-1', persistedMessageId: 'msg-1' },
+        data: { content: 'Svar', traceId: 'trace-run-1' },
       });
     });
 
@@ -282,83 +282,48 @@ describe('useAssistantWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
-  it('handles a duplicated assistant_message event only once', async () => {
-    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+  it.each([{ eventId: 'event-1' }, { traceId: 'trace-1' }])(
+    'handles the copies of an answer with %o once, and gets the messages for each copy',
+    async (answerId) => {
+      const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+      const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
+      let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+      mockUseAssistantWebSocket.mockReturnValue({
+        connectionStatus: 'connected',
+        startWorkflow: vi.fn(),
+        cancelWorkflow: vi.fn(),
+        respondToPermission: vi.fn(),
+        registerSession: vi.fn(),
+        onAgentMessage: vi.fn((callback) => {
+          capturedOnAgentMessage = callback;
+        }),
+      });
+      mockUseCurrentBranchQuery.mockReturnValue({
+        data: createMockCurrentBranchInfo(),
+      } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads, { resetRepoChanges });
+      const { result } = renderUseAssistantWorkflow(threads, { resetRepoChanges });
 
-    // Each Designer replica forwards its own copy of the event, with the same traceId.
-    const duplicatedEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-1', mode: 'edit' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(duplicatedEvent);
-      capturedOnAgentMessage!(duplicatedEvent);
-    });
-
-    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-    expect(threads.createMessage).not.toHaveBeenCalled();
-  });
-
-  it('gets the messages again for each copy of the answer', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    // The copy from a replica that could not save the answer can come first. Only the copy
-    // from the replica that saved the answer comes after the save.
-    await act(async () => {
-      capturedOnAgentMessage!({
+      // Each Designer replica forwards its own copy of the event. The copy from a replica that could not
+      // save the answer can come first, so each copy gets the messages again.
+      const copyOfAnswer: AssistantMessageEvent = {
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
-      });
-    });
-    expect(threads.refreshMessages).toHaveBeenCalledTimes(1);
+        data: { content: 'Svar', mode: 'edit', ...answerId },
+      };
 
-    await act(async () => {
-      capturedOnAgentMessage!({
-        type: 'assistant_message',
-        session_id: 'thread-a',
-        data: { content: 'Svar', eventId: 'event-1', mode: 'chat', persistedMessageId: 'msg-1' },
+      await act(async () => {
+        capturedOnAgentMessage!(copyOfAnswer);
+        capturedOnAgentMessage!(copyOfAnswer);
       });
-    });
-    expect(threads.refreshMessages).toHaveBeenCalledTimes(2);
-  });
+
+      expect(threads.refreshMessages).toHaveBeenCalledTimes(2);
+      expect(threads.createMessage).not.toHaveBeenCalled();
+      expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+      expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
+    },
+  );
 
   it('keeps the workflow active when the cancel request fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -399,76 +364,6 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('dedupes a redelivered assistant_message that has an eventId but no traceId', async () => {
-    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads, { resetRepoChanges });
-
-    // Langfuse off, so the answer carries no traceId — eventId still identifies it.
-    const duplicatedEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', eventId: 'event-1', mode: 'edit' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(duplicatedEvent);
-      capturedOnAgentMessage!(duplicatedEvent);
-    });
-
-    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not save a copy of the answer when the event has no persistedMessageId', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    // A Designer replica that could not save the answer forwards this copy.
-    await act(async () => {
-      capturedOnAgentMessage!({
-        type: 'assistant_message',
-        session_id: 'thread-a',
-        data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
-      });
-    });
-
-    expect(threads.createMessage).not.toHaveBeenCalled();
-    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
-    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
-  });
-
   it('evicts the oldest dedupe keys so late duplicates of old runs are reprocessed', async () => {
     const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
@@ -495,7 +390,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', traceId, mode: 'edit', persistedMessageId: `msg-${traceId}` },
+        data: { content: 'Svar', traceId, mode: 'edit' },
       });
 
     await act(async () => {

@@ -122,14 +122,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   }, []);
 
   const markWorkflowCompleted = useCallback(
-    (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+    (threadId: string, assistantMessage: AssistantMessageData) => {
       markThreadTerminated(threadId);
       setWorkflowStatus(threadId, {
         isActive: false,
         sessionId: threadId,
         currentStep: 'Completed',
         message: 'AI agent workflow completed successfully',
-        lastCompletedAt: messageTimestamp,
+        lastCompletedAt: getAssistantMessageTimestamp(assistantMessage),
         filesChanged: assistantMessage.filesChanged || [],
       });
     },
@@ -289,8 +289,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-      markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
+      markWorkflowCompleted(threadId, assistantMessage);
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);

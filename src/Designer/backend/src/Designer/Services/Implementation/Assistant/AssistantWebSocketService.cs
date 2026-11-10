@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.WebSockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -69,12 +68,38 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         _scopeFactory = scopeFactory;
     }
 
-    public async Task EnsureConnectedAsync(string developer)
+    public Task EnsureConnectedAsync(string developer) => GetOrConnectAsync(developer);
+
+    public async Task RegisterSessionAsync(string sessionId, string developer)
+    {
+        // The agent's WebSocket can close while the developer's SignalR connection stays open, such as when
+        // the assistant service restarts.
+        DeveloperConnection connection = await GetOrConnectAsync(developer);
+
+        var frame = JsonSerializer.SerializeToUtf8Bytes(
+            new
+            {
+                type = "session",
+                session_id = sessionId,
+                developer,
+            }
+        );
+        await connection.WebSocket.SendAsync(
+            new ArraySegment<byte>(frame),
+            WebSocketMessageType.Text,
+            endOfMessage: true,
+            CancellationToken.None
+        );
+
+        _logger.LogInformation("Registered session {SessionId} for developer {Developer}", sessionId, developer);
+    }
+
+    private async Task<DeveloperConnection> GetOrConnectAsync(string developer)
     {
         if (_connections.TryGetValue(developer, out var existing) && existing.IsAlive)
         {
             _logger.LogInformation("Reusing existing agents WebSocket for developer {Developer}", developer);
-            return;
+            return existing;
         }
 
         var sem = _connectLocks.GetOrAdd(developer, _ => new SemaphoreSlim(1, 1));
@@ -87,7 +112,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                     "Reusing existing agents WebSocket for developer {Developer} (after lock)",
                     developer
                 );
-                return;
+                return existing2;
             }
 
             var wsUri = BuildWebSocketUri(_settings.AgentUrl);
@@ -106,40 +131,13 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 Activity.Current = null;
                 return ListenForMessagesAsync(developer, connection);
             });
+
+            return connection;
         }
         finally
         {
             sem.Release();
         }
-    }
-
-    public async Task RegisterSessionAsync(string sessionId, string developer)
-    {
-        // The agent's WebSocket can close while the developer's SignalR connection stays open, such as when
-        // the assistant service restarts.
-        await EnsureConnectedAsync(developer);
-
-        if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
-        {
-            throw new InvalidOperationException($"No live agents WebSocket for developer {developer}.");
-        }
-
-        var frame = JsonSerializer.SerializeToUtf8Bytes(
-            new
-            {
-                type = "session",
-                session_id = sessionId,
-                developer,
-            }
-        );
-        await connection.WebSocket.SendAsync(
-            new ArraySegment<byte>(frame),
-            WebSocketMessageType.Text,
-            endOfMessage: true,
-            CancellationToken.None
-        );
-
-        _logger.LogInformation("Registered session {SessionId} for developer {Developer}", sessionId, developer);
     }
 
     public async Task CloseConnectionAsync(string developer)
@@ -303,14 +301,8 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 "attachmentInstructionFlagged",
                 node => node.GetValue<bool>()
             );
-
+            // The assistant service stamps an event id on each answer, so each replica saves it under the same id.
             string? eventId = ReadOptional(data, "eventId", AsString);
-            if (string.IsNullOrEmpty(eventId))
-            {
-                // The database keeps one message for each event id, so each replica must use the same id.
-                eventId = DeriveEventId(threadId, traceId, data["timestamp"]?.ToJsonString(), content);
-                data["eventId"] = eventId;
-            }
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -377,17 +369,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
             );
             return default;
         }
-    }
-
-    /// <summary>
-    /// Makes an event id for an answer that came without one. The id comes only from the answer, so each replica
-    /// makes the same id. Two answers with the same text in one thread get the same id when the assistant service
-    /// sends no trace id and no timestamp, and the thread then keeps only the first of them.
-    /// </summary>
-    private static string DeriveEventId(Guid threadId, string? traceId, string? timestamp, string content)
-    {
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{threadId:N}\n{traceId}\n{timestamp}\n{content}"));
-        return Convert.ToHexStringLower(hash.AsSpan(0, 16));
     }
 
     private static bool IsInternalHandshakeMessage(string json)

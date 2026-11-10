@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.AccessManagement.Tests.Utils;
@@ -165,14 +164,14 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         // Each Designer replica makes its own copy of the same answer.
         var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
             threadId: threadEntity.Id,
-            role: Role.Assistant
+            role: Role.Assistant,
+            eventId: eventId
         );
-        firstCopy.EventId = eventId;
         var secondCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
             threadId: threadEntity.Id,
-            role: Role.Assistant
+            role: Role.Assistant,
+            eventId: eventId
         );
-        secondCopy.EventId = eventId;
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
         var firstSaved = await repository.CreateMessageAsync(firstCopy);
@@ -193,16 +192,16 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         string eventId = Guid.NewGuid().ToString("N");
         var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
             threadId: threadEntity.Id,
-            role: Role.Assistant
+            role: Role.Assistant,
+            eventId: eventId
         );
-        firstCopy.EventId = eventId;
         var secondCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
             threadId: threadEntity.Id,
-            role: Role.Assistant
+            role: Role.Assistant,
+            eventId: eventId
         );
-        secondCopy.EventId = eventId;
 
-        var options = new DbContextOptionsBuilder<DesignerdbContext>().UseNpgsql(DbFixture.ConnectionString).Options;
+        var options = DbFixture.CreatePostgresDbContextOptions();
         await using var firstReplica = new DesignerdbContext(options);
         await using var secondReplica = new DesignerdbContext(options);
 

@@ -195,32 +195,15 @@ public class AssistantWebSocketServiceTests
     }
 
     [Fact]
-    public async Task TryPersistAssistantMessage_GivesEachCopyOfAnAnswerWithoutEventIdTheSameEventId()
-    {
-        List<CreateChatMessageRequest> requests = SetupSavesAndCaptureRequests();
-        AssistantWebSocketService service = CreateService();
-
-        // Each replica gets its own copy of the event.
-        JsonNode firstCopy = CreateAssistantMessageWithoutEventId("Svar");
-        JsonNode secondCopy = CreateAssistantMessageWithoutEventId("Svar");
-        JsonNode otherAnswer = CreateAssistantMessageWithoutEventId("Et annet svar");
-        await service.TryPersistAssistantMessageAsync(Developer, firstCopy);
-        await service.TryPersistAssistantMessageAsync(Developer, secondCopy);
-        await service.TryPersistAssistantMessageAsync(Developer, otherAnswer);
-
-        Assert.Equal(3, requests.Count);
-        Assert.False(string.IsNullOrEmpty(requests[0].EventId));
-        Assert.Equal(requests[0].EventId, requests[1].EventId);
-        Assert.NotEqual(requests[0].EventId, requests[2].EventId);
-        // The browser uses the id to handle the copies of one answer one time.
-        Assert.Equal(requests[0].EventId, firstCopy["data"]!["eventId"]!.GetValue<string>());
-    }
-
-    [Fact]
     public async Task RegisterSession_OpensTheConnectionWhenItIsClosed()
     {
         var firstFrame = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using WebApplication agent = await StartAgentThatReadsOneFrameAsync(firstFrame);
+        await using WebApplication agent = await StartAgentAsync(async webSocket =>
+        {
+            byte[] buffer = new byte[1024];
+            WebSocketReceiveResult frame = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+            firstFrame.TrySetResult(Encoding.UTF8.GetString(buffer, 0, frame.Count));
+        });
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
         // No EnsureConnectedAsync first, as when the assistant service closed the connection after the hub connected.
@@ -251,7 +234,14 @@ public class AssistantWebSocketServiceTests
     [Fact]
     public async Task ListenerForwardsEachMessageInARootSpanWithTheUser()
     {
-        await using WebApplication agent = await StartAgentThatSendsOneMessageAsync();
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            webSocket.SendAsync(
+                Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}"""),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            )
+        );
         var assistantClient = new Mock<IAssistantClient>();
         var clients = new Mock<IHubClients<IAssistantClient>>();
         clients.Setup(c => c.Group(Developer)).Returns(assistantClient.Object);
@@ -307,7 +297,11 @@ public class AssistantWebSocketServiceTests
         throw new TimeoutException("The listener forwarded no message.");
     }
 
-    private static async Task<WebApplication> StartAgentThatSendsOneMessageAsync()
+    /// <summary>
+    /// Starts a fake assistant service that runs <paramref name="onConnected"/> on each WebSocket and then keeps
+    /// the WebSocket open until the client closes it.
+    /// </summary>
+    private static async Task<WebApplication> StartAgentAsync(Func<WebSocket, Task> onConnected)
     {
         WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
@@ -316,33 +310,10 @@ public class AssistantWebSocketServiceTests
         agent.Run(async context =>
         {
             using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            byte[] message = Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}""");
-            await webSocket.SendAsync(message, WebSocketMessageType.Text, true, CancellationToken.None);
             try
             {
-                await webSocket.ReceiveAsync(new byte[256], CancellationToken.None);
-            }
-            catch (WebSocketException) { }
-        });
-        await agent.StartAsync();
-        return agent;
-    }
-
-    private static async Task<WebApplication> StartAgentThatReadsOneFrameAsync(TaskCompletionSource<string> firstFrame)
-    {
-        WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
-        WebApplication agent = builder.Build();
-        agent.UseWebSockets();
-        agent.Run(async context =>
-        {
-            using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            byte[] buffer = new byte[1024];
-            try
-            {
-                WebSocketReceiveResult frame = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-                firstFrame.TrySetResult(Encoding.UTF8.GetString(buffer, 0, frame.Count));
-                await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                await onConnected(webSocket);
+                await webSocket.ReceiveAsync(new byte[1024], CancellationToken.None);
             }
             catch (WebSocketException) { }
         });
@@ -364,16 +335,6 @@ public class AssistantWebSocketServiceTests
             )
             .ReturnsAsync(CreateMessageEntity());
         return requests;
-    }
-
-    private static JsonNode CreateAssistantMessageWithoutEventId(string content)
-    {
-        return new JsonObject
-        {
-            ["type"] = "assistant_message",
-            ["session_id"] = s_threadId.ToString(),
-            ["data"] = new JsonObject { ["content"] = content },
-        };
     }
 
     private AssistantWebSocketService CreateService(
