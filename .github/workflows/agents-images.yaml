@@ -71,6 +71,15 @@ jobs:
           sparse-checkout: |
             agents
 
+      # The desktop image takes about 16 GB of disk while it builds, more than the amd64 runners have
+      # free. The build uses none of these preinstalled toolchains and images. Prune the images before
+      # the next step changes image store, which would hide them from Docker but leave them on disk.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet
+          docker image prune --all --force > /dev/null
+          df -h /
+
       # The containerd image store keeps the image the build step pushes, so the smoke test runs it
       # without a second copy on the runner's disk. The runner's Docker uses it by default from
       # Docker 29; older runner images get it switched on here.
