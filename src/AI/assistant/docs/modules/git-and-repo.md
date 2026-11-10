@@ -6,6 +6,8 @@ Code: `src/AI/assistant/agents/services/git/repo_manager.py`, `src/AI/assistant/
 
 `RepoManager` records the start commit, which is the commit that the clone starts on. A later start in the same session uses the clone again and keeps the start commit. `verify_changes` uses the start commit to find the errors that the session caused, as [Tools](tools.md) describes.
 
+`RepoManager` also records the pushed branch until a final message gives the branch to Designer, as [Graph](graph.md) describes.
+
 ```mermaid
 sequenceDiagram
   participant S as Start route

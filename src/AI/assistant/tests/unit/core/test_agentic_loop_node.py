@@ -473,7 +473,7 @@ class TestHandle:
         assert "read-only mode" in captured["system_prompt"]
         assert not commits
         message_events = [e for e in seen if e.type == "assistant_message"]
-        assert message_events[0].data["no_branch_operations"] is True
+        assert "pushedBranch" not in message_events[0].data
 
     async def test_conversation_history_is_threaded_into_loop(self, monkeypatch, repo):
         from agents.graph.state import ConversationMessage
@@ -644,6 +644,7 @@ class _Remote:
         self.repo = repo
         self.results = results
         self.pushes = 0
+        self.unreported_pushes: dict[str, str] = {}
 
     def push_branch(self, session_id, branch_name):
         result = self.results[min(self.pushes, len(self.results) - 1)]
@@ -652,7 +653,11 @@ class _Remote:
             raise result
         if result:
             git(self.repo, "push", "origin", branch_name)
+            self.unreported_pushes[session_id] = branch_name
         return result
+
+    def take_unreported_push(self, session_id):
+        return self.unreported_pushes.pop(session_id, None)
 
 
 def _use_remote(monkeypatch, repo: Path, *results: bool | Exception) -> _Remote:
@@ -706,7 +711,7 @@ def _loop_ending(reason: TerminationReason, **steps):
     return fake_run_loop
 
 
-async def _finish(
+async def _handle_events(
     monkeypatch,
     repo: Path,
     fake_run_loop,
@@ -716,17 +721,20 @@ async def _finish(
     pushed: bool = True,
     pushes: tuple[bool | Exception, ...] = (),
     render_checks: list[ToolResult] | None = None,
+    remote: _Remote | None = None,
 ):
-    """Run `handle` and return the final state, message and `done` success.
+    """Run `handle` and return the final state, and the data of the final message and of `done`.
 
     `pushes` gives the result of each push in sequence. Without it, `pushed` is
-    the result of all pushes.
+    the result of all pushes. `remote` is the remote from an earlier turn of the
+    session. Without it, the turn gets a new remote.
     """
     events: list = []
     _patch_loop(monkeypatch, fake_run_loop)
     monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", events.append)
     monkeypatch.setattr(node.VerifyChangesTool, "run", _verify_returning(verifies))
-    _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
+    if remote is None:
+        _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
     checks = list(render_checks or [_outcome(is_error=True, unavailable=True)])
 
     # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
@@ -739,7 +747,13 @@ async def _finish(
 
     message = next(e for e in events if e.type == "assistant_message")
     done = next(e for e in events if e.type == "done")
-    return state, message.data["content"], done.data["success"]
+    return state, message.data, done.data
+
+
+async def _finish(monkeypatch, repo: Path, fake_run_loop, **kwargs):
+    """Run `handle` and return the final state, message and `done` success."""
+    state, message, done = await _handle_events(monkeypatch, repo, fake_run_loop, **kwargs)
+    return state, message["content"], done["success"]
 
 
 def _repair_run(*, second_round: dict, second_reason: TerminationReason):
@@ -1336,6 +1350,56 @@ class TestTraceRecordsTheCommit:
 
         assert state.assistant_response is not None
         assert state.assistant_response["commit"] is None
+
+
+class TestPushedBranchInFinalMessage:
+    """Designer checks out the branch that the final message gives. The message
+    gives the branch only if Gitea has a push that no earlier message gave."""
+
+    @pytest.mark.parametrize(
+        ("edits", "outcome"),
+        [
+            pytest.param((), {}, id="nothing changed"),
+            pytest.param(("App/ui/a.json",), {"verifies": False}, id="changes do not verify"),
+            pytest.param(("App/ui/a.json",), {"pushed": False}, id="push rejected"),
+        ],
+    )
+    async def test_a_turn_that_pushed_nothing_names_no_branch(self, monkeypatch, repo, edits, outcome):
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=edits), **outcome
+        )
+
+        assert "pushedBranch" not in message
+
+    async def test_a_pushed_commit_names_the_branch(self, monkeypatch, repo):
+        _, message, _ = await _handle_events(
+            monkeypatch,
+            repo,
+            _loop_ending(TerminationReason.COMPLETED, edits=("App/ui/a.json",), model_commits=True),
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
+
+    async def test_a_later_rejected_push_keeps_the_branch_that_gitea_has(self, monkeypatch, repo):
+        steps = {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)}
+
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps), pushes=(True, False)
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
+
+    async def test_the_next_final_message_names_the_branch_that_a_cancelled_turn_pushed(self, monkeypatch, repo):
+        remote = _use_remote(monkeypatch, repo)
+        cancelled = _loop_ending(TerminationReason.CANCELLED, edits=("App/ui/a.json",), model_commits=True)
+        _patch_loop(monkeypatch, cancelled)
+        await handle(_state(repo_path=str(repo)))
+
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED), remote=remote
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
 
 
 class TestGraphBuilder:
