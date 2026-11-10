@@ -153,6 +153,38 @@ describe('ListComponent', () => {
     expect(await screen.findByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
   });
 
+  it('updates readonly resource cells when their data-model variables change', async () => {
+    window.altinnAppGlobalData.textResources!.resources = [
+      {
+        id: 'list.country',
+        value: 'Current country: {0}',
+        variables: [{ key: 'CountryName', dataSource: 'dataModel.default' }],
+      },
+    ];
+    const { formDataMethods } = await render({
+      component: { dataModelBindings: undefined, tableHeaders: { Name: 'Name' } },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = countrySchema;
+            obj.dataModels[defaultDataTypeMock].initialData = { CountryName: 'Norway' };
+          }),
+        fetchDataList: async () => ({
+          listItems: [{ Name: 'list.country' }],
+          _metaData: { page: 0, pageCount: 1, pageSize: 1, totaltItemsCount: 1, links: [] },
+        }),
+      },
+    });
+    expect(await screen.findByText('Current country: Norway')).toBeInTheDocument();
+    act(() => {
+      formDataMethods.setLeafValue({
+        reference: { dataType: defaultDataTypeMock, field: 'CountryName' },
+        newValue: 'Sweden',
+      });
+    });
+    await waitFor(() => expect(screen.getByText('Current country: Sweden')).toBeInTheDocument());
+  });
+
   it('should save all field values in dataModelBindings atomically', async () => {
     vi.useFakeTimers();
     const user = userEvent.setup({ delay: null });

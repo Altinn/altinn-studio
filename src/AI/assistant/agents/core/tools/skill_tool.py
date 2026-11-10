@@ -17,6 +17,8 @@ from pydantic import AliasChoices, BaseModel, Field
 from agents.core.skills import Skill
 from agents.core.tool import LoopContext, Tool, ToolResult
 
+from .utils.text_parts import PartLimit, PartOffset, text_part
+
 
 class SkillArgs(BaseModel):
     # Models reach for `name` first; accepting it costs a wasted turn per skill.
@@ -24,6 +26,8 @@ class SkillArgs(BaseModel):
         validation_alias=AliasChoices("skill", "name"),
         description="Name of the skill to load, exactly as it appears in the skill listing.",
     )
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class SkillTool(Tool[SkillArgs]):
@@ -59,10 +63,20 @@ class SkillTool(Tool[SkillArgs]):
                 content=f"Failed to load skill {args.skill!r}: {exc}",
                 is_error=True,
             )
+        result = text_part(
+            ctx,
+            body,
+            offset=args.offset,
+            limit=args.limit,
+            key=f"skill:{skill.name}",
+            source=f"the {skill.name} skill",
+            tool=self.name,
+            same_args="the same `skill`",
+        )
+        if result.is_error:
+            return result
         source: dict[str, str] = {"title": skill.title or skill.name, "kind": "skill"}
         if skill.docs_url:
             source["url"] = skill.docs_url
-        return ToolResult(
-            content=body,
-            metadata={"skill": skill.name, "source": source},
-        )
+        result.metadata.update({"skill": skill.name, "source": source})
+        return result

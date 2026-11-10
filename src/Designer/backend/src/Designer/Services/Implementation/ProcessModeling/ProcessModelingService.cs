@@ -206,10 +206,11 @@ public class ProcessModelingService : IProcessModelingService
                 AllowedContentTypes =
                     allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { "application/json" },
                 MaxCount = 1,
-                TaskId = taskId,
             };
 
-            if (!_appVersionService.IsV9App(altinnRepoEditingContext))
+            bool isV9App = _appVersionService.IsV9App(altinnRepoEditingContext);
+            dataTypeToAdd.BindToTask(taskId, usesTaskIds: isV9App);
+            if (!isV9App)
             {
                 // V8 enables legacy PDF generation when this property is omitted.
 #pragma warning disable CS0618 // Required by apps using the v8 runtime
