@@ -260,6 +260,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
     public async Task UpdateDataElementMetadata_WithAContentUpdate_SendsOneUpdateItem()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        var referencedId = Guid.NewGuid();
         setup.DataMutator.UpdateBinaryDataElement(
             setup.DataElement,
             setup.DataElement.ContentType!,
@@ -268,13 +269,19 @@ public sealed partial class InstanceDataUnitOfWorkTests
 
         setup.DataMutator.UpdateDataElementMetadata(
             setup.DataElement,
-            new DataElementMetadataUpdate { Tags = ["signed"], Filename = "renamed.json" }
+            new DataElementMetadataUpdate
+            {
+                Tags = ["signed"],
+                Refs = [referencedId],
+                Filename = "renamed.json",
+            }
         );
         await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
 
         StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
         Assert.NotNull(update.ContentPartName);
         Assert.Equal(["signed"], update.Tags);
+        Assert.Equal([referencedId], update.Refs);
         Assert.Equal("renamed.json", update.Filename);
     }
 

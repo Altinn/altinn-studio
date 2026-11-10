@@ -1245,7 +1245,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             ContentType = change.ContentType,
                             // A content update replaces the element's refs and task reference, so send the
                             // current ones back or the update would drop them.
-                            Refs = stagedMetadata?.Refs ?? change.DataElement.Refs,
+                            Refs = change.DataElement.Refs,
                             GeneratedFromTask = change
                                 .DataElement.References?.Find(reference =>
                                     reference.Relation == RelationType.GeneratedFrom
