@@ -4493,6 +4493,8 @@ namespace Altinn.App.Core.Models
         AllExceptRequired = 5,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("All")]
         All = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
+        Invalid = 7,
     }
 }
 namespace Altinn.App.Core.Models.Expressions
