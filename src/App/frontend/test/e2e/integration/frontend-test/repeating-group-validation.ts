@@ -186,7 +186,9 @@ describe('Repeating group row validation', () => {
     cy.get('@messages').findByRole('button', { name: 'Opprinnelig beløp' }).should('not.exist');
     cy.get('@messages').findByRole('button', { name: 'Beløpet må korrigeres' }).should('be.visible');
     cy.get('@messages').findByRole('button', { name: 'Kontroller beløpet 400.' }).should('be.visible');
-    cy.get('@messages').find('li > div > [data-color]').should('have.length', 2);
+    cy.get('@messages').find('li > [data-field="validation"]').should('have.length', 2);
+    cy.get('@messages').find('li > [data-field="validation"]').first().should('have.attr', 'data-color', 'danger');
+    cy.get('@messages').find('li > [data-field="validation"]').last().should('have.attr', 'data-color', 'warning');
     cy.get('@messages')
       .findByRole('link', { name: 'Les mer' })
       .should('have.attr', 'href', 'https://www.altinn.no/')

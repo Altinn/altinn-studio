@@ -4,8 +4,8 @@ import { MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { NavigableMessage } from 'src/components/message/ValidationMessage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
+import { NavigableMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
 
 vi.mock('src/hooks/useNavigatePage', async (importOriginal) => ({
   ...(await importOriginal<typeof import('src/hooks/useNavigatePage')>()),
