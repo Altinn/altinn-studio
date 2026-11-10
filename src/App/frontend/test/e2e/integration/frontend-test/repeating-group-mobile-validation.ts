@@ -42,7 +42,7 @@ describe('Repeating-group validation on mobile', () => {
       cy.get('#validation-table-name-4').should(($input) => {
         expect($input[0].getBoundingClientRect().width).to.be.at.least(width - 72);
       });
-      cy.get('#group-validation-table').find('[data-testid="table-row-validation-errors"]').should('not.exist');
+      cy.get('#group-validation-table').find('[data-testid="table-row-validation-messages"]').should('not.exist');
       cy.get(row('table', 4)).should('contain.text', 'Oppgi navnet slik det står i registeret.');
       cy.get(row('table', 4)).should('contain.text', 'Alderen er høyere enn ved forrige innrapportering.');
       cy.get(row('table', 6)).should('contain.text', 'Navnet mangler i registeret.');

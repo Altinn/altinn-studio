@@ -170,7 +170,7 @@ describe('Repeating group validation showcase', () => {
         cy.get(row(variant, severity.index)).find(indicator).should('have.attr', 'data-color', severity.color);
         cy.get(row(variant, 5)).find(indicator).should('not.exist');
       }
-      cy.get('[data-testid="table-row-validation-errors"] [data-validation-for]').should(
+      cy.get('[data-testid="table-row-validation-messages"] [data-validation-for]').should(
         'have.attr',
         'data-color',
         severity.color,
