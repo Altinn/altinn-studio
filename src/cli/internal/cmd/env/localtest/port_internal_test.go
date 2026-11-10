@@ -1,0 +1,144 @@
+package localtest
+
+import (
+	"context"
+	"errors"
+	"io"
+	"net"
+	"strings"
+	"sync"
+	"testing"
+
+	"altinn.studio/devenv/pkg/container/mock"
+	containertypes "altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/ui"
+)
+
+func TestCheckPublicPort(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		port              string
+		wantClash         string
+		monitoring        bool
+		devWorkflowEngine bool
+	}{
+		{name: "a free port", port: "8100"},
+		{name: "the default port with every option", port: "8000", monitoring: true, devWorkflowEngine: true},
+		{name: "localtest's own port", port: components.LocaltestServicePort, wantClash: components.ContainerLocaltest},
+		{name: "pdf3's port", port: "5300", wantClash: components.ContainerPDF3},
+		{
+			name:       "the collector's port with monitoring",
+			port:       "4317",
+			monitoring: true,
+			wantClash:  components.ContainerOtelCollector,
+		},
+		{name: "the collector's port without monitoring", port: "4317"},
+		{
+			name:              "the engine database's port with a host engine",
+			port:              "9543",
+			devWorkflowEngine: true,
+			wantClash:         components.ContainerWorkflowEngineDb,
+		},
+		{name: "the engine database's port otherwise", port: "9543"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			manifest := components.NewManifest(&components.Options{
+				Paths:             components.NewPaths(t.TempDir()),
+				Topology:          envtopology.NewLocal(tt.port),
+				IncludeMonitoring: tt.monitoring,
+				DevWorkflowEngine: tt.devWorkflowEngine,
+			})
+
+			err := checkPublicPort(manifest.Resources, tt.port)
+			if tt.wantClash == "" {
+				if err != nil {
+					t.Fatalf("checkPublicPort() error = %v, want nil", err)
+				}
+				return
+			}
+			if !errors.Is(err, errPortPublished) || !strings.Contains(err.Error(), tt.wantClash) {
+				t.Fatalf("checkPublicPort() error = %v, want a clash with %s", err, tt.wantClash)
+			}
+		})
+	}
+}
+
+func TestCheckPortFreeRefusesAPortAnotherProgramListensOn(t *testing.T) {
+	t.Parallel()
+
+	port, _ := listenOnLoopback(t)
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse", err)
+	}
+}
+
+func TestCheckPortFreeAcceptsTheRunningLocaltestsOwnPort(t *testing.T) {
+	t.Parallel()
+
+	port, _ := listenOnLoopback(t)
+	env := newPortTestEnv(t, containertypes.ContainerInfo{
+		Ports: []containertypes.PublishedPort{{HostPort: port, ContainerPort: components.LocaltestServicePort}},
+		State: containertypes.ContainerState{Status: "running", Running: true},
+	})
+
+	if err := env.checkPortFree(t.Context(), port); err != nil {
+		t.Fatalf("checkPortFree() error = %v, want nil", err)
+	}
+}
+
+func TestCheckPortFreeAcceptsAFreePort(t *testing.T) {
+	t.Parallel()
+
+	port, release := listenOnLoopback(t)
+	release()
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); err != nil {
+		t.Fatalf("checkPortFree() error = %v, want nil", err)
+	}
+}
+
+// listenOnLoopback holds a port on the published host address, as another program would, until release is called or
+// the test ends.
+func listenOnLoopback(t *testing.T) (string, func()) {
+	t.Helper()
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp", net.JoinHostPort(components.PublishedHostIP, "0"))
+	if err != nil {
+		t.Fatalf("Listen() error = %v", err)
+	}
+	release := sync.OnceFunc(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	t.Cleanup(release)
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	return port, release
+}
+
+// newPortTestEnv is an Env whose localtest container inspects as localtest; the zero ContainerInfo means none.
+func newPortTestEnv(t *testing.T, localtest containertypes.ContainerInfo) *Env {
+	t.Helper()
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (containertypes.ContainerInfo, error) {
+		if nameOrID != components.ContainerLocaltest || !localtest.State.Running {
+			return containertypes.ContainerInfo{}, containertypes.ErrContainerNotFound
+		}
+		return localtest, nil
+	}
+	return NewEnv(&config.Config{DataDir: t.TempDir()}, ui.NewOutput(io.Discard, io.Discard, false), client)
+}

@@ -1,16 +1,22 @@
 package localtest
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net"
 	"slices"
 	"strings"
 
+	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 )
 
-var errPortPublished = errors.New("the environment already publishes this port")
+var (
+	errPortPublished = errors.New("the environment already publishes this port")
+	errPortInUse     = errors.New("the port is in use on this machine")
+)
 
 // checkPublicPort refuses a public port that one of the environment's containers also publishes on the host, which
 // would keep that container from starting. The ports come from the containers env up is about to start, so they
@@ -46,4 +52,27 @@ func checkPublicPort(resources []resource.Resource, port string) error {
 		strings.Join(slices.Compact(others), ", "),
 		port,
 	)
+}
+
+// checkPortFree refuses a port that another program on this machine listens on. env up checks it before it replaces
+// any container: the container runtime would only find out after removing the running localtest container, and leave
+// the environment down. The port the running localtest container publishes is the environment's own, so it passes.
+func (e *Env) checkPortFree(ctx context.Context, port string) error {
+	info, err := e.client.ContainerInspect(ctx, components.ContainerLocaltest)
+	if err == nil && info.State.Running &&
+		slices.ContainsFunc(info.Ports, func(published containertypes.PublishedPort) bool {
+			return published.HostPort == port
+		}) {
+		return nil
+	}
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", net.JoinHostPort(components.PublishedHostIP, port))
+	if err != nil {
+		return fmt.Errorf("%w: port %s (%w); choose another --port", errPortInUse, port, err)
+	}
+	if err := listener.Close(); err != nil {
+		return fmt.Errorf("release port %s after checking it: %w", port, err)
+	}
+	return nil
 }

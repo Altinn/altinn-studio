@@ -124,6 +124,9 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	if err := checkPublicPort(manifest.Resources, topology.IngressPort()); err != nil {
 		return err
 	}
+	if err := e.checkPortFree(ctx, topology.IngressPort()); err != nil {
+		return err
+	}
 	// Recorded before anything starts, so that a start that fails half-way leaves every other command pointing at
 	// the containers it did create.
 	if err := WriteState(e.cfg, state); err != nil {
