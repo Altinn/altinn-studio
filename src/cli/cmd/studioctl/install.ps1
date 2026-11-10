@@ -5,115 +5,118 @@ param(
     [switch]$SkipChecksum
 )
 
-$ErrorActionPreference = "Stop"
-Set-StrictMode -Version Latest
+# `iwr ... | iex` runs this script in the caller's session. The script block keeps its strict mode, error preference and
+# the variables and functions it defines out of that session; only the PATH change below is meant to stay.
+& {
+    $ErrorActionPreference = "Stop"
+    Set-StrictMode -Version Latest
 
-$DefaultVersion = "__STUDIOCTL_DEFAULT_VERSION__"
-if ($DefaultVersion -eq "__STUDIOCTL_DEFAULT_VERSION__") { $DefaultVersion = "latest" }
+    $DefaultVersion = "__STUDIOCTL_DEFAULT_VERSION__"
+    if ($DefaultVersion -eq "__STUDIOCTL_DEFAULT_VERSION__") { $DefaultVersion = "latest" }
 
-if (-not $Version) { $Version = $env:STUDIOCTL_VERSION }
-if (-not $Version) { $Version = $DefaultVersion }
-if (-not $InstallDir) { $InstallDir = $env:STUDIOCTL_INSTALL_DIR }
+    if (-not $Version) { $Version = $env:STUDIOCTL_VERSION }
+    if (-not $Version) { $Version = $DefaultVersion }
+    if (-not $InstallDir) { $InstallDir = $env:STUDIOCTL_INSTALL_DIR }
 
-if (-not $SkipChecksum -and $env:STUDIOCTL_SKIP_CHECKSUM) {
-    if ($env:STUDIOCTL_SKIP_CHECKSUM -match "^(1|true|TRUE|True)$") {
-        $SkipChecksum = $true
-    }
-}
-
-if ($Version -ne "latest") {
-    if ($Version.StartsWith("studioctl/")) {
-        $Version = $Version.Substring("studioctl/".Length)
-    }
-
-    if (-not $Version.StartsWith("v")) {
-        throw "Invalid version format: $Version (expected vX.Y.Z or studioctl/vX.Y.Z)"
-    }
-
-    $Version = "studioctl/$Version"
-}
-
-function Resolve-StudioctlArchitecture {
-    $rawArch = $env:PROCESSOR_ARCHITEW6432
-    if (-not $rawArch) { $rawArch = $env:PROCESSOR_ARCHITECTURE }
-
-    if (-not $rawArch) {
-        throw "Unsupported architecture: unable to determine processor architecture"
-    }
-
-    switch ($rawArch.ToLowerInvariant()) {
-        "amd64" { return "amd64" }
-        "arm64" { return "arm64" }
-        default { throw "Unsupported architecture: $rawArch" }
-    }
-}
-
-$arch = Resolve-StudioctlArchitecture
-
-$asset = "studioctl-windows-$arch.exe"
-$repo = "Altinn/altinn-studio"
-
-if ($Version -eq "latest") {
-    $baseUrl = "https://github.com/$repo/releases/latest/download"
-} else {
-    $baseUrl = "https://github.com/$repo/releases/download/$Version"
-}
-
-$url = "$baseUrl/$asset"
-$checksumsUrl = "$baseUrl/SHA256SUMS"
-
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-$tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) ("studioctl-" + [System.Guid]::NewGuid().ToString("n"))
-New-Item -ItemType Directory -Path $tmpDir | Out-Null
-
-$binPath = Join-Path $tmpDir "studioctl.exe"
-
-function Get-FileChecksum {
-    param([string]$FilePath)
-    $hash = Get-FileHash -Path $FilePath -Algorithm SHA256
-    return $hash.Hash.ToLowerInvariant()
-}
-
-function Test-Checksum {
-    param(
-        [string]$BinaryPath,
-        [string]$Asset,
-        [string]$ChecksumsUrl
-    )
-
-    if ($SkipChecksum) {
-        Write-Host "Skipping checksum verification"
-        return
-    }
-
-    $checksumsPath = Join-Path $tmpDir "SHA256SUMS"
-    try {
-        Invoke-WebRequest -Uri $ChecksumsUrl -OutFile $checksumsPath -UseBasicParsing
-    } catch {
-        throw "Failed to download SHA256SUMS"
-    }
-
-    $checksumLines = Get-Content $checksumsPath
-    $expected = $null
-    foreach ($line in $checksumLines) {
-        if ($line -match "^([a-f0-9]{64})\s+(.+)$") {
-            $name = $Matches[2].Trim().TrimStart('*')
-            if ($name -eq $Asset) {
-                $expected = $Matches[1].ToLowerInvariant()
-                break
-            }
+    if (-not $SkipChecksum -and $env:STUDIOCTL_SKIP_CHECKSUM) {
+        if ($env:STUDIOCTL_SKIP_CHECKSUM -match "^(1|true|TRUE|True)$") {
+            $SkipChecksum = $true
         }
     }
 
-    if (-not $expected) {
-        throw "Asset $Asset not found in SHA256SUMS"
+    if ($Version -ne "latest") {
+        if ($Version.StartsWith("studioctl/")) {
+            $Version = $Version.Substring("studioctl/".Length)
+        }
+
+        if (-not $Version.StartsWith("v")) {
+            throw "Invalid version format: $Version (expected vX.Y.Z or studioctl/vX.Y.Z)"
+        }
+
+        $Version = "studioctl/$Version"
     }
 
-    $actual = Get-FileChecksum -FilePath $BinaryPath
+    function Resolve-StudioctlArchitecture {
+        $rawArch = $env:PROCESSOR_ARCHITEW6432
+        if (-not $rawArch) { $rawArch = $env:PROCESSOR_ARCHITECTURE }
 
-    if ($expected -ne $actual) {
-        throw @"
+        if (-not $rawArch) {
+            throw "Unsupported architecture: unable to determine processor architecture"
+        }
+
+        switch ($rawArch.ToLowerInvariant()) {
+            "amd64" { return "amd64" }
+            "arm64" { return "arm64" }
+            default { throw "Unsupported architecture: $rawArch" }
+        }
+    }
+
+    $arch = Resolve-StudioctlArchitecture
+
+    $asset = "studioctl-windows-$arch.exe"
+    $repo = "Altinn/altinn-studio"
+
+    if ($Version -eq "latest") {
+        $baseUrl = "https://github.com/$repo/releases/latest/download"
+    } else {
+        $baseUrl = "https://github.com/$repo/releases/download/$Version"
+    }
+
+    $url = "$baseUrl/$asset"
+    $checksumsUrl = "$baseUrl/SHA256SUMS"
+
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    $tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) ("studioctl-" + [System.Guid]::NewGuid().ToString("n"))
+    New-Item -ItemType Directory -Path $tmpDir | Out-Null
+
+    $binPath = Join-Path $tmpDir "studioctl.exe"
+
+    function Get-FileChecksum {
+        param([string]$FilePath)
+        $hash = Get-FileHash -Path $FilePath -Algorithm SHA256
+        return $hash.Hash.ToLowerInvariant()
+    }
+
+    function Test-Checksum {
+        param(
+            [string]$BinaryPath,
+            [string]$Asset,
+            [string]$ChecksumsUrl
+        )
+
+        if ($SkipChecksum) {
+            Write-Host "Skipping checksum verification"
+            return
+        }
+
+        $checksumsPath = Join-Path $tmpDir "SHA256SUMS"
+        try {
+            Invoke-WebRequest -Uri $ChecksumsUrl -OutFile $checksumsPath -UseBasicParsing
+        } catch {
+            throw "Failed to download SHA256SUMS"
+        }
+
+        $checksumLines = Get-Content $checksumsPath
+        $expected = $null
+        foreach ($line in $checksumLines) {
+            if ($line -match "^([a-f0-9]{64})\s+(.+)$") {
+                $name = $Matches[2].Trim().TrimStart('*')
+                if ($name -eq $Asset) {
+                    $expected = $Matches[1].ToLowerInvariant()
+                    break
+                }
+            }
+        }
+
+        if (-not $expected) {
+            throw "Asset $Asset not found in SHA256SUMS"
+        }
+
+        $actual = Get-FileChecksum -FilePath $BinaryPath
+
+        if ($expected -ne $actual) {
+            throw @"
 Checksum verification failed
   Expected: $expected
   Actual:   $actual
@@ -121,22 +124,34 @@ Checksum verification failed
 The downloaded binary may be corrupted or tampered with.
 Use -SkipChecksum to bypass this check (not recommended).
 "@
+        }
+
+        Write-Host "Checksum verified: $actual"
     }
 
-    Write-Host "Checksum verified: $actual"
-}
+    try {
+        Invoke-WebRequest -Uri $url -OutFile $binPath -UseBasicParsing
 
-try {
-    Invoke-WebRequest -Uri $url -OutFile $binPath -UseBasicParsing
+        Test-Checksum -BinaryPath $binPath -Asset $asset -ChecksumsUrl $checksumsUrl
 
-    Test-Checksum -BinaryPath $binPath -Asset $asset -ChecksumsUrl $checksumsUrl
+        $selfInstallArgs = @("self", "install")
+        if ($InstallDir) { $selfInstallArgs += @("--path", $InstallDir) }
 
-    $selfInstallArgs = @("self", "install")
-    if ($InstallDir) { $selfInstallArgs += @("--path", $InstallDir) }
+        & $binPath @selfInstallArgs
+    } finally {
+        if (Test-Path $tmpDir) {
+            Remove-Item -Recurse -Force $tmpDir
+        }
+    }
 
-    & $binPath @selfInstallArgs
-} finally {
-    if (Test-Path $tmpDir) {
-        Remove-Item -Recurse -Force $tmpDir
+    # studioctl adds its directory to the user PATH, which only new terminals read. Add it to this one too.
+    # File.Exists, unlike Join-Path, returns false instead of failing on an entry whose drive is gone.
+    if (-not (Get-Command studioctl -CommandType Application -ErrorAction SilentlyContinue)) {
+        foreach ($dir in [Environment]::GetEnvironmentVariable("Path", "User") -split ";") {
+            if ($dir -and [IO.File]::Exists("$dir\studioctl.exe")) {
+                $env:Path = "$env:Path;$dir"
+                break
+            }
+        }
     }
 }
