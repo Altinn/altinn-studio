@@ -467,14 +467,14 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("fiks-arkiv-success", success.Action);
-        Assert.True(success.ConfirmComplete);
+        Assert.True(success.ConfirmCompleteOnProcessEnd);
         dataMutator.Verify();
         Assert.NotNull(savedReceipt);
         Assert.Contains("arkivmeldingKvittering", Encoding.UTF8.GetString(savedReceipt.Value.Span));
     }
 
     [Fact]
-    public async Task HandleArchiveMessage_Receipt_WithMarkInstanceComplete_ConfirmsWithTheConclusion()
+    public async Task HandleArchiveMessage_Receipt_WithMarkInstanceComplete_AsksTheProcessEndToConfirm()
     {
         var settings = SettingsWithReceipt(
             successHandling: new FiksArkivSuccessHandlingSettings { Action = "confirm", MarkInstanceComplete = true }
@@ -491,7 +491,7 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("confirm", success.Action);
-        Assert.True(success.ConfirmComplete);
+        Assert.True(success.ConfirmCompleteOnProcessEnd);
     }
 
     [Fact]
@@ -510,7 +510,7 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Null(success.Action);
-        Assert.True(success.ConfirmComplete);
+        Assert.True(success.ConfirmCompleteOnProcessEnd);
     }
 
     [Fact]
@@ -529,7 +529,7 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
-        Assert.False(success.ConfirmComplete);
+        Assert.False(success.ConfirmCompleteOnProcessEnd);
     }
 
     [Theory]
@@ -553,7 +553,7 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("reject", success.Action);
-        Assert.False(success.ConfirmComplete);
+        Assert.False(success.ConfirmCompleteOnProcessEnd);
     }
 
     [Theory]
@@ -597,7 +597,7 @@ public class FiksArkivServiceTaskTest
 
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("reject", success.Action);
-        Assert.False(success.ConfirmComplete);
+        Assert.False(success.ConfirmCompleteOnProcessEnd);
     }
 
     [Fact]

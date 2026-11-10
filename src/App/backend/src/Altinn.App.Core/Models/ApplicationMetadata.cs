@@ -102,8 +102,9 @@ public class ApplicationMetadata : Application
     /// Whether the app confirms the instance as complete for the service owner when the process reaches its end
     /// event. The confirmation is saved after the process-ended hook and the deletion of the data types that set
     /// <c>autoDeleteOnProcessEnd</c>, and before the instance is released or, with the application's own
-    /// <c>autoDeleteOnProcessEnd</c>, hard-deleted. The eFormidling task confirms without this setting, when the
-    /// delivery it has confirmed ends the process. The app owner's policy must grant the <c>complete</c> action.
+    /// <c>autoDeleteOnProcessEnd</c>, hard-deleted. The eFormidling and Fiks Arkiv tasks confirm without this
+    /// setting, when the delivery they have confirmed ends the process. The app owner's policy must grant the
+    /// <c>complete</c> action.
     /// </summary>
     [JsonProperty(PropertyName = "autoConfirmCompleteOnProcessEnd")]
     public bool AutoConfirmCompleteOnProcessEnd { get; set; }

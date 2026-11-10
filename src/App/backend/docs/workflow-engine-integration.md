@@ -92,9 +92,9 @@ the same decision.
   callback's save, as the service owner. It confirms only when the process ends, so Storage checks the `complete`
   grant against the end event, and in a step before the release, because Storage refuses a confirmation in the save
   that hard-deletes the instance. The step is planned with `autoConfirmCompleteOnProcessEnd`, and when the
-  eFormidling task's confirmed delivery ends the process: the task's result carries the request to the transition
-  it starts. A delivery followed by another task confirms nothing. Hooks and an app's own service tasks cannot
-  confirm.
+  confirmed delivery of an eFormidling or Fiks Arkiv task ends the process: the task's result carries the request
+  to the transition it starts. A delivery followed by another task confirms nothing. Hooks and an app's own
+  service tasks cannot confirm.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)

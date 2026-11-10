@@ -23,7 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- A Fiks Arkiv service task with `markInstanceComplete`, the default, no longer stays stuck retrying the archive's receipt. Storage refused its confirmation while the instance was processing. The confirmation is now saved together with the receipt. ([#21737](https://github.com/Altinn/altinn-studio/pull/21737))
+- A Fiks Arkiv service task with `markInstanceComplete`, the default, no longer stays stuck retrying the archive's receipt. Storage refused its confirmation while the instance was processing. The instance is now confirmed when the process ends, if the archive's confirmation is what ends it. ([#21737](https://github.com/Altinn/altinn-studio/pull/21737))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

@@ -260,8 +260,9 @@ public sealed record FiksArkivSuccessHandlingSettings
     /// Defaults to <c>true</c>.
     /// </summary>
     /// <remarks>
-    /// The confirmation is saved with the archive's receipt, before the process advances, because advancing
-    /// can end the process and an ended process can take the instance with it.
+    /// The instance is confirmed when the process ends, if the archive's confirmation is what ends it. If another
+    /// task follows the Fiks Arkiv task, nothing is confirmed. Set <c>autoConfirmCompleteOnProcessEnd</c> in
+    /// <c>applicationmetadata.json</c> for that. A refused archiving confirms nothing.
     /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
     public bool MarkInstanceComplete { get; set; } = DefaultMarkInstanceComplete;

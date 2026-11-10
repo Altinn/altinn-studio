@@ -301,13 +301,15 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
         SaveArchiveReceipt(context, receipt);
 
-        // In the save that stores the receipt, not through Storage's own endpoint, which refuses a processing
-        // instance. That save comes before the process advances, which may end it and take the instance along.
-        return ServiceTaskResult.Success(
-            action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault(),
-            confirmComplete: _fiksArkivSettings.SuccessHandling?.MarkInstanceComplete
-                ?? FiksArkivSuccessHandlingSettings.DefaultMarkInstanceComplete
-        );
+        // The process end this leads to confirms the instance, not a call to Storage's own endpoint from here,
+        // which refuses a processing instance. A refused archiving moves on with the error action and asks for
+        // no confirmation, so it confirms nothing even when it ends the process.
+        return ServiceTaskResult.Success(action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault()) with
+        {
+            ConfirmCompleteOnProcessEnd =
+                _fiksArkivSettings.SuccessHandling?.MarkInstanceComplete
+                ?? FiksArkivSuccessHandlingSettings.DefaultMarkInstanceComplete,
+        };
     }
 
     /// <summary>
