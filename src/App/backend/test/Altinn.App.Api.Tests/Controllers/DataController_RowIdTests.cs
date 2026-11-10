@@ -11,7 +11,6 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -19,14 +18,14 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public sealed class DataControllerRowIdTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
 
-    public DataControllerRowIdTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataControllerRowIdTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]

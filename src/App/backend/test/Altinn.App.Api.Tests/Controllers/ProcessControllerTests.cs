@@ -35,7 +35,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -45,7 +44,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ProcessControllerTests : ApiTestBase
 {
     // Define constants
     private const string Org = "tdd";
@@ -67,8 +66,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     // Constructor with common setup
-    public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public ProcessControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);

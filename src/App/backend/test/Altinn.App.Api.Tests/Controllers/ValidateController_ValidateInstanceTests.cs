@@ -10,14 +10,13 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ValidateControllerValidateInstanceTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -35,11 +34,8 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
 
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
 
-    public ValidateControllerValidateInstanceTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper)
+    public ValidateControllerValidateInstanceTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
     }

@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "57a1d5950b2b",
-    "code": "8a44cb0 clean",
+    "actor_prompt": "0a2c5651440c",
+    "code": "d34b08c clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "94a7e1f25959"
+    "tools": "f2076778eb7a"
   },
-  "check_id": "20261107T084056Z-21426-data-model-files-from-designer-8a44cb068c-e59c",
-  "label": "#21426 data model files from Designer, 8a44cb068c",
-  "recorded_at": "2026-11-07T08:47:01+00:00",
-  "why": "#21426 changes the description of the altinn_datamodel_sync tool, which moves the tool schema digest. Full check with e2e: every scored behavior holds against the previous baseline. The four apps that the e2e items build compile, and their C# classes and XSDs are the files Designer generates from their schemas. Studio's preview is turned off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force."
+  "check_id": "20261110T111846Z-21822-success-only-when-the-assistant-saved-its-edits-b3b1",
+  "label": "#21822 success only when the assistant saved its edits",
+  "recorded_at": "2026-11-10T11:25:03+00:00",
+  "why": "#21822 reports success only when the assistant saved its edits, and changes the description of commit_session_branch. This moves the tools digest. Full check with e2e: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview did not load on the local stack, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
 }

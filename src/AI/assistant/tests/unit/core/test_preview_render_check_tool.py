@@ -42,7 +42,7 @@ def _ctx(
         repo_owner="ttd",
     )
     if committed:
-        ctx.extras["session_committed"] = True
+        ctx.extras["session_pushed"] = True
         ctx.extras["session_branch"] = "assistant_abcdef12"
     if app_name:
         ctx.extras["app_name"] = app_name

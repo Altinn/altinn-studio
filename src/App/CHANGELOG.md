@@ -12,9 +12,22 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 - Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 - Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+
+### Fixed
+
+- List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
+- Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+- Changing a form or attachment through `IInstanceDataMutator` keeps its `refs`, unless the same step set new ones, and the task it was generated from, so a PDF generated for a task is still cleaned up when the process returns to that task. Its other `references` are replaced. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182), [#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+
+## [9.0.0-preview.10] - 2026-11-09
+
+### Added
+
+- Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
 
 ### Changed
 
@@ -35,7 +48,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
-- Changing a form or attachment through `IInstanceDataMutator` keeps its `refs`, unless the same step set new ones, and the task it was generated from, so a PDF generated for a task is still cleaned up when the process returns to that task. Its other `references` are replaced. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182), [#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+- Read-only fields that are required, such as calculated sums, no longer show the "Må fylles ut" tag, since the user cannot fill them in. ([#21565](https://github.com/Altinn/altinn-studio/issues/21565))
 
 ### Removed
 

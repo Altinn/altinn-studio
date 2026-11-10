@@ -7,9 +7,12 @@ modify" rhythm to prevent blind retries.
 
 from __future__ import annotations
 
+import posixpath
 from pathlib import Path
 
 from agents.core.tool import LoopContext
+
+from .text_parts import forget_reads
 
 
 class PathError(Exception):
@@ -39,6 +42,11 @@ def resolve_repo_path(repo_path: str, rel_path: str) -> Path:
     return full
 
 
+def file_key(rel_path: str) -> str:
+    """The key of a repository file in the record of read lines (`text_parts`)."""
+    return f"file:{rel_path}"
+
+
 def mark_read(ctx: LoopContext, rel_path: str) -> None:
     read_set: set[str] = ctx.extras.setdefault("read_set", set())
     read_set.add(rel_path)
@@ -48,6 +56,7 @@ def mark_unread(ctx: LoopContext, rel_path: str) -> None:
     read_set = ctx.extras.get("read_set")
     if read_set is not None:
         read_set.discard(rel_path)
+    forget_reads(ctx, file_key(rel_path))
 
 
 def mark_changed(ctx: LoopContext, rel_path: str) -> None:
@@ -59,6 +68,10 @@ def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     verified = ctx.extras.get("verified_files")
     if verified is not None:
         verified.discard(rel_path)
+    # A tool that writes the file makes the change in this turn.
+    not_from_tools = ctx.extras.get("edits_not_from_tools")
+    if not_from_tools is not None:
+        not_from_tools.discard(posixpath.normpath(rel_path))
 
 
 def is_read(ctx: LoopContext, rel_path: str) -> bool:

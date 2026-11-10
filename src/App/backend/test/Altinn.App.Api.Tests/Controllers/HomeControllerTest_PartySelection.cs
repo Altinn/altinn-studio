@@ -5,22 +5,21 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class HomeControllerTestPartySelection : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
 
     private readonly Mock<IAuthorizationClient> _authorizationClientMock = new(MockBehavior.Strict);
 
-    public HomeControllerTestPartySelection(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public HomeControllerTestPartySelection(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {

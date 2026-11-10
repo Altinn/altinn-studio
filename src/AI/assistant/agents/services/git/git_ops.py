@@ -4,6 +4,17 @@ import subprocess
 from datetime import datetime
 
 
+def head_commit(repo_path: str) -> str | None:
+    """The full hash of HEAD, or None when the repository has no commits."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "HEAD^{commit}"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
 def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash, or None when nothing changed"""
     try:
@@ -53,3 +64,35 @@ def commit(message: str, repo_path: str | None = None, branch_name: str | None =
 
     except subprocess.CalledProcessError as e:
         raise Exception(f"Git commit failed: {e}") from e
+
+
+def uncommitted_files(repo_path: str) -> list[str]:
+    """Return the paths that are different from the last commit, and the untracked paths.
+
+    Raise `subprocess.CalledProcessError` if `repo_path` is not a git repository.
+    """
+    tracked = _paths(repo_path, "diff", "--name-only", "-z", "HEAD")
+    untracked = _paths(repo_path, "ls-files", "--others", "--exclude-standard", "-z")
+    return sorted(tracked | untracked)
+
+
+def unpushed_files(repo_path: str) -> list[str]:
+    """Return the paths in the local commits that no remote branch has.
+
+    A `git push` that succeeds moves the remote-tracking branch. Thus git has a
+    record of the commits on the remote. Raise `subprocess.CalledProcessError`
+    if `repo_path` is not a git repository.
+    """
+    return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
+
+
+def _paths(repo_path: str, *args: str) -> set[str]:
+    """Run a git command that prints paths with `-z`, and return the paths.
+
+    A file name is a sequence of bytes, and is not always UTF-8. An invalid byte
+    becomes U+FFFD, so that a decode error does not stop the run. In text mode,
+    `subprocess` changes a carriage return to a line feed. Thus the function
+    decodes the bytes itself.
+    """
+    output = subprocess.run(["git", *args], cwd=repo_path, capture_output=True, check=True).stdout
+    return {path for path in output.decode("utf-8", errors="replace").split("\0") if path}

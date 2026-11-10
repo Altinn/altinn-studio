@@ -2,16 +2,15 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Middleware;
 
-public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class TelemetryEnrichingMiddlewareTests : ApiTestBase
 {
-    public TelemetryEnrichingMiddlewareTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public TelemetryEnrichingMiddlewareTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private (TelemetrySink Telemetry, Func<Task> Request) AnalyzeTelemetry(
         string token,
