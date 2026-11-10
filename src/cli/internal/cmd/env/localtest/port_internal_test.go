@@ -238,3 +238,30 @@ func TestCheckPortFreeAcceptsAPortHeldOnlyOnAnotherAddress(t *testing.T) {
 		t.Fatalf("checkPortFree() error = %v, want nil: 127.0.0.1:%s is free", err, port)
 	}
 }
+
+// A program that listens on a port without naming an address usually gets a dual-stack IPv6 socket on [::] (Node's
+// server.listen(port), for example), not an IPv4 one. env up must refuse that port too; this only discriminates on
+// macOS and Windows, where IPv4 and IPv6 binds interact differently than on Linux.
+func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryIPv6Address(t *testing.T) {
+	t.Parallel()
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp", "[::]:0")
+	if err != nil {
+		t.Skipf("no IPv6 here: %v", err)
+	}
+	t.Cleanup(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse for a port held on [::]", err)
+	}
+}
