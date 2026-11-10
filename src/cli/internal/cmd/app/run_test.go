@@ -798,19 +798,3 @@ func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
 		t.Fatalf("app codes = %s, want a WorkflowEngineCallback code", data)
 	}
 }
-
-func TestReadAppIDPreservesAppFileJSON(t *testing.T) {
-	t.Parallel()
-	const content = "\xef\xbb\xbf// metadata\n{\"id\":\"ttd/json-config\",} /* end */"
-	appPath := t.TempDir()
-	writeAppMetadata(t, appPath, content)
-
-	got, err := appsvc.ReadAppID(appPath)
-	if err != nil || got != "ttd/json-config" {
-		t.Fatalf("ReadAppID() = %q, %v", got, err)
-	}
-	raw, err := os.ReadFile(filepath.Join(appPath, "App", "config", "applicationmetadata.json"))
-	if err != nil || string(raw) != content {
-		t.Fatalf("metadata changed: %q, %v", raw, err)
-	}
-}

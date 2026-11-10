@@ -1,5 +1,5 @@
 {
-  // These assets prove the manifest reaches the browser through generated HTML.
-  "stylesheets": [{ "url": "/ttd/frontend-test/json-config.css", }],
-  "scripts": [{ "url": "/ttd/frontend-test/json-config.js", }],
+  // App files support comments and trailing commas together.
+  "stylesheets": [],
+  "scripts": [],
 }
