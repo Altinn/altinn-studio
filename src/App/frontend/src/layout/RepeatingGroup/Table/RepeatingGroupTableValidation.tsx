@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
 
@@ -43,6 +43,14 @@ export function RepeatingGroupTableField({ baseComponentId }: { baseComponentId:
         >
           <presentation.Icon />
         </span>
+      )}
+      {presentation && (
+        <span
+          className={classes.arrow}
+          data-color={presentation.color}
+          data-validation-arrow
+          aria-hidden
+        />
       )}
     </div>
   );
@@ -98,41 +106,11 @@ function FieldMessages({
   baseComponentId: string;
   validations: NodeRefValidation[];
 }) {
-  const panelRef = useRef<HTMLUListElement>(null);
   const getUniqueKey = useGetUniqueKeyFromObject();
   const severity = getRowValidationSeverity(validations);
 
-  useEffect(() => {
-    const panel = panelRef.current;
-    const row = panel?.closest('tr')?.previousElementSibling;
-    const table = row?.closest('table');
-    const field = Array.from(row?.querySelectorAll<HTMLElement>('[data-validation-field]') ?? []).find(
-      (element) => element.dataset.validationField === baseComponentId,
-    );
-    if (!panel || !row || !table || !field) {
-      return;
-    }
-    const positionArrow = () => {
-      const fieldRect = field.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-      panel.style.setProperty(
-        '--validation-arrow-position',
-        `${fieldRect.left + fieldRect.width / 2 - panelRect.left}px`,
-      );
-    };
-    positionArrow();
-    const observer = new ResizeObserver(positionArrow);
-    observer.observe(table);
-    observer.observe(panel);
-    for (const cell of row.children) {
-      observer.observe(cell);
-    }
-    return () => observer.disconnect();
-  }, [baseComponentId]);
-
   return (
     <ul
-      ref={panelRef}
       className={classes.messages}
       data-color={severity ? validationSeverityPresentation[severity].color : undefined}
       data-validation-for={baseComponentId}

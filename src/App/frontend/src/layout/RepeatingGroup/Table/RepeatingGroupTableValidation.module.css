@@ -1,6 +1,7 @@
 .field {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
   gap: var(--ds-size-1);
 }
 
@@ -55,17 +56,21 @@
   overflow-wrap: anywhere;
 }
 
-.messages::before {
-  content: '';
+:global(td):has(> div > .field) {
+  position: relative;
+}
+
+/* Horizontal static position comes from the field; vertical position comes from its cell. */
+.arrow {
   position: absolute;
-  inset-block-start: -0.55rem;
-  left: clamp(0.75rem, var(--validation-arrow-position, 50%), calc(100% - 0.75rem));
+  inset-block-start: calc(100% - 0.05rem);
   width: 1rem;
   height: 1rem;
-  background: inherit;
+  background: var(--ds-color-surface-tinted);
   border-inline-start: 1px solid var(--ds-color-border-default);
   border-block-start: 1px solid var(--ds-color-border-default);
-  transform: translateX(-50%) rotate(45deg);
+  transform: rotate(45deg);
+  z-index: 1;
 }
 
 .messages > li {
