@@ -66,12 +66,12 @@ export const ResourceDeployEnvCard = ({
       onError: (error: Error) => {
         if ((error as ResourceError).response?.status === 403) {
           setPublishError({
-            detail: t('resourceadm.resource_publish_no_access', { envName: t(env.label) }),
+            detail: t('resourceadm.resource_publish_no_access', { envName: t(getEnvLabel(env)) }),
             status: 403,
           });
         } else if ((error as ResourceError).response?.status === 409) {
           setPublishError({
-            detail: t('resourceadm.resource_publish_conflict', { envName: t(env.label) }),
+            detail: t('resourceadm.resource_publish_conflict', { envName: t(getEnvLabel(env)) }),
             status: 409,
           });
         } else {
