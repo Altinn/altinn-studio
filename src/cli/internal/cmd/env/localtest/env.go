@@ -109,19 +109,10 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
-	recorded, hasRecord, err := ReadState(e.cfg)
+	state, fromSetting, err := e.chooseStartState(ctx, opts.Port)
 	if err != nil {
 		return err
 	}
-	exists, err := e.hasManagedResources(ctx)
-	if err != nil {
-		return err
-	}
-	configured, err := configuredPort(e.cfg)
-	if err != nil {
-		return err
-	}
-	state := startState(opts.Port, recorded, hasRecord, exists, configured)
 	topology := state.Topology()
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
@@ -132,7 +123,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 
 	manifest := components.NewManifest(buildOpts)
 	if err := e.checkPort(ctx, manifest.Resources, topology.IngressPort()); err != nil {
-		if opts.Port == 0 && !hasRecord && !exists { // a new environment, at the env config port or the default
+		if fromSetting {
 			return fmt.Errorf("%w; choose another with --port, or for every new environment with '%s env config set "+
 				"port'", err, osutil.CurrentBin())
 		}
@@ -403,6 +394,27 @@ func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
 		return route.Destination.Location == envtopology.DestinationLocationHost
 	}
 	return false
+}
+
+// chooseStartState is the state env up starts the environment with, and whether its port came from env config. Only a
+// new environment started without --port reads env config, so that a bad setting refuses nothing else.
+func (e *Env) chooseStartState(ctx context.Context, port int) (State, bool, error) {
+	recorded, hasRecord, err := ReadState(e.cfg)
+	if err != nil {
+		return State{}, false, err
+	}
+	exists, err := e.hasManagedResources(ctx)
+	if err != nil {
+		return State{}, false, err
+	}
+	fromSetting := port == 0 && !hasRecord && !exists
+	configured := 0
+	if fromSetting {
+		if configured, err = configuredPort(e.cfg); err != nil {
+			return State{}, false, err
+		}
+	}
+	return startState(port, recorded, hasRecord, exists, configured), fromSetting, nil
 }
 
 // forgetPortOfAGoneEnvironment forgets the recorded port when the environment is gone without env down, after a

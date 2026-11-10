@@ -300,3 +300,38 @@ func TestUpWithPortDoesNotRefuseItForTheSetting(t *testing.T) {
 		t.Fatalf("Up(--port 5300) error = %v, want the clash with pdf3, not the env config port", err)
 	}
 }
+
+// The hint names env config only when the refused port came from it. 5300 is a port env up refuses.
+func TestUpNamesEnvConfigOnlyForThePortItSets(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		setting     int
+		port        int
+		namesConfig bool
+	}{
+		{name: "the env config port", setting: 5300, port: 0, namesConfig: true},
+		{name: "a --port", setting: 8100, port: 5300, namesConfig: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			home := t.TempDir()
+			cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Images: testResetImages()}
+			if err := config.SaveSettings(cfg, config.Settings{Env: config.EnvSettings{Port: tt.setting}}); err != nil {
+				t.Fatalf("SaveSettings() error = %v", err)
+			}
+			env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), mock.New())
+
+			err := env.Up(t.Context(), envtypes.UpOptions{Port: tt.port, Detach: true})
+			if !errors.Is(err, errPortPublished) {
+				t.Fatalf("Up() error = %v, want the clash with pdf3", err)
+			}
+			if got := strings.Contains(err.Error(), "env config set port"); got != tt.namesConfig {
+				t.Fatalf("Up() error = %q, names env config = %t, want %t", err, got, tt.namesConfig)
+			}
+		})
+	}
+}
