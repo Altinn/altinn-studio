@@ -144,9 +144,10 @@ Use -SkipChecksum to bypass this check (not recommended).
         }
     }
 
-    # studioctl adds its directory to the user PATH, which only new terminals read. Add it to this one too.
+    # studioctl adds its directory to the user PATH, which only new terminals read. Add it to this one too, taking the
+    # first match as a new terminal would. -InstallDir leaves PATH to the user, as --path does.
     # File.Exists, unlike Join-Path, returns false instead of failing on an entry whose drive is gone.
-    if (-not (Get-Command studioctl -CommandType Application -ErrorAction SilentlyContinue)) {
+    if (-not $InstallDir -and -not (Get-Command studioctl -CommandType Application -ErrorAction SilentlyContinue)) {
         foreach ($dir in [Environment]::GetEnvironmentVariable("Path", "User") -split ";") {
             if ($dir -and [IO.File]::Exists("$dir\studioctl.exe")) {
                 $env:Path = "$env:Path;$dir"
