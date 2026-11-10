@@ -88,7 +88,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
     [deleteChatMessage],
   );
 
-  // Pulls messages that Designer saved, such as the assistant's answers, into the cache.
+  // Gets the thread's messages again, so that the cache has the answers that Designer saved.
   const refreshMessages = useCallback(
     (threadId: string): void => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });

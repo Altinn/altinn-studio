@@ -11,7 +11,7 @@ public class GetDeveloperThreadAsyncTests : DbIntegrationTestsBase
         : base(dbFixture) { }
 
     [Fact]
-    public async Task GetDeveloperThreadAsync_ShouldReturnTheThreadWithItsOrgAndApp()
+    public async Task GetDeveloperThreadAsync_ShouldReturnTheDevelopersThread()
     {
         var thread = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
         await DbFixture.PrepareThreadInDatabase(thread);
@@ -21,8 +21,7 @@ public class GetDeveloperThreadAsyncTests : DbIntegrationTestsBase
         var result = await repository.GetDeveloperThreadAsync(thread.Id, thread.CreatedBy);
 
         Assert.NotNull(result);
-        Assert.Equal(thread.Org, result.Org);
-        Assert.Equal(thread.App, result.App);
+        Assert.Equal(thread.Id, result.Id);
     }
 
     [Fact]

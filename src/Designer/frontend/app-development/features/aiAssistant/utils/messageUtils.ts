@@ -1,16 +1,4 @@
-import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
-
-export function decorateMessagesWithTraceIds(
-  messages: Message[],
-  traceIdsByMessageId: Record<string, string>,
-): Message[] {
-  return messages.map((message) => {
-    if (message.role !== MessageAuthor.Assistant || !message.id) return message;
-    const traceId = traceIdsByMessageId[message.id];
-    return traceId ? { ...message, traceId } : message;
-  });
-}
+import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
 
 export type RejectionTexts = {
   heading: string;

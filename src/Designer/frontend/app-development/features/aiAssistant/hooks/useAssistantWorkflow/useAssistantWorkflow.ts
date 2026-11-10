@@ -20,7 +20,6 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
-  decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
@@ -60,7 +59,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     Record<string, WorkflowStatus>
   >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
-  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const {
     connectionStatus,
     startWorkflow,
@@ -289,13 +287,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
-      // Designer saves the answer before it forwards the event, so the refetch shows it. Saving a copy
-      // here would duplicate the answer.
+      // Designer saves the answer before it forwards the event, so refreshMessages gets it.
+      // If you save a copy here, the thread shows the answer two times.
       refreshMessages(threadId);
-      const { persistedMessageId, traceId } = assistantMessage;
-      if (persistedMessageId && traceId) {
-        setTraceIdsByMessageId((prev) => ({ ...prev, [persistedMessageId]: traceId }));
-      }
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
@@ -553,11 +547,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     setCancelledMessageContent(null);
   }, []);
 
-  const messages = useMemo(
-    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
-    [chatMessages, traceIdsByMessageId],
-  );
-
   return {
     connectionStatus,
     workflowStatusByThread,
@@ -566,7 +555,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
-    messages,
+    messages: chatMessages,
   };
 };
 

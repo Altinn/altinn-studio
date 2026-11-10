@@ -282,43 +282,6 @@ describe('useAssistantWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
-  it('renders a server-persisted message without persisting a client-side copy', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    await act(async () => {
-      capturedOnAgentMessage!({
-        type: 'assistant_message',
-        session_id: 'thread-a',
-        data: {
-          content: 'Svar',
-          mode: 'chat',
-          traceId: 'trace-1',
-          persistedMessageId: 'server-message-id',
-        },
-      });
-    });
-
-    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
-    expect(threads.createMessage).not.toHaveBeenCalled();
-  });
-
   it('handles a duplicated assistant_message event only once', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
@@ -339,16 +302,11 @@ describe('useAssistantWorkflow', () => {
 
     renderUseAssistantWorkflow(threads);
 
-    // Each Designer replica forwards its own copy of the event, traceId included.
+    // Each Designer replica forwards its own copy of the event, with the same traceId.
     const duplicatedEvent: AssistantMessageEvent = {
       type: 'assistant_message',
       session_id: 'thread-a',
-      data: {
-        content: 'Svar',
-        traceId: 'trace-1',
-        mode: 'chat',
-        persistedMessageId: 'server-message-id',
-      },
+      data: { content: 'Svar', traceId: 'trace-1', mode: 'chat' },
     };
 
     await act(async () => {
@@ -454,7 +412,7 @@ describe('useAssistantWorkflow', () => {
 
     const { result } = renderUseAssistantWorkflow(threads);
 
-    // The copy from a Designer replica that could not save the answer.
+    // A Designer replica that could not save the answer forwards this copy.
     await act(async () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
@@ -545,39 +503,6 @@ describe('useAssistantWorkflow', () => {
     });
 
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
-  });
-
-  it('refreshes the thread that the event session_id names', async () => {
-    const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    const assistantMessageEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'database-thread-id',
-      data: { content: 'Assistant reply' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(assistantMessageEvent);
-    });
-
-    expect(threads.refreshMessages).toHaveBeenCalledWith('database-thread-id');
   });
 
   it('refreshes the submission thread even when the user has switched to another thread', async () => {
@@ -1549,7 +1474,6 @@ describe('useAssistantWorkflow', () => {
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
-      createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
     });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
@@ -1585,7 +1509,6 @@ describe('useAssistantWorkflow', () => {
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
-      createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
     });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;

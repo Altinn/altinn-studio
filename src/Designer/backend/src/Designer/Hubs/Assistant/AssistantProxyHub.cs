@@ -168,8 +168,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateConnectionOwnsSession(sessionId);
 
-        // The request's org and app decide which repository the assistant works in, so the
-        // developer must own the thread in that app.
+        // The assistant uses the repository of the org and app in the request, so the developer
+        // must own the thread in that app.
         string org = ExtractRequiredString(request, "org");
         string app = ExtractRequiredString(request, "app");
 
@@ -193,6 +193,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Access denied: Developer does not own current thread.");
         }
 
+        // The assistant service sends no events on a new connection until it gets a session frame.
         await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(sessionId, developer);
 

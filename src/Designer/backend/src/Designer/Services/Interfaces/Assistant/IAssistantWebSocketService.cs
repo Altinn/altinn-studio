@@ -17,8 +17,8 @@ public interface IAssistantWebSocketService
     Task EnsureConnectedAsync(string developer);
 
     /// <summary>
-    /// Sends a session-registration frame so the assistant service starts streaming
-    /// events for the given session over the developer's shared connection.
+    /// Sends a session frame on the developer's connection, so that the assistant service
+    /// sends the events of the session on that connection.
     /// </summary>
     Task RegisterSessionAsync(string sessionId, string developer);
 

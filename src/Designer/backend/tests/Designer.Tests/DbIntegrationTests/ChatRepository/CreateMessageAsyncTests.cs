@@ -160,7 +160,7 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareThreadInDatabase(threadEntity);
         string eventId = Guid.NewGuid().ToString("N");
 
-        // Each Designer replica builds its own copy of the same assistant answer.
+        // Each Designer replica makes its own copy of the same answer.
         var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
             threadId: threadEntity.Id,
             role: Role.Assistant

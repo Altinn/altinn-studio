@@ -48,7 +48,7 @@ public class AssistantWebSocketServiceTests
                 )
             )
             .ReturnsAsync(persisted);
-        // No session is registered on this replica, as on a replica that only receives the developer's events.
+        // The test does not register the session, as on a replica that only gets the developer's events.
         AssistantWebSocketService service = CreateService();
         JsonNode message = CreateAssistantMessage();
 
@@ -107,7 +107,7 @@ public class AssistantWebSocketServiceTests
         AssistantWebSocketService service = CreateService();
         JsonNode message = CreateAssistantMessage();
 
-        // Must not throw, so that the event is still forwarded.
+        // Must not throw, so that the listener still forwards the event.
         await service.TryPersistAssistantMessageAsync(Developer, message);
 
         Assert.Null(message["data"]!["persistedMessageId"]);
@@ -179,11 +179,10 @@ public class AssistantWebSocketServiceTests
     [Fact]
     public async Task ListenerForwardsEachMessageInARootSpanWithTheUser()
     {
-        const string ListenerDeveloper = "listener-test-user";
         await using WebApplication agent = await StartAgentThatSendsOneMessageAsync();
         var assistantClient = new Mock<IAssistantClient>();
         var clients = new Mock<IHubClients<IAssistantClient>>();
-        clients.Setup(c => c.Group(ListenerDeveloper)).Returns(assistantClient.Object);
+        clients.Setup(c => c.Group(Developer)).Returns(assistantClient.Object);
         var hubContext = new Mock<IHubContext<AssistantProxyHub, IAssistantClient>>();
         hubContext.Setup(h => h.Clients).Returns(clients.Object);
         var spans = new List<Activity>();
@@ -207,10 +206,10 @@ public class AssistantWebSocketServiceTests
         // The listener is started from a short-lived span, such as a hub's connect.
         using (Activity caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start())
         {
-            await service.EnsureConnectedAsync(ListenerDeveloper);
+            await service.EnsureConnectedAsync(Developer);
         }
 
-        Activity forwarded = await ForwardedMessageSpanAsync(spans, ListenerDeveloper);
+        Activity forwarded = await ForwardedMessageSpanAsync(spans, Developer);
         Assert.Equal(default, forwarded.ParentSpanId);
         Assert.Equal(ActivityKind.Consumer, forwarded.Kind);
         assistantClient.Verify(c => c.ReceiveAgentMessage(It.IsAny<object>()), Times.Once);

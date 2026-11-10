@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Hubs.Assistant;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -31,9 +30,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
 /// <para>
-/// The assistant service streams each developer's events to every replica that has a connection
-/// for that developer. Each replica saves the assistant's answers, and the save is deduplicated on
-/// the agent's event id.
+/// The assistant service sends the events of a developer to each replica that has a connection for
+/// that developer. Each replica saves the answers. The database keeps one message for each event id.
 /// </para>
 /// </summary>
 public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
@@ -256,11 +254,9 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     }
 
     /// <summary>
-    /// Saves an assistant answer in the developer's thread and stamps the saved message's id onto the
-    /// event, so the answer is kept even when no browser tab is open. The thread row gives the app, so
-    /// any replica can save the answer, also one where the session was never registered. Every replica
-    /// saves its copy of the event, and the event id makes the copies one message. A failure is logged,
-    /// and the event is forwarded without the id.
+    /// Saves an assistant answer in the developer's thread and adds the id of the saved message to the
+    /// event. The save needs only the thread id and the developer, so any replica can save the answer.
+    /// If the save fails, this method logs the error, and the listener forwards the event without the id.
     /// </summary>
     internal async Task TryPersistAssistantMessageAsync(string developer, JsonNode message)
     {

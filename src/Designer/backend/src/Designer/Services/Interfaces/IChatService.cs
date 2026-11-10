@@ -50,7 +50,7 @@ public interface IChatService
     );
 
     /// <summary>
-    /// Saves a message in a thread that the developer created, whatever app the thread belongs to.
+    /// Saves a message in a thread that the developer created, in any app.
     /// </summary>
     /// <returns>The saved message, or null if the developer has no thread with this id.</returns>
     Task<ChatMessageEntity?> CreateMessageInDeveloperThreadAsync(
