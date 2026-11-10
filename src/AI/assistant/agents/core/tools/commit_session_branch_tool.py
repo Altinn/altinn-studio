@@ -41,13 +41,41 @@ def track_uncommitted_files(ctx: LoopContext) -> None:
     A commit takes all files in the working tree. An earlier turn can leave an
     edit that the tools of this turn did not record, for example a file that
     did not pass `verify_changes`. The edit must pass `verify_changes` before a
-    commit. Raise `OSError` or `subprocess.SubprocessError` if git cannot read
+    commit. `ctx.extras["edits_not_from_tools"]` keeps these files until a tool
+    writes them, so that the refusal can tell the model that no tool made the
+    change. Raise `OSError` or `subprocess.SubprocessError` if git cannot read
     the working tree.
     """
     recorded = {posixpath.normpath(path) for path in ctx.extras.get("changed_files") or set()}
+    not_from_tools: set[str] = ctx.extras.setdefault("edits_not_from_tools", set())
     for path in git_ops.uncommitted_files(ctx.repo_path):
         if path not in recorded:
             mark_changed(ctx, path)
+            not_from_tools.add(path)
+
+
+def _unverified_refusal(ctx: LoopContext, unverified: set[str]) -> str:
+    """Tell the model which files stop the commit.
+
+    The model does not know about a change that no tool made in this turn, and
+    can think that it must not touch the file. Thus the refusal names these
+    files apart from the files that the model edited.
+    """
+    not_from_tools = unverified & (ctx.extras.get("edits_not_from_tools") or set())
+    from_tools = unverified - not_from_tools
+    lines = ["Refusing to commit."]
+    if from_tools:
+        lines.append(
+            "The following changed files have not been verified since their last edit — run "
+            f"`verify_changes` first, then retry: {sorted(from_tools)}"
+        )
+    if not_from_tools:
+        lines.append(
+            f"Git shows changes in these files that no tool made in this turn: {sorted(not_from_tools)}.  "
+            "`commit_session_branch` commits all changes, also these.  Fix them and run "
+            "`verify_changes`, or undo them with `discard_file_changes`."
+        )
+    return "\n".join(lines)
 
 
 def _session_branch_name(ctx: LoopContext) -> str:
@@ -115,14 +143,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             return ToolResult(content=f"Commit failed: git cannot read the working tree: {exc}", is_error=True)
         unverified = unverified_changed_files(ctx)
         if unverified:
-            return ToolResult(
-                content=(
-                    "Refusing to commit: the following changed files have not "
-                    "been verified since their last edit — run `verify_changes` "
-                    f"first, then retry: {sorted(unverified)}"
-                ),
-                is_error=True,
-            )
+            return ToolResult(content=_unverified_refusal(ctx, unverified), is_error=True)
 
         branch = _session_branch_name(ctx)
         try:

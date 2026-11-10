@@ -1021,9 +1021,25 @@ class TestCommitToolWithARemote:
         outcome = await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)
 
         assert outcome.is_error
-        assert "have not been verified" in outcome.content
-        assert "App/ui/b.json" in outcome.content
+        assert "no tool made in this turn: ['App/ui/b.json']" in outcome.content
+        assert "discard_file_changes" in outcome.content
+        assert "have not been verified" not in outcome.content
         assert _files_on_remote_branch(repo) == {}
+
+    async def test_names_a_left_edit_that_a_tool_then_writes_as_an_edit_of_this_turn(self, monkeypatch, repo):
+        write_files(repo, {"App/ui/b.json": _LEFT})
+        _use_remote(monkeypatch, repo)
+        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
+        tool = CommitSessionBranchTool()
+        assert (await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)).is_error
+
+        _edit(ctx, "App/ui/b.json")
+        outcome = await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)
+
+        assert outcome.is_error
+        assert "have not been verified since their last edit — run `verify_changes` first" in outcome.content
+        assert "App/ui/b.json" in outcome.content
+        assert "no tool made in this turn" not in outcome.content
 
     async def test_a_second_call_pushes_the_commit_again(self, monkeypatch, repo):
         remote = _use_remote(monkeypatch, repo, _UNREACHABLE, True)
