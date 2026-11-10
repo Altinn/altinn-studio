@@ -115,6 +115,7 @@ export interface GlobalPageSettingsFromSchema {
   showExpandWidthButton?: boolean;
   expandedWidth?: boolean;
   showProgress?: boolean;
+  hideOptionalIndicator?: boolean;
   autoSaveBehavior?: 'onChangeFormData' | 'onChangePage';
   navigationTitle?: ExprValToActualOrExpr<ExprVal.String>;
   taskNavigation?: (NavigationTaskFromSchema | NavigationReceiptFromSchema)[];
@@ -658,4 +659,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 3fcf9d1f1d197c4cf40ba79d6397e991b7f1fc4633698be74274324d8cf834d6
+// Source hash: 7cb16414d81a4de3c51a7ac1b7bf8a8d073b191658b117161c3a9ff5401bef1b
