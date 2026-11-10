@@ -499,12 +499,17 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_WhenTheConclusionConfirmsComplete_StagesTheConfirmationForTheCallbacksSave()
+    public async Task Execute_WhenTheConclusionAsksToConfirmOnProcessEnd_CarriesTheRequestAndStagesNothing()
     {
         Instance instance = CreateInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
         var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("approve", confirmComplete: true))
+            Task.FromResult<ServiceTaskResult>(
+                ServiceTaskResult.Success("approve") with
+                {
+                    ConfirmCompleteOnProcessEnd = true,
+                }
+            )
         );
 
         var result = await ((IWorkflowEngineCommand)CreateCommand(serviceTask)).Execute(
@@ -512,99 +517,24 @@ public class ExecuteServiceTaskTests
         );
 
         var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.Equal("approve", success.ProcessNextContinuation?.Action);
-        Assert.True(unitOfWork.StagedCompleteConfirmation);
+        Assert.Equal(
+            new ProcessNextContinuation("approve", ConfirmCompleteOnProcessEnd: true),
+            success.ProcessNextContinuation
+        );
+
+        // The process end the transition leads to confirms, so Storage checks the grant against the end event.
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
-    public async Task Execute_WhenTheConclusionDoesNotAskToConfirm_StagesNoConfirmation()
+    public async Task Execute_WhenTheConclusionDoesNotAskToConfirm_CarriesNoRequest()
     {
-        Instance instance = CreateInstance();
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-
         var result = await ((IWorkflowEngineCommand)CreateCommand(Succeeding())).Execute(
-            CreateContext(instance, "myServiceTask", unitOfWork)
-        );
-
-        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    [Fact]
-    public async Task Execute_WhenTheServiceOwnerHasAlreadyConfirmed_StagesNoConfirmation()
-    {
-        Instance instance = CreateInstance();
-        instance.CompleteConfirmations =
-        [
-            new CompleteConfirmation
-            {
-                StakeholderId = instance.Org,
-                ConfirmedOn = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-        ];
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(confirmComplete: true))
-        );
-
-        var result = await ((IWorkflowEngineCommand)CreateCommand(serviceTask)).Execute(
-            CreateContext(instance, "myServiceTask", unitOfWork)
-        );
-
-        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    /// <summary>
-    /// Only a success can ask for the confirmation, so a task that would confirm once its outcome arrives
-    /// confirms nothing while it waits or fails.
-    /// </summary>
-    [Theory]
-    [InlineData("defer")]
-    [InlineData("retryable")]
-    [InlineData("permanent")]
-    [InlineData("throw")]
-    public async Task Execute_WhenTheConclusionDefersOrFails_StagesNoConfirmation(string outcome)
-    {
-        Instance instance = CreateInstance();
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-        var serviceTask = new FakeServiceTask(_ =>
-            outcome switch
-            {
-                "defer" => Task.FromResult<ServiceTaskResult>(
-                    ServiceTaskResult.Defer(TimeSpan.FromMinutes(1), "Waiting for the delivery receipt")
-                ),
-                "retryable" => Task.FromResult<ServiceTaskResult>(
-                    ServiceTaskResult.FailedRetryable("The receiver is down")
-                ),
-                "permanent" => Task.FromResult<ServiceTaskResult>(
-                    ServiceTaskResult.FailedPermanent("The receiver refused the delivery")
-                ),
-                _ => throw new InvalidOperationException("The delivery client exploded"),
-            }
-        );
-
-        var result = await ((IWorkflowEngineCommand)CreateCommand(serviceTask)).Execute(
-            CreateContext(instance, "myServiceTask", unitOfWork)
-        );
-
-        Assert.IsNotType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    [Fact]
-    public async Task Execute_WhenTheConclusionConfirmsWithoutAUnitOfWork_FailsPermanently()
-    {
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(confirmComplete: true))
-        );
-
-        var result = await ((IWorkflowEngineCommand)CreateCommand(serviceTask)).Execute(
             CreateContext(CreateInstance(), "myServiceTask")
         );
 
-        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.False(success.ProcessNextContinuation?.ConfirmCompleteOnProcessEnd);
     }
 
     private static InstanceDataUnitOfWork CreateUnitOfWork(

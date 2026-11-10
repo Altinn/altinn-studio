@@ -296,6 +296,7 @@ public class MailboxRelayFrontierTests
                     It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -308,9 +309,10 @@ public class MailboxRelayFrontierTests
                 DateTimeOffset,
                 string?,
                 string?,
+                bool,
                 CancellationToken
             >(
-                (_, _, _, collectionKey, _, _, _, idempotencyKey, cancellationToken) =>
+                (_, _, _, collectionKey, _, _, _, idempotencyKey, _, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,

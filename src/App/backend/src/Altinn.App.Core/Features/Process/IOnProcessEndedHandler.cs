@@ -15,11 +15,10 @@ namespace Altinn.App.Core.Features.Process;
 /// </para>
 /// <para>An app registers at most one implementation; with more, it does not start.</para>
 /// <para>
-/// A hook cannot confirm the instance as complete for the service owner. Delivering the instance to the service
-/// owner belongs in a service task, whose result confirms it with <see cref="ServiceTaskResult.Success"/>
-/// (<c>confirmComplete: true</c>) in the save that concludes the task. The engine records each completed stage, so
-/// a failure after the delivery does not deliver again. An app that only needs the confirmation when the process
-/// ends sets <c>autoConfirmCompleteOnProcessEnd</c> in <c>applicationmetadata.json</c>.
+/// A hook cannot confirm the instance as complete for the service owner. An app that needs the confirmation sets
+/// <c>autoConfirmCompleteOnProcessEnd</c> in <c>applicationmetadata.json</c>, which confirms when the process ends.
+/// Delivering the instance to the service owner belongs in a service task: the engine records each completed
+/// stage, so a failure after the delivery does not deliver again.
 /// </para>
 /// </remarks>
 [ImplementableByApps]

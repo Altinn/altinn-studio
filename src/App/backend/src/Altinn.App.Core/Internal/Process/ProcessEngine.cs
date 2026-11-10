@@ -980,12 +980,24 @@ internal class ProcessEngine : IProcessEngine
         DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
+        bool confirmCompleteOnProcessEnd = false,
         CancellationToken cancellationToken = default
     )
     {
         Instance instance = dataAccessor.Instance;
         ProcessStateChange processStateChange = await ComputeNextTransition(dataAccessor, action);
         ApplyExecutionContext(processStateChange, actor, executionReferenceTime);
+
+        if (confirmCompleteOnProcessEnd && processStateChange.NewProcessState?.EndEvent is null)
+        {
+            _logger.LogWarning(
+                "Task {TaskId} delivered the instance to the service owner, but the process moves on to task "
+                    + "{NextTaskId} instead of ending, so the instance is not confirmed as complete. Set "
+                    + "autoConfirmCompleteOnProcessEnd in applicationmetadata.json to confirm when the process ends.",
+                processStateChange.OldProcessState?.CurrentTask?.ElementId,
+                processStateChange.NewProcessState?.CurrentTask?.ElementId
+            );
+        }
 
         await _workflowEngineService.EnqueueDependentProcessNext(
             instance,
@@ -995,6 +1007,7 @@ internal class ProcessEngine : IProcessEngine
             state,
             actor,
             idempotencyKey,
+            confirmCompleteOnProcessEnd,
             cancellationToken: cancellationToken
         );
     }
