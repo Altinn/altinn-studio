@@ -138,12 +138,8 @@ public sealed partial class InstanceDataUnitOfWorkTests
         Assert.All(stored.Lines!, line => Assert.NotEqual(Guid.Empty, line.AltinnRowId));
     }
 
-    [Theory]
-    [InlineData("anotherClass", "applicationmetadata.json specifies")]
-    [InlineData("addedElement", "change the object passed to AddFormDataElement")]
-    [InlineData("removedElement", "is marked for deletion")]
-    [InlineData("binaryElement", "does not have a class reference")]
-    public async Task ReplaceFormData_ForAnElementItCannotReplace_Throws(string target, string expectedMessage)
+    [Fact]
+    public async Task ReplaceFormData_WithAModelOfAnotherClass_Throws()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
         DataElement formDataElement = AddPersistedPaymentForm(
@@ -151,33 +147,60 @@ public sealed partial class InstanceDataUnitOfWorkTests
             new PaymentForm { Status = "created" },
             BlobVersion(1)
         );
-        DataElementIdentifier dataElementIdentifier = formDataElement;
-        object model = new PaymentForm();
-        switch (target)
-        {
-            case "anotherClass":
-                model = new object();
-                break;
-            case "addedElement":
-                dataElementIdentifier = setup
-                    .DataMutator.AddFormDataElement(formDataElement.DataType, new PaymentForm())
-                    .DataElementIdentifier;
-                break;
-            case "removedElement":
-                setup.DataMutator.RemoveDataElement(formDataElement);
-                break;
-            case "binaryElement":
-                dataElementIdentifier = setup.DataElement;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(target));
-        }
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            setup.DataMutator.ReplaceFormData(dataElementIdentifier, model)
+            setup.DataMutator.ReplaceFormData(formDataElement, new object())
         );
 
-        Assert.Contains(expectedMessage, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("applicationmetadata.json specifies", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplaceFormData_ForAnAddedElement_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = "created" },
+            BlobVersion(1)
+        );
+        FormDataChange added = setup.DataMutator.AddFormDataElement(formDataElement.DataType, new PaymentForm());
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.ReplaceFormData(added.DataElementIdentifier, new PaymentForm())
+        );
+
+        Assert.Contains("change the object passed to AddFormDataElement", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplaceFormData_ForARemovedElement_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = "created" },
+            BlobVersion(1)
+        );
+        setup.DataMutator.RemoveDataElement(formDataElement);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.ReplaceFormData(formDataElement, new PaymentForm())
+        );
+
+        Assert.Contains("is marked for deletion", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplaceFormData_ForABinaryElement_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.DataMutator.ReplaceFormData(setup.DataElement, new PaymentForm())
+        );
+
+        Assert.Contains("does not have a class reference", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -375,41 +398,56 @@ public sealed partial class InstanceDataUnitOfWorkTests
         Assert.Empty(GetMutationRequests(setup));
     }
 
-    [Theory]
-    [InlineData("unknownElement", "not found on instance")]
-    [InlineData("removedElement", "is marked for deletion")]
-    [InlineData("refToAddedElement", "its id is assigned when the instance is saved")]
-    public async Task UpdateDataElementMetadata_ForATargetItCannotChange_Throws(string target, string expectedMessage)
+    [Fact]
+    public async Task UpdateDataElementMetadata_ForAnUnknownElement_Throws()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
-        DataElementIdentifier dataElementIdentifier = setup.DataElement;
-        var update = new DataElementMetadataUpdate { Tags = ["signed"] };
-        switch (target)
-        {
-            case "unknownElement":
-                dataElementIdentifier = new DataElementIdentifier(Guid.NewGuid());
-                break;
-            case "removedElement":
-                setup.DataMutator.RemoveDataElement(setup.DataElement);
-                break;
-            case "refToAddedElement":
-                BinaryDataChange added = setup.DataMutator.AddBinaryDataElement(
-                    "receipt",
-                    "application/json",
-                    "receipt.json",
-                    "{}"u8.ToArray()
-                );
-                update = new DataElementMetadataUpdate { Refs = [added.DataElementIdentifier.Guid] };
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(target));
-        }
 
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            setup.DataMutator.UpdateDataElementMetadata(dataElementIdentifier, update)
+            setup.DataMutator.UpdateDataElementMetadata(
+                new DataElementIdentifier(Guid.NewGuid()),
+                new DataElementMetadataUpdate { Tags = ["signed"] }
+            )
         );
 
-        Assert.Contains(expectedMessage, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("not found on instance", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpdateDataElementMetadata_ForARemovedElement_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.RemoveDataElement(setup.DataElement);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            setup.DataMutator.UpdateDataElementMetadata(
+                setup.DataElement,
+                new DataElementMetadataUpdate { Tags = ["signed"] }
+            )
+        );
+
+        Assert.Contains("is marked for deletion", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpdateDataElementMetadata_WithARefToAnAddedElement_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        BinaryDataChange added = setup.DataMutator.AddBinaryDataElement(
+            "receipt",
+            "application/json",
+            "receipt.json",
+            "{}"u8.ToArray()
+        );
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            setup.DataMutator.UpdateDataElementMetadata(
+                setup.DataElement,
+                new DataElementMetadataUpdate { Refs = [added.DataElementIdentifier.Guid] }
+            )
+        );
+
+        Assert.Contains("its id is assigned when the instance is saved", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -430,104 +468,112 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Theory]
-    [InlineData(false, null)]
-    [InlineData(false, "")]
-    [InlineData(true, null)]
-    [InlineData(true, "")]
-    public async Task SetDataValueOrPresentationText_SetsAKeyOrRemovesItForNullOrEmpty_OnTheInstanceAndInTheSave(
-        bool presentationText,
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task SetDataValue_SetsAKeyOrRemovesItForNullOrEmpty_OnTheInstanceAndInTheSave(string? removingValue)
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        Instance instance = setup.DataMutator.Instance;
+        instance.DataValues = new() { ["removed"] = "old" };
+
+        setup.DataMutator.SetDataValue("added", "new");
+        setup.DataMutator.SetDataValue("removed", removingValue);
+        Dictionary<string, string?>? shownBeforeTheSave = instance.DataValues is { } shown ? new(shown) : null;
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Equal(new Dictionary<string, string?> { ["added"] = "new" }, shownBeforeTheSave);
+        Assert.Equal(
+            new Dictionary<string, string?> { ["added"] = "new", ["removed"] = removingValue },
+            GetSingleMutation(setup).DataValues
+        );
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task SetPresentationText_SetsAKeyOrRemovesItForNullOrEmpty_OnTheInstanceAndInTheSave(
         string? removingValue
     )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
         Instance instance = setup.DataMutator.Instance;
-        Dictionary<string, string?> existing = new() { ["removed"] = "old" };
-        if (presentationText)
-        {
-            instance.PresentationTexts = existing;
-        }
-        else
-        {
-            instance.DataValues = existing;
-        }
-        Action<string, string?> set = presentationText
-            ? setup.DataMutator.SetPresentationText
-            : setup.DataMutator.SetDataValue;
+        instance.PresentationTexts = new() { ["removed"] = "old" };
 
-        set("added", "new");
-        set("removed", removingValue);
-        Dictionary<string, string?>? shown = presentationText ? instance.PresentationTexts : instance.DataValues;
-        Dictionary<string, string?>? shownBeforeTheSave = shown is null ? null : new(shown);
+        setup.DataMutator.SetPresentationText("added", "new");
+        setup.DataMutator.SetPresentationText("removed", removingValue);
+        Dictionary<string, string?>? shownBeforeTheSave = instance.PresentationTexts is { } shown ? new(shown) : null;
         await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
 
         Assert.Equal(new Dictionary<string, string?> { ["added"] = "new" }, shownBeforeTheSave);
-        StorageInstanceMutationRequest mutation = GetSingleMutation(setup);
         Assert.Equal(
             new Dictionary<string, string?> { ["added"] = "new", ["removed"] = removingValue },
-            presentationText ? mutation.PresentationTexts : mutation.DataValues
+            GetSingleMutation(setup).PresentationTexts
         );
     }
 
-    [Theory]
-    [InlineData(false, "dataFields")]
-    [InlineData(true, "presentationFields")]
-    public async Task SetDataValueOrPresentationText_ForAKeyDerivedFromTheModel_Throws(
-        bool presentationText,
-        string expectedSetting
-    )
+    [Fact]
+    public async Task SetDataValue_ForAKeyInDataFields_Throws()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
-        List<DataField> fields =
-        [
-            new DataField
-            {
-                Id = "derived",
-                DataTypeId = "payment-form",
-                Path = nameof(PaymentForm.Status),
-            },
-        ];
-        if (presentationText)
-        {
-            setup.Services.AppMetadata.PresentationFields = fields;
-        }
-        else
-        {
-            setup.Services.AppMetadata.DataFields = fields;
-        }
-        Action<string, string?> set = presentationText
-            ? setup.DataMutator.SetPresentationText
-            : setup.DataMutator.SetDataValue;
+        setup.Services.AppMetadata.DataFields = [DerivedField()];
 
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => set("derived", "x"));
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            setup.DataMutator.SetDataValue("derived", "x")
+        );
 
-        Assert.Contains($"derived from {expectedSetting}", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("derived from dataFields", exception.Message, StringComparison.Ordinal);
     }
 
-    [Theory]
-    [InlineData("metadata")]
-    [InlineData("presentationText")]
-    public async Task SaveChanges_CalledTwice_SendsAStagedInstanceChangeOnce(string member)
+    [Fact]
+    public async Task SetPresentationText_ForAKeyInPresentationFields_Throws()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
-        switch (member)
-        {
-            case "metadata":
-                setup.DataMutator.UpdateDataElementMetadata(
-                    setup.DataElement,
-                    new DataElementMetadataUpdate { Tags = ["signed"] }
-                );
-                break;
-            case "presentationText":
-                setup.DataMutator.SetPresentationText("title", "Application");
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(member));
-        }
+        setup.Services.AppMetadata.PresentationFields = [DerivedField()];
 
-        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
-        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            setup.DataMutator.SetPresentationText("derived", "x")
+        );
+
+        Assert.Contains("derived from presentationFields", exception.Message, StringComparison.Ordinal);
+    }
+
+    private static DataField DerivedField() =>
+        new()
+        {
+            Id = "derived",
+            DataTypeId = "payment-form",
+            Path = nameof(PaymentForm.Status),
+        };
+
+    [Fact]
+    public async Task SaveChanges_CalledTwice_SendsStagedElementMetadataOnce()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.UpdateDataElementMetadata(
+            setup.DataElement,
+            new DataElementMetadataUpdate { Tags = ["signed"] }
+        );
+
+        await SaveChangesTwice(setup);
 
         Assert.Single(GetMutationRequests(setup));
+    }
+
+    [Fact]
+    public async Task SaveChanges_CalledTwice_SendsAStagedPresentationTextOnce()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.SetPresentationText("title", "Application");
+
+        await SaveChangesTwice(setup);
+
+        Assert.Single(GetMutationRequests(setup));
+    }
+
+    private static async Task SaveChangesTwice(BinaryDataUnitOfWorkSetup setup)
+    {
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
     }
 
     private static RequestResponse[] GetMutationRequests(BinaryDataUnitOfWorkSetup setup) =>
