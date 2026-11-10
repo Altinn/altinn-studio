@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl env up --port <port>` serves localtest on another port when 8000 is taken. studioctl remembers the port for `run`, `app env`, `env status` and later `env up` runs; `env up --port 8000` goes back to the default. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
+
 ### Changed
 
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
