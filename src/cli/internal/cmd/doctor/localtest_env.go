@@ -8,7 +8,12 @@ import (
 )
 
 func (s *Service) buildLocaltestEnv(ctx context.Context) *envlocaltest.DiagnosticReport {
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(s.cfg)
+	if err != nil {
+		// Diagnose what it can at the default port rather than nothing.
+		s.debugf("using the default localtest port: %v", err)
+		topology = envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	}
 	return envlocaltest.Diagnose(ctx, envlocaltest.DiagnosticOptions{
 		Debugf:           s.debugf,
 		DetectContainer:  s.containerDetect,

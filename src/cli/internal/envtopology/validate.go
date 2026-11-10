@@ -34,7 +34,7 @@ func validateDefinition(def definition) error {
 	if trimSchemeSeparator(def.Ingress.Scheme) == "" {
 		return fmt.Errorf("%s: %w", "ingress.scheme", errFieldRequired)
 	}
-	if err := validatePort(def.Ingress.DefaultHostPort, "ingress.defaultHostPort"); err != nil {
+	if err := ValidatePort(def.Ingress.DefaultHostPort, "ingress.defaultHostPort"); err != nil {
 		return err
 	}
 
@@ -78,7 +78,7 @@ func validateComponent(field string, component componentDefinition) error {
 		if component.PathPrefix != "" {
 			return fmt.Errorf("%s.pathPrefix: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 		}
-		if err := validatePort(component.Port, field+".port"); err != nil {
+		if err := ValidatePort(component.Port, field+".port"); err != nil {
 			return err
 		}
 	case componentKindRuntimeService, componentKindMonitoring, componentKindTool, componentKindFrontendDev:
@@ -102,7 +102,8 @@ func validateHTTPComponent(field string, component componentDefinition) error {
 	return nil
 }
 
-func validatePort(port int, field string) error {
+// ValidatePort refuses a port outside 1-65535, naming the field it came from.
+func ValidatePort(port int, field string) error {
 	if port < 1 || port > 65535 {
 		return fmt.Errorf("%s: %w", field, errFieldPortOutOfRange)
 	}
