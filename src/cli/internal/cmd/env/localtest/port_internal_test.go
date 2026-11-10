@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -242,10 +243,13 @@ func TestCheckPortFreeAcceptsAPortHeldOnlyOnAnotherAddress(t *testing.T) {
 }
 
 // A program that listens on a port without naming an address usually gets a dual-stack IPv6 socket on [::] (Node's
-// server.listen(port), for example), not an IPv4 one. env up must refuse that port too; this only discriminates on
-// macOS and Windows, where IPv4 and IPv6 binds interact differently than on Linux.
+// server.listen(port), for example), not an IPv4 one. On Linux and macOS it holds the port's IPv4 addresses too, so
+// env up refuses the port. Windows lets an IPv4 bind through beside it.
 func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryIPv6Address(t *testing.T) {
 	t.Parallel()
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows lets an IPv4 loopback bind through beside a dual-stack [::] listener")
+	}
 
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(t.Context(), "tcp", "[::]:0")
