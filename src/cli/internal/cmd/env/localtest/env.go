@@ -94,6 +94,9 @@ func (e *Env) OnInstall(_ context.Context) error {
 
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+	if err := e.forgetPortOfAGoneEnvironment(ctx); err != nil {
+		return err
+	}
 	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
 		return err
 	}
@@ -388,6 +391,20 @@ func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
 		return route.Destination.Location == envtopology.DestinationLocationHost
 	}
 	return false
+}
+
+// forgetPortOfAGoneEnvironment forgets the recorded port when the environment is gone without env down, after a
+// machine reset or a container prune, so that env up starts a new one. It runs before the scheduled workflow-engine
+// data reset, which removes the containers of an environment that keeps its port.
+func (e *Env) forgetPortOfAGoneEnvironment(ctx context.Context) error {
+	if _, hasRecord, err := ReadState(e.cfg); err != nil || !hasRecord {
+		return err
+	}
+	exists, err := e.hasManagedResources(ctx)
+	if err != nil || exists {
+		return err
+	}
+	return RemoveState(e.cfg)
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
