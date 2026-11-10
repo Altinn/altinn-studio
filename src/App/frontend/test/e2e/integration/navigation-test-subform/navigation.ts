@@ -8,10 +8,13 @@ const ICON_COMPLETE = '[data-testid=state-complete]';
 const ICON_ERROR = '[data-testid=state-error]';
 
 describe('navigation', () => {
-  it('preserves task UI settings through the backend', { retries: 0 }, () => {
+  it('preserves UI settings through the backend', { retries: 0 }, () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();
 
+    cy.window()
+      .its('altinnAppGlobalData.ui.settings.validationOnNavigation')
+      .should('deep.equal', { page: 'current', show: ['Invalid'] });
     cy.window()
       .its('altinnAppGlobalData.ui.folders.Task_1.pages')
       .should('deep.include', {
@@ -23,7 +26,7 @@ describe('navigation', () => {
       .should('deep.include', {
         navigationTitle: 'Skjemasider for kjøretøy',
         hideAppNameInPdf: false,
-        validationOnNavigation: { page: 'current', show: ['Required'] },
+        validationOnNavigation: { page: 'current', show: ['Required', 'Invalid'] },
       });
     cy.window().its('altinnAppGlobalData.ui.folders.subform.pages.groups.1.expandedByDefault').should('equal', true);
     cy.findByRole('heading', { name: 'Skjemasider' }).should('be.visible');

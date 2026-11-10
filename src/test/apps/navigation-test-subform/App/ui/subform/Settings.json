@@ -3,7 +3,7 @@
   "pages": {
     "navigationTitle": "Skjemasider for kjøretøy",
     "hideAppNameInPdf": false,
-    "validationOnNavigation": { "page": "current", "show": ["Required"] },
+    "validationOnNavigation": { "page": "current", "show": ["Required", "Invalid"] },
     "showLanguageSelector": true,
     "showExpandWidthButton": true,
     "groups": [
