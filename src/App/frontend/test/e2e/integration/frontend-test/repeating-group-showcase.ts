@@ -41,9 +41,12 @@ function assertTableArrows() {
         );
       expect(field, 'arrow target').to.exist;
       const target = field!.getBoundingClientRect();
-      const arrow = parseFloat(panel.style.getPropertyValue('--validation-arrow-position'));
-      expect(Math.abs(panel.getBoundingClientRect().left + arrow - target.left - target.width / 2)).to.be.lessThan(2);
-      expect(getComputedStyle(panel, '::before').content).to.equal('""');
+      const arrow = field!.querySelector('[data-validation-arrow]');
+      expect(arrow, 'field arrow').to.exist;
+      const bounds = arrow!.getBoundingClientRect();
+      expect(Math.abs(bounds.left + bounds.width / 2 - target.left - target.width / 2)).to.be.lessThan(2);
+      expect(bounds.top, 'arrow overlaps panel border').to.be.lessThan(panel.getBoundingClientRect().top);
+      expect(bounds.bottom).to.be.greaterThan(panel.getBoundingClientRect().top);
     }
   });
 }
@@ -174,6 +177,9 @@ describe('Repeating group validation showcase', () => {
     cy.get('#validation-table-name-4').should('have.focus');
     cy.viewport(1050, 1000);
     assertTableArrows();
+    cy.get('#validation-table-species-4').invoke('css', 'height', '100px');
+    assertTableArrows();
+    cy.get('#validation-table-species-4').invoke('css', 'height', '');
     cy.get('#group-validation-table-table-body > [data-for-row="4"] [data-validation-for]').should('have.length', 2);
     cy.get(appFrontend.errorReport)
       .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
