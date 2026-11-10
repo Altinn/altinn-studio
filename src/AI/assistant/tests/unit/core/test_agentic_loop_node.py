@@ -1003,10 +1003,24 @@ class TestUnsavedFiles:
         assert node._unsaved_files(ctx) == ["App/ui/a.json"]
 
     def test_a_file_name_that_is_not_utf8_does_not_stop_the_run(self, repo):
-        with open(os.fsencode(repo / "App" / "ui") + b"/\xff.json", "wb") as file:
-            file.write(b"{}")
+        try:
+            with open(os.fsencode(repo / "App" / "ui") + b"/\xff.json", "wb") as file:
+                file.write(b"{}")
+        except OSError:
+            pytest.skip("The file system accepts only UTF-8 file names, as APFS on macOS does.")
 
         assert node._unsaved_files(self._ctx(repo)) == ["App/ui/\ufffd.json"]
+
+    async def test_the_auto_commit_saves_a_file_with_a_carriage_return_in_its_name(self, monkeypatch, repo):
+        """A carriage return that becomes a line feed gives a path that does not exist, and that fails verification."""
+        write_files(repo, {"App/ui/a\rb.json": '{"edited": true}'})
+        _use_remote(monkeypatch, repo)
+        ctx = self._ctx(repo)
+        result = LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
+
+        assert node._unsaved_files(ctx) == ["App/ui/a\rb.json"]
+        assert await node._maybe_auto_commit(_state(repo_path=str(repo)), result, ctx) is True
+        assert node._unsaved_files(ctx) == []
 
 
 class TestCommitToolWithARemote:

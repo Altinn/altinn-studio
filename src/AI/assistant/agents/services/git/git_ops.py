@@ -90,9 +90,9 @@ def _paths(repo_path: str, *args: str) -> set[str]:
     """Run a git command that prints paths with `-z`, and return the paths.
 
     A file name is a sequence of bytes, and not always UTF-8. An invalid byte
-    becomes U+FFFD, because a decode error must not stop the run.
+    becomes U+FFFD, because a decode error must not stop the run. The function
+    decodes the bytes itself, because in text mode `subprocess` changes a
+    carriage return in a file name to a line feed.
     """
-    output = subprocess.run(
-        ["git", *args], cwd=repo_path, capture_output=True, encoding="utf-8", errors="replace", check=True
-    ).stdout
-    return {path for path in output.split("\0") if path}
+    output = subprocess.run(["git", *args], cwd=repo_path, capture_output=True, check=True).stdout
+    return {path for path in output.decode("utf-8", errors="replace").split("\0") if path}
