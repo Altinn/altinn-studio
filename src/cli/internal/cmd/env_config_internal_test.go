@@ -121,3 +121,20 @@ func TestLocaltestPortChangedComparesAnUnrecordedEnvironmentWithTheDefault(t *te
 		t.Fatal("localtestPortChanged(8300) = false, want true: nothing recorded, so localtest serves 8000")
 	}
 }
+
+// Flags before the key, and the conventional -- before the values, are both how env config list already reads its
+// flags (env config --json) and how the flag package reads every other studioctl command.
+func TestEnvConfigTakesFlagsBeforeTheKeyAndValuesAfterDoubleDash(t *testing.T) {
+	t.Parallel()
+
+	for _, args := range [][]string{
+		{"config", "get", "--json", "port"},
+		{"config", "set", "port", "--", "8100"},
+		{"config", "set", "--", "port", "8100"},
+	} {
+		command, _ := newEnvConfigCommand(t)
+		if err := command.Run(t.Context(), args); err != nil {
+			t.Errorf("Run(%v) error = %v, want nil", args, err)
+		}
+	}
+}
