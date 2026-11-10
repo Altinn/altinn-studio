@@ -112,20 +112,13 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             return;
         }
 
-        if (direction == NavigationDirection.Backward && after.Categories == Categories.None)
-            return;
         var beforePages = CheckedPages(before.Page, context.Page, context.Order);
         var afterPages = CheckedPages(after.Page, context.Page, context.Order);
         var samePages =
             before.Page == after.Page
             || (beforePages is not null && afterPages is not null && beforePages.SetEquals(afterPages));
-        if (
-            direction == NavigationDirection.Forward
-            && (
-                (before.Categories == after.Categories && samePages)
-                || (before.Categories == Categories.None && after.Categories == Categories.None)
-            )
-        )
+        // Frontend errors with category 0 match every validation mask, including an empty show list.
+        if (direction == NavigationDirection.Forward && before.Categories == after.Categories && samePages)
             return;
 
         var difference =
@@ -326,7 +319,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         if (categories == Categories.AllExceptRequired)
             return "validation errors other than missing required values";
         if (categories == Categories.None)
-            return "no validation errors";
+            return "validation errors shown immediately";
         var names = new List<string>();
         foreach (
             var (category, name) in new[]
