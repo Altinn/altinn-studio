@@ -212,3 +212,29 @@ func TestValidatePublicPort(t *testing.T) {
 		}
 	}
 }
+
+// The environment publishes on 127.0.0.1 only, so a program on another address of the same port leaves it free: the
+// container runtime publishes beside it. On Linux the 0.0.0.0 bind fails beside such a program.
+func TestCheckPortFreeAcceptsAPortHeldOnlyOnAnotherAddress(t *testing.T) {
+	t.Parallel()
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp4", "127.0.0.2:0")
+	if err != nil {
+		t.Skipf("no second loopback address here: %v", err)
+	}
+	t.Cleanup(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); err != nil {
+		t.Fatalf("checkPortFree() error = %v, want nil: 127.0.0.1:%s is free", err, port)
+	}
+}
