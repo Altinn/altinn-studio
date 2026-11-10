@@ -243,7 +243,6 @@ export function en() {
     'group.row_validation_info': 'Information in row {0}. Show messages',
     'group.row_validation_success': 'Success messages in row {0}. Show messages',
     'group.row_validation_messages': 'Messages',
-    'group.row_number': 'Row {0}',
     'group.validation_severity_error': 'Error',
     'group.validation_severity_warning': 'Warning',
     'group.validation_severity_info': 'Information',

@@ -244,7 +244,6 @@ export function nn() {
     'group.row_validation_info': 'Informasjon i rad {0}. Vis meldingar',
     'group.row_validation_success': 'Suksessmeldingar i rad {0}. Vis meldingar',
     'group.row_validation_messages': 'Meldingar',
-    'group.row_number': 'Rad {0}',
     'group.validation_severity_error': 'Feil',
     'group.validation_severity_warning': 'Åtvaring',
     'group.validation_severity_info': 'Informasjon',
