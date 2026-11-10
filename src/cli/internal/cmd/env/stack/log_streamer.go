@@ -1,4 +1,4 @@
-package localtest
+package stack
 
 import (
 	"bufio"
@@ -18,7 +18,8 @@ const (
 	logScannerMaxBufSize = 1024 * 1024
 )
 
-type logStreamer struct {
+// LogStreamer streams container logs with a per-container prefix.
+type LogStreamer struct {
 	client     container.ContainerClient
 	out        *ui.Output
 	containers []string
@@ -45,15 +46,17 @@ func (l logLine) Print(out *ui.Output) error {
 	return nil
 }
 
-func newLogStreamer(client container.ContainerClient, out *ui.Output, containers []string) *logStreamer {
-	return &logStreamer{
+// NewLogStreamer returns a streamer over the named containers.
+func NewLogStreamer(client container.ContainerClient, out *ui.Output, containers []string) *LogStreamer {
+	return &LogStreamer{
 		client:     client,
 		out:        out,
 		containers: containers,
 	}
 }
 
-func (s *logStreamer) Stream(ctx context.Context, component string, follow, jsonOutput bool) error {
+// Stream writes the logs of one container, or of all of them, prefixed by container name.
+func (s *LogStreamer) Stream(ctx context.Context, component string, follow, jsonOutput bool) error {
 	var containers []string
 	if component != "" {
 		for _, name := range s.containers {
@@ -107,7 +110,7 @@ func (s *logStreamer) Stream(ctx context.Context, component string, follow, json
 	return nil
 }
 
-func (s *logStreamer) streamContainerLogs(
+func (s *LogStreamer) streamContainerLogs(
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	logs io.ReadCloser,

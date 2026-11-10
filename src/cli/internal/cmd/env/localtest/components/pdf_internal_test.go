@@ -8,6 +8,7 @@ import (
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/cabundle/cabundletest"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -15,10 +16,10 @@ import (
 func caBundleOptions(t *testing.T, withBundle bool) *Options {
 	t.Helper()
 	paths := NewPaths(t.TempDir())
-	var bundle *CABundle
+	var bundle *stack.CABundle
 	if withBundle {
 		t.Setenv(cabundle.EnvStudioCABundle, cabundletest.WriteFile(t))
-		bundle = LoadCABundle(ui.NewOutput(io.Discard, io.Discard, false), paths.InfraDir)
+		bundle = stack.LoadCABundle(ui.NewOutput(io.Discard, io.Discard, false), paths.InfraDir)
 		if bundle == nil {
 			t.Fatal("no CA bundle loaded")
 		}

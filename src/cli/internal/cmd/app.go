@@ -16,7 +16,7 @@ import (
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -348,8 +348,8 @@ func checkLegacyLocaltestRunning(ctx context.Context, out *ui.Output) error {
 		}
 	}()
 
-	err = envlocaltest.CheckForLegacyLocaltest(ctx, client)
-	if errors.Is(err, envlocaltest.ErrLegacyLocaltestRunning) {
+	err = stack.CheckForLegacyLocaltest(ctx, client)
+	if errors.Is(err, stack.ErrLegacyLocaltestRunning) {
 		return fmt.Errorf("app env: %w", err)
 	}
 	return nil

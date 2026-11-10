@@ -10,14 +10,13 @@ import (
 	"altinn.studio/devenv/pkg/cabundle/cabundletest"
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
-	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
 
 // env up loads the host's STUDIO_CA_BUNDLE and gives pdf3 the copy in the infra directory: the step between
-// components.LoadCABundle and pdf3's Mount, which the components tests cover each on its own.
+// stack.LoadCABundle and pdf3's Mount, which the stack and components tests each cover only on their side.
 func TestStartGivesPDF3TheHostsCABundle(t *testing.T) {
 	t.Setenv(cabundle.EnvStudioCABundle, cabundletest.WriteFile(t))
 	t.Setenv(config.EnvInternalDevMode, "")
@@ -28,7 +27,7 @@ func TestStartGivesPDF3TheHostsCABundle(t *testing.T) {
 		containermock.New(),
 	)
 
-	opts, err := env.buildResourceOptions(t.Context(), "", "", false, testTopology(), envtypes.UpOptions{})
+	opts, err := env.buildResourceOptions(t.Context(), "", "", false, testTopology(), defaultUpOptions())
 	if err != nil {
 		t.Fatalf("buildResourceOptions() error = %v", err)
 	}
