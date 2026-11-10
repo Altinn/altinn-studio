@@ -99,7 +99,8 @@ func (e *Env) checkPortFree(ctx context.Context, port string) error {
 
 // listenCheckHosts are the addresses checkPortFree listens on. The environment publishes on loopback only. Linux
 // refuses a loopback bind beside a program on every address, so loopback alone answers there: a bind on every address
-// would also refuse a program on another one. macOS lets that loopback bind through, so other systems try both.
+// would also refuse a program on another one. BSD sockets let that loopback bind through when it sets SO_REUSEADDR,
+// as Go does on macOS, so other systems try both.
 func listenCheckHosts() []string {
 	if runtime.GOOS == "linux" {
 		return []string{components.PublishedHostIP}
