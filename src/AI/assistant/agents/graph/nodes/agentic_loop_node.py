@@ -43,7 +43,7 @@ from agents.core import (
     format_skill_listing,
     run_loop,
 )
-from agents.core.tools.commit_session_branch_tool import unverified_changed_files
+from agents.core.tools.commit_session_branch_tool import track_uncommitted_files, unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops
@@ -265,12 +265,12 @@ async def handle(state: AgentState) -> AgentState:
             system_prompt=system_prompt,
             on_event=on_event,
         )
-    unsaved_files = [] if saved else _unsaved_files(ctx)
-    _fail_if_unsaved(state, unsaved_files)
     _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
-    _emit_workflow_completion(state, result, ctx, unsaved_files=unsaved_files)
+    unsaved_files = [] if saved else _unsaved_files(ctx)
+    _fail_if_unsaved(state, saved=saved, unsaved_files=unsaved_files)
+    _emit_workflow_completion(state, result, ctx, saved=saved, unsaved_files=unsaved_files)
     return state
 
 
@@ -284,34 +284,42 @@ def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) ->
     }
 
 
-def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
+def _fail_if_unsaved(state: AgentState, *, saved: bool, unsaved_files: list[str]) -> None:
     """The run fails if the assistant did not save all its edits, also if the
-    model says that the task is complete."""
-    if not state.tests_passed or not unsaved_files:
+    model says that the task is complete.
+
+    `saved` decides the result. The file names are only for the note, because
+    the list can be empty after a save that failed.
+    """
+    if saved or not state.tests_passed:
         return
     state.tests_passed = False
-    state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
+    if unsaved_files:
+        state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
+    else:
+        state.verify_notes = ["The assistant did not save its edits."]
 
 
 def _unsaved_files(ctx: LoopContext) -> list[str]:
     """Return the files that the assistant edited but did not save.
 
     An edit is saved when it is on the remote session branch. The session has its
-    own clone of the app, thus all changes on disk are edits of the assistant.
-    The function gets the changes on disk from git, because the edit list of the
-    tools can be incorrect. An edit after a commit makes a file unsaved again.
-    An edit that the model undoes gives no change. If a push failed, the files
-    of that commit are also unsaved.
+    own clone of the app, thus all changes in the clone are edits of the assistant.
+    The function gets the two types of unsaved edits from git, because the edit
+    list and the flags of the tools are for one turn only and can be incorrect:
+
+    - A file that is different from the last commit. An edit after a commit
+      makes a file unsaved again. An edit that the model undoes gives no change.
+    - A file in a local commit that no remote branch has, because the push failed.
+
+    If git cannot read the clone, the state is unknown. Then each file that the
+    tools edited in this turn is unsaved.
     """
-    changed: set[str] = ctx.extras.get("changed_files") or set()
-    pushed = bool(ctx.extras.get("session_pushed"))
     try:
-        on_disk = set(git_ops.uncommitted_files(ctx.repo_path))
+        return sorted({*git_ops.uncommitted_files(ctx.repo_path), *git_ops.unpushed_files(ctx.repo_path)})
     except (OSError, subprocess.SubprocessError) as exc:
-        log.warning("Cannot read the working tree of session %s. The node uses the push flag: %s", ctx.session_id, exc)
-        on_disk = set() if pushed else set(changed)
-    unpushed = changed if ctx.extras.get("commit") and not pushed else set()
-    return sorted(on_disk | unpushed)
+        log.warning("Cannot read the clone of session %s. The node uses the edit list: %s", ctx.session_id, exc)
+        return sorted(ctx.extras.get("changed_files") or set())
 
 
 MAX_RENDER_REPAIR_ROUNDS = 1
@@ -434,7 +442,16 @@ async def _maybe_auto_commit(
 
 
 async def _verified_for_auto_commit(state: AgentState, ctx: LoopContext) -> bool:
-    """Run the verification the model skipped, so its ceremony does not strand work."""
+    """Run the verification the model skipped, so its ceremony does not strand work.
+
+    The commit takes all files in the working tree, also an edit that an earlier
+    turn did not save. Thus the verification must examine these files too.
+    """
+    try:
+        track_uncommitted_files(ctx)
+    except (OSError, subprocess.SubprocessError) as exc:
+        log.warning("Auto-commit skipped for session %s, git cannot read the working tree: %s", state.session_id, exc)
+        return False
     if not unverified_changed_files(ctx):
         return True
     verify_tool = VerifyChangesTool()
@@ -640,6 +657,7 @@ def _emit_workflow_completion(
     result: LoopResult,
     ctx: LoopContext,
     *,
+    saved: bool,
     unsaved_files: list[str],
 ) -> None:
     """Emit the final `assistant_message` and `done` the frontend needs to close
@@ -648,6 +666,7 @@ def _emit_workflow_completion(
     """
     changes = _changes_sentence(
         unsaved_files,
+        saved=saved,
         pushed=bool(ctx.extras.get("session_pushed")),
         failed_verification=bool(unverified_changed_files(ctx)),
     )
@@ -741,7 +760,7 @@ def _strip_sources_line(text: str) -> str:
     return _SOURCES_LINE_RE.sub("", text)
 
 
-def _changes_sentence(unsaved_files: list[str], *, pushed: bool, failed_verification: bool) -> str:
+def _changes_sentence(unsaved_files: list[str], *, saved: bool, pushed: bool, failed_verification: bool) -> str:
     """Tell the user what occurred to the changes, if the run stopped before the end.
 
     The sentence gives the file names, not the errors from the validator. The
@@ -752,6 +771,8 @@ def _changes_sentence(unsaved_files: list[str], *, pushed: bool, failed_verifica
         if failed_verification:
             return f"Endringene i {files} er ikke lagret, fordi de ikke besto valideringen."
         return f"Endringene i {files} er ikke lagret."
+    if not saved:
+        return "Endringene er ikke lagret."
     if pushed:
         return "Endringene jeg rakk å gjøre, er lagret i sesjons-grenen."
     return "Jeg gjorde ingen endringer."

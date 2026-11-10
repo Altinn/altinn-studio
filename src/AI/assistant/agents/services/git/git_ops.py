@@ -60,14 +60,33 @@ def uncommitted_files(repo_path: str) -> list[str]:
 
     Raise `subprocess.CalledProcessError` if `repo_path` is not a git repository.
     """
-    tracked = subprocess.run(
-        ["git", "diff", "--name-only", "-z", "HEAD"], cwd=repo_path, capture_output=True, text=True, check=True
+    tracked = _paths(repo_path, "diff", "--name-only", "-z", "HEAD")
+    untracked = _paths(repo_path, "ls-files", "--others", "--exclude-standard", "-z")
+    return sorted(tracked | untracked)
+
+
+def unpushed_files(repo_path: str) -> list[str]:
+    """Return the paths in the local commits that no remote branch has.
+
+    A successful `git push` moves the remote-tracking branch, thus git knows
+    which commits are on the remote. Raise `subprocess.CalledProcessError` if
+    `repo_path` is not a git repository.
+    """
+    return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
+
+
+def head_commit(repo_path: str) -> str:
+    """Return the short hash of the last commit, in the format that `commit` returns."""
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, cwd=repo_path).strip()[:8]
+
+
+def _paths(repo_path: str, *args: str) -> set[str]:
+    """Run a git command that prints paths with `-z`, and return the paths.
+
+    A file name is a sequence of bytes, and not always UTF-8. An invalid byte
+    becomes U+FFFD, because a decode error must not stop the run.
+    """
+    output = subprocess.run(
+        ["git", *args], cwd=repo_path, capture_output=True, encoding="utf-8", errors="replace", check=True
     ).stdout
-    untracked = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard", "-z"],
-        cwd=repo_path,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    return sorted({path for path in f"{tracked}{untracked}".split("\0") if path})
+    return {path for path in output.split("\0") if path}

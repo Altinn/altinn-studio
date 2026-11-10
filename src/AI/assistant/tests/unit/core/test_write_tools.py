@@ -513,6 +513,13 @@ class TestVerifyChangesInAV9App:
 
 
 class TestCommitSessionBranch:
+    @pytest.fixture(autouse=True)
+    def clean_clone(self, monkeypatch):
+        """These tests replace git. The clone has no file to commit and no commit to push."""
+        git_ops = "agents.core.tools.commit_session_branch_tool.git_ops."
+        monkeypatch.setattr(git_ops + "uncommitted_files", lambda repo_path: [])
+        monkeypatch.setattr(git_ops + "unpushed_files", lambda repo_path: [])
+
     async def test_commits_pushes_and_reuses_branch(self, monkeypatch):
         seen: dict[str, Any] = {}
 
@@ -539,7 +546,7 @@ class TestCommitSessionBranch:
         assert not result.is_error
         # Cached branch name persists across the session.
         assert ctx.extras["session_branch"].startswith("assistant_")
-        # The auto-commit safety net keys off this flag.
+        # The render check runs only after a push that succeeded.
         assert ctx.extras.get("session_pushed") is True
 
         # Second commit should reuse the cached branch.

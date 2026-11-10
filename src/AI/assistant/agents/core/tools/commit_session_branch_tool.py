@@ -11,10 +11,15 @@ The tool requires `ctx.allow_app_changes`.
 
 from __future__ import annotations
 
+import posixpath
+import subprocess
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git import git_ops
+
+from .utils.repo_files import mark_changed
 
 
 def unverified_changed_files(ctx: LoopContext) -> set[str]:
@@ -28,6 +33,21 @@ def unverified_changed_files(ctx: LoopContext) -> set[str]:
     changed: set[str] = ctx.extras.get("changed_files") or set()
     verified: set[str] = ctx.extras.get("verified_files") or set()
     return changed - verified
+
+
+def track_uncommitted_files(ctx: LoopContext) -> None:
+    """Record as changed each file that git shows as not committed.
+
+    A commit takes all files in the working tree. An earlier turn can leave an
+    edit that the tools of this turn did not record, for example a file that
+    did not pass `verify_changes`. The edit must pass `verify_changes` before a
+    commit. Raise `OSError` or `subprocess.SubprocessError` if git cannot read
+    the working tree.
+    """
+    recorded = {posixpath.normpath(path) for path in ctx.extras.get("changed_files") or set()}
+    for path in git_ops.uncommitted_files(ctx.repo_path):
+        if path not in recorded:
+            mark_changed(ctx, path)
 
 
 def _session_branch_name(ctx: LoopContext) -> str:
@@ -44,6 +64,17 @@ def _session_branch_name(ctx: LoopContext) -> str:
     name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
+
+
+def _commit_to_push_again(ctx: LoopContext) -> str | None:
+    """Return the last commit if its push failed, or None if the remote has all commits.
+
+    The working tree is clean, thus there is nothing to commit. But a commit
+    with a failed push stays in the container until a later push succeeds.
+    """
+    if not git_ops.unpushed_files(ctx.repo_path):
+        return None
+    return git_ops.head_commit(ctx.repo_path)
 
 
 class CommitSessionBranchArgs(BaseModel):
@@ -71,12 +102,17 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
         "  - Nothing to commit: working tree is clean.  Probably you already "
         "committed the changes — check your earlier tool results.\n"
         "  - Push rejected / push raises: the commit is local-only.  You can "
-        "retry with the same message, or stop and let the user resolve."
+        "retry with the same message, which pushes the commit again, or stop "
+        "and let the user resolve."
     )
     input_schema = CommitSessionBranchArgs
     is_concurrency_safe = False
 
     async def run(self, args: CommitSessionBranchArgs, ctx: LoopContext) -> ToolResult:
+        try:
+            track_uncommitted_files(ctx)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return ToolResult(content=f"Commit failed: git cannot read the working tree: {exc}", is_error=True)
         unverified = unverified_changed_files(ctx)
         if unverified:
             return ToolResult(
@@ -90,7 +126,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
 
         branch = _session_branch_name(ctx)
         try:
-            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch)
+            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch) or _commit_to_push_again(ctx)
         except Exception as exc:
             return ToolResult(content=f"Commit failed: {exc}", is_error=True)
 
