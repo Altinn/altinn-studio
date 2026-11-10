@@ -20,7 +20,7 @@ type Settings struct {
 
 // EnvSettings are the defaults of studioctl env.
 type EnvSettings struct {
-	// Port is the host port env up serves localtest on when it is not given --port. Zero is the built-in default.
+	// Port is the host port env up starts a new environment on without --port. Zero is the built-in default.
 	Port int `yaml:"port,omitempty"`
 }
 

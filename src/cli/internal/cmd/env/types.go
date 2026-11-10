@@ -35,8 +35,8 @@ type UpOptions struct {
 	Monitoring        bool
 	OpenBrowser       bool
 	PgAdmin           bool
-	// Port is the host port to serve the environment on (env up --port). Zero keeps the port it was last started
-	// with.
+	// Port is the host port to serve the environment on (env up --port). Zero keeps the port of an environment that
+	// exists, and starts a new one at the env config port.
 	Port int
 }
 
