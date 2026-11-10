@@ -27,6 +27,7 @@ class RepoManager:
         self.active_repos: dict[str, Path] = {}  # session_id -> repo_path
         self.session_api_keys: dict[str, str] = {}  # session_id -> api key
         self.start_commits: dict[str, str | None] = {}  # session_id -> the commit that the session started from
+        self.unreported_pushes: dict[str, str] = {}  # session_id -> the pushed branch that Designer must check out
 
     def _apply_base_url(self, repo_url: str) -> str:
         """Replace the host/port from the incoming URL with GITEA_BASE_URL."""
@@ -142,18 +143,9 @@ class RepoManager:
         return self.start_commits.get(session_id)
 
     def push_branch(self, session_id: str, branch_name: str) -> bool:
-        """
-        Push a branch to the remote repository.
+        """Push the branch to the remote, and record it for the next final message.
 
-        Args:
-            session_id: Session identifier
-            branch_name: Branch name to push
-
-        Returns:
-            True if push succeeded
-
-        Raises:
-            Exception: If push fails
+        Raise an exception if the push fails.
         """
         if session_id not in self.active_repos:
             raise Exception(f"No active repository found for session {session_id}")
@@ -170,12 +162,22 @@ class RepoManager:
             self._run_git(["push", "origin", branch_name], api_key, cwd=repo_path)
 
             log.info(f"Successfully pushed branch {branch_name} for session {session_id}")
+            self.unreported_pushes[session_id] = branch_name
             return True
 
         except subprocess.CalledProcessError as e:
             error_msg = f"Failed to push branch {branch_name}: {e.stderr}"
             log.error(error_msg)
             raise Exception(error_msg) from e
+
+    def take_unreported_push(self, session_id: str) -> str | None:
+        """Return the pushed branch that Designer must check out, and remove the record.
+
+        The final message of a turn gives this branch to Designer. A cancelled
+        turn sends no final message. Thus the record of its push stays until the
+        next final message of the session.
+        """
+        return self.unreported_pushes.pop(session_id, None)
 
     def cleanup_session(self, session_id: str):
         """
@@ -200,6 +202,7 @@ class RepoManager:
             if session_id in self.session_api_keys:
                 del self.session_api_keys[session_id]
             self.start_commits.pop(session_id, None)
+            self.unreported_pushes.pop(session_id, None)
             log.info(f"Successfully cleaned up session {session_id}")
 
         except Exception as e:

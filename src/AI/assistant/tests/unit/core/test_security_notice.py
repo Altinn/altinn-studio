@@ -96,7 +96,7 @@ def _completion_events(
         messages=[],
     )
     ctx = SimpleNamespace(extras={"sources": []})
-    _emit_workflow_completion(cast(AgentState, state), result, cast(LoopContext, ctx))
+    _emit_workflow_completion(cast(AgentState, state), result, cast(LoopContext, ctx), saved=True, unsaved_files=[])
     return sent
 
 
