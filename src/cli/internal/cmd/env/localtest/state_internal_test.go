@@ -70,7 +70,7 @@ func TestStartState(t *testing.T) {
 	}{
 		{name: "--port wins over the recorded port", port: 8200, hasRecord: true, exists: true, want: 8200},
 		{name: "a recorded port lasts until env down", port: 0, hasRecord: true, exists: false, want: 8100},
-		// Started before studioctl recorded the port, so env config, changed since, must not move it (R1).
+		// Started before studioctl recorded the port, so env config, changed since, must not move it.
 		{name: "an environment without a record keeps the default", port: 0, hasRecord: false, exists: true,
 			want: envtopology.DefaultIngressPort()},
 		{name: "a new environment starts at the configured port", port: 0, hasRecord: false, exists: false,
@@ -106,7 +106,7 @@ func TestRemoveStateForgetsTheRecordedPort(t *testing.T) {
 	}
 }
 
-// With nothing recorded, the environment, if any, was started at the default port, so env config doesn't apply (R1).
+// With nothing recorded, the environment, if any, was started at the default port, so env config doesn't apply.
 func TestRecordedTopologyWithoutARecordIsTheDefaultPort(t *testing.T) {
 	t.Parallel()
 
