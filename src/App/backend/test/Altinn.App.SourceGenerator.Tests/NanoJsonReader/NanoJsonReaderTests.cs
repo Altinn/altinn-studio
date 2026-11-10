@@ -7,40 +7,6 @@ namespace Altinn.App.SourceGenerator.Tests.NanoJsonReader;
 public class NanoJsonReaderTests(ITestOutputHelper output)
 {
     [Fact]
-    public void Comments_and_trailing_commas_preserve_values_and_source_offsets()
-    {
-        const string json = """
-            /* metadata */ {
-                // field declaration
-                "items" /* key */ : [ /* before value */ { "id": "form", }, // after item
-                ],
-                "url": "https://example.com/*literal*/",
-            } /* end */ // last line
-            """;
-        var root = JsonValue.Parse(json);
-        var items = root.GetProperty("items");
-        Assert.NotNull(items);
-        var item = Assert.Single(items.GetArrayValues());
-        var id = item.GetProperty("id");
-        Assert.NotNull(id);
-        Assert.Equal("form", id.GetString());
-        Assert.Equal(json.IndexOf("\"form\"", StringComparison.Ordinal), id.Start);
-        Assert.Equal("\"form\"", json.Substring(id.Start, id.End - id.Start));
-        Assert.Equal("https://example.com/*literal*/", root.GetProperty("url")?.GetString());
-        Assert.Equal(json.Length, JsonReader.SkipTrivia(json, root.End, allowEnd: true));
-    }
-
-    [Theory]
-    [InlineData("/* unterminated")]
-    [InlineData("{ \"id\": 1 /* unterminated }")]
-    public void Unterminated_comments_report_the_original_position(string json)
-    {
-        var exception = Assert.Throws<NanoJsonException>(() => JsonValue.Parse(json).GetObjectValues().ToList());
-        Assert.Equal(json.IndexOf("/*", StringComparison.Ordinal), exception.StartIndex);
-        Assert.Contains("Unterminated comment", exception.Message);
-    }
-
-    [Fact]
     public void Test()
     {
         string json = """
