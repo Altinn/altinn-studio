@@ -920,7 +920,7 @@ class TestSuccessRequiresSavedChanges:
         )
 
         assert success is False
-        assert state.verify_notes == ["These changes are not on the session branch: App/ui/a.json"]
+        assert state.verify_notes == ["The assistant did not save its edits to these files: App/ui/a.json"]
 
     async def test_a_rejected_push_causes_a_failure(self, monkeypatch, repo):
         _, _, success = await _finish(
@@ -964,7 +964,7 @@ class TestSuccessRequiresSavedChanges:
         )
 
         assert success is False
-        assert state.verify_notes == ["These changes are not on the session branch: App/ui/b.json"]
+        assert state.verify_notes == ["The assistant did not save its edits to these files: App/ui/b.json"]
 
     async def test_a_page_that_still_fails_to_render_keeps_its_notes(self, monkeypatch, repo):
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)

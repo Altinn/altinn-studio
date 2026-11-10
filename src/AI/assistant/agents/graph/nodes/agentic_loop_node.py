@@ -285,17 +285,19 @@ def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) ->
 
 
 def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
-    """The run fails if a change is not on the session branch, also if the model
-    says that the task is complete."""
+    """The run fails if the assistant did not save all its edits, also if the
+    model says that the task is complete."""
     if not state.tests_passed or not unsaved_files:
         return
     state.tests_passed = False
-    state.verify_notes = [f"These changes are not on the session branch: {', '.join(unsaved_files)}"]
+    state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
 
 
 def _unsaved_files(ctx: LoopContext) -> list[str]:
-    """Return the files with changes that are not on the remote session branch.
+    """Return the files that the assistant edited but did not save.
 
+    An edit is saved when it is on the remote session branch. The session has its
+    own clone of the app, thus all changes on disk are edits of the assistant.
     The function gets the changes on disk from git, because the edit list of the
     tools can be incorrect. An edit after a commit makes a file unsaved again.
     An edit that the model undoes gives no change. If a push failed, the files
@@ -331,7 +333,7 @@ async def _repair_render_failures(
     The prompt tells the model to do the check. But if the model does not do the
     check, the result looks the same as a check that passed.
     MAX_RENDER_REPAIR_ROUNDS sets the limit. Return the last loop result, and
-    True if all changes are on the session branch.
+    True if the assistant saved all its edits.
     """
     if result.reason is TerminationReason.CANCELLED or not saved or not ctx.extras.get("session_pushed"):
         return result, saved
@@ -383,7 +385,7 @@ async def _repair_render_failures(
         if not saved:
             uncommitted_repair = True
             log.warning(
-                "Repair round %d for session %s did not save all changes. The next render check uses the previous commit.",
+                "Repair round %d for session %s did not save all edits. The next render check uses the previous commit.",
                 attempt + 1,
                 state.session_id,
             )
@@ -395,10 +397,10 @@ async def _maybe_auto_commit(
     result: LoopResult,
     ctx: LoopContext,
 ) -> bool:
-    """Commit and push the changes that are not on the session branch.
+    """Commit and push the edits of the assistant that are not saved.
 
-    Return True if all changes are then on the session branch, also if there are
-    no changes. A cancelled run always returns False.
+    Return True if all edits are then saved, also if there are no edits. A
+    cancelled run always returns False.
     """
     if result.reason is TerminationReason.CANCELLED:
         return False
