@@ -245,6 +245,9 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
+  getResourceEnvironments: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<string[]>(['tt02', 'prod'])),
   getAltinn2ResourcePolicies: vi
     .fn()
     .mockImplementation(() =>
