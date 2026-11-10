@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   UserMessage,
-  AssistantMessage,
   Message,
   WorkflowEvent,
   WorkflowStatus,
@@ -21,10 +20,8 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
-  decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
   formatRejectionMessage,
-  getAssistantMessageContent,
   getAssistantMessageTimestamp,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
@@ -61,7 +58,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     Record<string, WorkflowStatus>
   >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
-  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const {
     connectionStatus,
     startWorkflow,
@@ -125,14 +121,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   }, []);
 
   const markWorkflowCompleted = useCallback(
-    (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+    (threadId: string, assistantMessage: AssistantMessageData) => {
       markThreadTerminated(threadId);
       setWorkflowStatus(threadId, {
         isActive: false,
         sessionId: threadId,
         currentStep: 'Completed',
         message: 'AI agent workflow completed successfully',
-        lastCompletedAt: messageTimestamp,
+        lastCompletedAt: getAssistantMessageTimestamp(assistantMessage),
         filesChanged: assistantMessage.filesChanged || [],
       });
     },
@@ -272,11 +268,16 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   );
 
   const handleAssistantMessage = useCallback(
-    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const threadId = event.session_id;
       if (!threadId) return;
 
       const assistantMessage = event.data;
+      // Designer saves the answer before it forwards the event. The first copy can come from a
+      // replica that could not save the answer, so each copy gets the messages again.
+      // If you save a copy here, the thread shows the answer two times.
+      refreshMessages(threadId);
+
       // eventId is stamped on every answer; traceId only exists when Langfuse is on.
       const dedupeId = assistantMessage.eventId ?? assistantMessage.traceId;
       const dedupeKey = dedupeId ? `${threadId}:${dedupeId}` : null;
@@ -289,51 +290,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      const messageContent = getAssistantMessageContent(assistantMessage);
-      const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-      markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
-
-      if (assistantMessage.persistedMessageId) {
-        // Already persisted server-side — refetch instead of writing a client copy.
-        refreshMessages(threadId);
-        if (assistantMessage.traceId) {
-          setTraceIdsByMessageId((prev) => ({
-            ...prev,
-            [assistantMessage.persistedMessageId]: assistantMessage.traceId,
-          }));
-        }
-      } else {
-        // Server-side persist failed or was skipped — persist client-side instead.
-        const finalAssistantMessage: AssistantMessage = {
-          role: MessageAuthor.Assistant,
-          content: messageContent,
-          createdAt: messageTimestamp.toISOString(),
-          filesChanged: assistantMessage.filesChanged || [],
-          sources: assistantMessage.sources || [],
-          traceId: assistantMessage.traceId,
-          attachmentInstructionFlagged: assistantMessage.attachmentInstructionFlagged,
-        };
-        try {
-          const persisted = await createMessage(threadId, finalAssistantMessage);
-
-          if (assistantMessage.traceId && persisted?.id) {
-            setTraceIdsByMessageId((prev) => ({
-              ...prev,
-              [persisted.id]: assistantMessage.traceId,
-            }));
-          }
-        } catch (error) {
-          // Release the dedupe key, or a redelivery of this answer is dropped for good.
-          if (dedupeKey) handledAssistantEventsRef.current.delete(dedupeKey);
-          console.error('Failed to persist assistant message:', error);
-        }
-      }
+      markWorkflowCompleted(threadId, assistantMessage);
 
       if (assistantMessage.pushedBranch) {
         switchToPushedBranch(assistantMessage.pushedBranch);
       }
     },
-    [switchToPushedBranch, markWorkflowCompleted, createMessage, refreshMessages],
+    [switchToPushedBranch, markWorkflowCompleted, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -585,11 +548,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     setCancelledMessageContent(null);
   }, []);
 
-  const messages = useMemo(
-    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
-    [chatMessages, traceIdsByMessageId],
-  );
-
   return {
     connectionStatus,
     workflowStatusByThread,
@@ -598,7 +556,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
-    messages,
+    messages: chatMessages,
   };
 };
 
