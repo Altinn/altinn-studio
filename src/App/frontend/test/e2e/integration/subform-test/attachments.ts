@@ -100,7 +100,7 @@ describe('Attachments', () => {
     cy.get(appFrontend.errorReport).should('be.visible');
     cy.get(appFrontend.errorReport).should('contain.text', 'You cannot upload a file named whatever.png');
 
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Vedlegg' }).click();
+    cy.get(appFrontend.errorReport).findByText('You cannot upload a file named whatever.png').click();
     cy.focused().should('have.attr', 'id', 'attachments');
 
     cy.get('#Input-Name').type(',delete,whatever.png');

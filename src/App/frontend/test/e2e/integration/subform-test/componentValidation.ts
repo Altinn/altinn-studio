@@ -38,7 +38,7 @@ describe('Component validation', () => {
 
     // Component-only errors belong to one subform entry.
     continueAndExpectValidations();
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Mopedregistrering' }).click();
+    cy.get(appFrontend.errorReport).findByRole('button', { name: subformError }).click();
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should('contain.text', subformError);
     cy.get(appFrontend.errorReport, { timeout: 0 }).should('not.contain.text', componentError);
 
@@ -49,12 +49,12 @@ describe('Component validation', () => {
     cy.get('#custom-button-subform-moped-exitButton').clickAndGone();
     cy.get(table).should('be.visible');
     cy.get(appFrontend.fieldValidation('subform-mopeder')).should('contain.text', subformError);
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Mopedregistrering' }).should('be.visible');
+    cy.get(appFrontend.errorReport).findByRole('button', { name: subformError }).should('be.visible');
     cy.get(appFrontend.errorReport, { timeout: 0 }).should('not.contain.text', componentError);
 
     cy.get(table).findAllByRole('button', { name: 'Endre' }).eq(0).click();
     cy.get(appFrontend.fieldValidation('moped-modell')).should('contain.text', componentError);
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Modell' }).click();
+    cy.get(appFrontend.errorReport).findByRole('button', { name: componentError }).click();
     cy.focused().should('have.attr', 'id', 'moped-modell');
     cy.get('#moped-modell').clear();
     cy.get('#moped-modell').type('Scooter');
@@ -69,7 +69,7 @@ describe('Component validation', () => {
     cy.get('#Input-Name').type('task-component-error');
     continueAndExpectValidations();
     cy.get(appFrontend.fieldValidation('Input-Name')).should('contain.text', taskError);
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Navn' }).click();
+    cy.get(appFrontend.errorReport).findByRole('button', { name: taskError }).click();
     cy.focused().should('have.attr', 'id', 'Input-Name');
 
     cy.get(table).findAllByRole('button', { name: 'Endre' }).eq(1).click();
@@ -77,7 +77,7 @@ describe('Component validation', () => {
     cy.get(appFrontend.errorReport, { timeout: 0 }).should('not.exist');
     cy.get('#custom-button-subform-moped-exitButton').clickAndGone();
     cy.get(appFrontend.fieldValidation('Input-Name')).should('contain.text', taskError);
-    cy.get(appFrontend.errorReport).findByRole('button', { name: 'Navn' }).should('be.visible');
+    cy.get(appFrontend.errorReport).findByRole('button', { name: taskError }).should('be.visible');
     cy.get('#Input-Name').clear();
     cy.get('#Input-Name').type('Per');
     cy.get(appFrontend.errorReport).should('not.exist');

@@ -12,7 +12,7 @@ import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
-  const render = async (validationIssues: BackendValidationIssue[] = [], title?: string) => {
+  const render = async (validationIssues: BackendValidationIssue[] = []) => {
     window.altinnAppGlobalData.textResources!.resources = [{ id: 'submit', value: 'This is a page title' }];
     window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
       ui.folders.Task_1 = {
@@ -37,7 +37,6 @@ describe('ErrorReport', () => {
                     {
                       id: 'input',
                       type: 'Input',
-                      textResourceBindings: { title },
                       dataModelBindings: {
                         simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
                       },
@@ -155,7 +154,7 @@ describe('ErrorReport', () => {
 
     expect(errorNode.parentElement?.tagName).toEqual('BUTTON');
 
-    expect(errorNode.closest('li')).toBeInTheDocument();
+    expect(errorNode.parentElement?.parentElement?.tagName).toEqual('LI');
   });
   function mockProcessNextValidationIssues(validationIssues: BackendValidationIssue[]) {
     vi.mocked(doProcessNext).mockImplementationOnce(async () => {
@@ -185,16 +184,6 @@ describe('ErrorReport', () => {
     const errorNodes = await screen.findAllByText('component error');
     expect(errorNodes).toHaveLength(1);
     expect(errorNodes[0].parentElement?.tagName).toEqual('BUTTON');
-  });
-
-  it('includes the component label in the error link when it has one', async () => {
-    await render([issue({ customTextKey: 'Check the value', componentId: 'input' })], 'Name');
-    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    const label = await screen.findByRole('button', { name: 'Name' });
-    expect(label).toBeInTheDocument();
-    expect(label).not.toHaveTextContent('Check the value');
-    expect(label.parentElement).toHaveTextContent('Check the value');
   });
 
   it('should list an error linked to a missing component as unclickable', async () => {
