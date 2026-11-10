@@ -5,8 +5,6 @@ import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/message/ErrorReport.module.css';
-import { ValidationMessage } from 'src/components/message/ValidationMessage';
-import messageClasses from 'src/components/message/ValidationMessage.module.css';
 import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
 import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import {
@@ -15,7 +13,9 @@ import {
 } from 'src/features/instantiate/InstantiationValidation';
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
@@ -66,12 +66,7 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
               <ErrorSummary.Heading>
                 <Lang id='form_filler.error_report_header' />
               </ErrorSummary.Heading>
-              <ErrorSummary.List
-                data-size='md'
-                className={`${messageClasses.list} ${classes.errorList}`}
-              >
-                {errors}
-              </ErrorSummary.List>
+              <ErrorSummary.List className={classes.errorList}>{errors}</ErrorSummary.List>
             </Flex>
             {children}
           </Flex>
@@ -164,9 +159,29 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 }
 
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
+  const navigateToComponent = useNavigateToComponent();
+
+  function handleErrorClick(ev: React.KeyboardEvent | React.MouseEvent) {
+    if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
+      return;
+    }
+    ev.preventDefault();
+
+    navigateToComponent(error.nodeId, error.baseComponentId, { error });
+  }
+
   return (
-    <ErrorSummary.Item className={classes.linkedError}>
-      <ValidationMessage validation={error} />
-    </ErrorSummary.Item>
+    <ErrorReportListItem>
+      <button
+        className={classes.buttonAsInvisibleLink}
+        onClick={handleErrorClick}
+        onKeyDown={handleErrorClick}
+        data-target-node={error.nodeId}
+      >
+        <DataModelLocationProviderFromNode nodeId={error.nodeId}>
+          <LangReference reference={error.message} />
+        </DataModelLocationProviderFromNode>
+      </button>
+    </ErrorReportListItem>
   );
 }
