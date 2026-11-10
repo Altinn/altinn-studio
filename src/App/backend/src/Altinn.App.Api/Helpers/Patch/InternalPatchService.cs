@@ -295,6 +295,8 @@ internal class InternalPatchService
         var dataWriteProcessors = _appImplementationFactory.GetAll<IDataWriteProcessor>();
         foreach (var dataWriteProcessor in dataWriteProcessors)
         {
+            // An earlier processor may have replaced a form's data; the next one must edit what gets saved.
+            changes = await WithCurrentFormData(dataMutator, changes);
             using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
             try
             {
@@ -335,6 +337,51 @@ internal class InternalPatchService
                 }
             ),
         };
+
+    /// <summary>
+    /// Points each updated form in <paramref name="changes"/> at the object the unit of work holds now.
+    /// <see cref="IInstanceDataMutator.ReplaceFormData"/> gives the element a new object, and the save writes that one.
+    /// </summary>
+    private static async Task<DataElementChanges> WithCurrentFormData(
+        IInstanceDataMutator dataMutator,
+        DataElementChanges changes
+    )
+    {
+        List<DataElementChange> current = new(changes.AllChanges.Count);
+        bool replaced = false;
+        foreach (DataElementChange change in changes.AllChanges)
+        {
+            if (
+                change is FormDataChange { Type: ChangeType.Updated } formDataChange
+                && await dataMutator.GetFormData(formDataChange.DataElementIdentifier) is { } formData
+                && !ReferenceEquals(formData, formDataChange.CurrentFormData)
+            )
+            {
+                replaced = true;
+                current.Add(
+                    new FormDataChange(
+                        type: ChangeType.Updated,
+                        dataElement: formDataChange.DataElement,
+                        contentType: formDataChange.ContentType,
+                        dataType: formDataChange.DataType,
+                        previousFormDataWrapper: formDataChange.PreviousFormDataWrapper,
+                        currentFormDataWrapper: FormDataWrapperFactory.Create(
+                            formData,
+                            formDataChange.DataType,
+                            formDataChange.DataElement
+                        ),
+                        previousBinaryData: formDataChange.PreviousBinaryData,
+                        currentBinaryData: null
+                    )
+                );
+                continue;
+            }
+
+            current.Add(change);
+        }
+
+        return replaced ? new DataElementChanges(current) : changes;
+    }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)
     {

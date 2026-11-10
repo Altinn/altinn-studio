@@ -299,4 +299,101 @@ public class DataController_PutTests : ApiTestBase
 
         TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
     }
+
+    [Fact]
+    public async Task PutDataElement_WhenAProcessorReplacesTheForm_LaterProcessorsAndTheResponseUseTheReplacement()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        var instanceOwnerPartyId = 500600;
+        var instanceId = Guid.Parse("00000000-DEAD-0000-BABE-000000000999");
+        var dataGuid = Guid.Parse("cd691c32-0000-4555-8aee-0b7054a413e4");
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceId);
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DataElementChanges>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton<IDataWriteProcessor>(new ReplacingDataWriteProcessor());
+            services.AddSingleton<IDataWriteProcessor>(new EditingDataWriteProcessor());
+        };
+        var client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
+
+        using var content = new StringContent(
+            """{"melding":{"name": "Ola Olsen"}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var response = await client.PutAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceId}/data/{dataGuid}",
+            content
+        );
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseText);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        responseText.Should().Contain("Replaced").And.Contain("Edited after the replacement");
+        string stored = TestData.GetDataElementBlobContnet(org, app, instanceOwnerPartyId, instanceId, dataGuid);
+        stored.Should().Contain("<name>Replaced</name>").And.Contain("<random>Edited after the replacement</random>");
+
+        TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
+    }
+
+    private sealed class ReplacingDataWriteProcessor : IDataWriteProcessor
+    {
+        public async Task ProcessDataWrite(
+            IInstanceDataMutator instanceDataMutator,
+            string taskId,
+            DataElementChanges changes,
+            string? language
+        )
+        {
+            foreach (FormDataChange change in changes.FormDataChanges)
+            {
+                await instanceDataMutator.ReplaceFormData(
+                    change.DataElementIdentifier,
+                    new Skjema { Melding = new Dummy { Name = "Replaced" } }
+                );
+            }
+        }
+    }
+
+    private sealed class EditingDataWriteProcessor : IDataWriteProcessor
+    {
+        public Task ProcessDataWrite(
+            IInstanceDataMutator instanceDataMutator,
+            string taskId,
+            DataElementChanges changes,
+            string? language
+        )
+        {
+            foreach (FormDataChange change in changes.FormDataChanges)
+            {
+                if (change.CurrentFormData is Skjema { Melding: { } melding })
+                {
+                    melding.Random = "Edited after the replacement";
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+    }
 }
