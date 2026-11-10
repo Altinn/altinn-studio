@@ -201,7 +201,7 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
             eventId: eventId
         );
 
-        var options = DbFixture.CreatePostgresDbContextOptions();
+        var options = new DbContextOptionsBuilder<DesignerdbContext>().UseNpgsql(DbFixture.ConnectionString).Options;
         await using var firstReplica = new DesignerdbContext(options);
         await using var secondReplica = new DesignerdbContext(options);
 

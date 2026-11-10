@@ -23,7 +23,7 @@ public class DesignerDbFixture : IAsyncLifetime
         DbContext = TestDbProvider.Instance.DbContext;
     }
 
-    public DbContextOptions<DesignerdbContext> CreatePostgresDbContextOptions()
+    private DbContextOptions<DesignerdbContext> CreatePostgresDbContextOptions()
     {
         return new DbContextOptionsBuilder<DesignerdbContext>().UseNpgsql(ConnectionString).Options;
     }
