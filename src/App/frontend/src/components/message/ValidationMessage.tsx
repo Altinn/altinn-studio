@@ -9,11 +9,12 @@ import {
 } from '@navikt/aksel-icons';
 
 import classes from 'src/components/message/ValidationMessage.module.css';
-import { Lang, LangReference } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { FormStore } from 'src/features/form/FormContext';
+import { Lang } from 'src/features/language/Lang';
+import { useLanguageWithForcedPath } from 'src/features/language/useLanguage';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import utilClasses from 'src/styles/utils.module.css';
-import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
+import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export const validationSeverityPresentation = {
@@ -32,30 +33,12 @@ export function ValidationMessage({
   onNavigate?: () => void;
   navigateToField?: boolean;
 }) {
-  return (
-    <DataModelLocationProviderFromNode
-      nodeId={validation.nodeId}
-      replace
-    >
-      <MessageContent
-        validation={validation}
-        onNavigate={onNavigate}
-        navigateToField={navigateToField}
-      />
-    </DataModelLocationProviderFromNode>
-  );
-}
-
-function MessageContent({
-  validation,
-  onNavigate,
-  navigateToField,
-}: {
-  validation: NodeRefValidation;
-  onNavigate?: () => void;
-  navigateToField: boolean;
-}) {
-  const { lang } = useLanguage();
+  const location = getDataModelLocationForIndexedNode(validation.nodeId, FormStore.bootstrap.useLayoutLookups());
+  const path =
+    location.groupBinding && location.rowIndex !== undefined
+      ? { ...location.groupBinding, field: `${location.groupBinding.field}[${location.rowIndex}]` }
+      : undefined;
+  const { lang } = useLanguageWithForcedPath(path);
   const navigate = useNavigateToComponent();
   const { Icon, color } = validationSeverityPresentation[validation.severity];
   const message = lang(
@@ -89,7 +72,7 @@ function MessageContent({
             {message}
           </NavigableMessage>
         ) : (
-          <LangReference reference={validation.message} />
+          message
         )}
       </div>
     </div>

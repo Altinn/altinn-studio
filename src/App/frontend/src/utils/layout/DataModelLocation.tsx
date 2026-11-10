@@ -62,25 +62,8 @@ function useDataModelLocationForNodeRaw(nodeId: string | undefined) {
   return useMemo(() => getDataModelLocationForIndexedNode(nodeId, lookups), [lookups, nodeId]);
 }
 
-export function DataModelLocationProviderFromNode({
-  nodeId,
-  replace = false,
-  children,
-}: PropsWithChildren<{ nodeId: string; replace?: boolean }>) {
+export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWithChildren<{ nodeId: string }>) {
   const { groupBinding, rowIndex } = useDataModelLocationForNodeRaw(nodeId);
-  const value = useMemo(() => {
-    if (!groupBinding || rowIndex === undefined) {
-      return undefined;
-    }
-    const reference = { ...groupBinding, field: `${groupBinding.field}[${rowIndex}]` };
-    const rowContexts = parseGroupContexts(reference).map((context) => ({ ...context, rowId: '' }));
-    return { reference, rowContexts, idMutators: rowContextsToIdMutators(rowContexts) };
-  }, [groupBinding, rowIndex]);
-
-  // Message popovers may already be inside a different or outer row's context.
-  if (replace) {
-    return <Provider value={value}>{children}</Provider>;
-  }
 
   if (!groupBinding || rowIndex === undefined) {
     return children;
