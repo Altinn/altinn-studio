@@ -39,6 +39,19 @@
       {
         "id": "validation-default",
         "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
         "dataModelBindings": {
           "group": "Pets"
         },
@@ -126,6 +139,19 @@
       {
         "id": "validation-mixed",
         "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
         "dataModelBindings": {
           "group": "Pets"
         },
@@ -226,6 +252,19 @@
       {
         "id": "validation-table",
         "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
         "dataModelBindings": {
           "group": "Pets"
         },
@@ -324,10 +363,12 @@
           [
             "contains",
             [
-              "dataModel",
-              "Pets[0].UniqueId"
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
             ],
-            "validation-showcase-"
+            "|validation-showcase-"
           ]
         ]
       },
