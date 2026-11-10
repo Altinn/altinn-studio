@@ -11,6 +11,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
+	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -210,5 +211,73 @@ func TestValidatePublicPort(t *testing.T) {
 		if err := ValidatePublicPort(port, "--port"); !errors.Is(err, want) {
 			t.Fatalf("ValidatePublicPort(%d) error = %v, want %v", port, err, want)
 		}
+	}
+}
+
+// The environment publishes on 127.0.0.1 only, so a program on another address of the same port leaves it free: the
+// container runtime publishes beside it. On Linux the 0.0.0.0 bind fails beside such a program.
+func TestCheckPortFreeAcceptsAPortHeldOnlyOnAnotherAddress(t *testing.T) {
+	t.Parallel()
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp4", "127.0.0.2:0")
+	if err != nil {
+		t.Skipf("no second loopback address here: %v", err)
+	}
+	t.Cleanup(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); err != nil {
+		t.Fatalf("checkPortFree() error = %v, want nil: 127.0.0.1:%s is free", err, port)
+	}
+}
+
+// A program that listens on a port without naming an address usually gets a dual-stack IPv6 socket on [::] (Node's
+// server.listen(port), for example), not an IPv4 one. env up must refuse that port too; this only discriminates on
+// macOS and Windows, where IPv4 and IPv6 binds interact differently than on Linux.
+func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryIPv6Address(t *testing.T) {
+	t.Parallel()
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp", "[::]:0")
+	if err != nil {
+		t.Skipf("no IPv6 here: %v", err)
+	}
+	t.Cleanup(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse for a port held on [::]", err)
+	}
+}
+
+// A plain env up starts at the recorded port. 5300 is one env up would refuse, which shows the port it checked.
+func TestUpChecksTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testResetImages()}
+	if err := WriteState(cfg, State{PublicPort: 5300}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), mock.New())
+
+	if err := env.Up(t.Context(), envtypes.UpOptions{Detach: true}); !errors.Is(err, errPortPublished) {
+		t.Fatalf("Up() error = %v, want the clash of the recorded 5300 with pdf3", err)
 	}
 }
