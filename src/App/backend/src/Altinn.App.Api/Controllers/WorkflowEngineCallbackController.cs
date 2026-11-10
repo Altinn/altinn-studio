@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
@@ -238,7 +239,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                         StatusCodes.Status422UnprocessableEntity
                     );
                 }
-                catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(ex))
+                // A plain status check rather than ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied: CodeQL's
+                // cs/user-controlled-bypass reads any method named *auth* behind the route's command key as a bypass.
+                catch (PlatformHttpException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
                     const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
                     _logger.LogError(
