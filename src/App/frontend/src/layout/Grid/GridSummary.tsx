@@ -56,6 +56,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { getLabelSettings, useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -297,8 +298,7 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   );
 
   const required = useComponentIsRequired(config);
-  const showOptionalMarking =
-    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking = useShowOptionalIndicator(getLabelSettings(config));
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
@@ -529,7 +529,7 @@ function SummaryCellWithLabel({
   );
   const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const required = useComponentIsRequired(config);
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 

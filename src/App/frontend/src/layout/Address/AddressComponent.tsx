@@ -15,6 +15,7 @@ import { usePostPlace } from 'src/layout/Address/usePostPlace';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<'Address'>) {
@@ -22,6 +23,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
   const componentId = useIndexedId(baseComponentId);
   const required = useEvalExpression(config.required, Expressions.Address.required);
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const readOnly = useEvalExpression(config.readOnly, Expressions.Address.readOnly);
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
   const careOfTitle = useEvalOptionalText(
@@ -72,7 +74,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
       simplified={config.simplified}
       required={required}
       readOnly={readOnly}
-      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showOptionalMarking={showOptionalMarking}
       title={title}
       careOfTitle={careOfTitle}
       zipCodeTitle={zipCodeTitle}

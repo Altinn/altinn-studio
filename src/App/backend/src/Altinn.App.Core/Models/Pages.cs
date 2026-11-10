@@ -31,6 +31,12 @@ public class Pages
     public bool? ShowProgress { get; set; }
 
     /// <summary>
+    /// Hides the explicit marking that says a field is optional. A component's own
+    /// <c>labelSettings.optionalIndicator</c> overrides it.
+    /// </summary>
+    public bool? HideOptionalIndicator { get; set; }
+
+    /// <summary>
     /// Specifies when the application saves form data.
     /// </summary>
     public AutoSaveBehavior? AutoSaveBehavior { get; set; }

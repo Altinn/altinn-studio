@@ -332,6 +332,26 @@ describe('InputComponent', () => {
     expect(inputComponent).toHaveAttribute('autocomplete', 'name');
   });
 
+  it('marks the label as optional when the field is not required', async () => {
+    await render({ component: { textResourceBindings: { title: 'Input label' } } });
+    expect(screen.getByText('Valgfritt')).toBeInTheDocument();
+  });
+
+  it('hides the optional marking when the app hides it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({ component: { textResourceBindings: { title: 'Input label' } } });
+    expect(screen.getByRole('textbox', { name: 'Input label' })).toBeInTheDocument();
+    expect(screen.queryByText('Valgfritt')).not.toBeInTheDocument();
+  });
+
+  it('marks the label as optional when the app hides the marking but the component shows it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({
+      component: { textResourceBindings: { title: 'Input label' }, labelSettings: { optionalIndicator: true } },
+    });
+    expect(screen.getByText('Valgfritt')).toBeInTheDocument();
+  });
+
   const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Input',

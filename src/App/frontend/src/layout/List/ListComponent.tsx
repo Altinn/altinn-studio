@@ -38,6 +38,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -77,7 +78,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   );
   const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.List.textResourceBindings.help);
 
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const [pageSize, setPageSize] = useState<number>(config.pagination?.default ?? 0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -136,7 +137,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       <OptionalIndicator
         required={required}
         readOnly={readOnly}
-        showOptionalMarking={labelSettings?.optionalIndicator !== false}
+        showOptionalMarking={showOptionalMarking}
       />
     </Heading>
   ) : undefined;
@@ -221,7 +222,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>
@@ -252,7 +253,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>

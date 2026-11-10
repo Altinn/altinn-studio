@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
 
 ### Changed

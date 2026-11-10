@@ -32,6 +32,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
 
@@ -49,7 +50,7 @@ export function OrganizationLookupComponent({
     baseComponentId,
     overrideDisplay,
   });
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
   const validations = useUnifiedValidationsForNode(baseComponentId);
@@ -171,7 +172,7 @@ export function OrganizationLookupComponent({
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               }
               description={
