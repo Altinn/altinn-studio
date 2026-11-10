@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 
+### Changed
+
+- Breaking: In v9, NavigationButtons and NavigationBar validation settings take precedence over inherited navigation validation. Review and test conflicting settings: remove forward settings to retain inherited validation, or backward settings to leave backward navigation unvalidated. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845))
+
 ### Fixed
 
 - Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))

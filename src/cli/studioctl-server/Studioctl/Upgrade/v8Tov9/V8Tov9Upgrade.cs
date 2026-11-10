@@ -296,6 +296,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckNavigationValidation(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -2126,6 +2129,24 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    private static async Task<int> CheckNavigationValidation(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Navigation validation");
+        try
+        {
+            var result = await new NavigationValidationAdvisor(projectFolder).Analyze();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No navigation validation changes need review",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception exception)
+        {
+            return Fail("Error checking navigation validation", exception);
         }
     }
 
