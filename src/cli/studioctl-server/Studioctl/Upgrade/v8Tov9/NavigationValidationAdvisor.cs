@@ -97,9 +97,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         var location = $"{DisplayPath(context.File)}, component '{id}', {property}";
         if (inherited.Error is { } error)
         {
-            messages.Todo(
-                $"{location}: could not determine which page, task or app validation this setting replaces in v9. {error} The settings were kept. Fix the configuration and run the upgrade again."
-            );
+            messages.Todo($"{location}: could not determine inherited validation for v9. {error} Settings unchanged.");
             return;
         }
 
@@ -109,7 +107,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         )
         {
             messages.Todo(
-                $"{location}: could not compare this setting with {inherited.Level}-level validation in {DisplayPath(inherited.File)}. Check that both have a valid page and list of validation types, then review navigation in v9. The settings were kept."
+                $"{location}: could not compare with {inherited.Level}-level validation in {DisplayPath(inherited.File)}. Expected a valid page scope and validation type list. Settings unchanged."
             );
             return;
         }
@@ -134,12 +132,8 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             direction == NavigationDirection.Backward
                 ? $"Backward navigation will now check {DescribeCategories(after.Categories)} on {DescribePages(after.Page)}. Previously, this component allowed backward navigation without validation."
                 : DescribeForward(before, after, samePages);
-        var action =
-            direction == NavigationDirection.Backward
-                ? "continue allowing backward navigation without this validation"
-                : $"continue using the {inherited.Level}-level validation";
         messages.Todo(
-            $"{location}: in v9, this component setting takes priority over {inherited.Level}-level validation in {DisplayPath(inherited.File)}. {difference} The settings were kept. Review and test this behavior before deploying. Keep {property} if intended, or remove it to {action}."
+            $"{location}: overrides {inherited.Level}-level validation in {DisplayPath(inherited.File)} in v9. {difference} Settings unchanged."
         );
     }
 
