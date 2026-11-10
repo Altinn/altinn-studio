@@ -90,13 +90,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedProcessingRelease;
     private bool _stagedInstanceDeletion;
     private bool _stagedCompleteConfirmation;
-    private readonly ConcurrentDictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, string?> _stagedInstancePresentationTexts = new(
-        StringComparer.Ordinal
-    );
-
-    // The instance's data values and presentation texts are plain dictionaries that the setters change in place.
-    private readonly Lock _instanceFieldsLock = new();
+    private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _stagedInstancePresentationTexts = new(StringComparer.Ordinal);
 
     // Metadata changes per data element, existing or staged for creation, merged per property.
     private readonly ConcurrentDictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
@@ -755,11 +750,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        lock (_instanceFieldsLock)
-        {
-            _stagedInstanceDataValues[key] = value;
-            Instance.DataValues = SetInstanceField(Instance.DataValues, key, value);
-        }
+        _stagedInstanceDataValues[key] = value;
+        Instance.DataValues = SetInstanceField(Instance.DataValues, key, value);
     }
 
     /// <inheritdoc />
@@ -776,11 +768,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        lock (_instanceFieldsLock)
-        {
-            _stagedInstancePresentationTexts[key] = value;
-            Instance.PresentationTexts = SetInstanceField(Instance.PresentationTexts, key, value);
-        }
+        _stagedInstancePresentationTexts[key] = value;
+        Instance.PresentationTexts = SetInstanceField(Instance.PresentationTexts, key, value);
     }
 
     private static Dictionary<string, string?>? SetInstanceField(
@@ -811,8 +800,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0
         || !_stagedMetadataUpdates.IsEmpty
-        || !_stagedInstanceDataValues.IsEmpty
-        || !_stagedInstancePresentationTexts.IsEmpty
+        || _stagedInstanceDataValues.Count > 0
+        || _stagedInstancePresentationTexts.Count > 0
         || _stagedCompleteConfirmation;
 
     /// <summary>
