@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
+- `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. `studioctl env config set port <port>` makes another port the default. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 
 ### Changed
 
