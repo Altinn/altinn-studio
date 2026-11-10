@@ -17,6 +17,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 
+### Fixed
+
+- Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
+    - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
+    - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window
+
 ## [0.1.0-preview.33] - 2026-11-09
 
 ### Changed
