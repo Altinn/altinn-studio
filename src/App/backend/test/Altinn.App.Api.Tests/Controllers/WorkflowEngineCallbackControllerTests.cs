@@ -806,6 +806,21 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_WhenCommandThrowsAWrappedForbidden_FailsPermanentlyWithTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(new ThrowWrappedForbiddenCommand());
+
+        IActionResult result = await setup.Execute(ThrowWrappedForbiddenCommand.Key, Guid.NewGuid());
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.True(LoggedDenialDiagnosis(setup));
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenInitialProcessAcquireGetsStaleInstanceVersion_FailsPermanentlyWithoutMutation()
     {
         await using ControllerSetup setup = CreateSetup(_ => { });
@@ -1357,6 +1372,20 @@ public class WorkflowEngineCallbackControllerTests
             Language = context.InstanceDataMutator.Language;
             return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
+    }
+
+    // Like app code a command runs without catching, such as IInstantiationProcessor.DataCreation.
+    private sealed class ThrowWrappedForbiddenCommand : IWorkflowEngineCommand
+    {
+        public const string Key = "ThrowWrappedForbiddenForCallbackTest";
+
+        public string GetKey() => Key;
+
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context) =>
+            throw new InvalidOperationException(
+                "Data creation failed",
+                new PlatformHttpException(HttpStatusCode.Forbidden, "Storage refused the request")
+            );
     }
 
     private sealed class AddBinaryDataCommand : IWorkflowEngineCommand

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
@@ -159,17 +158,28 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-        WorkflowEngineCommandResult result = await command.Execute(
-            new WorkflowEngineCommandContext
-            {
-                AppId = appId,
-                InstanceId = instanceId,
-                InstanceDataMutator = instanceDataUnitOfWork,
-                CancellationToken = cancellationToken,
-                Payload = payload,
-                StateCarry = stateCarry,
-            }
-        );
+        WorkflowEngineCommandResult result;
+        try
+        {
+            result = await command.Execute(
+                new WorkflowEngineCommandContext
+                {
+                    AppId = appId,
+                    InstanceId = instanceId,
+                    InstanceDataMutator = instanceDataUnitOfWork,
+                    CancellationToken = cancellationToken,
+                    Payload = payload,
+                    StateCarry = stateCarry,
+                }
+            );
+        }
+        // A command that lets a 403 escape, such as app code it runs, fails like one that reports it: the result
+        // carries the denial, and the failed branch below answers it permanently. Other exceptions still reach
+        // the engine as a retryable 500.
+        catch (Exception ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
+        {
+            result = FailedWorkflowEngineCommandResult.Retryable(ex);
+        }
 
         switch (result)
         {
@@ -239,9 +249,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         StatusCodes.Status422UnprocessableEntity
                     );
                 }
-                // A plain status check rather than ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied: CodeQL's
-                // cs/user-controlled-bypass reads any method named *auth* behind the route's command key as a bypass.
-                catch (PlatformHttpException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+                catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
                 {
                     const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
                     _logger.LogError(

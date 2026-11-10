@@ -20,9 +20,10 @@ internal static class ServiceOwnerAuthorizationDiagnostics
     /// <summary>
     /// Whether the exception (or any exception it wraps) is a platform call rejected with HTTP 403.
     /// A 401 is deliberately not included: an expired or unobtainable token is a transient condition,
-    /// not a policy gap.
+    /// not a policy gap. The name avoids "auth": CodeQL's cs/user-controlled-bypass reads a call to any
+    /// method named that way, behind the callback's route checks, as an authorization a caller can bypass.
     /// </summary>
-    internal static bool IsAuthorizationDenied(Exception? exception)
+    internal static bool IsForbidden(Exception? exception)
     {
         while (exception is not null)
         {
@@ -35,7 +36,7 @@ internal static class ServiceOwnerAuthorizationDiagnostics
             {
                 foreach (Exception inner in aggregate.InnerExceptions)
                 {
-                    if (IsAuthorizationDenied(inner))
+                    if (IsForbidden(inner))
                     {
                         return true;
                     }

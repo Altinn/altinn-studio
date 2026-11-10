@@ -14,7 +14,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     [Fact]
     public void Recognises_A_Forbidden_Platform_Call()
     {
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(HttpStatusCode.Forbidden)));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(HttpStatusCode.Forbidden)));
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     {
         var wrapped = new InvalidOperationException("saving failed", Platform(HttpStatusCode.Forbidden));
 
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(wrapped));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(wrapped));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
             Platform(HttpStatusCode.Forbidden)
         );
 
-        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(aggregate));
+        Assert.True(ServiceOwnerAuthorizationDiagnostics.IsForbidden(aggregate));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     {
         // A 401 means the token was missing, expired or could not be obtained - transient, and not
         // something a policy change fixes.
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(HttpStatusCode.Unauthorized)));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(HttpStatusCode.Unauthorized)));
     }
 
     [Theory]
@@ -50,14 +50,14 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     [InlineData(HttpStatusCode.BadRequest)]
     public void Does_Not_Recognise_Other_Platform_Failures(HttpStatusCode statusCode)
     {
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(Platform(statusCode)));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(Platform(statusCode)));
     }
 
     [Fact]
     public void Does_Not_Recognise_A_Plain_Exception()
     {
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(new TimeoutException()));
-        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(null));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(new TimeoutException()));
+        Assert.False(ServiceOwnerAuthorizationDiagnostics.IsForbidden(null));
     }
 
     [Fact]

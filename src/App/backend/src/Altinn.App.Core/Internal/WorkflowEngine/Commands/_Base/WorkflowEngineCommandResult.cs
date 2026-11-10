@@ -71,7 +71,7 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
             exception.GetType().Name,
             nonRetryable: false,
             exception,
-            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(exception)
+            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsForbidden(exception)
         );
 
     /// <summary>
