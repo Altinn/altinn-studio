@@ -302,13 +302,11 @@ def _unsaved_files(ctx: LoopContext) -> list[str]:
     of that commit are also unsaved.
     """
     changed: set[str] = ctx.extras.get("changed_files") or set()
-    pushed = bool(ctx.extras.get("session_committed"))
+    pushed = bool(ctx.extras.get("session_pushed"))
     try:
         on_disk = set(git_ops.uncommitted_files(ctx.repo_path))
     except (OSError, subprocess.SubprocessError) as exc:
-        log.warning(
-            "Cannot read the working tree of session %s. The node uses the commit flag: %s", ctx.session_id, exc
-        )
+        log.warning("Cannot read the working tree of session %s. The node uses the push flag: %s", ctx.session_id, exc)
         on_disk = set() if pushed else set(changed)
     unpushed = changed if ctx.extras.get("commit") and not pushed else set()
     return sorted(on_disk | unpushed)
@@ -335,7 +333,7 @@ async def _repair_render_failures(
     MAX_RENDER_REPAIR_ROUNDS sets the limit. Return the last loop result, and
     True if all changes are on the session branch.
     """
-    if result.reason is TerminationReason.CANCELLED or not saved or not ctx.extras.get("session_committed"):
+    if result.reason is TerminationReason.CANCELLED or not saved or not ctx.extras.get("session_pushed"):
         return result, saved
 
     check = PreviewRenderCheckTool()
@@ -648,7 +646,7 @@ def _emit_workflow_completion(
     """
     changes = _changes_sentence(
         unsaved_files,
-        pushed=bool(ctx.extras.get("session_committed")),
+        pushed=bool(ctx.extras.get("session_pushed")),
         failed_verification=bool(unverified_changed_files(ctx)),
     )
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))

@@ -405,7 +405,7 @@ class TestHandle:
         async def fake_run_loop(**kwargs):
             captured.update(kwargs)
             kwargs["ctx"].extras["changed_files"] = {"Side1/layout.json"}
-            kwargs["ctx"].extras["session_committed"] = True
+            kwargs["ctx"].extras["session_pushed"] = True
             return LoopResult(
                 reason=TerminationReason.COMPLETED,
                 messages=[],
@@ -503,7 +503,7 @@ class TestHandle:
     async def test_emits_done_and_final_assistant_message(self, monkeypatch):
         async def fake_run_loop(**kwargs):
             kwargs["ctx"].extras["changed_files"] = {"Side1/layout.json", "model.schema.json"}
-            kwargs["ctx"].extras["session_committed"] = True
+            kwargs["ctx"].extras["session_pushed"] = True
             return LoopResult(
                 reason=TerminationReason.COMPLETED,
                 messages=[],
@@ -802,7 +802,7 @@ class TestAutoCommitSafetyNet:
     async def test_skips_auto_commit_when_model_already_committed(self, monkeypatch):
         async def fake_run_loop(**kwargs):
             kwargs["ctx"].extras["changed_files"] = {"f.json"}
-            kwargs["ctx"].extras["session_committed"] = True
+            kwargs["ctx"].extras["session_pushed"] = True
             return LoopResult(
                 reason=TerminationReason.COMPLETED,
                 messages=[],
@@ -1138,7 +1138,7 @@ def _outcome(*, is_error: bool, unavailable: bool = False, content: str = "rende
 
 def _committed_ctx(tmp_path):
     ctx = LoopContext(session_id="sess-1", repo_path=str(tmp_path), allow_app_changes=True)
-    ctx.extras["session_committed"] = True
+    ctx.extras["session_pushed"] = True
     return ctx
 
 
@@ -1151,7 +1151,7 @@ class _AsyncRecommit:
     makes the session checkable again."""
 
     async def __call__(self, _state, _result, ctx):
-        ctx.extras["session_committed"] = True
+        ctx.extras["session_pushed"] = True
         return True
 
 
