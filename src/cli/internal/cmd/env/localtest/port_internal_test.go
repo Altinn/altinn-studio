@@ -11,6 +11,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
+	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -263,5 +264,20 @@ func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryIPv6Address(t *tes
 
 	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
 		t.Fatalf("checkPortFree() error = %v, want errPortInUse for a port held on [::]", err)
+	}
+}
+
+// A plain env up starts at the recorded port. 5300 is one env up would refuse, which shows the port it checked.
+func TestUpChecksTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testResetImages()}
+	if err := WriteState(cfg, State{PublicPort: 5300}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), mock.New())
+
+	if err := env.Up(t.Context(), envtypes.UpOptions{Detach: true}); !errors.Is(err, errPortPublished) {
+		t.Fatalf("Up() error = %v, want the clash of the recorded 5300 with pdf3", err)
 	}
 }
