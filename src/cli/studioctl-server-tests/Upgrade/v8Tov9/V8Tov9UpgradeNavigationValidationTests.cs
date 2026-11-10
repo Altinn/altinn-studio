@@ -11,11 +11,14 @@ public sealed class V8Tov9UpgradeNavigationValidationTests : IDisposable
     public void Dispose() => _app.Dispose();
 
     [Theory]
-    [InlineData("Required", true)]
-    [InlineData("All", false)]
+    [InlineData("Required", true, false)]
+    [InlineData("Required", true, true)]
+    [InlineData("All", false, false)]
+    [InlineData("All", false, true)]
     public async Task Upgrade_ChecksMigratedGlobalSettingsAndReportsTheFinalFilePath(
         string inheritedCategory,
-        bool requiresReview
+        bool requiresReview,
+        bool customButton
     )
     {
         _app.Write(
@@ -45,6 +48,17 @@ public sealed class V8Tov9UpgradeNavigationValidationTests : IDisposable
             ] } }
             """
         );
+        if (customButton)
+            _app.Write(
+                "ui/form/layouts/B.json",
+                """
+                { "data": { "layout": [
+                  { "id": "navigation", "type": "CustomButton", "actions": [
+                    { "id": "nextPage", "type": "ClientAction", "validation": { "page": "current", "show": ["All"] } }
+                  ] }
+                ] } }
+                """
+            );
         var report = new UpgradeReport();
 
         var exitCode = await V8Tov9Upgrade.RunAsync(
@@ -68,7 +82,8 @@ public sealed class V8Tov9UpgradeNavigationValidationTests : IDisposable
         Assert.Equal(requiresReview ? UpgradeMessageStatus.Todo : UpgradeMessageStatus.Skip, message.Status);
         Assert.False(File.Exists(Path.Combine(_app.Root, "App/ui/layout-sets.json")));
         var component = JsonNode.Parse(_app.Read("ui/Task_1/layouts/B.json"))?["data"]?["layout"]?[0];
-        Assert.Equal("All", component?["validateOnNext"]?["show"]?[0]?.GetValue<string>());
+        var validation = customButton ? component?["actions"]?[0]?["validation"] : component?["validateOnNext"];
+        Assert.Equal("All", validation?["show"]?[0]?.GetValue<string>());
         if (requiresReview)
         {
             Assert.Equal(3, exitCode);

@@ -81,6 +81,9 @@ For navigation validation TODOs, keep the reported settings until you have revie
 explicit component settings take priority over page, task and app validation. Keep a component setting if its
 validation is intended, or remove the reported forward setting to inherit validation again. Removing the reported
 backward setting leaves backward navigation without that validation. Test both directions before deploying.
+For `CustomButton`, the reported setting is `actions[index].validation`, for both client and server actions declared
+in the layout. Removing it restores inherited validation, except for a `previousPage` client action, which then runs
+without validation. The upgrade does not inspect actions returned by backend code.
 An empty `show` list still checks errors configured to appear immediately. See the
 [navigation validation upgrade guidance](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger).
 
