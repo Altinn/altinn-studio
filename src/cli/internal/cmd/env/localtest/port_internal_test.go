@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -271,7 +272,8 @@ func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryIPv6Address(t *tes
 func TestUpChecksTheRecordedPort(t *testing.T) {
 	t.Parallel()
 
-	cfg := &config.Config{DataDir: t.TempDir(), Images: testResetImages()}
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Images: testResetImages()}
 	if err := WriteState(cfg, State{PublicPort: 5300}); err != nil {
 		t.Fatalf("WriteState() error = %v", err)
 	}
