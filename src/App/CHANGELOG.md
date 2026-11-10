@@ -12,10 +12,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Apps can confirm an instance as complete for the service owner: set `autoConfirmCompleteOnProcessEnd` in `applicationmetadata.json` to confirm when the process ends, or return `ServiceTaskResult.Success(confirmComplete: true)` from the service task that delivers the instance. The policy must grant the app owner `complete`. Hooks cannot confirm. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- Apps can confirm an instance as complete for the service owner when the process ends: set `autoConfirmCompleteOnProcessEnd` in `applicationmetadata.json`. The policy must grant the app owner `complete`. Hooks and service tasks cannot confirm. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Changed
 
+- The eFormidling task confirms the instance as complete when the process ends, not while the task runs, so a `complete` grant scoped to an end event applies. A delivery that is followed by another task no longer confirms. Set `autoConfirmCompleteOnProcessEnd` for that. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))

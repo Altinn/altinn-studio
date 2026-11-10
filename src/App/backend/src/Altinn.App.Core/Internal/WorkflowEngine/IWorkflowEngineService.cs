@@ -53,7 +53,9 @@ internal interface IWorkflowEngineService
 
     /// <summary>
     /// Enqueues a dependent transition, keyed by its parent workflow unless <paramref name="idempotencyKey"/>
-    /// is supplied. Mailbox continuations use the concluding step's key.
+    /// is supplied. Mailbox continuations use the concluding step's key. With
+    /// <paramref name="confirmCompleteOnProcessEnd"/>, a transition that ends the process also confirms the
+    /// instance as complete for the service owner.
     /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
@@ -63,6 +65,7 @@ internal interface IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey = null,
+        bool confirmCompleteOnProcessEnd = false,
         CancellationToken cancellationToken = default
     );
 }

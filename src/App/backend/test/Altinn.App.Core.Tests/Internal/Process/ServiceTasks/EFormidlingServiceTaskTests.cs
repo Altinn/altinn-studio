@@ -638,7 +638,7 @@ public class EFormidlingServiceTaskTests
 
         // Nothing was sent, so there is nothing to wait for, and nothing the service owner has received.
         var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
-        Assert.False(success.ConfirmComplete);
+        Assert.False(success.ConfirmCompleteOnProcessEnd);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.GetEFormidlingShipmentStatus(
@@ -720,8 +720,8 @@ public class EFormidlingServiceTaskTests
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
         );
 
-        // Asked of the conclusion, which stages it for the callback's save; the task stages nothing itself.
-        Assert.True(success.ConfirmComplete);
+        // Asked of the process end the success leads to; the task stages nothing itself.
+        Assert.True(success.ConfirmCompleteOnProcessEnd);
         Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 

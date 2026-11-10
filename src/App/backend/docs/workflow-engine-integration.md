@@ -89,9 +89,12 @@ the same decision.
 - With `autoDeleteOnProcessEnd`, the release save also hard-deletes the instance. Storage accepts that only together
   with the ended state and the move to `idle`.
 - Storage records a complete confirmation for the organization that sends it, so the app confirms only in a
-  callback's save, as the service owner. With `autoConfirmCompleteOnProcessEnd` a process end confirms in a step
-  before the release, because Storage refuses a confirmation in the save that hard-deletes the instance. A service
-  task confirms in the save that concludes it, when its result sets `confirmComplete`. Hooks cannot confirm.
+  callback's save, as the service owner. It confirms only when the process ends, so Storage checks the `complete`
+  grant against the end event, and in a step before the release, because Storage refuses a confirmation in the save
+  that hard-deletes the instance. The step is planned with `autoConfirmCompleteOnProcessEnd`, and when the
+  eFormidling task's confirmed delivery ends the process: the task's result carries the request to the transition
+  it starts. A delivery followed by another task confirms nothing. Hooks and an app's own service tasks cannot
+  confirm.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)

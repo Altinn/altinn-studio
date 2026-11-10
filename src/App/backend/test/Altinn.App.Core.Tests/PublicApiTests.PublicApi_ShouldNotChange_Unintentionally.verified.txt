@@ -2317,7 +2317,7 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.DeferredServiceTaskResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult Success(string? action = null, bool confirmComplete = false) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult Success(string? action = null) { }
     }
     public sealed class StageAttempt : System.IEquatable<Altinn.App.Core.Features.Process.StageAttempt>
     {
@@ -2365,7 +2365,6 @@ namespace Altinn.App.Core.Features.Process
     {
         public SuccessfulServiceTaskResult() { }
         public string? Action { get; init; }
-        public bool ConfirmComplete { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect

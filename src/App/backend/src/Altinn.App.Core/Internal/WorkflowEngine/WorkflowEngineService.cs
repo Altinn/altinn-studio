@@ -177,6 +177,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey = null,
+        bool confirmCompleteOnProcessEnd = false,
         CancellationToken cancellationToken = default
     ) =>
         EnqueueDependentWorkflow(
@@ -187,6 +188,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             actor,
             idempotencyKey,
+            confirmCompleteOnProcessEnd,
             cancellationToken
         );
 
@@ -316,6 +318,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey,
+        bool confirmCompleteOnProcessEnd,
         CancellationToken cancellationToken
     )
     {
@@ -325,7 +328,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             actor,
             [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
-            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
+            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
+            confirmCompleteOnProcessEnd
         );
         try
         {

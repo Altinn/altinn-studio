@@ -219,6 +219,9 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// Creates an engine-owned continuation that remains inside an already acquired transition chain.
+    /// With <paramref name="confirmCompleteOnProcessEnd"/>, the service task whose success starts the transition
+    /// delivered the instance to the service owner. A transition that ends the process then plans the
+    /// <c>ConfirmCompleteOnProcessEnd</c> step, as <c>autoConfirmCompleteOnProcessEnd</c> does for every process end.
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateDependent(
         Instance instance,
@@ -226,7 +229,8 @@ internal sealed class ProcessNextRequestFactory
         string state,
         Actor actor,
         IEnumerable<WorkflowRef> dependsOn,
-        string idempotencyKey
+        string idempotencyKey,
+        bool confirmCompleteOnProcessEnd = false
     ) =>
         Create(
             instance,
@@ -239,7 +243,8 @@ internal sealed class ProcessNextRequestFactory
             dependsOn,
             prefill: null,
             notification: null,
-            idempotencyKey
+            idempotencyKey,
+            confirmCompleteOnProcessEnd
         );
 
     private async Task<WorkflowEnqueueEnvelope> Create(
@@ -253,7 +258,8 @@ internal sealed class ProcessNextRequestFactory
         IEnumerable<WorkflowRef>? dependsOn,
         Dictionary<string, string>? prefill,
         InstantiationNotification? notification,
-        string idempotencyKey
+        string idempotencyKey,
+        bool confirmCompleteOnProcessEnd = false
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
@@ -263,7 +269,8 @@ internal sealed class ProcessNextRequestFactory
             acquireProcessingStatus,
             isInstantiation,
             prefill,
-            notification
+            notification,
+            confirmCompleteOnProcessEnd
         );
         string fromTaskId =
             processStateChange.OldProcessState?.CurrentTask?.ElementId
@@ -408,7 +415,8 @@ internal sealed class ProcessNextRequestFactory
         bool acquireProcessingStatus,
         bool isInstantiation,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        bool confirmCompleteOnProcessEnd = false
     )
     {
         var taskEndSteps = new List<StepRequest>();
@@ -441,7 +449,8 @@ internal sealed class ProcessNextRequestFactory
                 isInitialTaskStart,
                 isInstantiation,
                 prefill,
-                notification
+                notification,
+                confirmCompleteOnProcessEnd
             );
             if (eventSteps != null)
             {
@@ -515,7 +524,8 @@ internal sealed class ProcessNextRequestFactory
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
-        InstantiationNotification? notification
+        InstantiationNotification? notification,
+        bool confirmCompleteOnProcessEnd
     )
     {
         switch (eventType)
@@ -552,7 +562,9 @@ internal sealed class ProcessNextRequestFactory
                     new ProcessEndContext
                     {
                         RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
-                        ConfirmComplete = _appMetadata.ApplicationMetadata.AutoConfirmCompleteOnProcessEnd,
+                        ConfirmComplete =
+                            confirmCompleteOnProcessEnd
+                            || _appMetadata.ApplicationMetadata.AutoConfirmCompleteOnProcessEnd,
                     }
                 );
             default:

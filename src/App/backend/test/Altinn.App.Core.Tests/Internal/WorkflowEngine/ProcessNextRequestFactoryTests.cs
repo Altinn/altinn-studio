@@ -1087,6 +1087,53 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
+    public async Task CreateDependent_TaskToEndTransition_AskedToConfirm_ConfirmsWithoutTheSetting()
+    {
+        var factory = CreateFactory();
+
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToEndTransition(),
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key",
+            confirmCompleteOnProcessEnd: true
+        );
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(
+            [
+                CommitProcessState.Key,
+                OnProcessEndedHook.Key,
+                DeleteDataOnProcessEnd.Key,
+                ConfirmCompleteOnProcessEnd.Key,
+                ReleaseProcessingStatus.Key,
+                EnqueueAuxiliaryWorkflows.Key,
+            ],
+            keys[^6..]
+        );
+    }
+
+    [Fact]
+    public async Task CreateDependent_TaskToTaskTransition_AskedToConfirm_DoesNotConfirm()
+    {
+        var factory = CreateFactory();
+
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key",
+            confirmCompleteOnProcessEnd: true
+        );
+
+        Assert.DoesNotContain(ConfirmCompleteOnProcessEnd.Key, ExtractAllCommandKeys(bundle));
+    }
+
+    [Fact]
     public async Task Create_InitialTaskStart_CommitsBeforeTaskStart_IncludesInstanceCreatedEvent()
     {
         // Arrange

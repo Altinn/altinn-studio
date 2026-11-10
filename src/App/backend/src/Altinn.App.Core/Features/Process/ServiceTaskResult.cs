@@ -21,16 +21,11 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     /// Optional process action used to select the next transition (e.g. "reject").
     /// When null, the default BPMN transition is used.
     /// </param>
-    /// <param name="confirmComplete">
-    /// Whether to confirm the instance as complete for the service owner, in the save that concludes the task.
-    /// See <see cref="SuccessfulServiceTaskResult.ConfirmComplete"/>.
-    /// </param>
     /// <remarks>
     /// From a reply handler this also <strong>ends the exchange</strong>: the mailbox closes before anything
     /// downstream starts.
     /// </remarks>
-    public static SuccessfulServiceTaskResult Success(string? action = null, bool confirmComplete = false) =>
-        new() { Action = action, ConfirmComplete = confirmComplete };
+    public static SuccessfulServiceTaskResult Success(string? action = null) => new() { Action = action };
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
@@ -118,13 +113,17 @@ public sealed record SuccessfulServiceTaskResult : ServiceTaskResult
     public string? Action { get; init; }
 
     /// <summary>
-    /// Whether to confirm the instance as complete for the service owner. The confirmation is saved together with
-    /// the task's conclusion, and only then: a failed or deferred attempt saves nothing, so it confirms nothing.
-    /// A confirmation the instance already carries is not requested again. Set it in the task that delivers the
-    /// instance to the service owner, once the delivery has succeeded. The app owner's policy must grant the
-    /// <c>complete</c> action.
+    /// Whether the process end this success leads to confirms the instance as complete for the service owner. Set
+    /// by the built-in tasks that deliver the instance to the service owner, once the delivery has succeeded. The
+    /// process-end step that <c>autoConfirmCompleteOnProcessEnd</c> plans saves the confirmation, so Storage checks
+    /// the app owner's <c>complete</c> grant against the end event. A success that leads to another task confirms
+    /// nothing.
     /// </summary>
-    public bool ConfirmComplete { get; init; }
+    /// <remarks>
+    /// Internal, because an app confirms with <c>autoConfirmCompleteOnProcessEnd</c>. A task needs this only when
+    /// one of its outcomes can end the process without a delivery, as a refused Fiks Arkiv archiving can.
+    /// </remarks>
+    internal bool ConfirmCompleteOnProcessEnd { get; init; }
 }
 
 /// <summary>

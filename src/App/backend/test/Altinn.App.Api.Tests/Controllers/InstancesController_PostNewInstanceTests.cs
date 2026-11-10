@@ -1931,6 +1931,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             DateTimeOffset executionReferenceTime,
             string? action = null,
             string? idempotencyKey = null,
+            bool confirmCompleteOnProcessEnd = false,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }

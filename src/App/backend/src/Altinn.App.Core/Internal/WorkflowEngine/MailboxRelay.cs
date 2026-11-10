@@ -206,7 +206,7 @@ internal sealed class MailboxRelay
 
                 return new SuccessfulWorkflowEngineCommandResult
                 {
-                    ProcessNextContinuation = new(success.Action),
+                    ProcessNextContinuation = new(success.Action, success.ConfirmCompleteOnProcessEnd),
                     MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
                 };
 
@@ -293,7 +293,7 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulWorkflowEngineCommandResult
                 {
-                    ProcessNextContinuation = new(success.Action),
+                    ProcessNextContinuation = new(success.Action, success.ConfirmCompleteOnProcessEnd),
                     MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
@@ -689,6 +689,7 @@ internal sealed class MailboxRelay
             request.Payload.ExecutionReferenceTime,
             request.AutoAdvanceAction,
             request.Payload.StepId.ToString(),
+            request.ConfirmCompleteOnProcessEnd,
             cancellationToken
         );
 
@@ -711,4 +712,9 @@ internal readonly record struct MailboxRelayRequest
     public required bool AutoAdvanceProcess { get; init; }
 
     public required string? AutoAdvanceAction { get; init; }
+
+    /// <summary>
+    /// Whether the transition the conclusion starts confirms the instance as complete, if it ends the process.
+    /// </summary>
+    public bool ConfirmCompleteOnProcessEnd { get; init; }
 }

@@ -415,11 +415,12 @@ public class ProcessingStatusAcquirerTests
                         It.IsAny<string>(),
                         It.IsAny<Actor>(),
                         null,
+                        false,
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                    (instance, transition, dependency, collectionKey, state, actor, _, cancellationToken) =>
+                .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, bool, CancellationToken>(
+                    (instance, transition, dependency, collectionKey, state, actor, _, _, cancellationToken) =>
                     {
                         Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
                         Assert.Equal(WorkflowId, dependency);
