@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   UserMessage,
-  AssistantMessage,
   Message,
   WorkflowEvent,
   WorkflowStatus,
@@ -21,12 +20,9 @@ import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckou
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
-  decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
   formatRejectionMessage,
-  getAssistantMessageContent,
   getAssistantMessageTimestamp,
-  shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
 
@@ -62,7 +58,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     Record<string, WorkflowStatus>
   >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
-  const [traceIdsByMessageId, setTraceIdsByMessageId] = useState<Record<string, string>>({});
   const {
     connectionStatus,
     startWorkflow,
@@ -73,8 +68,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   } = useAssistantWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
-  const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
-  const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
+  const { mutateAsync: resetRepository } = useResetRepositoryMutation(org, app);
+  const { mutateAsync: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
@@ -126,14 +121,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   }, []);
 
   const markWorkflowCompleted = useCallback(
-    (threadId: string, assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
+    (threadId: string, assistantMessage: AssistantMessageData) => {
       markThreadTerminated(threadId);
       setWorkflowStatus(threadId, {
         isActive: false,
         sessionId: threadId,
         currentStep: 'Completed',
         message: 'AI agent workflow completed successfully',
-        lastCompletedAt: messageTimestamp,
+        lastCompletedAt: getAssistantMessageTimestamp(assistantMessage),
         filesChanged: assistantMessage.filesChanged || [],
       });
     },
@@ -258,24 +253,31 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [threads.chatThreads],
   );
 
-  const resetRepoForSession = useCallback(
-    (sessionId: string) => {
-      const branch = buildSessionBranchName(sessionId);
-      resetRepository(undefined, {
-        onSuccess: () => {
-          checkoutBranch(branch);
-        },
-      });
+  // A callback on `mutate` does not run after this hook unmounts. The reset is slow,
+  // and the user can go to a different page before the checkout starts.
+  const switchToPushedBranch = useCallback(
+    async (branch: string) => {
+      try {
+        await resetRepository();
+        await checkoutBranch(branch);
+      } catch {
+        // The mutation cache shows the error to the user, except for a checkout conflict.
+      }
     },
     [resetRepository, checkoutBranch],
   );
 
   const handleAssistantMessage = useCallback(
-    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const threadId = event.session_id;
       if (!threadId) return;
 
       const assistantMessage = event.data;
+      // Designer saves the answer before it forwards the event. The first copy can come from a
+      // replica that could not save the answer, so each copy gets the messages again.
+      // If you save a copy here, the thread shows the answer two times.
+      refreshMessages(threadId);
+
       // eventId is stamped on every answer; traceId only exists when Langfuse is on.
       const dedupeId = assistantMessage.eventId ?? assistantMessage.traceId;
       const dedupeKey = dedupeId ? `${threadId}:${dedupeId}` : null;
@@ -288,51 +290,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      const messageContent = getAssistantMessageContent(assistantMessage);
-      const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
-      markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
+      markWorkflowCompleted(threadId, assistantMessage);
 
-      if (assistantMessage.persistedMessageId) {
-        // Already persisted server-side — refetch instead of writing a client copy.
-        refreshMessages(threadId);
-        if (assistantMessage.traceId) {
-          setTraceIdsByMessageId((prev) => ({
-            ...prev,
-            [assistantMessage.persistedMessageId]: assistantMessage.traceId,
-          }));
-        }
-      } else {
-        // Server-side persist failed or was skipped — persist client-side instead.
-        const finalAssistantMessage: AssistantMessage = {
-          role: MessageAuthor.Assistant,
-          content: messageContent,
-          createdAt: messageTimestamp.toISOString(),
-          filesChanged: assistantMessage.filesChanged || [],
-          sources: assistantMessage.sources || [],
-          traceId: assistantMessage.traceId,
-          attachmentInstructionFlagged: assistantMessage.attachmentInstructionFlagged,
-        };
-        try {
-          const persisted = await createMessage(threadId, finalAssistantMessage);
-
-          if (assistantMessage.traceId && persisted?.id) {
-            setTraceIdsByMessageId((prev) => ({
-              ...prev,
-              [persisted.id]: assistantMessage.traceId,
-            }));
-          }
-        } catch (error) {
-          // Release the dedupe key, or a redelivery of this answer is dropped for good.
-          if (dedupeKey) handledAssistantEventsRef.current.delete(dedupeKey);
-          console.error('Failed to persist assistant message:', error);
-        }
-      }
-
-      if (!shouldSkipBranchOps(assistantMessage)) {
-        resetRepoForSession(threadId);
+      if (assistantMessage.pushedBranch) {
+        switchToPushedBranch(assistantMessage.pushedBranch);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
+    [switchToPushedBranch, markWorkflowCompleted, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -584,11 +548,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     setCancelledMessageContent(null);
   }, []);
 
-  const messages = useMemo(
-    () => decorateMessagesWithTraceIds(chatMessages, traceIdsByMessageId),
-    [chatMessages, traceIdsByMessageId],
-  );
-
   return {
     connectionStatus,
     workflowStatusByThread,
@@ -597,7 +556,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
-    messages,
+    messages: chatMessages,
   };
 };
 
@@ -615,13 +574,6 @@ function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number
     if (steps[index].toolUseId === toolUseId) return index;
   }
   return -1;
-}
-
-function buildSessionBranchName(sessionId: string): string {
-  const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
-    ? sessionId.substring(8, 16)
-    : sessionId.substring(0, 8);
-  return `assistant_${uniqueIdWithoutPrefix}`;
 }
 
 function createThreadTitle(messageContent: string): string {
