@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { OptionListFromAppLibrarySelector } from './OptionListFromAppLibrarySelector';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -13,8 +14,8 @@ const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[Comp
 const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
-const handleComponentChangeMock = jest.fn();
-const getOptionListIdsMock = jest
+const handleComponentChangeMock = vi.fn();
+const getOptionListIdsMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 
@@ -28,7 +29,7 @@ describe('OptionListFromAppLibrarySelector', () => {
 
   it('should not render if the list is empty', async () => {
     renderOptionListSelector({
-      getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
+      getOptionListIds: vi.fn().mockImplementation(() => Promise.resolve([])),
     });
     await waitForLoadingToFinish();
     expect(
@@ -67,7 +68,7 @@ describe('OptionListFromAppLibrarySelector', () => {
 
   it('should render returned error message if option list endpoint returns an error', async () => {
     renderOptionListSelector({
-      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
+      getOptionListIds: vi.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
     });
 
     expect(await screen.findByText('Error')).toBeInTheDocument();
@@ -75,7 +76,7 @@ describe('OptionListFromAppLibrarySelector', () => {
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
     renderOptionListSelector({
-      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
+      getOptionListIds: vi.fn().mockImplementation(() => Promise.reject()),
     });
 
     expect(

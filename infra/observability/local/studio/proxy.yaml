@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-proxy
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: observability-proxy
+          # Built from src/observability-proxy and pushed to the fixture's registry
+          # under the same tag each time, so a restarted pod pulls the latest build.
+          image: localhost:5001/observability-proxy:local
+          imagePullPolicy: Always
+          env:
+            # Without agents, writes go straight to storage, which accepts the
+            # same OTLP paths. Both read addresses name the one instance, since
+            # a configured list can be overridden entry by entry but not shortened.
+            - name: ObservabilityProxy__Downstreams__Agents__Metrics
+              value: http://vmsingle-metrics-a:8428
+            - name: ObservabilityProxy__Downstreams__Agents__Traces
+              value: http://vtsingle-traces-a:10428
+            - name: ObservabilityProxy__Downstreams__Agents__Logs
+              value: http://vlsingle-logs-a:9428
+            - name: ObservabilityProxy__Downstreams__Storage__Metrics__0
+              value: http://vmsingle-metrics-a:8428
+            - name: ObservabilityProxy__Downstreams__Storage__Metrics__1
+              value: http://vmsingle-metrics-a:8428
+            - name: ObservabilityProxy__Downstreams__Storage__Traces__0
+              value: http://vtsingle-traces-a:10428
+            - name: ObservabilityProxy__Downstreams__Storage__Traces__1
+              value: http://vtsingle-traces-a:10428
+            - name: ObservabilityProxy__Downstreams__Storage__Logs__0
+              value: http://vlsingle-logs-a:9428
+            - name: ObservabilityProxy__Downstreams__Storage__Logs__1
+              value: http://vlsingle-logs-a:9428
+---
+# In production the runtime collectors and Grafana reach the proxy through the
+# load balancer; here they are in other namespaces of the same cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-ingress
+spec:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: runtime-obs
+          podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-gateway
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: grafana
+      ports:
+        - protocol: TCP
+          port: 8080

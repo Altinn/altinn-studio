@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 

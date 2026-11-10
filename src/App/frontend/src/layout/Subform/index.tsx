@@ -1,6 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX, ReactNode } from 'react';
 
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { type ComponentValidation } from 'src/features/validation';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { type SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -12,7 +14,7 @@ import { SubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSumma
 import { SubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { validateSubformForNode } from 'src/layout/Subform/useValidateSubform';
 import type { ComponentValidationContext, PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
-import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { CompExternal, ComponentLayoutValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
@@ -28,6 +30,12 @@ function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
 }
 
 export class Subform extends SubformDef implements ValidateComponent<'Subform'>, SubRouting {
+  useIsRequired(config: CompExternal<'Subform'>): boolean {
+    const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
+    const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
+    return minCount !== undefined && minCount > 0;
+  }
+
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Subform'>>(
     function LayoutComponentSubformRender(props, _): JSX.Element | null {
       return <SubformComponent {...props} />;

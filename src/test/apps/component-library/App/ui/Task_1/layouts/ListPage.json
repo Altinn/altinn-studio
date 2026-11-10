@@ -1,5 +1,5 @@
 {
-    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
     "data": {
       "hidden": false,
       "layout": [
@@ -13,6 +13,30 @@
           "size": "h2",
           "textResourceBindings": {
             "title": "ListPage"
+          }
+        },
+        {
+          "id": "ListPage-InformationalList",
+          "type": "List",
+          "pagination": { "alternatives": [5, 10], "default": 5 },
+          "textResourceBindings": {
+            "title": "Personoversikt",
+            "help": "Hjelp til personoversikten"
+          },
+          "dataListId": "people",
+          "tableHeaders": {
+            "name": "Navn",
+            "age": "Alder",
+            "profession": "Yrke"
+          }
+        },
+        {
+          "id": "ListPage-InformationalSummary",
+          "type": "Summary2",
+          "hideEmptyFields": true,
+          "target": {
+            "type": "component",
+            "id": "ListPage-InformationalList"
           }
         },
         {
@@ -105,6 +129,10 @@
             "name": "Navn",
             "age": "Alder",
             "profession": "Yrke"
+          },
+          "tableColumns": {
+            "name": { "width": "55%" },
+            "profession": { "width": "25%" }
           },
           "sortableColumns": ["age"],
           "pagination": {

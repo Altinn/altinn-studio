@@ -27,8 +27,8 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
             $"{nameof(AppInactivityUndeployJobQueue)}.{nameof(QueuePerOrgEvaluationJobAsync)}",
             ActivityKind.Internal
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("environment.filter", environmentFilter);
+        activity.SetServiceOwner(org);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.EnvironmentFilter, environmentFilter);
 
         Guard.AssertValidateOrganization(org);
         if (!string.IsNullOrWhiteSpace(environmentFilter))
@@ -76,13 +76,13 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
         try
         {
             await scheduler.ScheduleJob(triggerBuilder.Build(), cancellationToken);
-            activity?.SetTag("queued", true);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.Queued, true);
             return true;
         }
         catch (ObjectAlreadyExistsException)
         {
-            activity?.SetTag("queued", false);
-            activity?.SetTag("queue.reason", "trigger_already_exists");
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.Queued, false);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.QueueReason, "trigger_already_exists");
             return false;
         }
     }
@@ -99,10 +99,9 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
             $"{nameof(AppInactivityUndeployJobQueue)}.{nameof(QueuePerAppUndeployJobAsync)}",
             ActivityKind.Internal
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("app", app);
-        activity?.SetTag("environment", environment);
-        activity?.SetTag("index", index);
+        activity.SetApp(app);
+        activity.SetTargetEnvironment(environment);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.Index, index);
 
         Guard.AssertValidateOrganization(org);
         Guard.AssertValidAppRepoName(app);
@@ -150,13 +149,13 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
         try
         {
             await scheduler.ScheduleJob(trigger, cancellationToken);
-            activity?.SetTag("queued", true);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.Queued, true);
             return true;
         }
         catch (ObjectAlreadyExistsException)
         {
-            activity?.SetTag("queued", false);
-            activity?.SetTag("queue.reason", "trigger_already_exists");
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.Queued, false);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.QueueReason, "trigger_already_exists");
             return false;
         }
     }

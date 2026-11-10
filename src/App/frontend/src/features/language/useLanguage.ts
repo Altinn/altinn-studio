@@ -27,6 +27,11 @@ export type TextReference = {
   params?: ValidLangParam[];
   customTextParameters?: Record<string, string>;
   makeLowerCase?: boolean;
+  /**
+   * Literal text to show when there is no key, or when the key is found neither in the text resources nor in the
+   * language package. It is never looked up as a key itself.
+   */
+  fallback?: string;
 };
 
 export interface IUseLanguage {
@@ -35,12 +40,14 @@ export interface IUseLanguage {
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
     customTextParameters?: Record<string, string>,
+    fallback?: string,
   ): string | JSX.Element | JSX.Element[] | null;
   langAsString(
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
     makeLowerCase?: boolean,
     customTextParameters?: Record<string, string>,
+    fallback?: string,
   ): string;
   langAsStringUsingPathInDataModel(
     key: ValidLanguageKey | string | undefined,
@@ -52,6 +59,7 @@ export interface IUseLanguage {
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
     customTextParameters?: Record<string, string>,
+    fallback?: string,
   ): string;
   langAsNonProcessedStringUsingPathInDataModel(
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
@@ -145,18 +153,18 @@ export function staticUseLanguage(
   dataSources: TextResourceVariablesDataSources,
 ): IUseLanguage {
   const language = _language || getLanguageFromCode(selectedLanguage);
-  const lang: IUseLanguage['lang'] = (key, params, customTextParameters) => {
-    const result = getUnprocessedTextValueByLanguage(key, params, { customTextParameters });
+  const lang: IUseLanguage['lang'] = (key, params, customTextParameters, fallback) => {
+    const result = getUnprocessedTextValueByLanguage(key, params, { customTextParameters }, fallback);
 
     return parseAndCleanText(result);
   };
 
-  const langAsString: IUseLanguage['langAsString'] = (key, params, makeLowerCase, customTextParameters) => {
+  const langAsString: IUseLanguage['langAsString'] = (key, params, makeLowerCase, customTextParameters, fallback) => {
     const postProcess = makeLowerCase ? smartLowerCaseFirst : (str: string | undefined) => str;
 
-    const result = lang(key, params, customTextParameters);
+    const result = lang(key, params, customTextParameters, fallback);
     if (result === undefined || result === null) {
-      return postProcess(key) || '';
+      return postProcess(key ?? fallback) || '';
     }
 
     return postProcess(getPlainTextFromNode(result, langAsString))!;
@@ -178,8 +186,12 @@ export function staticUseLanguage(
     return getPlainTextFromNode(result, langAsString);
   };
 
-  const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (key, params, customTextParameters) =>
-    getUnprocessedTextValueByLanguage(key, params, { customTextParameters });
+  const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (
+    key,
+    params,
+    customTextParameters,
+    fallback,
+  ) => getUnprocessedTextValueByLanguage(key, params, { customTextParameters }, fallback);
 
   const langAsNonProcessedStringUsingPathInDataModel: IUseLanguage['langAsNonProcessedStringUsingPathInDataModel'] = (
     key,
@@ -192,9 +204,10 @@ export function staticUseLanguage(
     key: string | undefined,
     params?: ValidLangParam[],
     extendedSources?: Partial<TextResourceVariablesDataSources>,
+    fallback?: string,
   ) {
     if (!key) {
-      return '';
+      return fallback ?? '';
     }
 
     const textResource = getTextResourceByKey(key, textResources, { ...dataSources, ...extendedSources });
@@ -202,6 +215,10 @@ export function staticUseLanguage(
     if (textResource !== key) {
       // TODO(Validation): Use params if exists and only if no variables are specified (maybe add datasource params to variables definition)
       return textResource;
+    }
+
+    if (fallback !== undefined && typeof language[key] !== 'string') {
+      return fallback;
     }
 
     const name = getLanguageSpecificText(key, language);
@@ -225,7 +242,7 @@ export function staticUseLanguage(
 const simplifyParams = (params: ValidLangParam[], langAsString: IUseLanguage['langAsString']): SimpleLangParam[] =>
   params.map((param) => {
     if (isTextReference(param)) {
-      return langAsString(param.key, param.params, param.makeLowerCase);
+      return langAsString(param.key, param.params, param.makeLowerCase, param.customTextParameters, param.fallback);
     }
     if (isValidElement(param)) {
       return getPlainTextFromNode(param, langAsString);
@@ -418,14 +435,15 @@ function tryReadFromDataModel(
   return formDataSelector({ dataType: dataModelName, field: path });
 }
 
+const textReferenceProperties = new Set(['key', 'params', 'customTextParameters', 'makeLowerCase', 'fallback']);
+
 function isTextReference(obj: unknown): obj is TextReference {
   return (
     !!obj &&
     typeof obj === 'object' &&
     'key' in obj &&
-    typeof obj.key === 'string' &&
-    Object.keys(obj).length <= 3 &&
-    Object.keys(obj).every((k) => k === 'key' || k === 'params' || k === 'makeLowerCase')
+    (typeof obj.key === 'string' || ('fallback' in obj && typeof obj.fallback === 'string')) &&
+    Object.keys(obj).every((k) => textReferenceProperties.has(k))
   );
 }
 

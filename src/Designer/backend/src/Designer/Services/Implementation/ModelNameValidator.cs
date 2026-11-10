@@ -1,18 +1,16 @@
 using System.IO;
-using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Exceptions.DataModeling;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Json.Schema;
@@ -71,11 +69,9 @@ public class ModelNameValidator : IModelNameValidator
             Path.Combine(repository.GetRelativeModelFolder(), fileName)
         );
 
-        bool alreadyHasTypeName = CheckIfAppAlreadyHasTypeName(applicationMetadata, modelName);
-
-        if (!fileExistsByRelativePath && alreadyHasTypeName)
+        if (!fileExistsByRelativePath)
         {
-            throw new ModelWithTheSameBaseTypeAlreadyExists();
+            DataModelClassRef.ThrowIfAnotherDataTypeHasClass(applicationMetadata, modelName);
         }
     }
 
@@ -114,20 +110,7 @@ public class ModelNameValidator : IModelNameValidator
 
         var applicationMetadata = await repository.GetApplicationMetadata();
 
-        bool alreadyHasTypeName = CheckIfAppAlreadyHasTypeName(applicationMetadata, modelName);
-
-        if (alreadyHasTypeName)
-        {
-            throw new ModelWithTheSameBaseTypeAlreadyExists();
-        }
-    }
-
-    private bool CheckIfAppAlreadyHasTypeName(ApplicationMetadata metadata, string modelName)
-    {
-        return metadata.DataTypes.Any(d =>
-            d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}"
-            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}.{modelName}"
-        );
+        DataModelClassRef.ThrowIfAnotherDataTypeHasClass(applicationMetadata, modelName);
     }
 
     private string SerializeJsonSchema(JsonSchema jsonSchema)

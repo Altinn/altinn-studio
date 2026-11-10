@@ -47,7 +47,6 @@ internal static class PolicyFixtures
         string org = Org,
         string app = App,
         string matchId = StringEqualIgnoreCase,
-        string taskMatchId = StringEqual,
         string endEventMatchId = StringEqual
     )
     {
@@ -56,7 +55,7 @@ internal static class PolicyFixtures
         resource.Append(Match(StringEqual, app, "urn:altinn:app", ResourceCategory));
         if (task is not null)
         {
-            resource.Append(Match(taskMatchId, task, "urn:altinn:task", ResourceCategory));
+            resource.Append(Match(StringEqual, task, "urn:altinn:task", ResourceCategory));
         }
 
         if (endEvent is not null)

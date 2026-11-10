@@ -563,9 +563,9 @@ if (candidateMode === 'storm') {
 
         // Sampled rather than universal: the enqueue response carries no status.
         assertEveryRun(
-            'receivers born Held',
-            (s) => s.mode !== 'storm' || (s.receivers.bornHeldRate ?? 0) >= 0.95,
-            (arm) => fmt(Math.min(...arm.map((r) => r.summary.receivers.bornHeldRate ?? 0)), 3),
+            'receivers created Held',
+            (s) => s.mode !== 'storm' || (s.receivers.createdHeldRate ?? 0) >= 0.95,
+            (arm) => fmt(Math.min(...arm.map((r) => r.summary.receivers.createdHeldRate ?? 0)), 3),
             '≥ 0.95 — a receiver enqueued before its message parked, which is the shape the relay arm tests',
         );
 
@@ -580,9 +580,10 @@ if (candidateMode === 'storm') {
     if (config.earlyRate > 0) {
         // The other interleaving: the message was already at the position, so the flush found `seq < next_idx`.
         assertEveryRun(
-            'early-message receivers born runnable',
-            (s) => s.mode !== 'storm' || (s.receivers.bornRunnableRate ?? 0) >= 0.95,
-            (arm) => fmt(Math.min(...arm.map((r) => r.summary.receivers.bornRunnableRate ?? 0)), 3),
+            'early-message receivers created runnable',
+            (s) => s.mode !== 'storm' || (s.receivers.createdRunnableRate ?? 0) >= 0.95,
+            (arm) =>
+                fmt(Math.min(...arm.map((r) => r.summary.receivers.createdRunnableRate ?? 0)), 3),
             '≥ 0.95 — a receiver enqueued after its message never parked',
         );
 
@@ -591,7 +592,7 @@ if (candidateMode === 'storm') {
             (s) =>
                 s.mode !== 'storm' || s.processing.earlyCompleted >= s.exchanges.earlyStarted * 0.9,
             (arm) => `${Math.min(...arm.map((r) => r.summary.processing.earlyCompleted))} min`,
-            '≥ 90% — born runnable with the backlog delivery, and it ran',
+            '≥ 90% — created runnable with the backlog delivery, and it ran',
         );
     }
 

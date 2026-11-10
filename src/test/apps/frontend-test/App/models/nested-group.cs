@@ -257,6 +257,10 @@ namespace Altinn.App.Models
       return AltinnRowId == default;
     }
 
+    [XmlElement("CalculatedChange")]
+    [JsonPropertyName("CalculatedChange")]
+    public decimal CalculatedChange { get; set; }
+
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("gruppeid")]
     [BindNever]

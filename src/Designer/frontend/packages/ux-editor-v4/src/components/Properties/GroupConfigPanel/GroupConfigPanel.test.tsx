@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -15,15 +16,11 @@ import type { QueryClient } from '@tanstack/react-query';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 
 describe('GroupConfigPanel', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should call mutation when clicking markAsCompleted toggle', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
-    const changePageGroups = jest.fn();
-    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+    const changePageGroups = vi.fn();
+    const getPages = vi.fn().mockResolvedValue(groupsPagesModelMock);
     renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
     expect(markAsCompletedSwitch()).toBeInTheDocument();
@@ -34,8 +31,8 @@ describe('GroupConfigPanel', () => {
   it('should call mutation when clicking expandedByDefault toggle', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
-    const changePageGroups = jest.fn();
-    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+    const changePageGroups = vi.fn();
+    const getPages = vi.fn().mockResolvedValue(groupsPagesModelMock);
     renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
     expect(expandedByDefaultSwitch()).toBeInTheDocument();
@@ -49,7 +46,7 @@ describe('GroupConfigPanel', () => {
     renderGroupConfigPanel({
       props: { selectedItem },
       queryClientMock,
-      queries: { getPages: jest.fn().mockResolvedValue({ isPending: true }) },
+      queries: { getPages: vi.fn().mockResolvedValue({ isPending: true }) },
     });
 
     expect(spinner()).toBeInTheDocument();
@@ -58,8 +55,8 @@ describe('GroupConfigPanel', () => {
   it('should call changePageGroups mutation when changing group type to info', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
-    const changePageGroups = jest.fn();
-    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+    const changePageGroups = vi.fn();
+    const getPages = vi.fn().mockResolvedValue(groupsPagesModelMock);
 
     renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
@@ -87,14 +84,14 @@ describe('GroupConfigPanel', () => {
   it('should call changePageGroups mutation when changing group type to data', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
-    const changePageGroups = jest.fn();
+    const changePageGroups = vi.fn();
     const pagesWithInfoType = {
       ...groupsPagesModelMock,
       groups: groupsPagesModelMock.groups.map((group, index) =>
         index === 0 ? { ...group, type: GroupType.Info } : group,
       ),
     };
-    const getPages = jest.fn().mockResolvedValue(pagesWithInfoType);
+    const getPages = vi.fn().mockResolvedValue(pagesWithInfoType);
 
     renderGroupConfigPanel({
       props: { selectedItem },
@@ -127,7 +124,7 @@ describe('GroupConfigPanel', () => {
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
     renderGroupConfigPanel({
       props: { selectedItem },
-      queries: { getPages: jest.fn().mockResolvedValue(groupsPagesModelMock) },
+      queries: { getPages: vi.fn().mockResolvedValue(groupsPagesModelMock) },
     });
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.page_group.name') }),
@@ -138,7 +135,7 @@ describe('GroupConfigPanel', () => {
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 1 };
     renderGroupConfigPanel({
       props: { selectedItem },
-      queries: { getPages: jest.fn().mockResolvedValue(groupsPagesModelMock) },
+      queries: { getPages: vi.fn().mockResolvedValue(groupsPagesModelMock) },
     });
     expect(
       screen.queryByRole('button', { name: textMock('ux_editor.page_group.name') }),

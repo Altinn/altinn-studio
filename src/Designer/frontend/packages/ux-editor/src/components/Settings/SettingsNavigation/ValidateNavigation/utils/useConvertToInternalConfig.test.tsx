@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useConvertToInternalConfig } from './useConvertToInternalConfig';
 
-jest.mock('@altinn/ux-editor/hooks', () => ({
+vi.mock('@altinn/ux-editor/hooks', () => ({
   useComponentPropertyEnumValue: () => (value: string) => value,
 }));
 

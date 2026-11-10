@@ -53,7 +53,7 @@ internal sealed class ExternalApiService(ILogger<ExternalApiService> logger, ISe
         }
 
         _logger.LogInformation("Getting data from external api with id {ExternalApiId}", externalApiId);
-        var result = await externalApiClient.GetExternalApiDataAsync(instanceIdentifier, queryParams);
+        var result = await externalApiClient.GetExternalApiData(instanceIdentifier, queryParams);
         return new ExternalApiDataResult(result, true);
     }
 }

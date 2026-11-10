@@ -34,7 +34,6 @@ metadata:
   name: pdf3-app
   namespace: runtime-pdf3
 spec:
-  targetNamespace: runtime-pdf3
   interval: 5m
   retryInterval: 5m
   timeout: 1m

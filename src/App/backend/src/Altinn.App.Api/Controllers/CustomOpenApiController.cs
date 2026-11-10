@@ -16,6 +16,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Api.Controllers;
@@ -160,8 +161,8 @@ public class CustomOpenApiController : Controller
 
         sb.AppendLine("This is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.");
         sb.AppendLine("This app has the following data types:");
-        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskId |");
-        sb.AppendLine("|------------|------|----------------|-----------|--------|");
+        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskIds |");
+        sb.AppendLine("|------------|------|----------------|-----------|---------|");
         foreach (var dataType in appMetadata.DataTypes)
         {
             sb.Append('|');
@@ -217,7 +218,7 @@ public class CustomOpenApiController : Controller
                 sb.Append('*');
             }
             sb.Append('|');
-            sb.Append(dataType.TaskId);
+            sb.AppendJoin(", ", dataType.TaskIds ?? []);
             sb.Append('|');
             sb.AppendLine();
         }
@@ -502,11 +503,23 @@ public class CustomOpenApiController : Controller
                         Tags = instanceTags,
                         Summary = "Delete data element",
                         Description = "Delete data for a specific data element",
-                        Responses = new()
-                        {
-                            ["204"] = new OpenApiResponse() { Description = "Data deleted" },
-                            ["404"] = new OpenApiResponse() { Description = "Data not found" },
-                        },
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
+                            {
+                                Description = "Data deleted",
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = new OpenApiMediaType()
+                                    {
+                                        Schema = _schemaGenerator.GenerateSchema(
+                                            typeof(DataPostResponse),
+                                            _schemaRepository
+                                        ),
+                                    },
+                                },
+                            }
+                        ),
                     },
                 },
                 Parameters =
@@ -564,6 +577,99 @@ public class CustomOpenApiController : Controller
                                 {
                                     Description = "Instance is not in a valid state to move to next process step",
                                     Content = Snippets.ProblemDetailsResponseSchema.Content,
+                                },
+                            }
+                        ),
+                    },
+                },
+                Parameters =
+                [
+                    Snippets.InstanceOwnerPartyIdParameterReference,
+                    Snippets.InstanceGuidParameterReference,
+                    Snippets.LanguageParameterReference,
+                ],
+            }
+        );
+
+        document.Paths.Add(
+            $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/pdf/preview",
+            new OpenApiPathItem()
+            {
+                Summary = "Preview a PDF",
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
+                {
+                    [HttpMethod.Get] = new OpenApiOperation()
+                    {
+                        Tags = instanceTags,
+                        Summary = "Preview a PDF",
+                        Description =
+                            "Generate a preview of the PDF of the current task, or of a PDF or subform PDF service task, also one the instance has not reached yet. The preview is in the language given by `language`, or the user's language, and is marked as a preview in its footer. Previews are rate limited across all instances.",
+                        Parameters =
+                        [
+                            new OpenApiParameter()
+                            {
+                                Name = "taskId",
+                                Description =
+                                    "The PDF or subform PDF service task to preview. Defaults to the current task.",
+                                In = ParameterLocation.Query,
+                                Required = false,
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                            },
+                            new OpenApiParameter()
+                            {
+                                Name = "dataElementId",
+                                Description =
+                                    "The subform data element to preview. Required when previewing a subform PDF service task.",
+                                In = ParameterLocation.Query,
+                                Required = false,
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "uuid" },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses()
+                            {
+                                ["200"] = new OpenApiResponse()
+                                {
+                                    Description = "The PDF preview",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["application/pdf"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema()
+                                            {
+                                                Type = JsonSchemaType.String,
+                                                Format = "binary",
+                                            },
+                                        },
+                                    },
+                                },
+                                ["400"] = new OpenApiResponse()
+                                {
+                                    Description =
+                                        "The task is not a PDF or subform PDF service task, or the subform is missing or of the wrong data type",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["text/plain"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                        },
+                                    },
+                                },
+                                ["404"] = new OpenApiResponse()
+                                {
+                                    Description = "The instance has no current task, or the task does not exist",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["text/plain"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                        },
+                                    },
+                                },
+                                ["429"] = new OpenApiResponse()
+                                {
+                                    Description =
+                                        "Too many previews. Try again after the number of seconds in the Retry-After header",
                                 },
                             }
                         ),
@@ -785,6 +891,7 @@ public class CustomOpenApiController : Controller
                             {
                                 Name = "optionsId",
                                 Description = "OptionsId from a layout component.",
+                                Required = true,
                                 In = ParameterLocation.Path,
                                 Schema = new OpenApiSchema()
                                 {
@@ -856,6 +963,7 @@ public class CustomOpenApiController : Controller
                             {
                                 Name = "optionsId",
                                 Description = "OptionsId from a layout component.",
+                                Required = true,
                                 In = ParameterLocation.Path,
                                 Schema = new OpenApiSchema()
                                 {
@@ -998,7 +1106,7 @@ public class CustomOpenApiController : Controller
         const string libraryRefRegex =
             @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
         var optionsIds = appMetadata
-            .DataTypes.Select(d => d.TaskId)
+            .DataTypes.SelectMany(d => d.TaskIds ?? [])
             .Distinct()
             .Select(taskId => _appResources.GetLayoutModelForFolder(taskId))
             .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
@@ -1140,51 +1248,20 @@ public class CustomOpenApiController : Controller
                                 ["application/xml"] = xmlType,
                             },
                         },
-                        Responses = new()
-                        {
-                            ["201"] = new OpenApiResponse()
-                            {
-                                Description = "Data created",
-                                Content = new Dictionary<string, OpenApiMediaType>
-                                {
-                                    ["text/json"] = new OpenApiMediaType()
-                                    {
-                                        Schema = _schemaGenerator.GenerateSchema(
-                                            typeof(DataPostResponse),
-                                            _schemaRepository
-                                        ),
-                                    },
-                                },
-                            },
-                            ["400"] = new OpenApiResponse()
-                            {
-                                Description = "Failed to add data element",
-                                Content = new Dictionary<string, OpenApiMediaType>
-                                {
-                                    ["application/json"] = new OpenApiMediaType()
-                                    {
-                                        Schema = _schemaGenerator.GenerateSchema(
-                                            typeof(DataPostErrorResponse),
-                                            _schemaRepository
-                                        ),
-                                    },
-                                },
-                            },
-                        },
+                        Responses = DataPostResponses("Data created"),
                     },
                 },
                 Parameters =
                 [
                     Snippets.InstanceOwnerPartyIdParameterReference,
                     Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
                     Snippets.LanguageParameterReference,
                 ],
             }
         );
     }
 
-    private static void AddRoutesForAttachmentDataType(
+    private void AddRoutesForAttachmentDataType(
         OpenApiDocument doc,
         HashSet<OpenApiTagReference> tags,
         DataType dataType,
@@ -1210,9 +1287,9 @@ public class CustomOpenApiController : Controller
                         Tags = tags,
                         Summary = "Get attachment",
                         Description = "Get attachment for a specific data element",
-                        Responses = new()
-                        {
-                            ["200"] = new OpenApiResponse()
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
                             {
                                 Description = "Attachment found",
                                 Content = new Dictionary<string, OpenApiMediaType>
@@ -1226,9 +1303,8 @@ public class CustomOpenApiController : Controller
                                         },
                                     },
                                 },
-                            },
-                            ["404"] = new OpenApiResponse() { Description = "Attachment not found" },
-                        },
+                            }
+                        ),
                     },
                 },
                 Parameters =
@@ -1261,18 +1337,42 @@ public class CustomOpenApiController : Controller
                                     .ToDictionary(contentType => contentType, contentType => new OpenApiMediaType())
                                 ?? new Dictionary<string, OpenApiMediaType>() { ["application/octet-stream"] = new() },
                         },
-                        Responses = new() { ["201"] = new OpenApiResponse() { Description = "Attachment created" } },
+                        Responses = DataPostResponses("Attachment created"),
                     },
                 },
-                Parameters =
-                [
-                    Snippets.InstanceOwnerPartyIdParameterReference,
-                    Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
-                ],
+                Parameters = [Snippets.InstanceOwnerPartyIdParameterReference, Snippets.InstanceGuidParameterReference],
             }
         );
     }
+
+    private OpenApiResponses DataPostResponses(string createdDescription) =>
+        Snippets.AddCommonErrorResponses(
+            new OpenApiResponses()
+            {
+                ["200"] = new OpenApiResponse()
+                {
+                    Description = createdDescription,
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new OpenApiMediaType()
+                        {
+                            Schema = _schemaGenerator.GenerateSchema(typeof(DataPostResponse), _schemaRepository),
+                        },
+                    },
+                },
+                ["400"] = new OpenApiResponse()
+                {
+                    Description = "Failed to add data element",
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new OpenApiMediaType()
+                        {
+                            Schema = _schemaGenerator.GenerateSchema(typeof(DataPostErrorResponse), _schemaRepository),
+                        },
+                    },
+                },
+            }
+        );
 
     private IOpenApiSchema? GetSchemaForDataType(DataType dataType)
     {
@@ -1384,36 +1484,9 @@ file static class Snippets
                             {
                                 Type = JsonSchemaType.Array,
                                 Title = "Json patch",
-                                Description = "A standard RFC 6902 document describing changes to one data element",
-                                Items = new OpenApiSchema
-                                {
-                                    Type = JsonSchemaType.Object,
-                                    Required = new HashSet<string>() { "op", "path" },
-                                    Properties = new Dictionary<string, IOpenApiSchema>
-                                    {
-                                        ["op"] = new OpenApiSchema
-                                        {
-                                            Title = "Patch operation",
-                                            Type = JsonSchemaType.String,
-                                            Enum = ["add", "remove", "replace", "move", "copy", "test"],
-                                        },
-                                        ["from"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["path"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["value"] = new OpenApiSchema
-                                        {
-                                            Title = "the value",
-                                            Description = "The value to add or replace",
-                                        },
-                                    },
-                                },
+                                Description =
+                                    "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported",
+                                Items = JsonPatchOperation.OpenApiSchema(),
                             },
                         },
                     },

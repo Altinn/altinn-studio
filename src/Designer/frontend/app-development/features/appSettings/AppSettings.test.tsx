@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import AppSettings from './AppSettings';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -6,8 +7,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('AppSettings', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the settings heading', () => {
     renderAppSettings();
     expect(getHeading(textMock('app_settings.heading'), 2)).toBeInTheDocument();

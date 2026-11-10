@@ -102,7 +102,12 @@ export const PageAccordion = ({
       </StudioDetails>
       <div className={classes.navigationMenu}>
         {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
-        {showNavigationMenu && <NavigationMenu pageName={pageId} />}
+        {showNavigationMenu && (
+          <NavigationMenu
+            pageName={pageId}
+            title={t('general.options_for_item', { item: pageName || pageId })}
+          />
+        )}
         <StudioButton
           icon={<TrashIcon aria-hidden />}
           onClick={handleConfirmDelete}

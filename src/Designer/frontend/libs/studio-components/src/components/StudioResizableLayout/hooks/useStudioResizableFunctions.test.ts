@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import React, { type JSX } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useStudioResizableLayoutFunctions } from './useStudioResizableFunctions';
@@ -27,12 +29,12 @@ const makeChild = (
   ) as ResizableChildElement;
 
 describe('useStudioResizableLayoutFunctions', () => {
-  let setContainerSize: jest.Mock<void, [number, number]>;
+  let setContainerSize: Mock<(index: number, size: number) => void>;
   let elementRefs: React.MutableRefObject<HTMLDivElement[]>;
   let children: ResizableChildElement[];
 
   beforeEach(() => {
-    setContainerSize = jest.fn();
+    setContainerSize = vi.fn();
     elementRefs = {
       current: [document.createElement('div'), document.createElement('div')],
     };
@@ -74,7 +76,7 @@ describe('useStudioResizableLayoutFunctions', () => {
 function renderFunctionsHook(
   elementRefs: React.MutableRefObject<HTMLDivElement[]>,
   children: ResizableChildElement[],
-  setContainerSize: jest.Mock<void, [number, number]>,
+  setContainerSize: Mock<(index: number, size: number) => void>,
 ): { result: { current: HookReturn } } {
   return renderHook(() =>
     useStudioResizableLayoutFunctions(horizontal, elementRefs, children, setContainerSize),

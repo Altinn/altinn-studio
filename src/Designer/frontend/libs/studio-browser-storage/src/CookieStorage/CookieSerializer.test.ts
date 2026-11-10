@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { CookieSerializer } from './CookieSerializer';
 
 describe('CookieSerializer', () => {
@@ -69,7 +70,7 @@ describe('CookieSerializer', () => {
     });
 
     test('buildCookieString should automatically set secure flag and log warning when sameSite is None without secure', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
       const result = CookieSerializer.buildCookieString('key', 'value', { sameSite: 'None' });
 

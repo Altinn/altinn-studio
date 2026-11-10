@@ -1,18 +1,20 @@
 import React from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -24,6 +26,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const config = useComponentConfig(targetBaseComponentId, 'Map');
+  const labelText = useSummaryLabelText(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Map');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Map.readOnly);
   const required = useEvalExpression(config.required, Expressions.Map.required);
@@ -78,7 +81,8 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
           <Label
             baseComponentId={targetBaseComponentId}
             renderLabelAs='span'
-            textResourceBindings={{ title }}
+            hideIndicators
+            textResourceBindings={{ ...labelText, title }}
           />
           {!readOnly && (
             <EditButton
@@ -100,14 +104,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
             />
           </Paragraph>
         )}
-        {errors?.map(({ message }) => (
-          <ValidationMessage key={message.key}>
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+        <ValidationMessageList validations={errors} />
       </div>
     </SummaryFlex>
   );

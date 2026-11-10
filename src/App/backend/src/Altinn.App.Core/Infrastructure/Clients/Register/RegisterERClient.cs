@@ -76,7 +76,7 @@ internal sealed class RegisterERClient : IOrganizationClient
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            organization = await JsonSerializerPermissive.DeserializeAsync<Organization>(
+            organization = await JsonSerializerPermissive.Deserialize<Organization>(
                 response.Content,
                 cancellationToken
             );

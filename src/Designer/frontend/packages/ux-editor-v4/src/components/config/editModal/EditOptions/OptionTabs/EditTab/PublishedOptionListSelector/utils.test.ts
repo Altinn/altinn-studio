@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { FormItem } from '../../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../../../testing/componentMocks';

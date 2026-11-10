@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useLayoutSetsExtendedQuery } from './useLayoutSetsExtendedQuery';
@@ -10,11 +11,9 @@ import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLa
 const layoutSetsExtended: UiFolderLayoutSetModel[] = [
   { id: 'layoutSet1', dataType: 'dataType1', type: 'type1', taskType: 'data' },
 ];
-const getLayoutSetsExtended = jest.fn(() => Promise.resolve(layoutSetsExtended));
+const getLayoutSetsExtended = vi.fn(() => Promise.resolve(layoutSetsExtended));
 
 describe('useLayoutSetsExtendedQuery', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls getLayoutSetsExtended and stores the result in the cache', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderHookWithProviders(() => useLayoutSetsExtendedQuery(org, app), {

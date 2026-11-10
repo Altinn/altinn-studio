@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import nb from '@altinn-studio/language/src/nb.json';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { getDefaultTaskName } from './getDefaultTaskName';

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Altinn.Studio.Designer.Helpers;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request;
@@ -39,6 +40,12 @@ public class CreateReleaseRequestViewModel : IValidatableObject
     public string TargetCommitish { get; set; }
 
     /// <summary>
+    /// Name of the branch the release is built from. Optional.
+    /// </summary>
+    [JsonProperty("branch")]
+    public string Branch { get; set; }
+
+    /// <summary>
     /// Determines if this instance of the model is valid.
     /// </summary>
     /// <param name="validationContext">The current context of the validation check</param>
@@ -46,6 +53,11 @@ public class CreateReleaseRequestViewModel : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         List<ValidationResult> issues = new List<ValidationResult>();
+
+        if (Branch is not null && !AltinnRegexes.AltinnBranchNameRegex().IsMatch(Branch))
+        {
+            issues.Add(new ValidationResult("Branch name is invalid.", new[] { nameof(Branch) }));
+        }
 
         if (string.IsNullOrEmpty(TagName))
         {

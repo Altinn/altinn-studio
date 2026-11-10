@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import type { ForwardedRef, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
@@ -44,14 +45,12 @@ type NativeElement<Name extends ElementName> = {
 }[Name];
 
 // Test data:
-const onChangeAny = jest.fn();
-const onFocusAny = jest.fn();
-const onBlurAny = jest.fn();
+const onChangeAny = vi.fn();
+const onFocusAny = vi.fn();
+const onBlurAny = vi.fn();
 const defaultProps: StudioInputTableProps = { onChangeAny, onFocusAny, onBlurAny };
 
 describe('StudioInputTable', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders a table', () => {
     renderStudioInputTable();
     expect(getTable()).toBeInTheDocument();
@@ -392,7 +391,7 @@ describe('StudioInputTable', () => {
 
       test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
         const user = userEvent.setup();
-        const onEvent = jest.fn();
+        const onEvent = vi.fn();
         const { render: renderComponent, action } = testCasesForElement[eventName];
         renderComponent(onEvent);
         await action(user);
@@ -408,7 +407,7 @@ describe('StudioInputTable', () => {
 
       test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
         const user = userEvent.setup();
-        const onEvent = jest.fn();
+        const onEvent = vi.fn();
         const { render: renderComponent, action } = testCasesForElement[eventName];
         renderComponent(onEvent);
         await action(user);

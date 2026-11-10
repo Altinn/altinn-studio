@@ -97,30 +97,46 @@ describe('AddressLayout', () => {
 
   it('shows required indicators when required is true', () => {
     render({ simplified: false, required: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse Obligatorisk' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr Obligatorisk' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Må fylles ut' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Må fylles ut' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Obligatorisk' }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Må fylles ut' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer Obligatorisk/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Må fylles ut/i })).toBeInTheDocument();
   });
 
-  it('shows optional indicators when showOptionalMarking is true and not required', () => {
-    render({ simplified: false, required: false, showOptionalMarking: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
+  it('shows optional indicators by default when not required', () => {
+    render({ simplified: false, required: false });
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Valgfritt' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Valgfritt' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Valgfritt' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Valgfritt/i })).toBeInTheDocument();
+  });
+
+  it.each([true, false])(
+    'shows no required/optional indicator on the post place field when required is %s',
+    (required) => {
+      render({ required });
+      expect(screen.getByRole('textbox', { name: 'Poststed' })).not.toBeRequired();
+    },
+  );
+
+  it('hides optional indicators when showOptionalMarking is false', () => {
+    render({ simplified: false, required: false, showOptionalMarking: false });
+    expect(
+      screen.queryByRole('textbox', { name: 'Gateadresse Valgfritt' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 
   it('does not show optional indicators when readOnly is true', () => {
-    render({ simplified: false, readOnly: true, showOptionalMarking: true });
+    render({ simplified: false, required: false, readOnly: true });
     expect(
-      screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' }),
+      screen.queryByRole('textbox', { name: 'Gateadresse Valgfritt' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr Valgfritt' })).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 
@@ -155,6 +171,10 @@ describe('AddressLayout', () => {
       zipCodeValidation: <span data-testid='zip-val' />,
     });
     expect(screen.getByTestId('addr-val')).toBeInTheDocument();
-    expect(screen.getByTestId('zip-val')).toBeInTheDocument();
+    const zipValidation = screen.getByTestId('zip-val');
+    // On wide screens the grid shows the zip code error below both the zip code and post place fields, but screen
+    // readers follow the DOM order, so we test that the zip code error is placed between zip code and post place
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toAppearBefore(zipValidation);
+    expect(zipValidation).toAppearBefore(screen.getByRole('textbox', { name: 'Poststed' }));
   });
 });

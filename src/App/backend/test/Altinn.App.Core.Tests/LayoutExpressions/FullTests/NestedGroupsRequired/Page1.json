@@ -1,0 +1,39 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "outer-group",
+        "type": "RepeatingGroup",
+        "dataModelBindings": {
+          "group": "some.outer"
+        },
+        "children": ["outer-input", "inner-group"]
+      },
+      {
+        "id": "outer-input",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "some.outer.name"
+        },
+        "required": true
+      },
+      {
+        "id": "inner-group",
+        "type": "RepeatingGroup",
+        "dataModelBindings": {
+          "group": "some.outer.inner"
+        },
+        "children": ["inner-input"]
+      },
+      {
+        "id": "inner-input",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "some.outer.inner.value"
+        },
+        "required": true
+      }
+    ]
+  }
+}

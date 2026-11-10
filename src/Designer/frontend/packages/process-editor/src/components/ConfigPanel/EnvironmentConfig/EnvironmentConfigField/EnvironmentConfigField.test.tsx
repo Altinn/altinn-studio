@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -23,8 +24,6 @@ const addOverrideLabel = textMock(
 );
 
 describe('EnvironmentConfigField', () => {
-  afterEach(jest.clearAllMocks);
-
   it('manages focus when opening the field, editing overrides, and closing it', async () => {
     const user = userEvent.setup();
     renderEnvironmentConfigField();
@@ -104,7 +103,7 @@ describe('EnvironmentConfigField', () => {
 
   it('does not save a new override until it has a value', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({ entries: [{ value: 'g' }], onChange });
     await user.click(getCollapsedButton());
 
@@ -119,7 +118,7 @@ describe('EnvironmentConfigField', () => {
 
   it('saves an override with the standard environment name', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({ entries: [{ value: 'g' }], onChange });
     await user.click(getCollapsedButton());
 
@@ -136,7 +135,7 @@ describe('EnvironmentConfigField', () => {
 
   it('deletes the saved entry when an override is cleared', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({
       entries: [{ value: 'g' }, { env: 'tt02', value: 's' }],
       onChange,
@@ -193,7 +192,7 @@ describe('EnvironmentConfigField', () => {
 
   it('removes an empty draft override when deleted', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({ entries: [{ value: 'g' }], onChange });
     await user.click(getCollapsedButton());
     await user.click(screen.getByRole('button', { name: addOverrideLabel }));
@@ -209,7 +208,7 @@ describe('EnvironmentConfigField', () => {
 
   it('removes an override when deleted', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({ entries: [{ env: 'tt02', value: 's' }], onChange });
     await user.click(getCollapsedButton());
 
@@ -220,7 +219,7 @@ describe('EnvironmentConfigField', () => {
 
   it('warns about an unknown environment and preserves it when saving another row', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({ entries: [{ env: 'at21', value: 'dead' }], onChange });
     await user.click(getCollapsedButton());
 
@@ -254,7 +253,7 @@ describe('EnvironmentConfigField', () => {
 
   it('deletes only the selected entry for a duplicate unknown environment', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({
       entries: [
         { env: 'at21', value: 'first' },
@@ -292,7 +291,7 @@ describe('EnvironmentConfigField', () => {
 
   it('preserves earlier duplicates when editing the active entry', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvironmentConfigField({
       entries: [
         { env: 'tt02', value: 'shadowed' },

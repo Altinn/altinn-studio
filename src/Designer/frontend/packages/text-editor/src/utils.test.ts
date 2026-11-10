@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import {
   filterFunction,
   filterRows,
@@ -24,7 +25,7 @@ describe('getLangName', () => {
       of: (code: string) => {
         return code;
       },
-      resolvedOptions: jest.fn(),
+      resolvedOptions: vi.fn(),
     };
 
     const result = getLangName({ code: 'nb', intlDisplayNames: mockIntl });

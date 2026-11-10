@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
@@ -62,7 +63,7 @@ describe('StudioIconTextfield', () => {
 
   it('should execute onChange callback when input value changes', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderStudioIconTextfield({ onChange });
     const textfield = screen.getByRole('textbox', { name: label });
     const newInput = 'newInput';

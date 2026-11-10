@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
@@ -5,7 +6,7 @@ import {
   firstAvailableLayout,
   idExists,
 } from './formLayoutsUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
@@ -17,7 +18,7 @@ describe('formLayoutsUtils', () => {
     it('Adds navigation buttons to all layouts if there are multiple layouts', async () => {
       const layout1Id = 'layout1';
       const layout2Id = 'layout2';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layout1Id]: createEmptyLayout(),
         [layout2Id]: createEmptyLayout(),
@@ -36,12 +37,10 @@ describe('formLayoutsUtils', () => {
 
     it('Removes navigation buttons if there is only one layout', async () => {
       const layoutId = 'layout1';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
-        itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
       };
@@ -51,7 +50,6 @@ describe('formLayoutsUtils', () => {
           containers: {
             [BASE_CONTAINER_ID]: {
               id: BASE_CONTAINER_ID,
-              itemType: 'CONTAINER',
               type: undefined,
             },
           },

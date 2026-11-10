@@ -1,3 +1,4 @@
+import { expect, it, test } from 'vitest';
 import type { UiSchemaNodes } from '../src';
 import { FieldType, ObjectKind, ROOT_POINTER } from '../src';
 import { getPointers } from '../src/lib/mappers/getPointers';

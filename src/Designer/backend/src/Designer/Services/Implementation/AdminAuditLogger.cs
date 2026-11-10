@@ -63,4 +63,44 @@ public class AdminAuditLogger : IAdminAuditLogger
     {
         await _repository.UpdateStatusAsync(entryId, AdminAuditStatuses.Failed, cancellationToken);
     }
+
+    public async Task<long> LogWorkflowActionRequestedAsync(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        Guid workflowId,
+        string action,
+        CancellationToken cancellationToken = default
+    )
+    {
+        HttpContext httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException();
+
+        string userName = AuthenticationHelper.GetDeveloperUserName(httpContext);
+
+        var entry = new AdminAuditLogEntry
+        {
+            Org = org,
+            Env = env,
+            App = app,
+            InstanceId = instanceId,
+            WorkflowId = workflowId,
+            Action = action,
+            Status = AdminAuditStatuses.Requested,
+            UserName = userName,
+            Timestamp = _timeProvider.GetUtcNow(),
+        };
+
+        return await _repository.AddAsync(entry, cancellationToken);
+    }
+
+    public async Task LogWorkflowActionCompletedAsync(long entryId, CancellationToken cancellationToken = default)
+    {
+        await _repository.UpdateStatusAsync(entryId, AdminAuditStatuses.Completed, cancellationToken);
+    }
+
+    public async Task LogWorkflowActionFailedAsync(long entryId, CancellationToken cancellationToken = default)
+    {
+        await _repository.UpdateStatusAsync(entryId, AdminAuditStatuses.Failed, cancellationToken);
+    }
 }

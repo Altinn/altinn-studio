@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
@@ -74,37 +75,39 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         try
         {
-            var descriptor = _registry.GetCommand(step.Command.Type);
+            var command = _registry.GetCommand(step.Command.Type);
 
             // Centralized deserialization — commands receive typed data
             object? typedCommandData = null;
-            if (descriptor.CommandDataType is not null)
+            if (command.CommandDataType is not null)
             {
                 if (step.Command.Data is not { } rawData)
                 {
                     return ExecutionResult.CriticalError(
                         $"Command '{step.Command.Type}' requires command data of type "
-                            + $"{descriptor.CommandDataType.Name}, but none was provided"
+                            + $"{command.CommandDataType.Name}, but none was provided"
                     );
                 }
-                typedCommandData = rawData.Deserialize(descriptor.CommandDataType, CommandDefinition.SerializerOptions);
+                typedCommandData = rawData.Deserialize(command.CommandDataType, CommandDefinition.SerializerOptions);
             }
 
             object? typedWorkflowContext = null;
-            if (descriptor.WorkflowContextType is not null)
+            if (command.WorkflowContextType is not null)
             {
                 if (workflow.Context is not { } rawContext)
                 {
                     return ExecutionResult.CriticalError(
                         $"Command '{step.Command.Type}' requires workflow context of type "
-                            + $"{descriptor.WorkflowContextType.Name}, but none was provided"
+                            + $"{command.WorkflowContextType.Name}, but none was provided"
                     );
                 }
                 typedWorkflowContext = rawContext.Deserialize(
-                    descriptor.WorkflowContextType,
+                    command.WorkflowContextType,
                     CommandDefinition.SerializerOptions
                 );
             }
+
+            SetDomainAttributes(command, typedCommandData, typedWorkflowContext, workflow, step);
 
             var stateIn = ResolveStateIn(workflow, step);
 
@@ -122,11 +125,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 StateIn = stateIn,
                 ExecutionDeadline = executionDeadline,
                 WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
+                IsFinalWaitCheck = step.IsFinalWaitCheck(_engineSettings),
                 MailboxReceipt = rendezvous.Receipt,
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
-            var result = await descriptor.Execute(context, cts.Token);
+            var result = await command.Execute(context, cts.Token);
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
@@ -179,6 +183,45 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     /// <summary>
+    /// Sets the attributes the command names for the domain object the step works on — for an Altinn app, its
+    /// service owner, app and instance — on the step's span and on the workflow's entry span, so a search for the
+    /// object finds both.
+    /// </summary>
+    /// <remarks>
+    /// Skipped when neither span is recorded, so an unsampled step costs the command nothing. A throwing command is
+    /// logged and otherwise ignored: what telemetry says about a step must never decide how the step runs.
+    /// </remarks>
+    private void SetDomainAttributes(
+        ICommand command,
+        object? commandData,
+        object? workflowContext,
+        Workflow workflow,
+        Step step
+    )
+    {
+        var stepActivity = step.EngineActivity;
+        var workflowActivity = workflow.EngineActivity;
+
+        if (stepActivity?.IsAllDataRequested is not true && workflowActivity?.IsAllDataRequested is not true)
+            return;
+
+        try
+        {
+            var attributes = command.GetTelemetryAttributes(commandData, workflowContext);
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                var (key, value) = attributes[i];
+                stepActivity?.SetTag(key, value);
+                workflowActivity?.SetTag(key, value);
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.TelemetryAttributesFailed(step, command.CommandType, e);
+        }
+    }
+
+    /// <summary>
     /// Reads the mailbox rendezvous for a receive workflow's first step; every other step answers "nothing to
     /// read" from two field comparisons and no SQL.
     /// </summary>
@@ -205,7 +248,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Unregistered:
                 _logger.MailboxReceiverUnregistered(step, workflow, workflow.MailboxId.Value);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "unregistered"));
+                Metrics.MailboxRendezvousViolations.Add(
+                    1,
+                    (TelemetryAttributes.MailboxRendezvousState, "unregistered")
+                );
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(
@@ -217,7 +263,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Undecided(var mailboxId, var seq):
                 _logger.MailboxReceiverUndecided(step, workflow, mailboxId, seq);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "undecided"));
+                Metrics.MailboxRendezvousViolations.Add(1, (TelemetryAttributes.MailboxRendezvousState, "undecided"));
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(
@@ -326,6 +372,17 @@ internal static partial class WorkflowExecutorLogs
         Workflow workflow,
         Guid mailboxId,
         long seq
+    );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Command '{CommandType}' failed to describe step {Step} for telemetry; the step runs without those attributes"
+    )]
+    internal static partial void TelemetryAttributesFailed(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        string commandType,
+        Exception ex
     );
 
     [LoggerMessage(LogLevel.Error, "Execution of step {Step} failed after {Elapsed}: {Message}")]

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { AddSubformCard, type AddSubformCardProps } from './AddSubformCard';
@@ -5,10 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('AddSubformCard', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render AddSubformCard', () => {
     renderAddSubformCard();
     expect(screen.getByText(addNewSubformText)).toBeInTheDocument();
@@ -16,7 +13,7 @@ describe('AddSubformCard', () => {
 
   it('should call setIsCreateSubformMode when clicked', async () => {
     const user = userEvent.setup();
-    const setIsCreateSubformModeMock = jest.fn();
+    const setIsCreateSubformModeMock = vi.fn();
     renderAddSubformCard({ setIsCreateSubformMode: setIsCreateSubformModeMock });
 
     const addNewSubformLabel = screen.getByText(addNewSubformText);
@@ -36,7 +33,7 @@ const subformTitle = textMock('ux_editor.subform');
 
 const defaultProps: AddSubformCardProps = {
   isSubformInEditMode: false,
-  setIsCreateSubformMode: jest.fn(),
+  setIsCreateSubformMode: vi.fn(),
 };
 
 const renderAddSubformCard = (props?: Partial<AddSubformCardProps>) => {

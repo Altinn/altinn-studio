@@ -50,7 +50,22 @@ public class GetLayoutSettingsTests
         Assert.True(JsonUtils.DeepEquals(expectedLayoutSettings, responseContent));
     }
 
-    [Theory(Skip = "If App/ui is not present in repo, the controller returns 500")]
+    [Fact]
+    public async Task GetLayoutSettings_ForRemovedTaskFolder_ReturnsNotFoundWithoutRecreatingIt()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "app-with-layoutsets-v9", "testUser", targetRepository);
+        string removedFolder = Path.Combine(TestRepoPath, "App", "ui", "Task_1");
+        Directory.Delete(removedFolder, recursive: true);
+
+        string url = $"{VersionPrefix("ttd", targetRepository)}/layout-settings?layoutSetName=Task_1";
+        using var response = await HttpClient.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.False(Directory.Exists(removedFolder));
+    }
+
+    [Theory]
     [InlineData("ttd", "empty-app", "layoutSet1")]
     [InlineData("ttd", "empty-app", null)]
     public async Task GetLayoutSettings_IfNotExists_Should_AndReturnNotFound(
@@ -59,7 +74,9 @@ public class GetLayoutSettingsTests
         string layoutSetName
     )
     {
-        string url = $"{VersionPrefix(org, app)}/layout-settings?layoutSetName={layoutSetName}";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, "testUser", targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/layout-settings?layoutSetName={layoutSetName}";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);

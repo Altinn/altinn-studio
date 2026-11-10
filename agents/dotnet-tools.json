@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-counters": {
+      "version": "10.0.750501",
+      "commands": ["dotnet-counters"]
+    },
+    "dotnet-dump": {
+      "version": "10.0.750501",
+      "commands": ["dotnet-dump"]
+    },
+    "dotnet-ef": {
+      "version": "10.0.13",
+      "commands": ["dotnet-ef"]
+    },
+    "dotnet-trace": {
+      "version": "10.0.750501",
+      "commands": ["dotnet-trace"]
+    },
+    "ilspycmd": {
+      "version": "11.1.0.9782",
+      "commands": ["ilspycmd"]
+    }
+  }
+}

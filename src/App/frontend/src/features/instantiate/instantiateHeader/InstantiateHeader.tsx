@@ -5,9 +5,9 @@ import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 import { CircleIcon } from 'src/components/CircleIcon';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/features/instantiate/instantiateHeader/InstantiateHeader.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { getMessageBoxUrl, returnUrlToAllForms, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { IProfile } from 'src/types/shared';
 
 export interface InstantiateHeaderProps {
@@ -38,28 +38,29 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
         {party && (
           <ul className={classes.headerLinkList}>
             <li className={classes.headerLink}>
-              <a
+              <PlatformLink
                 className='altinnLink'
-                href={getMessageBoxUrl(party?.partyId)}
+                setting='ArbeidsflateInboxUrl'
+                partyId={party?.partyId}
               >
                 <Lang id='instantiate.inbox' />
-              </a>
+              </PlatformLink>
             </li>
             <li className={classes.headerLink}>
-              <a
+              <PlatformLink
                 className='altinnLink'
-                href={returnUrlToAllForms(window.location.host)}
+                setting='AllFormsUrl'
               >
                 <Lang id='instantiate.all_forms' />
-              </a>
+              </PlatformLink>
             </li>
             <li className={classes.headerLink}>
-              <a
+              <PlatformLink
                 className='altinnLink'
-                href={returnUrlToProfile(window.location.host, party?.partyId)}
+                setting='ArbeidsflateProfileUrl'
               >
                 <Lang id='instantiate.profile' />
-              </a>
+              </PlatformLink>
             </li>
           </ul>
         )}

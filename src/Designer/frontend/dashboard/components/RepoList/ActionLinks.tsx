@@ -9,7 +9,7 @@ import {
   PencilIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { getRepoEditUrl } from '../../utils/urlUtils';
+import { getRepositoryEditUrl } from 'app-shared/utils/repository';
 import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
 
@@ -33,7 +33,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
 
   const repoFullName = repo.full_name;
   const [org, repoName] = repoFullName.split('/');
-  const editUrl = getRepoEditUrl({ org, repo: repoName });
+  const editUrl = getRepositoryEditUrl(org, repoName);
 
   const giteaIconWithLink = (
     <a href={repo.html_url}>

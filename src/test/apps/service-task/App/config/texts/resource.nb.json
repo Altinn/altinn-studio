@@ -30,6 +30,10 @@
       "value": "Task_Utfylling1"
     },
     {
+      "id": "Side1.Paragraph-ExcludedFromPdf.title",
+      "value": "Denne teksten skal ikke være med i PDF-en"
+    },
+    {
       "id": "Side1.Button-BddG51.title",
       "value": "Neste"
     },

@@ -1,0 +1,106 @@
+{
+  "calculations": {
+    "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange": {
+      "expression": [
+        "minus",
+        [
+          "if",
+          [
+            "equals",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+            ],
+            null
+          ],
+          0,
+          "else",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+          ]
+        ],
+        [
+          "if",
+          [
+            "equals",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+            ],
+            null
+          ],
+          0,
+          "else",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+          ]
+        ]
+      ]
+    },
+    "sumAll": {
+      "expression": [
+        "sum",
+        [
+          "jmespath",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+          ],
+          "not_null(@, `[]`)[].CalculatedChange"
+        ]
+      ]
+    },
+    "sumAboveLimit": {
+      "expression": [
+        "sum",
+        [
+          "jmespath",
+          [
+            "jmespath",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+            ],
+            [
+              "concat",
+              "[?\"SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131\".value >= `",
+              [
+                "dataModel",
+                "hideRowValue"
+              ],
+              "`]"
+            ]
+          ],
+          "not_null(@, `[]`)[].CalculatedChange"
+        ]
+      ]
+    },
+    "numAboveLimit": {
+      "expression": [
+        "count",
+        [
+          "jmespath",
+          [
+            "jmespath",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+            ],
+            [
+              "concat",
+              "[?\"SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131\".value >= `",
+              [
+                "dataModel",
+                "hideRowValue"
+              ],
+              "`]"
+            ]
+          ],
+          "not_null(@, `[]`)[]"
+        ]
+      ]
+    }
+  }
+}

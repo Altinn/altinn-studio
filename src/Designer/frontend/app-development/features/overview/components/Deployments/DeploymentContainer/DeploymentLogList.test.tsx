@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { DeploymentLogListProps } from './DeploymentLogList';
 import { DeploymentLogList } from './DeploymentLogList';

@@ -28,6 +28,7 @@ public static class WebApplicationBuilderExtensions
         app.UseAuthorization();
         app.UseTelemetryEnricher();
         app.UseScopeAuthorization();
+        app.UseRateLimiter();
 
         app.UseEndpoints(endpoints =>
         {

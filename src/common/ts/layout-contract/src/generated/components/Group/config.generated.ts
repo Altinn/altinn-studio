@@ -2,12 +2,13 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompGroupExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompGroupExternal extends ComponentBase {
   type: 'Group';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -51,4 +52,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: GroupSummaryOverridesWithRef;
 };
 
-// Source hash: fed3a630416737699e4dfed3f26d9385f7440ee7221996688834a31241a1fde1
+// Source hash: 38157b8693cca6e1ad58b664a53499dd386074f8eeeddf2009135709cb1d7b4a

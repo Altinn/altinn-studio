@@ -1,16 +1,13 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import {
-  ComponentBase,
-  SummarizableComponentProps,
-  TRBSummarizable,
-} from '@app/layout-contract/generated/common.generated';
+import { ComponentBase, TRBSummarizable } from '@app/layout-contract/generated/common.generated';
 
 export type CompAccordionGroupSerialized = {
   type: 'AccordionGroup';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBSummarizable;
   children: string[];
   dataModelBindings?: undefined;
-} & ComponentBase &
-  SummarizableComponentProps;
+} & ComponentBase;
 
-// Source hash: 60a07df5bdbfd7ac09dc379e175530af01e840fd3a4d70c14f23ffe379f8391d
+// Source hash: 685fefcdea2d99b25755f07f7a60cca0f5f31af145972e65fd133aa0d7b0c03d

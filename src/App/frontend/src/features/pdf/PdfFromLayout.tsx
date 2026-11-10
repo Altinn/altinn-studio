@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { Flex, LoadingEmpty } from '@app/form-component';
+import { Flex } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
@@ -13,25 +13,29 @@ import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePageSettings, usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
+import {
+  usePageSettings,
+  usePdfExclusions,
+  usePdfLayoutName,
+} from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
-import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
-import { getFeature } from 'src/features/toggles';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
+import { SubformEntryForm } from 'src/layout/Subform/SubformWrapper';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
-import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { IPdfFormat } from 'src/features/pdf/types';
+import type { PdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 
 export function PdfFromLayout() {
   const pdfLayoutName = usePdfLayoutName();
@@ -53,15 +57,9 @@ function AutoGeneratePdfFromLayout() {
     throw new Error(
       `Unexpected search param ${SearchParams.PdfForTask} provided. This mode does not support passing ` +
         `${SearchParams.PdfForTask} as a search param, but will auto-generate a PDF from the ` +
-        `current layout-set instead. To use the multi-task mode, you cannot have a layout-set ` +
-        `set up for the current task.`,
+        `current UI folder instead. Only a PDF service task without a pdfLayoutName renders the tasks ` +
+        `passed as ${SearchParams.PdfForTask}.`,
     );
-  }
-
-  const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
-
-  if (pdfFormatIsLoading) {
-    return <LoadingEmpty />;
   }
 
   return (
@@ -77,7 +75,7 @@ function AutoGeneratePdfFromLayout() {
             }}
           />
         </div>
-        <AllPages pdfSettings={pdfSettings} />
+        <AllPages />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
@@ -96,7 +94,49 @@ export function PdfForServiceTask() {
   return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
 }
 
+/**
+ * The PDF of one subform entry, named in the search params, rendered from the subform's UI folder with the entry as
+ * its data. A subform PDF service task renders each entry this way, whether or not the task has a UI folder of its own.
+ */
+export function PdfForSubform() {
+  const [params] = useSearchParams();
+  const uiFolder = params.get(SearchParams.PdfSubformUiFolder);
+  const dataElementId = params.get(SearchParams.PdfSubformDataElementId);
+  if (!uiFolder || !dataElementId) {
+    throw new Error(
+      `A subform PDF requires both ${SearchParams.PdfSubformUiFolder} and ${SearchParams.PdfSubformDataElementId} ` +
+        `as search params`,
+    );
+  }
+
+  const settings = getUiFolderSettings(uiFolder);
+  if (!settings) {
+    throw new Error(`Cannot render the subform PDF: the app has no UI folder '${uiFolder}'`);
+  }
+  if (!settings.defaultDataType) {
+    throw new Error(
+      `Cannot render the subform PDF: the subform UI folder '${uiFolder}' has no defaultDataType, which names the ` +
+        `data type of its entries`,
+    );
+  }
+
+  return (
+    <SubformEntryForm
+      uiFolder={uiFolder}
+      dataElementId={dataElementId}
+      readOnly={true}
+    >
+      <PdfFromLayout />
+    </SubformEntryForm>
+  );
+}
+
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
+  // Only a task with a UI folder of its own has pages to render. Any other entry, a blank one or the PDF task itself
+  // included, would render the pages of the PDF task's own folder, which are its waiting page.
+  const pdfTaskId = useNavigationParam('taskId');
+  const tasksToRender = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
+
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -110,15 +150,13 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             }}
           />
         </div>
-        {taskIds.map((taskId, idx) => (
+        {tasksToRender.map((taskId, idx) => (
           <TaskSummaryWrapper
             key={taskId}
             taskId={taskId}
           >
             {idx > 0 && <div className={classes.pageBreak} />}
-            {/* Settings intentionally omitted, as this is new functionality
-            and PDF settings are deprecated at this point. */}
-            <AllPages pdfSettings={undefined} />
+            <AllPages />
             <AllSubformSummaryComponent2 />
           </TaskSummaryWrapper>
         ))}
@@ -193,9 +231,10 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
+function AllPages() {
   const order = usePageOrder();
-  const visiblePages = getPdfVisiblePages(order, pdfSettings);
+  const pdfExclusions = usePdfExclusions();
+  const visiblePages = order.filter((pageKey) => !pdfExclusions.pages.includes(pageKey));
 
   return (
     <>
@@ -203,22 +242,15 @@ function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
         <PdfForPage
           key={pageKey}
           pageKey={pageKey}
-          pdfSettings={pdfSettings}
+          pdfExclusions={pdfExclusions}
         />
       ))}
     </>
   );
 }
 
-function getPdfVisiblePages(pages: string[], pdfSettings: IPdfFormat | undefined): string[] {
-  if (!pdfSettings?.excludedPages) {
-    return pages;
-  }
-  return pages.filter((pageKey) => !pdfSettings.excludedPages.includes(pageKey));
-}
-
-function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IPdfFormat | undefined }) {
-  const children = useTopLevelComponentsToAutoRender(pageKey, pdfSettings);
+function PdfForPage({ pageKey, pdfExclusions }: { pageKey: string; pdfExclusions: PdfExclusions }) {
+  const children = useTopLevelComponentsToAutoRender(pageKey, pdfExclusions);
   const hidden = useIsHiddenMulti(children);
 
   return (
@@ -245,7 +277,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
   );
 }
 
-function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
+function useTopLevelComponentsToAutoRender(pageKey: string, pdfExclusions: PdfExclusions): string[] {
   const lookups = FormStore.bootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
@@ -254,11 +286,11 @@ function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFor
       const def = getComponentDef(component.type);
       return (
         component.type !== 'Subform' &&
-        !pdfSettings?.excludedComponents.includes(baseId) &&
+        !pdfExclusions.components.includes(baseId) &&
         def.shouldRenderInAutomaticPDF(component as never)
       );
     });
-  }, [lookups, pageKey, pdfSettings?.excludedComponents]);
+  }, [lookups, pageKey, pdfExclusions.components]);
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
@@ -269,21 +301,5 @@ function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
     return <SummaryComponent2 baseComponentId={baseComponentId} />;
   }
 
-  const betaEnabled = getFeature('betaPDFenabled');
-  if (betaEnabled.value) {
-    return <ComponentSummary targetBaseComponentId={baseComponentId} />;
-  }
-
-  return (
-    <SummaryComponentFor
-      targetBaseComponentId={baseComponentId}
-      overrides={{
-        largeGroup: component.type === 'Group',
-        display: {
-          hideChangeButton: true,
-          hideValidationMessages: true,
-        },
-      }}
-    />
-  );
+  return <ComponentSummary targetBaseComponentId={baseComponentId} />;
 }

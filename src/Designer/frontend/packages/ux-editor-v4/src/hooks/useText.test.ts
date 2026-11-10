@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useText } from './useText';
 import { textMock } from '@studio/testing/mocks/i18nMock';

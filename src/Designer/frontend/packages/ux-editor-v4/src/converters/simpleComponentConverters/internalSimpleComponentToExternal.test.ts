@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../types/FormComponent';
 import { formItemConfigs } from '../../data/formItemConfig';

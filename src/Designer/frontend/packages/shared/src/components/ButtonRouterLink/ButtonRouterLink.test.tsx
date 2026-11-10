@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef, MouseEvent } from 'react';
 import { createRef } from 'react';
 import type { ButtonRouterLinkProps } from './ButtonRouterLink';
@@ -50,7 +51,7 @@ describe('ButtonRouterLink', () => {
   });
 
   it('Calls the onClick callback with the mouse event when the user clicks the link', async () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     renderButtonRouterLink({ onClick });
     const target: HTMLAnchorElement = screen.getByRole('button');
     await userEvent.click(target);

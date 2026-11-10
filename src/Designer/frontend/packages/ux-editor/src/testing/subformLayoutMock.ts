@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
 import type { IInternalLayout } from '../types/global';
@@ -10,13 +10,11 @@ const component1: FormComponent = {
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   textResourceBindings: { title: 'some-title' },
-  itemType: 'COMPONENT',
 };
 const component2Id = 'SubformComponent2';
 const component2: FormComponent = {
   id: component2Id,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
 };
 const component3Id = 'SubformComponent3';
 const component3: FormComponent = {
@@ -27,7 +25,6 @@ const component3: FormComponent = {
     metadata: { field: 'Metadata', dataType: '' },
   },
   textResourceBindings: { title: 'some-title' },
-  itemType: 'COMPONENT',
 };
 const component4Id = 'SubformComponent4';
 const component4: FormComponent = {
@@ -39,15 +36,12 @@ const component4: FormComponent = {
     zipCode: { field: '', dataType: '' },
   },
   textResourceBindings: { title: 'address' },
-  itemType: 'COMPONENT',
 };
 
 const container1Id = 'SubformContainer1';
 const container1: FormContainer = {
   id: container1Id,
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
-  pageIndex: null,
 };
 
 const layout: IInternalLayout = {

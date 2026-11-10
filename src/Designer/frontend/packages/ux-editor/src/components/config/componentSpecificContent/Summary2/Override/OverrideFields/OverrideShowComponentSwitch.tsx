@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Summary2OverrideConfig } from '@altinn/ux-editor/types/Summary2Config';
 import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

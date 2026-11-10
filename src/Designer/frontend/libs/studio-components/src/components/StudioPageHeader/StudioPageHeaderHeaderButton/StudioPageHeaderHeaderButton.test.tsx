@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import {
@@ -30,7 +31,7 @@ describe('StudioPageHeaderHeaderButton', () => {
   it('should call the onClick function when the button is clicked', async () => {
     const user = userEvent.setup();
 
-    const mockOnClick = jest.fn();
+    const mockOnClick = vi.fn();
     renderStudioPageHeaderHeaderButton({ onClick: mockOnClick });
 
     const button = screen.getByRole('button', { name: buttonText });

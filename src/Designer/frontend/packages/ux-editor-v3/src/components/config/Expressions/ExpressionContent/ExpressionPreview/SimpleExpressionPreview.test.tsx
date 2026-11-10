@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -8,10 +9,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ExpressionFunction, ExpressionPropertyBase } from '../../../../../types/Expressions';
 
 describe('SimpleExpressionPreview', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('displays all values for a subexpression as strings and operator', () => {
     render({});
 

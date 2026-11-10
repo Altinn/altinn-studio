@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
@@ -14,7 +15,7 @@ import {
 describe('ConfigArrayProperties', () => {
   it('should call handleComponentUpdate when array property is updated', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigArrayProperties({ props: { handleComponentUpdate: handleComponentUpdateMock } });
     await openConfigAndVerify({ user, property: supportedKey });
     await selectOption(user, 'option1');
@@ -60,7 +61,7 @@ describe('ConfigArrayProperties', () => {
 
   it('should call handleComponentUpdate in keepEditOpen mode when array property is updated', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigArrayProperties({
       props: {
         handleComponentUpdate: handleComponentUpdateMock,
@@ -119,7 +120,7 @@ const renderConfigArrayProperties = ({
   const defaultProps: ConfigArrayPropertiesProps = {
     schema: defaultArraySchema,
     component: componentMocks.Input,
-    handleComponentUpdate: jest.fn(),
+    handleComponentUpdate: vi.fn(),
     arrayPropertyKeys: [supportedKey],
   };
   return renderWithProviders(<ConfigArrayProperties {...defaultProps} {...props} />);

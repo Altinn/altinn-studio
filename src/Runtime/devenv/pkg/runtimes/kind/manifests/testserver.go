@@ -47,6 +47,8 @@ func buildTestserverConfigMap(nginxConf, indexHtml, eur1Html []byte) *corev1.Con
 }
 
 func buildTestserverService() *corev1.Service {
+	appProtocol := "http"
+
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -60,9 +62,10 @@ func buildTestserverService() *corev1.Service {
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
 				{
-					Name:     "http",
-					Port:     80,
-					Protocol: corev1.ProtocolTCP,
+					Name:        "http",
+					Port:        80,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: &appProtocol,
 				},
 			},
 			Selector: map[string]string{
@@ -176,6 +179,8 @@ func buildJumpboxConfigMap(nginxConf []byte) *corev1.ConfigMap {
 }
 
 func buildJumpboxService() *corev1.Service {
+	appProtocol := "http"
+
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -189,9 +194,10 @@ func buildJumpboxService() *corev1.Service {
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
 				{
-					Name:     "http",
-					Port:     80,
-					Protocol: corev1.ProtocolTCP,
+					Name:        "http",
+					Port:        80,
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: &appProtocol,
 				},
 			},
 			Selector: map[string]string{

@@ -20,6 +20,7 @@ internal interface IProcessEngine
 
     /// <summary>
     /// Dispatches a process state change to the async process engine and waits for completion.
+    /// <paramref name="language"/> is the language the instance was created with, for the workflow's callbacks.
     /// </summary>
     Task<Instance> SubmitInitialProcessState(
         Instance instance,
@@ -28,6 +29,7 @@ internal interface IProcessEngine
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        string? language = null,
         CancellationToken cancellationToken = default
     );
 

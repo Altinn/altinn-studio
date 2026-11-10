@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   NewApplicationForm,
@@ -15,7 +16,7 @@ import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-const mockOnSubmit = jest.fn();
+const mockOnSubmit = vi.fn();
 
 const mockUser: User = {
   id: 1,
@@ -34,7 +35,7 @@ const mockOrg: Organization = {
 };
 const mockOrganizations: Organization[] = [mockOrg];
 
-const mockOnClickCancelButton = jest.fn();
+const mockOnClickCancelButton = vi.fn();
 const mockCancelComponentButton: ActionableElement = {
   onClick: mockOnClickCancelButton,
   type: 'button',
@@ -43,8 +44,6 @@ const mockCancelComponentButton: ActionableElement = {
 const mockSubmitbuttonText: string = 'Submit';
 
 describe('NewApplicationForm', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
     renderNewApplicationForm();
@@ -127,11 +126,11 @@ describe('NewApplicationForm', () => {
     expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
   });
 
-  it('should show app template selector when feature is enabled', () => {
+  it('should show app template selector', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+    renderNewApplicationForm({}, { queryClient });
 
     expect(
       screen.getByRole('combobox', {
@@ -140,27 +139,11 @@ describe('NewApplicationForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not show app template selector when feature is disabled', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
-
-    renderNewApplicationForm({}, { featureFlags: [], queryClient });
-
-    expect(
-      screen.queryByRole('combobox', {
-        name: textMock('dashboard.new_application_form.select_app_template'),
-      }),
-    ).not.toBeInTheDocument();
-  });
-
   it('should not show app template selector when shouldUseAppTemplate is false', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm(
-      { shouldUseAppTemplate: false },
-      { featureFlags: [FeatureFlag.AppTemplates], queryClient },
-    );
+    renderNewApplicationForm({ shouldUseAppTemplate: false }, { queryClient });
 
     expect(
       screen.queryByRole('combobox', {
@@ -169,12 +152,12 @@ describe('NewApplicationForm', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should submit the selected app template when the feature is enabled', async () => {
+  it('should submit the selected app template', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+    renderNewApplicationForm({}, { queryClient });
 
     await user.selectOptions(
       screen.getByRole('combobox', {
@@ -333,7 +316,7 @@ function renderNewApplicationForm(
       org: '',
       repoName: '',
     },
-    setFormError: jest.fn(),
+    setFormError: vi.fn(),
     actionableElement: mockCancelComponentButton,
   };
   const defaultProviderData: ProviderData = {

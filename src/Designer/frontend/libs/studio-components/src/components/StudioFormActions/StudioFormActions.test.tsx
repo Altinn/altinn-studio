@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { Ref } from 'react';
 import { createRef } from 'react';
 import { StudioFormActions, type StudioFormActionsProps } from './StudioFormActions';
@@ -32,8 +33,8 @@ describe('StudioFormActions', () => {
 
   it('should call the correct handlers when buttons are clicked', async () => {
     const user = userEvent.setup();
-    const onPrimaryAction = jest.fn();
-    const onSecondaryAction = jest.fn();
+    const onPrimaryAction = vi.fn();
+    const onSecondaryAction = vi.fn();
     renderStudioFormActions({
       primary: { label: 'Save', onClick: onPrimaryAction },
       secondary: { label: 'Cancel', onClick: onSecondaryAction },

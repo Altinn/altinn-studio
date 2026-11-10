@@ -104,7 +104,9 @@ public class ReplaceXsdTests
         );
         Assert.Equal(2, applicationMetadata.DataTypes.Count);
         DataType dataType = applicationMetadata.DataTypes.Single(dataType => dataType.Id == ModelName);
+#pragma warning disable CS0618 // hvem-er-hvem binds its data model with the v8 taskId
         Assert.Equal("Task_1", dataType.TaskId);
+#pragma warning restore CS0618
         Assert.Equal("Altinn.App.Models.HvemErHvem_M", dataType.AppLogic.ClassRef);
     }
 

@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { findGenericKeywordsOnNode, genericKeywords } from './generic';
 import { Keyword, IntRestrictionKey } from '../../types';
 import {} from '../restrictions';

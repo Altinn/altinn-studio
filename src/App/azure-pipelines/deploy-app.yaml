@@ -5,6 +5,7 @@ variables:
   RELEASE_NAME: ''
   RG_NAME: ''
   AI_INSTR_KEY: ''
+  AI_CONNECTION_STRING: ''
   SUBSCRIPTION_KEY: ''
 
   # Variables that should be set as secret variables in the pipeline
@@ -35,11 +36,12 @@ variables:
   OVERRIDES_FILE: 'overrides.yaml'
   VALUES_FILE: 'deployment/values.yaml'
   NORMALIZED_VALUES: 'values.normalized.yaml'
+  NORMALIZED_ENVIRONMENT_VALUES: 'values.environment.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
   MASKINPORTEN_CR_FILE: 'maskinportenclient.yaml'
 
-  AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
-  AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
+  AI_SERVICE_CONNECTION_ID_TEST: '251ddc4d-a08f-4577-adfa-b2b8d3b9e2ed'
+  AI_SERVICE_CONNECTION_ID_PROD: 'b6869e6f-2ae7-4876-acf5-90800d281180'
 
   GITOPS_ORGANIZATION: 'als'
   GITOPS_REPO_SUFFIX: '-gitops'
@@ -164,41 +166,45 @@ steps:
   - task: AzureCLI@2
     displayName: 'Extract app scopes from docker image'
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
-    continueOnError: true
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        set +e  # Don't exit on errors, this needs testing
+        # Any error here must fail the deploy. Falling back to no scopes would drop the
+        # MaskinportenClient CR from the artifact, and Flux pruning would delete the app's client.
+        set -euo pipefail
 
         ACR_NAME="${APP_OWNER}altinnregistry01"
         IMAGE_REF="${ACR_NAME}.azurecr.io/${RELEASE_NAME}:${TAGNAME}"
+        SCOPES_LABEL="studio.altinn.maskinporten.scopes"
 
         echo "Extracting Maskinporten scopes from image: ${IMAGE_REF}"
 
-        az acr login --name ${ACR_NAME}
+        az acr login --name "${ACR_NAME}"
 
-        docker pull ${IMAGE_REF}
+        docker pull "${IMAGE_REF}"
 
-        SCOPES_JSON=$(docker inspect ${IMAGE_REF} --format='{{index .Config.Labels "studio.altinn.maskinporten.scopes"}}' 2>/dev/null || echo "[]")
+        # Read all labels as JSON, so a missing label is not confused with an empty one.
+        # Docker prints null when the image has no labels at all.
+        LABELS_JSON=$(docker image inspect --format '{{json .Config.Labels}}' "${IMAGE_REF}")
+        SCOPES_LABEL_VALUE=$(echo "${LABELS_JSON}" | jq -r --arg label "${SCOPES_LABEL}" '(. // {})[$label] // ""')
 
-        if [ "$SCOPES_JSON" == "<no value>" ] || [ "$SCOPES_JSON" == "null" ] || [ -z "$SCOPES_JSON" ]; then
-          echo "No Maskinporten scopes label found on image, defaulting to empty array"
-          SCOPES_JSON="[]"
+        # Images built before scopes were recorded have no label, or an empty one if the
+        # build was queued without APP_MASKINPORTEN_SCOPES. Both mean the app has no scopes.
+        if [ -z "${SCOPES_LABEL_VALUE}" ]; then
+          echo "No Maskinporten scopes recorded on image"
+          SCOPES_LABEL_VALUE="[]"
         fi
 
-        if ! echo "${SCOPES_JSON}" | jq empty 2>/dev/null; then
-          echo "##[warning]Invalid JSON in Maskinporten scopes label: ${SCOPES_JSON}"
-          echo "##[warning]Defaulting to empty array"
-          SCOPES_JSON="[]"
+        if ! SCOPES_JSON=$(echo "${SCOPES_LABEL_VALUE}" | jq -cs 'if length == 1 and (.[0] | type == "array" and all(.[]; type == "string" and test("^\\S+$"))) then .[0] else error("expected one JSON array of scopes") end'); then
+          echo "##[error]Invalid Maskinporten scopes label on image, expected a JSON array of non-empty scopes without whitespace: ${SCOPES_LABEL_VALUE}"
+          exit 1
         fi
 
         echo "##vso[task.setvariable variable=APP_MASKINPORTEN_SCOPES_JSON;]${SCOPES_JSON}"
 
         echo "Extracted Maskinporten scopes: ${SCOPES_JSON}"
-
-        exit 0  # Always succeed, this needs testing
       failOnStderr: false
 
   - task: CmdLine@2
@@ -359,17 +365,23 @@ steps:
 
         Write-Host "Using resource group for Application Insights: $resourceGroupName"
 
-        # Get the Application Insights Instrumentation Key
-        $ai_instr_key = (Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName).InstrumentationKey
+        # Use the resource's connection string so exporters send directly to its regional endpoint.
+        $appInsights = Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName -ErrorAction Stop
+        $ai_instr_key = $appInsights.InstrumentationKey
+        $ai_connection_string = $appInsights.ConnectionString
+        if ([string]::IsNullOrWhiteSpace($ai_connection_string)) {
+            throw "Application Insights '$aiName' in resource group '$resourceGroupName' has no connection string."
+        }
 
-        # export it as a pipeline variable
+        # Keep the instrumentation key for apps using older telemetry configuration.
         Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
+        Write-Host "##vso[task.setvariable variable=AI_CONNECTION_STRING;]$ai_connection_string"
         EOF
 
         echo "PowerShell script generated successfully"
 
-  - task: AzurePowerShell@4
-    displayName: Get application Insights instrumentation key (Production)
+  - task: AzurePowerShell@5
+    displayName: Get Application Insights configuration (Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
@@ -379,8 +391,8 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  - task: AzurePowerShell@4
-    displayName: Get application Insights instrumentation key (Non-Production)
+  - task: AzurePowerShell@5
+    displayName: Get Application Insights configuration (Non-Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
@@ -390,11 +402,11 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Test
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
+      ConnectedServiceNameARM: 610b89d4-a06f-448d-876b-8e2aaef817a8
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
@@ -453,11 +465,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Staging
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
+      ConnectedServiceNameARM: 1f0ab441-0bb3-4658-8aba-c06e4fb737fd
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
@@ -517,11 +529,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Production
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))"
     inputs:
-      ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
+      ConnectedServiceNameARM: c244af33-d252-4ca6-a250-bd070baec9d9
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
@@ -599,7 +611,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.12.0
+              version: 3.13.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -632,7 +644,8 @@ steps:
           HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
         fi
 
-        # Start writing to overrides file
+        # Start writing to overrides file. The chart copies podAnnotations onto the Deployment's pod template,
+        # where the runtime gateway reads them to tell Designer which Studio deploy runs in the cluster.
         cat << EOF > "$OVERRIDES_FILE"
         image:
           pullSecrets: []
@@ -650,10 +663,14 @@ steps:
               value: ${APP_REPO}
             - name: ApplicationInsights__InstrumentationKey
               value: ${AI_INSTR_KEY}
+            - name: ApplicationInsights__ConnectionString
+              value: "${AI_CONNECTION_STRING}"
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
         podAnnotations:
           altinn.studio/deployment-id: "${DEPLOYMENT_ID}"
+          altinn.studio/build-id: "${BUILD_BUILDID}"
+          altinn.studio/source-environment: "${STUDIO_ENVIRONMENT}"
         EOF
 
         # Add service and ingressRoute
@@ -681,12 +698,18 @@ steps:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
+        # The environment is part of a filename, not a path.
+        if [[ ! "$APP_ENVIRONMENT" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+          echo "##[error]Invalid environment name for deployment values"
+          exit 1
+        fi
+
         values_file_path="../${APP_COMMIT_ID}/${VALUES_FILE}"
+        environment_values_file_path="../${APP_COMMIT_ID}/${VALUES_FILE%.yaml}.${APP_ENVIRONMENT}.yaml"
         # For backward compatibility we need to support two formats of values.yaml:
         # 1) Flat structure where all keys are at root level
         # 2) Nested structure where all keys are under "deployment" key
-        # We will normalize both formats to a flat structure for merging with overrides.yaml
-
+        # Preserve the existing shared-file handling, including its error behavior.
         if [[ -f "${values_file_path}" ]]; then
           if yq eval 'has("deployment")' "${values_file_path}" | grep -q true; then
             # .deployment exists → hoist its children to root
@@ -700,9 +723,29 @@ steps:
           echo "{}" > "${NORMALIZED_VALUES}"
         fi
 
-        # --- Merge normalized values + overrides. Overrides have precedence since those values we don't want to be overridden ---
+        # Validate only the new environment file; both layouts are supported.
+        normalize_environment_values() {
+          local file="$1"
+          if [[ ! -e "$file" ]]; then
+            echo "{}"
+            return
+          fi
+          if ! yq ea --exit-status '[.] | select(length == 1) | .[0] | tag | select(. == "!!map" or . == "!!null")' "$file" > /dev/null; then
+            echo "##[error]Expected a single YAML mapping in $file" >&2
+            return 1
+          fi
+          yq eval '(. // {}) | (.deployment // {}) * (del(.deployment))' "$file"
+        }
+
+        if ! normalize_environment_values "${environment_values_file_path}" > "${NORMALIZED_ENVIRONMENT_VALUES}"; then
+          echo "##[error]Could not normalize environment values in ${environment_values_file_path}" >&2
+          exit 1
+        fi
+
+        # Shared values < environment values < platform overrides.
         yq ea '. as $item ireduce ({}; . * $item )' \
           "${NORMALIZED_VALUES}" \
+          "${NORMALIZED_ENVIRONMENT_VALUES}" \
           "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
 
         # --- Merge custom ingress routes if available (staf org only) ---
@@ -716,21 +759,21 @@ steps:
         yq eval '.spec.values = load("'"${MERGED_VALUES}"'")' --inplace "${HELMRELEASE_FILE}"
 
         # --- Cleanup non used files---
-        rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
+        rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${NORMALIZED_ENVIRONMENT_VALUES}" "${MERGED_VALUES}"
 
   - task: Bash@3
     displayName: 'Generate MaskinportenClient CR'
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
-    continueOnError: true
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
-        set +e  # Don't exit on errors, this needs testing
+        # Any error here must fail the deploy, see 'Extract app scopes from docker image'
+        set -euo pipefail
 
-        SCOPES_ARRAY="${APP_MASKINPORTEN_SCOPES_JSON:-[]}"
+        : "${APP_MASKINPORTEN_SCOPES_JSON:?Maskinporten scopes were not extracted}"
 
-        SCOPE_COUNT=$(echo "${SCOPES_ARRAY}" | jq 'length' 2>/dev/null || echo "0")
+        SCOPE_COUNT=$(echo "${APP_MASKINPORTEN_SCOPES_JSON}" | jq 'length')
 
         if [ "${SCOPE_COUNT}" -eq 0 ]; then
           echo "No Maskinporten scopes configured, skipping MaskinportenClient CR generation"
@@ -743,27 +786,23 @@ steps:
           "apiVersion": "resources.altinn.studio/v1alpha1",
           "kind": "MaskinportenClient",
           "metadata": {
-            "name": env(RELEASE_NAME),
+            "name": strenv(RELEASE_NAME),
             "namespace": "default",
             "labels": {
               "altinn.studio/managed-by": "altinn-studio",
-              "altinn.studio/source-environment": env(STUDIO_ENVIRONMENT),
-              "altinn.studio/build-id": env(BUILD_BUILDID),
-              "altinn.studio/org": env(APP_OWNER),
-              "altinn.studio/app": env(APP_REPO)
+              "altinn.studio/source-environment": strenv(STUDIO_ENVIRONMENT),
+              "altinn.studio/build-id": strenv(BUILD_BUILDID),
+              "altinn.studio/org": strenv(APP_OWNER),
+              "altinn.studio/app": strenv(APP_REPO)
             }
           },
           "spec": {
-            "scopes": []
+            "scopes": (env(APP_MASKINPORTEN_SCOPES_JSON) | .. style="")
           }
         }' > "${MASKINPORTEN_CR_FILE}"
 
-        yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
-
         echo "Generated MaskinportenClient CR:"
         cat "${MASKINPORTEN_CR_FILE}"
-
-        exit 0  # Always succeed, this needs testing
       failOnStderr: false
 
   - task: AzureCLI@2

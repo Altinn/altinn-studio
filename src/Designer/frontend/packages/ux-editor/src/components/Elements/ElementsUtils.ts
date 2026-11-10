@@ -1,5 +1,6 @@
 import type { ConfPageType } from './types/ConfigPageType';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormItemConfigEntry } from '../../data/formItemConfig';
 import {
   confOnScreenComponents,
@@ -49,7 +50,7 @@ export class ElementsUtils {
 
   public static getAllowedComponentTypes(
     confPageType: ConfPageType | undefined,
-  ): Array<ComponentType | CustomComponentType> | undefined {
+  ): Array<ComponentType | ComponentPreset> | undefined {
     if (!confPageType) return undefined;
     return ElementsUtils.getAvailableComponentList(confPageType).map((component) => component.name);
   }

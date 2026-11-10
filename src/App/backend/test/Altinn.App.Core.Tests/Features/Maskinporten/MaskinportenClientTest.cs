@@ -9,6 +9,7 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -49,15 +50,18 @@ public class MaskinportenClientTests
         public MaskinportenClient Client() =>
             (MaskinportenClient)App.Services.GetRequiredService<IMaskinportenClient>();
 
-        public static Fixture Create(bool configureMaskinporten = true, string? authority = null)
+        public static Fixture Create(bool configureMaskinporten = true, string? authority = null, string org = "tdd")
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var fakeTimeProvider = new FakeTime(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero));
             var effectiveAuthority = authority ?? DefaultSettings.Authority;
+            var appMetadataMock = new Mock<IAppMetadata>();
+            appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata($"{org}/test-app"));
 
             var app = AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(mockHttpClientFactory.Object);
+                services.AddSingleton(appMetadataMock.Object);
                 services.Configure<MemoryCacheOptions>(options => options.Clock = fakeTimeProvider);
                 services.AddSingleton<TimeProvider>(fakeTimeProvider);
                 services.AddSingleton(fakeTimeProvider);
@@ -90,6 +94,7 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
+                App.Services.GetRequiredService<IAppMetadata>(),
                 logger ?? App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
                 timeProvider ?? App.Services.GetRequiredService<TimeProvider>()
             );
@@ -103,6 +108,7 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
+                App.Services.GetRequiredService<IAppMetadata>(),
                 new CapturingLogger(sink),
                 App.Services.GetRequiredService<TimeProvider>()
             );
@@ -281,6 +287,42 @@ public class MaskinportenClientTests
         Assert.Equal(altinnAccessToken, result.Value);
         Assert.Equal(expectedExpiresAt, result.ExpiresAt);
         Assert.Equal(formattedScopes, result.Scope);
+    }
+
+    [Theory]
+    [InlineData("ttd", "?test=true")]
+    [InlineData("TTD", "?test=true")]
+    [InlineData("digdir", "")]
+    [InlineData("brg", "")]
+    public async Task GetAltinnExchangedToken_AsksForATestTokenOnlyForTtdApps(string org, string expectedQuery)
+    {
+        // Arrange - a ttd app's client is Digdir's, which Authentication only issues as ttd when asked for a test token
+        await using var fixture = Fixture.Create(org: org);
+        var capturedUrls = new CapturedUrls();
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(
+                    maskinportenTokenResponse,
+                    TestAuthentication.GetServiceOwnerToken(),
+                    wellKnownIssuer: null,
+                    capturedUrls
+                );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await fixture.Client().GetAltinnExchangedToken(["scope"]);
+
+        // Assert
+        Assert.NotNull(capturedUrls.ExchangeUrl);
+        Assert.Equal(expectedQuery, capturedUrls.ExchangeUrl.Query);
     }
 
     [Fact]
@@ -1014,7 +1056,6 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
-        var shouldFail = false;
         var fetches = 0;
         var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -1022,14 +1063,14 @@ public class MaskinportenClientTests
             fixture,
             (_, _) =>
             {
+                // The fetch number decides the response, not a flag the test flips: the test resumes as
+                // soon as a round signals, which can be before this handler has built its response.
                 var n = Interlocked.Increment(ref fetches);
                 if (n == 1)
                     firstRound.TrySetResult();
                 if (n == 2)
                     secondRound.TrySetResult();
-                return Task.FromResult(
-                    shouldFail ? WellKnownErrorResponse() : WellKnownSuccessResponse(expectedIssuer)
-                );
+                return Task.FromResult(n == 1 ? WellKnownSuccessResponse(expectedIssuer) : WellKnownErrorResponse());
             }
         );
         var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
@@ -1038,7 +1079,6 @@ public class MaskinportenClientTests
         // Act - resolve, then the next tick's refresh fails
         await service.StartAsync(CancellationToken.None);
         await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        shouldFail = true;
         fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
         await secondRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var result = await fixture.Client().GetAudienceFromWellKnown();

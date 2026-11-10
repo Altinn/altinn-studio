@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ValidationMessages } from '@app/form-component';
 
-import { Lang } from 'src/features/language/Lang';
+import { LangReference } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -68,18 +68,12 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
 
   return (
     <ValidationMessages
-      id={`${baseComponentId}-validations`}
+      id={`${indexedId}-validations`}
       dataValidation={indexedId}
       validations={filteredValidations.map((validation) => ({
         id: String(getUniqueKeyFromObject(validation)),
         severity: validation.severity,
-        message: (
-          <Lang
-            id={validation.message.key}
-            params={validation.message.params}
-            customTextParameters={validation.message.customTextParameters}
-          />
-        ),
+        message: <LangReference reference={validation.message} />,
       }))}
     />
   );

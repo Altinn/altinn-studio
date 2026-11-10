@@ -1,209 +1,130 @@
 import type { ReactElement } from 'react';
-import { Fragment, useEffect, useState, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
-import { StudioButton, StudioCenter, StudioParagraph, StudioSpinner } from '@studio/components';
-import { FolderIcon, FileTextIcon, HouseIcon, ChevronRightIcon } from '@studio/icons';
+import { StudioFileBrowser } from '@studio/components';
+import type {
+  StudioFileBrowserDirectory,
+  StudioFileBrowserEntry,
+  StudioFileBrowserFile,
+  StudioFileBrowserTexts,
+} from '@studio/components';
 import classes from './FileBrowser.module.css';
 
 export type FileSystemObject = {
   name: string;
-  sha?: string;
-  encoding?: string;
-  content?: string | null;
   path: string;
   type: string;
+  content?: string | null;
 };
 
 const ROOT_PATH = '';
 
 export const FileBrowser = (): ReactElement => {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
 
-  const [currentPath, setCurrentPath] = useState<string>(ROOT_PATH);
-  const [items, setItems] = useState<FileSystemObject[]>([]);
-  const [selectedFile, setSelectedFile] = useState<FileSystemObject | null>(null);
-  const [fileContent, setFileContent] = useState<string | null>(null);
-  const [isLoadingList, setIsLoadingList] = useState(false);
-  const [isLoadingFile, setIsLoadingFile] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const breadcrumbRef = useRef<HTMLDivElement | null>(null);
+  const [directory, setDirectory] = useState<StudioFileBrowserDirectory>({
+    path: ROOT_PATH,
+    status: 'loading',
+  });
+  const [file, setFile] = useState<StudioFileBrowserFile>();
 
-  const canBrowse = Boolean(org && app);
+  const texts: StudioFileBrowserTexts = {
+    breadcrumbsLabel: t('ai_assistant.file_browser_breadcrumbs_label'),
+    root: t('ai_assistant.file_browser_root'),
+    loadingDirectory: t('ai_assistant.file_browser_loading_directory'),
+    emptyDirectory: t('ai_assistant.file_browser_empty_directory'),
+    directoryEntryType: t('ai_assistant.file_browser_directory_entry_type'),
+    fileEntryType: t('ai_assistant.file_browser_file_entry_type'),
+    loadingFile: t('ai_assistant.file_browser_loading_file'),
+    noFileSelected: t('ai_assistant.file_browser_no_file_selected'),
+    collapseCode: t('ai_assistant.file_browser_collapse_code'),
+    expandCode: t('ai_assistant.file_browser_expand_code'),
+  };
 
-  const loadDirectory = useCallback(
+  // The requests can complete in a different order.
+  // Only the response to the last folder or file that the user opened can change the view.
+  const latestRequest = useRef(0);
+
+  // The current folder stays visible until the next folder has loaded, so the user does not see a spinner.
+  const openDirectory = useCallback(
     async (path: string): Promise<void> => {
-      if (!org || !app) return;
-
-      setIsLoadingList(true);
-      setError(null);
-      try {
-        const url =
-          `/designer/api/repos/repo/${org}/${app}/contents` +
-          (path ? `?path=${encodeURIComponent(path)}` : '');
-        const data = await get<FileSystemObject[]>(url);
-        setItems(Array.isArray(data) ? data : []);
-        setCurrentPath(path);
-        setSelectedFile(null);
-        setFileContent(null);
-      } catch (e) {
-        setError('Kunne ikke laste inn filer.');
-      } finally {
-        setIsLoadingList(false);
-      }
+      const request = ++latestRequest.current;
+      const nextDirectory = await fetchDirectory(org, app, path, t);
+      if (request !== latestRequest.current) return;
+      setDirectory(nextDirectory);
+      setFile(undefined);
     },
-    [org, app],
+    [org, app, t],
   );
 
-  const loadFile = async (file: FileSystemObject): Promise<void> => {
-    if (!canBrowse) return;
-
-    setSelectedFile(file);
-    setFileContent(null);
-    setIsLoadingFile(true);
-    setError(null);
-    try {
-      const url = `/designer/api/repos/repo/${org}/${app}/contents?path=${encodeURIComponent(
-        file.path,
-      )}`;
-      const data = await get<FileSystemObject[] | FileSystemObject | null>(url);
-
-      const entry: FileSystemObject | null = Array.isArray(data)
-        ? data && data.length > 0
-          ? data[0]
-          : null
-        : data;
-
-      if (!entry || entry.content == null) {
-        setFileContent('');
-        setError('Filinnhold er ikke tilgjengelig fra tjeneren for denne filen.');
-      } else {
-        setFileContent(entry.content);
-      }
-    } catch (e) {
-      setError('Kunne ikke laste inn filinnhold.');
-    } finally {
-      setIsLoadingFile(false);
-    }
+  const openFile = async (path: string): Promise<void> => {
+    const request = ++latestRequest.current;
+    setFile({ path, status: 'loading' });
+    const nextFile = await fetchFile(org, app, path, t);
+    if (request !== latestRequest.current) return;
+    setFile(nextFile);
   };
 
   useEffect(() => {
-    if (canBrowse) {
-      void loadDirectory(ROOT_PATH);
-    }
-  }, [canBrowse, loadDirectory]);
-
-  useEffect(() => {
-    if (breadcrumbRef.current) {
-      breadcrumbRef.current.scrollLeft = breadcrumbRef.current.scrollWidth;
-    }
-  }, [currentPath]);
-
-  const handleItemClick = (item: FileSystemObject): void => {
-    const isDir = item.type.toLowerCase() === 'dir';
-    if (isDir) {
-      void loadDirectory(item.path);
-    } else {
-      void loadFile(item);
-    }
-  };
+    void openDirectory(ROOT_PATH);
+  }, [openDirectory]);
 
   return (
-    <div className={classes.container}>
-      <div className={classes.sidebar}>
-        <div className={classes.sidebarHeader}>
-          <div className={classes.breadcrumb} ref={breadcrumbRef}>
-            <button
-              type='button'
-              className={classes.breadcrumbItem}
-              onClick={() => void loadDirectory(ROOT_PATH)}
-              disabled={!currentPath}
-            >
-              <HouseIcon aria-hidden />
-              <span className={classes.breadcrumbLabel}>Rot</span>
-            </button>
-            {currentPath &&
-              currentPath
-                .split('/')
-                .filter(Boolean)
-                .map((segment, index, allSegments) => {
-                  const segmentPath = allSegments.slice(0, index + 1).join('/');
-                  return (
-                    <Fragment key={segmentPath}>
-                      <span className={classes.breadcrumbSeparator}>
-                        <ChevronRightIcon aria-hidden />
-                      </span>
-                      <button
-                        type='button'
-                        className={classes.breadcrumbItem}
-                        onClick={() => void loadDirectory(segmentPath)}
-                      >
-                        <FolderIcon aria-hidden />
-                        <span className={classes.breadcrumbLabel}>{segment}</span>
-                      </button>
-                    </Fragment>
-                  );
-                })}
-          </div>
-        </div>
-        {isLoadingList && (
-          <StudioCenter className={classes.placeholder}>
-            <StudioSpinner spinnerTitle='Laster filer...' aria-hidden='true' />
-          </StudioCenter>
-        )}
-        {!isLoadingList && !items.length && (
-          <div className={classes.placeholder}>
-            <StudioParagraph>Ingen filer funnet.</StudioParagraph>
-          </div>
-        )}
-        <ul className={classes.fileList}>
-          {items.map((item) => {
-            const isDir = item.type.toLowerCase() === 'dir';
-            const isSelected = selectedFile?.path === item.path;
-            const depth = item.path.split('/').filter(Boolean).length - 1;
-            const indentStyle = { paddingLeft: `${16 + depth * 12}px` };
-            return (
-              <li key={item.path}>
-                <StudioButton
-                  variant={isSelected ? 'secondary' : 'tertiary'}
-                  className={isSelected ? classes.fileButtonSelected : classes.fileButton}
-                  fullWidth
-                  style={indentStyle}
-                  onClick={() => handleItemClick(item)}
-                >
-                  <span className={classes.fileIcon}>
-                    {isDir ? <FolderIcon aria-hidden /> : <FileTextIcon aria-hidden />}
-                  </span>
-                  <span className={classes.fileName}>{item.name}</span>
-                </StudioButton>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-      <div className={classes.viewer}>
-        {error && (
-          <div className={classes.error}>
-            <StudioParagraph>{error}</StudioParagraph>
-          </div>
-        )}
-        {!error && !selectedFile && (
-          <div className={classes.placeholder}>
-            <StudioParagraph>Velg en fil for å vise innhold.</StudioParagraph>
-          </div>
-        )}
-        {!error && selectedFile && (
-          <div className={classes.viewerHeader}>
-            <span className={classes.viewerTitle}>{selectedFile.path}</span>
-            {isLoadingFile && (
-              <span className={classes.loadingIndicator}>
-                <StudioSpinner spinnerTitle='Laster innhold...' aria-hidden='true' data-size='sm' />
-              </span>
-            )}
-          </div>
-        )}
-        {!error && selectedFile && <pre className={classes.code}>{fileContent ?? ''}</pre>}
-      </div>
-    </div>
+    <StudioFileBrowser
+      className={classes.fileBrowser}
+      directory={directory}
+      file={file}
+      onOpenDirectory={(path) => void openDirectory(path)}
+      onOpenFile={(path) => void openFile(path)}
+      texts={texts}
+    />
   );
 };
+
+async function fetchDirectory(
+  org: string,
+  app: string,
+  path: string,
+  t: TFunction,
+): Promise<StudioFileBrowserDirectory> {
+  try {
+    const entries = await get<FileSystemObject[]>(contentsUrl(org, app, path));
+    return { path, status: 'loaded', entries: entries.map(toFileBrowserEntry) };
+  } catch {
+    return { path, status: 'error', errorMessage: t('ai_assistant.file_browser_directory_error') };
+  }
+}
+
+async function fetchFile(
+  org: string,
+  app: string,
+  path: string,
+  t: TFunction,
+): Promise<StudioFileBrowserFile> {
+  try {
+    const [entry] = await get<FileSystemObject[]>(contentsUrl(org, app, path));
+    if (entry?.content == null) {
+      return {
+        path,
+        status: 'error',
+        errorMessage: t('ai_assistant.file_browser_file_unavailable'),
+      };
+    }
+    return { path, status: 'loaded', content: entry.content };
+  } catch {
+    return { path, status: 'error', errorMessage: t('ai_assistant.file_browser_file_error') };
+  }
+}
+
+function contentsUrl(org: string, app: string, path: string): string {
+  const query = path ? `?path=${encodeURIComponent(path)}` : '';
+  return `/designer/api/repos/repo/${org}/${app}/contents${query}`;
+}
+
+function toFileBrowserEntry({ name, path, type }: FileSystemObject): StudioFileBrowserEntry {
+  return { name, path, type: type.toLowerCase() === 'dir' ? 'directory' : 'file' };
+}

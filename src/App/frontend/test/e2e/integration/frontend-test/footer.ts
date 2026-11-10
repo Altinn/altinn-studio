@@ -1,6 +1,11 @@
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+
+const appFrontend = new AppFrontend();
+
 describe('Footer', () => {
   it('Renders footer when app has it implemented', () => {
     cy.goto('message');
+    cy.get(appFrontend.sendinButton).should('exist').and('be.visible'); // Make sure the page loads correctly
     cy.get('footer > div').eq(0).should('contain.text', 'Frontend Test').and('contain.text', 'Testdepartementet');
     cy.findByRole('link', { name: /Tilgjengelighet/i }).should(
       'have.attr',

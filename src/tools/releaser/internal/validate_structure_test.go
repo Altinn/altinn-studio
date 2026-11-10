@@ -236,7 +236,7 @@ func testStructureReportsMultiple(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
 	base := revParseHead(t, repo)
 	writeRepoFile(t, repo, "src/cli/CHANGELOG.md", outOfOrderChangelog)
-	writeRepoFile(t, repo, "src/App/backend/CHANGELOG.md", outOfOrderChangelog)
+	writeRepoFile(t, repo, "src/App/CHANGELOG.md", outOfOrderChangelog)
 	runGitCmd(t, repo, "add", ".")
 	runGitCmd(t, repo, "commit", "-m", "break two changelogs")
 	head := revParseHead(t, repo)
@@ -245,7 +245,7 @@ func testStructureReportsMultiple(t *testing.T) {
 	if err == nil {
 		t.Fatal("RunStructureValidation() expected error, got nil")
 	}
-	for _, want := range []string{"src/cli/CHANGELOG.md", "src/App/backend/CHANGELOG.md"} {
+	for _, want := range []string{"src/cli/CHANGELOG.md", "src/App/CHANGELOG.md"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Fatalf("error = %v, want it to mention %q", err, want)
 		}

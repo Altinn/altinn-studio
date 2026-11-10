@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -16,8 +17,6 @@ const payload: CreateChatMessagePayload = {
 };
 
 describe('useCreateChatMessageMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls createChatMessage with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useCreateChatMessageMutation()).renderHookResult
       .result;
@@ -31,7 +30,7 @@ describe('useCreateChatMessageMutation', () => {
 
   it('Invalidates ChatMessages for the thread when creating a message', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useCreateChatMessageMutation())
       .renderHookResult.result;
 

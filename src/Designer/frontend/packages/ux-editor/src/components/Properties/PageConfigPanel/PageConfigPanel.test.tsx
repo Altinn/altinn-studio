@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { ITextResources } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
@@ -11,6 +12,7 @@ import { layout1NameMock, layoutMock, pagesModelMock } from '@altinn/ux-editor/t
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { ItemType } from '../ItemType';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 
 // Test data
 const layoutSet = layoutSet1NameMock;
@@ -39,10 +41,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageConfigPanel', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('render heading with layout page name when layout is selected', async () => {
     const newSelectedPage = layout1NameMock;
     renderPageConfigPanel(newSelectedPage);
@@ -54,8 +52,35 @@ describe('PageConfigPanel', () => {
     renderPageConfigPanel(newSelectedPage);
     screen.getByText(textMock('right_menu.text'));
     screen.getByText(textMock('right_menu.dynamics'));
-    screen.getByText(textMock('right_menu.pdf'));
   });
+
+  it('renders the PDF card for a page in a PDF task', () => {
+    renderPageConfigPanel(layout1NameMock, defaultTexts, { taskType: 'pdf' });
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
+  it('renders the PDF card for a page in a subform', () => {
+    renderPageConfigPanel(layout1NameMock, defaultTexts, { type: 'subform', taskType: undefined });
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
+  it('renders the PDF card for the PDF page outside a PDF task, so it can be converted back', () => {
+    renderPageConfigPanel(
+      layout1NameMock,
+      defaultTexts,
+      { taskType: 'data' },
+      { pages: { order: [], pdfLayoutName: layout1NameMock } },
+    );
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
+  it.each(['data', 'subformPdf', 'eFormidling'])(
+    'does not render the PDF card for a page in a %s task',
+    (taskType) => {
+      renderPageConfigPanel(layout1NameMock, defaultTexts, { taskType });
+      expect(screen.queryByText(textMock('right_menu.pdf'))).not.toBeInTheDocument();
+    },
+  );
 
   it('render warning when layout is selected and has duplicated ids', () => {
     renderPageConfigPanel(duplicatedLayout);
@@ -79,21 +104,24 @@ describe('PageConfigPanel', () => {
       const modal = screen.getByRole('dialog');
       expect(modal).toBeInTheDocument();
     });
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 });
 
 const renderPageConfigPanel = (
   selectedLayoutName: string = layout1NameMock,
   textResources = defaultTexts,
+  layoutSetModel: Partial<UiFolderLayoutSetModel> = {},
+  layoutSettings: ILayoutSettings = formLayoutSettingsMock,
 ) => {
+  const layoutSets: UiFolderLayoutSetModel[] = [
+    { id: layoutSet, dataType: 'data-model', type: null, taskType: 'data', ...layoutSetModel },
+  ];
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSets);
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], pagesModelMock);
-  queryClientMock.setQueryData(
-    [QueryKey.FormLayoutSettings, org, app, layoutSet],
-    formLayoutSettingsMock,
-  );
+  queryClientMock.setQueryData([QueryKey.FormLayoutSettings, org, app, layoutSet], layoutSettings);
   queryClientMock.setQueryData(
     [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
     [],

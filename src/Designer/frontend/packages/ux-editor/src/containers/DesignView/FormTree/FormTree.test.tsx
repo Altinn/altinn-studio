@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { StudioDragAndDropTree } from '@studio/components';
@@ -8,7 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { FormItemContext } from '../../FormItemContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -21,38 +22,32 @@ const user = userEvent.setup();
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
-const onAdd = jest.fn();
-const onMove = jest.fn();
+const onAdd = vi.fn();
+const onMove = vi.fn();
 
 const rootComponent: FormComponent = {
   id: 'rootComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.Paragraph,
 };
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
-  itemType: 'CONTAINER',
   type: ComponentType.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
-  itemType: 'CONTAINER',
   type: ComponentType.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };
@@ -82,20 +77,18 @@ const subSubComponentName = textMock(`ux_editor.component_title.${subSubComponen
 const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWithChildren.type}`);
 const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
 const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
-const handleEdit = jest.fn();
+const handleEdit = vi.fn();
 const formItemContext: FormItemContext = {
-  debounceSave: jest.fn(),
+  debounceSave: vi.fn(),
   formItem: null,
   formItemId: '',
-  handleDiscard: jest.fn(),
+  handleDiscard: vi.fn(),
   handleEdit,
-  handleSave: jest.fn(),
-  handleUpdate: jest.fn(),
+  handleSave: vi.fn(),
+  handleUpdate: vi.fn(),
 };
 
 describe('FormTree', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders top level items only by default', () => {
     render();
     expect(screen.getByRole('treeitem', { name: rootComponentName })).toBeInTheDocument();

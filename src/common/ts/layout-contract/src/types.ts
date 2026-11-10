@@ -107,6 +107,7 @@ export type ComponentDefinition = Readonly<{
   behaviors: Readonly<ComponentBehaviors>;
   metadata: ComponentMetadata;
   properties: Readonly<Record<string, PropertyDefinition>>;
+  additionalProperties?: false | PropertyValueDefinition;
 }>;
 
 export type ComponentCatalog = Readonly<Record<string, ComponentDefinition>>;

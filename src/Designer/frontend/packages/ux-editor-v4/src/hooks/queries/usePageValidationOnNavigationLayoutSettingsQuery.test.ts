@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationPageSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -24,7 +26,7 @@ const group2: IValidationOnNavigationPageSettings = {
 const pageValidationSettings: IValidationOnNavigationPageSettings[] = [group1, group2];
 
 // Mocks:
-const GetValidationOnNavigationPageSettings = jest
+const GetValidationOnNavigationPageSettings = vi
   .fn()
   .mockImplementation(() => Promise.resolve(pageValidationSettings));
 
@@ -52,7 +54,7 @@ describe('useValidationOnNavigationPageSettingsQuery', () => {
   });
 
   it('sets isError to true when the API call fails', async () => {
-    const getFailing = jest
+    const getFailing = vi
       .fn()
       .mockImplementation(() => Promise.reject(new Error('Failed to fetch')));
     const view = await render({
@@ -64,7 +66,7 @@ describe('useValidationOnNavigationPageSettingsQuery', () => {
 });
 
 type RenderProps = {
-  queries?: { getValidationOnNavigationPageSettings?: jest.Mock };
+  queries?: { getValidationOnNavigationPageSettings?: Mock };
   queryClient?: QueryClient;
 };
 

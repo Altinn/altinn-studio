@@ -1,5 +1,6 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IToolbarElement } from '../../../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { screen } from '@testing-library/react';
@@ -20,11 +21,8 @@ const MockInputIcon = () => <div data-testid='input-icon'>Input Icon</div>;
 const MockButtonIcon = () => <div data-testid='button-icon'>Button Icon</div>;
 
 describe('ItemCategory', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-  const mockSetAddedItem = jest.fn();
-  const mockGenerateComponentId = jest.fn().mockReturnValue('generated-id');
+  const mockSetAddedItem = vi.fn();
+  const mockGenerateComponentId = vi.fn().mockReturnValue('generated-id');
   const mockItems: IToolbarElement[] = [
     {
       type: ComponentType.Input,
@@ -74,9 +72,9 @@ const renderItemCategory = (props: Partial<ItemCategoryProps> = {}) => {
     items: [],
     category: validCategories[0],
     selectedItemType: ComponentType.Input,
-    setAddedItem: jest.fn(),
-    generateComponentId: jest.fn().mockReturnValue('generated-id'),
-    isFavorite: jest.fn(),
+    setAddedItem: vi.fn(),
+    generateComponentId: vi.fn().mockReturnValue('generated-id'),
+    isFavorite: vi.fn(),
     ...props,
   };
   return renderWithProviders(<ItemCategory {...allProps} />, {});

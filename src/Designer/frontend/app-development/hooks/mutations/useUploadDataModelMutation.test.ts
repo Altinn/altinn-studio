@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useUploadDataModelMutation } from './useUploadDataModelMutation';
@@ -6,7 +8,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
-import Mock = jest.Mock;
 
 // Test data:
 const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
@@ -41,7 +42,7 @@ describe('useUploadDataModelMutation', () => {
 
   it('invalidates metadata queries when upload is successful', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await renderHook({ queryClient });
 
@@ -63,7 +64,7 @@ describe('useUploadDataModelMutation', () => {
   it('invalidates json schema metadata when upload is successful and a modelPath is provided', async () => {
     const queryClient = createQueryClientMock();
     const mockModelPath = '/App/models/mockModel.schema.json';
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await renderHook({ queryClient, modelPath: mockModelPath });
 

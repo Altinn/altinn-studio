@@ -1,9 +1,10 @@
+import { vi } from 'vitest';
 export const formItemContextProviderMock = {
   formItemId: null,
   formItem: null,
-  handleDiscard: jest.fn(),
-  handleEdit: jest.fn(),
-  handleUpdate: jest.fn(),
-  handleSave: jest.fn().mockImplementation(() => Promise.resolve()),
-  debounceSave: jest.fn().mockImplementation(() => Promise.resolve()),
+  handleDiscard: vi.fn(),
+  handleEdit: vi.fn(),
+  handleUpdate: vi.fn(),
+  handleSave: vi.fn().mockImplementation(() => Promise.resolve()),
+  debounceSave: vi.fn().mockImplementation(() => Promise.resolve()),
 };

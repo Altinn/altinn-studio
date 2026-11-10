@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ReactElement } from 'react';
 import type { CellCoords } from '../types/CellCoords';
 import { render, screen } from '@testing-library/react';

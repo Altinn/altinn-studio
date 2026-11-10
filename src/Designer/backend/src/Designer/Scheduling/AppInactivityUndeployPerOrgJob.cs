@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -31,10 +32,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(AppInactivityUndeployPerOrgJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
 
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerOrgJobTimeout;
@@ -43,7 +41,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
         );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
-        activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimeoutSeconds, timeout.TotalSeconds);
 
         string? org = null;
         string? environmentFilter = null;
@@ -54,8 +52,8 @@ public class AppInactivityUndeployPerOrgJob : IJob
             environmentFilter = context.MergedJobDataMap.GetOptionalString(
                 AppInactivityUndeployJobConstants.JobDataEnvironmentFilterKey
             );
-            activity?.SetTag("org", org);
-            activity?.SetTag("environment.filter", environmentFilter);
+            activity.SetServiceOwner(org);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.EnvironmentFilter, environmentFilter);
 
             var candidates = await _inactivityUndeployService.GetAppsForDecommissioningAsync(
                 new InactivityUndeployEvaluationOptions { Org = org, Environment = environmentFilter },
@@ -66,7 +64,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
                 .OrderBy(e => e.App, StringComparer.Ordinal)
                 .ThenBy(e => e.Environment, StringComparer.Ordinal)
                 .ToArray();
-            activity?.SetTag("candidate.count", orderedCandidates.Length);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.CandidateCount, orderedCandidates.Length);
 
             for (var index = 0; index < orderedCandidates.Length; index++)
             {
@@ -87,12 +85,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
             activity?.AddException(ex);
-            activity?.AddEvent(
-                new ActivityEvent(
-                    "job_timeout",
-                    tags: new ActivityTagsCollection { ["org"] = org, ["timeout.seconds"] = timeout.TotalSeconds }
-                )
-            );
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimedOut, true);
             throw new TimeoutException($"{nameof(AppInactivityUndeployPerOrgJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

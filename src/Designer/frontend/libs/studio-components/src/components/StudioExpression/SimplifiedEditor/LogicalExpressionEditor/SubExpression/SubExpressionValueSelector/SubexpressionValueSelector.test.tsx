@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
@@ -25,7 +26,7 @@ describe('SubexpressionValueSelector', () => {
 
   it('Calls the onChange function with a new value when the value type is changed', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderSubexpressionValueSelector({ onChange, isInEditMode: true });
     const select = screen.getByRole('combobox');
     const newValueType = SimpleSubexpressionValueType.Number;
@@ -41,7 +42,7 @@ describe('SubexpressionValueSelector', () => {
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({ value: stringValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedText = 'A';
@@ -66,7 +67,7 @@ describe('SubexpressionValueSelector', () => {
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({ value: numberValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedValue = 1;
@@ -89,7 +90,7 @@ describe('SubexpressionValueSelector', () => {
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: true, onChange });
       const newValue = !value;
       await user.click(screen.getByRole('radio', { name: booleanText(newValue) }));
@@ -125,7 +126,7 @@ describe('SubexpressionValueSelector', () => {
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
       const newPointer = dataModelPointers[1];
       await user.selectOptions(
@@ -164,7 +165,7 @@ describe('SubexpressionValueSelector', () => {
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const newId = componentIds[1];
       await user.selectOptions(
@@ -214,7 +215,7 @@ describe('SubexpressionValueSelector', () => {
           key: PredefinedGatewayAction.Pay,
         };
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({
         value: gatewayContextValue,
         isInEditMode: true,
@@ -264,7 +265,7 @@ describe('SubexpressionValueSelector', () => {
           key: InstanceContext.AppId,
         };
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderSubexpressionValueSelector({
         value: instanceContextValue,
         isInEditMode: true,
@@ -295,7 +296,7 @@ const stringValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.String>
 
 const defaultProps: SubexpressionValueSelectorProps = {
   value: stringValue,
-  onChange: jest.fn(),
+  onChange: vi.fn(),
   isInEditMode: false,
   legend: 'legend',
 };

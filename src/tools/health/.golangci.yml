@@ -7,6 +7,7 @@ linters:
   default: all
 
   disable:
+    - gomodguard # deprecated, replaced by gomodguard_v2
     - nonamedreturns
     - arangolint
     - ginkgolinter
@@ -22,6 +23,7 @@ linters:
     - depguard
     - godox
     - exhaustruct
+    - exhaustruct_v5
     - forbidigo
     - godoclint
     - mnd
@@ -44,6 +46,17 @@ linters:
 
     goconst:
       min-occurrences: 3
+      # goconst 1.11 also counts strings in composite literals; keep the scope these modules were written
+      # against, where struct fields and table-test cases were not reported.
+      exclude-types:
+        - Call
+        - CompositeLit
+
+    modernize:
+      disable:
+        # Go 1.27 lets a struct literal set promoted fields directly. Flattening every embedded
+        # ObjectMeta/TypeMeta literal is a style change of its own, not part of a toolchain update.
+        - embedlit
 
     gocyclo:
       min-complexity: 16

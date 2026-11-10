@@ -1,3 +1,4 @@
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
@@ -7,22 +8,18 @@ import { deleteButtonId } from '@studio/testing/testids';
 const user = userEvent.setup();
 
 describe('RightMenu', () => {
-  const mockAddLanguage = jest.fn();
-  const mockDeleteLanguage = jest.fn();
+  const mockAddLanguage = vi.fn();
+  const mockDeleteLanguage = vi.fn();
   const defaultProps = {
     addLanguage: mockAddLanguage,
     availableLanguages: ['en', 'fr'],
     deleteLanguage: mockDeleteLanguage,
     selectedLanguages: ['en'],
-    setSelectedLanguages: jest.fn(),
+    setSelectedLanguages: vi.fn(),
   };
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const render = async () => {

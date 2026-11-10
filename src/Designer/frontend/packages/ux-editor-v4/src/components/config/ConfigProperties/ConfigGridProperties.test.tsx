@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigGridProperties, type ConfigGridPropertiesProps } from './ConfigGridProperties';
 import { componentMocks } from '../../../testing/componentMocks';
 import { render, screen } from '@testing-library/react';
@@ -16,7 +17,7 @@ describe('ConfigGridProperties', () => {
 
   it('should call handleComponentUpdate when saving a new grid value', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     renderConfigGridProperties({ props: { handleComponentUpdate } });
     await openConfigAndVerify({ user, property: propertyKey });
     const switchDefaultGrid = screen.getByRole('switch', {
@@ -36,13 +37,13 @@ describe('ConfigGridProperties', () => {
 
   it('should call handleComponentUpdate when deleting grid value', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const componentWithGrid = {
       ...componentMocks.Input,
       grid: { xs: 6 as const, md: 4 as const },
     };
 
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     renderConfigGridProperties({ props: { component: componentWithGrid, handleComponentUpdate } });
     await openConfigAndVerify({ user, property: propertyKey });
 
@@ -59,7 +60,7 @@ describe('ConfigGridProperties', () => {
 
   it('should keep latest component from parent when saving grid changes', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     const initialComponent = {
       ...componentMocks.Input,
       dataModelBindings: { simpleBinding: { field: 'oldField', dataType: 'oldType' } },
@@ -96,7 +97,7 @@ describe('ConfigGridProperties', () => {
 
   it('should remove grid when user clears all grid values before saving', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     const componentWithGrid = {
       ...componentMocks.Input,
       grid: { xs: 6 as const },
@@ -126,7 +127,7 @@ describe('ConfigGridProperties', () => {
   const renderConfigGridProperties = ({ props }: RenderConfigGridPropertiesProps = {}) => {
     const defaultProps: ConfigGridPropertiesProps = {
       component: componentMocks.Input,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
     };
     return render(<ConfigGridProperties {...defaultProps} {...props} />);
   };

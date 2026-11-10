@@ -219,9 +219,6 @@ func runUnitTest() int {
 	testCmd := exec.CommandContext(ctx, "go", args...)
 	testCmd.Dir = projectRoot
 	testCmd.Env = append(os.Environ(), "KUBEBUILDER_ASSETS="+kubebuilderAssets)
-	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
-		testCmd.Env = append(testCmd.Env, "UPDATE_SNAPS=true")
-	}
 	testCmd.Stdout = os.Stdout
 	testCmd.Stderr = os.Stderr
 
@@ -234,13 +231,18 @@ func runUnitTest() int {
 	return 0
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
+func setupRuntime(
+	variant kind.KindContainerRuntimeVariant,
+	includeMonitoring bool,
+) (*kind.KindContainerRuntime, error) {
 	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	runtime, err := kind.New(variant, filepath.Join(projectRoot, ".cache"), kind.DefaultOptions())
+	options := kind.DefaultOptions()
+	options.IncludeMonitoring = includeMonitoring
+	runtime, err := kind.New(variant, filepath.Join(projectRoot, ".cache"), options)
 	if err != nil {
 		return nil, fmt.Errorf("create kind runtime: %w", err)
 	}
@@ -329,13 +331,15 @@ func operatorImageResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 ) ([]resource.Resource, []resource.ResourceRef) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	controllerImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}
@@ -361,17 +365,17 @@ func operatorImageResources(
 	}
 
 	return []resource.Resource{
-			controllerImage,
-			fakesImage,
-			localtestAppImage,
-			controllerPublished,
-			fakesPublished,
-			localtestAppPublished,
-		}, []resource.ResourceRef{
-			resource.Ref(controllerPublished),
-			resource.Ref(fakesPublished),
-			resource.Ref(localtestAppPublished),
-		}
+		controllerImage,
+		fakesImage,
+		localtestAppImage,
+		controllerPublished,
+		fakesPublished,
+		localtestAppPublished,
+	}, []resource.ResourceRef{
+		resource.Ref(controllerPublished),
+		resource.Ref(fakesPublished),
+		resource.Ref(localtestAppPublished),
+	}
 }
 
 func operatorArtifactResources(
@@ -416,13 +420,13 @@ func operatorArtifactResources(
 	}
 
 	return []resource.Resource{
-			operatorArtifact,
-			chartCheckout,
-			chartArtifact,
-		}, []resource.ResourceRef{
-			resource.Ref(operatorArtifact),
-			resource.Ref(chartArtifact),
-		}, preparedArtifact.Cleanup, nil
+		operatorArtifact,
+		chartCheckout,
+		chartArtifact,
+	}, []resource.ResourceRef{
+		resource.Ref(operatorArtifact),
+		resource.Ref(chartArtifact),
+	}, preparedArtifact.Cleanup, nil
 }
 
 func addOperatorDeploymentResources(
@@ -543,7 +547,14 @@ func runStart() int {
 		return 1
 	}
 
-	runtime, err := setupRuntime(variant)
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	includeMonitoring := startFlags.Bool("monitoring", false, "Include the platform observability stack")
+	if parseErr := startFlags.Parse(os.Args[3:]); parseErr != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", parseErr)
+		return 1
+	}
+
+	runtime, err := setupRuntime(variant, *includeMonitoring)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		return 1
@@ -635,7 +646,7 @@ func runE2ETest() int {
 			return 1
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			return 1
@@ -694,10 +705,6 @@ func runTests(ctx context.Context, projectRoot, packagePath string) error {
 	//nolint:gosec // This helper only runs `go test` on internal package paths chosen by the caller.
 	cmd := exec.CommandContext(ctx, "go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
 	cmd.Dir = filepath.Join(projectRoot, "test")
-	cmd.Env = os.Environ()
-	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
-		cmd.Env = append(cmd.Env, "UPDATE_SNAPS=true")
-	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

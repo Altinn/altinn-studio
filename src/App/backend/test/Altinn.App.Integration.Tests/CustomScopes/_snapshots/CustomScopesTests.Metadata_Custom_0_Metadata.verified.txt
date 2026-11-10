@@ -436,20 +436,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.read,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.read
-          ]
-        }
-      },
-      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/active,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
@@ -549,20 +535,6 @@
       },
       {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/user-defined-metadata,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.read,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.read
-          ]
-        }
-      },
-      {
-        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid}/pdf/format,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
@@ -1049,20 +1021,6 @@
         }
       },
       {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/start,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.write,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.write
-          ]
-        }
-      },
-      {
         endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey},
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
@@ -1161,20 +1119,6 @@
       },
       {
         endpoint: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/user-defined-metadata,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.write,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.write
-          ]
-        }
-      },
-      {
-        endpoint: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/completeProcess,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,

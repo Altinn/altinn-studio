@@ -2,6 +2,10 @@ import { ActionComponent } from 'src/layout/LayoutComponent';
 
 export abstract class PrintButtonDef extends ActionComponent<'PrintButton'> {
   protected readonly type = 'PrintButton';
+
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
 }
 
-// Source hash: 8732628732bc865622ee891c279a0aff8fe41c2a833adc17c20593b804599b0b
+// Source hash: c67cf87eca34dacc4ad868bb4ce102a19797c888c4dfa2b22a2fdbf98f33ecaf

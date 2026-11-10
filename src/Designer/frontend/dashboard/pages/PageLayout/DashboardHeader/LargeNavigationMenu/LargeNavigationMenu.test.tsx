@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -5,11 +6,11 @@ import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { HeaderMenuGroupKey } from '../../../../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../../../../enums/HeaderMenuItemKey';
 
-jest.mock('../../../../hooks/useSelectedContext', () => ({
+vi.mock('../../../../hooks/useSelectedContext', () => ({
   useSelectedContext: () => 'ttd',
 }));
 
-jest.mock('../../../../hooks/useSubRoute', () => ({
+vi.mock('../../../../hooks/useSubRoute', () => ({
   useSubroute: () => 'dashboard',
 }));
 
@@ -23,7 +24,7 @@ function renderLargeNavigationMenu({ menuItems }: RenderLargeNavigationMenuProps
 
 describe('LargeNavigationMenu', () => {
   it('should render StudioLink when the menu item is an external link', () => {
-    const getLink = jest.fn(
+    const getLink = vi.fn(
       (selectedContext?: string) => `https://example.com/${selectedContext ?? ''}`,
     );
     const menuItems: HeaderMenuItem[] = [

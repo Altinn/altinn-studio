@@ -36,6 +36,7 @@ export const Caption = ({
 }: CaptionProps) => (
   <caption
     {...rest}
+    id={id}
     className={cn(classes.tableCaption, className)}
   >
     <div className={classes.titleAndHelpWrapper}>
@@ -50,7 +51,7 @@ export const Caption = ({
           <OptionalIndicator
             readOnly={false}
             required={required}
-            showOptionalMarking={!!labelSettings?.optionalIndicator}
+            showOptionalMarking={labelSettings?.optionalIndicator !== false}
           />
         </div>
       </DesignsystemetLabel>

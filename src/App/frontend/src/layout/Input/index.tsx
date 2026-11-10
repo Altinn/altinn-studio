@@ -3,13 +3,12 @@ import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { formatNumericText } from 'src/utils/formattingUtils';
+import { formatNumericText, getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';

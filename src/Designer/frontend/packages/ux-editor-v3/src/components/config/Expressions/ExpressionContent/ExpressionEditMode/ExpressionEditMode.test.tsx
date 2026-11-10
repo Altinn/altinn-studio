@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -32,9 +33,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionEditMode', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders the expression in edit mode with saveButton when complex expression is not set', () => {
     render({});
 
@@ -117,7 +115,7 @@ describe('ExpressionEditMode', () => {
   });
   it('calls saveExpression when saveExpression button is clicked', async () => {
     const user = userEvent.setup();
-    const mockOnSaveExpression = jest.fn();
+    const mockOnSaveExpression = vi.fn();
     render({
       props: {
         onSaveExpression: mockOnSaveExpression,
@@ -132,7 +130,7 @@ describe('ExpressionEditMode', () => {
   });
   it('calls onDeleteExpression when deleteExpression button is clicked', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         onDeleteExpression: mockOnDeleteExpression,
@@ -147,7 +145,7 @@ describe('ExpressionEditMode', () => {
   });
   it('calls onSetExpression when subexpression is updated with new function', async () => {
     const user = userEvent.setup();
-    const mockOnSetExpression = jest.fn();
+    const mockOnSetExpression = vi.fn();
     render({
       props: {
         onSetExpression: mockOnSetExpression,
@@ -167,7 +165,7 @@ describe('ExpressionEditMode', () => {
   });
   it('calls onSetExpression when subexpression is added', async () => {
     const user = userEvent.setup();
-    const mockOnSetExpression = jest.fn();
+    const mockOnSetExpression = vi.fn();
     render({
       props: {
         onSetExpression: mockOnSetExpression,
@@ -185,7 +183,7 @@ describe('ExpressionEditMode', () => {
   });
   it('calls onSetExpression when operator is changed', async () => {
     const user = userEvent.setup();
-    const mockOnSetExpression = jest.fn();
+    const mockOnSetExpression = vi.fn();
     render({
       props: {
         expression: internalExpressionWithMultipleSubExpressions,
@@ -255,11 +253,11 @@ const render = ({
   const defaultProps: ExpressionEditModeProps = {
     expression: simpleInternalExpression,
     componentName: componentId,
-    onSetEditMode: jest.fn(),
-    onDeleteExpression: jest.fn(),
-    onDeleteSubExpression: jest.fn(),
-    onSaveExpression: jest.fn(),
-    onSetExpression: jest.fn(),
+    onSetEditMode: vi.fn(),
+    onDeleteExpression: vi.fn(),
+    onDeleteSubExpression: vi.fn(),
+    onSaveExpression: vi.fn(),
+    onSetExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

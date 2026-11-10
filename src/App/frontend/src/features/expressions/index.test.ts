@@ -46,6 +46,26 @@ const dataSources: ExpressionDataSources = {
 };
 
 describe('Expressions', () => {
+  it('preserves successful null results when requesting Any', () => {
+    expect(
+      evalExpr(['frontendSettings', 'whatever'], dataSources, {
+        returnType: ExprVal.Any,
+        defaultValue: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it('uses the configured fallback for nullable boolean UI properties', () => {
+    for (const defaultValue of [false, true]) {
+      expect(
+        evalExpr(['frontendSettings', 'whatever'], dataSources, {
+          returnType: ExprVal.Boolean,
+          defaultValue,
+        }),
+      ).toBe(defaultValue);
+    }
+  });
+
   it('should return default value if expression evaluates to null', () => {
     expect(
       evalExpr(['frontendSettings', 'whatever'], dataSources, {

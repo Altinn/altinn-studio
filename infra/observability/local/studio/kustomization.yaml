@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The observability-proxy on the devenv kind fixture (src/Runtime/devenv, run with
+# monitoring). The kind cluster plays both a runtime cluster and Studio prod: the
+# runtime collectors (../runtime) send to this proxy, which writes
+# to the single-instance backend in ../victoria. Studio's own collectors
+# have nothing to collect there and are left out.
+resources:
+  - ../../studio/overlay
+  - auth-tokens.yaml
+
+patches:
+  - patch: '{"$patch": "delete", "apiVersion": "opentelemetry.io/v1beta1", "kind": "OpenTelemetryCollector", "metadata": {"name": "otel-router"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "opentelemetry.io/v1beta1", "kind": "OpenTelemetryCollector", "metadata": {"name": "otel-gateway"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "otel-router"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "otel-gateway-collector-headless"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "otel-router-ingress"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "otel-gateway-ingress"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "ServiceAccount", "metadata": {"name": "otel-collector"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "rbac.authorization.k8s.io/v1", "kind": "ClusterRole", "metadata": {"name": "studio-otel-collector"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "rbac.authorization.k8s.io/v1", "kind": "ClusterRoleBinding", "metadata": {"name": "studio-otel-collector"}}'
+  - path: proxy.yaml

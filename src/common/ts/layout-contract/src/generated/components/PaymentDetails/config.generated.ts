@@ -1,5 +1,9 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase, IQueryParameters } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  IQueryParameters,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface CompPaymentDetailsExternal extends ComponentBase {
   type: 'PaymentDetails';
@@ -11,6 +15,10 @@ export interface CompPaymentDetailsExternal extends ComponentBase {
   refetchDependencies?: IQueryParameters;
   dataModelBindings?: undefined;
 }
+
+export type PaymentDetailsSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'PaymentDetails' } & ISummaryOverridesCommon);
 
 export const componentConfig = {
   category: CompCategory.Presentation,
@@ -25,7 +33,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -36,8 +44,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompPaymentDetailsExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: PaymentDetailsSummaryOverridesWithRef;
 };
 
-// Source hash: b9f5b8b7952b381a062c9867d02a16808ca7b319e3fe830c2a117d160b7ea1ca
+// Source hash: a9b76a3a30bbdbac3f57f78e2d7eabfc2150cb47183ba7e34e197c9af842632e

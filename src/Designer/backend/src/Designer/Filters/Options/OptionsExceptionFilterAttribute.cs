@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Altinn.Studio.Designer.Filters.Options;
 
-public class OptionsExceptionFilterAttribute : ExceptionFilterAttribute
+public class OptionsExceptionFilterAttribute : HandledExceptionFilterAttribute
 {
-    public override void OnException(ExceptionContext context)
+    protected override void HandleException(ExceptionContext context)
     {
-        base.OnException(context);
-
         if (context.ActionDescriptor is not ControllerActionDescriptor)
         {
             return;

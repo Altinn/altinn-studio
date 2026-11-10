@@ -13,6 +13,7 @@ import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -26,6 +27,8 @@ export type LabelProps = PropsWithChildren<{
   className?: string;
   overrideId?: string;
   textResourceBindings?: ExprResolved<TRBLabel>;
+  /** Leaves out the required/optional tags, for headings that only name the field, such as in a summary. */
+  hideIndicators?: boolean;
 }> &
   DesignsystemetLabelProps;
 
@@ -49,17 +52,14 @@ export function LabelInner(props: LabelInnerProps) {
     renderLabelAs,
     className,
     textResourceBindings: overriddenTrb,
+    hideIndicators,
     ...designsystemetLabelProps
   } = props;
 
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const required = useEvalExpression(
-    overrideItemProps && 'required' in overrideItemProps
-      ? overrideItemProps.required
-      : 'required' in config
-        ? config.required
-        : undefined,
-    CommonExpressions.FormComponentProps.required,
+  const required = useComponentIsRequired(
+    config,
+    overrideItemProps && 'required' in overrideItemProps ? overrideItemProps.required : undefined,
   );
   const readOnly = useEvalExpression(
     overrideItemProps && 'readOnly' in overrideItemProps
@@ -67,14 +67,16 @@ export function LabelInner(props: LabelInnerProps) {
       : 'readOnly' in config
         ? config.readOnly
         : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.readOnly,
   );
   const labelSettings =
-    overrideItemProps && 'labelSettings' in overrideItemProps
-      ? overrideItemProps.labelSettings
-      : 'labelSettings' in config
-        ? config.labelSettings
-        : undefined;
+    config.type === 'Custom'
+      ? undefined
+      : overrideItemProps && 'labelSettings' in overrideItemProps
+        ? overrideItemProps.labelSettings
+        : 'labelSettings' in config
+          ? config.labelSettings
+          : undefined;
 
   const id = useIndexedId(overrideId ?? props.baseComponentId);
   const trb = (overriddenTrb ?? overrideItemProps?.textResourceBindings ?? config.textResourceBindings) as
@@ -94,7 +96,7 @@ export function LabelInner(props: LabelInnerProps) {
     label: title,
     description,
     help,
-    required,
+    required: hideIndicators ? undefined : required,
     readOnly,
     labelSettings,
   };

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.ContactPoints;
+using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 
 namespace Altinn.Studio.Designer.Repository;
@@ -18,4 +20,13 @@ public interface IContactPointsRepository
     Task<ContactPointEntity> UpdateAsync(ContactPointEntity entity, CancellationToken cancellationToken = default);
     Task ToggleActiveAsync(string org, Guid id, bool isActive, CancellationToken cancellationToken = default);
     Task DeleteAsync(string org, Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ReportTarget>> GetReportTargetsAsync(
+        ReportFrequency frequency,
+        CancellationToken cancellationToken = default
+    );
+    Task<IReadOnlyList<ContactPointEntity>> GetActiveReportContactPointsAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    );
 }

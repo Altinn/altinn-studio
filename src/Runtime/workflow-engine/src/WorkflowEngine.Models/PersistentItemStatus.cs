@@ -63,10 +63,10 @@ public enum PersistentItemStatus
     Waiting = 8,
 
     /// <summary>
-    /// Workflow-only. Born parked: the workflow exists, is durable and visible, and has not started — it is held
-    /// until an external event releases it. Today the only such event is a mailbox rendezvous. Deliberately absent
-    /// from the fetch gate's status list, so no worker ever picks it up: it holds no lease, no heartbeat and no
-    /// backoff, and it has no timer of its own. Non-terminal, so dependents stay blocked and it counts as active.
+    /// Workflow-only. Parked from creation: the workflow exists, is durable and visible, and has not started — it
+    /// is held until an external event releases it. Today the only such event is a mailbox rendezvous. Deliberately
+    /// absent from the fetch gate's status list, so no worker ever picks it up: it holds no lease, no heartbeat and
+    /// no backoff, and it has no timer of its own. Non-terminal, so dependents stay blocked and it counts as active.
     /// Never observed on a <see cref="Step"/>.
     /// </summary>
     Held = 9,

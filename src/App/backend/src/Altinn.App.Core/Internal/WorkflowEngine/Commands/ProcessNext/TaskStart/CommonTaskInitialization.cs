@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -38,8 +39,8 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         CommonTaskInitializationPayload payload
     )
     {
@@ -50,7 +51,7 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
 
         foreach (
             DataType dataType in applicationMetadata.DataTypes.Where(dt =>
-                dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true
+                dt.IsBoundToTask(taskId) && dt.AppLogic?.AutoCreate == true
             )
         )
         {
@@ -69,6 +70,6 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
             instanceDataMutator.AddFormDataElement(dataType.Id, data);
         }
 
-        return new SuccessfulProcessEngineCommandResult();
+        return new SuccessfulWorkflowEngineCommandResult();
     }
 }

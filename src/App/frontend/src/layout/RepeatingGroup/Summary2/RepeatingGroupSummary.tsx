@@ -2,20 +2,23 @@ import React from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { RepGroupSummaryEditableProvider } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
 import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import {
   ComponentSummary,
   SummaryContains,
@@ -26,6 +29,7 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -39,6 +43,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'RepeatingGroup');
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
@@ -55,7 +60,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const hiddenColumns = useHiddenColumns(config.tableColumns);
   const visibleChildIds = childIds.filter((id) => !hiddenColumns.includes(id));
-  const required = config.minCount !== undefined && config.minCount > 0;
+  const required = useComponentIsRequired(config);
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
   if (rows.length === 0) {
     return (
@@ -93,12 +98,17 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
         className={cn(classes.summaryWrapper, { [classes.nestedSummaryWrapper]: isNested })}
         data-testid='summary-repeating-group-component'
       >
-        <Heading
-          data-size='xs'
-          level={4}
-        >
-          <Lang id={title} />
-        </Heading>
+        <LabelContent
+          {...labelProps}
+          label={
+            <Heading
+              data-size='xs'
+              level={4}
+            >
+              <Lang id={title} />
+            </Heading>
+          }
+        />
         <div className={cn(classes.contentWrapper, { [classes.nestedContentWrapper]: isNested })}>
           {rows.map((row, index) => {
             if (!row) {
@@ -117,17 +127,10 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
             );
           })}
         </div>
-        {errors?.map(({ message }) => (
-          <ValidationMessage
-            key={message.key}
-            className={classes.errorMessage}
-          >
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+        <ValidationMessageList
+          validations={errors}
+          className={classes.errorMessage}
+        />
       </div>
     </SummaryFlexForContainer>
   );

@@ -19,8 +19,5 @@ public interface IExternalApiClient
     /// <param name="instanceIdentifier"></param>
     /// <param name="queryParams"></param>
     /// <returns>An arbitrary object</returns>
-    Task<object?> GetExternalApiDataAsync(
-        InstanceIdentifier instanceIdentifier,
-        Dictionary<string, string> queryParams
-    );
+    Task<object?> GetExternalApiData(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams);
 }

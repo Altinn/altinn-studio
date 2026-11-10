@@ -1,13 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { FormDesignerToolbar } from './FormDesignerToolbar';
 import { renderWithProviders } from '../testing/mocks';
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  ...jest.requireActual('app-shared/utils/featureToggleUtils'),
-  shouldDisplayFeature: jest.fn(),
+vi.mock('app-shared/utils/featureToggleUtils', async () => ({
+  ...(await vi.importActual('app-shared/utils/featureToggleUtils')),
+  shouldDisplayFeature: vi.fn(),
 }));
 
-jest.mock('./BreadcrumbsTaskNavigation', () => ({
+vi.mock('./BreadcrumbsTaskNavigation', () => ({
   BreadcrumbsTaskNavigation: () => <div data-testid='breadcrumbsTaskNavigation' />,
 }));
 

@@ -1,10 +1,10 @@
 import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { removeComponent } from '../../utils/formLayoutUtils';
-import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
+import type { ComponentIdsChange } from 'app-shared/types/api/FormLayout';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 

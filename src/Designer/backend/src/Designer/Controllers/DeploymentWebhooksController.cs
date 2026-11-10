@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models;
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -29,18 +31,21 @@ public class DeploymentWebhooksController : ControllerBase
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
     private readonly IDeploymentService _deploymentService;
     private readonly IDeploymentRepository _deploymentRepository;
+    private readonly AppDeployMetrics _metrics;
 
     public DeploymentWebhooksController(
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IDeploymentService deploymentService,
-        IDeploymentRepository deploymentRepository
+        IDeploymentRepository deploymentRepository,
+        AppDeployMetrics metrics
     )
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
         _deploymentService = deploymentService;
         _deploymentRepository = deploymentRepository;
+        _metrics = metrics;
     }
 
     /// <summary>
@@ -59,6 +64,7 @@ public class DeploymentWebhooksController : ControllerBase
         CancellationToken cancellationToken
     )
     {
+        HttpContext.SetTargetEnvironment(request.Environment);
         if (!TryParseEventType(request.EventType, out var eventType))
         {
             return BadRequest($"Invalid event type: {request.EventType}");
@@ -72,6 +78,7 @@ public class DeploymentWebhooksController : ControllerBase
 
         var deployment = resolveResult.Deployment!;
         var buildId = resolveResult.BuildId!;
+        RootSpan.Of(HttpContext).SetAppDeployBuild(buildId);
 
         if (deployment.HasFinalEvent)
         {
@@ -81,6 +88,7 @@ public class DeploymentWebhooksController : ControllerBase
         var deployEvent = CreateDeployEvent(eventType, request);
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+        RecordFinalEvent(deployment, eventType, request);
 
         await _deploymentService.SendToSlackAsync(
             org,
@@ -95,6 +103,50 @@ public class DeploymentWebhooksController : ControllerBase
         await PublishEntityUpdatedAsync(deployment);
 
         return Ok();
+    }
+
+    /// <summary>
+    /// Records how the deploy or undeploy ended, once: later copies of a final event return before this, and a
+    /// pipeline that did not succeed has already ended it.
+    /// </summary>
+    private void RecordFinalEvent(DeploymentEntity deployment, DeployEventType eventType, DeployEventRequest request)
+    {
+        if (!DeploymentEntity.IsFinalEventType(eventType))
+        {
+            return;
+        }
+
+        // The request succeeded even when Flux's result is a failure, so the span keeps its status, as a 4xx would.
+        string result = ServiceTelemetry.EnumValue(eventType);
+        RootSpan.Of(HttpContext)?.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, result);
+        if (deployment.Events.Any(e => e.EventType == DeployEventType.PipelineFailed))
+        {
+            return;
+        }
+
+        PipelineType type =
+            deployment.DeploymentType == DeploymentType.Decommission ? PipelineType.Undeploy : PipelineType.Deploy;
+        string? errorType = AppDeployMetrics.IsFluxFailure(eventType) ? result : null;
+        _metrics.RecordResult(
+            deployment.Org,
+            type,
+            deployment.EnvName,
+            result,
+            errorType,
+            request.Timestamp.UtcDateTime - deployment.Created
+        );
+
+        // Designer asks the runtime to reconcile as soon as it sees the pipeline succeed, which it records as an event.
+        // Flux also reconciles on its own, and its result can come before Designer saw the pipeline succeed. Then
+        // there is no Flux phase to time.
+        DeployEvent? pipelineSucceeded = deployment.Events.FirstOrDefault(e =>
+            e.EventType == DeployEventType.PipelineSucceeded
+        );
+        TimeSpan? fluxDuration = request.Timestamp - pipelineSucceeded?.Timestamp;
+        if (fluxDuration >= TimeSpan.Zero)
+        {
+            _metrics.RecordFlux(deployment.Org, type, deployment.EnvName, result, errorType, fluxDuration.Value);
+        }
     }
 
     private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)

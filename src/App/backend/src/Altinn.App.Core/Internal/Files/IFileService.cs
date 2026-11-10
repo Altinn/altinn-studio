@@ -14,10 +14,12 @@ internal interface IFileService
     /// <param name="dataTypeFromMetadata">Data type found in application metadata</param>
     /// <param name="bytes">Byte data</param>
     /// <param name="fileName">File name</param>
+    /// <param name="language">Language for the messages of any validation issues</param>
     /// <returns>Validation issues</returns>
     Task<List<ValidationIssueWithSource>?> RunFileAnalysisAndValidation(
         DataType dataTypeFromMetadata,
         byte[] bytes,
-        string? fileName
+        string? fileName,
+        string? language
     );
 }

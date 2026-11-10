@@ -1,5 +1,8 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface CompPanelExternal extends ComponentBase {
   type: 'Panel';
@@ -11,6 +14,10 @@ export interface CompPanelExternal extends ComponentBase {
   showIcon?: boolean;
   dataModelBindings?: undefined;
 }
+
+export type PanelSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Panel' } & ISummaryOverridesCommon);
 
 export type PanelVariant = 'info' | 'warning' | 'error' | 'success';
 
@@ -27,7 +34,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -38,8 +45,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompPanelExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: PanelSummaryOverridesWithRef;
 };
 
-// Source hash: 6c7290cc8e07e50b68aa4170bcdc8eab95a51d7ed88f557cc085912aabfb2302
+// Source hash: 998c59e50b99af04dd66cee7c28549d2a8b19a271998b9abf0e3269b71f4d0fc

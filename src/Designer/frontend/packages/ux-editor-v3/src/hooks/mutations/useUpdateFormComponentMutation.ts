@@ -13,6 +13,7 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -32,6 +33,7 @@ export const useUpdateFormComponentMutation = (
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
@@ -80,6 +82,7 @@ export const useUpdateFormComponentMutation = (
               validFileEndings,
             } = updatedComponent as FormFileUploaderComponent;
             if (id !== updatedComponent.id) {
+              const oldDataType = appMetadata?.dataTypes?.find((dataType) => dataType.id === id);
               await addAppAttachmentMetadataMutation
                 .mutateAsync({
                   fileType: validFileEndings,
@@ -88,6 +91,7 @@ export const useUpdateFormComponentMutation = (
                   maxCount: maxNumberOfAttachments,
                   maxSize: maxFileSizeInMB,
                   minCount: minNumberOfAttachments,
+                  enableFileScan: oldDataType?.enableFileScan,
                 })
                 .then(() => deleteAppAttachmentMetadataMutation.mutateAsync(id));
             } else {

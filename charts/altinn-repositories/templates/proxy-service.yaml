@@ -9,6 +9,7 @@ spec:
     - port: {{ .Values.proxy.service.internalPort }}
       targetPort: 81
       protocol: TCP
+      appProtocol: http
   selector:
     run: altinn-repositories
 ---
@@ -23,5 +24,6 @@ spec:
     - port: {{ .Values.proxy.service.publicPort }}
       targetPort: 80
       protocol: TCP
+      appProtocol: http
   selector:
     run: altinn-repositories

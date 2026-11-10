@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -50,11 +51,11 @@ internal sealed class ExpressionValidator : IValidator
     public string TaskId => "*";
 
     /// <summary>
-    /// Only run for tasks that has layouts
+    /// Only run for tasks that have a data type with a validation configuration
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
         _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>
-            dt.TaskId == taskId
+            dt.IsBoundToTask(taskId)
             && dt.AppLogic?.ClassRef is not null
             && _appResourceService.GetValidationConfiguration(dt.Id) is not null
         );

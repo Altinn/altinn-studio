@@ -51,9 +51,7 @@ public class SignClientTests
             {
                 callCount++;
                 platformRequest = request;
-                actualSignRequest = JsonSerializerPermissive
-                    .DeserializeAsync<SignRequest>(platformRequest!.Content!)
-                    .Result;
+                actualSignRequest = JsonSerializerPermissive.Deserialize<SignRequest>(platformRequest!.Content!).Result;
 
                 return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Created });
             }

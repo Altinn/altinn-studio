@@ -3,19 +3,25 @@ import {
   ComponentBase,
   FormComponentProps,
   IDataModelReference,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompCustomExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
+export interface CompCustomExternal extends ComponentBase, FormComponentProps {
   type: 'Custom';
-  textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
+  textResourceBindings?: {
+    title?: ExprValToActualOrExpr<ExprVal.String>;
+    [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
+  } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
+  [key: string]: unknown;
 }
 
 export interface IDataModelBindingsForCustom {
@@ -50,4 +56,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: a81ca9053f1959f3b8fde4b8ab607525bb4fb78e32cad524a0426fd63525dcf2
+// Source hash: 38ce44dd6bdb3680521c72eb006c21777fe8f9c6126906a260b850215183a65e

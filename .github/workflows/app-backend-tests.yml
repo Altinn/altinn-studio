@@ -5,13 +5,23 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/common/dotnet/**'
+      - 'src/common/expression-tests/**'
       - 'src/App/backend/**'
       - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'
+      - 'src/Designer/frontend/admin/features/apps/utils/appWorkflowLabels.json'
       - '.github/workflows/app-backend-tests.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Package readmes are inputs to the NuGet packages.
+      - 'src/App/backend/README.md'
   workflow_dispatch:
 
 concurrency:

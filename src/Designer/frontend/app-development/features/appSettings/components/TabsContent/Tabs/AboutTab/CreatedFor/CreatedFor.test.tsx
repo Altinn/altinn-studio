@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { CreatedForProps } from './CreatedFor';
 import { CreatedFor } from './CreatedFor';
@@ -16,8 +17,6 @@ const defaultProps: CreatedForProps = {
 };
 
 describe('CreatedFor', () => {
-  afterEach(jest.clearAllMocks);
-
   it('displays owners full name when it is set', async () => {
     render(<CreatedFor {...defaultProps} />);
 

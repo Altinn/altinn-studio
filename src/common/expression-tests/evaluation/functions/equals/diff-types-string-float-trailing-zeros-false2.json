@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [string, float] when the string has trailing zeros (false)",
+  "expression": ["equals", "1234.50", 1234.5],
+  "expects": false
+}

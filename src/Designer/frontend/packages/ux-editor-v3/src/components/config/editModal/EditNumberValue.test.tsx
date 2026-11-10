@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 
 import { EditNumberValue } from './EditNumberValue';
@@ -13,7 +14,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({ maxLength = undefined, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ maxLength = undefined, handleComponentChange = vi.fn() } = {}) => {
   await waitForData();
 
   return renderWithMockStore()(
@@ -44,7 +45,7 @@ describe('EditNumberValue', () => {
 
   it('should save to backend when changing value, including the case of changing it to undefined/empty', async () => {
     const user = userEvent.setup();
-    const mockhHandleComponentChange = jest.fn();
+    const mockhHandleComponentChange = vi.fn();
     await render({ handleComponentChange: mockhHandleComponentChange });
 
     const input = screen.getByRole('textbox');

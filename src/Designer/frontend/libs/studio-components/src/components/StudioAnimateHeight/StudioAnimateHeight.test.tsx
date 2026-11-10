@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { StudioAnimateHeightProps } from './StudioAnimateHeight';
@@ -20,7 +21,7 @@ describe('StudioAnimateHeight', () => {
   });
 
   it('Appends given style to root element', () => {
-    const style = { color: 'red' };
+    const style = { color: 'rgb(255, 0, 0)' };
     const { container } = renderComponent({ style });
     expect(container.firstChild).toHaveStyle(style);
   });

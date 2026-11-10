@@ -124,7 +124,7 @@ public async Task Response_Shape_IsCorrect()
 
 - Snapshots live in `tests/WorkflowEngine.Integration.Tests/.snapshots/`
 - Volatile fields are scrubbed automatically by `ModuleInitializer`: `databaseId`, `createdAt`, `updatedAt`, `backoffUntil`, `traceId`, inline GUIDs
-- New snapshots are auto-accepted (`VerifierSettings.AutoVerify`)
+- New and changed snapshots are auto-accepted locally (`VerifierSettings.AutoVerify`), here and in `Repository.Tests` — check `git status` after a run. `QueryPlanTests` snapshots the full `EXPLAIN` output, so a query change that degrades a plan passes locally and shows only in that diff
 
 ## Frameworks reference
 

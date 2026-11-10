@@ -47,7 +47,11 @@ public sealed class HostBridgeClient
             return;
         }
 
-        var session = new HostBridgeSession(await context.WebSockets.AcceptWebSocketAsync(), _logger);
+        var session = new HostBridgeSession(
+            await context.WebSockets.AcceptWebSocketAsync(),
+            _logger,
+            cancellationToken
+        );
         HostBridgeSession? previousSession;
         lock (_sessionLock)
         {
@@ -124,15 +128,21 @@ public sealed class HostBridgeClient
     {
         private readonly WebSocket _socket;
         private readonly ILogger _logger;
+        private readonly CancellationToken _connectionCancellationToken;
         private readonly SemaphoreSlim _sendLock = new(1, 1);
         private readonly ConcurrentDictionary<long, PendingResponse> _pending = new();
         private long _nextRequestId;
         private int _disposed;
 
-        public HostBridgeSession(WebSocket socket, ILogger logger)
+        public HostBridgeSession(
+            WebSocket socket,
+            ILogger logger,
+            CancellationToken connectionCancellationToken
+        )
         {
             _socket = socket;
             _logger = logger;
+            _connectionCancellationToken = connectionCancellationToken;
         }
 
         public async Task RunReceiveLoop(CancellationToken cancellationToken)
@@ -439,7 +449,10 @@ public sealed class HostBridgeClient
             await _sendLock.WaitAsync(cancellationToken);
             try
             {
-                await HostBridgeProtocol.SendFrame(_socket, frame, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                // Canceling a request must not abort the shared WebSocket. Once a frame
+                // starts, only cancellation of the connection can interrupt its write.
+                await HostBridgeProtocol.SendFrame(_socket, frame, _connectionCancellationToken);
             }
             finally
             {

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { StudioDragAndDropListItemProps } from './StudioDragAndDropListItem';
 import { StudioDragAndDropListItem } from './StudioDragAndDropListItem';
@@ -14,7 +15,7 @@ const itemId = 'id';
 const parentId = 'parentId';
 const rootId = 'rootId';
 const uniqueDomId = ':r0:';
-const onDrop = jest.fn();
+const onDrop = vi.fn();
 const renderItem = (): React.JSX.Element => <div>test</div>;
 const gap = '1rem';
 const defaultlistItemProps: StudioDragAndDropListItemProps = {

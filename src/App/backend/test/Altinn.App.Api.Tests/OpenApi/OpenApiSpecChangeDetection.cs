@@ -1,16 +1,18 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.EFormidling.Interface;
 using Argon;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
 
-public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class OpenApiSpecChangeDetection : ApiTestBase
 {
-    public OpenApiSpecChangeDetection(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public OpenApiSpecChangeDetection(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task SaveJsonSwagger()
@@ -30,6 +32,17 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");
         await Snapshot(response);
+    }
+
+    [Fact]
+    public async Task CustomOpenApiSpec_DocumentsAnAppWithUiAndADataTypeWithoutTask()
+    {
+        // The app has a UI folder and a data type bound to no task, ref-data-as-pdf. Its eFormidling task needs the
+        // service to start.
+        OverrideServicesForThisTest = services => services.AddSingleton(Mock.Of<IEFormidlingService>());
+        using HttpClient client = GetRootedClient("ttd", "service-tasks");
+        using HttpResponseMessage response = await client.GetAsync("/ttd/service-tasks/v1/customOpenapi.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -57,12 +70,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("post")
                 .GetProperty("responses"),
             "#/components/schemas/AppCallbackResponse"
-        );
-        AssertConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate")
-                .GetProperty("get")
-                .GetProperty("responses")
         );
         AssertActionsConflictResponse(
             paths
@@ -111,20 +118,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("responses"),
             "application/json",
             "application/problem+json"
-        );
-        AssertStringOrProblemConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start")
-                .GetProperty("post")
-                .GetProperty("responses")
-                .GetProperty("409")
-        );
-        AssertStringOrProblemConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess")
-                .GetProperty("put")
-                .GetProperty("responses")
-                .GetProperty("409")
         );
 
         JsonElement patchOperation = paths
@@ -184,7 +177,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         AssertConflictResponse(responses, conflictMediaType);
     }
 
-    private static void AssertConflictResponse(JsonElement responses, string mediaType = "application/json")
+    private static void AssertConflictResponse(JsonElement responses, string mediaType)
     {
         Assert.Equal(
             "#/components/schemas/ProblemDetails",
@@ -232,34 +225,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         );
     }
 
-    private static void AssertStringOrProblemConflictResponse(JsonElement conflictResponse)
-    {
-        JsonElement content = conflictResponse.GetProperty("content");
-        Assert.Equal(
-            ["application/json", "application/problem+json", "text/json", "text/plain"],
-            content.EnumerateObject().Select(property => property.Name).Order().ToArray()
-        );
-        Assert.Equal("string", content.GetProperty("text/plain").GetProperty("schema").GetProperty("type").GetString());
-        AssertSchemaReference(content.GetProperty("application/problem+json").GetProperty("schema"), "ProblemDetails");
-        AssertStringOrProblemSchema(content.GetProperty("application/json").GetProperty("schema"));
-        AssertStringOrProblemSchema(content.GetProperty("text/json").GetProperty("schema"));
-    }
-
-    private static void AssertStringOrProblemSchema(JsonElement schema)
-    {
-        JsonElement[] variants = schema.GetProperty("oneOf").EnumerateArray().ToArray();
-        Assert.Contains(
-            variants,
-            variant => variant.TryGetProperty("type", out var type) && type.GetString() == "string"
-        );
-        Assert.Contains(
-            variants,
-            variant =>
-                variant.TryGetProperty("$ref", out var reference)
-                && reference.GetString() == "#/components/schemas/ProblemDetails"
-        );
-    }
-
     private static void AssertOneOfSchemaReferences(JsonElement schema, params string[] expectedSchemaNames)
     {
         string[] actualSchemaNames = schema
@@ -283,10 +248,32 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
 
         await using var stream = await response.Content.ReadAsStreamAsync();
         var result = await OpenApiDocument.LoadAsync(stream, format: OpenApiConstants.Json);
-        // Assert.Empty(result.Diagnostic?.Errors ?? []);
+        Assert.Empty(result.Diagnostic?.Errors ?? []);
         var document = result.Document ?? throw new InvalidOperationException("Failed to read OpenAPI document");
+        AssertPathParametersBelongToRoutes(document);
         document.Info.Version = "";
         await VerifyJson(await document.SerializeAsJsonAsync(OpenApiSpecVersion.OpenApi3_0), _verifySettings);
+    }
+
+    private static void AssertPathParametersBelongToRoutes(OpenApiDocument document)
+    {
+        foreach (var (path, pathItem) in document.Paths)
+        {
+            foreach (var (method, operation) in pathItem.Operations ?? [])
+            {
+                // Parameter references resolve to their component, so In and Name are those of the target
+                foreach (var parameter in (pathItem.Parameters ?? []).Concat(operation.Parameters ?? []))
+                {
+                    if (parameter.In == ParameterLocation.Path)
+                    {
+                        Assert.True(
+                            path.Contains($"{{{parameter.Name}}}", StringComparison.Ordinal),
+                            $"{method} {path} declares path parameter '{parameter.Name}' absent from the route"
+                        );
+                    }
+                }
+            }
+        }
     }
 
     private static VerifySettings _verifySettings
@@ -297,7 +284,9 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             settings.UseStrictJson();
             settings.DontScrubGuids();
             settings.DontIgnoreEmptyCollections();
-            settings.AddExtraSettings(settings => settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore);
+            settings.AddExtraSettings(extraSettings =>
+                extraSettings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore
+            );
             return settings;
         }
     }

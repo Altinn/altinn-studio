@@ -1,5 +1,5 @@
 {
-    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
     "data": {
         "layout": [
             {
@@ -113,6 +113,7 @@
             {
                 "id": "GroupPage-Summary2",
                 "type": "Summary2",
+                "hideEmptyFields": true,
                 "hidden": false,
                 "target": {
                     "type": "component",
@@ -157,7 +158,7 @@
                 "id": "GroupPage-Group-Nested",
                 "type": "Group",
                 "groupingIndicator": "indented",
-                "hidden": false,
+                "hidden": ["equals", ["component", "GroupPage-Input"], "Hide nested groups"],
                 "textResourceBindings": {
                     "description": "Nested group description"
                 },
@@ -240,6 +241,7 @@
             {
                 "id": "GroupPage-Group-Nested-Nested",
                 "type": "Group",
+                "headingLevel": 2,
                 "groupingIndicator": "indented",
                 "hidden": false,
                 "textResourceBindings": {

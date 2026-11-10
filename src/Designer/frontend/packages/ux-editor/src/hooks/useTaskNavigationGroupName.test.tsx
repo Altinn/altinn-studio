@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from 'dashboard/testing/mocks';
 import { useTaskNavigationGroupName } from './useTaskNavigationGroupName';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
@@ -7,7 +8,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { layoutSet1NameMock, layoutSetsExtendedMock } from '../testing/layoutSetsMock';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org, app, layoutSet }),
 }));
 
@@ -18,10 +19,6 @@ const mockTask = {
 };
 
 describe('useTaskNames', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should return task name and id', () => {
     const { result } = renderUseTaskNames(mockTask);
     expect(result.current.taskNavigationName).toBe('Test Task');

@@ -7,6 +7,14 @@ on:
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-migrations-ensure-compatibility.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Repository fixtures, including Markdown, are embedded in the tests.
+      - 'src/Designer/backend/tests/Designer.Tests/_TestData/**'
   workflow_dispatch:
 
 concurrency:

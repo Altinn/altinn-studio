@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
 import { Scope } from '../utils/ValidateNavigationUtils';
@@ -41,7 +42,7 @@ describe('ValidateCardContent', () => {
   it('should call onChange with correct values when task is changed in SelectedTasks scope', async () => {
     const user = userEvent.setup();
 
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderValidateCardContent({ scope: Scope.SelectedTasks, onChange: mockOnChange });
     const selectorLabel = textMock(
       'ux_editor.settings.navigation_validation_specific_task_label_several',
@@ -56,7 +57,7 @@ describe('ValidateCardContent', () => {
   it('should call onChange with correct values when task is changed in SelectedPages scope', async () => {
     const user = userEvent.setup();
 
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderValidateCardContent({ scope: Scope.SelectedPages, onChange: mockOnChange });
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_task_label');
     const optionLabel = layoutSet1NameMock;
@@ -71,7 +72,7 @@ describe('ValidateCardContent', () => {
 
 const renderValidateCardContent = ({
   scope,
-  onChange = jest.fn(),
+  onChange = vi.fn(),
 }: Partial<ValidateCardContentProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);

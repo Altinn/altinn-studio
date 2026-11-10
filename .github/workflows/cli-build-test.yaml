@@ -6,9 +6,19 @@ on:
     paths:
       - "src/cli/**"
       - "src/Runtime/common/dotnet/**"
+      # studioctl imports Go packages from devenv through a go.mod replace directive.
+      - "src/Runtime/devenv/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
-      - "!**/*.md"
+      - "!**/AGENTS.md"
+      - "!**/README.md"
+      - "!**/readme.md"
+      - "!**/_readme.md" # C# layout model documentation in Altinn.App.Core.
+      - "!**/CONTRIBUTING.md"
+      - "!**/CHANGELOG.md"
+      - "!**/docs/**"
+      # The shipped skill is a build input, including its Markdown files.
+      - "agents/_skills/app-development/**"
   workflow_dispatch:
 
 concurrency:
@@ -81,6 +91,7 @@ jobs:
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           global-json-file: src/cli/global.json
+          dotnet-version: '11.0.x'
 
       - name: Setup Go
         uses: ./.github/actions/setup-go-cached

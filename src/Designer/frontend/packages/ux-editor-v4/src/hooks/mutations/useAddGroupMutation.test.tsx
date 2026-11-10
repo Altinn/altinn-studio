@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -21,11 +23,11 @@ const mockPages: PagesModel = {
 const renderHook = async ({
   queryClient = createQueryClientMock(),
   queries = {
-    getPages: jest.fn().mockResolvedValue(mockPages),
+    getPages: vi.fn().mockResolvedValue(mockPages),
   },
 }: {
   queryClient?: QueryClient;
-  queries?: { getPages: jest.Mock };
+  queries?: { getPages: Mock };
 } = {}) => {
   return renderHookWithProviders(() => useAddGroupMutation(org, app), {
     queries,
@@ -34,28 +36,22 @@ const renderHook = async ({
 };
 
 describe('useAddGroupMutation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('throws an error if trying to add group to pages without groups', async () => {
     const queryClient = createQueryClientMock();
     const services = {
-      getPages: jest.fn().mockResolvedValue(pagesModelMock),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(pagesModelMock),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
-    expect(async () => {
-      await result.current.mutateAsync();
-    }).rejects.toThrow();
+    await expect(result.current.mutateAsync()).rejects.toThrow();
   });
 
   it('successfully adds a new group and invalidates the cache', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const services = {
-      getPages: jest.fn().mockResolvedValue(mockPages),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(mockPages),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
     await result.current.mutateAsync();
@@ -71,8 +67,8 @@ describe('useAddGroupMutation', () => {
       groups: [],
     };
     const services = {
-      getPages: jest.fn().mockResolvedValue(emptyPages),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(emptyPages),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
 
     const { result } = await renderHook({ queryClient, queries: services });
@@ -99,8 +95,8 @@ describe('useAddGroupMutation', () => {
       ],
     };
     const services = {
-      getPages: jest.fn().mockResolvedValue(multiGroupPages),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(multiGroupPages),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
     await result.current.mutateAsync();
@@ -125,8 +121,8 @@ describe('useAddGroupMutation', () => {
       ],
     };
     const services = {
-      getPages: jest.fn().mockResolvedValue(pagesWithUndefinedOrder),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(pagesWithUndefinedOrder),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
     await result.current.mutateAsync();
@@ -146,8 +142,8 @@ describe('useAddGroupMutation', () => {
       groups: [{ order: [{ id: 'customPage' }] }, { order: [{ id: 'page1' }] }],
     };
     const services = {
-      getPages: jest.fn().mockResolvedValue(pagesWithNonMatchingId),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(pagesWithNonMatchingId),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
     await result.current.mutateAsync();
@@ -167,8 +163,8 @@ describe('useAddGroupMutation', () => {
       groups: [],
     };
     const services = {
-      getPages: jest.fn().mockResolvedValue(pagesWithUndefinedGroups),
-      changePageGroups: jest.fn().mockResolvedValue(undefined),
+      getPages: vi.fn().mockResolvedValue(pagesWithUndefinedGroups),
+      changePageGroups: vi.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
     await result.current.mutateAsync();

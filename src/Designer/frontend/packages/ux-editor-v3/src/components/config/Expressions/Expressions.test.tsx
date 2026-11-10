@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -30,8 +31,6 @@ const componentWithExpression: FormComponent = {
 };
 
 describe('Expressions', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('renders only add new expression button when there are no existing expressions on component', async () => {
     render({ component: { ...componentWithExpression, hidden: true } });
     const deleteExpressionButtons = screen.queryByRole('button', {

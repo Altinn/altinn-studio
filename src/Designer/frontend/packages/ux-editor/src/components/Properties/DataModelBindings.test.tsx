@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
@@ -7,13 +8,13 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
+import { getNestedPropertyDefinition } from '../../data/componentCatalog';
 
 const defaultModel = 'testModelField';
 
@@ -44,8 +45,6 @@ const dataModelMetadata: DataModelMetadataResponse = {
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders EditDataModelBindings component when schema is present', () => {
     render();
 
@@ -74,8 +73,11 @@ describe('DataModelBindings', () => {
     expect(attachmentComponentInsideRepGroupAlert).toBeInTheDocument();
   });
 
-  const { dataModelBindings } = componentSchemaMocks[ComponentType.Address].properties;
-  it.each(Object.keys(dataModelBindings?.properties))(
+  const dataModelBindings = getNestedPropertyDefinition(ComponentType.Address, [
+    'dataModelBindings',
+  ]);
+  const addressBindings = dataModelBindings?.type === 'object' ? dataModelBindings.properties : {};
+  it.each(Object.keys(addressBindings))(
     'should render data model binding with label for prop, %s, on AddressComponent',
     (prop) => {
       render({
@@ -212,7 +214,7 @@ describe('DataModelBindings', () => {
 
   it('toggling ON multiple attachment switch should call handleUpdate with expected values', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     render({
       props: {
         formItem: componentMocks[ComponentType.FileUpload],
@@ -237,7 +239,7 @@ describe('DataModelBindings', () => {
 
   it('toggling OFF multiple attachment switch should call handleUpdate with expected values', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     render({
       props: {
         formItem: {
@@ -303,10 +305,6 @@ const render = async ({
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     default: layoutMock,
   });
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, props.formItem.type],
-    componentSchemaMocks[props.formItem.type],
-  );
   queryClientMock.setQueryData(
     [QueryKey.LayoutSets, org, app],
     [{ id: layoutSet1NameMock, dataType: defaultDataModel }],

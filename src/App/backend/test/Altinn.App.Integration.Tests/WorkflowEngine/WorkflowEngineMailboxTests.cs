@@ -2,12 +2,10 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
-using Json.Pointer;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
@@ -39,7 +37,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
     private const string PrepareStageLabel = "PrepareDocuments";
     private const string SendStageLabel = "SendToArchive";
     private const string RecordStageLabel = "RecordDispatch";
-    private const string MainOperationIdPrefix = "Process next:";
+    private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
     private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
@@ -74,10 +72,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         await PatchValidFormData(fixture, token, instance);
 
         // The task does not conclude here: its stages run, the first receiver is enqueued, and the
-        // instance stays committed on Task_Service until a message answers.
+        // instance stays committed on Task_Service until a message answers, so the call is accepted.
         using var processNextResponse = await fixture.Instances.ProcessNext(token, instance);
         using var processState = await processNextResponse.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, processState.Response.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, processState.Response.StatusCode);
         Assert.Equal("Task_Service", processState.Data.Model!.CurrentTask!.ElementId);
 
         using var engineClient = new HttpClient { BaseAddress = _engineBaseAddress };
@@ -85,41 +83,41 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         string collectionKey = instance.Data.Model.Id.Split('/')[1];
 
         // ---- The mint is its own step, and it hugs the stage that sends ----
-        EngineWorkflow main = await WaitForCompletedMainWorkflow(engineClient, ns, collectionKey, "Task_Service");
-        List<string> mainOperationIds = main.Steps.Select(s => s.OperationId).ToList();
+        EngineWorkflow primary = await WaitForCompletedPrimaryWorkflow(engineClient, ns, collectionKey, "Task_Service");
+        List<string> primaryOperationIds = primary.Steps.Select(s => s.OperationId).ToList();
 
-        int mintIndex = mainOperationIds.IndexOf("MintMailbox: 1");
+        int mintIndex = primaryOperationIds.IndexOf("MintMailbox: 1");
         Assert.True(
             mintIndex >= 0,
-            $"No mint step in the transition's step list: [{string.Join(", ", mainOperationIds)}]"
+            $"No mint step in the transition's step list: [{string.Join(", ", primaryOperationIds)}]"
         );
-        Assert.Equal("Completed", main.Steps[mintIndex].Status);
+        Assert.Equal("Completed", primary.Steps[mintIndex].Status);
 
         // The mint hugs its declaring stage on both sides, which is why the scenario surrounds that stage
         // with plain ones. Behind: the deadline clock starts at the mint, so hoisting it to the front of
         // the stage list would let pre-send work erode the exchange's budget. Ahead: the stage must never
         // send without an address, so the mint cannot be deferred past it.
-        Assert.Equal("ExecuteServiceTask: 0", mainOperationIds[mintIndex - 1]);
-        Assert.Equal("ExecuteServiceTask: 1", mainOperationIds[mintIndex + 1]);
-        Assert.Single(mainOperationIds, id => id.StartsWith("MintMailbox", StringComparison.Ordinal));
+        Assert.Equal("ExecuteServiceTask: 0", primaryOperationIds[mintIndex - 1]);
+        Assert.Equal("ExecuteServiceTask: 1", primaryOperationIds[mintIndex + 1]);
+        Assert.Single(primaryOperationIds, id => id.StartsWith("MintMailbox", StringComparison.Ordinal));
 
-        // A mailbox-opening task expands to no concluding Main step - the reply handler runs on the
-        // receive workflows - and Main ends on the stage that opened the mailbox, whose completion enqueues
-        // what follows from inside the still-unsettled step, so the frontier is never empty from the moment
-        // the mailbox exists.
+        // A mailbox-opening task expands to no concluding primary-workflow step - the reply handler runs on the receive
+        // workflows - and the primary workflow ends on the stage that opened the mailbox, whose completion enqueues
+        // what follows from inside the still-unsettled step, so the frontier is never empty from the moment the mailbox
+        // exists.
         //
         // The stage composed after the send is this pipeline's item 2 and its conclusion item 3, and every
         // step names the item it runs, so both are step ids that really do get emitted - on the continuation
         // and the receive workflows respectively, asserted below. Exact-match, not a StartsWith predicate:
         // this is the collection overload of DoesNotContain, and a prefix predicate would invert the
         // assertion into one that can never hold.
-        Assert.DoesNotContain("ExecuteServiceTask: 2", mainOperationIds);
-        Assert.DoesNotContain("ExecuteServiceTask: 3", mainOperationIds);
-        Assert.Equal("ExecuteServiceTask: 1", mainOperationIds[^1]);
+        Assert.DoesNotContain("ExecuteServiceTask: 2", primaryOperationIds);
+        Assert.DoesNotContain("ExecuteServiceTask: 3", primaryOperationIds);
+        Assert.Equal("ExecuteServiceTask: 1", primaryOperationIds[^1]);
 
-        // The stage the send hands over to rides one continuation, and that stage is what enqueues the
-        // exchange's first receiver: keyed on Main's last step, so a replay of that step continues onto the
-        // same workflow instead of forking the pipeline.
+        // The stage the send hands over to rides one continuation, and that stage is what enqueues the exchange's first
+        // receiver: keyed on the primary workflow's last step, so a replay of that step continues onto the same
+        // workflow instead of forking the pipeline.
         EngineWorkflow continuation = await WaitForWorkflow(
             engineClient,
             ns,
@@ -127,7 +125,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
         );
         Assert.Equal(["ExecuteServiceTask: 2"], continuation.Steps.Select(s => s.OperationId).ToList());
-        Assert.Equal(main.Steps[^1].DatabaseId.ToString(), continuation.IdempotencyKey);
+        Assert.Equal(primary.Steps[^1].DatabaseId.ToString(), continuation.IdempotencyKey);
 
         // ---- The address reached the declaring stage, once ----
         ExchangeState afterSend = await WaitForExchangeState(fixture, state => state.MailboxId is not null);
@@ -199,7 +197,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // AppCallbackPayload.StepId ("the engine's identity for the step being executed"). Should it go
         // red, suspect that bridge before suspecting the mint: an engine reporting a different id here is
         // breaking the callback contract, which is worth knowing either way.
-        Assert.Equal(main.Steps[mintIndex].DatabaseId.ToString(), mailbox.IdempotencyKey);
+        Assert.Equal(primary.Steps[mintIndex].DatabaseId.ToString(), mailbox.IdempotencyKey);
 
         // ---- One receive workflow per message: the first one's AwaitNextReply enqueued the second ----
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
@@ -294,7 +292,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         return state;
     }
 
-    private static async Task<EngineWorkflow> WaitForCompletedMainWorkflow(
+    private static async Task<EngineWorkflow> WaitForCompletedPrimaryWorkflow(
         HttpClient engineClient,
         string ns,
         string collectionKey,
@@ -308,7 +306,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
             List<EngineWorkflow> candidates = workflows
                 .Where(w =>
-                    w.OperationId.StartsWith(MainOperationIdPrefix, StringComparison.Ordinal)
+                    w.OperationId.StartsWith(PrimaryOperationIdPrefix, StringComparison.Ordinal)
                     && w.OperationId.EndsWith($"-> {targetTask}", StringComparison.Ordinal)
                 )
                 .ToList();
@@ -320,7 +318,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         }
 
         Assert.Fail(
-            $"No completed '{MainOperationIdPrefix} ... -> {targetTask}' workflow within "
+            $"No completed '{PrimaryOperationIdPrefix} ... -> {targetTask}' workflow within "
                 + $"{_exchangeTimeout.TotalSeconds:0}s. Saw: [{seen}]"
         );
         throw new UnreachableException();
@@ -423,9 +421,13 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new JsonPatch(
-                            PatchOperation.Replace(JsonPointer.Create("property1"), JsonNode.Parse("\"2\"")),
-                            PatchOperation.Replace(JsonPointer.Create("property2"), JsonNode.Parse("\"2\""))
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],

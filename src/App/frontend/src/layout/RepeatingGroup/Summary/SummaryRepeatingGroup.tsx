@@ -89,21 +89,13 @@ function RegularRepeatingGroup(props: FullProps) {
     <>
       <div
         data-testid='summary-group-component'
-        style={{ width: '100%' }}
+        className={classes.container}
       >
-        <div className={classes.container}>
-          <span className={classes.label}>
-            <Lang id={summaryTitle ?? title} />
-          </span>
-          {!display?.hideChangeButton ? (
-            <EditButton
-              onClick={onChangeClick}
-              editText={changeText}
-              label={ariaLabel}
-            />
-          ) : null}
-        </div>
-        <div style={{ width: '100%' }}>
+        <span className={classes.label}>
+          <Lang id={summaryTitle ?? title} />
+        </span>
+
+        <div className={classes.values}>
           {rows.length === 0 ? (
             <span className={classes.emptyField}>
               <Lang id='general.empty_summary' />
@@ -123,6 +115,15 @@ function RegularRepeatingGroup(props: FullProps) {
             ))
           )}
         </div>
+        {!display?.hideChangeButton ? (
+          <span className={classes.editBtn}>
+            <EditButton
+              onClick={onChangeClick}
+              editText={changeText}
+              label={ariaLabel}
+            />
+          </span>
+        ) : null}
       </div>
 
       {groupHasErrors && !display?.hideValidationMessages && (

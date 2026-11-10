@@ -26,7 +26,7 @@ internal static class Program
             options.SingleLine = true;
             options.TimestampFormat = "HH:mm:ss ";
         });
-        builder.Logging.AddProvider(new FileLoggerProvider(GetLogDirectory()));
+        builder.Logging.AddProvider(new FileLoggerProvider(GetLogDirectory(), TimeProvider.System));
         builder.Logging.SetMinimumLevel(internalDevMode ? LogLevel.Debug : LogLevel.Information);
 
         builder.Services.AddDiscoveryServices(builder.Configuration);

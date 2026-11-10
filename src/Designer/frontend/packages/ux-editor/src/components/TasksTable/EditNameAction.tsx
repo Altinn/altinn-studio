@@ -49,9 +49,8 @@ export const EditNameAction = ({
   const defaultLanguageTextResources =
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE)(textResources);
 
-  const [textResourceId, setTextResourceId] = useState<string>(
-    task?.name ?? createNewTextResourceId(task),
-  );
+  const [newTextResourceId] = useState<string>(() => createNewTextResourceId(task));
+  const [textResourceId, setTextResourceId] = useState<string>(task?.name ?? newTextResourceId);
   const taskName = getResolvedTaskName(task?.name);
   const [currentValue, setCurrentValue] = useState(taskName);
   const [openDialog, setOpenDialog] = useState(false);
@@ -77,7 +76,7 @@ export const EditNameAction = ({
   };
 
   const handleReferenceChange = (id?: string) => {
-    setTextResourceId(id ?? '');
+    setTextResourceId(id ?? newTextResourceId);
     setCurrentValue(getResolvedTaskName(id ?? ''));
   };
 
@@ -87,7 +86,7 @@ export const EditNameAction = ({
     pickerLabel: t('ux_editor.search_text_resources_label'),
     valueEditorAriaLabel: t('ux_editor.text_resource_binding_text'),
     valueEditorIdLabel: t('ux_editor.text_resource_binding_id'),
-    noTextResourceOptionLabel: t('ux_editor.search_text_resources_none'),
+    noSearchResultsText: t('general.search_no_results'),
     disabledSearchAlertText: t(
       'ux_editor.modal_properties_textResourceBindings_page_name_search_disabled',
     ),

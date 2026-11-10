@@ -1,16 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { ConfigViewerPanel } from './ConfigViewerPanel';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 
-jest.mock('../../contexts/BpmnContext', () => ({
-  useBpmnContext: jest.fn(),
+vi.mock('../../contexts/BpmnContext', () => ({
+  useBpmnContext: vi.fn(),
 }));
 
 describe('ConfigViewerPanel', () => {
   it('should render config header with correct heading', () => {
-    (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: { taskType: 'data' } });
+    (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: { taskType: 'data' } });
 
     render(<ConfigViewerPanel />);
     const configTitle = screen.getByRole('heading', {
@@ -23,7 +25,7 @@ describe('ConfigViewerPanel', () => {
 
   it('should render config header with correct help text', async () => {
     const user = userEvent.setup();
-    (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: { taskType: 'data' } });
+    (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: { taskType: 'data' } });
 
     render(<ConfigViewerPanel />);
 
@@ -41,7 +43,7 @@ describe('ConfigViewerPanel', () => {
   });
 
   it('should render task id', () => {
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: {
         id: 'testId',
         taskType: 'data',
@@ -53,7 +55,7 @@ describe('ConfigViewerPanel', () => {
   });
 
   it('should render task name', () => {
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: {
         name: 'testName',
         taskType: 'data',
@@ -65,7 +67,7 @@ describe('ConfigViewerPanel', () => {
   });
 
   it('should render alert when bpmnDetails is null', () => {
-    (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: null });
+    (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null });
     render(<ConfigViewerPanel />);
 
     const alertTitle = screen.getByRole('heading', {

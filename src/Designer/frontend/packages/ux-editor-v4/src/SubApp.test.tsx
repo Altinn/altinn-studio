@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { SubApp } from './SubApp';
 import { render, screen, within } from '@testing-library/react';
@@ -13,26 +14,26 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 const providerTestId = 'provider';
 const appTestId = 'app';
 const formNavigationTestId = 'formNavigation';
-jest.mock('./AppContext', () => ({
+vi.mock('./AppContext', () => ({
   AppContextProvider: ({ children }: { children: ReactNode }) => {
     return <div data-testid={providerTestId}>{children}</div>;
   },
 }));
-jest.mock('./containers/FormDesignNavigation', () => ({
+vi.mock('./containers/FormDesignNavigation', () => ({
   FormDesignerNavigation: () => {
     return <div data-testid={formNavigationTestId}>Form Designer Navigation</div>;
   },
 }));
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  ...jest.requireActual('app-shared/utils/featureToggleUtils'),
-  shouldDisplayFeature: jest.fn(),
+vi.mock('app-shared/utils/featureToggleUtils', async () => ({
+  ...(await vi.importActual('app-shared/utils/featureToggleUtils')),
+  shouldDisplayFeature: vi.fn(),
 }));
-jest.mock('./containers/FormDesignNavigation', () => ({
+vi.mock('./containers/FormDesignNavigation', () => ({
   FormDesignerNavigation: () => {
     return <div data-testid={formNavigationTestId}>Form Designer Navigation</div>;
   },
 }));
-jest.mock('./App', () => ({
+vi.mock('./App', () => ({
   App: () => {
     return <div data-testid={appTestId}>App</div>;
   },

@@ -13,7 +13,7 @@
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
-    <bpmn:task id="Task_Sequential" name="Sequential mailbox exchanges">
+    <bpmn:serviceTask id="Task_Sequential" name="Sequential mailbox exchanges">
       <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
       <bpmn:extensionElements>
@@ -21,8 +21,8 @@
           <altinn:taskType>mailbox-sequential</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-    </bpmn:task>
-    <bpmn:task id="Task_Upfront" name="Up-front mailbox exchanges">
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Upfront" name="Up-front mailbox exchanges">
       <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
       <bpmn:extensionElements>
@@ -30,7 +30,7 @@
           <altinn:taskType>mailbox-upfront</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-    </bpmn:task>
+    </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
     </bpmn:endEvent>

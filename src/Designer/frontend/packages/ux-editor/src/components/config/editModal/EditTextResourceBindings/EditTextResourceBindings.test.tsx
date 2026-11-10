@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 import { EditTextResourceBindings } from './EditTextResourceBindings';
 import { screen, waitFor } from '@testing-library/react';
@@ -6,10 +7,9 @@ import {
   renderWithProviders,
   textLanguagesMock,
 } from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../types/FormComponent';
@@ -24,7 +24,6 @@ describe('EditTextResourceBindings component', () => {
       help: 'test-help-text-id',
     },
     type: ComponentType.Input,
-    itemType: 'COMPONENT',
     dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   };
 
@@ -87,10 +86,9 @@ describe('EditTextResourceBindings component', () => {
   });
 
   const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
     const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
       queries: {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+        getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
             language: lang,
@@ -98,7 +96,6 @@ describe('EditTextResourceBindings component', () => {
           }),
       },
     }).result;
-    await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
 

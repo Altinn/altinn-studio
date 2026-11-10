@@ -73,7 +73,9 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.True(mainDataType.AppLogic.AutoCreate);
         Assert.Equal(1, mainDataType.MinCount);
         Assert.Equal(1, mainDataType.MaxCount);
+#pragma warning disable CS0618 // hvem-er-hvem binds its data model with the v8 taskId
         Assert.Equal("Task_1", mainDataType.TaskId);
+#pragma warning restore CS0618
 
         Assert.False(applicationMetadata.PartyTypesAllowed.Person);
         Assert.False(applicationMetadata.PartyTypesAllowed.Organisation);
@@ -232,6 +234,47 @@ public class AltinnAppGitRepositoryTests : IDisposable
         layout.Resume();
         await write;
         Assert.Equal(layoutNamesBeforeWrite, layoutNamesDuringWrite);
+    }
+
+    [Fact]
+    public async Task GetLayoutSettingsAndCreateNewIfNotFound_SettingsMissing_ShouldCreateSettingsOnlyInRepository()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets-v9";
+        string developer = "testUser";
+        // Unique, so a folder of this name under the working directory can only come from this test.
+        string layoutSetName = $"Task_{Guid.NewGuid():N}";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string layoutSetFolder = Path.Combine(TargetRepoName, "App", "ui", layoutSetName);
+        Directory.CreateDirectory(layoutSetFolder);
+        string workingDirectoryLayoutSetFolder = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "App",
+            "ui",
+            layoutSetName
+        );
+
+        try
+        {
+            JsonNode layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+                layoutSetName
+            );
+
+            Assert.False(Directory.Exists(workingDirectoryLayoutSetFolder));
+            Assert.True(File.Exists(Path.Combine(layoutSetFolder, "Settings.json")));
+            Assert.False(Directory.Exists(Path.Combine(layoutSetFolder, "layouts")));
+            Assert.Empty(layoutSettings["pages"]["order"].AsArray());
+        }
+        finally
+        {
+            if (Directory.Exists(workingDirectoryLayoutSetFolder))
+            {
+                Directory.Delete(workingDirectoryLayoutSetFolder, recursive: true);
+            }
+        }
     }
 
     [Fact]

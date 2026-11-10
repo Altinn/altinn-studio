@@ -1,5 +1,5 @@
 import type { IGenericEditComponent } from '../../componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useState } from 'react';
 import classes from './EditDataModelBinding.module.css';
 import { useTranslation } from 'react-i18next';

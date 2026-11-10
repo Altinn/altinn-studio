@@ -1,10 +1,14 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
-import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import {
+  imageUploadDefaultDataType,
+  useAddItemToLayoutMutation,
+} from './useAddItemToLayoutMutation';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
@@ -25,7 +29,6 @@ const defaultArgs: AddFormItemMutationArgs = {
 
 const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
   id,
-  taskId: 'some-task-id',
   maxCount: 1,
   minCount: 1,
   maxSize: 25,
@@ -33,8 +36,6 @@ const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
 };
 
 describe('useAddItemToLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Returns ID of new item', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
     result.current.mutate(defaultArgs);
@@ -63,15 +64,21 @@ describe('useAddItemToLayoutMutation', () => {
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-1', async () => {
-    const { result } = renderAddItemToLayoutMutation(layoutSet1NameMock);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetadataMock,
-      taskId: 'Task_1',
-    });
-  });
+  it.each([
+    [ComponentType.FileUpload, applicationAttachmentMetadataMock],
+    [ComponentType.ImageUpload, { id, ...imageUploadDefaultDataType }],
+  ])(
+    'Binds the %s attachment metadata to the task of test-layout-set-1 with taskIds',
+    async (componentType, expectedMetadata) => {
+      const { result } = renderAddItemToLayoutMutation(layoutSet1NameMock);
+      result.current.mutate({ ...defaultArgs, componentType });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+        ...expectedMetadata,
+        taskIds: ['Task_1'],
+      });
+    },
+  );
 });
 
 const renderAddItemToLayoutMutation = (layoutSetName?: string) => {

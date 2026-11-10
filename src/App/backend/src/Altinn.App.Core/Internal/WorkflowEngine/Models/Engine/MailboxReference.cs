@@ -12,8 +12,8 @@ internal sealed record MailboxReference
     /// <summary>
     /// The mailbox to receive from. Must name a mailbox that exists in the enqueue's namespace; a receiver for a
     /// mailbox the engine does not know would be a workflow nothing could ever release. A <em>closed</em> mailbox is
-    /// not an error: the receiver is born runnable with a delivery already at its position (an accepted delivery
-    /// outranks closure), and born runnable with the closing signal otherwise.
+    /// not an error: the receiver is created runnable with a delivery already at its position (an accepted delivery
+    /// outranks closure), and created runnable with the closing signal otherwise.
     /// </summary>
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }

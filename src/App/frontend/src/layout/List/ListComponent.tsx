@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import type { AriaAttributes } from 'react';
+import type { AriaAttributes, PropsWithChildren } from 'react';
 
 import {
   Description,
   getLabelId,
+  OptionalIndicator,
   Pagination as CustomPagination,
   RequiredIndicator,
   useIsMobile,
@@ -21,8 +22,10 @@ import {
 import cn from 'classnames';
 import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
+import { useDataListQuery } from 'src/core/queries/dataLists';
+import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
@@ -35,14 +38,15 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { Filter } from 'src/features/dataLists/useDataListQuery';
+import type { Filter } from 'src/core/queries/dataLists';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Row = Record<string, string | number | boolean>;
 type SelectionMode = 'readonly' | 'single' | 'multiple';
 
-function getSelectionMode(bindings: IDataModelBindingsForList): SelectionMode {
-  const hasValidBindings = Object.keys(bindings).length > 0 && Object.values(bindings).some((b) => b !== undefined);
+export function getSelectionMode(bindings: IDataModelBindingsForList | undefined): SelectionMode {
+  const hasValidBindings =
+    bindings && Object.keys(bindings).length > 0 && Object.values(bindings).some((binding) => binding !== undefined);
 
   if (!hasValidBindings) {
     return 'readonly';
@@ -51,9 +55,11 @@ function getSelectionMode(bindings: IDataModelBindingsForList): SelectionMode {
   return bindings.group ? 'multiple' : 'single';
 }
 
-export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'List'>) => {
+type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponentId'> & { isSummary?: boolean };
+
+export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
   const isMobile = useIsMobile();
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
@@ -69,6 +75,9 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     config.textResourceBindings?.description,
     Expressions.List.textResourceBindings.description,
   );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.List.textResourceBindings.help);
+
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
 
   const [pageSize, setPageSize] = useState<number>(config.pagination?.default ?? 0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -86,20 +95,25 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     config.secure,
     useResolvedQueryParameters(config.queryParameters),
   );
-  const bindings = dataModelBindings ?? ({} as IDataModelBindingsForList);
-  // Determine selection mode based on bindings
+  const bindings = dataModelBindings ?? {};
   const selectionMode = getSelectionMode(bindings);
   const readOnly = selectionMode === 'readonly';
+  // While the instance is locked, the selection shows but can't change
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const isMultipleSelection = selectionMode === 'multiple';
   const { formData, setValues } = useDataModelBindings(bindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const { toggle, isChecked } = useSaveObjectToGroup(bindings);
   const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
     (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
   );
-  const selectedRow = !isMultipleSelection
-    ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
-    : '';
+  const selectedRow =
+    !readOnly && !isMultipleSelection
+      ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
+      : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
+    if (instanceLocked) {
+      return;
+    }
     const next: Row = {};
     for (const binding of Object.keys(bindings)) {
       next[binding] = selectedValue[binding];
@@ -107,14 +121,34 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     setValues(next);
   }
   function isRowSelected(row: Row): boolean {
+    if (readOnly) {
+      return false;
+    }
     if (isMultipleSelection) {
       return isChecked(row);
     }
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
   const title = summaryTitle || resolvedTitle;
+  const tableHeading = title ? (
+    <Heading
+      level={2}
+      data-size='sm'
+    >
+      <Lang id={title} />
+      <RequiredIndicator
+        required={required}
+        readOnly={readOnly}
+      />
+      <OptionalIndicator
+        required={required}
+        readOnly={readOnly}
+        showOptionalMarking={labelSettings?.optionalIndicator !== false}
+      />
+    </Heading>
+  ) : undefined;
   const handleRowClick = (row: Row) => {
-    if (readOnly) {
+    if (readOnly || instanceLocked) {
       return;
     }
     if (isMultipleSelection) {
@@ -143,10 +177,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
         <strong>
           <Lang id={tableHeaders[key]} />
         </strong>
-        <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
+        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
+  const componentId = isSummary ? `${indexedId}-summary` : indexedId;
   const getRowLabel = (row: Row): string =>
     Object.entries(row)
       .map(([key]) => {
@@ -172,12 +207,15 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
   });
   if (isMobile && !readOnly) {
     return (
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
+      <ListStructure
+        baseComponentId={baseComponentId}
+        isSummary={isSummary}
+      >
         {isMultipleSelection ? (
           <Fieldset>
             <Fieldset.Legend>
               {description && (
-                <Fieldset.Description>
+                <Fieldset.Description className={classes.description}>
                   <Lang id={description} />
                 </Fieldset.Description>
               )}
@@ -186,7 +224,15 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             <div>
@@ -198,6 +244,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                   onClick={() => handleRowClick(row)}
                   value={JSON.stringify(row)}
                   checked={isChecked(row)}
+                  readOnly={instanceLocked}
                   label={renderListItems(row, config.tableHeaders)}
                 />
               ))}
@@ -211,11 +258,19 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             {description && (
-              <Fieldset.Description>
+              <Fieldset.Description className={classes.description}>
                 <Lang id={description} />
               </Fieldset.Description>
             )}
@@ -227,13 +282,14 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                 value={JSON.stringify(row)}
                 className={cn(classes.mobile, { [classes.selectedRow]: isRowSelected(row) })}
                 onClick={() => handleSelectedRadioRow({ selectedValue: row })}
+                readOnly={instanceLocked}
                 label={renderListItems(row, config.tableHeaders)}
               />
             ))}
           </Fieldset>
         )}
         <Pagination
-          id={baseComponentId}
+          id={componentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -241,28 +297,51 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           numberOfRows={data?._metaData.totaltItemsCount}
           rowsPerPageOptions={config.pagination?.alternatives}
         />
-      </ComponentStructureWrapper>
+      </ListStructure>
     );
   }
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <Table className={classes.listTable}>
-        {title && (
-          <caption id={getLabelId(indexedId)}>
-            <Heading
-              level={2}
-              data-size='sm'
-            >
-              <Lang id={title} />
-              <RequiredIndicator required={required} />
-            </Heading>
+    <ListStructure
+      baseComponentId={baseComponentId}
+      isSummary={isSummary}
+    >
+      <Table
+        className={cn(classes.listTable, {
+          [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
+        })}
+      >
+        {isSummary ? (
+          (title || description || help) && (
+            <Caption
+              id={getLabelId(componentId)}
+              title={tableHeading}
+              description={description && <Lang id={description} />}
+              helpText={help ? { text: <Lang id={help} />, accessibleTitle: langAsString(title) } : undefined}
+              labelSettings={{ optionalIndicator: false }}
+            />
+          )
+        ) : title ? (
+          <caption id={getLabelId(componentId)}>
+            {tableHeading}
             {description && (
               <Description
                 description={<Lang id={description} />}
-                componentId={indexedId}
+                componentId={componentId}
               />
             )}
           </caption>
+        ) : null}
+        {config.tableColumns && (
+          <colgroup>
+            {!readOnly && <col className={classes.selectionColumn} />}
+            {Object.keys(config.tableHeaders).map((key) => (
+              <col
+                key={key}
+                style={{ width: config.tableColumns?.[key]?.width }}
+              />
+            ))}
+          </colgroup>
         )}
         <Table.Head>
           <Table.Row>
@@ -312,6 +391,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                       value={JSON.stringify(row)}
                       checked={isChecked(row)}
                       name={indexedId}
+                      readOnly={instanceLocked}
                     />
                   ) : (
                     <RadioButton
@@ -323,6 +403,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                       value={JSON.stringify(row)}
                       checked={isRowSelected(row)}
                       name={indexedId}
+                      readOnly={instanceLocked}
                     />
                   )}
                 </Table.Cell>
@@ -334,7 +415,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
-                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>
@@ -343,7 +424,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
       </Table>
       {config.pagination && (
         <Pagination
-          id={baseComponentId}
+          id={componentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -352,9 +433,17 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           rowsPerPageOptions={config.pagination?.alternatives}
         />
       )}
-    </ComponentStructureWrapper>
+    </ListStructure>
   );
 };
+
+function ListStructure({ baseComponentId, isSummary, children }: PropsWithChildren<ListComponentProps>) {
+  return isSummary ? (
+    children
+  ) : (
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>{children}</ComponentStructureWrapper>
+  );
+}
 
 type PaginationProps = {
   id: string;

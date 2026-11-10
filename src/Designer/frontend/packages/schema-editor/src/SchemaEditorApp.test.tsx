@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
@@ -11,7 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
 // Mocks:
-const saveMock = jest.fn();
+const saveMock = vi.fn();
 const initialProps = {
   dataModels: [jsonMetadataMock],
   jsonSchema: jsonSchemaMock,
@@ -41,8 +42,6 @@ export const render = (services?: Partial<ServicesContextProps>) => {
 };
 
 describe('SchemaEditorApp', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders a tree view of the schema model', () => {
     render();
     expect(screen.getByRole('tree')).toBeInTheDocument();
@@ -51,7 +50,7 @@ describe('SchemaEditorApp', () => {
   it('Calls the save function when something is changed', async () => {
     const user = userEvent.setup();
     render();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const deleteButtonName = textMock('general.delete');
     const firstDeleteButton = screen.getAllByRole('button', { name: deleteButtonName })[0];
     await user.click(firstDeleteButton);

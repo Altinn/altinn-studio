@@ -7,9 +7,9 @@ import type { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { StudioHeading } from '@studio/components';
-import { DATA_MODEL_REPO_IDENTIFIER, DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
+import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
-import { useSearchReposQuery, useStarredReposQuery } from 'dashboard/hooks/queries';
+import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 type OrgReposListProps = {
@@ -34,15 +34,10 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     sortColumn,
   } = useReposSearch({
     uid: uid as number,
+    excludeNonAppRepos: true,
     defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE,
     storageKey: TableSortStorageKey.OrgRepos,
   });
-
-  const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
-    uid: uid as number,
-    keyword: DATA_MODEL_REPO_IDENTIFIER,
-  });
-  const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount || 0;
 
   const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
   const reposIncludingStarredData = useAugmentReposWithStarred({
@@ -56,12 +51,11 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </StudioHeading>
       <RepoList
-        repos={reposIncludingStarredData.filter(
-          (repo) => !repo.name.endsWith(DATA_MODEL_REPO_IDENTIFIER),
-        )}
-        isLoading={hasPendingRepos || hasPendingStarredRepos || hasPendingDataModels}
+        repos={reposIncludingStarredData}
+        isLoading={hasPendingRepos || hasPendingStarredRepos}
         isServerSort={true}
-        totalRows={totalRows}
+        totalRows={repoResults?.totalCount ?? 0}
+        totalPages={repoResults?.totalPages ?? 0}
         pageSize={pageSize}
         onPageSizeChange={setPageSize}
         pageNumber={pageNumber}

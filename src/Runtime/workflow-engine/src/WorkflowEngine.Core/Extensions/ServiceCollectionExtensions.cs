@@ -96,15 +96,15 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Registers a command with the engine.
         /// </summary>
-        public IServiceCollection AddCommand<TDescriptor>()
-            where TDescriptor : class, ICommand
+        public IServiceCollection AddCommand<TCommand>()
+            where TCommand : class, ICommand
         {
-            services.AddSingleton<ICommand, TDescriptor>();
+            services.AddSingleton<ICommand, TCommand>();
             return services;
         }
 
         /// <summary>
-        /// Configures the process engine settings by binding to a configuration section.
+        /// Configures the workflow engine settings by binding to a configuration section.
         /// </summary>
         public IServiceCollection ConfigureEngine(string configSectionPath)
         {
@@ -118,7 +118,7 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Configures the process engine settings using a delegate.
+        /// Configures the workflow engine settings using a delegate.
         /// </summary>
         public IServiceCollection ConfigureEngine(Action<EngineSettings> configureOptions)
         {
@@ -344,6 +344,17 @@ public static class OptionsBuilderExtensions
 
                 if (config.Throttling.MaxWindow <= TimeSpan.Zero)
                     config.Throttling.MaxWindow = Defaults.EngineSettings.Throttling.MaxWindow;
+
+                // A compose file passes an unset variable as an empty string.
+                config.Dashboard.TraceUrlTemplate = string.IsNullOrWhiteSpace(config.Dashboard.TraceUrlTemplate)
+                    ? null
+                    : config.Dashboard.TraceUrlTemplate.Trim();
+
+                if (string.IsNullOrWhiteSpace(config.Dashboard.GrafanaUrl))
+                    config.Dashboard.GrafanaUrl = null;
+
+                if (string.IsNullOrWhiteSpace(config.Dashboard.GrafanaTracesDatasourceUid))
+                    config.Dashboard.GrafanaTracesDatasourceUid = null;
             });
 
             return builder;
@@ -464,6 +475,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Throttling.InitialWindow <= config.Throttling.MaxWindow,
                 $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.InitialWindow)} must be less than or equal to {ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MaxWindow)}."
+            );
+
+            builder.Validate(
+                config => config.Dashboard.TraceUrlTemplate is not { } template || TraceUrlTemplate.IsValid(template),
+                $"{ns}.{nameof(EngineSettings.Dashboard)}.{nameof(DashboardSettings.TraceUrlTemplate)} must be an absolute http or https URL containing {DashboardSettings.TraceIdPlaceholder}."
             );
 
             return builder;

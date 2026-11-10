@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { LibraryHeaderProps } from './LibraryHeader';
 import { LibraryHeader } from './LibraryHeader';
 import { render, screen } from '@testing-library/react';

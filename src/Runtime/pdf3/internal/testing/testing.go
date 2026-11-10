@@ -21,6 +21,8 @@ const testInputContextKey contextKey = "test-input"
 type PdfInternalsTestInput struct {
 	ID                  string `json:"id"` // UUID to correlate with output
 	CleanupDelaySeconds int    `json:"cleanupDelaySeconds"`
+	// CrashPage crashes the page's renderer right after navigation
+	CrashPage bool `json:"crashPage,omitempty"`
 }
 
 // NewTestInput creates a new test input with a generated UUID.

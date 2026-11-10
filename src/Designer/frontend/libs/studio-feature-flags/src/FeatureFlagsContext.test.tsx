@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { FeatureFlag } from './FeatureFlag';
 import { renderHook } from '@testing-library/react';
 import { FeatureFlagsContextProvider, useFeatureFlagsContext } from './FeatureFlagsContext';
@@ -18,7 +19,7 @@ describe('FeatureFlagsContext', () => {
   });
 
   test('Error is thrown when the hook is used outside of the provider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(() => renderHook(useFeatureFlagsContext)).toThrow();
     consoleErrorSpy.mockRestore();
   });

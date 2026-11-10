@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -21,6 +22,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
+    private readonly IAppResources _appResources;
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
@@ -28,6 +30,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
     public CommonTaskFinalization(
         IAppMetadata appMetadata,
         IAppModel appModel,
+        IAppResources appResources,
         ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings> appSettings,
         IDataElementAccessChecker dataElementAccessChecker
@@ -35,12 +38,13 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
     {
         _appMetadata = appMetadata;
         _appModel = appModel;
+        _appResources = appResources;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
         _dataElementAccessChecker = dataElementAccessChecker;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
@@ -53,7 +57,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
             List<Task> tasks = [];
             foreach (
                 var dataType in applicationMetadata.DataTypes.Where(dt =>
-                    dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+                    dt.IsBoundToTask(taskId) && dt.AppLogic?.ClassRef is not null
                 )
             )
             {
@@ -72,11 +76,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
             await Task.WhenAll(tasks);
 
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 
@@ -97,7 +101,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         var data = formDataWrapper.BackingData<object>();
 
         // Remove hidden data before validation, ignore hidden rows.
-        if (_appSettings.Value?.RemoveHiddenData == true)
+        // Without layouts for the task there are no components, so nothing is hidden.
+        if (
+            _appSettings.Value?.RemoveHiddenData == true
+            && _appResources.GetLayoutSettingsForFolder(taskId) is not null
+        )
         {
             // Backend removal of data is deprecated in favor of
             // implementing frontend removal of hidden data, so
@@ -108,7 +116,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                 gatewayAction: null,
                 language
             );
-            await LayoutEvaluator.RemoveHiddenDataAsync(
+            await LayoutEvaluator.RemoveHiddenData(
                 evaluationState,
                 RowRemovalOption.DeleteRow,
                 evaluateRemoveWhenHidden: true

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,7 +14,7 @@ import type { TranslationKey } from '@altinn-studio/language/type';
 const newText = 'New text';
 const testId = 'test-id';
 
-jest.mock('../../../hooks/mutations/useUpsertTextResourceMutation', () => ({
+vi.mock('../../../hooks/mutations/useUpsertTextResourceMutation', () => ({
   useUpsertTextResourceMutation: () => ({ mutate: onSave }),
 }));
 
@@ -22,8 +23,6 @@ describe('TextResourceAction', () => {
   const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
   const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
   const getTextbox = () => screen.getByRole('textbox');
-
-  afterEach(() => jest.clearAllMocks());
 
   it('disables save button when text is unchanged or is empty', async () => {
     const user = userEvent.setup();
@@ -55,7 +54,7 @@ describe('TextResourceAction', () => {
 
   it('calls onDelete and onCancel when delete is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderTextResourceAction({}, [{ id: testId, value: 'Existing text' }]);
     await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
@@ -68,14 +67,14 @@ describe('TextResourceAction', () => {
   });
 });
 
-const onSave = jest.fn();
-const onCancel = jest.fn();
-const onDelete = jest.fn();
+const onSave = vi.fn();
+const onCancel = vi.fn();
+const onDelete = vi.fn();
 
 const defaultProps: TextResourceActionProps = {
   label: 'ux_editor.component_title' as TranslationKey,
   textResourceId: testId,
-  handleIdChange: jest.fn(),
+  handleIdChange: vi.fn(),
   setIsOpen: onCancel,
   handleRemoveTextResource: onDelete,
   disableSearch: false,

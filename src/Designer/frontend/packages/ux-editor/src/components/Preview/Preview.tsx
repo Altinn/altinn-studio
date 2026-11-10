@@ -13,6 +13,8 @@ import {
   StudioValidationMessage,
 } from '@studio/components';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
+import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
@@ -45,9 +47,19 @@ export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
         className={classes.toolbar}
         onCollapseToggle={onCollapseToggle}
       />
-      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+      <PreviewContent noPageSelected={noPageSelected} />
     </div>
   );
+};
+
+type PreviewContentProps = {
+  noPageSelected: boolean;
+};
+
+const PreviewContent = ({ noPageSelected }: PreviewContentProps) => {
+  if (isPreviewDisabled) return <PreviewDisabledInfo className={classes.alert} />;
+  if (noPageSelected) return <NoSelectedPageMessage />;
+  return <PreviewFrame />;
 };
 
 // Message to display when no page is selected

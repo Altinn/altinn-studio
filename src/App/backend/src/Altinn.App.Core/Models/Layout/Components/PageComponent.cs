@@ -70,6 +70,7 @@ public sealed class PageComponent : Base.BaseComponent
                 "tabs" => TabsComponent.Parse(componentElement, pageId, layoutId),
                 "cards" => CardsComponent.Parse(componentElement, pageId, layoutId),
                 "likert" => LikertComponent.Parse(componentElement, pageId, layoutId),
+                "map" => MapComponent.Parse(componentElement, pageId, layoutId),
                 "checkboxes" or "radiobuttons" or "dropdown" or "multipleselect" => OptionsComponent.Parse(
                     componentElement,
                     pageId,

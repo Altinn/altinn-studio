@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointTableRow, type ContactPointTableRowProps } from './ContactPointTableRow';
@@ -26,10 +27,10 @@ describe('ContactPointTableRow', () => {
 
   it('calls onEdit and onRemove with the row index when their buttons are clicked', async () => {
     const user = userEvent.setup();
-    const onEdit = jest.fn();
-    const onRemove = jest.fn();
+    const onEdit = vi.fn();
+    const onRemove = vi.fn();
     const index = 2;
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderContactPointTableRow({
       index,
       onEdit,
@@ -62,8 +63,8 @@ const defaultProps: ContactPointTableRowProps = {
     contactPage: '',
   },
   index: 0,
-  onEdit: jest.fn(),
-  onRemove: jest.fn(),
+  onEdit: vi.fn(),
+  onRemove: vi.fn(),
 };
 
 function renderContactPointTableRow(props: Partial<ContactPointTableRowProps> = {}) {

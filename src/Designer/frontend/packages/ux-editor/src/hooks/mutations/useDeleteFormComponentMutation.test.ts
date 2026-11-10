@@ -1,29 +1,30 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('bpmn-moddle', () =>
-  jest.fn(() => ({
-    fromXML: jest.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
-    }),
-    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('useDeleteFormComponentMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
     await result.current.mutateAsync(component2IdMock);
@@ -88,9 +89,9 @@ describe('useDeleteFormComponentMutation', () => {
 });
 
 const renderDeleteFormComponentsMutation = async () => {
-  const getFormLayouts = jest
+  const getFormLayouts = vi
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
 
   return renderHookWithProviders(
     () => useDeleteFormComponentMutation(org, app, selectedLayoutSet),

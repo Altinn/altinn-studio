@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
@@ -26,7 +27,7 @@ const mockComponent: FormCheckboxesComponent | FormRadioButtonsComponent = {
   dataModelBindings: {},
 };
 
-const render = async ({ component = mockComponent, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ component = mockComponent, handleComponentChange = vi.fn() } = {}) => {
   await waitForData();
 
   return renderWithMockStore()(

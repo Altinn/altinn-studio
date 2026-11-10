@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
@@ -8,6 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -16,16 +16,19 @@ public class AppScopesService : IAppScopesService
     private readonly IAppScopesRepository _appRepository;
     private readonly IEnvironmentsService _environmentsService;
     private readonly TimeProvider _timeProvider;
+    private readonly ILogger<AppScopesService> _logger;
 
     public AppScopesService(
         IAppScopesRepository appRepository,
         IEnvironmentsService environmentsService,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        ILogger<AppScopesService> logger
     )
     {
         _appRepository = appRepository;
         _environmentsService = environmentsService;
         _timeProvider = timeProvider;
+        _logger = logger;
     }
 
     public async Task<AppScopesEntity?> GetAppScopesAsync(
@@ -102,10 +105,7 @@ public class AppScopesService : IAppScopesService
         }
         catch (Exception exception)
         {
-            var activity = Activity.Current;
-            activity?.SetTag("org", org);
-            activity?.AddException(exception);
-            activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+            _logger.LogWarning(exception, "Could not check whether {ServiceOwner} is a service owner", org);
             return false;
         }
     }

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useUpdateSelectedMaskinportenScopesMutation } from './useUpdateSelectedMaskinportenScopesMutation';
@@ -35,7 +36,7 @@ describe('useUpdateSelectedMaskinportenScopesMutation', () => {
 
   it('invalidates metadata queries when update is successful', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await renderHook({ queryClient });
 

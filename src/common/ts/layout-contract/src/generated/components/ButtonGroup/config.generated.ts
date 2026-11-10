@@ -1,17 +1,14 @@
 import {
   ComponentBase,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBLabel,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory } from '@app/layout-contract';
 
-export interface CompButtonGroupExternal
-  extends ComponentBase, SummarizableComponentProps, LabeledComponentProps {
+export interface CompButtonGroupExternal extends ComponentBase, LabeledComponentProps {
   type: 'ButtonGroup';
-  textResourceBindings?: TRBSummarizable & TRBLabel;
   children: string[];
+  textResourceBindings?: TRBLabel;
   dataModelBindings?: undefined;
 }
 
@@ -28,7 +25,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: true,
+    isSummarizable: false,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -43,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: aedeaf13f7fe35bf89b70e129484b2c04e9e9a48949231ea03ce0d900a1320a0
+// Source hash: cb1c28f608966f0d78330a505bb8f80705b39a8a228987375643351a68d5bea3

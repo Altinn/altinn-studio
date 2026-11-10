@@ -1,17 +1,20 @@
 import React from 'react';
 
-import { Label, List, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import { Label, List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import dot from 'dot-object';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { CompTypes } from 'src/layout/layout';
@@ -80,6 +83,7 @@ export const MultipleValueSummary = ({
   isCompact,
   emptyFieldText,
 }: MultipleValueSummaryProps) => {
+  const labelProps = useSummaryLabelProps(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
 
@@ -93,7 +97,18 @@ export const MultipleValueSummary = ({
             [classes.compact]: isCompact,
           })}
         >
-          <Label weight='regular'>{title}</Label>
+          <LabelContent
+            {...labelProps}
+            label={
+              <Label
+                asChild
+                weight='regular'
+              >
+                <span>{title}</span>
+              </Label>
+            }
+            isCompact={isCompact}
+          />
           {displayType === 'list' && (
             <List.Unordered>
               {displayValues?.map((item) => (
@@ -125,18 +140,10 @@ export const MultipleValueSummary = ({
             </Paragraph>
           )}
         </div>
-        {errors.length > 0 &&
-          errors.map(({ message }) => (
-            <ValidationMessage
-              key={message.key}
-              data-size='sm'
-            >
-              <Lang
-                id={message.key}
-                params={message.params}
-              />
-            </ValidationMessage>
-          ))}
+        <ValidationMessageList
+          validations={errors}
+          size='sm'
+        />
       </div>
       <EditButton
         className={classes.editButton}

@@ -6,17 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
-	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
-
-	"github.com/gorilla/websocket"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -26,243 +25,91 @@ type Command struct {
 }
 
 type CommandResponse struct {
-	Resp *CDPResponse
+	Resp *CDPMessage
 	Err  error
 }
 
-// Connection represents a Chrome DevTools Protocol connection.
-type Connection interface {
+// Commander sends CDP commands to one target. It is safe for concurrent use.
+type Commander interface {
 	// SendCommand sends a CDP command and waits for the response
-	// This method is NOT threadsafe. We use this from the processing go routine of a
-	// browser session. There should only ever be 1 thread sending commands at a time.
-	// The browser session owns the connection.
-	SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error)
+	SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error)
 
-	// SendCommandBatch sends a batch of unrelated commands
+	// SendCommandBatch sends the commands in order without waiting for each response, then
+	// waits for all of them. The responses are in the order of the commands.
 	SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse
+}
+
+// Connection represents a Chrome DevTools Protocol connection to the browser target.
+// Commands sent directly on the connection go to the browser, commands for a page go
+// through the Commander returned by Session.
+type Connection interface {
+	Commander
+
+	// Session returns a Commander for a target attached with Target.attachToTarget in flatten mode
+	Session(sessionID string) Commander
+
+	// Done is closed when the connection ends, including when the browser exits unexpectedly
+	Done() <-chan struct{}
 
 	// Close closes the connection and cleans up resources
 	Close() error
 }
 
-// EventHandler handles CDP events.
-type EventHandler func(method string, params any)
+// EventHandler handles CDP events. sessionID is the session of the target that sent the
+// event, empty for events from the browser target.
+type EventHandler func(sessionID, method string, params any)
 
 var (
-	errMissingWebSocketDebuggerURL = errors.New("no webSocketDebuggerUrl in response")
-	errInvalidCDPResponseFormat    = errors.New("invalid response format")
-	errConnectionClosed            = errors.New("connection closed")
-	errCDPBatchTimeout             = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
-	errNoPageTarget                = errors.New("no page target found")
-	errListTargetsStatus           = errors.New("failed to list targets with unexpected status")
-	errCDPCommandSend              = errors.New("failed to send cdp command")
-	errCDPCommandResponse          = errors.New("cdp returned an error response")
-	errCDPCommandCancelled         = errors.New("cdp command context cancelled")
-	errCDPCommandTimeout           = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
+	errInvalidCDPMessageFormat = errors.New("invalid response format")
+	errConnectionClosed        = errors.New("connection closed")
+	errInvalidPipeEndpoints    = errors.New("CDP pipe requires reader and writer")
+	errCDPCommandSend          = errors.New("failed to send cdp command")
+	errCDPCommandResponse      = errors.New("cdp returned an error response")
+	errCDPCommandCancelled     = errors.New("cdp command context cancelled")
+	errCDPCommandTimeout       = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 )
 
-// Connect establishes a connection to a Chrome DevTools Protocol endpoint.
-// Returns: Connection, targetID, error.
-func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
-	logger := log.NewComponent("cdp").With("id", id)
-	target, err := discoverPageTarget(ctx, logger, id, debugBaseURL)
-	if err != nil {
-		return nil, "", err
+// ConnectPipe takes ownership of the browser's --remote-debugging-pipe endpoints: read is the
+// browser's output (its fd 4) and write its input (its fd 3).
+func ConnectPipe(
+	ctx context.Context,
+	id int,
+	read io.ReadCloser,
+	write io.WriteCloser,
+	eventHandler EventHandler,
+) (Connection, error) {
+	if read == nil || write == nil {
+		return nil, errInvalidPipeEndpoints
 	}
-	targetID := target.ID
+	return newConnection(ctx, id, newPipeTransport(read, write, types.RequestTimeout()), eventHandler), nil
+}
 
-	// Connect to the page's WebSocket
-	wsURL := target.WebSocketDebuggerURL
-	if wsURL == "" {
-		return nil, "", errMissingWebSocketDebuggerURL
-	}
-	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
-	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
-
-	// Add debugging to understand what URL we're trying to connect to
-	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
-
-	wsConn, err := dialTargetWebSocket(ctx, logger, id, wsURL)
+func newConnection(ctx context.Context, id int, transport messageTransport, eventHandler EventHandler) *connection {
 	connCtx, cancel := context.WithCancel(ctx)
-	if err != nil {
-		cancel()
-		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
-	}
-	// Successful dial must return a valid connection
-	assert.That(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
-
-	// Create connection wrapper
 	conn := &connection{
-		id:     id,
-		logger: logger,
-		wsConn: wsConn,
-
-		nextCommandID:  1,
-		nextBatchID:    1,
-		pendingCmds:    concurrent.NewMap[int64, chan CDPResponse](),
-		pendingBatches: concurrent.NewMap[int64, *batchState](),
-		cmdIDToBatchID: concurrent.NewMap[int64, int64](),
-
+		id:           id,
+		logger:       log.NewComponent("cdp").With(attr.SessionID, id),
+		transport:    transport,
+		pendingCmds:  concurrent.NewMap[int64, chan CDPMessage](),
 		eventHandler: eventHandler,
 		ctx:          connCtx,
 		cancel:       cancel,
 	}
 
-	// Start background message handler
 	go conn.handleMessages()
-	go conn.watchdog()
-
-	return conn, targetID, nil
-}
-
-func discoverPageTarget(ctx context.Context, logger *slog.Logger, id int, debugBaseURL string) (*CDPTarget, error) {
-	targets, err := fetchTargets(ctx, logger, debugBaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	// Chrome should always return at least one target (the page we created)
-	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
-
-	logger.Debug("Found targets", "count", len(targets))
-	for i, target := range targets {
-		logger.Debug("Target info", "index", i, "target_type", target.Type, "target_id", target.ID, "url", target.URL)
-	}
-
-	for i, target := range targets {
-		if target.Type == "page" {
-			return &targets[i], nil
-		}
-	}
-
-	assert.That(false, "no page target found", "id", id)
-	return nil, errNoPageTarget
-}
-
-func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string) ([]CDPTarget, error) {
-	listURL := debugBaseURL + "/json"
-
-	var resp *http.Response
-	var err error
-	start := time.Now()
-	for {
-		req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, listURL, nil)
-		if reqErr != nil {
-			return nil, fmt.Errorf("create target discovery request: %w", reqErr)
-		}
-		resp, err = http.DefaultClient.Do(req)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			break
-		}
-		if time.Since(start) > 10*time.Second {
-			break
-		}
-		if err == nil {
-			// Failed discovery attempts still open a response body; close it before retrying
-			// or we slowly leak the node's HTTP connection pool.
-			if closeErr := resp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close target discovery response body", "error", closeErr)
-			}
-		}
-		select {
-		case <-time.After(50 * time.Millisecond):
-		case <-ctx.Done():
-			return nil, fmt.Errorf("wait for target discovery: %w", ctx.Err())
-		}
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to list targets: %w", err)
-	}
-	defer func() {
-		// Successful discovery still holds the body open until decoding finishes.
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			logger.Warn("Failed to close HTTP response body", "error", closeErr)
+	go func() {
+		// Closing the pipe unblocks the reader, whichever way the connection ended
+		<-conn.ctx.Done()
+		if err := conn.Close(); err != nil {
+			conn.logger.Warn("Failed to close CDP transport", attr.Error, err)
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: status %d", errListTargetsStatus, resp.StatusCode)
-	}
-
-	var targets []CDPTarget
-	if err := json.NewDecoder(resp.Body).Decode(&targets); err != nil {
-		return nil, fmt.Errorf("failed to decode targets response: %w", err)
-	}
-	return targets, nil
-}
-
-func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL string) (*websocket.Conn, error) {
-	dialer := websocket.Dialer{HandshakeTimeout: 2 * time.Second}
-	start := time.Now()
-
-	for {
-		wsConn, wsResp, err := dialer.DialContext(ctx, wsURL, nil)
-		if wsResp != nil && wsResp.Body != nil {
-			if closeErr := wsResp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close WebSocket upgrade response body", "error", closeErr)
-			}
-		}
-		if err == nil {
-			wsConn.SetCloseHandler(func(code int, text string) error {
-				assert.That(
-					// This context is tied to host shutdown. A websocket close is acceptable
-					// during shutdown, but a protocol violation while the host is still live.
-					ctx.Err() != nil,
-					"Websocket connection closed while process is running",
-					"id", id, "code", code, "text", text,
-				)
-				return nil
-			})
-			return wsConn, nil
-		}
-		if time.Since(start) > 5*time.Second {
-			return nil, fmt.Errorf("dial websocket: %w", err)
-		}
-
-		select {
-		case <-time.After(50 * time.Millisecond):
-		case <-ctx.Done():
-			return nil, fmt.Errorf("wait for websocket dial: %w", ctx.Err())
-		}
-	}
+	return conn
 }
 
 func (c *connection) assert(condition bool, message string) {
-	assert.That(condition, message, "id", c.id)
-}
-
-func (c *connection) assertA(condition bool, message string, userArgs ...any) {
-	args := make([]any, 0, 2+len(userArgs))
-	args = append(args, "id", c.id)
-	args = append(args, userArgs...)
-	assert.That(condition, message, args...)
-}
-
-func (c *connection) watchdog() {
-	defer func() {
-		c.assert(
-			c.ctx.Err() != nil,
-			"Exited CDP watchdog loop, but connection context isn't cancelled",
-		)
-	}()
-
-	ticker := time.NewTicker(60 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			c.logger.Info("CDP connection watchdog tick")
-			const threshold int = 32
-			c.assert(c.cmdIDToBatchID.Len() <= threshold, "CDP connection batch datastructure overflowing")
-			c.assert(c.pendingBatches.Len() <= threshold, "CDP connection batch datastructure overflowing")
-			c.assert(c.pendingCmds.Len() <= threshold, "CDP connection cmd datastructure overflowing")
-		case <-c.ctx.Done():
-			c.logger.Info("CDP connection watchdog shutting down")
-			return
-		}
-	}
+	assert.That(condition, message, attr.SessionID, c.id)
 }
 
 // GetBrowserVersion retrieves the browser version information.
@@ -274,7 +121,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, errInvalidCDPResponseFormat
+		return nil, errInvalidCDPMessageFormat
 	}
 
 	return &types.BrowserVersion{
@@ -293,359 +140,183 @@ func getStringFromMap(m map[string]any, key string) string {
 	return ""
 }
 
-type batchState struct {
-	result    chan struct{}
-	cmdIds    []int64
-	responses []*CommandResponse
-}
-
 // connection implements the Connection interface.
 //
-//nolint:containedctx // The connection owns a lifecycle context for its background websocket loops.
+//nolint:containedctx // The connection owns a lifecycle context for its background protocol loops.
 type connection struct {
-	ctx            context.Context
-	logger         *slog.Logger
-	wsConn         *websocket.Conn
-	pendingCmds    *concurrent.Map[int64, chan CDPResponse]
-	pendingBatches *concurrent.Map[int64, *batchState]
-	cmdIDToBatchID *concurrent.Map[int64, int64]
-	eventHandler   EventHandler
-	cancel         context.CancelFunc
-	id             int
-	nextCommandID  int64
-	nextBatchID    int64
+	ctx           context.Context
+	transport     messageTransport
+	closeErr      error
+	logger        *slog.Logger
+	pendingCmds   *concurrent.Map[int64, chan CDPMessage]
+	eventHandler  EventHandler
+	cancel        context.CancelFunc
+	nextCommandID atomic.Int64
+	id            int
+	closeOnce     sync.Once
 }
 
-// SendCommand sends a CDP command and waits for the response.
-func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
-	// Connection must be valid when sending commands
-	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
-	c.assert(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
+// SendCommand sends a CDP command to the browser target and waits for the response.
+func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error) {
+	return c.sendCommand(ctx, "", method, params)
+}
 
-	cmdID := c.nextCommandID
-	c.nextCommandID++
+// SendCommandBatch sends a batch of unrelated commands to the browser target.
+func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+	return c.sendCommandBatch(ctx, "", batch)
+}
 
-	cmd := CDPCommand{
-		ID:     cmdID,
-		Method: method,
-		Params: params,
-	}
+func (c *connection) Session(sessionID string) Commander {
+	c.assert(sessionID != "", "Attempted to create a session commander without a session ID")
+	return &session{conn: c, id: sessionID}
+}
 
-	responseCh := make(chan CDPResponse, 1)
-	c.pendingCmds.Set(cmdID, responseCh)
+// session sends commands to a target attached to the connection in flatten mode.
+type session struct {
+	conn *connection
+	id   string
+}
+
+func (s *session) SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error) {
+	return s.conn.sendCommand(ctx, s.id, method, params)
+}
+
+func (s *session) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+	return s.conn.sendCommandBatch(ctx, s.id, batch)
+}
+
+func (c *connection) sendCommand(ctx context.Context, sessionID, method string, params any) (*CDPMessage, error) {
+	cmdID, responseCh, err := c.startCommand(ctx, sessionID, method, params)
 	defer c.pendingCmds.GetAndDelete(cmdID)
-
-	// Send command
-	err := c.wsConn.WriteJSON(cmd)
 	if err != nil {
-		addCDPCommandEvent(ctx, "cdp.command.send_failed",
-			attribute.String("cdp.method", method),
-		)
-		return nil, fmt.Errorf("%w %q: %w", errCDPCommandSend, method, err)
+		return nil, err
+	}
+	return c.awaitResponse(ctx, method, responseCh)
+}
+
+func (c *connection) sendCommandBatch(ctx context.Context, sessionID string, batch []Command) []*CommandResponse {
+	responses := make([]*CommandResponse, len(batch))
+	responseChs := make([]chan CDPMessage, len(batch))
+	cmdIDs := make([]int64, 0, len(batch))
+	defer func() {
+		for _, cmdID := range cmdIDs {
+			c.pendingCmds.GetAndDelete(cmdID)
+		}
+	}()
+	for i, command := range batch {
+		cmdID, responseCh, err := c.startCommand(ctx, sessionID, command.Method, command.Params)
+		cmdIDs = append(cmdIDs, cmdID)
+		if err != nil {
+			responses[i] = &CommandResponse{Err: err}
+			continue
+		}
+		responseChs[i] = responseCh
+	}
+	for i, command := range batch {
+		if responses[i] != nil {
+			continue
+		}
+		response, err := c.awaitResponse(ctx, command.Method, responseChs[i])
+		responses[i] = &CommandResponse{Resp: response, Err: err}
+	}
+	return responses
+}
+
+// startCommand registers and writes a command. The caller must remove the returned ID from
+// pendingCmds once it stops waiting for the response, also when startCommand fails.
+func (c *connection) startCommand(
+	ctx context.Context,
+	sessionID, method string,
+	params any,
+) (int64, chan CDPMessage, error) {
+	cmdID := c.nextCommandID.Add(1)
+	if ctx.Err() != nil {
+		return cmdID, nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, context.Cause(ctx))
+	}
+	if c.ctx.Err() != nil {
+		return cmdID, nil, errConnectionClosed
 	}
 
-	// Wait for response
+	responseCh := make(chan CDPMessage, 1)
+	c.pendingCmds.Set(cmdID, responseCh)
+	cmd := CDPCommand{ID: cmdID, SessionID: sessionID, Method: method, Params: params}
+	if err := c.transport.WriteJSON(ctx, cmd); err != nil {
+		return cmdID, nil, fmt.Errorf("%w %q: %w", errCDPCommandSend, method, err)
+	}
+	return cmdID, responseCh, nil
+}
+
+func (c *connection) awaitResponse(
+	ctx context.Context,
+	method string,
+	responseCh chan CDPMessage,
+) (*CDPMessage, error) {
 	select {
-	case response := <-responseCh:
-		if response.Error != nil {
-			addCDPCommandEvent(ctx, "cdp.command.response_error",
-				attribute.String("cdp.method", method),
-			)
-			return nil, fmt.Errorf("%w %q: %v", errCDPCommandResponse, method, response.Error)
+	case resp := <-responseCh:
+		if resp.Error != nil {
+			return nil, fmt.Errorf("%w %q: %v", errCDPCommandResponse, method, resp.Error)
 		}
-		return &response, nil
+		return &resp, nil
 	case <-ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.command.cancelled",
-			attribute.String("cdp.method", method),
-		)
-		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, ctx.Err())
+		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, context.Cause(ctx))
 	case <-c.ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.command.connection_closed",
-			attribute.String("cdp.method", method),
-		)
 		return nil, errConnectionClosed
 	case <-time.After(types.RequestTimeout()):
-		addCDPCommandEvent(ctx, "cdp.command.timeout",
-			attribute.String("cdp.method", method),
-			attribute.Int64("cdp.timeout_ms", types.RequestTimeout().Milliseconds()),
-		)
 		c.assert(false, "browser failed to respond to request, something must be stuck")
 		return nil, fmt.Errorf("%w %q", errCDPCommandTimeout, method)
 	}
 }
 
-//nolint:gocognit,gocyclo,funlen // Batch routing mirrors the wire protocol state machine.
-func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
-	// Connection must be valid when sending commands
-	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
-	c.assert(c.pendingBatches != nil, "Attempted to send command with nil pendingCmds map")
-
-	batchID := c.nextBatchID
-	c.nextBatchID++
-	state := &batchState{
-		result:    make(chan struct{}),
-		cmdIds:    make([]int64, len(batch)),
-		responses: make([]*CommandResponse, len(batch)),
-	}
-	c.pendingBatches.Set(batchID, state)
-	defer func() {
-		batchState, _ := c.pendingBatches.GetAndDelete(batchID)
-		if batchState != nil {
-			for _, cmdID := range batchState.cmdIds {
-				c.cmdIDToBatchID.GetAndDelete(cmdID)
-			}
-		}
-	}()
-
-	outbox := make([]CDPCommand, len(batch))
-
-	for i, cmdInfo := range batch {
-		cmdID := c.nextCommandID
-		c.nextCommandID++
-		state.cmdIds[i] = cmdID
-		c.cmdIDToBatchID.Set(cmdID, batchID)
-
-		cmd := CDPCommand{
-			ID:     cmdID,
-			Method: cmdInfo.Method,
-			Params: cmdInfo.Params,
-		}
-		outbox[i] = cmd
-	}
-
-	for i, cmd := range outbox {
-		err := c.wsConn.WriteJSON(cmd)
-		if err != nil {
-			addCDPCommandEvent(ctx, "cdp.batch.command.send_failed",
-				attribute.String("cdp.method", cmd.Method),
-				attribute.Int("cdp.batch.command_index", i),
-			)
-			state.responses[i] = &CommandResponse{
-				Resp: nil,
-				Err:  fmt.Errorf("failed to send command: %w", err),
-			}
-		}
-	}
-
-	// Wait for responses
-	select {
-	case <-state.result:
-		nonNilResponses := 0
-		for _, resp := range state.responses {
-			if resp != nil {
-				nonNilResponses++
-			}
-		}
-		c.assert(nonNilResponses == len(batch), "We should have a response for every cmd")
-		return state.responses
-	case <-ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.batch.cancelled",
-			attribute.Int("cdp.batch_size", len(batch)),
-		)
-		for i, resp := range state.responses {
-			if resp == nil {
-				state.responses[i] = &CommandResponse{
-					Resp: nil,
-					Err:  fmt.Errorf("batch context cancelled: %w", ctx.Err()),
-				}
-			} else {
-				resp.Err = fmt.Errorf("batch context cancelled: %w", ctx.Err())
-			}
-		}
-		return state.responses
-	case <-c.ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.batch.connection_closed",
-			attribute.Int("cdp.batch_size", len(batch)),
-		)
-		for i, resp := range state.responses {
-			if resp == nil {
-				state.responses[i] = &CommandResponse{
-					Resp: nil,
-					Err:  errConnectionClosed,
-				}
-			} else {
-				resp.Err = errConnectionClosed
-			}
-		}
-		return state.responses
-	case <-time.After(types.RequestTimeout()):
-		addCDPCommandEvent(ctx, "cdp.batch.timeout",
-			attribute.Int("cdp.batch_size", len(batch)),
-			attribute.Int64("cdp.timeout_ms", types.RequestTimeout().Milliseconds()),
-		)
-		c.assert(false, "browser failed to respond to request, something must be stuck")
-		for i, resp := range state.responses {
-			if resp == nil {
-				state.responses[i] = &CommandResponse{
-					Resp: nil,
-					Err:  errCDPBatchTimeout,
-				}
-			} else if resp.Err == nil {
-				resp.Err = errCDPBatchTimeout
-			}
-		}
-		return state.responses
-	}
-}
-
-func addCDPCommandEvent(ctx context.Context, name string, attrs ...attribute.KeyValue) {
-	if ctx == nil {
-		return
-	}
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return
-	}
-	span.AddEvent(name, trace.WithAttributes(attrs...))
+// Done signals both deliberate closure and an unexpected transport failure.
+func (c *connection) Done() <-chan struct{} {
+	return c.ctx.Done()
 }
 
 // Close closes the connection and cleans up resources.
 func (c *connection) Close() error {
-	// Connection should always be valid when Close is called
-	c.assert(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
-	c.assert(c.pendingCmds != nil, "Attempted to close connection with nil pendingCmds map")
-
-	// Connection should only be closed after HTTP server has drained all requests.
-	// If there are pending commands, it means we're closing while requests are in-flight,
-	// which indicates a bug in graceful shutdown coordination.
-	pendingCount := c.pendingCmds.Len()
-	c.assertA(pendingCount == 0, "Connection closed with pending commands", "pendingCommands", pendingCount)
-
-	c.cancel()
-
-	if err := c.wsConn.Close(); err != nil {
-		return fmt.Errorf("close websocket connection: %w", err)
-	}
-	return nil
+	c.closeOnce.Do(func() {
+		c.cancel()
+		if err := c.transport.Close(); err != nil {
+			c.closeErr = fmt.Errorf("close CDP transport: %w", err)
+		}
+	})
+	return c.closeErr
 }
 
-// handleMessages reads messages from the WebSocket and routes them.
-//
-//nolint:gocognit,gocyclo,nestif,funlen // This is the protocol event loop; splitting it would hide state transitions.
+// handleMessages reads messages from the transport and routes them. It ends the connection when
+// the transport fails.
 func (c *connection) handleMessages() {
-	defer func() {
-		c.assert(c.ctx.Err() != nil, "Exited CDP message handler loop, but connection context isn't cancelled")
-	}()
-
-	// Connection must be fully initialized before handling messages
-	c.assert(c.wsConn != nil, "Message handler started with nil WebSocket connection")
-	c.assert(c.pendingCmds != nil, "Message handler started with nil pendingCmds map")
-
-	// Create a channel for read results
-	type readResult struct {
-		err     error
-		payload []byte
-	}
-	readCh := make(chan readResult, 1)
-
-	// Start a goroutine to read from WebSocket
-	go func() {
-		defer func() {
-			c.assert(c.ctx.Err() != nil, "Exited WebSocket reader loop, but connection context isn't cancelled")
-		}()
-
-		for {
-			_, payload, err := c.wsConn.ReadMessage()
-			select {
-			case <-c.ctx.Done():
-				c.logger.Info("WebSocket reader shutting down (context cancelled)")
-				return
-			case readCh <- readResult{payload: payload, err: err}:
-				if err != nil {
-					return
-				}
+	defer c.cancel()
+	for c.ctx.Err() == nil {
+		payload, err := c.transport.ReadMessage()
+		if err != nil {
+			if c.ctx.Err() == nil {
+				c.logger.Error("CDP read error", attr.Error, err)
 			}
-		}
-	}()
-
-	for {
-		select {
-		case <-c.ctx.Done():
-			c.logger.Info("WebSocket message handler shutting down (context cancelled)")
 			return
-		case result := <-readCh:
-			if result.err != nil {
-				c.logger.Error("WebSocket read error", "error", result.err)
-				return
-			}
+		}
 
-			// log.Printf("Worker %d: got CDP message: %s\n", c.id, string(result.payload))
-
-			var msg CDPMessage
-			if err := json.Unmarshal(result.payload, &msg); err != nil {
-				// Chrome should never send invalid JSON - this indicates protocol corruption
-				c.assertA(false, "Chrome sent malformed JSON", "error", err, "payload", string(result.payload))
-				continue
-			}
-
-			if msg.ID != nil {
-				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
-				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
-
-				if !batchOK && !cmdOK {
-					// There are two potential reasons for this:
-					// - Client dropped the outer request, and removed the pending command in the SendCommand defer block after exiting
-					// - Chrome sent response after RequestTimeout
-					// we can't really differentiate between this atm, so let's just log it
-					c.logger.Warn(
-						"Received late response for command (likely timed out) - ignoring",
-						"command_id",
-						*msg.ID,
-					)
-					continue
-				}
-
-				// Exactly one must be true - commands can't be in both states
-				c.assertA(
-					batchOK != cmdOK,
-					"Command exists in both batch and single command state",
-					"command_id",
-					*msg.ID,
-				)
-
-				if cmdOK {
-					c.assertA(responseCh != nil, "Response channel for command is nil", "command_id", *msg.ID)
-					responseCh <- CDPResponse{
-						ID:     msg.ID,
-						Result: msg.Result,
-						Error:  msg.Error,
-					}
-				} else if batchOK {
-					state, ok := c.pendingBatches.Get(batchID)
-					c.assertA(ok, "Should always be able to get batch", "command_id", *msg.ID)
-					index := -1
-					for i, potentialCmdID := range state.cmdIds {
-						if potentialCmdID == *msg.ID {
-							index = i
-							break
-						}
-					}
-					c.assertA(index != -1, "Should always be able to find cmd in batch state", "command_id", *msg.ID)
-					state.responses[index] = &CommandResponse{
-						Resp: &CDPResponse{
-							ID:     msg.ID,
-							Result: msg.Result,
-							Error:  msg.Error,
-						},
-						Err: nil,
-					}
-					isComplete := true
-					for _, resp := range state.responses {
-						if resp == nil {
-							isComplete = false
-						}
-					}
-					if isComplete {
-						close(state.result)
-						_, _ = c.pendingBatches.GetAndDelete(batchID)
-					}
-				}
-			} else if msg.Method != "" {
-				// This is an event - call the event handler
-				if c.eventHandler != nil {
-					c.eventHandler(msg.Method, msg.Params)
-				}
-			}
+		var msg CDPMessage
+		if err := json.Unmarshal(payload, &msg); err != nil {
+			// Chrome should never send invalid JSON - this indicates protocol corruption
+			assert.That(false, "Chrome sent malformed JSON", attr.SessionID, c.id, attr.Error, err)
+			return
+		}
+		if msg.ID != nil {
+			c.deliver(*msg.ID, msg)
+		} else if msg.Method != "" && c.eventHandler != nil {
+			c.eventHandler(msg.SessionID, msg.Method, msg.Params)
 		}
 	}
+}
+
+func (c *connection) deliver(cmdID int64, resp CDPMessage) {
+	responseCh, ok := c.pendingCmds.GetAndDelete(cmdID)
+	if !ok {
+		// The caller stopped waiting, because its context was cancelled (or the command timed
+		// out, which already asserted). This happens whenever a client drops a request.
+		c.logger.Debug("Received response for a command nobody waits for, ignoring", attr.CDPCommandID, cmdID)
+		return
+	}
+	responseCh <- resp
 }

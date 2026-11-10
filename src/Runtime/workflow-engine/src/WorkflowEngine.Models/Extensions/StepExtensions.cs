@@ -1,8 +1,7 @@
 namespace WorkflowEngine.Models.Extensions;
 
 /// <summary>
-/// Helpers for projecting <see cref="Step"/> data into telemetry tags, and for the derived wait values
-/// that depend on engine configuration.
+/// Helpers for the derived retry and wait values of a <see cref="Step"/> that depend on engine configuration.
 /// </summary>
 public static class StepExtensions
 {
@@ -46,23 +45,13 @@ public static class StepExtensions
             step.FirstDeferredAt?.Add(step.ResolveWaitBudget(settings));
 
         /// <summary>
-        /// Step metadata useful for enriching telemetry activities.
+        /// Whether the current attempt started at or past the wait deadline, so a deferral from it fails
+        /// the step. Read from <see cref="Step.ExecutionStartedAt"/>, so the command and the engine's
+        /// decision always agree.
         /// </summary>
-        public (string key, object? value)[] GetActivityTags() =>
-            [
-                ("step.database.id", step.DatabaseId),
-                ("step.operation.id", step.OperationId),
-                ("step.command.type", step.Command.Type),
-            ];
-
-        /// <summary>
-        /// Step metadata useful for enriching telemetry histograms.
-        /// </summary>
-        public (string key, object? value)[] GetHistogramTags() =>
-            [
-                ("operation.type", step.Command.Type),
-                ("operation.id", step.OperationId),
-                ("operation.order", step.ProcessingOrder),
-            ];
+        public bool IsFinalWaitCheck(EngineSettings settings) =>
+            step.ExecutionStartedAt is { } startedAt
+            && step.ResolveWaitDeadline(settings) is { } deadline
+            && startedAt >= deadline;
     }
 }

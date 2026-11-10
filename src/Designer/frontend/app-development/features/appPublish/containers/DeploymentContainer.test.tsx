@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -19,7 +20,7 @@ describe('DeploymentContainer', () => {
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+      getEnvironments: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -31,7 +32,7 @@ describe('DeploymentContainer', () => {
   it('renders org environments', async () => {
     const envName = 'tt02';
     render({
-      getEnvironments: jest.fn().mockImplementation(() =>
+      getEnvironments: vi.fn().mockImplementation(() =>
         Promise.resolve([
           {
             ...environment,
@@ -39,17 +40,41 @@ describe('DeploymentContainer', () => {
           },
         ]),
       ),
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
-      getDeployments: jest.fn().mockImplementation(() =>
+      getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
+
+    expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
+  });
+
+  it('renders org environments when the backend is older and sends no environment list', async () => {
+    const envName = 'tt02';
+    render({
+      getEnvironments: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
+      getOrgList: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
+        ),
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList: [] }),
+        ),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -80,22 +105,22 @@ describe('DeploymentContainer', () => {
     };
 
     render({
-      getEnvironments: jest
+      getEnvironments: vi
         .fn()
         .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
-      getDeployments: jest.fn().mockImplementation(() =>
+      getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [
             firstDeployment,
             secondDeploymentWithNone,
             thirdDeploymentWithSuccess,
           ],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });
@@ -124,18 +149,18 @@ describe('DeploymentContainer', () => {
     };
 
     render({
-      getEnvironments: jest
+      getEnvironments: vi
         .fn()
         .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
-      getDeployments: jest.fn().mockImplementation(() =>
+      getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [firstDeployment, secondDeployment],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });

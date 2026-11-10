@@ -103,7 +103,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -187,9 +187,10 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            QueryResponse<Instance> queryResponse = await JsonSerializerPermissive.DeserializeAsync<
-                QueryResponse<Instance>
-            >(response.Content, cancellationToken);
+            QueryResponse<Instance> queryResponse = await JsonSerializerPermissive.Deserialize<QueryResponse<Instance>>(
+                response.Content,
+                cancellationToken
+            );
             return queryResponse;
         }
         else
@@ -230,7 +231,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance updatedInstance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -285,7 +286,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         _logger.LogInformation($"update process state: {updateString}");
 
         StringContent httpContent = new(updateString, Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Put,
             token,
             apiUrl,
@@ -298,7 +299,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance updatedInstance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -349,7 +350,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.IsSuccessStatusCode)
         {
-            Instance createdInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance createdInstance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -387,7 +388,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -423,7 +424,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -463,7 +464,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -508,7 +509,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             cancellationToken
         );
 
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Put,
             token,
             apiUrl,
@@ -519,7 +520,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -564,7 +565,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             cancellationToken
         );
 
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Put,
             token,
             apiUrl,
@@ -575,7 +576,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -608,7 +609,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+            Instance instance = await JsonSerializerPermissive.Deserialize<Instance>(
                 response.Content,
                 cancellationToken
             );
@@ -619,7 +620,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
-    private async Task<HttpResponseMessage> SendStorageRequestAsync(
+    private async Task<HttpResponseMessage> SendStorageRequest(
         HttpMethod method,
         string token,
         string apiUrl,

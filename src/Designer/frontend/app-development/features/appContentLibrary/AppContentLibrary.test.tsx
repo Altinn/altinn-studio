@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,12 +23,12 @@ import { codeListTitles } from './test-data/codeListTitles';
 import { RoutePaths } from '../../enums/RoutePaths';
 
 // Mocks:
-jest.mock('@studio/content-library', () => ({
-  ...jest.requireActual('@studio/content-library'),
+vi.mock('@studio/content-library', async () => ({
+  ...(await vi.importActual('@studio/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-const MockContentLibrary = jest
+const MockContentLibrary = vi
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -37,8 +38,6 @@ const org = 'test-org';
 const app = 'test-app';
 
 describe('AppContentLibrary', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders the content library', async () => {
     renderAppContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
@@ -63,8 +62,8 @@ describe('AppContentLibrary', () => {
   it('Renders an error message when the option lists query fails', async () => {
     const getOptionLists = () => Promise.reject(new Error('Test error'));
     renderAppContentLibrary({ queries: { getOptionLists } });
-    await waitFor(
-      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument,
+    await waitFor(() =>
+      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument(),
     );
     const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
@@ -73,8 +72,8 @@ describe('AppContentLibrary', () => {
   it('Renders an error message when getAvailableResourcesFromOrg fails', async () => {
     const getAvailableResourcesFromOrg = () => Promise.reject(new Error('Test error'));
     renderAppContentLibrary({ queries: { getAvailableResourcesFromOrg } });
-    await waitFor(
-      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument,
+    await waitFor(() =>
+      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument(),
     );
     const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
@@ -100,12 +99,12 @@ describe('AppContentLibrary', () => {
   });
 
   it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
-    const uploadOptionList = jest.fn();
+    const uploadOptionList = vi.fn();
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOptionList).toHaveBeenCalled());
 
     expect(uploadOptionList).toHaveBeenCalledTimes(1);
     expect(uploadOptionList).toHaveBeenCalledWith(org, app, expect.any(FormData));
@@ -118,19 +117,19 @@ describe('AppContentLibrary', () => {
     const file = new File([''], 'list.json');
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(queriesMock.uploadOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.uploadOptionList).toHaveBeenCalled());
 
     const successMessage = textMock('ux_editor.modal_properties_code_list_upload_success');
     expect(screen.getByText(successMessage)).toBeInTheDocument();
   });
 
   it('renders error toast when onUploadOptionList is rejected with unknown error code', async () => {
-    const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const uploadOptionList = vi.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOptionList).toHaveBeenCalled());
 
     const errorMessage = textMock('ux_editor.modal_properties_code_list_upload_generic_error');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -142,7 +141,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateCodeList(codeListWithMetadata);
-    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.updateOptionList).toHaveBeenCalled());
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
@@ -154,7 +153,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateCodeListId(currentName, newName);
-    await waitFor(expect(queriesMock.updateOptionListId).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.updateOptionListId).toHaveBeenCalled());
 
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(org, app, currentName, newName);
@@ -166,7 +165,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onCreateCodeList(newCodeList);
-    await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.updateOptionList).toHaveBeenCalled());
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, title, codeList);
@@ -176,7 +175,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(optionList1Data.title);
-    await waitFor(expect(queriesMock.deleteOptionList).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.deleteOptionList).toHaveBeenCalled());
 
     expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteOptionList).toHaveBeenCalledWith(org, app, optionList1Data.title);
@@ -189,7 +188,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateTextResource(textResourceWithLanguage);
-    await waitFor(expect(queriesMock.upsertTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.upsertTextResources).toHaveBeenCalled());
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
     const expectedPayload: ITextResourcesObjectFormat = {
@@ -208,7 +207,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onImportCodeListFromOrg(codeListId);
-    await waitFor(expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled());
 
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledWith(org, app, codeListId);

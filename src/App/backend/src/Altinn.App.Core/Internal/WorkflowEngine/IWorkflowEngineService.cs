@@ -8,6 +8,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal interface IWorkflowEngineService
 {
+    /// <summary>
+    /// Enqueues the workflow that starts the process of a new instance and waits for it to settle.
+    /// Callbacks inherit <paramref name="language"/>; null uses the caller's profile language.
+    /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
         StorageVersionMetadata instanceVersions,
@@ -16,28 +20,25 @@ internal interface IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken cancellationToken = default
-    );
-
-    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
-        Instance instance,
-        StorageVersionMetadata instanceVersions,
-        string state,
-        string? action,
-        CancellationToken cancellationToken = default
-    );
-
-    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
-        Instance instance,
+        string? language = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Resolves the live status of the current task's transition for read-path enrichment:
-    /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
-    /// the task the transition targets and — for the failed case — the failure detail. Unlike
-    /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
-    /// this is a presentation projection and carries no engine ids.
+    /// Enqueues the acquire workflow and waits for its dependent transition to settle.
+    /// Callbacks inherit <paramref name="language"/>; null uses the caller's profile language.
+    /// </summary>
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        ProcessStateChange processStateChange,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns the current task's transition status, destination, and failure for reads and process/resume.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
         Instance instance,
@@ -47,14 +48,12 @@ internal interface IWorkflowEngineService
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
-        string collectionKey,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Enqueues a process-next workflow that depends on another. <c>idempotencyKey</c> defaults to
-    /// one derived from <c>dependsOnWorkflowId</c>; a caller that must key on something narrower —
-    /// the mailbox relay keys on the step that concluded the exchange — supplies its own.
+    /// Enqueues a dependent transition, keyed by its parent workflow unless <paramref name="idempotencyKey"/>
+    /// is supplied. Mailbox continuations use the concluding step's key.
     /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,

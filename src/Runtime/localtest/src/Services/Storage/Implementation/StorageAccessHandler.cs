@@ -73,6 +73,7 @@ namespace Altinn.Platform.Storage.Authorization
         /// <returns>A Task</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
+            CancellationToken cancellationToken = _httpContextAccessor.HttpContext.RequestAborted;
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
             _logger.LogInformation("// Storage PEP // AppAccessHandler // Request sent: {request}", JsonConvert.SerializeObject(request));
@@ -84,11 +85,11 @@ namespace Altinn.Platform.Storage.Authorization
             if (instance != null)
             {
                 AuthorizationService.EnrichXacmlJsonRequest(request, instance);
-                response = await GetDecisionForRequest(request);
+                response = await GetDecisionForRequest(request, cancellationToken);
             }
             else
             {
-                response = await _pdp.GetDecisionForRequest(request);
+                response = await _pdp.GetDecisionForRequest(request, cancellationToken);
             }
 
             if (response?.Response == null)
@@ -105,14 +106,14 @@ namespace Altinn.Platform.Storage.Authorization
             await Task.CompletedTask;
         }
 
-        private async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot request)
+        private async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot request, CancellationToken cancellationToken)
         {
             string cacheKey = GetCacheKeyForDecisionRequest(request);
 
             if (!_memoryCache.TryGetValue(cacheKey, out XacmlJsonResponse response))
             {
                 // Key not in cache, so get decisin from PDP.
-                response = await _pdp.GetDecisionForRequest(request);
+                response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
                 // Set the cache options
                 MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()

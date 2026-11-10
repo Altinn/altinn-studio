@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
@@ -20,22 +22,20 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { PageName } from '@studio/content-library';
 
 const mockOrgTtd: string = 'ttd';
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the user name as the profile button when in self context', () => {
     renderDashboardHeader({ selectedContext: SelectedContextType.Self });
     expect(screen.getByRole('button', { name: userMock.full_name })).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when there is a merge conflict', () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
@@ -186,7 +186,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when there is a repo error', () => {
-    const getRepoStatus = jest.fn().mockImplementation(() => Promise.reject(new Error('error')));
+    const getRepoStatus = vi.fn().mockImplementation(() => Promise.reject(new Error('error')));
 
     renderDashboardHeader(
       {
@@ -199,7 +199,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when the page is not orgLibrary', () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -214,7 +214,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should not render the submenu when the selected context is not org', () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -229,7 +229,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should render the submenu when showSubMenu is true, there is no repo error and page is orgLibrary', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -246,7 +246,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should render small navigation menu when the screen is small', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderDashboardHeader();
 
     expect(screen.getByRole('button', { name: textMock('top_menu.menu') })).toBeInTheDocument();
@@ -259,7 +259,7 @@ describe('DashboardHeader', () => {
   });
 
   it('should render large navigation menu when the screen is large', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderDashboardHeader();
 
     expect(

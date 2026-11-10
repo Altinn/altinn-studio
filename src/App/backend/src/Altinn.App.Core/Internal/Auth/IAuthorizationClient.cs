@@ -12,28 +12,27 @@ namespace Altinn.App.Core.Internal.Auth;
 public interface IAuthorizationClient
 {
     /// <summary>
-    /// Returns the list of parties that user has any rights for.
+    /// Returns the list of parties the authenticated user can act on behalf of, from the Access Management
+    /// <c>enduser/authorizedparties</c> API. Parties the user can only reach through delegated access to individual
+    /// instances are not included.
     /// </summary>
-    /// <param name="userId">The userId.</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>List of parties.</returns>
     Task<List<Party>?> GetPartyList(
-        int userId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Verifies that the selected party is contained in the user's party list.
+    /// Verifies that the selected party is contained in the authenticated user's party list
+    /// (see <see cref="GetPartyList"/>).
     /// </summary>
-    /// <param name="userId">The user id.</param>
     /// <param name="partyId">The party id.</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
     Task<bool?> ValidateSelectedParty(
-        int userId,
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default

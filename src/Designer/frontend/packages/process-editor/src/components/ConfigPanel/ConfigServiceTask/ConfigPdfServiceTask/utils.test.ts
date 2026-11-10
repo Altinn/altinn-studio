@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { getAvailableTasks, filterCurrentTaskIds } from './utils';
 

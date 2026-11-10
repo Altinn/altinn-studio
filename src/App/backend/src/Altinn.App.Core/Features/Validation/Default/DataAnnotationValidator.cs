@@ -19,6 +19,7 @@ internal sealed class DataAnnotationValidator : IFormDataValidator // TODO: This
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IObjectModelValidator _objectModelValidator;
     private readonly GeneralSettings _generalSettings;
+    private readonly bool _removeHiddenData;
 
     /// <summary>
     /// Constructor
@@ -26,12 +27,14 @@ internal sealed class DataAnnotationValidator : IFormDataValidator // TODO: This
     public DataAnnotationValidator(
         IHttpContextAccessor httpContextAccessor,
         IObjectModelValidator objectModelValidator,
-        IOptions<GeneralSettings> generalSettings
+        IOptions<GeneralSettings> generalSettings,
+        IOptions<AppSettings> appSettings
     )
     {
         _httpContextAccessor = httpContextAccessor;
         _objectModelValidator = objectModelValidator;
         _generalSettings = generalSettings.Value;
+        _removeHiddenData = appSettings.Value.RemoveHiddenData;
     }
 
     /// <summary>
@@ -48,6 +51,13 @@ internal sealed class DataAnnotationValidator : IFormDataValidator // TODO: This
     /// We don't know which fields are relevant for data annotation validation, so we always run it.
     /// </summary>
     public bool HasRelevantChanges(object current, object previous) => true;
+
+    /// <summary>
+    /// When <see cref="AppSettings.RemoveHiddenData"/> is enabled, data from hidden components is removed before
+    /// the task completes, so validation runs on the same cleaned data to avoid reporting errors on fields
+    /// that will be removed anyway.
+    /// </summary>
+    public bool ShouldRunAfterRemovingHiddenData => _removeHiddenData;
 
     /// <inheritdoc />
     public Task<List<ValidationIssue>> ValidateFormData(

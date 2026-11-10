@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { InfoBox } from './InfoBox';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

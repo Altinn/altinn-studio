@@ -233,6 +233,7 @@ internal sealed class HostBridgeConnector : BackgroundService
                 socket,
                 sendLock,
                 HostBridgeProtocol.WriteJsonFrame(HostBridgeFrameKind.ResponseStart, responseStart),
+                requestCancellationToken,
                 cancellationToken
             );
             await SendBodyFrames(
@@ -241,7 +242,8 @@ internal sealed class HostBridgeConnector : BackgroundService
                 response.Content,
                 HostBridgeFrameKind.ResponseBody,
                 pendingRequest.RequestId,
-                requestCancellationToken
+                requestCancellationToken,
+                cancellationToken
             );
             await SendFrame(
                 socket,
@@ -250,7 +252,8 @@ internal sealed class HostBridgeConnector : BackgroundService
                     HostBridgeFrameKind.ResponseTrailers,
                     new HeadersFrame(pendingRequest.RequestId, CollectResponseTrailers(response))
                 ),
-                requestCancellationToken
+                requestCancellationToken,
+                cancellationToken
             );
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -286,6 +289,7 @@ internal sealed class HostBridgeConnector : BackgroundService
                     HostBridgeFrameKind.Error,
                     new ErrorFrame(pendingRequest.RequestId, ex.Message)
                 ),
+                cancellationToken,
                 cancellationToken
             );
         }
@@ -320,7 +324,8 @@ internal sealed class HostBridgeConnector : BackgroundService
         HttpContent? content,
         HostBridgeFrameKind kind,
         long requestId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        CancellationToken connectionCancellationToken
     )
     {
         if (content is null)
@@ -329,7 +334,8 @@ internal sealed class HostBridgeConnector : BackgroundService
                 socket,
                 sendLock,
                 HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
-                cancellationToken
+                cancellationToken,
+                connectionCancellationToken
             );
             return;
         }
@@ -351,7 +357,8 @@ internal sealed class HostBridgeConnector : BackgroundService
                     socket,
                     sendLock,
                     HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
-                    cancellationToken
+                    cancellationToken,
+                    connectionCancellationToken
                 );
             }
 
@@ -359,7 +366,8 @@ internal sealed class HostBridgeConnector : BackgroundService
                 socket,
                 sendLock,
                 HostBridgeProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
-                cancellationToken
+                cancellationToken,
+                connectionCancellationToken
             );
         }
         finally
@@ -372,13 +380,17 @@ internal sealed class HostBridgeConnector : BackgroundService
         ClientWebSocket socket,
         SemaphoreSlim sendLock,
         byte[] frame,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        CancellationToken connectionCancellationToken
     )
     {
         await sendLock.WaitAsync(cancellationToken);
         try
         {
-            await HostBridgeProtocol.SendFrame(socket, frame, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            // Canceling a request must not abort the shared WebSocket. Once a frame
+            // starts, only cancellation of the connection can interrupt its write.
+            await HostBridgeProtocol.SendFrame(socket, frame, connectionCancellationToken);
         }
         finally
         {

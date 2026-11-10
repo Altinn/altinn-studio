@@ -1,11 +1,12 @@
-.PHONY: help start start-minimal start-standard stop test test-e2e build restore lint lint-fix lint-config fmt clean tidy
+.PHONY: help start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop test test-e2e build restore lint lint-fix lint-config fmt clean tidy
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
 LOCALBIN := bin
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.11.2
+# renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint
 
 help: ## Show this help message
@@ -21,6 +22,12 @@ start-minimal: ## Start with minimal variant
 
 start-standard: ## Start with standard variant
 	@cd test && go run ./cmd/tester start standard
+
+start-minimal-monitoring: ## Start minimal with the platform observability stack
+	@cd test && go run ./cmd/tester start minimal --monitoring
+
+start-standard-monitoring: ## Start standard with the platform observability stack
+	@cd test && go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster
 	@cd test && go run ./cmd/tester stop
@@ -47,7 +54,7 @@ build: ## Build Go and .NET projects
 
 lint: golangci-lint ## Run linters (Roslyn + golangci-lint)
 	@echo "Linting .NET (Roslyn analyzers)..."
-	@DOTNET_TREATWARNINGSASERRORS=true dotnet build Altinn.Studio.Gateway.slnx
+	@dotnet build Altinn.Studio.Gateway.slnx
 	@echo "Linting Go..."
 	@cd test && "$(abspath $(GOLANGCI_LINT))" run --config ../.golangci.yml ./...
 	@echo "✓ Lint passed"

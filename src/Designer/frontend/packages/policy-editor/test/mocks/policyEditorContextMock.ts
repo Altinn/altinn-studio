@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { type PolicyEditorContextProps } from '../../src/contexts/PolicyEditorContext';
 import { mockActions } from './policyActionMocks';
 import {
@@ -13,7 +14,7 @@ const mockResourceType: string = 'urn:altinn';
 
 export const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   policyRules: mockPolicyRuleCards,
-  setPolicyRules: jest.fn(),
+  setPolicyRules: vi.fn(),
   actions: mockActions,
   subjects: mockSubjects,
   accessPackages: [],
@@ -21,12 +22,12 @@ export const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   resourceType: mockResourceType,
   showAllErrors: false,
   resourceId: mockResourecId1,
-  savePolicy: jest.fn(),
+  savePolicy: vi.fn(),
 };
 
 export const mockPolicyEditorContextValueWithSingleNarrowingPolicy: PolicyEditorContextProps = {
   policyRules: [mockPolicyRuleCardWithSingleNarrowingPolicy],
-  setPolicyRules: jest.fn(),
+  setPolicyRules: vi.fn(),
   actions: mockActions,
   subjects: mockSubjects,
   accessPackages: [],
@@ -34,5 +35,5 @@ export const mockPolicyEditorContextValueWithSingleNarrowingPolicy: PolicyEditor
   resourceType: mockResourceType,
   showAllErrors: false,
   resourceId: mockResourecId1,
-  savePolicy: jest.fn(),
+  savePolicy: vi.fn(),
 };

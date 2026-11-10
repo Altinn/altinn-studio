@@ -8,6 +8,8 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     // Register your apps custom service implementations here.
     services.AddTransient<IDataWriteProcessor, DataWriteProcessor>();
     services.AddTransient<IFormDataValidator, ModelValidator>();
+    services.AddTransient<IFormDataValidator, MopedComponentValidator>();
+    services.AddTransient<IValidator, TaskComponentValidator>();
     services.AddTransient<IDataElementValidator, AttachmentValidator>();
 }
 

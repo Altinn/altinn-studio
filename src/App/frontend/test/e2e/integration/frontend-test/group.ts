@@ -492,6 +492,16 @@ describe('Group', () => {
 
     // And the component we focussed should not have been scrolled out of view by a layout shift
     cy.focused().should('be.inViewport');
+
+    for (const [target, label] of [
+      ['subGroupStaticBefore', 'Før tabellen'],
+      ['subGroupStaticAfter', 'Etter tabellen'],
+    ]) {
+      cy.gotoNavPage('repeating (store endringer)');
+      cy.get('[data-componentid="subGroupNavigationLinks-5"]').findByRole('link', { name: label }).click();
+      cy.get(`#${target}-5`).should('be.focused').and('have.value', '-NOK 33335');
+      cy.get(`#${target}-0`, { timeout: 0 }).should('not.exist');
+    }
   });
 
   it('Opens delete warning popup when alertOnDelete is true and deletes on confirm', () => {
@@ -837,8 +847,8 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.editContainer).find('input').first().should('have.value', 'NOK 80 323');
 
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
 
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -909,13 +919,14 @@ describe('Group', () => {
       // Make sure we don't have any rows open for editing before hiding them
       cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
-      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-      cy.get(appFrontend.group.hideRepeatingGroupRow).type('0');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('0');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 0');
     }
 
     function showSomeRows() {
-      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-      cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+      // Replacing the value avoids a save that normalizes an empty integer to zero during typing.
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
     }
 
     showSomeRows();
@@ -925,8 +936,8 @@ describe('Group', () => {
     cy.get('[data-testid="summary-repeating-row"]').should('have.length', 2);
 
     function assertGroupLabelAsFieldSet(insideGroup: string, rowLength: number, addButtonVisbible = true) {
-      cy.findByRole('caption', { name: 'Group title' }).should('not.exist');
-      cy.findByRole('table', { name: 'Group title' }).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ }).should('not.exist');
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ }).should('not.exist');
       cy.findByRole('group', { name: 'Group title' }).find(insideGroup).should('have.length', rowLength);
       if (addButtonVisbible) {
         cy.findByRole('group', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('be.visible');
@@ -938,18 +949,24 @@ describe('Group', () => {
     function assertGroupLabelAsCaption(numRows: number) {
       cy.findByRole('group', { name: 'Group title' }).should('not.exist');
 
-      cy.findByRole('table', { name: 'Group title' })
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ })
         .find(appFrontend.group.mainGroupTableBody)
         .find('tr')
         .should('have.length', numRows);
 
       // The caption itself is a role inside the table, but it does not 'contain' the table rows themselves
-      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.mainGroupTableBody).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.mainGroupTableBody)
+        .should('not.exist');
 
       // The caption and table roles does not cover the add button (maybe it should? the add button is not a part of the
       // table, but it is a part of the group component)
-      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
-      cy.findByRole('table', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.addNewItem)
+        .should('not.exist');
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.addNewItem)
+        .should('not.exist');
 
       // But the button should be visible outside the table
       cy.get(appFrontend.group.addNewItem).should('be.visible');
@@ -1080,15 +1097,15 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Neste side/ })
       .click();
-    cy.findByRole('presentation', { name: 'Last opp alle vedlegg med kilde Altinn her' }).should('not.exist');
-    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+    cy.findByRole('presentation', { name: /^Last opp alle vedlegg med kilde Altinn her/ }).should('not.exist');
+    cy.findByRole('presentation', { name: /^Multi uploader in repeating group\s*Valgfritt$/ }).should('exist');
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Neste side/ })
       .click();
-    cy.findByRole('table', { name: 'Nested group' }).should('exist');
+    cy.findByRole('table', { name: /^Nested group\s*Valgfritt$/ }).should('exist');
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Forrige side/ })
       .click();
-    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+    cy.findByRole('presentation', { name: /^Multi uploader in repeating group\s*Valgfritt$/ }).should('exist');
   });
 });

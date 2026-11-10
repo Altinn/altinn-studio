@@ -24,6 +24,7 @@
         "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_1",
+      "enablePdfCreation": false,
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,

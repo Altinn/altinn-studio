@@ -6,17 +6,20 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   SaveWhileTyping,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
+export interface AddressSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type AddressSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Address' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & AddressSummaryOverrides)
+  | ({ componentType: 'Address' } & AddressSummaryOverrides);
 
 export interface CompAddressExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'Address';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -26,6 +29,10 @@ export interface CompAddressExternal
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForAddress;
   saveWhileTyping?: SaveWhileTyping;
@@ -64,8 +71,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompAddressExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: AddressSummaryOverrides;
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: 88a91c60edff72e95ec1ed5f09c23da51e3d2a97c7dc9dbcc700e873952a2745
+// Source hash: 25cae86bdb9c484887d56da8470e9c6f3aae9716a7588b6f550ff1c77717e3d6

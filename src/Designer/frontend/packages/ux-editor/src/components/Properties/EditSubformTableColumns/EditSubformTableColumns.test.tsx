@@ -1,6 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -13,11 +15,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
-const mockSubformLayoutValidation = jest.fn();
-jest.mock('./hooks/useSubformLayoutValidation', () => ({
+const mockSubformLayoutValidation = vi.fn();
+vi.mock('./hooks/useSubformLayoutValidation', () => ({
   useSubformLayoutValidation: () => mockSubformLayoutValidation(),
 }));
 
@@ -26,16 +29,12 @@ const defaultProps: EditSubformTableColumnsProps = {
     ...subformComponentMock,
     layoutSet: subformLayoutMock.layoutSetName,
   },
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
 };
 
 describe('EditSubformTableColumns', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should call handleComponentChange when a new column is added when tableColumns initially are empty ', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -53,7 +52,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should call handleComponentChange when a new column is added when tableColumns has a value', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -68,7 +67,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should call handleComponentChange when a column is edited', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -91,12 +90,14 @@ describe('EditSubformTableColumns', () => {
 
     const columnTitleKey = getUpdatedTableColumns(handleComponentChangeMock)[0].headerContent;
     expect(columnTitleKey).toEqual(
-      expect.stringContaining(subformLayoutMock.component1.textResourceBindings.title),
+      expect.stringContaining(
+        getTextResourceId(subformLayoutMock.component1.textResourceBindings.title),
+      ),
     );
   });
 
   it('should call handleComponentChange when a column is deleted', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -139,7 +140,7 @@ describe('EditSubformTableColumns', () => {
 
   it('should render new column in edit mode when add column button is clicked', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const { rerender } = renderEditSubformTableColumns({
       props: { handleComponentChange: handleComponentChangeMock },
     });
@@ -174,7 +175,7 @@ const getComponentSelector = () =>
     textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
   );
 
-const getUpdatedTableColumns = (mockFn: jest.Mock) => mockFn.mock.calls[0][0].tableColumns;
+const getUpdatedTableColumns = (mockFn: Mock) => mockFn.mock.calls[0][0].tableColumns;
 
 const renderEditSubformTableColumns = (
   { props, isSubformLayoutConfigured }: renderEditSubformTableColumnsParameters = {

@@ -1,5 +1,5 @@
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ExplicitDataModelBinding, IDataModelBindings } from '../types/global';
 
 export const getMinOccursFromDataModelFields = (

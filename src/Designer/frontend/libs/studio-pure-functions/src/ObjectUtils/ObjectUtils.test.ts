@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ObjectUtils } from './ObjectUtils';
 
 describe('objectUtils', () => {

@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { findRestrictionsOnNode } from './restrictions';
 import { IntRestrictionKey } from '../types';
 

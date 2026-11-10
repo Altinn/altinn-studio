@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
@@ -118,7 +119,7 @@ describe('headerMenuUtils', () => {
   describe('mapNavigationMenuToProfileMenu', () => {
     const buttonItem: NavigationMenuItem = {
       itemName: 'Button Item',
-      action: { type: 'button', onClick: jest.fn() },
+      action: { type: 'button', onClick: vi.fn() },
     };
     const linkItem: NavigationMenuItem = {
       itemName: 'Link Item',

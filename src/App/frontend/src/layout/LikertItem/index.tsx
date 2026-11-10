@@ -5,9 +5,11 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
+import { validateOptionsDataModelBindings } from 'src/features/options/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
+import { LikertItemSummary } from 'src/layout/LikertItem/LikertItemSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
@@ -19,6 +21,7 @@ import type {
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class LikertItem extends LikertItemDef {
   render = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -53,6 +56,10 @@ export class LikertItem extends LikertItemDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <LikertItemSummary {...props} />;
+  }
+
   validateEmptyField(ctx: ComponentValidationContext<'LikertItem'>): ComponentValidation[] {
     return validateEmptyFieldOnlyOneBinding(ctx, 'simpleBinding');
   }
@@ -70,7 +77,10 @@ export class LikertItem extends LikertItemDef {
       'simpleBinding',
       ['string', 'number', 'boolean'],
     );
-    const errors: string[] = [...(answerErr ?? [])];
+    const errors: string[] = [
+      ...(answerErr ?? []),
+      ...validateOptionsDataModelBindings(baseComponentId, bindings, lookupBinding, layoutLookups, 'single'),
+    ];
 
     const parentRef = layoutLookups.componentToParent[baseComponentId];
     const parent = parentRef && parentRef.type === 'node' ? layoutLookups.allComponents[parentRef.id] : undefined;

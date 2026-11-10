@@ -24,6 +24,22 @@ http {
   otel_service_name ${OTEL_SERVICE_NAME};
   otel_trace ${OTEL_TRACE};
   otel_trace_context propagate;
+  # Span names default to the final location alone, such as @proxy_to_gitea. Each location
+  # names its spans after the method and itself: the location shows which authentication path
+  # handled the request. nginx passes on any method a client sends, so methods outside the
+  # standard set are named HTTP, as the OpenTelemetry semantic conventions do.
+  map $request_method $span_method {
+    GET     GET;
+    HEAD    HEAD;
+    POST    POST;
+    PUT     PUT;
+    DELETE  DELETE;
+    PATCH   PATCH;
+    OPTIONS OPTIONS;
+    CONNECT CONNECT;
+    TRACE   TRACE;
+    default HTTP;
+  }
 
   js_import auth from /etc/nginx/auth.js;
 
@@ -43,6 +59,7 @@ http {
     listen 80;
 
     location / {
+      otel_span_name "$span_method /";
       js_content auth.handleRequest;
     }
 
@@ -58,6 +75,7 @@ http {
     }
 
     location @proxy_to_gitea {
+      otel_span_name "$span_method @proxy_to_gitea";
       proxy_pass http://gitea;
       proxy_set_header X-WEBAUTH-USER $auth_username;
       proxy_set_header X-WEBAUTH-FULLNAME $auth_fullname;
@@ -69,6 +87,7 @@ http {
     }
 
     location @proxy_to_gitea_clean {
+      otel_span_name "$span_method @proxy_to_gitea_clean";
       proxy_pass http://gitea;
       proxy_set_header X-WEBAUTH-USER "";
       proxy_set_header X-WEBAUTH-FULLNAME "";
@@ -86,10 +105,12 @@ http {
     listen 81;
 
     location / {
+      otel_span_name "$span_method /";
       js_content auth.handleInternalRequest;
     }
 
     location @proxy_to_gitea_internal {
+      otel_span_name "$span_method @proxy_to_gitea_internal";
       proxy_pass http://gitea;
       proxy_set_header X-WEBAUTH-USER $auth_username;
       proxy_set_header X-WEBAUTH-FULLNAME $auth_fullname;
@@ -99,6 +120,7 @@ http {
     }
 
     location @proxy_to_gitea_passthrough {
+      otel_span_name "$span_method @proxy_to_gitea_passthrough";
       proxy_pass http://gitea;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
@@ -106,6 +128,7 @@ http {
     }
 
     location @proxy_to_gitea_internal_clean {
+      otel_span_name "$span_method @proxy_to_gitea_internal_clean";
       proxy_pass http://gitea;
       proxy_set_header X-WEBAUTH-USER "";
       proxy_set_header X-WEBAUTH-FULLNAME "";

@@ -58,6 +58,12 @@ public sealed partial class AppFixture : IAsyncDisposable
 
     public string App => _app;
     internal string EffectiveApp => _effectiveApp;
+
+    /// <summary>
+    /// The project folder of the generated app (the folder containing App.csproj).
+    /// studioctl builds the app with <c>dotnet build</c>, so the build output is under <c>bin/</c> in here.
+    /// </summary>
+    internal string AppProjectDirectory => Path.Join(_generatedAppDirectory, "App");
     private readonly bool _isClassFixture;
     private readonly StudioctlEnvironmentLease _studioctlEnvironmentLease;
     private StudioctlAppProcess _appProcess;

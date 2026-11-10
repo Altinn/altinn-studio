@@ -19,7 +19,13 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addSummaryOverrides()
+  .extends(CG.common('LabeledComponentProps'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

@@ -19,5 +19,13 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>%(FullPath)</OriginalItemSpec>
     </StaticWebAsset>
+
+  <!--
+    The Web SDK only copies *.json and *.config files to the build and publish output by default.
+    The XSD schemas in models/ are read at runtime by the XSD validator (AppSettings:XsdValidation),
+    so they must be copied too, or the validator finds no schema in a published (Docker) app.
+   -->
+    <Content Include="models/**/*.xsd" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Remove="models/**/*.xsd" />
   </ItemGroup>
 </Project>

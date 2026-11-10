@@ -102,7 +102,9 @@ export function Checkboxes({
           )}
           {description && (
             <Fieldset.Description
-              className={cn({ [classes.visuallyHidden]: renderLegend === false })}
+              className={cn(classes.description, {
+                [classes.visuallyHidden]: renderLegend === false,
+              })}
             >
               {lang(description)}
             </Fieldset.Description>

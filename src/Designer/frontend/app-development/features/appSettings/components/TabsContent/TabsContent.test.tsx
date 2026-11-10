@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -19,10 +20,6 @@ const tabs: SettingsPageTabId[] = [
 ];
 
 describe('TabsContent', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', async (tab) => {
     renderTabsContent(tab);
     expect(await findHeading(tab)).toBeInTheDocument();
@@ -58,7 +55,7 @@ const renderTabsContent = (initialEntries: string = '', orgList: OrgList = orgLi
       <ServicesContextProvider
         {...queriesMock}
         client={queryClient}
-        getOrgList={jest.fn().mockImplementation(() => Promise.resolve(orgList))}
+        getOrgList={vi.fn().mockImplementation(() => Promise.resolve(orgList))}
       >
         <TabsContent />
       </ServicesContextProvider>

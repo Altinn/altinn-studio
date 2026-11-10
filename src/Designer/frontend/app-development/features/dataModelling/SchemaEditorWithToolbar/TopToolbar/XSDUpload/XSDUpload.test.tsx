@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { XSDUpload } from './XSDUpload';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -10,16 +11,17 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import * as useUploadDataModelMutationModule from '../../../../../hooks/mutations/useUploadDataModelMutation';
 
 const user = userEvent.setup();
 
-jest.mock('../../../../../hooks/mutations/useUploadDataModelMutation', () => ({
+vi.mock('../../../../../hooks/mutations/useUploadDataModelMutation', async () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../../hooks/mutations/useUploadDataModelMutation'),
+  ...(await vi.importActual('../../../../../hooks/mutations/useUploadDataModelMutation')),
 }));
 
-const useUploadDataModelMutationSpy = jest.spyOn(
-  require('../../../../../hooks/mutations/useUploadDataModelMutation'),
+const useUploadDataModelMutationSpy = vi.spyOn(
+  useUploadDataModelMutationModule,
   'useUploadDataModelMutation',
 );
 
@@ -39,10 +41,12 @@ const renderXsdUpload = ({
   renderWithProviders(queries, queryClient)(<XSDUpload uploadButtonText={uploadButtonTextMock} />);
 
 describe('XSDUpload', () => {
-  afterEach(jest.restoreAllMocks);
+  afterEach(vi.restoreAllMocks);
 
   it('shows a spinner when uploading', async () => {
-    useUploadDataModelMutationSpy.mockReturnValue({ isPending: true });
+    useUploadDataModelMutationSpy.mockReturnValue({ isPending: true } as unknown as ReturnType<
+      typeof useUploadDataModelMutationModule.useUploadDataModelMutation
+    >);
 
     renderXsdUpload();
 
@@ -76,7 +80,7 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     renderXsdUpload({
       queries: {
-        uploadDataModel: jest
+        uploadDataModel: vi
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock(400, errorCode))),
       },
@@ -114,7 +118,7 @@ describe('XSDUpload', () => {
   });
 
   it('shows confirm dialog when uploading a model with colliding id with another model', async () => {
-    window.confirm = jest.fn();
+    window.confirm = vi.fn();
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
@@ -130,7 +134,7 @@ describe('XSDUpload', () => {
   });
 
   it('overrides data model if confirm dialog is accepted', async () => {
-    window.confirm = jest.fn().mockReturnValue(true);
+    window.confirm = vi.fn().mockReturnValue(true);
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
@@ -149,7 +153,7 @@ describe('XSDUpload', () => {
   });
 
   it('does not allow uploading with invalid name', async () => {
-    window.alert = jest.fn();
+    window.alert = vi.fn();
     const file = new File(['$-_123'], '$-_123.xsd', { type: 'text/xml' });
     renderXsdUpload();
 
@@ -169,9 +173,7 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     renderXsdUpload({
       queries: {
-        uploadDataModel: jest
-          .fn()
-          .mockImplementation(() => Promise.reject(createApiErrorMock(400))),
+        uploadDataModel: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock(400))),
       },
       queryClient: null,
     });

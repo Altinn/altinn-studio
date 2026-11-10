@@ -1,0 +1,2 @@
+# Markdown formatting is optional and should not gate code changes in CI.
+**/*.md

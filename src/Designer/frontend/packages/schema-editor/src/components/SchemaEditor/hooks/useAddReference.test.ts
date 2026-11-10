@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReferenceNode } from '@altinn/schema-model';
 import {
   ROOT_POINTER,
@@ -29,7 +30,7 @@ const uniquePointerOfParent = SchemaModel.getUniquePointer(
 
 describe('useAddReference', () => {
   const setup = () => {
-    const save = jest.fn();
+    const save = vi.fn();
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save };
     const { result } = renderHookWithProviders({ appContextProps })(useAddReference);
@@ -85,7 +86,7 @@ describe('useAddReference', () => {
       definitionNodeMock.schemaPointer,
     );
     const target: ItemPosition = { parentId: uniquePointerOfDefinition, index: 0 };
-    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    vi.spyOn(window, 'alert').mockImplementation(vi.fn());
     add(nameOfDefinition, target);
     expect(save).not.toHaveBeenCalled();
   });

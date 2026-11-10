@@ -2,13 +2,13 @@ import React, { Fragment, type PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Label as DesignSystemLabel, Paragraph } from '@digdir/designsystemet-react';
 
-import { Label, LabelInner } from 'src/components/label/Label';
+import { Label } from 'src/components/label/Label';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
@@ -22,12 +22,17 @@ import {
   useSubformFormData,
 } from 'src/layout/Subform/utils';
 import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
+import {
+  useSummaryLabelProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -39,8 +44,17 @@ const SummarySubformWrapperInner = ({
   targetBaseComponentId: string;
 }>) => {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
+  const labelText = useSummaryLabelText(targetBaseComponentId);
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Subform.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Subform.textResourceBindings.title,
+  );
+  const title = summaryTitle ?? resolvedTitle;
 
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
@@ -53,8 +67,10 @@ const SummarySubformWrapperInner = ({
             baseComponentId={targetBaseComponentId}
             id={`subform-summary2-${componentId}`}
             renderLabelAs='span'
+            hideIndicators
             weight='regular'
             textResourceBindings={{
+              ...labelText,
               title,
             }}
             className={classes.summaryLabelMargin}
@@ -98,10 +114,9 @@ const DoSummaryWrapper = ({
   title: string | undefined;
   baseComponentId: string;
 }>) => {
-  const config = useComponentConfig(baseComponentId, 'Subform');
-
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const labelProps = useSummaryLabelProps(baseComponentId);
 
   if (isSubformDataFetching) {
     return <Loader reason='subform-data' />;
@@ -116,48 +131,60 @@ const DoSummaryWrapper = ({
       ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, baseComponentId)
       : null;
 
+  const label = title ? (
+    <LabelContent
+      {...labelProps}
+      wrapperId={`label-${baseComponentId}`}
+      label={
+        <DesignSystemLabel
+          asChild
+          weight='regular'
+        >
+          <span>
+            <Lang id={title} />
+          </span>
+        </DesignSystemLabel>
+      }
+    />
+  ) : null;
+
   return (
     <div className={classes.summaryWrapperMargin}>
-      <TaskOverrides
-        dataModelElementId={dataElement.id}
-        dataModelType={dataElement.dataType}
-        uiFolder={uiFolder}
-      >
-        <FormProvider
-          readOnly={true}
-          uiFolderOverride={uiFolder}
-          dataElementIdOverride={dataElement.id}
+      <div className={classes_singlevaluesummary.labelValueWrapper}>
+        {label}
+        <TaskOverrides
+          dataModelElementId={dataElement.id}
+          dataModelType={dataElement.dataType}
+          uiFolder={uiFolder}
         >
-          <Flex
-            container
-            spacing={6}
-            alignItems='flex-start'
+          <FormProvider
+            readOnly={true}
+            uiFolderOverride={uiFolder}
+            dataElementIdOverride={dataElement.id}
           >
-            <Flex item>
-              <div className={classes_singlevaluesummary.labelValueWrapper}>
-                <LabelInner
-                  config={config}
-                  baseComponentId={baseComponentId}
-                  id={`subform-summary2-${dataElement.id}`}
-                  renderLabelAs='span'
-                  weight='regular'
-                  textResourceBindings={{ title }}
-                />
-                {subformEntryName && (
-                  <Heading
-                    className='no-visual-testing'
-                    data-size='sm'
-                    level={2}
-                  >
-                    {subformEntryName}
-                  </Heading>
-                )}
-              </div>
+            <Flex
+              container
+              spacing={6}
+              alignItems='flex-start'
+            >
+              <Flex item>
+                <div className={classes_singlevaluesummary.labelValueWrapper}>
+                  {subformEntryName && (
+                    <Heading
+                      className='no-visual-testing'
+                      data-size='sm'
+                      level={2}
+                    >
+                      {subformEntryName}
+                    </Heading>
+                  )}
+                </div>
+              </Flex>
+              <LayoutSetSummary />
             </Flex>
-            <LayoutSetSummary />
-          </Flex>
-        </FormProvider>
-      </TaskOverrides>
+          </FormProvider>
+        </TaskOverrides>
+      </div>
     </div>
   );
 };
@@ -186,11 +213,8 @@ export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Prop
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
-  const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
-  const config2 = useComponentConfig(targetBaseComponentId, 'Subform');
-  const evaluatedRequired = useEvalExpression(config2.required, Expressions.Subform.required);
-  const required = evaluatedRequired || (minCount !== undefined && minCount > 0);
+  const required = useComponentIsRequired(config);
 
   const inner =
     displayType === 'table' ? (

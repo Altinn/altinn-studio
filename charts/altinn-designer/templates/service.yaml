@@ -9,5 +9,6 @@ spec:
     - port: {{ .Values.service.externalPort }}
       targetPort: {{ .Values.image.containerPort }}
       protocol: TCP
+      appProtocol: http
   selector:
     run: altinn-designer

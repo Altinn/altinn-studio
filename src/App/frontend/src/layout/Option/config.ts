@@ -25,6 +25,8 @@ export const Config = asOptionsComponent(
   { supportsPreselection: false },
 )
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addSummaryOverrides()
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(

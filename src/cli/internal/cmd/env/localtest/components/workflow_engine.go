@@ -43,6 +43,12 @@ const (
 	postgresDB       = "postgres"
 	postgresPort     = "5432"
 	workflowEngineDB = "workflow_engine"
+
+	// The service name the engine is deployed under (workflow-engine-app's kustomize base), so its
+	// telemetry reads the same locally as in Altinn's environments.
+	workflowEngineOTelServiceName = "workflow-engine-app"
+	// Every service exports metrics every 15 s, set by the deployment rather than in code.
+	otelMetricExportIntervalMillis = "15000"
 )
 
 func registerWorkflowEngineComponents(manifest *Manifest, opts *Options) {
@@ -132,13 +138,19 @@ func workflowEngineDbContainer(ctx *Options) *ContainerSpec {
 }
 
 func workflowEngineContainer(ctx *Options) *ContainerSpec {
+	deps := []string{ContainerWorkflowEngineDb, ContainerLocaltest}
+	if ctx.IncludeMonitoring {
+		// Start after the collector and stop before it, so neither the startup telemetry nor the
+		// final flush is exported to a collector that is not there.
+		deps = append(deps, ContainerOtelCollector)
+	}
 	spec := newContainerSpec(
 		ContainerWorkflowEngine,
 		nil,
-		workflowEngineEnv(ctx.Topology),
+		workflowEngineEnv(ctx.Topology, ctx.IncludeMonitoring),
 		nil,
 		nil,
-		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
+		deps,
 		nil,
 	)
 	spec.HealthCheck = &types.HealthCheck{
@@ -153,13 +165,23 @@ func workflowEngineContainer(ctx *Options) *ContainerSpec {
 	return spec
 }
 
-func workflowEngineEnv(topology envtopology.Local) map[string]string {
-	return map[string]string{
+func workflowEngineEnv(topology envtopology.Local, includeMonitoring bool) map[string]string {
+	env := map[string]string{
 		"ASPNETCORE_ENVIRONMENT":              "Development",
 		"ASPNETCORE_HTTP_PORTS":               workflowEngineHTTPPort,
 		"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
 		"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+		"OTEL_SERVICE_NAME":                   workflowEngineOTelServiceName,
+		"OTEL_METRIC_EXPORT_INTERVAL":         otelMetricExportIntervalMillis,
 	}
+	if includeMonitoring {
+		// The collector's host alias resolves on the environment network only while monitoring runs.
+		env["OTEL_EXPORTER_OTLP_ENDPOINT"] = topology.OTelURL()
+		// The dashboard's trace links are opened by the browser, so they take Grafana's public URL.
+		env["EngineSettings__Dashboard__GrafanaUrl"] = topology.PublicRouteURL(envtopology.ComponentGrafana)
+		env["EngineSettings__Dashboard__GrafanaTracesDatasourceUid"] = grafanaTracesDatasourceUID
+	}
+	return env
 }
 
 func workflowEngineDestination(devWorkflowEngine bool) envtopology.BoundTopologyDestination {

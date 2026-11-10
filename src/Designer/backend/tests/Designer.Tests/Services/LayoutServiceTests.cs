@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -134,6 +135,39 @@ public class LayoutServiceTests
     }
 
     [Fact]
+    public async Task DeletingPageGroup_WhenAPageHasNoLayoutFile_PublishesDeletedEventForEveryPage()
+    {
+        const string Repo = "app-with-groups-and-task-navigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, Mock<IPublisher> mediatr) =
+            await PrepareTestForRepo(Repo);
+        PagesDto pagesDto = PagesDto.From(await layoutService.GetLayoutSettings(editingContext, "form"));
+        List<string> deletedPageIds = [.. pagesDto.Groups[0].Pages.Select(page => page.Id)];
+        File.Delete(
+            Path.Combine(
+                TestDataHelper.GetTestDataRepositoryDirectory(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                ),
+                $"App/ui/form/layouts/{deletedPageIds[^1]}.json"
+            )
+        );
+        pagesDto.Groups.RemoveAt(0);
+
+        await layoutService.UpdatePageGroups(editingContext, "form", (PagesWithGroups)pagesDto.ToBusiness());
+
+        List<string> publishedPageIds =
+        [
+            .. mediatr
+                .Invocations.Where(i => i.Method.Name == nameof(IPublisher.Publish))
+                .Select(i => i.Arguments[0])
+                .OfType<LayoutPageDeletedEvent>()
+                .Select(deletedEvent => deletedEvent.LayoutName),
+        ];
+        Assert.Equal(deletedPageIds, publishedPageIds);
+    }
+
+    [Fact]
     public async Task RenamePage_ShouldNotDeletePagesInGroup()
     {
         const string Repo = "app-with-groups-and-task-navigation";
@@ -265,6 +299,43 @@ public class LayoutServiceTests
         {
             Assert.True(showBackButton.GetBoolean());
         }
+    }
+
+    [Theory]
+    [InlineData(
+        "app-with-layoutsets-v9",
+        "Task_1",
+        true,
+        "https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json"
+    )]
+    [InlineData(
+        "app-with-layoutsets",
+        "layoutSet1",
+        false,
+        "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json"
+    )]
+    public async Task CreatePage_ShouldReferenceLayoutSchemaMatchingAppVersion(
+        string repo,
+        string layoutSetId,
+        bool isV9App,
+        string expectedSchemaUrl
+    )
+    {
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) = await PrepareTestForRepo(
+            repo,
+            isV9App
+        );
+
+        await layoutService.CreatePage(editingContext, layoutSetId, "newPage");
+
+        string newPageContent = TestDataHelper.GetFileFromRepo(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer,
+            $"App/ui/{layoutSetId}/layouts/newPage.json"
+        );
+        using JsonDocument newPage = JsonDocument.Parse(newPageContent);
+        Assert.Equal(expectedSchemaUrl, newPage.RootElement.GetProperty("$schema").GetString());
     }
 
     [Fact]

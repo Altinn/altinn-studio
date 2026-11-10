@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
@@ -21,7 +22,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 const layoutName = layout1NameMock;
 const layoutSetName = layoutSet1NameMock;
 
-jest.useFakeTimers({ advanceTimers: true });
+vi.useFakeTimers({ shouldAdvanceTime: true });
 
 const buttonTestId = 'button';
 const Button = ({ onClick }: { onClick: () => void }) => (
@@ -41,15 +42,13 @@ const render = (ChildComponent: React.ElementType) => {
     {
       queryClient: createQueryClientMock(),
       queries: {
-        getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+        getFormLayouts: vi.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
       },
     },
   );
 };
 
 describe('FormItemContext', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should update the form item when calling handleUpdate', async () => {
     render(() => {
       const { formItem, handleUpdate } = React.useContext(FormItemContext);
@@ -57,7 +56,7 @@ describe('FormItemContext', () => {
         <>
           <Button onClick={() => handleUpdate(component1Mock)} />
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -68,7 +67,7 @@ describe('FormItemContext', () => {
       expect(screen.getByTestId('formItem.id')).toHaveTextContent(component1Mock.id),
     );
     await waitFor(() =>
-      expect(screen.getByTestId('formItem.itemType')).toHaveTextContent(component1Mock.itemType),
+      expect(screen.getByTestId('formItem.type')).toHaveTextContent(component1Mock.type),
     );
   });
 
@@ -80,7 +79,7 @@ describe('FormItemContext', () => {
           <Button onClick={() => handleEdit(component1Mock)} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -94,7 +93,7 @@ describe('FormItemContext', () => {
       expect(screen.getByTestId('formItem.id').textContent).toEqual(component1Mock.id),
     );
     await waitFor(() =>
-      expect(screen.getByTestId('formItem.itemType').textContent).toEqual(component1Mock.itemType),
+      expect(screen.getByTestId('formItem.type').textContent).toEqual(component1Mock.type),
     );
   });
 
@@ -106,7 +105,7 @@ describe('FormItemContext', () => {
           <Button onClick={() => handleDiscard()} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -115,7 +114,7 @@ describe('FormItemContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('formItemId').textContent).toBe(''));
     await waitFor(() => expect(screen.getByTestId('formItem.id').textContent).toBe(''));
-    await waitFor(() => expect(screen.getByTestId('formItem.itemType').textContent).toBe(''));
+    await waitFor(() => expect(screen.getByTestId('formItem.type').textContent).toBe(''));
   });
 
   it('should save the container when calling handleSave', async () => {
@@ -188,7 +187,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     await clickButton();
 
@@ -266,7 +265,7 @@ describe('FormItemContext', () => {
       return <Button onClick={() => debounceSave(component1IdMock, component1Mock)} />;
     });
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     await clickButton();
 

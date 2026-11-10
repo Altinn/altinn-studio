@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ToolColumn } from './ToolColumn';
 import { render, screen } from '@testing-library/react';
 import type { ToolColumnProps } from './ToolColumn';

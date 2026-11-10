@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { useCurrentProcessKey, useIsAnyProcessing, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
@@ -12,17 +13,12 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import {
-  useCurrentProcessKey,
-  useIsAnyProcessing,
-  useProcessingMutationWithKey,
-} from 'src/hooks/useProcessingMutation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
@@ -33,7 +29,6 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
-  // TODO: Support returning to Summary2
   if (origin && origin.type === 'Summary') {
     return (
       <WithSummary
@@ -112,7 +107,8 @@ function NavigationButtonsComponentInner({
   const isAnyProcessing = useIsAnyProcessing();
 
   const showBackToSummaryButton = returnToView !== undefined;
-  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
+  const showNextButton =
+    hasNext && (!showBackToSummaryButton || (returnToView.showNextButton ?? showNextButtonSummary));
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -158,14 +154,13 @@ function NavigationButtonsComponentInner({
 
       const prevScrollPosition = getScrollPosition();
 
-      if (validateOnForward && !returnToView) {
+      if (validateOnForward) {
         const pageKey = layoutLookups.componentToPage[baseComponentId];
         if (!pageKey) {
           throw new Error(`Could not find page key for component ${baseComponentId}`);
         }
         const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
         if (hasErrors) {
-          // Block navigation if validation fails, unless returnToView is set (Back to summary)
           resetScrollPosition(prevScrollPosition);
           return;
         }
@@ -177,7 +172,7 @@ function NavigationButtonsComponentInner({
   const onClickBackToSummary = () =>
     performProcess('backToSummary', async () => {
       await maybeSaveOnPageChange();
-      await navigateToPage(returnToView, { skipAutoSave: true });
+      await navigateToPage(returnToView?.pageId, { skipAutoSave: true });
     });
 
   const onClickBackToPage = () =>

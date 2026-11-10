@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderWithProviders } from '../../testing/mocks';
 import { TaskAction, type TaskActionProps } from './TaskAction';
 import { screen } from '@testing-library/react';
@@ -25,8 +26,6 @@ const mockTask = [
 ];
 
 describe('TaskAction', () => {
-  beforeEach(() => jest.clearAllMocks());
-
   it('should render display button when not in navigation mode', () => {
     renderTaskAction({ props: { isNavigationMode: false } });
 

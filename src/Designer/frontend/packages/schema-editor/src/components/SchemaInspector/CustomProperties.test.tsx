@@ -1,3 +1,4 @@
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
@@ -41,11 +42,10 @@ const rootNode: UiSchemaNode = {
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
 const schemaModel = SchemaModel.fromArray(uiSchema);
-const saveDataModel = jest.fn();
+const saveDataModel = vi.fn();
 
 describe('CustomProperties', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
-  afterEach(jest.clearAllMocks);
 
   it('Renders a list of all custom properties', () => {
     render();

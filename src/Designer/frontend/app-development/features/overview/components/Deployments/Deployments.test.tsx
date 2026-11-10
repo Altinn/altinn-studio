@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Deployments } from './Deployments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -23,7 +24,7 @@ describe('Deployments', () => {
 
   it('shows an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+      getOrgList: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('overview.deployments_loading')),
@@ -34,14 +35,14 @@ describe('Deployments', () => {
 
   it('shows private repo message', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {},
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {
@@ -65,7 +66,7 @@ describe('Deployments', () => {
 
   it('shows no environments message', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {
@@ -74,7 +75,7 @@ describe('Deployments', () => {
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {
@@ -95,7 +96,7 @@ describe('Deployments', () => {
 
   it('renders page', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {
@@ -104,7 +105,7 @@ describe('Deployments', () => {
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {

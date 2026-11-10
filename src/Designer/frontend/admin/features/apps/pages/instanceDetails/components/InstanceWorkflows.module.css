@@ -1,0 +1,53 @@
+.description {
+  margin-bottom: var(--ds-size-4);
+}
+
+.workflows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+}
+
+.workflows > *:not(button) {
+  width: 100%;
+}
+
+/* The rows stack edge to edge, with no gap of their own: the design system draws a single rule
+   between two disclosures that touch, so each row gets the same room above its text as below it.
+   The rows are also what the row layout measures itself against: it is the card's width, not the
+   window's, that decides whether the columns fit on one line. */
+.rows {
+  /* The status icon's width. */
+  --status-column: 1.25rem;
+  /* Where a row's text starts: past the row's padding and its chevron. */
+  --row-inset: calc(var(--ds-size-4) + var(--ds-size-6) + var(--ds-size-2));
+
+  width: 100%;
+  container-type: inline-size;
+}
+
+/* The date the rows under it were created: a caption over the first row, and again over the first
+   row of a new day. The rows themselves give only the time of day. */
+.dayHeading {
+  padding: var(--ds-size-1) 0 var(--ds-size-2) var(--row-inset);
+  font-size: var(--ds-font-size-2);
+  font-weight: 500;
+  color: var(--ds-color-neutral-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* On a card too narrow for the summary's step column, the summary takes two lines. */
+@container (max-width: 76rem) {
+  /* The chevron on the first line, not floating between the two. */
+  .rows .summaryBar {
+    align-items: start;
+  }
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-size-3);
+}

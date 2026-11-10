@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import BpmnModdle from 'bpmn-moddle';
 import { altinnCustomTasks } from './altinnCustomTasks';
 

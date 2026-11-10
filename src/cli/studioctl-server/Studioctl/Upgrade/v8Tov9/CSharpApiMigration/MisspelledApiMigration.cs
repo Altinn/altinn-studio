@@ -99,8 +99,12 @@ internal sealed class MisspelledApiMigration
         var changes = new List<string>();
         var unverified = new List<string>();
 
-        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
-        foreach (var file in _scanner.Files.ToArray())
+        // Every file is rewritten against the same compilation before any is written back: an Update
+        // re-roots the compilation, after which a reference in a later file to an app member this step
+        // has already renamed (a call to the app's own Analyse) would no longer bind, and would be left
+        // behind without a word.
+        var rewrites = new List<(ScannedCSharpFile File, CompilationUnitSyntax Root)>();
+        foreach (var file in _scanner.Files)
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
@@ -110,8 +114,13 @@ internal sealed class MisspelledApiMigration
                 continue;
             }
 
-            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            rewrites.Add((file, (CompilationUnitSyntax)updated));
             changes.AddRange(rewriter.Changes);
+        }
+
+        foreach (var (file, root) in rewrites)
+        {
+            _scanner.Update(file, root);
         }
 
         var messages = new List<UpgradeMessage>();
@@ -192,7 +201,9 @@ internal sealed class MisspelledApiMigration
                 return token;
             }
 
-            return BindsToSdkName(_semanticModel, token, parent) ? Rename(token, parent, replacement) : token;
+            return CSharpSemanticQueries.NamesSdkMember(_semanticModel, token, parent)
+                ? Rename(token, parent, replacement)
+                : token;
         }
 
         private SyntaxToken Rename(SyntaxToken token, SyntaxNode parent, string replacement)
@@ -200,88 +211,5 @@ internal sealed class MisspelledApiMigration
             Changes.Add($"{_file.RelativePath}:{_file.GetLine(parent)}: {token.ValueText} -> {replacement}");
             return SyntaxFactory.Identifier(replacement).WithTriviaFrom(token);
         }
-
-        /// <summary>
-        /// Whether the token names an SDK symbol — a reference that binds to one, or the declaration of
-        /// a member that implements or overrides one. Both sides matter: an app's <c>Analyse</c> method
-        /// on the SDK's <c>IFileAnalyser</c> is declared by the app, and a call through the app's own
-        /// concrete type binds to the app's method — either would be missed by a plain
-        /// declared-in-the-SDK check, and renaming a declaration while leaving its call sites (or the
-        /// reverse) would not compile.
-        /// </summary>
-        private static bool BindsToSdkName(SemanticModel semanticModel, SyntaxToken token, SyntaxNode parent)
-        {
-            var symbol = parent switch
-            {
-                SimpleNameSyntax name => Unreduce(BoundSymbol(semanticModel, name)),
-                MethodDeclarationSyntax or PropertyDeclarationSyntax => semanticModel.GetDeclaredSymbol(
-                    (MemberDeclarationSyntax)parent
-                ),
-                _ => null,
-            };
-
-            return symbol is not null && RefersToSdkMember(symbol, token.ValueText);
-        }
-
-        private static ISymbol? BoundSymbol(SemanticModel semanticModel, SimpleNameSyntax name)
-        {
-            var info = semanticModel.GetSymbolInfo(name);
-            return info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
-        }
-
-        private static ISymbol? Unreduce(ISymbol? symbol) =>
-            symbol is IMethodSymbol method ? method.ReducedFrom ?? method : symbol;
-
-        /// <summary>
-        /// Whether <paramref name="symbol"/> is declared by the SDK, overrides an SDK member, or
-        /// implements an SDK interface member named <paramref name="name"/>.
-        /// </summary>
-        private static bool RefersToSdkMember(ISymbol symbol, string name)
-        {
-            if (CSharpSemanticQueries.IsAltinnAppSymbol(symbol))
-            {
-                return true;
-            }
-
-            for (var overridden = Overridden(symbol); overridden is not null; overridden = Overridden(overridden))
-            {
-                if (CSharpSemanticQueries.IsAltinnAppSymbol(overridden))
-                {
-                    return true;
-                }
-            }
-
-            if (symbol.ContainingType is not { } containingType)
-            {
-                return false;
-            }
-
-            foreach (var contract in containingType.AllInterfaces)
-            {
-                if (!CSharpSemanticQueries.IsAltinnAppSymbol(contract))
-                {
-                    continue;
-                }
-
-                foreach (var member in contract.GetMembers(name))
-                {
-                    var implementation = containingType.FindImplementationForInterfaceMember(member);
-                    if (SymbolEqualityComparer.Default.Equals(implementation, symbol))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static ISymbol? Overridden(ISymbol symbol) =>
-            symbol switch
-            {
-                IMethodSymbol method => method.OverriddenMethod,
-                IPropertySymbol property => property.OverriddenProperty,
-                _ => null,
-            };
     }
 }

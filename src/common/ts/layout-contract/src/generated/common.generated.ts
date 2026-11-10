@@ -1,10 +1,25 @@
 import { CompExternal } from '@app/layout-contract/generated/components.generated';
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
+import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Address/config.generated';
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
+import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
+import { FileUploadSummaryOverridesWithRef } from '@app/layout-contract/generated/components/FileUpload/config.generated';
 import { GridSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Grid/config.generated';
+import { ImageUploadSummaryOverridesWithRef } from '@app/layout-contract/generated/components/ImageUpload/config.generated';
+import { InputSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Input/config.generated';
+import { LikertSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Likert/config.generated';
+import { LikertItemSummaryOverridesWithRef } from '@app/layout-contract/generated/components/LikertItem/config.generated';
+import { ListSummaryOverridesWithRef } from '@app/layout-contract/generated/components/List/config.generated';
+import { MapSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Map/config.generated';
 import { MultipleSelectSummaryOverridesWithRef } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
+import { OrganizationLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/OrganizationLookup/config.generated';
+import { PersonLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/PersonLookup/config.generated';
+import { RadioButtonsSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RadioButtons/config.generated';
 import { RepeatingGroupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 import { SubformSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Subform/config.generated';
+import { TextAreaSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TextArea/config.generated';
+import { TimePickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TimePicker/config.generated';
 
 export type AllowedValidationMasks = (
   | 'Schema'
@@ -18,57 +33,64 @@ export type AllowedValidationMasks = (
 )[];
 
 export type AnySummaryOverride =
+  | AddressSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Address' } & ISummaryOverridesCommon)
+  | ({ componentType: 'Alert' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
   | CheckboxesSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Date' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Datepicker' } & ISummaryOverridesCommon)
+  | DatepickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Divider' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Dropdown' } & ISummaryOverridesCommon)
+  | DropdownSummaryOverridesWithRef
+  | FileUploadSummaryOverridesWithRef
   | GridSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Group' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Heading' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'ImageUpload' } & ISummaryOverridesCommon)
+  | ({ componentType: 'IFrame' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Input' } & ISummaryOverridesCommon)
+  | ({ componentType: 'Image' } & ISummaryOverridesCommon)
+  | ImageUploadSummaryOverridesWithRef
+  | InputSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Likert' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'List' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Map' } & ISummaryOverridesCommon)
+  | ({ componentType: 'InstanceInformation' } & ISummaryOverridesCommon)
+  | LikertSummaryOverridesWithRef
+  | LikertItemSummaryOverridesWithRef
+  | ListSummaryOverridesWithRef
+  | MapSummaryOverridesWithRef
   | MultipleSelectSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Number' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Option' } & ISummaryOverridesCommon)
+  | OrganizationLookupSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'OrganizationLookup' } & ISummaryOverridesCommon)
+  | ({ componentType: 'Panel' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Paragraph' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Payment' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'PersonLookup' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'RadioButtons' } & ISummaryOverridesCommon)
+  | ({ componentType: 'PaymentDetails' } & ISummaryOverridesCommon)
+  | PersonLookupSummaryOverridesWithRef
+  | RadioButtonsSummaryOverridesWithRef
   | RepeatingGroupSummaryOverridesWithRef
   | SubformSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Tabs' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Text' } & ISummaryOverridesCommon)
+  | TextAreaSummaryOverridesWithRef
+  | TimePickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TextArea' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon);
+  | ({ componentType: 'Video' } & ISummaryOverridesCommon);
 
 export type ButtonPosition = 'left' | 'center' | 'right';
 
@@ -84,8 +106,6 @@ export interface ComponentBase {
 }
 
 export interface FormComponentProps {
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   showValidations?: AllowedValidationMasks;
 }
 
@@ -556,6 +576,10 @@ export interface ITableColumnsTextOverflow {
   maxHeight?: number;
 }
 
+export interface ITableColumnWidth {
+  width?: string;
+}
+
 export interface LabeledComponentProps {
   labelSettings?: ILabelSettings;
 }
@@ -621,11 +645,6 @@ export interface PatternFormatProps {
  */
 export type SaveWhileTyping = number;
 
-export interface SummarizableComponentProps {
-  renderAsSummary?: boolean;
-  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
-}
-
 export interface TRBFormComp {
   tableTitle?: ExprValToActualOrExpr<ExprVal.String>;
   shortName?: ExprValToActualOrExpr<ExprVal.String>;
@@ -643,4 +662,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 4aec611f1e51c53bdb6ad5ac33e3fb4f944419ac2552ed336ee10a10e04296ac
+// Source hash: 6bca8686e83da4b7678ff83b16476886cb4fa912569600e4a85e3c6f3452a862

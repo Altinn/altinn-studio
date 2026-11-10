@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { usePrevious } from './';

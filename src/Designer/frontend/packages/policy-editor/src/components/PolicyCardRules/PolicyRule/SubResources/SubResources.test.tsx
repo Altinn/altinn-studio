@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,7 +15,7 @@ describe('SubResources', () => {
   it('calls "setPolicyRules" when sub-resource fields are edited', async () => {
     const user = userEvent.setup();
 
-    const mockSetPolicyRules = jest.fn();
+    const mockSetPolicyRules = vi.fn();
     renderSubResources({ setPolicyRules: mockSetPolicyRules });
 
     const toggleListButton = screen.getByRole('button', {

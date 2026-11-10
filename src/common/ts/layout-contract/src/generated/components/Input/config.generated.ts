@@ -7,14 +7,13 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   SaveWhileTyping,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompInputExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'Input';
   textResourceBindings?: {
     prefix?: ExprValToActualOrExpr<ExprVal.String>;
@@ -22,6 +21,10 @@ export interface CompInputExternal
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -84,9 +87,13 @@ export interface CompInputExternal
   maxLength?: number;
 }
 
+export interface InputSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type InputSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Input' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & InputSummaryOverrides)
+  | ({ componentType: 'Input' } & InputSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -112,8 +119,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompInputExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: InputSummaryOverrides;
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: b65f91d2fdbfc3543399f64e3dfb60aa625a99f0b6831fd96bd2cfe1e3eccb0b
+// Source hash: ae19a22d6a2161be7826776c77f877da21d34b913fbe59607dfd7955d7f45a10

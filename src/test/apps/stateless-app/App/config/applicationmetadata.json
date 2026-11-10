@@ -55,7 +55,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -77,7 +77,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_2",
+      "taskIds": ["Task_2"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -98,5 +98,5 @@
   "createdBy": "jeeva",
   "lastChanged": "2021-05-11T08:57:08.4232208Z",
   "lastChangedBy": "jeeva",
-  "$schema": "https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json"
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/application/application-metadata.schema.v1.json"
 }

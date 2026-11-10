@@ -20,15 +20,15 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
-using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
-using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.Services.Interfaces.Validation;
+using Altinn.Studio.Designer.Services.Runtime;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -54,6 +54,7 @@ public static class ServiceRegistration
     )
     {
         services.AddTransient<IRepository, RepositoryService>();
+        services.AddTransient<IAppRepositorySearchService, AppRepositorySearchService>();
         services.AddTransient<ISchemaModelService, SchemaModelService>();
         services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
@@ -97,6 +98,7 @@ public static class ServiceRegistration
         services.AddScoped<IDeployEventRepository, DeployEventRepository>();
         services.AddScoped<IAppScopesRepository, AppScopesRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+        services.AddScoped<IAppActivityRepository, AppActivityRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
@@ -112,17 +114,20 @@ public static class ServiceRegistration
         services.AddScoped<ICanUseAiAssistantEvaluator, CanUseAiAssistantEvaluator>();
         services.AddTransient<IReleaseService, ReleaseService>();
         services.AddTransient<IDeploymentService, DeploymentService>();
+        services.AddTransient<AppRuntime>();
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();
         services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
-        services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
         services.AddTransient<INotificationService, NotificationService>();
+        services.AddSingleton<NotificationMetrics>();
+        services.AddSingleton<AppDeployMetrics>();
         services.AddTransient<IAlertsService, AlertsService>();
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();
+        services.AddTransient<IReportService, ReportService>();
         services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
         services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
         services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
@@ -145,10 +150,6 @@ public static class ServiceRegistration
         services.AddTransient<IUiFoldersService, UiFoldersService>();
         services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
-        services.AddTransient<IPreviewService, PreviewService>();
-        services.AddTransient<IPreviewBootstrapService, PreviewBootstrapService>();
-        services.AddTransient<IDataService, DataService>();
-        services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
         services.AddTransient<IImagesService, ImagesService>();
         services.AddTransient<ILayoutService, LayoutService>();

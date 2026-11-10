@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,7 +16,7 @@ const defaultProps = {
     isResourcePolicyAvailable: true,
   },
   isChecked: false,
-  handleSelectChange: jest.fn(),
+  handleSelectChange: vi.fn(),
 };
 
 describe('PolicyAccessPackageAccordionCheckbox', () => {
@@ -39,7 +40,7 @@ describe('PolicyAccessPackageAccordionCheckbox', () => {
 
   it('should call handleSelectChange when checkbox is checked', async () => {
     const user = userEvent.setup();
-    const handleSelectChangeFn = jest.fn();
+    const handleSelectChangeFn = vi.fn();
 
     renderPolicyAccessPackageAccordionCheckbox({ handleSelectChange: handleSelectChangeFn });
 

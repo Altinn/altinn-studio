@@ -13,7 +13,7 @@ public class NullInstanceDataListProvider : IInstanceDataListProvider
     public string Id => string.Empty;
 
     /// <inheritdoc/>
-    public Task<DataList> GetInstanceDataListAsync(
+    public Task<DataList> GetInstanceDataList(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs

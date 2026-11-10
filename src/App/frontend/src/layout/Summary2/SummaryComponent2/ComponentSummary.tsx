@@ -16,6 +16,7 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 import type { CompTypes } from 'src/layout/layout';
@@ -46,7 +47,12 @@ export enum SummaryContains {
 }
 
 export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProps) {
+  const hidden = useIsHiddenInSummary(targetBaseComponentId);
+  const { leafCanReturnNull } = useSummarySoftHidden(hidden);
   const type = useComponentConfig(targetBaseComponentId).type;
+  if (hidden && leafCanReturnNull) {
+    return <HiddenSummary />;
+  }
   const def = getComponentDef(type);
   const SummaryRenderer = def.renderSummary2;
   return SummaryRenderer ? (
@@ -54,6 +60,11 @@ export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProp
       <SummaryRenderer targetBaseComponentId={targetBaseComponentId} />
     </FormComponentContextProvider>
   ) : null;
+}
+
+function HiddenSummary() {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  return null;
 }
 
 export function useSummarySoftHidden(hidden: boolean | undefined) {
@@ -71,7 +82,7 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
   };
 }
 
-function useIsHiddenInSummary(baseComponentId: string) {
+export function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support
@@ -84,16 +95,12 @@ function useIsHiddenInSummary(baseComponentId: string) {
 function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, type: T, content: SummaryContains) {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const config = useComponentConfig(baseComponentId, type);
-  const required = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
   const forceShowInSummary = useEvalExpression(
     'forceShowInSummary' in config ? config.forceShowInSummary : undefined,
-    CommonExpressions.SummarizableComponentProps.forceShowInSummary,
+    CommonExpressions.forceShowInSummary,
   );
 
-  const isRequired = 'required' in config ? required : undefined;
+  const isRequired = useComponentIsRequired(config);
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
     window.logErrorOnce(`Node ${baseComponentId} marked as required, but summary indicates EmptyValueNotRequired`);

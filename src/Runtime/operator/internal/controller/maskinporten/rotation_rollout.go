@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -68,8 +71,13 @@ func (p *rotationRolloutProcessor) Start(ctx context.Context) error {
 		case <-clock.After(delay):
 		}
 
-		if err := p.reconciler.processPendingMaskinportenRotationRollouts(ctx, clock.Now().UTC()); err != nil {
-			logger.Error(err, "Maskinporten rotation rollout processing failed")
+		// A failed run logs its own ERROR, linked to its trace.
+		if err := p.reconciler.processPendingMaskinportenRotationRollouts(
+			ctx,
+			clock.Now().UTC(),
+		); err != nil &&
+			ctx.Err() != nil {
+			return nil
 		}
 	}
 }
@@ -96,29 +104,24 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 	ctx context.Context,
 	now time.Time,
 ) error {
-	ctx, span := r.runtime.Tracer().Start(
-		ctx,
-		"MaskinportenRotationRollout.processPending",
-		trace.WithAttributes(attribute.String("scheduled_at", now.UTC().Format(time.RFC3339))),
+	ctx, span := telemetry.StartRun(ctx, rotationRolloutControllerName, "MaskinportenRotationRollout.processPending",
+		attribute.String("altinn.operator.maskinporten_rotation_rollout.scheduled_at", now.UTC().Format(time.RFC3339)),
 	)
 	defer span.End()
 
 	logger := log.FromContext(ctx).WithName("maskinporten-rotation-rollout")
 	serviceOwnerID := r.serviceOwnerID()
-	span.SetAttributes(attribute.String("service_owner", serviceOwnerID))
 	if serviceOwnerID == "" {
-		span.SetStatus(codes.Error, "operator service owner scope is empty")
-		span.RecordError(errEmptyOperatorServiceOwnerScope)
+		commontelemetry.SetError(span, "empty_service_owner_scope", errEmptyOperatorServiceOwnerScope)
 		return errEmptyOperatorServiceOwnerScope
 	}
 
 	list := &resourcesv1alpha1.MaskinportenClientList{}
 	if err := r.List(ctx, list); err != nil {
-		span.SetStatus(codes.Error, "list MaskinportenClients")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "list_maskinporten_clients", err)
 		return fmt.Errorf("list MaskinportenClients: %w", err)
 	}
-	span.SetAttributes(attribute.Int("maskinporten_client_count", len(list.Items)))
+	span.SetAttributes(attribute.Int("altinn.operator.maskinporten_rotation_rollout.clients", len(list.Items)))
 
 	var errs []error
 	for i := range list.Items {
@@ -150,20 +153,25 @@ func (r *MaskinportenClientReconciler) processPendingMaskinportenRotationRollout
 			secretAppLabel,
 			now,
 		); err != nil {
-			logger.Error(
-				err,
-				"failed processing Maskinporten rotation rollout",
-				"maskinportenClient", instance.Name,
-				"namespace", instance.Namespace,
-				"release", releaseName,
-			)
 			errs = append(errs, err)
+			if !errors.Is(err, context.Canceled) {
+				logger.Error(
+					err,
+					"failed processing Maskinporten rotation rollout",
+					"maskinportenClient", instance.Name,
+					"namespace", instance.Namespace,
+					"release", releaseName,
+				)
+			}
+			// The run was stopped, so the remaining clients would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 		}
 	}
 
 	if err := errors.Join(errs...); err != nil {
-		span.SetStatus(codes.Error, "one or more Maskinporten rotation rollouts failed")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "rotation_rollout_failed", err)
 		return err
 	}
 
@@ -182,29 +190,28 @@ func (r *MaskinportenClientReconciler) processInScopeMaskinportenRotationRollout
 		ctx,
 		"MaskinportenRotationRollout.processItem",
 		trace.WithAttributes(
-			attribute.String("namespace", instance.Namespace),
-			attribute.String("maskinporten_client", instance.Name),
-			attribute.String("release", releaseName),
-			attribute.String("app_label", secretAppLabel),
+			telemetry.AttrObjectKind.String("MaskinportenClient"),
+			telemetry.AttrObjectNamespace.String(instance.Namespace),
+			telemetry.AttrObjectName.String(instance.Name),
+			attribute.String("altinn.operator.maskinporten_rotation_rollout.release", releaseName),
+			attribute.String("altinn.operator.maskinporten_rotation_rollout.app_label", secretAppLabel),
 		),
 	)
 	defer span.End()
 
 	fingerprint, err := r.pendingRotationFingerprint(ctx, instance, secretAppLabel)
 	if err != nil {
-		span.SetStatus(codes.Error, "determine pending rotation fingerprint")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "determine_rotation_fingerprint", err)
 		return err
 	}
 	if fingerprint == "" {
 		span.SetStatus(codes.Ok, "no pending rotation")
 		return nil
 	}
-	span.SetAttributes(attribute.String("fingerprint", fingerprint))
+	span.SetAttributes(attribute.String("altinn.operator.maskinporten_rotation_rollout.fingerprint", fingerprint))
 
 	if err := r.processPendingMaskinportenRotationRollout(ctx, instance, releaseName, fingerprint, now); err != nil {
-		span.SetStatus(codes.Error, "process pending rotation rollout")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "process_rotation_rollout", err)
 		return err
 	}
 

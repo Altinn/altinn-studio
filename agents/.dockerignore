@@ -2,3 +2,4 @@
 !Dockerfile
 !common/
 !common/**
+!dotnet-tools.json

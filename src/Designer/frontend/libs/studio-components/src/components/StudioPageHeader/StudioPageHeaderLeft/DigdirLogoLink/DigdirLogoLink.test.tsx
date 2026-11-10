@@ -1,11 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DigdirLogoLink, type DigdirLogoLinkProps } from './DigdirLogoLink';
 import { StudioPageHeaderContext } from '../../context';
 import { type StudioPageHeaderContextProps } from '../../context/StudioPageHeaderContext';
 
 describe('DigdirLogoLink', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the DigdirLogo', () => {
     renderDigdirLogoLink({ providerProps: { variant: 'regular' } });
     const logo = screen.getByRole('img', { name: 'Altinn logo' });

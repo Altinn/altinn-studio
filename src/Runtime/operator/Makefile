@@ -62,7 +62,7 @@ test: manifests generate fmt vet envtest ## Run unit tests.
 test-e2e: manifests generate fmt vet ## Run e2e tests
 	cd test && go run ./cmd/tester test-e2e --keep-running
 
-.PHONY: start start-minimal start-standard
+.PHONY: start start-minimal start-standard start-minimal-monitoring start-standard-monitoring
 start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
 start-minimal: ## Start with minimal variant
@@ -70,6 +70,12 @@ start-minimal: ## Start with minimal variant
 
 start-standard: ## Start with standard variant
 	cd test && go run ./cmd/tester start standard
+
+start-minimal-monitoring: ## Start minimal with the platform observability stack
+	cd test && go run ./cmd/tester start minimal --monitoring
+
+start-standard-monitoring: ## Start standard with the platform observability stack
+	cd test && go run ./cmd/tester start standard --monitoring
 
 .PHONY: stop
 stop: ## Stop the Kind cluster and runtime fixture.
@@ -130,7 +136,9 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.8.1
+# renovate: datasource=go depName=sigs.k8s.io/kustomize/kustomize/v5
+KUSTOMIZE_VERSION ?= v5.8.3
+# renovate: datasource=go depName=sigs.k8s.io/controller-tools
 CONTROLLER_TOOLS_VERSION ?= v0.20.1
 
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
@@ -143,7 +151,8 @@ ENVTEST_K8S_VERSION ?= $(shell v='$(call gomodver,k8s.io/api)'; \
   [ -n "$$v" ] || { echo "Set ENVTEST_K8S_VERSION manually (k8s.io/api replace has no tag)" >&2; exit 1; }; \
   printf '%s\n' "$$v" | sed -E 's/^v?[0-9]+\.([0-9]+).*/1.\1/')
 
-GOLANGCI_LINT_VERSION ?= v2.11.4
+# renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.

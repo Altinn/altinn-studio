@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
+import { useAttachmentActivity } from 'src/core/queries/attachments';
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
+import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {
+  type BackendComponentValidation,
   type BackendValidationIssue,
   type BaseValidation,
   type FieldValidations,
@@ -17,6 +17,7 @@ import {
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import {
+  mapBackendIssuesToComponentValidations,
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
@@ -31,6 +32,11 @@ import type { DataModelValidationState } from 'src/features/formData/FormDataWri
 export interface ValidationInternals {
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
+   * The backend validation issues in effect: the initial validations, where the issues from each validator are
+   * replaced by those from the last save it ran in. A save only returns the validators that ran.
+   */
+  backendIssues: BackendValidationIssue[];
+  /**
    * updateDataModelValidations
    * if validations is undefined, nothing will be changed
    */
@@ -43,6 +49,8 @@ export interface ValidationInternals {
     backendValidations: { [dataElementId: string]: FieldValidations } | undefined,
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
+    componentValidations?: BackendComponentValidation[],
+    backendIssues?: BackendValidationIssue[],
   ) => void;
   setOtherDataElementBackendValidations: (dataElementId: string, validationIssues: BackendValidationIssue[]) => void;
 }
@@ -51,13 +59,19 @@ export function createValidationSlice(
   bootstrap: FormBootstrapContextValue,
   set: FormStoreSet,
 ): FormStoreState['validation'] {
+  const { componentValidations, otherDataElementComponentValidations } = partitionComponentValidations(
+    mapBackendIssuesToComponentValidations(bootstrap.allInitialValidations),
+    getMountedDataElementIds(bootstrap.dataModels),
+  );
   return {
     // =======
     // Publicly exposed state
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
+      component: componentValidations,
     },
     otherDataElementBackendValidations: {},
+    otherDataElementComponentValidations,
     formMask: 0,
     pageMasks: {},
     rowMasks: {},
@@ -93,6 +107,7 @@ export function createValidationSlice(
       initial: bootstrap.allInitialValidations,
       incremental: undefined,
     },
+    backendIssues: bootstrap.allInitialValidations,
     updateDataModelValidations: (key, dataType, validations) =>
       set((state) => {
         const dataModel = state.data.models[dataType];
@@ -100,13 +115,25 @@ export function createValidationSlice(
           dataModel.validations[key] = validations;
         }
       }),
-    updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
+    updateBackendValidations: (
+      backendValidations,
+      processedLast,
+      taskValidations,
+      componentValidations,
+      backendIssues,
+    ) =>
       set((state) => {
-        updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        updateBackendValidations(state)(
+          backendValidations,
+          processedLast,
+          taskValidations,
+          componentValidations,
+          backendIssues,
+        );
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
-        if (!getMountedDataElementIds(state).has(dataElementId)) {
+        if (!getMountedDataElementIds(state.data.models).has(dataElementId)) {
           const validations = mapValidatorGroupsToDataModelValidations(
             mapBackendValidationsToValidatorGroups(validationIssues),
           )[dataElementId];
@@ -116,6 +143,14 @@ export function createValidationSlice(
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
           }
+          const componentValidations = mapBackendIssuesToComponentValidations(validationIssues).filter(
+            (validation) => validation.dataElementId === dataElementId,
+          );
+          if (componentValidations.length) {
+            state.validation.otherDataElementComponentValidations[dataElementId] = componentValidations;
+          } else {
+            delete state.validation.otherDataElementComponentValidations[dataElementId];
+          }
         }
       }),
   };
@@ -124,7 +159,10 @@ export function createValidationSlice(
 export function updateBackendValidations(
   state: Draft<FormStoreState>,
 ): ValidationInternals['updateBackendValidations'] {
-  return (backendValidations, processedLast, taskValidations) => {
+  return (backendValidations, processedLast, taskValidations, componentValidations, backendIssues) => {
+    if (backendIssues) {
+      state.validation.backendIssues = backendIssues;
+    }
     if (
       processedLast?.incremental &&
       !deepEqual(state.validation.processedLast.incremental, processedLast.incremental)
@@ -137,6 +175,21 @@ export function updateBackendValidations(
     if (taskValidations) {
       state.validation.state.task = taskValidations;
     }
+    if (componentValidations) {
+      const partitioned = partitionComponentValidations(
+        componentValidations,
+        getMountedDataElementIds(state.data.models),
+      );
+      state.validation.state.component = partitioned.componentValidations;
+      if (processedLast?.initial) {
+        state.validation.otherDataElementComponentValidations = partitioned.otherDataElementComponentValidations;
+      } else {
+        Object.assign(
+          state.validation.otherDataElementComponentValidations,
+          partitioned.otherDataElementComponentValidations,
+        );
+      }
+    }
     if (backendValidations) {
       for (const [dataType, model] of Object.entries(state.data.models)) {
         const dataModelKey = model.dataElementId ?? dataType;
@@ -144,7 +197,7 @@ export function updateBackendValidations(
       }
 
       if (!state.parent) {
-        const mountedDataElementIds = getMountedDataElementIds(state);
+        const mountedDataElementIds = getMountedDataElementIds(state.data.models);
         const isFullSnapshotUpdate = Boolean(processedLast?.initial);
         if (isFullSnapshotUpdate) {
           state.validation.otherDataElementBackendValidations = {};
@@ -159,12 +212,25 @@ export function updateBackendValidations(
   };
 }
 
-function getMountedDataElementIds(state: Pick<FormStoreState, 'data'>): Set<string> {
+function getMountedDataElementIds(models: Record<string, { dataElementId?: string | null }>): Set<string> {
   const mountedDataElementIds = new Set<string>();
-  for (const [dataType, model] of Object.entries(state.data.models)) {
+  for (const [dataType, model] of Object.entries(models)) {
     mountedDataElementIds.add(model.dataElementId ?? dataType);
   }
   return mountedDataElementIds;
+}
+
+function partitionComponentValidations(validations: BackendComponentValidation[], mountedDataElementIds: Set<string>) {
+  const componentValidations: BackendComponentValidation[] = [];
+  const otherDataElementComponentValidations: Record<string, BackendComponentValidation[]> = {};
+  for (const validation of validations) {
+    if (!validation.dataElementId || mountedDataElementIds.has(validation.dataElementId)) {
+      componentValidations.push(validation);
+    } else {
+      (otherDataElementComponentValidations[validation.dataElementId] ??= []).push(validation);
+    }
+  }
+  return { componentValidations, otherDataElementComponentValidations };
 }
 
 export function ValidationEffects() {
@@ -181,7 +247,6 @@ export function useWaitForValidation() {
   const waitForSave = FormStore.data.useWaitForSave();
   const store = FormStore.raw.useStore();
   const waitForState = useWaitForState<undefined, FormStoreState>(store);
-  const queryClient = useQueryClient();
   const selectFromInstance = useSelectFromInstanceData();
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
@@ -190,9 +255,9 @@ export function useWaitForValidation() {
     () => selectFromInstance((instance) => instance.data) ?? [],
     [selectFromInstance],
   );
-  const waitForActiveAttachments = useCallback(
-    () => waitForAttachments(store, queryClient, getInstanceData),
-    [getInstanceData, queryClient, store],
+  const { hasPending: hasPendingAttachments, wait: waitForActiveAttachments } = useAttachmentActivity(
+    store,
+    getInstanceData,
   );
   const initialBackendValidationsAreProcessed = useCallback(
     () => (state: FormStoreState) => {
@@ -217,14 +282,12 @@ export function useWaitForValidation() {
       do {
         await waitForActiveAttachments();
         await waitForSaveAndBackendValidations();
-      } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
+      } while (hasPendingAttachments());
     },
     [
-      getInstanceData,
       hasWritableDataTypes,
       initialBackendValidationsAreProcessed,
-      queryClient,
-      store,
+      hasPendingAttachments,
       waitForActiveAttachments,
       waitForSave,
       waitForState,
@@ -248,11 +311,14 @@ function ManageShowAllErrors() {
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
-    state.validation.state.task,
-    state.data.models,
-    state.validation.setShowAllUnboundValidations,
-  ]);
+  const [taskValidations, componentValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector(
+    (state) => [
+      state.validation.state.task,
+      state.validation.state.component,
+      state.data.models,
+      state.validation.setShowAllUnboundValidations,
+    ],
+  );
 
   const isFirstRender = useRef(true);
 
@@ -293,10 +359,11 @@ function UpdateShowAllErrors() {
         .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
-    if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
+    const hasComponentErrors = selectValidations(componentValidations, backendMask, 'error').length > 0;
+    if (!hasFieldErrors && !hasComponentErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModels, setShowAllErrors, taskValidations]);
+  }, [componentValidations, dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }

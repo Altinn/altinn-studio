@@ -8,7 +8,7 @@ namespace Altinn.Codelists.Tests.SSB;
 public class UnitsCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_SortedBySelectCodes_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_SortedBySelectCodes_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -23,7 +23,7 @@ public class UnitsCodelistProviderTests
             new ClassificationOptions { MapDescriptionFunc = (classificationCode) => classificationCode.ShortName }
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(7, appOptions.Options.Count);

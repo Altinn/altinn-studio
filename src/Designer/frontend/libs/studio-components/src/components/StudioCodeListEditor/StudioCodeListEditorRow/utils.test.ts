@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { MultiLanguageCodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';

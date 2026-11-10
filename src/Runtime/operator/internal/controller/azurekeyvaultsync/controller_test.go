@@ -3,15 +3,21 @@ package azurekeyvaultsync
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/go-logr/zapr"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
@@ -232,6 +238,96 @@ func TestReconciler_ContinuesOnPartialFailure(t *testing.T) {
 	// Bad secret should not exist
 	err = h.k8sClient.Get(h.ctx(), badMapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
+}
+
+// cancelingKeyVaultClient stands in for a Key Vault request that the operator's shutdown cancels.
+type cancelingKeyVaultClient struct {
+	cancel    context.CancelFunc
+	failure   error
+	requested []string
+}
+
+func (c *cancelingKeyVaultClient) GetSecret(_ context.Context, name, _ string) (string, error) {
+	c.requested = append(c.requested, name)
+	if c.failure != nil && len(c.requested) == 1 {
+		return "", c.failure
+	}
+	c.cancel()
+	return "", context.Canceled
+}
+
+func TestReconciler_StopsSyncingWhenCanceled(t *testing.T) {
+	for _, priorFailure := range []error{nil, errRawMappingOutputMustBeString} {
+		t.Run(fmt.Sprint(priorFailure), func(t *testing.T) {
+			g := NewWithT(t)
+			mappings := []KeyVaultSecretMapping{
+				{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+				{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+				{Name: "third", Namespace: "default", FileName: "key", Secrets: []string{"third-secret"}},
+			}
+			core, logs := observer.New(zap.InfoLevel)
+			logger := zapr.NewLogger(zap.New(core))
+			ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
+			defer cancel()
+			kvClient := &cancelingKeyVaultClient{cancel: cancel, failure: priorFailure}
+			reconciler := NewReconcilerForTesting(
+				newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+				newFakeK8sClient(),
+				kvClient,
+				mappings,
+			)
+			reconciler.logger = logger
+
+			err := reconciler.SyncAll(ctx)
+			g.Expect(errors.Is(err, context.Canceled)).To(BeTrue())
+			wantRequested := []string{"first-secret"}
+			wantErrors := 0
+			if priorFailure != nil {
+				g.Expect(errors.Is(err, priorFailure)).To(BeTrue())
+				wantRequested = append(wantRequested, "second-secret")
+				wantErrors = 1 // The mapping failure. The run itself was canceled.
+			}
+			g.Expect(kvClient.requested).To(Equal(wantRequested))
+			g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(wantErrors))
+			g.Expect(err.Error()).To(ContainSubstring(`get Key Vault secret "first-secret"`))
+		})
+	}
+}
+
+// keyVaultClientFunc is a Key Vault client that answers with a function.
+type keyVaultClientFunc func(name string) (string, error)
+
+func (f keyVaultClientFunc) GetSecret(_ context.Context, name, _ string) (string, error) {
+	return f(name)
+}
+
+func TestReconciler_LogsAFailureThatCoincidesWithCancellation(t *testing.T) {
+	g := NewWithT(t)
+	mappings := []KeyVaultSecretMapping{
+		{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+		{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+	}
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zapr.NewLogger(zap.New(core))
+	ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
+	defer cancel()
+	var requested []string
+	reconciler := NewReconcilerForTesting(
+		newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+		newFakeK8sClient(),
+		keyVaultClientFunc(func(name string) (string, error) {
+			requested = append(requested, name)
+			cancel()
+			return "", fakes.TransientError()
+		}),
+		mappings,
+	)
+	reconciler.logger = logger
+
+	err := reconciler.SyncAll(ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(requested).To(Equal([]string{"first-secret"}))
+	g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(1))
 }
 
 func TestReconciler_SyncsMultipleMappings(t *testing.T) {
@@ -469,26 +565,38 @@ func defaultMapping(t *testing.T, name string) KeyVaultSecretMapping {
 	return KeyVaultSecretMapping{}
 }
 
-func TestDefaultMappings_ObservabilityIngestTokenIsDeliveredVerbatim(t *testing.T) {
-	g := NewWithT(t)
+// The files these mappings write are sent as credentials, the ingest token by the gateway as a
+// bearer token and the pdf3 key by the relay, so any JSON encoding would be sent along with them.
+func TestDefaultMappings_CredentialsAreDeliveredVerbatim(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		namespace string
+		fileName  string
+		kvSecret  string
+	}{
+		{"observability-ingest-token", "runtime-obs", "token", "Observability--Ingest--Token"},
+		{"pdf3-upstream-api-key", "runtime-pdf3", "key", "Pdf3--Upstream--ApiKey"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 
-	mapping := defaultMapping(t, "observability-ingest-token")
-	g.Expect(mapping.Namespace).To(Equal("runtime-obs"))
-	g.Expect(mapping.FileName).To(Equal("token"))
-	g.Expect(mapping.Secrets).To(Equal([]string{"Observability--Ingest--Token"}))
+			mapping := defaultMapping(t, tc.name)
+			g.Expect(mapping.Namespace).To(Equal(tc.namespace))
+			g.Expect(mapping.FileName).To(Equal(tc.fileName))
+			g.Expect(mapping.Secrets).To(Equal([]string{tc.kvSecret}))
 
-	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
-	h.kvClient.SetSecret(mapping.Secrets[0], "gkQ2nT8pLxR4wZ6vB1sJ")
+			h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
+			h.kvClient.SetSecret(mapping.Secrets[0], "gkQ2nT8pLxR4wZ6vB1sJ")
 
-	err := h.reconciler.SyncAll(h.ctx())
-	g.Expect(err).NotTo(HaveOccurred())
+			err := h.reconciler.SyncAll(h.ctx())
+			g.Expect(err).NotTo(HaveOccurred())
 
-	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// The gateway sends this file as a bearer token, so any JSON encoding would be sent along with it.
-	g.Expect(string(mapping.fileData(secret))).To(Equal("gkQ2nT8pLxR4wZ6vB1sJ"))
+			secret := &corev1.Secret{}
+			err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(string(mapping.fileData(secret))).To(Equal("gkQ2nT8pLxR4wZ6vB1sJ"))
+		})
+	}
 }
 
 func TestReconciler_StartExitsOnContextCancellation(t *testing.T) {

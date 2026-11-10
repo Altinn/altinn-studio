@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -15,10 +16,10 @@ import { useSelectedTaskId } from './useSelectedTaskId';
 export const layoutSet1NameMock = 'test-layout-set';
 export const layout1NameMock = 'Side1';
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: layout1NameMock };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -51,8 +52,6 @@ const wrapper = ({
 };
 
 describe('useSelectedTaskId', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should return the default task id when it does not exist', async () => {
     const { result } = renderHook(() => useSelectedTaskId(layoutSet1NameMock), { wrapper });
     expect(result.current).toEqual(TASKID_FOR_STATELESS_APPS);

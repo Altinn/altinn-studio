@@ -13,8 +13,15 @@ on:
       - 'src/Runtime/workflow-engine-app/tests/**'
       - 'src/Runtime/workflow-engine-app/Directory.Build.props'
       - 'src/Runtime/workflow-engine-app/Directory.Packages.props'
+      - 'src/Runtime/workflow-engine-app/global.json'
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:
@@ -39,8 +46,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
-          dotnet-version: |
-            10.0.x
+          global-json-file: src/Runtime/workflow-engine-app/global.json
 
       - name: Restore
         run: dotnet restore

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -17,8 +18,6 @@ const combinedAlert = textMock(
 const dataTypeIds = ['model', 'ref-data-as-pdf', 'attachment'];
 
 describe('EnvDataTypeListConfigField', () => {
-  afterEach(jest.clearAllMocks);
-
   it('combines data types for the same environment into one list', async () => {
     const user = userEvent.setup();
     renderEnvDataTypeListConfigField({
@@ -34,7 +33,7 @@ describe('EnvDataTypeListConfigField', () => {
 
   it('saves one combined entry after removing a data type', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvDataTypeListConfigField({
       entries: [
         { env: 'tt02', value: ['model'] },
@@ -53,7 +52,7 @@ describe('EnvDataTypeListConfigField', () => {
 
   it('saves one combined entry in file order after adding a data type', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvDataTypeListConfigField({
       entries: [
         { env: 'tt02', value: ['model'] },

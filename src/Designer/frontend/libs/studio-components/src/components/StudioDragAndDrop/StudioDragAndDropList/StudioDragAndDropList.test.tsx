@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { StudioDragAndDropList } from './';
 import type { StudioDragAndDropListItemContextProps } from '../StudioDragAndDropListItem/StudioDragAndDropListItemContext';
@@ -12,7 +13,7 @@ import { domListClass, domListId } from '../utils/domUtils';
 const itemId = 'id';
 const rootId = 'rootId';
 const uniqueDomId = ':r0:';
-const onDrop = jest.fn();
+const onDrop = vi.fn();
 const gap = '1rem';
 const defaultListItemContextProps: StudioDragAndDropListItemContextProps = {
   isDisabled: false,

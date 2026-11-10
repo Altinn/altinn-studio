@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
@@ -10,9 +11,9 @@ import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
 import { WWWROOT_FILE_PATH } from '../../../constants';
 
-const onAddImageReferenceMock = jest.fn();
+const onAddImageReferenceMock = vi.fn();
 
-jest.mock('app-shared/api/paths');
+vi.mock('app-shared/api/paths');
 
 describe('AddImageFromLibraryModal', () => {
   it('renders modal', async () => {

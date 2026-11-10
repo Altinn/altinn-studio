@@ -1,10 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler';
 import { act, renderHook } from '@testing-library/react';
 import { usePdfConfig } from './usePdfConfig';
 
 describe('usePdfConfig', () => {
-  afterEach(jest.clearAllMocks);
-
   it('persists a filename when the imported task has no PDF config', async () => {
     const { result, saveXml } = renderPdfConfig();
 

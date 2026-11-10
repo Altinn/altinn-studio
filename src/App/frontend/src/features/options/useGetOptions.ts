@@ -2,16 +2,16 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
+import { useGetOptionsQuery, useGetOptionsUrl } from 'src/core/queries/options';
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useSaveDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -78,7 +78,13 @@ export function useSetOptions(
   dataModelBindings: IDataModelBindingsOptionsSimple | undefined,
   options: IOptionInternal[],
 ): SetOptionsResult {
-  const { formData, setValue } = useDataModelBindings(dataModelBindings);
+  const valueBindings = useMemo(
+    () => (dataModelBindings?.simpleBinding ? { simpleBinding: dataModelBindings.simpleBinding } : undefined),
+    [dataModelBindings?.simpleBinding],
+  );
+  // Option selection depends on the value, not the label or metadata written by other effects.
+  const formData = FormStore.data.useFreshBindings(valueBindings, 'string');
+  const { setValue } = useSaveDataModelBindings(valueBindings);
   const value = formData.simpleBinding ?? '';
 
   const currentValues = useMemo(
@@ -164,6 +170,7 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
     useLogFetchError(error, config);
 
     return {
+      error,
       isFetching,
       unsorted: data?.data ?? defaultOptions,
       downstreamParameters: data?.headers['altinn-downstreamparameters'],
@@ -276,7 +283,6 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, config }: Fil
   ]);
 }
 
-// TODO(Error handling): If fetching options fails, we just log and PDF generation will still succeed?
 export function useGetOptions(
   baseComponentId: string,
   valueType: OptionsValueType,

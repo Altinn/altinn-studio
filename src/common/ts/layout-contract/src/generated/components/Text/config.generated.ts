@@ -1,14 +1,14 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompTextExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompTextExternal extends ComponentBase {
   type: 'Text';
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   value: ExprValToActualOrExpr<ExprVal.String>;
   direction?: 'horizontal' | 'vertical';
@@ -48,4 +48,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TextSummaryOverridesWithRef;
 };
 
-// Source hash: 6153ec63dab5c445074fdc99363ed9bc6f0b2f86e2cf9e48ba53bb1147cc4055
+// Source hash: d0594df03a9111b0217485d0a85504c19750b9b5f9eb685e3142d301a79697d4

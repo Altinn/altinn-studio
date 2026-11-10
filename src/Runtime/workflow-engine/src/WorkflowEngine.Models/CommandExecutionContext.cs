@@ -6,7 +6,7 @@ using WorkflowEngine.Models.Exceptions;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Everything a command descriptor needs to execute a step.
+/// Everything a command needs to execute a step.
 /// </summary>
 public sealed record CommandExecutionContext
 {
@@ -26,12 +26,12 @@ public sealed record CommandExecutionContext
     public JsonElement? RawCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized command data, typed according to the descriptor's <see cref="ICommand.CommandDataType"/>.
+    /// The deserialized command data, typed according to the command's <see cref="ICommand.CommandDataType"/>.
     /// </summary>
     public object? TypedCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized workflow context, typed according to the descriptor's <see cref="ICommand.WorkflowContextType"/>.
+    /// The deserialized workflow context, typed according to the command's <see cref="ICommand.WorkflowContextType"/>.
     /// </summary>
     public object? TypedWorkflowContext { get; init; }
 
@@ -60,9 +60,16 @@ public sealed record CommandExecutionContext
     /// </summary>
     /// <remarks>
     /// A deadline rather than a remaining duration, which would start aging the instant it is computed.
-    /// Pair with <see cref="Step.DeferCount"/>.
+    /// Pair with <see cref="Step.DeferCount"/>. Decide whether to give up with
+    /// <see cref="IsFinalWaitCheck"/>, not by comparing this with the clock.
     /// </remarks>
     public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
+    /// <c>true</c> when this attempt is the step's final check: deferring from it fails the step as
+    /// expired. While <c>false</c>, a deferral always gets another run.
+    /// </summary>
+    public bool IsFinalWaitCheck { get; init; }
 
     /// <summary>
     /// What the rendezvous produced for this step; <c>null</c> for a step that receives from no mailbox. Read

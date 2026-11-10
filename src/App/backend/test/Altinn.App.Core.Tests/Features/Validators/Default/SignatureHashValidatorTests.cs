@@ -67,13 +67,8 @@ public class SignatureHashValidatorTests
         Assert.Empty(result);
     }
 
-    [Theory]
-    [InlineData(LanguageConst.Nb, "Signerte data er endret etter at signaturen ble utført.")]
-    [InlineData(LanguageConst.Nn, "Signerte data er endra etter at signaturen vart utført.")]
-    [InlineData(LanguageConst.En, "The signed data has been modified after the signature was made.")]
-    [InlineData(null, "Signerte data er endret etter at signaturen ble utført.")]
-    [InlineData("fr", "The signed data has been modified after the signature was made.")]
-    public async Task Validate_WithInvalidSignatureHash_ReturnsValidationIssue(string? language, string description)
+    [Fact]
+    public async Task Validate_WithInvalidSignatureHash_ReturnsValidationIssue()
     {
         const string testData = "test data";
         const string storedHash = "different-hash";
@@ -86,12 +81,26 @@ public class SignatureHashValidatorTests
 
         SetupMocks(signingConfiguration, applicationMetadata, [signeeContext], testData);
 
-        List<ValidationIssue> result = await _validator.Validate(_dataAccessorMock.Object, "signing-task", language);
+        List<ValidationIssue> result = await _validator.Validate(
+            _dataAccessorMock.Object,
+            "signing-task",
+            LanguageConst.Nb
+        );
 
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.InvalidSignatureHash, result[0].Code);
         Assert.Equal(ValidationIssueSeverity.Error, result[0].Severity);
-        Assert.Equal(description, result[0].Description);
+        Assert.Equal("validation_errors.invalid_signature_hash", result[0].CustomTextKey);
+        Assert.Null(result[0].Description);
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["dataElementId"] = "550e8400-e29b-41d4-a716-446655440001",
+                ["filename"] = "",
+                ["dataType"] = "form",
+            },
+            result[0].CustomTextParameters
+        );
     }
 
     [Fact]

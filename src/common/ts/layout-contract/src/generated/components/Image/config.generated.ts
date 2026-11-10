@@ -1,5 +1,8 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface CompImageExternal extends ComponentBase {
   type: 'Image';
@@ -27,6 +30,10 @@ export interface IImageSrc {
   [key: string]: string | undefined;
 }
 
+export type ImageSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Image' } & ISummaryOverridesCommon);
+
 export const componentConfig = {
   category: CompCategory.Presentation,
   availability: 'configurable',
@@ -40,7 +47,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -51,8 +58,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompImageExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: ImageSummaryOverridesWithRef;
 };
 
-// Source hash: 639eccb7325dac58f7a97c3b791e7820568e874db29419fd332fb0feae912309
+// Source hash: fe5ff9a93fd9d6a75d9725bdb8fb61cf9ed5256332e92fdcfda52e1d5c2b4be1

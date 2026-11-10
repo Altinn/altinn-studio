@@ -158,4 +158,57 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             "expected no UTF-8 BOM to be introduced"
         );
     }
+
+    [Theory]
+    [InlineData("", false)] // unlike v8, whose default is true
+    [InlineData("\"enablePdfCreation\": true,", true)]
+    [InlineData("\"enablePdfCreation\": false,", false)]
+    [InlineData("\"enablePdfCreation\": \"true\",", false)]
+    public void FormDataType_RequiresPdfOnlyWhenTheFlagIsTrue(string flagProperty, bool requiresPdf)
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            $$"""
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "taskId": "Task_1",
+                  {{flagProperty}}
+                  "appLogic": { "classRef": "Altinn.App.Models.model" }
+                }
+              ]
+            }
+            """
+        );
+
+        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+
+        (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
+        Assert.Equal(expected, tasks);
+    }
+
+    [Fact]
+    public void FormDataType_RequiresPdfInEveryTaskItsTaskIdsLists()
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            """
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "taskIds": ["Task_1", "Task_2"],
+                  "enablePdfCreation": true,
+                  "appLogic": { "classRef": "Altinn.App.Models.model" }
+                }
+              ]
+            }
+            """
+        );
+
+        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+
+        Assert.Equal([("Task_1", "model"), ("Task_2", "model")], tasks);
+    }
 }

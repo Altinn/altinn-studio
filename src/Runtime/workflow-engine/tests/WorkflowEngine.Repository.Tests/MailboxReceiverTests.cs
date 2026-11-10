@@ -11,7 +11,7 @@ using WorkflowEngine.Repository.Tests.Fixtures;
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Covers receive-workflow birth against a real database: positions, birth states, and the two
+/// Covers receive-workflow creation against a real database: positions, enqueue outcomes, and the two
 /// interleavings of a delivery and its receiver's enqueue.
 /// </summary>
 [Collection(PostgresCollection.Name)]
@@ -125,7 +125,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     #region The registry holds every receiver
 
     [Fact]
-    public async Task Enqueue_MixedBirthsInOneFlush_LeaveOneRegistrationEachAndAgreeWithTheCounter()
+    public async Task Enqueue_MixedOutcomesInOneFlush_LeaveOneRegistrationEachAndAgreeWithTheCounter()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -170,7 +170,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task AReceiverBornRunnable_IsUntouchedByTheWakeAndByTheClosureRelease()
+    public async Task AReceiverCreatedRunnable_IsUntouchedByTheWakeAndByTheClosureRelease()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -184,11 +184,11 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         );
         Assert.Equal(PersistentItemStatus.Held, await StatusOf(parked));
 
-        var versionAtBirth = await RegistrationVersion(runnable);
+        var versionAtCreation = await RegistrationVersion(runnable);
 
         await Deliver(repository, mailbox.Id, "msg-2");
         Assert.Equal(PersistentItemStatus.Enqueued, await StatusOf(parked));
-        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+        Assert.Equal(versionAtCreation, await RegistrationVersion(runnable));
 
         await repository.CloseMailbox(
             mailbox.Id,
@@ -198,7 +198,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             TestContext.Current.CancellationToken
         );
 
-        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+        Assert.Equal(versionAtCreation, await RegistrationVersion(runnable));
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
             Assert.Single(await Enqueue(repository, [Receiver(mailbox.Id)], idempotencyKey: "r1")).WorkflowIds!
         );
 
-        var versionAtBirth = await RegistrationVersion(runnable);
+        var versionAtCreation = await RegistrationVersion(runnable);
 
         await repository.CloseMailbox(
             mailbox.Id,
@@ -234,15 +234,15 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         );
         Assert.NotNull(released.ReleasedAt);
 
-        Assert.Equal(versionAtBirth, await RegistrationVersion(runnable));
+        Assert.Equal(versionAtCreation, await RegistrationVersion(runnable));
     }
 
     #endregion
 
-    #region The three births
+    #region The three enqueue outcomes
 
     [Fact]
-    public async Task Enqueue_WhenADeliveryAlreadySitsAtItsPosition_IsBornRunnableAndAlreadyReleased()
+    public async Task Enqueue_WhenADeliveryAlreadySitsAtItsPosition_IsCreatedRunnableAndAlreadyReleased()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -267,7 +267,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task Enqueue_AgainstAClosedMailboxWithNoDelivery_IsBornRunnableWithTheClosingSignal()
+    public async Task Enqueue_AgainstAClosedMailboxWithNoDelivery_IsCreatedRunnableWithTheClosingSignal()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -322,7 +322,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task Enqueue_AgainstAnOpenMailboxWithNoDelivery_IsBornHeldAndRegistersUnreleased()
+    public async Task Enqueue_AgainstAnOpenMailboxWithNoDelivery_IsCreatedHeldAndRegistersUnreleased()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -646,7 +646,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
         await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
         Assert.False(
             fresh.IsCompleted,
-            "A new receiver's birth was decided while the mailbox row lock was held elsewhere."
+            "A new receiver's enqueue outcome was decided while the mailbox row lock was held elsewhere."
         );
 
         await blockingTx.RollbackAsync(TestContext.Current.CancellationToken);
@@ -685,7 +685,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
     }
 
     [Fact]
-    public async Task Enqueue_DeliveryFirst_BornRunnableWithTheDelivery()
+    public async Task Enqueue_DeliveryFirst_CreatedRunnableWithTheDelivery()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -719,7 +719,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
 
         var enqueue = Enqueue(repository, [Receiver(mailbox.Id)]);
         await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
-        Assert.False(enqueue.IsCompleted, "The enqueue decided a receiver's birth while the delivery held the lock.");
+        Assert.False(enqueue.IsCompleted, "A receiver's enqueue outcome was decided while the delivery held the lock.");
 
         await deliveryTx.CommitAsync(TestContext.Current.CancellationToken);
 
@@ -781,7 +781,7 @@ public sealed class MailboxReceiverTests(PostgresFixture fixture) : IAsyncLifeti
 
         var enqueue = Enqueue(repository, [Receiver(mailbox.Id)]);
         await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
-        Assert.False(enqueue.IsCompleted, "The enqueue decided a receiver's birth while the close held the lock.");
+        Assert.False(enqueue.IsCompleted, "A receiver's enqueue outcome was decided while the close held the lock.");
 
         await closingTx.CommitAsync(TestContext.Current.CancellationToken);
 

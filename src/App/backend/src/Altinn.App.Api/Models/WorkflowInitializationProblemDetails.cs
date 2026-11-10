@@ -48,11 +48,6 @@ public enum WorkflowRecommendedAction
     RetryInstanceCreation,
 
     /// <summary>
-    /// The existing instance was left untouched; the client can retry starting the process.
-    /// </summary>
-    RetryStartProcess,
-
-    /// <summary>
     /// The client should inspect the instance and workflow state before deciding how to proceed.
     /// </summary>
     InspectInstance,
@@ -74,10 +69,9 @@ public sealed record WorkflowResumeEndpoint(
 
 /// <summary>
 /// Structured problem details returned when the workflow engine rejects or fails the initial process
-/// workflow, for both instance creation and process start of an existing instance. Extends
-/// <see cref="ProblemDetails"/> so the response remains valid <c>application/problem+json</c>; the
-/// workflow-specific members are serialized alongside the standard ones and form a stable recovery
-/// contract clients can react to.
+/// workflow of a new instance. Extends <see cref="ProblemDetails"/> so the response remains valid
+/// <c>application/problem+json</c>; the workflow-specific members are serialized alongside the standard
+/// ones and form a stable recovery contract clients can react to.
 /// </summary>
 public sealed class WorkflowInitializationProblemDetails : ProblemDetails
 {

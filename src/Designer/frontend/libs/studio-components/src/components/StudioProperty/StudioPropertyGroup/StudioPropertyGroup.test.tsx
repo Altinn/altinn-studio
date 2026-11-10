@@ -1,10 +1,13 @@
+import { describe, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StudioPropertyGroup } from './StudioPropertyGroup';
 import { testRefForwarding } from '../../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 
-jest.mock('./StudioPropertyGroup.module.css', () => ({
-  listWrapper: 'listWrapper',
+vi.mock('./StudioPropertyGroup.module.css', () => ({
+  default: {
+    listWrapper: 'listWrapper',
+  },
 }));
 
 describe('StudioPropertyGroup', () => {

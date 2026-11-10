@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
@@ -16,8 +17,6 @@ const defaultProps: PolicyRuleProps = {
 };
 
 describe('PolicyRule', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls "setPolicyRules" and "savePolicy" when the clone button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyRule();
@@ -37,7 +36,7 @@ describe('PolicyRule', () => {
   it('calls "setPolicyRules" and "savePolicy" when the delete button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyRule();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
     await user.click(moreButton);
@@ -51,7 +50,7 @@ describe('PolicyRule', () => {
 
   it('calls "savePolicy" when input fields are blurred', async () => {
     const user = userEvent.setup();
-    const mockSavePolicy = jest.fn();
+    const mockSavePolicy = vi.fn();
     renderPolicyRule({ usageType: 'resource', savePolicy: mockSavePolicy });
 
     const [typeInput] = screen.getAllByLabelText(

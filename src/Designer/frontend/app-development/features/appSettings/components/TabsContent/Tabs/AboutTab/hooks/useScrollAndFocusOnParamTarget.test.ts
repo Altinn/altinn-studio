@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { MutableRefObject } from 'react';
 import { useScrollAndFocusOnParamTarget } from './useScrollAndFocusOnParamTarget';
@@ -5,26 +7,26 @@ import { useScrollAndFocusOnParamTarget } from './useScrollAndFocusOnParamTarget
 describe('useScrollAndFocusOnParamTarget', () => {
   const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
   beforeEach(() => {
-    jest
-      .spyOn(globalThis, 'requestAnimationFrame')
-      .mockImplementation((callback: FrameRequestCallback): number => {
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(
+      (callback: FrameRequestCallback): number => {
         callback(0);
         return 0;
-      });
+      },
+    );
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     globalThis.requestAnimationFrame = originalRequestAnimationFrame;
   });
 
   it('scrolls, focuses and clears focus param when target is true and ref is valid', () => {
-    const scrollIntoView = jest.fn();
-    const focus = jest.fn();
-    const querySelector = jest.fn().mockReturnValue({ focus });
+    const scrollIntoView = vi.fn();
+    const focus = vi.fn();
+    const querySelector = vi.fn().mockReturnValue({ focus });
     const sectionRef = createSectionRef(scrollIntoView, querySelector);
     const searchParams = new URLSearchParams('focus=rightDescription-nb&other=value');
-    const setSearchParams = jest.fn();
+    const setSearchParams = vi.fn();
     renderUseScrollAndFocusOnParamTarget(true, sectionRef, searchParams, setSearchParams);
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
     expect(querySelector).toHaveBeenCalledWith('textarea, input');
@@ -33,11 +35,11 @@ describe('useScrollAndFocusOnParamTarget', () => {
   });
 
   it('does not scroll or focus when target is false', () => {
-    const scrollIntoView = jest.fn();
-    const querySelector = jest.fn();
+    const scrollIntoView = vi.fn();
+    const querySelector = vi.fn();
     const sectionRef = createSectionRef(scrollIntoView, querySelector);
     const searchParams = new URLSearchParams('focus=rightDescription-nb');
-    const setSearchParams = jest.fn();
+    const setSearchParams = vi.fn();
     renderUseScrollAndFocusOnParamTarget(false, sectionRef, searchParams, setSearchParams);
     expect(scrollIntoView).not.toHaveBeenCalled();
     expect(querySelector).not.toHaveBeenCalled();
@@ -45,8 +47,8 @@ describe('useScrollAndFocusOnParamTarget', () => {
   });
 
   function createSectionRef(
-    scrollIntoView: jest.Mock,
-    querySelector: jest.Mock,
+    scrollIntoView: Mock,
+    querySelector: Mock,
   ): MutableRefObject<HTMLDivElement | null> {
     return {
       current: { scrollIntoView, querySelector },

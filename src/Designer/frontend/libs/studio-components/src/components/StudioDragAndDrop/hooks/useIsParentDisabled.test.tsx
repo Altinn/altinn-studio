@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useIsParentDisabled } from './useIsParentDisabled';
 import { renderHook } from '@testing-library/react';
 import { StudioDragAndDrop } from '../';
@@ -5,24 +6,24 @@ import { type useDrag } from 'react-dnd';
 
 // Mocks:
 const draggedItemId = 'draggedItemId';
-jest.mock('react-dnd', () => ({
-  ...jest.requireActual('react-dnd'),
+vi.mock('react-dnd', async () => ({
+  ...(await vi.importActual('react-dnd')),
   useDrag: (args: Parameters<typeof useDrag>[0]): ReturnType<typeof useDrag> => {
     const spec = typeof args === 'function' ? args() : args;
     const item = typeof spec.item === 'function' ? spec.item() : spec.item;
-    return [{ isDragging: item.id === draggedItemId }, jest.fn(), jest.fn()];
+    return [{ isDragging: item.id === draggedItemId }, vi.fn(), vi.fn()];
   },
 }));
-jest.mock('../utils/domUtils', () => ({
-  ...jest.requireActual('../utils/domUtils'),
-  findPositionInList: jest.fn().mockReturnValue(0),
+vi.mock('../utils/domUtils', async () => ({
+  ...(await vi.importActual('../utils/domUtils')),
+  findPositionInList: vi.fn().mockReturnValue(0),
 }));
 
 describe('useIsParentDisabled', () => {
   it('Returns false when it is called from directly within the drag an drop provider', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           {children}
         </StudioDragAndDrop.Provider>
       ),
@@ -33,7 +34,7 @@ describe('useIsParentDisabled', () => {
   it('Returns false when it is called from directly within the root droppable list', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           <StudioDragAndDrop.List>{children}</StudioDragAndDrop.List>
         </StudioDragAndDrop.Provider>
       ),
@@ -44,7 +45,7 @@ describe('useIsParentDisabled', () => {
   it('Returns true when it is called from an item that is being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           <StudioDragAndDrop.List>
             <StudioDragAndDrop.ListItem itemId={draggedItemId} renderItem={() => children} />
           </StudioDragAndDrop.List>
@@ -57,7 +58,7 @@ describe('useIsParentDisabled', () => {
   it('Returns true when it is called from a child item of an item that is being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           <StudioDragAndDrop.List>
             <StudioDragAndDrop.ListItem
               itemId={draggedItemId}
@@ -77,7 +78,7 @@ describe('useIsParentDisabled', () => {
   it('Returns false when it is called from an item that is not being dragged', () => {
     const { result } = renderHook(useIsParentDisabled, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           <StudioDragAndDrop.List>
             <StudioDragAndDrop.ListItem itemId='item' renderItem={() => children} />
           </StudioDragAndDrop.List>

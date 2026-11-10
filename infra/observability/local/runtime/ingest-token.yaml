@@ -1,0 +1,9 @@
+# A fixed token for the local proxy, which accepts it as runtime-local (see
+# ../studio). It only exists on a developer's kind cluster.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: observability-ingest-token
+type: Opaque
+stringData:
+  token: local-runtime-ingest-token-not-a-secret

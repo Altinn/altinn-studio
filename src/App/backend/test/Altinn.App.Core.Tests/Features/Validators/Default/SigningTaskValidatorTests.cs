@@ -83,13 +83,8 @@ public class SigningTaskValidatorTest
         Assert.Empty(result);
     }
 
-    [Theory]
-    [InlineData(LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
-    [InlineData(LanguageConst.Nn, "Det manglar påkravde signaturar.")]
-    [InlineData(LanguageConst.En, "Required signatures are missing.")]
-    [InlineData(null, "Det mangler påkrevde signaturer.")]
-    [InlineData("fr", "Required signatures are missing.")]
-    public async Task Validate_ShouldReturnValidationIssue_WhenNotAllHaveSigned(string? language, string description)
+    [Fact]
+    public async Task Validate_ShouldReturnValidationIssue_WhenNotAllHaveSigned()
     {
         // Arrange
         var dataAccessorMock = new Mock<IInstanceDataAccessor>();
@@ -131,12 +126,23 @@ public class SigningTaskValidatorTest
             .ReturnsAsync(signeeContexts);
 
         // Act
-        var result = await _validator.Validate(dataAccessorMock.Object, taskId, language);
+        var result = await _validator.Validate(dataAccessorMock.Object, taskId, LanguageConst.Nb);
 
         // Assert
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.MissingSignatures, result[0].Code);
-        Assert.Equal(description, result[0].Description);
+        Assert.Equal("validation_errors.missing_signatures", result[0].CustomTextKey);
+        Assert.Null(result[0].Description);
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["signedCount"] = "0",
+                ["signeeCount"] = "1",
+                ["minCount"] = "1",
+                ["dataType"] = "signatures",
+            },
+            result[0].CustomTextParameters
+        );
     }
 
     [Fact]

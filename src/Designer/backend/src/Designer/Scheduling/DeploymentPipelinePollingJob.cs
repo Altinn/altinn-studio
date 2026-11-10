@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
@@ -20,6 +21,8 @@ using Quartz;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
+// Polls of one build never overlap, so the poll that sees the pipeline finish is the only one to record it.
+[DisallowConcurrentExecution]
 public class DeploymentPipelinePollingJob : IJob
 {
     private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
@@ -30,6 +33,7 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly AppDeployMetrics _metrics;
 
     public DeploymentPipelinePollingJob(
         IAzureDevOpsBuildClient azureDevOpsBuildClient,
@@ -39,7 +43,8 @@ public class DeploymentPipelinePollingJob : IJob
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IPublisher mediatr,
         ILogger<DeploymentPipelinePollingJob> logger,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        AppDeployMetrics metrics
     )
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -50,6 +55,7 @@ public class DeploymentPipelinePollingJob : IJob
         _mediatr = mediatr;
         _logger = logger;
         _timeProvider = timeProvider;
+        _metrics = metrics;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -58,7 +64,11 @@ public class DeploymentPipelinePollingJob : IJob
 
         try
         {
+            // The job run's own span is the poll's entry span, and the deploy trace's span links to it. Both carry
+            // the deploy's attributes, so that searching either finds the poll.
+            Activity jobSpan = RootSpan.OfJob();
             activity = TryStartTraceActivity(context);
+            Activity[] spans = [.. new[] { jobSpan, activity }.OfType<Activity>()];
             var jobDataMap = context.JobDetail.JobDataMap;
 
             string org = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.Org);
@@ -73,8 +83,24 @@ public class DeploymentPipelinePollingJob : IJob
             string environment = jobDataMap.GetRequiredString(
                 DeploymentPipelinePollingJobConstants.Arguments.Environment
             );
+            foreach (Activity span in spans)
+            {
+                span.SetRepository(org, app);
+                span.SetTargetEnvironment(environment);
+                span.SetAppDeployBuild(buildId);
+                span.SetTag(ServiceTelemetry.Attributes.AppDeploy.PipelineType, ServiceTelemetry.EnumValue(type));
+            }
 
             var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
+            // When Designer saw the run's status: the pipeline's end in its duration and its event, and so Flux's start.
+            DateTimeOffset observed = _timeProvider.GetUtcNow();
+            foreach (Activity span in spans)
+            {
+                span.SetTag(
+                    ServiceTelemetry.Attributes.AppDeploy.PipelineStatus,
+                    ServiceTelemetry.EnumValue(build.Status)
+                );
+            }
 
             var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
@@ -95,13 +121,24 @@ public class DeploymentPipelinePollingJob : IJob
                 )
             )
             {
-                await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+                await AddDeployEventIfNotExist(build, org, buildId, observed);
             }
 
             await _deploymentRepository.Update(deploymentEntity);
 
             if (build.Status == BuildStatus.Completed)
             {
+                RecordCompletedPipeline(
+                    spans,
+                    editingContext,
+                    type,
+                    environment,
+                    buildId,
+                    build,
+                    deploymentEntity,
+                    observed
+                );
+
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
                     await UpdateMetadataInStorage(editingContext, environment);
@@ -127,6 +164,77 @@ public class DeploymentPipelinePollingJob : IJob
         }
     }
 
+    /// <summary>
+    /// Records the pipeline's end, on the poll that first sees it completed. A pipeline that did not succeed ends the
+    /// deploy, since Designer asks the runtime to reconcile only after one that succeeded, unless Flux has already
+    /// reported a result: Flux also reconciles on its own, and the first result is the deploy's.
+    /// </summary>
+    private void RecordCompletedPipeline(
+        Activity[] spans,
+        AltinnRepoEditingContext editingContext,
+        PipelineType type,
+        string environment,
+        string buildId,
+        BuildEntity build,
+        DeploymentEntity deploymentEntity,
+        DateTimeOffset observed
+    )
+    {
+        TimeSpan sinceRequest = observed.UtcDateTime - deploymentEntity.Created;
+        string pipelineResult = AppDeployMetrics.PipelineResult(build.Result);
+        foreach (Activity span in spans)
+        {
+            span.SetTag(ServiceTelemetry.Attributes.CicdPipelineResult, pipelineResult);
+        }
+        _metrics.RecordPipeline(editingContext.Org, type, environment, build.Result, sinceRequest);
+        _metrics.RecordPipelineRun(type, environment, build);
+        if (build.Result == BuildResult.Succeeded)
+        {
+            return;
+        }
+
+        bool failed = AppDeployMetrics.IsPipelineFailure(build.Result);
+        if (!deploymentEntity.HasFinalEvent)
+        {
+            string result = failed ? AppDeployMetrics.PipelineFailed : AppDeployMetrics.PipelineCanceled;
+            foreach (Activity span in spans)
+            {
+                span.SetTag(ServiceTelemetry.Attributes.AppDeploy.Result, result);
+            }
+            _metrics.RecordResult(
+                editingContext.Org,
+                type,
+                environment,
+                result,
+                failed ? AppDeployMetrics.PipelineFailed : null,
+                sinceRequest
+            );
+        }
+
+        // Someone canceled the run on purpose, which is not an error.
+        if (!failed)
+        {
+            return;
+        }
+
+        foreach (Activity span in spans)
+        {
+            span.SetTag(ServiceTelemetry.Attributes.ErrorType, AppDeployMetrics.PipelineFailed);
+            span.SetStatus(ActivityStatusCode.Error, $"The pipeline's result is {pipelineResult}");
+        }
+        _logger.LogError(
+            "The {PipelineType} pipeline {BuildId} for {Org}/{App} in {Environment} ended with {BuildResult}",
+            ServiceTelemetry.EnumValue(type),
+            buildId,
+            editingContext.Org,
+            editingContext.Repo,
+            environment,
+            ServiceTelemetry.EnumValue(build.Result)
+        );
+    }
+
+    // Each poll continues the deploy request's trace on purpose: a deploy is one trace through Designer, Azure DevOps,
+    // the gateway and Flux, so it can be followed end to end (https://github.com/Altinn/altinn-studio/issues/21073).
     private Activity TryStartTraceActivity(IJobExecutionContext context)
     {
         var jobDataMap = context.JobDetail.JobDataMap;
@@ -160,7 +268,7 @@ public class DeploymentPipelinePollingJob : IJob
         return activity;
     }
 
-    private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
+    private async Task AddDeployEventIfNotExist(BuildEntity build, string org, string buildId, DateTimeOffset observed)
     {
         var eventType =
             build.Result == BuildResult.Succeeded ? DeployEventType.PipelineSucceeded : DeployEventType.PipelineFailed;
@@ -172,7 +280,7 @@ public class DeploymentPipelinePollingJob : IJob
             {
                 EventType = eventType,
                 Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
-                Timestamp = _timeProvider.GetUtcNow(),
+                Timestamp = observed,
                 Origin = DeployEventOrigin.PollingJob,
             }
         );

@@ -4,7 +4,7 @@ import { StudioDropdown } from '@studio/components';
 import { useFormItemContext } from '../../../../containers/FormItemContext';
 import { addExpressionToFormItem, getUndefinedExpressionProperties } from '../utils';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
-import { useTranslation } from 'react-i18next';
+import { useComponentPropertyLabel } from '../../../../hooks/useComponentPropertyLabel';
 
 export const NewExpressionButton = () => {
   const t = useText();
@@ -26,7 +26,7 @@ export const NewExpressionButton = () => {
     >
       <StudioDropdown.List>
         {remainingProperties.map((property) => (
-          <MenuItem property={property} key={JSON.stringify(property)} />
+          <MenuItem property={property} key={property.path.join('.')} />
         ))}
       </StudioDropdown.List>
     </StudioDropdown>
@@ -51,41 +51,6 @@ const MenuItem = ({ property }: { property: FormItemProperty }) => {
 };
 
 const useAddExpressionText = (property: FormItemProperty) => {
-  const { t } = useTranslation();
-  return t(getAddPropertyTextKey(property));
-};
-
-// Todo: https://github.com/Altinn/altinn-studio/issues/12382 will probably eliminate the need to cast the types here
-const getAddPropertyTextKey = (property: FormItemProperty): string => {
-  switch (property.key) {
-    case 'hidden' as string:
-      return 'right_menu.expressions_property_hidden';
-    case 'required' as string:
-      return 'right_menu.expressions_property_required';
-    case 'readOnly' as string:
-      return 'right_menu.expressions_property_read_only';
-    case 'edit' as string:
-      return getAddSubPropertyTextKey(property.subKey as string);
-    default:
-      return undefined;
-  }
-};
-
-const getAddSubPropertyTextKey = (subKey: string): string => {
-  switch (subKey) {
-    case 'addButton':
-      return 'right_menu.expressions_group_property_show_add_button';
-    case 'alertOnDelete':
-      return 'right_menu.expressions_group_property_alert_on_delete';
-    case 'deleteButton':
-      return 'right_menu.expressions_group_property_show_delete_button';
-    case 'editButton':
-      return 'right_menu.expressions_group_property_show_edit_button';
-    case 'saveAndNextButton':
-      return 'right_menu.expressions_group_property_show_save_and_next_button';
-    case 'saveButton':
-      return 'right_menu.expressions_group_property_show_save_button';
-    default:
-      return undefined;
-  }
+  const propertyLabel = useComponentPropertyLabel();
+  return propertyLabel(property.path.at(-1), property.definition);
 };

@@ -1,4 +1,5 @@
-﻿import { GetInTouchWith } from 'app-shared/getInTouch/GetInTouchWith';
+import { describe, expect, it } from 'vitest';
+import { GetInTouchWith } from 'app-shared/getInTouch/GetInTouchWith';
 import {
   EmailContactProvider,
   GitHubIssueContactProvider,

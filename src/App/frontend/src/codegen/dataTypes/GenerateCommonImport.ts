@@ -2,10 +2,11 @@ import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
-import { type CodeGeneratorWithProperties, DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
+import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { getSourceForCommon, isSerializedCommonType } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
+import type { CodeGenerator, CodeGeneratorWithProperties } from 'src/codegen/CodeGenerator';
 import type { CommonValue, ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
@@ -68,6 +69,10 @@ export class GenerateCommonImport<T extends ValidCommonKeys, Val = CommonValue<T
     }
 
     return [];
+  }
+
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return [getSourceForCommon(this.key)];
   }
 
   expressionDescriptors(): ExpressionDescriptorEntry[] {

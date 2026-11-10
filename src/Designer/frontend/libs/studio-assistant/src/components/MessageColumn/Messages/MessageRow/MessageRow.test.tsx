@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { MessageRow, type MessageRowProps } from './MessageRow';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

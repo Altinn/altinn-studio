@@ -113,6 +113,62 @@ public class RepositoryServiceTests
     }
 
     [Fact]
+    public async Task GetServiceResources_ReadsTheResourceFileInEachResourceFolder()
+    {
+        // Arrange
+        RepositoryService sut = GetServiceForTest("testUser");
+
+        // Act
+        List<ServiceResource> resources = await sut.GetServiceResources("ttd", "ttd-resources");
+
+        // Assert
+        Assert.Equal(["ttdres1", "ttdres2"], resources.Select(resource => resource.Identifier));
+    }
+
+    [Fact]
+    public async Task GetServiceResources_ReadsTopLevelResourceFilesAndSkipsHiddenAndNestedFolders()
+    {
+        // Arrange
+        const string Developer = "testUser";
+        const string Org = "ttd";
+        string repository = TestDataHelper.GenerateTestRepoName("-resources");
+        string repositoryPath = TestDataHelper.GetTestDataRepositoryDirectory(Org, repository, Developer);
+        WriteResourceFile(repositoryPath, "first/first_resource.json", "first");
+        WriteResourceFile(repositoryPath, "second/second_resource.json", "second");
+        File.WriteAllText(Path.Join(repositoryPath, "second", "second_policy.xml"), "<Policy />");
+        WriteResourceFile(repositoryPath, "top_resource.json", "top");
+        WriteResourceFile(repositoryPath, ".hidden/hidden_resource.json", "hidden");
+        WriteResourceFile(repositoryPath, "third/nested/nested_resource.json", "nested");
+        RepositoryService sut = GetServiceForTest(Developer);
+
+        try
+        {
+            // Act
+            List<ServiceResource> resources = await sut.GetServiceResources(Org, repository);
+
+            // Assert
+            Assert.Equal(["first", "second", "top"], resources.Select(resource => resource.Identifier));
+        }
+        finally
+        {
+            Directory.Delete(repositoryPath, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetServiceResources_LocalCloneOfRepositoryNotAvailable_ReturnsEmptyList()
+    {
+        // Arrange
+        RepositoryService sut = GetServiceForTest("testUser");
+
+        // Act
+        List<ServiceResource> resources = await sut.GetServiceResources("ttd", "missing-resources");
+
+        // Assert
+        Assert.Empty(resources);
+    }
+
+    [Fact]
     public async Task CreateRepository_DoesNotExists_ShouldCreate()
     {
         string org = "ttd";
@@ -609,6 +665,13 @@ public class RepositoryServiceTests
         }
     }
 
+    private static void WriteResourceFile(string repositoryPath, string relativePath, string identifier)
+    {
+        string filePath = Path.Join(repositoryPath, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        File.WriteAllText(filePath, $$"""{ "identifier": "{{identifier}}" }""");
+    }
+
     private static void CleanUpRemoteTestData(string org, string app)
     {
         string remoteRepoPath = TestDataHelper.GetTestDataRemoteRepository(org, app);
@@ -676,7 +739,8 @@ public class RepositoryServiceTests
             altinnStorageAppMetadataClient,
             altinnGitRepositoryFactory,
             httpContextAccessorMock.Object,
-            giteaClientMock
+            giteaClientMock,
+            new AppVersionService(altinnGitRepositoryFactory)
         );
 
         ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
@@ -686,7 +750,12 @@ public class RepositoryServiceTests
             new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
         );
 
-        TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
+        TextsService textsService = new(
+            altinnGitRepositoryFactory,
+            applicationInformationService,
+            optionsService,
+            new AppVersionService(altinnGitRepositoryFactory)
+        );
 
         IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
         IAuthorizationPolicyService authorizationPolicyServiceMock = new Mock<IAuthorizationPolicyService>().Object;

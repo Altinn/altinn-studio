@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -30,7 +31,7 @@ const waitForData = async () => {
 const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {
   const allProps: IGenericEditComponent<ComponentType.Image> = {
     component: componentData,
-    handleComponentChange: jest.fn(),
+    handleComponentChange: vi.fn(),
     ...props,
   };
 
@@ -41,7 +42,7 @@ const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>>
 
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     const imgSrc = 'placekitten.com/500/500';
     await render({ handleComponentChange: handleUpdate });
 
@@ -63,7 +64,7 @@ describe('ImageComponent', () => {
   });
 
   it('should call handleComponentUpdate callback with alignment when placement select is changed', async () => {
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     await render({ handleComponentChange: handleUpdate });
 
     const placementInput = screen.getByRole('combobox', {

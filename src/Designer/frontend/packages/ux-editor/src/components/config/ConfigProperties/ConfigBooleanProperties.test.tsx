@@ -1,11 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import {
   ConfigBooleanProperties,
   type ConfigBooleanPropertiesProps,
 } from './ConfigBooleanProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
-import DatepickerSchema from '../../../testing/schemas/json/component/Datepicker.schema.v1.json';
+import { componentCatalog } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -66,7 +66,7 @@ describe('ConfigBooleanProperties', () => {
     renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden', 'timeStamp'],
-        schema: DatepickerSchema,
+        properties: componentCatalog.Datepicker.properties,
       },
     });
     const button = screen.getByRole('button', {
@@ -79,11 +79,11 @@ describe('ConfigBooleanProperties', () => {
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden'],
-        schema: DatepickerSchema,
+        properties: componentCatalog.Datepicker.properties,
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
@@ -114,9 +114,9 @@ describe('ConfigBooleanProperties', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigBooleanPropertiesProps = {
       booleanPropertyKeys: booleanPropertiesKeys,
-      schema: InputSchema,
+      properties: componentCatalog.Input.properties,
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<ConfigBooleanProperties {...defaultProps} {...props} />, {
       queries,

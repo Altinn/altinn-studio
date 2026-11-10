@@ -161,7 +161,8 @@ public class InstancesController : ControllerBase
                     "read"
                 );
                 XacmlJsonResponse response = await _authorizationService.GetDecisionForRequest(
-                    request
+                    request,
+                    cancellationToken
                 );
 
                 if (!DecisionHelper.ValidatePdpDecision(response?.Response, HttpContext.User))
@@ -323,7 +324,7 @@ public class InstancesController : ControllerBase
                     throw new TimeoutException("Request was cancelled.");
                 }
 
-                result.Instances = await _authorizationService.AuthorizeInstances(result.Instances);
+                result.Instances = await _authorizationService.AuthorizeInstances(result.Instances, cancellationToken);
                 result.Count = result.Instances.Count;
             }
 
@@ -472,7 +473,7 @@ public class InstancesController : ControllerBase
         XacmlJsonResponse response;
         try
         {
-            response = await _authorizationService.GetDecisionForRequest(request);
+            response = await _authorizationService.GetDecisionForRequest(request, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -1015,7 +1016,7 @@ public class InstancesController : ControllerBase
             cancellationToken
         );
 
-        if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance))
+        if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance, cancellationToken))
         {
             return Forbid();
         }
@@ -1115,7 +1116,7 @@ public class InstancesController : ControllerBase
             return NotFound($"Unable to find instance {instanceOwnerPartyId}/{instanceGuid}.");
         }
 
-        if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance))
+        if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance, cancellationToken))
         {
             return Forbid();
         }
@@ -1187,6 +1188,11 @@ public class InstancesController : ControllerBase
             Data = new List<DataElement>(),
             Process = instanceTemplate.Process,
             DataValues = instanceTemplate.DataValues,
+
+            // An empty value removes the text in UpdatePresentationTexts, so it is not stored on creation either
+            PresentationTexts = instanceTemplate
+                .PresentationTexts?.Where(text => !string.IsNullOrEmpty(text.Value))
+                .ToDictionary(text => text.Key, text => text.Value),
         };
 
         return createdInstance;

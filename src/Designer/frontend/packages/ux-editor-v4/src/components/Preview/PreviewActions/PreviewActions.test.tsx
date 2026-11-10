@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -18,7 +19,7 @@ describe('PreviewActions', () => {
 
   it('should call onCollapseToggle when toggle button is clicked', async () => {
     const user = userEvent.setup();
-    const onCollapseToggleMock = jest.fn();
+    const onCollapseToggleMock = vi.fn();
     renderPreviewActions({
       toggleTitle: textMock('ux_editor.open_preview'),
       onCollapseToggle: onCollapseToggleMock,
@@ -45,7 +46,7 @@ describe('PreviewActions', () => {
 const renderPreviewActions = (props: Partial<PreviewActionsProps>) => {
   const defaultProps: PreviewActionsProps = {
     className: 'preview-actions',
-    onCollapseToggle: jest.fn(),
+    onCollapseToggle: vi.fn(),
   };
   return renderWithProviders(<PreviewActions {...defaultProps} {...props} />);
 };

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Ref } from 'react';
 import { StudioLinkButton, type StudioLinkButtonProps } from './StudioLinkButton';
 import { screen, render, type RenderResult } from '@testing-library/react';

@@ -115,6 +115,8 @@ spec:
   useStrictSecurity: true
   # vtagent only forwards to remoteWrite and never calls the Kubernetes API.
   disableAutomountServiceAccountToken: true
+  # Each replica is scraped by name, so a change here also changes the target
+  # list in self-monitoring.yaml.
   replicaCount: 2
   # vtagent-traces-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
   serviceSpec:

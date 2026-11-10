@@ -309,39 +309,70 @@ describe('UI Components', () => {
   });
 
   it('should be possible to set all elements as readonly and snapshot', () => {
-    cy.interceptLayout('Task_2', (component) => {
-      const formTypes: CompExternal['type'][] = [
-        'Address',
-        'Checkboxes',
-        'Datepicker',
-        'Dropdown',
-        'FileUpload',
-        'Input',
-        'RadioButtons',
-        'TextArea',
-        'MultipleSelect',
-      ];
-      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
-        component.readOnly = [
-          'or',
-          ['equals', ['component', 'newMiddleName'], 'checkbox_readOnly'],
-          ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+    const uploaders = ['fileUpload-changename', 'fileUploadWithTags-changename'];
+    const summaries = uploaders.map((id) => `[data-componentid="readonly-summary-${id}"]`);
+    cy.interceptLayout(
+      'Task_2',
+      (component) => {
+        const formTypes: CompExternal['type'][] = [
+          'Address',
+          'Checkboxes',
+          'Datepicker',
+          'Dropdown',
+          'FileUpload',
+          'Input',
+          'RadioButtons',
+          'TextArea',
+          'MultipleSelect',
         ];
-      } else if (component.id === 'reason' && component.type === 'RadioButtons') {
-        component.readOnly = [
-          'or',
-          ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
-          ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
-        ];
-      } else if (formTypes.includes(component.type)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
-      }
-    });
+        if (component.type === 'FileUpload') {
+          component.displayMode = component.id === uploaders[0] ? 'simple' : 'list';
+        }
+        if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+          component.readOnly = [
+            'or',
+            ['equals', ['component', 'newMiddleName'], 'checkbox_readOnly'],
+            ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+          ];
+        } else if (component.id === 'reason' && component.type === 'RadioButtons') {
+          component.readOnly = [
+            'or',
+            ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
+            ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+          ];
+        } else if (formTypes.includes(component.type)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
+        }
+      },
+      (layouts) => {
+        layouts.form.data.layout.push(
+          ...uploaders.map((id) => ({
+            id: `readonly-summary-${id}`,
+            type: 'Summary2' as const,
+            target: { type: 'component' as const, id },
+          })),
+        );
+      },
+    );
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
     cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
+
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.get('[data-componentid="fileUpload-changename"]')
+      .findByRole('button', { name: 'Slett vedlegg' })
+      .should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
+    cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
+    cy.get('[data-componentid="fileUploadWithTags-changename"]').findByRole('button', { name: 'Rediger' }).click();
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
+    cy.waitUntilSaved();
+    for (const summary of summaries) {
+      cy.get(summary).findByRole('button', { name: 'Endre' }).should('be.visible');
+    }
 
     // Make all components on the page readOnly, and snapshot the effect
     cy.findByRole('textbox', { name: newMiddleNameNb }).clear();
@@ -350,6 +381,28 @@ describe('UI Components', () => {
       name: /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det/i,
     }).should('have.attr', 'readonly');
     cy.get(appFrontend.changeOfName.reasons).find('input').should('have.attr', 'readonly');
+    for (const id of uploaders) {
+      cy.get(`[data-componentid="${id}"]`).within(() => {
+        cy.contains('Vedleggene kan ikke endres.').should('be.visible');
+        cy.get('input[type="file"]').should('not.exist');
+        cy.findByRole('button', { name: 'Legg til flere vedlegg' }).should('not.exist');
+        cy.findAllByRole('button', { name: /Slett vedlegg|Rediger/ }).should('not.exist');
+        cy.findByRole('combobox').should('not.exist');
+        cy.get('button[id^="attachment-save-tag-button"]').should('not.exist');
+        cy.findByRole('columnheader', { name: /Slett|Rediger/ }).should('not.exist');
+        cy.findByRole('link', { name: /test/ })
+          .should('be.visible')
+          .invoke('attr', 'href')
+          .then((href) => {
+            cy.request({ url: href!, encoding: 'binary' }).its('body').should('have.length', 299);
+          });
+      });
+    }
+    cy.get('[data-componentid="fileUploadWithTags-changename"]').should('contain.text', 'Adresse');
+    for (const summary of summaries) {
+      cy.get(summary).should('contain.text', 'test');
+      cy.get(summary).findByRole('button', { name: 'Endre' }).should('not.exist');
+    }
     cy.visualTesting('components:read-only');
   });
 
@@ -672,15 +725,52 @@ describe('UI Components', () => {
 
   it('should be possible to change language back and forth and reflect the change in the UI', () => {
     cy.goto('changename');
+    cy.waitUntilSaved();
 
-    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    let saveStarted = false;
+    let saveFinished = false;
+    let releaseSave = () => {};
+    cy.intercept({ method: 'PATCH', url: '**/instances/**/data?*', times: 1 }, (req) => {
+      saveStarted = true;
+      req.on('after:response', () => {
+        saveFinished = true;
+      });
+      // Keep a real save outstanding while selecting a language. The timeout also releases it if an assertion fails.
+      return new Cypress.Promise<void>((resolve) => {
+        const timeout = setTimeout(resolve, 10000);
+        releaseSave = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+      }).then(() => req.continue());
+    });
+    cy.intercept({ method: 'GET', url: '**/bootstrap-form/Task_2?language=en', times: 1 }, (req) => {
+      expect(saveFinished, 'save completed before language bootstrap').to.equal(true);
+      req.continue();
+    }).as('englishBootstrap');
+
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.wrap(null).should(() => expect(saveStarted).to.equal(true));
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
-    changeToLang('en');
+    cy.findByRole('button', { name: 'Språkvalg' }).click();
+    cy.findByRole('menuitemradio', { name: 'Engelsk' }).click();
+    // Changes made while the first save is pending must also survive the language switch.
+    cy.findByRole('textbox', { name: newFirstNameNb }).clear();
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Ada');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.then(() => {
+      expect(saveFinished, 'save still outstanding while editing and selecting a language').to.equal(false);
+      releaseSave();
+    });
+    cy.wait('@englishBootstrap').its('response.statusCode').should('equal', 200);
     cy.findByRole('textbox', { name: newFirstNameNb }).should('not.exist');
-    cy.findByRole('textbox', { name: /new first name/i }).should('exist');
+    cy.findByRole('textbox', { name: /new first name/i }).should('have.value', 'Ada');
     changeToLang('nb');
-    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('have.value', 'Ada');
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
+    cy.reloadAndWait();
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('have.value', 'Ada');
   });
 
   interface Field {
@@ -986,6 +1076,99 @@ describe('UI Components', () => {
     );
 
     cy.visualTesting('components:map-geometries');
+  });
+
+  it('pasted decimals should respect the numeric input precision', () => {
+    cy.gotoHiddenPage('numeric-fields');
+
+    for (const decimalScale of [0, 2]) {
+      for (const text of ['2,345', '2.345']) {
+        cy.changeLayout((c) => {
+          if (c.id === 'decimalAsNumber' && c.type === 'Input' && isNumberFormat(c.formatting?.number)) {
+            c.formatting.number.decimalScale = decimalScale;
+          }
+        });
+
+        cy.get('#decimalAsNumber').numberFormatClear();
+        cy.get('#decimalAsNumber').focus();
+        cy.get('#decimalAsNumber').then(($input) => {
+          const clipboardData = new DataTransfer();
+          clipboardData.setData('text/plain', text);
+          const event = new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true });
+          $input[0].dispatchEvent(event);
+        });
+
+        const expectedValue = decimalScale === 0 ? '2' : '2.34';
+        cy.get('#decimalAsNumber').should('have.value', `${expectedValue.replace('.', ',')} flis`);
+        cy.get('#decimalAsString').should('have.value', expectedValue);
+        cy.get('#decimalAsNumber').blur();
+        cy.waitUntilSaved();
+        cy.reloadAndWait();
+        cy.get('#decimalAsString').should('have.value', expectedValue);
+      }
+    }
+  });
+
+  it('pasted alternate decimal separators should remain decimals when also configured for grouping', () => {
+    cy.gotoHiddenPage('numeric-fields');
+
+    for (const { text, thousandSeparator, decimalSeparator, expected } of [
+      { text: '2.5', thousandSeparator: '.', decimalSeparator: ',', expected: '2,5 flis' },
+      { text: '2,5', thousandSeparator: true, decimalSeparator: '.', expected: '2.5 flis' },
+    ]) {
+      cy.changeLayout((c) => {
+        if (c.id === 'decimalAsNumber' && c.type === 'Input' && isNumberFormat(c.formatting?.number)) {
+          Object.assign(c.formatting.number, { thousandSeparator, decimalSeparator, decimalScale: 2 });
+        }
+      });
+
+      cy.get('#decimalAsNumber').numberFormatClear();
+      cy.get('#decimalAsNumber').focus();
+      cy.get('#decimalAsNumber').then(($input) => {
+        const clipboardData = new DataTransfer();
+        clipboardData.setData('text/plain', text);
+        $input[0].dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+      });
+
+      cy.get('#decimalAsNumber').should('have.value', expected);
+      cy.get('#decimalAsString').should('have.value', '2.5');
+      cy.get('#decimalAsNumber').blur();
+      cy.waitUntilSaved();
+      cy.reloadAndWait();
+      cy.get('#decimalAsString').should('have.value', '2.5');
+    }
+  });
+
+  it('pasted grouped numbers should retain their value when applying numeric precision', () => {
+    cy.gotoHiddenPage('numeric-fields');
+
+    for (const { text, thousandSeparator, decimalSeparator, expected } of [
+      { text: '1,234.567', thousandSeparator: ',', decimalSeparator: '.', expected: '1,234.56 flis' },
+      { text: '1.234,567', thousandSeparator: '.', decimalSeparator: ',', expected: '1.234,56 flis' },
+      { text: '1 234,567', thousandSeparator: ' ', decimalSeparator: ',', expected: '1 234,56 flis' },
+      { text: '1,234.567', thousandSeparator: true, decimalSeparator: '.', expected: '1,234.56 flis' },
+    ]) {
+      cy.changeLayout((c) => {
+        if (c.id === 'decimalAsNumber' && c.type === 'Input' && isNumberFormat(c.formatting?.number)) {
+          Object.assign(c.formatting.number, { thousandSeparator, decimalSeparator, decimalScale: 2 });
+        }
+      });
+
+      cy.get('#decimalAsNumber').numberFormatClear();
+      cy.get('#decimalAsNumber').focus();
+      cy.get('#decimalAsNumber').then(($input) => {
+        const clipboardData = new DataTransfer();
+        clipboardData.setData('text/plain', text);
+        $input[0].dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+      });
+
+      cy.get('#decimalAsNumber').should('have.value', expected);
+      cy.get('#decimalAsString').should('have.value', '1234.56');
+      cy.get('#decimalAsNumber').blur();
+      cy.waitUntilSaved();
+      cy.reloadAndWait();
+      cy.get('#decimalAsString').should('have.value', '1234.56');
+    }
   });
 
   it('number formatting should never update/change the form data', () => {

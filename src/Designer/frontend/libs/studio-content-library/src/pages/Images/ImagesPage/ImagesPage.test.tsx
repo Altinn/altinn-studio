@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Image, ImagesPageProps } from './ImagesPage';
 import { ImagesPage } from './ImagesPage';
 
-const onUpdateImageMock = jest.fn();
+const onUpdateImageMock = vi.fn();
 const imageMock: Image = {
   title: 'image',
   imageSrc: 'www.external-image-url.com',

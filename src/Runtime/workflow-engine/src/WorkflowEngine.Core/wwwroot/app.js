@@ -4,6 +4,7 @@
  * ============================================================ */
 
 import { connectSSE, watchForChanges } from './modules/core/sse.js';
+import { loadDashboardConfig } from './modules/core/helpers.js';
 import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/features/url.js';
 import { updateTimers } from './modules/shared/timers.js';
 import { bindSectionCallbacks, applyViewToggleUi } from './modules/shared/section.js';
@@ -65,7 +66,9 @@ const updateDashboard = (data) => {
 
 /* ── Init ────────────────────────────────────────────────── */
 
-const init = () => {
+const init = async () => {
+    // Cards draw their trace links from this, so it loads before anything renders one.
+    await loadDashboardConfig();
     restoreUrl();
     connectSSE('/dashboard/stream', updateDashboard, {
         showStatus: true,

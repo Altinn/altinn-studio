@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "hidden": false,
     "layout": [
@@ -99,7 +99,10 @@
         "id": "subform-mopeder",
         "type": "Subform",
         "textResourceBindings": {
-          "title": "subform-moped.title",
+          "title": "moped-header.title",
+          "summaryTitle": "Registrerte mopeder",
+          "description": ["concat", "Mopeder registrert av ", ["dataModel", "Navn"]],
+          "help": "Hjelp til mopedregistrering",
           "addButton": "subform-moped.add",
           "tableEditButton": [
             "if",
@@ -143,6 +146,7 @@
         "type": "Subform",
         "textResourceBindings": {
           "title": "subform-bok.title",
+          "summaryTitle": "",
           "addButton": "subform-bok.add"
         },
         "layoutSet": "bok-subform",

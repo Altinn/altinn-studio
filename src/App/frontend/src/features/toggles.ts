@@ -1,10 +1,4 @@
 export const FeatureToggles = {
-  betaPDFenabled: {
-    defaultValue: false,
-    title: 'Activate beta pdf rendering using Summary2',
-    description: '',
-    links: ['https://github.com/Altinn/app-frontend-react/issues/1502'],
-  },
   simpleTableEnabled: {
     defaultValue: false,
     title: 'Activate experimental component SimpleTable',

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';

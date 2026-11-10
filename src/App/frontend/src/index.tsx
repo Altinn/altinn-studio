@@ -1,9 +1,6 @@
 // Bundles the core-js polyfills into the app, so it works in older browsers
 import 'core-js';
 
-import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
-const isRedirectingFromHashRoute = executeHashRouterRedirect();
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
@@ -15,14 +12,14 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
-import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
-import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { AppQueriesProvider } from 'src/core/queries/AppQueriesProvider';
+import * as queries from 'src/core/queries/queries';
+import { createAppQueryClient } from 'src/core/queries/queryClient';
+import { applyFontFromUrl } from 'src/features/devtools/utils/devFont';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import * as queries from 'src/queries/queries';
 import { createRouter } from 'src/router';
-import type { ApiClients } from 'src/core/api-client/ApiClients';
+import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -30,13 +27,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
 
+const isRedirectingFromHashRoute = executeHashRouterRedirect();
+
+// Temporary, while we collect feedback on Inter: ?font=altinn-din loads the app in the old font, so the two can be
+// compared, also with ?pdf=1 and in screenshots. Consider to remove later (step 10 of the
+// plan in #19944).
+applyFontFromUrl();
+
 const queryClient = createAppQueryClient();
-const apiClients: ApiClients = {
-  backendValidationApi,
-  partyApi,
-  instanceApi,
-  textResourcesApi,
-};
 
 function renderApp() {
   if (isRedirectingFromHashRoute) {
@@ -48,11 +46,11 @@ function renderApp() {
   const root = container && createRoot(container);
   root?.render(
     <AppQueriesProvider
-      queryClient={queryClient}
       {...queries}
+      queryClient={queryClient}
     >
       <ErrorBoundary>
-        <RouterProvider router={createRouter({ queryClient, apiClients })} />
+        <RouterProvider router={createRouter({ queryClient, queries })} />
       </ErrorBoundary>
     </AppQueriesProvider>,
   );

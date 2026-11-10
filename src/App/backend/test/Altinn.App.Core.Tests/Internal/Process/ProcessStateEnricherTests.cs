@@ -64,6 +64,7 @@ public class ProcessStateEnricherTests
     public async Task Enrich_WhenEngineReturnsRetryingWithProgress_PopulatesHints()
     {
         DateTimeOffset startedAt = DateTimeOffset.UtcNow.AddMinutes(-3);
+        DateTimeOffset firstFailedAt = DateTimeOffset.UtcNow.AddSeconds(-30);
         var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         engine
             .Setup(e => e.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
@@ -75,7 +76,8 @@ public class ProcessStateEnricherTests
                     Retrying: true,
                     Progress: new WorkflowStepProgress(Completed: 7, Total: 12),
                     StartedAt: startedAt,
-                    FailedAttempts: 2
+                    FailedAttempts: 2,
+                    FirstFailedAt: firstFailedAt
                 )
             );
 
@@ -87,6 +89,7 @@ public class ProcessStateEnricherTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
         Assert.True(result.Workflow.Retrying);
         Assert.Equal(2, result.Workflow.FailedAttempts);
+        Assert.Equal(firstFailedAt, result.Workflow.FirstFailedAt);
         Assert.NotNull(result.Workflow.Progress);
         Assert.Equal(7, result.Workflow.Progress.Completed);
         Assert.Equal(12, result.Workflow.Progress.Total);

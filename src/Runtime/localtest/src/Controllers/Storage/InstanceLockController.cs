@@ -86,7 +86,7 @@ public class InstanceLockController(
             );
         }
 
-        if (!await processAuthorizer.AuthorizeInstanceLock(instance))
+        if (!await processAuthorizer.AuthorizeInstanceLock(instance, cancellationToken))
         {
             return Problem(
                 detail: "Not authorized to acquire instance lock.",

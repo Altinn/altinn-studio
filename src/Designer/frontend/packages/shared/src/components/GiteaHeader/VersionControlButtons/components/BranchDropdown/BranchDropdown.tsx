@@ -73,7 +73,6 @@ export const BranchDropdown = () => {
       <CreateBranchDialog
         isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
-        currentBranch={currentBranch}
         existingBranchNames={branchNames}
         onCreateBranch={checkoutNewBranch}
         isLoading={isLoading}

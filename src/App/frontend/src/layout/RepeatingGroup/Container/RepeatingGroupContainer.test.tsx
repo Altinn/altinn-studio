@@ -7,7 +7,7 @@ import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
@@ -22,17 +22,6 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
-  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
-  useTextResources: vi.fn(() => ({
-    'option.label': { value: 'Value to be shown' },
-    'button.open': { value: 'New open text' },
-    'button.close': { value: 'New close text' },
-    'button.save': { value: 'New save text' },
-  })),
-}));
-
 const mockContainer = getFormLayoutRepeatingGroupMock({
   id: 'myGroup',
   maxCount: 5,
@@ -42,9 +31,17 @@ interface IRender {
   container?: Partial<CompRepeatingGroupExternal>;
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
+  onServiceTaskPage?: boolean;
 }
 
-async function render({ container, numRows = 3, validationIssues = [] }: IRender = {}) {
+async function render({ container, numRows = 3, validationIssues = [], onServiceTaskPage = false }: IRender = {}) {
+  window.altinnAppGlobalData.textResources!.resources = [
+    { id: 'option.label', value: 'Value to be shown' },
+    { id: 'button.open', value: 'New open text' },
+    { id: 'button.close', value: 'New close text' },
+    { id: 'button.save', value: 'New save text' },
+  ];
+
   const mockComponents: ILayout = [
     {
       id: 'field1',
@@ -119,6 +116,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       </RepeatingGroupProvider>
     ),
     queries: {
+      ...(onServiceTaskPage ? { getInstance: getInstanceAtServiceTask } : undefined),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = {
@@ -139,6 +137,10 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
         }),
     },
   });
+}
+
+async function getInstanceAtServiceTask() {
+  return getInstanceAtServiceTaskMock();
 }
 
 const { setScreenWidth } = mockMediaQuery(992);
@@ -483,6 +485,27 @@ describe('RepeatingGroupContainer', () => {
     expect(screen.queryByText('New save text')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /^Rediger value2$/i }));
     expect(screen.getByText('New save text')).toBeInTheDocument();
+  });
+
+  it("disables adding, editing and deleting rows on a service task's page", async () => {
+    await render({ numRows: 2, onServiceTaskPage: true });
+
+    expect(screen.getByRole('button', { name: /Legg til ny/i })).toBeDisabled();
+    const rowButtons = [
+      ...screen.getAllByRole('button', { name: /Rediger/i }),
+      ...screen.getAllByRole('button', { name: /Slett/i }),
+    ];
+    expect(rowButtons).toHaveLength(4);
+    rowButtons.forEach((button) => expect(button).toBeDisabled());
+  });
+
+  it("disables deleting rows shown in full on a service task's page", async () => {
+    await render({ container: { edit: { mode: 'showAll' } }, numRows: 2, onServiceTaskPage: true });
+
+    const deleteButtons = screen.getAllByTestId('delete-button');
+    expect(deleteButtons).toHaveLength(2);
+    deleteButtons.forEach((button) => expect(button).toBeDisabled());
+    expect(screen.getAllByRole('textbox', { name: 'Title1' })[0]).toHaveAttribute('readonly');
   });
 
   describe('help text', () => {

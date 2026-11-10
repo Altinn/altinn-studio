@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { altinnDocsUrl, grafanaPodLogsUrl } from './ext-urls';
 
 describe('altinnDocsUrl', () => {

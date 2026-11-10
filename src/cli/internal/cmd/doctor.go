@@ -107,6 +107,7 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.renderDoctorPrerequisitesSection(table, report.Prerequisites)
 	c.renderDoctorAuthSection(table, report.Auth)
 	c.renderDoctorDiskSection(table, report.Disk)
+	c.renderDoctorDiskUsageSection(table, report.Disk)
 	c.renderDoctorLocaltestEnvSection(table, report.LocaltestEnv)
 	c.renderDoctorAppSection(table, report.App)
 	c.out.RenderTable(table)
@@ -299,23 +300,96 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 	}
 
 	for _, check := range disk.Checks {
+		label := doctorDiskCheckLabel(check.ID)
 		value := check.Message
-		if check.Path != "" {
-			value += " (" + check.Path + ")"
-		}
 
 		switch check.Level {
 		case "ok":
-			doctorKeyValueStatus(table, true, check.ID, value)
+			doctorKeyValueStatus(table, true, label, value)
 		case "info":
-			doctorKeyValue(table, check.ID, value)
+			doctorKeyValue(table, label, value)
 		case "warn":
-			doctorKeyValueStatus(table, false, check.ID, "WARN: "+value)
+			doctorKeyValueStatus(table, false, label, "WARN: "+value)
+			c.verboseDoctorDiskCheckPath(label, check.Path)
 		case "error":
-			doctorKeyValueStatus(table, false, check.ID, "ERROR: "+value)
+			doctorKeyValueStatus(table, false, label, "ERROR: "+value)
+			c.verboseDoctorDiskCheckPath(label, check.Path)
 		default:
-			doctorKeyValue(table, check.ID, value)
+			doctorKeyValue(table, label, value)
 		}
+	}
+}
+
+// verboseDoctorDiskCheckPath names the path a failing check is about, with -v only: studioctl manages
+// these files, so the text output leaves them out, and `doctor --json` always has them.
+func (c *DoctorCommand) verboseDoctorDiskCheckPath(label, path string) {
+	if path != "" {
+		c.out.Verbosef("Disk %s: %s", label, path)
+	}
+}
+
+func doctorDiskCheckLabel(id string) string {
+	switch id {
+	case doctorsvc.DiskCheckHome:
+		return "Home"
+	case doctorsvc.DiskCheckSockets:
+		return "Sockets"
+	case doctorsvc.DiskCheckLogs:
+		return "Logs"
+	case doctorsvc.DiskCheckData:
+		return "Data"
+	case doctorsvc.DiskCheckBin:
+		return "Binaries"
+	case doctorsvc.DiskCheckCredentials:
+		return "Credentials"
+	case doctorsvc.DiskCheckServerBinary:
+		return "Server binary"
+	case doctorsvc.DiskCheckServerState:
+		return "Server state"
+	case doctorsvc.DiskCheckMaskinportenClient:
+		return "Maskinporten"
+	default:
+		return id
+	}
+}
+
+// renderDoctorDiskUsageSection states sizes only. Localtest data names `env reset`, the command that
+// deletes it, unless there is none: an unknown size can come from data a container wrote, which the
+// command clears all the same. The other areas have no command that shrinks them.
+func (c *DoctorCommand) renderDoctorDiskUsageSection(table *ui.Table, disk *doctorsvc.Disk) {
+	if disk == nil || len(disk.Usage) == 0 {
+		return
+	}
+
+	table.Section("Disk usage")
+	defer table.Spacer()
+
+	for _, usage := range disk.Usage {
+		value := unknownValue
+		if usage.Bytes != nil {
+			value = formatBytes(*usage.Bytes)
+		}
+		doctorKeyValue(table, doctorDiskUsageLabel(usage.ID), value)
+
+		empty := usage.Bytes != nil && *usage.Bytes == 0
+		if usage.ID == doctorsvc.DiskUsageLocaltestData && !empty {
+			table.Row(ui.Empty(), ui.Empty(), ui.Dim("cleared by '"+osutil.CurrentBin()+" env reset'"))
+		}
+	}
+}
+
+func doctorDiskUsageLabel(id string) string {
+	switch id {
+	case doctorsvc.DiskUsageLogs:
+		return "Logs"
+	case doctorsvc.DiskUsageLocaltestData:
+		return "Localtest data"
+	case doctorsvc.DiskUsageServer:
+		return "Server"
+	case doctorsvc.DiskUsageTotal:
+		return "Total"
+	default:
+		return id
 	}
 }
 

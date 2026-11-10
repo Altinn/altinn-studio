@@ -1,4 +1,5 @@
-﻿import { renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { renderHook } from '@testing-library/react';
 import { useCreateAppFormValidation } from './useCreateAppFormValidation';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 

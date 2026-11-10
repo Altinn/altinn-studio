@@ -3,6 +3,8 @@ package types
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -46,16 +48,16 @@ func MergeCapabilities(defaults, explicit []string) []string {
 	seen := make(map[string]bool)
 	var result []string
 
-	for _, cap := range defaults {
-		if !seen[cap] {
-			seen[cap] = true
-			result = append(result, cap)
+	for _, capability := range defaults {
+		if !seen[capability] {
+			seen[capability] = true
+			result = append(result, capability)
 		}
 	}
-	for _, cap := range explicit {
-		if !seen[cap] {
-			seen[cap] = true
-			result = append(result, cap)
+	for _, capability := range explicit {
+		if !seen[capability] {
+			seen[capability] = true
+			result = append(result, capability)
 		}
 	}
 	return result
@@ -116,6 +118,23 @@ func (p ContainerPlatform) PushArgs(image string) []string {
 		args = append(args, "--tls-verify=false")
 	}
 	return append(args, image)
+}
+
+// PodmanBuildArgs returns the arguments for building an image with Podman. Docker uses the Dockerfile's own
+// <Dockerfile>.dockerignore over the context's .dockerignore. Podman uses it only when the context has none, and remote
+// Podman not at all for a Dockerfile outside the context, so the arguments pass it explicitly.
+func PodmanBuildArgs(contextPath, dockerfile, tag string) []string {
+	args := []string{"build", "-t", tag, "-f", dockerfile}
+	// Podman reads a relative Dockerfile from the working directory, and from the context when it is not there.
+	ignoreFile := dockerfile
+	if _, err := os.Stat(ignoreFile); err != nil && !filepath.IsAbs(ignoreFile) {
+		ignoreFile = filepath.Join(contextPath, ignoreFile)
+	}
+	ignoreFile += ".dockerignore"
+	if _, err := os.Stat(ignoreFile); err == nil {
+		args = append(args, "--ignorefile", ignoreFile)
+	}
+	return append(args, contextPath)
 }
 
 // IsLocalRegistryReference reports whether the image points at the local plain-http registry used by devenv.

@@ -31,3 +31,7 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.description {
+  max-width: var(--running-text-max-width);
+}

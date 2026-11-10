@@ -22,6 +22,7 @@
  *   executionStartedAt: string | null,
  *   updatedAt:      string | null,
  *   stateChanged:   boolean,
+ *   labels?:        Record<string, string>,
  * }} Step
  */
 
@@ -36,8 +37,8 @@
 
 /**
  * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
- * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
- * deliberately invisible to collection head tracking (side chains).
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks an auxiliary
+ * workflow (one that runs beside the process); `true` or absent marks a primary one.
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -136,6 +137,47 @@
  *   allNamespaces:        Set<string>,
  * }} DashboardState
  */
+
+/**
+ * The query tab's status-checkbox ids, in display order — one per PersistentItemStatus the query
+ * facet exposes. Shared by query.js (fetch param assembly) and url.js (URL restore) so the lists
+ * cannot drift; checkbox element ids are `${id}-check`.
+ * @type {readonly string[]}
+ */
+export const queryStatusIds = [
+    'enqueued',
+    'processing',
+    'requeued',
+    'waiting',
+    'held',
+    'completed',
+    'failed',
+    'canceled',
+    'dependencyfailed',
+    'abandoned',
+];
+
+/**
+ * Element ids of the query tab's role checkboxes. Both query.js (the `role` fetch parameter) and
+ * url.js (the `qrole` URL parameter) read them, and url.js cannot import query.js without a
+ * cycle — so the ids and the reader live here, for the same reason queryStatusIds does.
+ * @type {readonly string[]}
+ */
+export const roleCheckIds = ['primary-check', 'auxiliary-check'];
+
+/**
+ * The role facet as one value: `'Primary'` or `'Auxiliary'` when exactly one box is checked,
+ * `null` when both or neither is — no filter, the same "nothing selected means everything" idiom
+ * the status chips use.
+ * @returns {'Primary' | 'Auxiliary' | null}
+ */
+export const roleParam = () => {
+    const [primary, auxiliary] = roleCheckIds.map(
+        (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
+    );
+    if (!primary || !auxiliary || primary.checked === auxiliary.checked) return null;
+    return primary.checked ? 'Primary' : 'Auxiliary';
+};
 
 /* ── DOM references ──────────────────────────────────────── */
 
@@ -253,6 +295,19 @@ export const parseTransition = (wf) => {
     };
 };
 
+/**
+ * Step label naming the BPMN element whose lifecycle the step runs — the task being left, the task
+ * being entered, or the end event. Written by the Altinn app library on the pre-commit lifecycle
+ * steps only, which is exactly the run that belongs under one element name.
+ */
+const PROCESS_ELEMENT_LABEL = 'processNextElement';
+
+/* The command-name map below is the fallback for steps that carry no element label: workflows
+ * enqueued before the label existed, and apps still on an older Altinn.App version — the engine
+ * serves many apps at once, so this is a standing fallback rather than a migration window. It
+ * cannot name the element itself, only which end of the transition the step sits at, which the
+ * renderer then resolves against the operationId. A command missing from it has no group, so it
+ * falls outside the brackets. */
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
@@ -275,6 +330,33 @@ export const stepPhase = (commandDetail) => {
     if (TASK_END_COMMANDS.has(commandDetail)) return 'end';
     if (TASK_START_COMMANDS.has(commandDetail)) return 'start';
     if (PROCESS_END_COMMANDS.has(commandDetail)) return 'process-end';
+    return null;
+};
+
+/**
+ * The bracket group a step belongs to: a `key` to group consecutive steps by, and the `label` drawn
+ * over the group. Null for a step that belongs to no element, which ends the group before it.
+ *
+ * The step's own element label wins, because it is the app's own answer and names the element
+ * outright. Only without one does this fall back to {@link stepPhase} plus the transition parsed
+ * from the operationId — a guess that is right whenever the command is one this dashboard version
+ * happens to know.
+ *
+ * Keys from the two sources are deliberately distinct strings, so a labeled and an unlabeled step
+ * never merge into one bracket on the strength of a coincidence.
+ *
+ * @param {Step} step
+ * @param {{ from: string, to: string }} tx
+ * @returns {{ key: string, label: string } | null}
+ */
+export const stepGroup = (step, tx) => {
+    const element = step.labels?.[PROCESS_ELEMENT_LABEL];
+    if (element) return { key: `element:${element}`, label: element };
+
+    const phase = stepPhase(step.commandDetail);
+    if (phase === 'end') return { key: 'phase:end', label: tx.from };
+    if (phase === 'start') return { key: 'phase:start', label: tx.to };
+    if (phase === 'process-end') return { key: 'phase:process-end', label: 'End Event' };
     return null;
 };
 

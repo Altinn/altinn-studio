@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Threading;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -6,9 +6,9 @@ using Altinn.Studio.Designer.Services.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.AppScopesController.Utils;
 using Designer.Tests.Fixtures;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 
 namespace Designer.Tests.Controllers.AppScopesController.Base;
@@ -17,7 +17,17 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
     where TControllerTest : class
 {
     public AppScopesControllerTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
-        : base(factory, designerDbFixture) { }
+        : base(factory, designerDbFixture)
+    {
+        UserOrganizationServiceMock.Setup(x => x.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
+    }
+
+    /// <summary>
+    /// Authentication handler used for the test user. Must be set before the first request is sent.
+    /// </summary>
+    protected Type OidcAuthHandlerType { get; set; } = typeof(TestOidcAuthHandler);
+
+    protected Mock<IUserOrganizationService> UserOrganizationServiceMock { get; } = new();
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
@@ -29,18 +39,21 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
             var testScheme = options.Schemes.FirstOrDefault(s => s.Name == TestAuthConstants.TestAuthenticationScheme);
             if (testScheme != null)
             {
-                testScheme.HandlerType = typeof(TestOidcAuthHandler);
+                testScheme.HandlerType = OidcAuthHandlerType;
             }
         });
 
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
             .Setup(x => x.GetAltinnOrgNumber(It.IsAny<string>()))
-            .ReturnsAsync((string org) => "991825827");
+            .ReturnsAsync((string org) => org == "ttd" ? "991825827" : null);
         environmentsServiceMock
             .Setup(x => x.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string org, CancellationToken _) => org == "ttd");
 
         services.AddSingleton(environmentsServiceMock.Object);
+
+        services.RemoveAll<IUserOrganizationService>();
+        services.AddSingleton(UserOrganizationServiceMock.Object);
     }
 }

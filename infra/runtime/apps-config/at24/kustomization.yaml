@@ -22,9 +22,12 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.at24.altinn.cloud/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.at24.altinn.cloud/correspondence/api/v1/
         GeneralSettings__HostName: at24.altinn.cloud
+        PlatformFrontendSettings__AllFormsUrl: https://at24.altinn.cloud/skjemaoversikt
         PlatformFrontendSettings__LogoutUrl: https://platform.at24.altinn.cloud/authentication/api/v1/logout
         PlatformFrontendSettings__LoginUrl: https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goto={goTo}
         PlatformFrontendSettings__UpgradeAuthenticationLevelUrl: https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high
+        PlatformFrontendSettings__AccessManagementUrl: https://am.ui.at24.altinn.cloud/accessmanagement/ui
+        PlatformFrontendSettings__RolesAndRightsHelpUrl: https://at24.altinn.cloud/hjelp/profil/enkelttjenester-og-roller/
         AppSettings__OpenIdWellKnownEndpoint: https://platform.at24.altinn.cloud/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging
   - target:
@@ -50,9 +53,12 @@ patches:
               "HostName": "at24.altinn.cloud"
             },
             "PlatformFrontendSettings": {
+              "AllFormsUrl": "https://at24.altinn.cloud/skjemaoversikt",
               "LogoutUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/logout",
               "LoginUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goto={goTo}",
-              "UpgradeAuthenticationLevelUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high"
+              "UpgradeAuthenticationLevelUrl": "https://platform.at24.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high",
+              "AccessManagementUrl": "https://am.ui.at24.altinn.cloud/accessmanagement/ui",
+              "RolesAndRightsHelpUrl": "https://at24.altinn.cloud/hjelp/profil/enkelttjenester-og-roller/"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.at24.altinn.cloud/authentication/api/v1/openid/"

@@ -1,9 +1,11 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useKeyboardControls } from './useKeyboardControls';
 
 describe('useKeyboardControls', () => {
-  let onResize: jest.Mock;
+  let onResize: Mock;
   let result: { current: ReturnType<typeof useKeyboardControls> };
 
   const keyEvt = (
@@ -11,7 +13,7 @@ describe('useKeyboardControls', () => {
   ): React.KeyboardEvent<HTMLDivElement> => e as React.KeyboardEvent<HTMLDivElement>;
 
   beforeEach(() => {
-    onResize = jest.fn();
+    onResize = vi.fn();
     const { result: hookResult } = renderHook(() => useKeyboardControls(onResize));
     result = hookResult;
   });

@@ -5,6 +5,7 @@ export enum HttpStatusCodes {
   Ok = 200,
   BadRequest = 400,
   Forbidden = 403,
+  Gone = 410,
 }
 
 export async function httpGet<T, D = unknown>(url: string, options?: AxiosRequestConfig<D>) {

@@ -49,9 +49,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     pickerLabel: t('process_editor.configuration_panel_pdf_filename_search_label'),
     valueEditorAriaLabel: t('process_editor.configuration_panel_pdf_filename_value_label'),
     valueEditorIdLabel: 'ID:',
-    noTextResourceOptionLabel: t(
-      'process_editor.configuration_panel_pdf_filename_no_text_resource',
-    ),
+    noSearchResultsText: t('general.search_no_results'),
     tabLabelType: t('process_editor.configuration_panel_pdf_filename_tab_write'),
     tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
   };

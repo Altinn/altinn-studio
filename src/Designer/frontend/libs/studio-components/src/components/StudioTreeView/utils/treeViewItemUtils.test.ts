@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { focusableNodeId } from './treeViewItemUtils';
 
 describe('treeViewItemUtils', () => {

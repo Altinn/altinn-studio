@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,14 +11,11 @@ import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
-jest.mock('./ConfigSequenceFlow', () => ({
+vi.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
 }));
 
 describe('ConfigPanel', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { convertExternalToInternalFormat } from './convertToInternalFormat';
 import { reservedDataTypes } from '../attachmentListUtils';
 import type { AvailableAttachmentLists, InternalDataTypesFormat } from '../types';

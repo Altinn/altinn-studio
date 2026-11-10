@@ -7,11 +7,12 @@
           Severity: Error,
           DataElementId: Guid_1,
           Field: VisibleRequired,
+          ComponentId: sub-input-visible-required,
           Code: required,
           Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: sub-input-visible-required,
@@ -25,11 +26,15 @@
           Severity: Error,
           DataElementId: Guid_1,
           Field: Group[1].VisibleRequired,
+          ComponentId: sub-input-group1-visible-required,
+          RowIndexes: [
+            1
+          ],
           Code: required,
           Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: sub-input-group1-visible-required,
@@ -43,11 +48,15 @@
           Severity: Error,
           DataElementId: Guid_1,
           Field: Group[2].VisibleRequired,
+          ComponentId: sub-input-group2-visible-required,
+          RowIndexes: [
+            2
+          ],
           Code: required,
           Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: sub-input-group2-visible-required,
@@ -61,11 +70,12 @@
           Severity: Error,
           DataElementId: Guid_2,
           Field: VisibleRequired,
+          ComponentId: input-visible-required,
           Code: required,
           Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: input-visible-required,
@@ -79,11 +89,15 @@
           Severity: Error,
           DataElementId: Guid_2,
           Field: Group[1].VisibleRequired,
+          ComponentId: input-group1-visible-required,
+          RowIndexes: [
+            1
+          ],
           Code: required,
           Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: input-group1-visible-required,
@@ -97,11 +111,15 @@
           Severity: Error,
           DataElementId: Guid_2,
           Field: Group[2].VisibleRequired,
+          ComponentId: input-group2-visible-required,
+          RowIndexes: [
+            2
+          ],
           Code: required,
           Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: input-group2-visible-required,
@@ -130,11 +148,12 @@
       Severity: Error,
       DataElementId: Guid_1,
       Field: VisibleRequired,
+      ComponentId: sub-input-visible-required,
       Code: required,
       Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: sub-input-visible-required,
@@ -148,11 +167,15 @@
       Severity: Error,
       DataElementId: Guid_1,
       Field: Group[1].VisibleRequired,
+      ComponentId: sub-input-group1-visible-required,
+      RowIndexes: [
+        1
+      ],
       Code: required,
       Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: sub-input-group1-visible-required,
@@ -166,11 +189,15 @@
       Severity: Error,
       DataElementId: Guid_1,
       Field: Group[2].VisibleRequired,
+      ComponentId: sub-input-group2-visible-required,
+      RowIndexes: [
+        2
+      ],
       Code: required,
       Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: sub-input-group2-visible-required,
@@ -184,11 +211,12 @@
       Severity: Error,
       DataElementId: Guid_2,
       Field: VisibleRequired,
+      ComponentId: input-visible-required,
       Code: required,
       Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: input-visible-required,
@@ -202,11 +230,15 @@
       Severity: Error,
       DataElementId: Guid_2,
       Field: Group[1].VisibleRequired,
+      ComponentId: input-group1-visible-required,
+      RowIndexes: [
+        1
+      ],
       Code: required,
       Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: input-group1-visible-required,
@@ -220,11 +252,15 @@
       Severity: Error,
       DataElementId: Guid_2,
       Field: Group[2].VisibleRequired,
+      ComponentId: input-group2-visible-required,
+      RowIndexes: [
+        2
+      ],
       Code: required,
       Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: input-group2-visible-required,

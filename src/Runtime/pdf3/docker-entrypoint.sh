@@ -12,15 +12,18 @@ install_ca_bundle() {
   fi
 
   nss_db="$HOME/.local/share/pki/nssdb"
+  rm -rf "$nss_db"
   mkdir -p "$nss_db"
-  if [ -f "$nss_db/cert9.db" ] && ! certutil -d "sql:$nss_db" -L >/dev/null 2>&1; then
-    rm -f "$nss_db/cert9.db" "$nss_db/key4.db" "$nss_db/pkcs11.txt"
-  fi
-  if [ ! -f "$nss_db/cert9.db" ]; then
-    certutil -d "sql:$nss_db" -N --empty-password >/dev/null 2>&1 < /dev/null
-  fi
-  certutil -d "sql:$nss_db" -D -n studio-ca-bundle >/dev/null 2>&1 || true
-  certutil -d "sql:$nss_db" -A -t "C,," -n studio-ca-bundle -i "$STUDIO_CA_BUNDLE"
+  certutil -d "sql:$nss_db" -N --empty-password
+
+  # certutil -A imports only the first certificate in a file, so the bundle is split first.
+  certs=$(mktemp -d)
+  awk -v dir="$certs" '/-----BEGIN CERTIFICATE-----/ { close(f); f = dir "/" ++n ".pem" } f { print > f }' \
+    "$STUDIO_CA_BUNDLE"
+  for cert in "$certs"/*.pem; do
+    certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${cert##*/}" -i "$cert"
+  done
+  rm -rf "$certs"
 }
 
 install_ca_bundle

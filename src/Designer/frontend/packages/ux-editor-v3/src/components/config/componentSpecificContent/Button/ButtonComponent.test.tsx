@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -10,12 +11,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 // Test data:
 const component: FormButtonComponent = {
   id: '1',
-  onClickAction: jest.fn(),
+  onClickAction: vi.fn(),
   type: ComponentTypeV3.Button,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,

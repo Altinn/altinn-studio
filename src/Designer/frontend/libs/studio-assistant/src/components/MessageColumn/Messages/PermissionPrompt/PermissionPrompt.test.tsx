@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -16,7 +17,7 @@ describe('PermissionPrompt', () => {
 
   it('calls onRespond with true when the user allows changes', async () => {
     const user = userEvent.setup();
-    const onRespond = jest.fn();
+    const onRespond = vi.fn();
     renderPermissionPrompt({ onRespond });
 
     await user.click(getAllowButton());
@@ -27,7 +28,7 @@ describe('PermissionPrompt', () => {
 
   it('calls onRespond with false when the user declines', async () => {
     const user = userEvent.setup();
-    const onRespond = jest.fn();
+    const onRespond = vi.fn();
     renderPermissionPrompt({ onRespond });
 
     await user.click(getDenyButton());
@@ -46,7 +47,7 @@ const getDenyButton = (): HTMLElement =>
 const defaultProps: PermissionPromptProps = {
   message: permissionMessage,
   texts: permissionPromptTexts,
-  onRespond: jest.fn(),
+  onRespond: vi.fn(),
 };
 
 const renderPermissionPrompt = (props: Partial<PermissionPromptProps> = {}): RenderResult =>

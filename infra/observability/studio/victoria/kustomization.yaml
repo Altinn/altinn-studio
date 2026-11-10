@@ -12,4 +12,5 @@ resources:
   - metrics.yaml
   - traces.yaml
   - logs.yaml
+  - self-monitoring.yaml
   - network-policy.yaml

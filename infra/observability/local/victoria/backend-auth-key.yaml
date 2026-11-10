@@ -1,0 +1,8 @@
+# The admin endpoints' key, fixed because it only exists on a developer's kind cluster.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: observability-backend-auth-key
+type: Opaque
+stringData:
+  key: local-backend-auth-key-not-a-secret

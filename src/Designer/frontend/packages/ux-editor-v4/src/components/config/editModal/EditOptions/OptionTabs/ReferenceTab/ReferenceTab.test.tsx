@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ReferenceTab } from './ReferenceTab';
@@ -16,13 +17,11 @@ const mockComponent = componentMocks[ComponentType.Dropdown];
 const mockOptionsId1 = 'test1';
 const mockOptionsId2 = 'test2';
 const optionListIds: string[] = [mockOptionsId1, mockOptionsId2];
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const org = 'org';
 const app = 'app';
 
 describe('ReferenceTab', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('should render a spinner', () => {
     renderReferenceTab();
     expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();

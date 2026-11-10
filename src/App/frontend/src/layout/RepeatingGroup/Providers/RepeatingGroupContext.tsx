@@ -33,6 +33,7 @@ interface Store {
 }
 
 interface ZustandHiddenMethods {
+  getVisibleRows: () => BaseRow[];
   startAddingRow: (uuid: string) => void;
   endAddingRow: (uuid: string) => void;
   startDeletingRow: (row: BaseRow) => void;
@@ -159,6 +160,7 @@ interface NewStoreProps {
 function newStore({ baseComponentId, getVisibleRows, isEditable, editMode, pagination }: NewStoreProps) {
   return createStore<ZustandState>((set) => ({
     baseComponentId,
+    getVisibleRows,
     editingAll: editMode === 'showAll',
     editingNone: editMode === 'onlyTable',
     isFirstRender: true,
@@ -387,6 +389,9 @@ export function useRepeatingGroupSelector<T>(selector: (state: Store) => T): T {
 }
 
 export const RepGroupContext = {
+  useGetVisibleRows() {
+    return ZStore.useStaticSelector((state) => state.getVisibleRows);
+  },
   useIsEditingRow(uuid: string | undefined) {
     return ZStore.useSelector((state) => {
       if (state.editingAll) {
@@ -560,6 +565,7 @@ export const RepGroupContext = {
     const removeFromList = FormStore.data.useRemoveFromListCallback();
     const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
     const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
+    const instanceLocked = FormStore.useIsInstanceLocked();
     const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const getFreshRows = FormStore.data.useGetFreshRows();
     const isHidden = useEvalExpressionCallback(config.hiddenRow, Expressions.RepeatingGroup.hiddenRow);
@@ -573,7 +579,8 @@ export const RepGroupContext = {
         (candidate) => candidate.uuid === row.uuid && candidate.index === row.index,
       );
       const location = getRepeatingRowReference(groupBinding, row.index);
-      if (!target || isHidden(location) || !canDelete(location)) {
+      // The form store would reject removing the row, but only after its attachments were deleted from the instance
+      if (instanceLocked || !target || isHidden(location) || !canDelete(location)) {
         return false;
       }
 

@@ -73,7 +73,7 @@ export const CheckboxContainerComponent = ({
       title={title}
       help={help}
       description={description}
-      showOptionalMarking={!!config.labelSettings?.optionalIndicator}
+      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
       showLabelsInTable={config.showLabelsInTable}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLegend={overrideDisplay?.renderLegend}

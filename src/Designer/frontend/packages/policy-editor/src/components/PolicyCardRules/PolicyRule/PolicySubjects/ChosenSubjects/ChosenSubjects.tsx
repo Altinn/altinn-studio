@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Buildings3Icon, PersonIcon } from '@studio/icons';
 import { SubjectListItem } from '../SubjectListItem';
@@ -19,16 +20,28 @@ interface ChosenSubjectsProps {
   groups: ChosenSubjectGroup[];
 }
 
+const getGroupHeadingsBySize = (groups: ChosenSubjectGroup[]): string[] =>
+  groups.toSorted((a, b) => a.items.length - b.items.length).map((group) => group.heading);
+
+const getGroupPosition = (groupHeadingOrder: string[], group: ChosenSubjectGroup): number => {
+  const position = groupHeadingOrder.indexOf(group.heading);
+  return position === -1 ? groupHeadingOrder.length : position;
+};
+
 export const ChosenSubjects = ({ isPersonSubject, groups }: ChosenSubjectsProps) => {
   const { t } = useTranslation();
+  // The order is set once so that groups do not jump around when subjects are removed
+  const [groupHeadingOrder] = useState<string[]>(() => getGroupHeadingsBySize(groups));
 
   if (groups.reduce((prev, curr) => prev + curr.items.length, 0) === 0) {
     return null;
   }
 
   const sortedGroups = groups
-    .sort((a, b) => a.items.length - b.items.length)
-    .filter((group) => group.items.length > 0);
+    .filter((group) => group.items.length > 0)
+    .toSorted(
+      (a, b) => getGroupPosition(groupHeadingOrder, a) - getGroupPosition(groupHeadingOrder, b),
+    );
   const Icon = isPersonSubject ? PersonIcon : Buildings3Icon;
   const heading = isPersonSubject
     ? t('policy_editor.person_subjects_header')

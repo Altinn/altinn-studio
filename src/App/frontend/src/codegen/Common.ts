@@ -2,6 +2,7 @@ import type { LocalizedText } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
+import { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { Extract, MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -56,6 +57,17 @@ const common = {
     ),
   ISummaryOverridesCommon: () =>
     new CG.obj(new CG.prop('hidden', new CG.bool().optional()), new CG.prop('emptyFieldText', new CG.str().optional())),
+  summaryShowNextButton: () =>
+    new CG.prop(
+      'showNextButton',
+      new CG.bool()
+        .optional()
+        .setTitle('Show next button after editing', 'Vis neste-knappen etter redigering')
+        .setDescription(
+          'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+          'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+        ),
+    ),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
@@ -109,8 +121,11 @@ const common = {
         'optionalIndicator',
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
-          .setDescription('Show optional indicator on label', 'Viser en markering for valgfrie felt ved ledeteksten.')
-          .optional(),
+          .setDescription(
+            'Show the optional indicator on the label of non-required fields. Enabled by default.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+          )
+          .optional({ default: true }),
       ),
     )
       .setTitle('Label settings', 'Innstillinger for ledetekst')
@@ -247,8 +262,10 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for label', 'Datamodellbinding for ledetekst')
           .setDescription(
-            'Describes the location in the data model where the component should store its labels',
-            'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+            'Location in the data model for the translated labels. Must point to a string for single-select components ' +
+              'or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+            'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg ' +
+              'eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
           )
           .optional(),
       ),
@@ -257,8 +274,8 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for metadata', 'Datamodellbinding for metadata')
           .setDescription(
-            'Describes the location in the data model where the component should store its metadata',
-            'Angir hvor i datamodellen komponenten skal lagre metadata.',
+            'Location in the data model for options metadata. Must point to a string.',
+            'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
           )
           .optional(),
       ),
@@ -318,7 +335,7 @@ const common = {
           nb: 'Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.',
         },
       },
-    }),
+    }).requireBehaviors('isSummarizable'),
   TRBFormComp: () =>
     makeTRB({
       tableTitle: {
@@ -613,7 +630,7 @@ const common = {
       ),
     ),
   ITableColumnFormatting: () => new CG.obj().additionalProperties(CG.common('ITableColumnProperties')),
-  ITableColumnProperties: () =>
+  ITableColumnWidth: () =>
     new CG.obj(
       new CG.prop(
         'width',
@@ -626,6 +643,10 @@ const common = {
           )
           .setPattern(/^([0-9]{1,2}%|100%|auto)$/),
       ),
+    ),
+  ITableColumnProperties: () =>
+    new CG.obj(
+      ...CG.common('ITableColumnWidth').getProperties(),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
       new CG.prop(
@@ -708,53 +729,51 @@ const common = {
       new CG.prop('grid', CG.common('IGrid').optional()),
       new CG.prop('pageBreak', CG.common('IPageBreak').optional()),
     ),
-  FormComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'readOnly',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Read only/disabled?', 'Skrivebeskyttet/deaktivert')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          ),
-      ),
-      new CG.prop(
-        'required',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Required?', 'Påkrevd')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          ),
-      ),
-      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
+  FormComponentProps: () => new CG.obj(new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional())),
+  readOnly: () =>
+    new CG.prop(
+      'readOnly',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Read only/disabled?', 'Skrivebeskyttet/deaktivert')
+        .setDescription(
+          'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+          'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+        ),
     ),
-  SummarizableComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'renderAsSummary',
-        new CG.bool()
-          .optional({ default: false })
-          .setTitle('Render as summary', 'Vis som oppsummering')
-          .setDescription(
-            'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
-            'Angir om komponenten skal vises som en oppsummering.',
-          ),
-      ),
-      new CG.prop(
-        'forceShowInSummary',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Force show in summary', 'Tving visning i oppsummering')
-          .setDescription(
-            'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
-            'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
-          ),
-      ),
+  required: () =>
+    new CG.prop(
+      'required',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Required?', 'Påkrevd')
+        .setDescription(
+          'Boolean value or expression indicating if the component should be required. Defaults to false.',
+          'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+        ),
     ),
+  renderAsSummary: () =>
+    new CG.prop(
+      'renderAsSummary',
+      new CG.bool()
+        .optional({ default: false })
+        .setTitle('Render as summary', 'Vis som oppsummering')
+        .setDescription(
+          'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+          'Angir om komponenten skal vises som en oppsummering.',
+        ),
+    ).requireBehaviors('isSummarizable'),
+  forceShowInSummary: () =>
+    new CG.prop(
+      'forceShowInSummary',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Force show in summary', 'Tving visning i oppsummering')
+        .setDescription(
+          'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+          'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+        ),
+    ).requireBehaviors('isSummarizable'),
   LabeledComponentProps: () => new CG.obj(new CG.prop('labelSettings', CG.common('ILabelSettings').optional())),
 
   // Reusable Grid component properties (used by both Grid and repeating Group):
@@ -1241,6 +1260,16 @@ const common = {
 
 export type ValidCommonKeys = keyof typeof common;
 export type CommonValue<K extends ValidCommonKeys> = Extract<ReturnType<(typeof common)[K]>>;
+export type CommonPropertyKeys = {
+  [K in ValidCommonKeys]: ReturnType<(typeof common)[K]> extends GenerateProperty<MaybeSymbolizedCodeGenerator<unknown>>
+    ? K
+    : never;
+}[ValidCommonKeys];
+
+/** Each object gets its own property instance, so adding or modifying it does not affect other objects. */
+export function getCommonProperty(key: CommonPropertyKeys) {
+  return common[key]();
+}
 
 interface TRB {
   title: LocalizedText;
@@ -1283,8 +1312,8 @@ export function getSourceForCommon(
     return impl;
   }
 
-  const impl = common[key]();
-  impl.exportAs(key);
+  const source = common[key]();
+  const impl = source instanceof GenerateProperty ? source.type : source.exportAs(key);
   implementationsCache[cacheKey] = impl;
   return impl;
 }

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,10 +12,6 @@ import { layoutSet1NameMock } from '../../testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('DesignViewNavigation', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render DesignViewNavigation with correct text', async () => {
     renderDesignViewNavigation({});
     expect(await screen.findByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();
@@ -48,9 +45,9 @@ describe('DesignViewNavigation', () => {
   });
 
   it('should call convertToPageGroups when clicking convertion button', async () => {
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
-    const convertToPageGroups = jest.fn();
+    const convertToPageGroups = vi.fn();
     renderDesignViewNavigation({ queries: { convertToPageGroups } });
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await user.click(menuButton);
@@ -79,13 +76,13 @@ describe('DesignViewNavigation', () => {
   });
 
   it('should call convertToPageOrder when clicking convertion button', async () => {
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.Pages, org, app, layoutSet1NameMock], {
       groups: [{ id: 'Page 1' }],
     });
-    const convertToPageOrder = jest.fn();
+    const convertToPageOrder = vi.fn();
     renderDesignViewNavigation({ queryClient, queries: { convertToPageOrder } });
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await user.click(menuButton);

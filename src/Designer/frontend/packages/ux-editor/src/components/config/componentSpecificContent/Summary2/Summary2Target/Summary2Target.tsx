@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type {
   Summary2TargetConfig,
   SummaryTargetType,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';

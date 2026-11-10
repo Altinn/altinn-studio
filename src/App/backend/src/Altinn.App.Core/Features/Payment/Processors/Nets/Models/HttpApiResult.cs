@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Altinn.App.Core.Features.Payment.Processors.Nets.Models;

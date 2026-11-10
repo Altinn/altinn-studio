@@ -56,7 +56,7 @@ export interface IDataType {
   allowedContributers?: string[] | null;
   allowedContributors?: string[] | null;
   appLogic?: IApplicationLogic | null;
-  taskId?: string | null;
+  taskIds?: string[] | null;
   maxSize?: number | null;
   maxCount: number;
   minCount: number;
@@ -243,6 +243,11 @@ interface IProcessWorkflowProcessing {
    */
   failedAttempts?: number;
   /**
+   * When the first of the `failedAttempts` failed, on the workflow engine's clock (ISO timestamp). Compare with
+   * currentTime to tell how long the step has kept failing. Omitted with `failedAttempts`, and by older engines.
+   */
+  firstFailedAt?: string;
+  /**
    * The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
    * awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
    * while the transition is parked on a deferring task that gave a reason. Purely a presentation
@@ -325,7 +330,7 @@ export const ELEMENT_TYPE = {
 
 type ElementType = (typeof ELEMENT_TYPE)[keyof typeof ELEMENT_TYPE];
 
-interface IProcessTask {
+export interface IProcessTask {
   altinnTaskType: string;
   elementId: string;
   elementType?: ElementType; // Appears in versions after https://github.com/Altinn/app-lib-dotnet/pull/745
@@ -382,6 +387,7 @@ export interface IPlatformFrontendSettings {
   loginUrl?: string;
   /** Takes a {goTo} placeholder. */
   upgradeAuthenticationLevelUrl?: string;
+  allFormsUrl?: string;
   /** URL templates; undefined in environments where the arbeidsflate is not deployed. */
   arbeidsflateInboxUrl?: string;
   /** Supports the {dialogId} placeholder. */
@@ -389,6 +395,9 @@ export interface IPlatformFrontendSettings {
   arbeidsflateProfileUrl?: string;
   /** Supports the {partyId} and {goTo} placeholders. */
   accessManagementChangeAndRedirectUrl?: string;
+  accessManagementUrl?: string;
+  rolesAndRightsHelpUrl?: string;
+  arbeidsflatePartiesUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

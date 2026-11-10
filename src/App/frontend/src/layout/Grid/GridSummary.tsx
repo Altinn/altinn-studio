@@ -4,7 +4,7 @@ import type { JSX, PropsWithChildren } from 'react';
 import { useIsMobile } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
   GridCell,
@@ -16,6 +16,7 @@ import type {
   ITableColumnProperties,
 } from '@app/layout-contract/generated/common.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
@@ -24,11 +25,16 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
 import { useIsGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import {
   EmptyChildrenBoundary,
   useHasOnlyEmptyChildren,
@@ -48,6 +54,7 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -65,6 +72,7 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
@@ -148,14 +156,18 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
         data-testid={`summary-${indexedId}`}
       >
         {title && (
-          <caption className={classes.tableCaption}>
-            <Heading
-              data-size='xs'
-              level={4}
-            >
-              <Lang id={title} />
-            </Heading>
-          </caption>
+          <Caption
+            {...captionProps}
+            className={classes.tableCaption}
+            title={
+              <Heading
+                data-size='xs'
+                level={4}
+              >
+                <Lang id={title} />
+              </Heading>
+            }
+          />
         )}
         {tableSections}
       </Table>
@@ -276,10 +288,7 @@ function SummaryCell(props: CellProps) {
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
   const config = useComponentConfig(props.labelFrom);
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -287,10 +296,19 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     CommonExpressions.TRBLabel.title,
   );
 
-  const required = 'required' in config ? evaluatedRequired : false;
+  const required = useComponentIsRequired(config);
+  const showOptionalMarking =
+    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
-  const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
-  const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
+  // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
+  // reduced to its text here.
+  let indicator = '';
+  if (required && !readOnly) {
+    indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
+  } else if (required === false && showOptionalMarking && !readOnly) {
+    indicator = ` ${langAsString('general.optional')}`;
+  }
+  const headerTitle = `${langAsString(title || '')}${indicator}`;
 
   return (
     <SummaryCellInner
@@ -402,7 +420,18 @@ function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
   );
 }
 
-function SummaryCellWithComponent({
+function SummaryCellWithComponent(props: CellWithComponentProps & { baseComponentId: string }) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenSummaryCell isHeader={props.isHeader} /> : <VisibleSummaryCellWithComponent {...props} />;
+}
+
+function HiddenSummaryCell({ isHeader }: { isHeader?: boolean }) {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  return <CellComponent />;
+}
+
+function VisibleSummaryCellWithComponent({
   baseComponentId,
   columnStyleOptions,
   isHeader = false,
@@ -414,16 +443,11 @@ function SummaryCellWithComponent({
   const displayData = useDisplayData(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(baseComponentId);
-  const required2 = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
 
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
-  const required = 'required' in config ? required2 : false;
+  const required = useComponentIsRequired(config);
   const indexedId = useIndexedId(baseComponentId);
   const content = getComponentCellData(baseComponentId, config.type, displayData, title);
 
@@ -435,10 +459,6 @@ function SummaryCellWithComponent({
         : SummaryContains.EmptyValueNotRequired
       : SummaryContains.SomeUserContent,
   );
-
-  if (isHidden) {
-    return <CellComponent />;
-  }
 
   return (
     <CellComponent
@@ -458,18 +478,10 @@ function SummaryCellWithComponent({
         )}
       </div>
       <div className={cn({ [classes.errorMessage]: errors.length > 0 })} />
-      {errors.length > 0 &&
-        errors.map(({ message }) => (
-          <ValidationMessage
-            key={message.key}
-            data-size='sm'
-          >
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
+      />
     </CellComponent>
   );
 }
@@ -508,16 +520,16 @@ function SummaryCellWithLabel({
   isSmall,
 }: CellWithLabelProps) {
   const config = useComponentConfig(cell.labelFrom);
+  const { description, help } = useSummaryLabelText(cell.labelFrom);
   const title2 = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const required3 = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
+  const required = useComponentIsRequired(config);
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
@@ -532,7 +544,11 @@ function SummaryCellWithLabel({
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
         label={title2}
-        required={required3}
+        description={description}
+        help={help}
+        required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
       />
     </CellComponent>
   );

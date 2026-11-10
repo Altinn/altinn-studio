@@ -1,17 +1,19 @@
 # Traffic is limited to the paths in the architecture: observability-proxy
 # writes OTLP to the agents, each agent writes to its own storage pair, and
-# observability-proxy reads from the storage pairs. Nothing else in the cluster
-# can reach these pods, the agents can reach nothing but their storage and
-# cluster DNS, and the storage pairs can reach nothing at all.
+# observability-proxy reads from the storage pairs. vmagent-self
+# (self-monitoring.yaml) scrapes every one of these pods and writes what it
+# scrapes to the metrics pair. Nothing else in the cluster can reach these pods,
+# the agents can reach nothing but their storage and cluster DNS, and the
+# storage pairs can reach nothing at all.
 #
 # Kubelet probes need no rule: traffic from the node to its own pods is always
 # allowed by NetworkPolicy, and Azure Network Policy Manager filters only
 # forwarded traffic (its AZURE-NPM chain is jumped to from FORWARD), which
 # excludes connections the kubelet makes from the host.
 #
-# Self-monitoring is not decided. A scraper would need a rule admitting it to
-# each pod's HTTP port below, which is also where /metrics is served; the
-# storage egress would need nothing, as a scraper connects inward.
+# Every component serves /metrics on the same HTTP port as its API, so the
+# scraper is admitted to that port, the one each rule below already opens. The
+# storage egress needs nothing for it, as a scraper connects inward.
 #
 # The selectors use the labels the operator puts on the pods it creates
 # (app.kubernetes.io/name is the kind in lower case, app.kubernetes.io/instance
@@ -34,6 +36,15 @@ spec:
         - podSelector:
             matchLabels:
               app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 8429
+    # /metrics, on the same port, for each replica separately.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
       ports:
         - protocol: TCP
           port: 8429
@@ -79,6 +90,15 @@ spec:
       ports:
         - protocol: TCP
           port: 10429
+    # /metrics, on the same port, for each replica separately.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 10429
   egress:
     - to:
         - podSelector:
@@ -121,6 +141,15 @@ spec:
       ports:
         - protocol: TCP
           port: 9429
+    # /metrics, on the same port, for each replica separately.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 9429
   egress:
     - to:
         - podSelector:
@@ -143,8 +172,10 @@ spec:
           port: 53
 ---
 # Both instances of each pair: writes from the pair's agent, reads from the
-# proxy, on the one HTTP port that serves both. The storage makes no outbound
-# connections, so Egress is listed with no rules, which denies all of it.
+# proxy and scrapes from vmagent-self, on the one HTTP port that serves all
+# three; vmagent-self also writes its own samples to the metrics pair there.
+# The storage makes no outbound connections, so Egress is listed with no
+# rules, which denies all of it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -165,6 +196,10 @@ spec:
         - podSelector:
             matchLabels:
               app: observability-proxy
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
       ports:
         - protocol: TCP
           port: 8428
@@ -189,6 +224,10 @@ spec:
         - podSelector:
             matchLabels:
               app: observability-proxy
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
       ports:
         - protocol: TCP
           port: 10428
@@ -213,6 +252,102 @@ spec:
         - podSelector:
             matchLabels:
               app: observability-proxy
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
       ports:
         - protocol: TCP
           port: 9428
+---
+# The scraper takes no connections: it scrapes itself over loopback, which
+# NetworkPolicy does not filter. It connects to each target's HTTP port, the
+# operator's and observability-proxy's metrics ports among them, and to cluster
+# DNS to resolve them. The metrics storage port is also where it writes.
+# observability-proxy admits it in observability-proxy-ingress
+# (../overlay/observability-proxy.yaml).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vmagent-self
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vmagent
+      app.kubernetes.io/instance: self
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+      ports:
+        - protocol: TCP
+          port: 8428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+      ports:
+        - protocol: TCP
+          port: 9428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+      ports:
+        - protocol: TCP
+          port: 10428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: metrics
+      ports:
+        - protocol: TCP
+          port: 8429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+              app.kubernetes.io/instance: logs
+      ports:
+        - protocol: TCP
+          port: 9429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtagent
+              app.kubernetes.io/instance: traces
+      ports:
+        - protocol: TCP
+          port: 10429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: victoria-metrics-operator
+              app.kubernetes.io/instance: victoriametrics-operator
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 9090
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

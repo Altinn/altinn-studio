@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
@@ -47,8 +48,8 @@ const mockFormLayoutData: FormLayoutPage[] = [
   { page: mockReceiptName, data: mockPageData },
 ];
 
-const mockOnClickAccordion = jest.fn();
-const mockOnClickAddPage = jest.fn();
+const mockOnClickAccordion = vi.fn();
+const mockOnClickAddPage = vi.fn();
 
 const defaultProps: ReceiptContentProps = {
   receiptName: mockReceiptName,
@@ -59,8 +60,6 @@ const defaultProps: ReceiptContentProps = {
 };
 
 describe('ReceiptContent', () => {
-  afterEach(jest.clearAllMocks);
-
   it('displays button when receiptName is undefined', async () => {
     await render({ receiptName: undefined });
 
@@ -113,7 +112,7 @@ describe('ReceiptContent', () => {
 });
 
 const waitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
@@ -131,7 +130,7 @@ const waitForData = async () => {
 const render = async (props: Partial<ReceiptContentProps> = {}) => {
   await waitForData();
   return renderWithMockStore()(
-    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <ReceiptContent {...defaultProps} {...props} />
       </FormItemContextProvider>

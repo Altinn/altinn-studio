@@ -142,34 +142,6 @@ const ComponentBase = {
   additionalProperties: false,
 } as const;
 
-const SummarizableComponentProps = {
-  type: 'object',
-  properties: {
-    renderAsSummary: {
-      type: 'boolean',
-      title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
-      description: {
-        en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
-        nb: 'Angir om komponenten skal vises som en oppsummering.',
-      },
-      default: false,
-      required: false,
-    },
-    forceShowInSummary: {
-      type: 'boolean',
-      expression: true,
-      title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
-      description: {
-        en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
-        nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
-      },
-      default: false,
-      required: false,
-    },
-  },
-  additionalProperties: false,
-} as const;
-
 const TRBSummarizable = {
   type: 'object',
   properties: {
@@ -236,28 +208,6 @@ const AllowedValidationMasks = {
 const FormComponentProps = {
   type: 'object',
   properties: {
-    readOnly: {
-      type: 'boolean',
-      expression: true,
-      title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-      description: {
-        en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-      },
-      default: false,
-      required: false,
-    },
-    required: {
-      type: 'boolean',
-      expression: true,
-      title: { en: 'Required?', nb: 'Påkrevd' },
-      description: {
-        en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
-        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-      },
-      default: false,
-      required: false,
-    },
     showValidations: {
       type: 'array',
       items: AllowedValidationMasks['items'],
@@ -278,9 +228,10 @@ const ILabelSettings = {
       type: 'boolean',
       title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
       description: {
-        en: 'Show optional indicator on label',
-        nb: 'Viser en markering for valgfrie felt ved ledeteksten.',
+        en: 'Show the optional indicator on the label of non-required fields. Enabled by default.',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
       },
+      default: true,
       required: false,
     },
   },
@@ -962,8 +913,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for label', nb: 'Datamodellbinding for ledetekst' },
       description: {
-        en: 'Describes the location in the data model where the component should store its labels',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+        en: 'Location in the data model for the translated labels. Must point to a string for single-select components or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+        nb: 'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
       },
       semanticType: 'dataModelBinding',
       required: false,
@@ -974,8 +925,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for metadata', nb: 'Datamodellbinding for metadata' },
       description: {
-        en: 'Describes the location in the data model where the component should store its metadata',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
+        en: 'Location in the data model for options metadata. Must point to a string.',
+        nb: 'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
       },
       semanticType: 'dataModelBinding',
       required: false,
@@ -2172,6 +2123,21 @@ const IDataModelBindingsForList = {
   },
 } as const;
 
+const ITableColumnWidth = {
+  type: 'object',
+  properties: {
+    width: {
+      type: 'string',
+      pattern: '^([0-9]{1,2}%|100%|auto)$',
+      title: ITableColumnProperties['properties']['width']['title'],
+      description: ITableColumnProperties['properties']['width']['description'],
+      default: 'auto',
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const IPagination = {
   type: 'object',
   properties: {
@@ -3127,6 +3093,24 @@ const ISummaryOverridesCommon = {
   additionalProperties: false,
 } as const;
 
+const AddressSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const AddressSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3135,6 +3119,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3152,6 +3137,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Address', required: true },
       },
       additionalProperties: false,
@@ -3167,11 +3153,134 @@ const AddressSummaryOverridesWithRef = {
   ],
 } as const;
 
+const AlertSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for Alert', nb: 'Overstyringer av oppsummering for Alert' },
+      description: {
+        en: 'Properties for how to display the summary of this Alert component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Alert-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Alert', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Alert',
+        nb: 'Overstyringer av oppsummering for alle Alert-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Alert components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Alert-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const AttachmentListSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for AttachmentList',
+        nb: 'Overstyringer av oppsummering for AttachmentList',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this AttachmentList component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne AttachmentList-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'AttachmentList', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all AttachmentList',
+        nb: 'Overstyringer av oppsummering for alle AttachmentList-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all AttachmentList components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle AttachmentList-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const AudioSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for Audio', nb: 'Overstyringer av oppsummering for Audio' },
+      description: {
+        en: 'Properties for how to display the summary of this Audio component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Audio-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Audio', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Audio',
+        nb: 'Overstyringer av oppsummering for alle Audio-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Audio components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Audio-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const CheckboxesSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3194,6 +3303,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3212,6 +3322,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'Checkboxes', required: true },
       },
@@ -3265,6 +3376,24 @@ const DateSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DatepickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DatepickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3273,6 +3402,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3290,6 +3420,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Datepicker', required: true },
       },
       additionalProperties: false,
@@ -3345,6 +3476,24 @@ const DividerSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DropdownSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DropdownSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3353,6 +3502,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3370,6 +3520,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Dropdown', required: true },
       },
       additionalProperties: false,
@@ -3380,6 +3531,66 @@ const DropdownSummaryOverridesWithRef = {
       description: {
         en: 'Properties for how to display the summary of all Dropdown components',
         nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Dropdown-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const FileUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const FileUploadSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for FileUpload',
+        nb: 'Overstyringer av oppsummering for FileUpload',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this FileUpload component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne FileUpload-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentType: { type: 'constant', value: 'FileUpload', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all FileUpload',
+        nb: 'Overstyringer av oppsummering for alle FileUpload-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all FileUpload components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle FileUpload-komponenter vises.',
       },
     },
   ],
@@ -3519,6 +3730,98 @@ const HeadingSummaryOverridesWithRef = {
   ],
 } as const;
 
+const IFrameSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for IFrame', nb: 'Overstyringer av oppsummering for IFrame' },
+      description: {
+        en: 'Properties for how to display the summary of this IFrame component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne IFrame-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'IFrame', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all IFrame',
+        nb: 'Overstyringer av oppsummering for alle IFrame-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all IFrame components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle IFrame-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const ImageSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for Image', nb: 'Overstyringer av oppsummering for Image' },
+      description: {
+        en: 'Properties for how to display the summary of this Image component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Image-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Image', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Image',
+        nb: 'Overstyringer av oppsummering for alle Image-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Image components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Image-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const ImageUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ImageUploadSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3527,6 +3830,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3544,6 +3848,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'ImageUpload', required: true },
       },
       additionalProperties: false,
@@ -3559,6 +3864,24 @@ const ImageUploadSummaryOverridesWithRef = {
   ],
 } as const;
 
+const InputSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const InputSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3567,6 +3890,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3581,6 +3905,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Input', required: true },
       },
       additionalProperties: false,
@@ -3596,6 +3921,64 @@ const InputSummaryOverridesWithRef = {
   ],
 } as const;
 
+const InstanceInformationSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for InstanceInformation',
+        nb: 'Overstyringer av oppsummering for InstanceInformation',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this InstanceInformation component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne InstanceInformation-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'InstanceInformation', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all InstanceInformation',
+        nb: 'Overstyringer av oppsummering for alle InstanceInformation-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all InstanceInformation components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle InstanceInformation-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const LikertSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const LikertSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3604,6 +3987,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3618,6 +4002,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Likert', required: true },
       },
       additionalProperties: false,
@@ -3633,6 +4018,84 @@ const LikertSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LikertItemSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const LikertItemSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for LikertItem',
+        nb: 'Overstyringer av oppsummering for LikertItem',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this LikertItem component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne LikertItem-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
+        componentType: { type: 'constant', value: 'LikertItem', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all LikertItem',
+        nb: 'Overstyringer av oppsummering for alle LikertItem-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all LikertItem components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle LikertItem-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const ListSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ListSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3641,6 +4104,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3655,6 +4119,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'List', required: true },
       },
       additionalProperties: false,
@@ -3670,6 +4135,24 @@ const ListSummaryOverridesWithRef = {
   ],
 } as const;
 
+const MapSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const MapSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3678,6 +4161,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3692,6 +4176,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Map', required: true },
       },
       additionalProperties: false,
@@ -3712,6 +4197,15 @@ const MultipleSelectSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3734,6 +4228,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3752,6 +4247,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'MultipleSelect', required: true },
       },
@@ -3842,6 +4338,24 @@ const OptionSummaryOverridesWithRef = {
   ],
 } as const;
 
+const OrganizationLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const OrganizationLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3850,6 +4364,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3867,6 +4382,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'OrganizationLookup', required: true },
       },
       additionalProperties: false,
@@ -3877,6 +4393,43 @@ const OrganizationLookupSummaryOverridesWithRef = {
       description: {
         en: 'Properties for how to display the summary of all OrganizationLookup components',
         nb: 'Egenskaper som styrer hvordan oppsummeringen av alle OrganizationLookup-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const PanelSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for Panel', nb: 'Overstyringer av oppsummering for Panel' },
+      description: {
+        en: 'Properties for how to display the summary of this Panel component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Panel-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Panel', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Panel',
+        nb: 'Overstyringer av oppsummering for alle Panel-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Panel components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Panel-komponenter vises.',
       },
     },
   ],
@@ -3962,6 +4515,64 @@ const PaymentSummaryOverridesWithRef = {
   ],
 } as const;
 
+const PaymentDetailsSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for PaymentDetails',
+        nb: 'Overstyringer av oppsummering for PaymentDetails',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this PaymentDetails component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne PaymentDetails-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'PaymentDetails', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all PaymentDetails',
+        nb: 'Overstyringer av oppsummering for alle PaymentDetails-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all PaymentDetails components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle PaymentDetails-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const PersonLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const PersonLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3970,6 +4581,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3987,6 +4599,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PersonLookup', required: true },
       },
       additionalProperties: false,
@@ -4002,6 +4615,24 @@ const PersonLookupSummaryOverridesWithRef = {
   ],
 } as const;
 
+const RadioButtonsSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const RadioButtonsSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4010,6 +4641,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4027,6 +4659,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'RadioButtons', required: true },
       },
       additionalProperties: false,
@@ -4047,6 +4680,15 @@ const RepeatingGroupSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4070,6 +4712,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4088,6 +4731,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'RepeatingGroup', required: true },
       },
@@ -4109,6 +4753,15 @@ const SubformSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4132,6 +4785,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4150,6 +4804,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'Subform', required: true },
       },
@@ -4240,6 +4895,24 @@ const TextSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TextAreaSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TextAreaSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4248,6 +4921,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4265,6 +4939,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TextArea', required: true },
       },
       additionalProperties: false,
@@ -4280,6 +4955,24 @@ const TextAreaSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TimePickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TimePickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4288,6 +4981,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4305,6 +4999,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TimePicker', required: true },
       },
       additionalProperties: false,
@@ -4320,29 +5015,76 @@ const TimePickerSummaryOverridesWithRef = {
   ],
 } as const;
 
+const VideoSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: { en: 'Summary overrides for Video', nb: 'Overstyringer av oppsummering for Video' },
+      description: {
+        en: 'Properties for how to display the summary of this Video component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne Video-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'Video', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all Video',
+        nb: 'Overstyringer av oppsummering for alle Video-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all Video components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Video-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const AnySummaryOverride = {
   type: 'union',
   variants: [
     AddressSummaryOverridesWithRef,
+    AlertSummaryOverridesWithRef,
+    AttachmentListSummaryOverridesWithRef,
+    AudioSummaryOverridesWithRef,
     CheckboxesSummaryOverridesWithRef,
     DateSummaryOverridesWithRef,
     DatepickerSummaryOverridesWithRef,
     DividerSummaryOverridesWithRef,
     DropdownSummaryOverridesWithRef,
+    FileUploadSummaryOverridesWithRef,
     GridSummaryOverridesWithRef,
     GroupSummaryOverridesWithRef,
     HeadingSummaryOverridesWithRef,
+    IFrameSummaryOverridesWithRef,
+    ImageSummaryOverridesWithRef,
     ImageUploadSummaryOverridesWithRef,
     InputSummaryOverridesWithRef,
+    InstanceInformationSummaryOverridesWithRef,
     LikertSummaryOverridesWithRef,
+    LikertItemSummaryOverridesWithRef,
     ListSummaryOverridesWithRef,
     MapSummaryOverridesWithRef,
     MultipleSelectSummaryOverridesWithRef,
     NumberSummaryOverridesWithRef,
     OptionSummaryOverridesWithRef,
     OrganizationLookupSummaryOverridesWithRef,
+    PanelSummaryOverridesWithRef,
     ParagraphSummaryOverridesWithRef,
     PaymentSummaryOverridesWithRef,
+    PaymentDetailsSummaryOverridesWithRef,
     PersonLookupSummaryOverridesWithRef,
     RadioButtonsSummaryOverridesWithRef,
     RepeatingGroupSummaryOverridesWithRef,
@@ -4351,6 +5093,7 @@ const AnySummaryOverride = {
     TextSummaryOverridesWithRef,
     TextAreaSummaryOverridesWithRef,
     TimePickerSummaryOverridesWithRef,
+    VideoSummaryOverridesWithRef,
   ],
 } as const;
 
@@ -4547,8 +5290,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Accordion',
@@ -4558,6 +5299,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -4640,8 +5402,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'AccordionGroup',
@@ -4651,6 +5411,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -4792,11 +5573,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -4860,6 +5637,49 @@ const generatedContract = {
           },
           required: false,
         },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
+          required: false,
+        },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
@@ -4914,7 +5734,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: true,
+        isSummarizable: false,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -4925,11 +5745,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'AddToList',
@@ -4946,8 +5762,6 @@ const generatedContract = {
             tableTitle: TRBFormComp['properties']['tableTitle'],
             shortName: TRBFormComp['properties']['shortName'],
             requiredValidation: TRBFormComp['properties']['requiredValidation'],
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
           title: { en: 'Text resources', nb: 'Tekstressurser' },
@@ -5011,7 +5825,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -5080,7 +5894,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -5181,7 +5995,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -5306,7 +6120,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: true,
+        isSummarizable: false,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -5320,8 +6134,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -5332,23 +6144,6 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
-        },
-        textResourceBindings: {
-          type: 'object',
-          properties: {
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
-            title: TRBLabel['properties']['title'],
-            description: TRBLabel['properties']['description'],
-            help: TRBLabel['properties']['help'],
-          },
-          additionalProperties: false,
-          title: { en: 'Text resources', nb: 'Tekstressurser' },
-          description: {
-            en: 'Connects component texts to text resources or expressions.',
-            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
-          },
-          required: false,
         },
         children: {
           type: 'array',
@@ -5361,6 +6156,21 @@ const generatedContract = {
             nb: 'ID-ene til knappekomponentene som skal vises i gruppen.',
           },
           required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
         },
       },
     },
@@ -5388,8 +6198,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Cards',
@@ -5399,6 +6207,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -5488,11 +6317,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
@@ -5530,6 +6355,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -5589,6 +6457,7 @@ const generatedContract = {
       },
     },
     Custom: {
+      additionalProperties: { type: 'any' },
       kind: 'component',
       category: 'Form',
       capabilities: {
@@ -5612,11 +6481,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Custom',
@@ -5646,12 +6511,55 @@ const generatedContract = {
               required: false,
             },
           },
-          additionalProperties: false,
+          additionalProperties: { type: 'string', expression: true },
           title: { en: 'Text resources', nb: 'Tekstressurser' },
           description: {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -5813,8 +6721,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Date',
@@ -5824,6 +6730,17 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -5901,11 +6818,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -5935,6 +6848,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -6046,8 +7002,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Divider',
@@ -6057,20 +7011,6 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
-        },
-        textResourceBindings: {
-          type: 'object',
-          properties: {
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
-          },
-          additionalProperties: false,
-          title: { en: 'Text resources', nb: 'Tekstressurser' },
-          description: {
-            en: 'Connects component texts to text resources or expressions.',
-            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
-          },
-          required: false,
         },
       },
     },
@@ -6098,11 +7038,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
@@ -6140,6 +7076,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         alertOnChange: {
@@ -6204,11 +7183,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
@@ -6233,11 +7208,11 @@ const generatedContract = {
             tableTitle: TRBFormComp['properties']['tableTitle'],
             shortName: TRBFormComp['properties']['shortName'],
             requiredValidation: TRBFormComp['properties']['requiredValidation'],
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
             title: TRBLabel['properties']['title'],
             description: TRBLabel['properties']['description'],
             help: TRBLabel['properties']['help'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
             tagTitle: {
               type: 'string',
               expression: true,
@@ -6362,6 +7337,38 @@ const generatedContract = {
           default: false,
           required: false,
         },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
       },
     },
     Grid: {
@@ -6388,8 +7395,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6400,6 +7405,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -6454,8 +7480,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Group',
@@ -6465,6 +7489,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -6568,8 +7613,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Heading',
@@ -6583,8 +7626,6 @@ const generatedContract = {
         textResourceBindings: {
           type: 'object',
           properties: {
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
             title: {
               type: 'string',
               expression: true,
@@ -6636,7 +7677,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -6700,7 +7741,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -6790,11 +7831,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6824,6 +7861,39 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         crop: {
@@ -6888,11 +7958,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6942,6 +8008,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7082,7 +8191,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -7236,8 +8345,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
@@ -7245,9 +8352,8 @@ const generatedContract = {
         sortOrder: ISelectionComponent['properties']['sortOrder'],
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         columns: ILikertColumnProperties['properties']['columns'],
         type: {
           type: 'constant',
@@ -7258,6 +8364,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -7338,6 +8465,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7489,11 +8638,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -7523,6 +8668,38 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7559,6 +8736,21 @@ const generatedContract = {
           },
           examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
           required: true,
+        },
+        tableColumns: {
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'object',
+            properties: ITableColumnWidth['properties'],
+            additionalProperties: false,
+          },
+          title: { en: 'Table columns', nb: 'Tabellkolonner' },
+          description: {
+            en: 'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+            nb: 'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+          },
+          required: false,
         },
         sortableColumns: {
           type: 'array',
@@ -7657,11 +8849,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -7691,6 +8879,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7774,11 +9005,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
@@ -7816,6 +9043,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         alertOnChange: {
@@ -8041,8 +9311,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Number',
@@ -8052,6 +9320,17 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -8133,8 +9412,6 @@ const generatedContract = {
         sortOrder: ISelectionComponent['properties']['sortOrder'],
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Option',
@@ -8144,6 +9421,17 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -8217,11 +9505,8 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'OrganizationLookup',
@@ -8274,6 +9559,39 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -8347,7 +9665,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -8443,8 +9761,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Paragraph',
@@ -8458,8 +9774,6 @@ const generatedContract = {
         textResourceBindings: {
           type: 'object',
           properties: {
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
             title: {
               type: 'string',
               expression: true,
@@ -8512,8 +9826,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Payment',
@@ -8523,6 +9835,16 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -8583,7 +9905,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -8757,11 +10079,8 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'PersonLookup',
@@ -8814,6 +10133,39 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -8925,11 +10277,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
         options: ISelectionComponent['properties']['options'],
@@ -8967,6 +10315,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -9063,8 +10454,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'RepeatingGroup',
@@ -9074,6 +10463,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -9427,7 +10837,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -9801,7 +11211,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -9897,11 +11307,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -9919,11 +11325,11 @@ const generatedContract = {
             tableTitle: TRBFormComp['properties']['tableTitle'],
             shortName: TRBFormComp['properties']['shortName'],
             requiredValidation: TRBFormComp['properties']['requiredValidation'],
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
             title: TRBLabel['properties']['title'],
             description: TRBLabel['properties']['description'],
             help: TRBLabel['properties']['help'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
           },
           additionalProperties: false,
           title: { en: 'Text resources', nb: 'Tekstressurser' },
@@ -9931,6 +11337,17 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
           required: false,
         },
         title: { type: 'string', required: true },
@@ -10032,11 +11449,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Subform',
@@ -10113,6 +11526,27 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
           required: false,
         },
         layoutSet: {
@@ -10360,8 +11794,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Tabs',
@@ -10371,6 +11803,27 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -10426,8 +11879,6 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         type: {
           type: 'constant',
           value: 'Text',
@@ -10437,6 +11888,17 @@ const generatedContract = {
             nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
           },
           required: true,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
         },
         textResourceBindings: {
           type: 'object',
@@ -10492,11 +11954,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -10526,6 +11984,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -10602,11 +12103,7 @@ const generatedContract = {
         hidden: ComponentBase['properties']['hidden'],
         grid: ComponentBase['properties']['grid'],
         pageBreak: ComponentBase['properties']['pageBreak'],
-        readOnly: FormComponentProps['properties']['readOnly'],
-        required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
-        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -10636,6 +12133,49 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -10718,7 +12258,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: false,
+        isSummarizable: true,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,

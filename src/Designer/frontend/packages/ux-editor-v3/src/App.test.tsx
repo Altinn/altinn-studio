@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
@@ -29,9 +30,9 @@ describe('App', () => {
 
   it('should render the component', async () => {
     const mockQueries: Partial<ServicesContextProps> = {
-      getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-      getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-      getFormLayoutSettings: jest
+      getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+      getLayoutSets: vi.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+      getFormLayoutSettings: vi
         .fn()
         .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
     };
@@ -42,12 +43,12 @@ describe('App', () => {
   });
 
   it('Removes the preview layout set from local storage if it does not exist', async () => {
-    const removeSelectedLayoutSetMock = jest.fn();
+    const removeSelectedLayoutSetMock = vi.fn();
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     const mockQueries: Partial<ServicesContextProps> = {
-      getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-      getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-      getFormLayoutSettings: jest
+      getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+      getLayoutSets: vi.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+      getFormLayoutSettings: vi
         .fn()
         .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
     };
@@ -62,15 +63,15 @@ describe('App', () => {
   });
 
   it('Does not remove the preview layout set from local storage if it exists', async () => {
-    const removeSelectedLayoutSetMock = jest.fn();
+    const removeSelectedLayoutSetMock = vi.fn();
     const mockQueries: Partial<ServicesContextProps> = {
-      getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-      getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-      getFormLayoutSettings: jest
+      getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+      getLayoutSets: vi.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+      getFormLayoutSettings: vi
         .fn()
         .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
     };
-    jest.spyOn(typedLocalStorage, 'getItem').mockReturnValue(selectedLayoutSet);
+    vi.spyOn(typedLocalStorage, 'getItem').mockReturnValue(selectedLayoutSet);
     renderApp(mockQueries, {
       selectedLayoutSet,
       removeSelectedLayoutSet: removeSelectedLayoutSetMock,

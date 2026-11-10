@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { StudioResizableLayoutContainerProps } from './StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer';
 import { fireEvent, render, screen } from '@testing-library/react';

@@ -1,24 +1,23 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../../../../testing/mocks';
 import { useDeleteItem } from './useDeleteItem';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { container1IdMock, layoutMock } from '../../../../../testing/layoutMock';
 
 // Mocks:
-const mockContainerMutation = jest.fn();
-const mockComponentMutation = jest.fn();
-jest.mock('../../../../../hooks/mutations/useDeleteFormContainerMutation', () => ({
+const mockContainerMutation = vi.fn();
+const mockComponentMutation = vi.fn();
+vi.mock('../../../../../hooks/mutations/useDeleteFormContainerMutation', () => ({
   useDeleteFormContainerMutation: () => ({ mutate: mockContainerMutation }),
 }));
-jest.mock('../../../../../hooks/mutations/useDeleteFormComponentMutation', () => ({
+vi.mock('../../../../../hooks/mutations/useDeleteFormComponentMutation', () => ({
   useDeleteFormComponentMutation: () => ({ mutate: mockComponentMutation }),
 }));
 
 describe('useDeleteItem', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls component mutation when formItem is a component', () => {
     const view = render(componentMocks[ComponentType.Input]);
     view.current();

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -54,6 +55,14 @@ public interface ISchemaModelService
         bool saveOnly = false,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Generates the C# classes, the XSD and the application metadata of a data model from the request, without
+    /// reading or writing a repository. It refuses a new data model whose name or C# class another data type has.
+    /// </summary>
+    /// <param name="request">The JSON schema of the data model, and the app files that the generation reads.</param>
+    /// <returns>The JSON schema, the C# classes, the XSD and the application metadata of the data model.</returns>
+    Task<GeneratedDatamodel> GenerateDatamodel(GenerateDatamodelRequest request);
 
     /// <summary>
     /// Builds a JSON schema based on the uploaded XSD.

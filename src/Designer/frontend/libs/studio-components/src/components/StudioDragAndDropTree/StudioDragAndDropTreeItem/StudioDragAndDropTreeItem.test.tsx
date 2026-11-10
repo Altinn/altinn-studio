@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 /* eslint-disable testing-library/no-container, testing-library/no-node-access, react/display-name  */
 
 import React from 'react';
@@ -15,11 +16,11 @@ import { StudioTreeView } from '../../StudioTreeView';
 const label = 'Test';
 const nodeId = 'node';
 const parentId = 'parent';
-const onAdd = jest.fn();
-const onMove = jest.fn();
+const onAdd = vi.fn();
+const onMove = vi.fn();
 const rootId = 'rootId';
 const hoveredNodeParent = null;
-const setHoveredNodeParent = jest.fn();
+const setHoveredNodeParent = vi.fn();
 const defaultProps: StudioDragAndDropTreeItemProps = { label, nodeId };
 const defaultItemContextProps: StudioDragAndDropTreeItemContextProps = { nodeId: parentId };
 const defaultRootContextProps: StudioDragAndDropTreeRootContextProps = {
@@ -64,9 +65,11 @@ const renderStudioDragAndDropTreeItem = ({
   });
 
 // Mocks:
-jest.mock('./StudioDragAndDropTreeItem.module.css', () => ({
-  item: 'item',
-  hasHoveredItem: 'hasHoveredItem',
+vi.mock('./StudioDragAndDropTreeItem.module.css', () => ({
+  default: {
+    item: 'item',
+    hasHoveredItem: 'hasHoveredItem',
+  },
 }));
 
 describe('StudioDragAndDropTreeItem', () => {

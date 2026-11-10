@@ -5,16 +5,13 @@ import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-vi.mock('src/queries/queries', async () => ({
-  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
-  doProcessNext: vi.fn(),
-  doProcessResume: vi.fn(),
-}));
+const doProcessNext = vi.fn<AppMutations['doProcessNext']>();
+const doProcessResume = vi.fn<AppMutations['doProcessResume']>();
 
 function getServiceTaskInstance(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -34,11 +31,8 @@ async function renderServiceTask(workflow?: IProcessWorkflow, after?: IInstanceW
   await renderWithInstanceAndLayout({
     renderer: () => <ServiceTaskFailed />,
     taskId: 'Task_Service',
-    apis: {
-      instanceApi: {
-        getInstance: async () => (mutated && after ? after : getServiceTaskInstance(workflow)),
-      },
-    },
+    queries: { getInstance: async () => (mutated && after ? after : getServiceTaskInstance(workflow)) },
+    mutations: { doProcessNext, doProcessResume },
   });
   return {
     markMutated: () => {
@@ -54,7 +48,7 @@ describe('ServiceTaskFailed retry button', () => {
   });
 
   it('retries a workflow failure owned by this service task via process/resume, not process/next', async () => {
-    // A terminally failed workflow blocks process/next (409/resumeRequired) until it is resumed,
+    // A terminally failed workflow blocks process/next until it is resumed,
     // so when the failure is owned by the current service task the retry button must go through
     // POST process/resume - the engine re-runs the failed step in place.
     const user = userEvent.setup();
@@ -83,7 +77,7 @@ describe('ServiceTaskFailed retry button', () => {
 
   it('never issues process/next - retry is always a resume of the failed workflow', async () => {
     // This view only renders for a failure owned by the current service task, where process/next
-    // is 409-blocked (resumeRequired). A parked-but-healthy service task renders the waiting view
+    // is refused with 409. A parked-but-healthy service task renders the waiting view
     // instead, with no retry affordance at all.
     const user = userEvent.setup();
     const instance = getServiceTaskInstance({

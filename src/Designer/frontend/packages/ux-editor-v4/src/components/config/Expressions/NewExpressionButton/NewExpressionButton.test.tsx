@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NewExpressionButton } from './NewExpressionButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,8 +12,6 @@ import type { FormItem } from '../../../../types/FormItem';
 const user = userEvent.setup();
 
 describe('NewExpressionButton', () => {
-  afterEach(jest.clearAllMocks);
-
   const testComponents: KeyValuePairs<FormItem> = {
     'a paragraph element': {
       id: 'test',
@@ -48,7 +47,7 @@ describe('NewExpressionButton', () => {
   });
 
   it('Calls handleUpdate with updated component when an expression is added', async () => {
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     const formItem: FormComponent<ComponentType.Input> = {
       id: 'mockId',
       type: ComponentType.Input,
@@ -76,12 +75,12 @@ const renderAddButton = (formItemContext = {}) => {
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
     },
-    handleSave: jest.fn(),
-    handleUpdate: jest.fn(),
+    handleSave: vi.fn(),
+    handleUpdate: vi.fn(),
     formItemId: 'mockId',
-    handleDiscard: jest.fn(),
-    handleEdit: jest.fn(),
-    debounceSave: jest.fn(),
+    handleDiscard: vi.fn(),
+    handleEdit: vi.fn(),
+    debounceSave: vi.fn(),
   };
   const completeContext = { ...defaultFormItemContext, ...formItemContext };
   return render(

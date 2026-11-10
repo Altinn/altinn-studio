@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
@@ -30,14 +31,11 @@ public class AppInactivityUndeployJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(AppInactivityUndeployJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
 
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.RootJobTimeout;
-        activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimeoutSeconds, timeout.TotalSeconds);
 
         using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             context.CancellationToken
@@ -48,7 +46,7 @@ public class AppInactivityUndeployJob : IJob
         try
         {
             var orgList = await _orgService.GetOrgList(cancellationToken);
-            activity?.SetTag("org.count", orgList.Orgs.Count);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.OrgCount, orgList.Orgs.Count);
 
             foreach (var org in orgList.Orgs.Keys.OrderBy(value => value, StringComparer.Ordinal))
             {
@@ -63,12 +61,7 @@ public class AppInactivityUndeployJob : IJob
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
             activity?.AddException(ex);
-            activity?.AddEvent(
-                new ActivityEvent(
-                    "job_timeout",
-                    tags: new ActivityTagsCollection { ["timeout.seconds"] = timeout.TotalSeconds }
-                )
-            );
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimedOut, true);
             throw new TimeoutException($"{nameof(AppInactivityUndeployJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

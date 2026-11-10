@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithMockStore } from '../testing/mocks';
 import { appDataMock } from '../testing/stateMocks';
 import { useText } from './useText';

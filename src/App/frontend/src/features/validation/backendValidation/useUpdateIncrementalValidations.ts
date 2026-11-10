@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
-import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import {
+  mapBackendIssuesToComponentValidations,
   mapBackendIssuesToFieldValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
@@ -17,38 +17,59 @@ import type { BackendValidationIssue, BackendValidationIssueGroups } from 'src/f
  */
 export function useUpdateIncrementalValidations() {
   const updateBackendValidations = FormStore.validation.useUpdateBackendValidations();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
+  const formStore = FormStore.raw.useStore();
 
   return useCallback(
     (lastSaveValidations: BackendValidationIssueGroups) => {
       updateIncrementalValidations(
         lastSaveValidations,
-        getCachedInitialValidations().cachedInitialValidations,
+        formStore.getState().validation.backendIssues,
         updateBackendValidations,
       );
     },
-    [getCachedInitialValidations, updateBackendValidations],
+    [formStore, updateBackendValidations],
   );
 }
 
 export function updateIncrementalValidations(
   lastSaveValidations: BackendValidationIssueGroups,
-  cachedInitialValidations: BackendValidationIssue[] | undefined,
+  previousBackendIssues: BackendValidationIssue[],
   updateBackendValidations: FormStoreState['validation']['updateBackendValidations'],
 ) {
-  const initialValidatorGroups = mapBackendValidationsToValidatorGroups(cachedInitialValidations);
+  // Validators that did not run on save are not in lastSaveValidations, and keep their issues
+  const backendIssues = [
+    ...previousBackendIssues.filter((issue) => !(issue.source in lastSaveValidations)),
+    ...Object.values(lastSaveValidations).flat(),
+  ];
 
-  const newValidatorGroups = structuredClone(initialValidatorGroups);
+  const previousValidatorGroups = mapBackendValidationsToValidatorGroups(previousBackendIssues);
+
+  const newValidatorGroups = structuredClone(previousValidatorGroups);
   for (const [group, validationIssues] of Object.entries(lastSaveValidations)) {
     newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues);
   }
 
-  if (deepEqual(initialValidatorGroups, newValidatorGroups)) {
-    // Don't update any validations, only set last saved validations
-    updateBackendValidations(undefined, { incremental: lastSaveValidations });
+  // Validations linked to a component without a field are not part of the validator groups
+  const componentValidations = mapBackendIssuesToComponentValidations(backendIssues);
+
+  if (deepEqual(previousValidatorGroups, newValidatorGroups)) {
+    // Don't update any field validations, only set last saved validations
+    updateBackendValidations(
+      undefined,
+      { incremental: lastSaveValidations },
+      undefined,
+      componentValidations,
+      backendIssues,
+    );
     return;
   }
 
   const backendValidations = mapValidatorGroupsToDataModelValidations(newValidatorGroups);
-  updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
+  updateBackendValidations(
+    backendValidations,
+    { incremental: lastSaveValidations },
+    undefined,
+    componentValidations,
+    backendIssues,
+  );
 }

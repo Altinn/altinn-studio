@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -28,32 +29,22 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
         var messages = new List<ValidationIssue>();
         var application = _appMetadata.ApplicationMetadata;
 
-        foreach (var dataType in application.DataTypes.Where(et => et.TaskId == taskId))
+        foreach (var dataType in application.DataTypes.Where(et => et.IsBoundToTask(taskId)))
         {
             List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
 
             if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooManyDataElements(maxCount: dataType.MaxCount, dataType: dataType.Id)
+                );
             }
 
             if (dataType.MinCount > 0 && dataType.MinCount > elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooFewDataElements(minCount: dataType.MinCount, dataType: dataType.Id)
+                );
             }
         }
 

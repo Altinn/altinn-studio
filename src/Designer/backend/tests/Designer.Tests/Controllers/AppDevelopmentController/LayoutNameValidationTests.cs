@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -254,6 +255,70 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
         );
     }
 
+    [Fact]
+    public async Task SaveFormLayout_NewPageDifferingOnlyInCaseFromAnExistingPage_IsRejected()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithLegacyNames, Developer, targetRepository);
+        string[] layoutFilesBefore = LayoutFileNames(targetRepository);
+        string existingPageBefore = TestDataHelper.GetFileFromRepo(
+            Org,
+            targetRepository,
+            Developer,
+            LayoutPath(LayoutSetWithLegacyPageNames, "Side1")
+        );
+
+        // Act
+        using HttpResponseMessage response = await SavePage(targetRepository, "SIDE1");
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(targetRepository));
+        Assert.Equal(
+            existingPageBefore,
+            TestDataHelper.GetFileFromRepo(
+                Org,
+                targetRepository,
+                Developer,
+                LayoutPath(LayoutSetWithLegacyPageNames, "Side1")
+            )
+        );
+    }
+
+    [Fact]
+    public async Task UpdateFormLayoutName_ToAnotherPageNameInOtherCase_IsRejected()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithLegacyNames, Developer, targetRepository);
+        string[] layoutFilesBefore = LayoutFileNames(targetRepository);
+
+        // Act
+        using HttpResponseMessage response = await RenamePage(targetRepository, PageNameWithDots, "SIDE1");
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(targetRepository));
+    }
+
+    [Fact]
+    public async Task UpdateFormLayoutName_ToItsOwnNameInOtherCase_RenamesTheFile()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithLegacyNames, Developer, targetRepository);
+
+        // Act
+        using HttpResponseMessage response = await RenamePage(targetRepository, "Side1", "SIDE1");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string[] layoutFilesAfter = LayoutFileNames(targetRepository);
+        Assert.Contains("SIDE1.json", layoutFilesAfter);
+        Assert.DoesNotContain("Side1.json", layoutFilesAfter);
+    }
+
     [Theory]
     [InlineData("../escaped")]
     [InlineData("nested/set")]
@@ -327,6 +392,29 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
         JsonObject layout = new() { ["data"] = new JsonObject { ["layout"] = new JsonArray() } };
         File.WriteAllText(Path.Combine(layoutSetPath, "layouts", "Side1.json"), layout.ToJsonString());
     }
+
+    /// <summary>
+    /// Lists the exact file names in the layouts folder of the layout set under test, in a stable order.
+    /// Asking the file system whether a path exists would answer without regard to case on macOS and
+    /// Windows.
+    /// </summary>
+    /// <param name="repository">The repository to look in.</param>
+    /// <returns>The file names, with extension.</returns>
+    private static string[] LayoutFileNames(string repository) =>
+        [
+            .. Directory
+                .EnumerateFiles(
+                    Path.Combine(
+                        TestDataHelper.GetTestDataRepositoryDirectory(Org, repository, Developer),
+                        "App",
+                        "ui",
+                        LayoutSetWithLegacyPageNames,
+                        "layouts"
+                    )
+                )
+                .Select(Path.GetFileName)
+                .Order(StringComparer.Ordinal),
+        ];
 
     private async Task<HttpResponseMessage> RenamePage(string repository, string pageName, string newPageName)
     {

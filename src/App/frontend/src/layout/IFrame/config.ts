@@ -19,6 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addTextResource(
     new CG.trb({
       name: 'title',

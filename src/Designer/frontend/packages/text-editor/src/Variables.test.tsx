@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { VariablesProps } from './Variables';
 import { Variables } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';

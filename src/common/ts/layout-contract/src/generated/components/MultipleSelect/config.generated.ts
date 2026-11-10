@@ -6,7 +6,6 @@ import {
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -14,14 +13,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompMultipleSelectExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupMultiselect;
@@ -34,6 +32,7 @@ export interface IDataModelBindingsForGroupMultiselect extends IDataModelBinding
 }
 
 export interface MultipleSelectSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
   displayType?: 'list' | 'string';
 }
 
@@ -69,4 +68,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: 8d0b245d534c172d1d1b8b632d7ec965637834e888efaae9d0a7e5fda64bd5c0
+// Source hash: 2f3e034def8260b8684768fa95f790729072c88cd50bfd3a2767b1e75525b29b

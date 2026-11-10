@@ -43,6 +43,9 @@
           server.address: localhost
         },
         {
+          server.port: 80
+        },
+        {
           TestId: Guid_2
         },
         {

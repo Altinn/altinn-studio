@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -67,10 +68,10 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayouts = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const getRuleConfig = jest
+  const getRuleConfig = vi
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
   const formLayoutsResult = renderHookWithProviders(

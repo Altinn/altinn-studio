@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditGrid } from './EditGrid';
@@ -6,7 +7,7 @@ import { component1Mock } from '../../../../testing/layoutMock';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
 
-const renderEditGrid = ({ grid = undefined, handleComponentChange = jest.fn() } = {}) => {
+const renderEditGrid = ({ grid = undefined, handleComponentChange = vi.fn() } = {}) => {
   const component: FormItem<ComponentType.Input> = { ...component1Mock, grid };
   return render(<EditGrid handleComponentChange={handleComponentChange} component={component} />);
 };
@@ -62,7 +63,7 @@ describe('EditGrid', () => {
 
   it('should call handleComponentChange with grid: xs: 12 when switch is disabled', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({ handleComponentChange });
 
     const lockIcon = screen.getByRole('img', { name: 'lockIcon' });
@@ -84,7 +85,7 @@ describe('EditGrid', () => {
   });
 
   it('should call handleComponentChange with grid: xs: 3 when slider is changed', () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({ grid: { xs: 12 }, handleComponentChange });
 
     const slider = screen.getByRole('slider');
@@ -100,7 +101,7 @@ describe('EditGrid', () => {
   });
 
   it('should call handleComponentChange with new value for xs, but remain original value for md, when slider is changed to "4" for mobile', () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({
       grid: { xs: 6, md: 3 },
       handleComponentChange,
@@ -121,7 +122,7 @@ describe('EditGrid', () => {
 
   it('should call handleComponentChange with original value for md and no value for xs when useDefaultSwitch is enabled', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({
       grid: { xs: 3, md: 3 },
       handleComponentChange,
@@ -140,7 +141,7 @@ describe('EditGrid', () => {
 
   it('should call handleComponentChange with original value for xs and no value for md when useDefaultSwitch is enabled for laptop tab', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({
       grid: { xs: 3, md: 3 },
       handleComponentChange,
@@ -165,7 +166,7 @@ describe('EditGrid', () => {
 
   it('should call handleComponentChange with original values for innerGrid and labelGrid when useDefaultSwitch is enabled', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({
       grid: {
         innerGrid: { xs: 3, md: 3 },
@@ -190,7 +191,7 @@ describe('EditGrid', () => {
 
   it('should call handleComponentChange with no grid-property when useDefaultSwitch is disabled', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditGrid({
       grid: { xs: 3 },
       handleComponentChange,

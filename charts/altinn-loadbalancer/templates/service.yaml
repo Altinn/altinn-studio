@@ -15,6 +15,14 @@ spec:
   selector:
     run: altinn-loadbalancer
   type: {{ .Values.service.type }}
+  # Only nodes running an nginx pod pass the Azure load balancer's health probe, so only
+  # they carry its traffic. With Cluster, every node in the cluster takes a share and
+  # forwards it on, autoscaled sandbox and CI runner nodes included, and a node removed by
+  # the autoscaler drops the connections passing through it without a reset: an HTTP/2
+  # client keeps sending on such a connection until its kernel gives up, about 15 minutes.
+  # Local also keeps the client's own address as the source, where Cluster replaced it with
+  # the forwarding node's, so nginx's $remote_addr is now the client.
+  externalTrafficPolicy: Local
   {{- if not (hasKey $.Values.loadbalancerIP $.Values.environment) }}
   {{ fail "the chosen environment has no loadBalancerIP" }}
   {{- end }}

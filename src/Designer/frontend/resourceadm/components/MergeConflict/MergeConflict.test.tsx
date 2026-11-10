@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -18,12 +19,11 @@ describe('MergeConflict', () => {
       configurable: true,
       value: {
         ...originalWindowLocation,
-        reload: jest.fn(),
+        reload: vi.fn(),
       },
     });
   });
   afterEach(() => {
-    jest.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,

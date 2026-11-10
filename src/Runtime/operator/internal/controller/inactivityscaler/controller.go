@@ -7,7 +7,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
+
+	"go.opentelemetry.io/otel/metric"
+
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
 
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
@@ -37,8 +43,7 @@ const (
 	scalerBaselineAnnotationKey = "altinn.studio/inactivity-scaler-baseline"
 
 	gatewayDeploymentName = "gateway"
-	pdf3ProxyHpaName      = "pdf3-proxy-hpa"
-	pdf3WorkerHpaName     = "pdf3-worker-hpa"
+	pdf3RelayHpaName      = "pdf3-relay-hpa"
 
 	scaleDownReplicaOne     = int32(1)
 	desiredWorkdayStartHour = 6
@@ -65,8 +70,8 @@ var (
 // local time (Europe/Oslo), and whether any apps are deployed.
 //
 // Scaling paths:
-// - normal: restore app deployments/HPAs, gateway, and pdf3 to baseline.
-// - ttd_offhours: scale apps/gateway/pdf3 to 1 outside workhours for targeted ttd environments.
+// - normal: restore app deployments/HPAs, gateway and relay to baseline.
+// - ttd_offhours: scale apps/gateway and lower the relay HPA minimum to 1 outside workhours for targeted ttd environments.
 // - no_apps: same as above for now.
 // - ttd_offhours_no_apps: same as above for now.
 // NOTE: we cant scale to 0 atm with HPA.
@@ -87,7 +92,7 @@ func (s clusterState) scaleGateway() bool {
 	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
 }
 
-func (s clusterState) scalePdf3() bool {
+func (s clusterState) scaleRelay() bool {
 	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
 }
 
@@ -108,8 +113,45 @@ type InactivityScalerReconciler struct {
 	k8sReader    client.Reader
 	runtime      rt.Runtime
 	location     *time.Location
+	observed     atomic.Pointer[observedState]
 	logger       logr.Logger
 	pollInterval time.Duration
+}
+
+// observedState is the cluster state the last successful sync applied, which StateMetric reports.
+type observedState struct {
+	state  clusterState
+	forced bool
+}
+
+// StateMetric is the gauge of the state the inactivity scaler last applied: 1, with the state
+// (stateAttribute) and whether an override forced it as attributes. It explains why apps in a
+// cluster are scaled down.
+const (
+	StateMetric    = "altinn.operator.inactivityscaler.applied_state"
+	stateAttribute = "altinn.operator.inactivityscaler.state"
+)
+
+func (r *InactivityScalerReconciler) registerStateMetric() error {
+	_, err := r.runtime.Meter().Int64ObservableGauge(
+		StateMetric,
+		metric.WithDescription("1 for the cluster state the inactivity scaler last applied."),
+		metric.WithInt64Callback(func(_ context.Context, observer metric.Int64Observer) error {
+			observed := r.observed.Load()
+			if observed == nil || !telemetry.IsLeader() {
+				return nil
+			}
+			observer.Observe(1, metric.WithAttributes(
+				attribute.String(stateAttribute, string(observed.state)),
+				attribute.Bool("altinn.operator.inactivityscaler.state_forced", observed.forced),
+			))
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("register %s: %w", StateMetric, err)
+	}
+	return nil
 }
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client, k8sReader client.Reader) *InactivityScalerReconciler {
@@ -155,10 +197,12 @@ func (r *InactivityScalerReconciler) NeedLeaderElection() bool {
 func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 	clock := r.runtime.GetClock()
 	r.logger.Info("starting InactivityScaler controller", "pollInterval", r.pollInterval)
-
-	if err := r.SyncAll(ctx); err != nil {
-		r.logger.Error(err, "initial sync failed")
+	if err := r.registerStateMetric(); err != nil {
+		return err
 	}
+
+	// A failed run logs its own ERROR, linked to its trace.
+	_ = r.SyncAll(ctx)
 
 	ticker := clock.NewTicker(r.pollInterval)
 	defer ticker.Stop()
@@ -169,15 +213,15 @@ func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 			r.logger.Info("exiting InactivityScaler controller")
 			return nil
 		case <-ticker.Chan():
-			if err := r.SyncAll(ctx); err != nil {
-				r.logger.Error(err, "sync failed")
-			}
+			_ = r.SyncAll(ctx) //nolint:errcheck // A failed run logs its own ERROR, linked to its trace.
 		}
 	}
 }
 
+const controllerName = "inactivityscaler"
+
 func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
-	ctx, span := r.runtime.Tracer().Start(ctx, "inactivityscaler.SyncAll")
+	ctx, span := telemetry.StartRun(ctx, controllerName, "inactivityscaler.SyncAll")
 	defer span.End()
 
 	opCtx := r.runtime.GetOperatorContext()
@@ -188,15 +232,13 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	)
 	appDeployments, err := r.listAppDeployments(ctx, opCtx.ServiceOwner.Id)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "list app deployments")
+		commontelemetry.SetError(span, "list_app_deployments", err)
 		return fmt.Errorf("list app deployments: %w", err)
 	}
 	deploymentNames := appDeploymentNameSet(appDeployments)
 	appHpas, err := r.listAppHpas(ctx, deploymentNames)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "list app hpas")
+		commontelemetry.SetError(span, "list_app_hpas", err)
 		return fmt.Errorf("list app HPAs: %w", err)
 	}
 
@@ -209,12 +251,10 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		len(appDeployments),
 	)
 	span.SetAttributes(
-		attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
-		attribute.String("environment", opCtx.Environment),
-		attribute.String("state", string(state)),
-		attribute.Bool("stateForced", stateForced),
-		attribute.Int("appDeployments", len(appDeployments)),
-		attribute.Int("appHPAs", len(appHpas)),
+		attribute.String(stateAttribute, string(state)),
+		attribute.Bool("altinn.operator.inactivityscaler.state_forced", stateForced),
+		attribute.Int("altinn.operator.inactivityscaler.app_deployments", len(appDeployments)),
+		attribute.Int("altinn.operator.inactivityscaler.app_hpas", len(appHpas)),
 	)
 
 	r.logger.Info("reconciling inactivity scaler state",
@@ -230,8 +270,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	for i := range appDeployments {
 		key := client.ObjectKey{Name: appDeployments[i].Name, Namespace: appDeployments[i].Namespace}
 		if err := r.reconcileDeployment(ctx, key, state.scaleApps(), scaleDownReplicaOne); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "reconcile app deployment")
+			commontelemetry.SetError(span, "reconcile_app_deployment", err)
 			return err
 		}
 	}
@@ -239,8 +278,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	for i := range appHpas {
 		key := client.ObjectKey{Name: appHpas[i].Name, Namespace: appHpas[i].Namespace}
 		if err := r.reconcileHpa(ctx, key, state.scaleApps(), scaleDownReplicaOne); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "reconcile app hpa")
+			commontelemetry.SetError(span, "reconcile_app_hpa", err)
 			return err
 		}
 	}
@@ -251,31 +289,23 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		state.scaleGateway(),
 		scaleDownReplicaOne,
 	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile gateway")
-		return err
-	}
-	if err := r.reconcileHpa(
-		ctx,
-		client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace},
-		state.scalePdf3(),
-		scaleDownReplicaOne,
-	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile pdf3-proxy")
-		return err
-	}
-	if err := r.reconcileHpa(
-		ctx,
-		client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace},
-		state.scalePdf3(),
-		scaleDownReplicaOne,
-	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile pdf3-worker")
+		commontelemetry.SetError(span, "reconcile_gateway", err)
 		return err
 	}
 
+	if err := r.reconcileHpa(
+		ctx,
+		client.ObjectKey{Name: pdf3RelayHpaName, Namespace: runtimePdf3Namespace},
+		state.scaleRelay(),
+		scaleDownReplicaOne,
+	); err != nil {
+		commontelemetry.SetError(span, "reconcile_pdf3_relay", err)
+		return err
+	}
+
+	// Reported only once every workload is in the state, so a failed sync doesn't report a state
+	// that was never applied.
+	r.observed.Store(&observedState{state: state, forced: stateForced})
 	span.SetStatus(codes.Ok, "ok")
 	return nil
 }
@@ -420,9 +450,9 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		ctx,
 		"inactivityscaler.reconcileWithRetry",
 		trace.WithAttributes(
-			attribute.String("kind", kind),
-			attribute.String("namespace", key.Namespace),
-			attribute.String("name", key.Name),
+			telemetry.AttrObjectKind.String(kind),
+			telemetry.AttrObjectNamespace.String(key.Namespace),
+			telemetry.AttrObjectName.String(key.Name),
 		),
 	)
 	defer span.End()
@@ -432,14 +462,14 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_workload", err)
 		return fmt.Errorf("get %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 	}
 
 	for attempt := 1; attempt <= maxUpdateRetries; attempt++ {
 		changed, err := applyState(obj)
 		if err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "apply_state", err)
 			return fmt.Errorf("apply state %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		}
 		if !changed {
@@ -449,10 +479,10 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		if err := r.k8sClient.Update(ctx, obj); err == nil {
 			return nil
 		} else if !apierrors.IsConflict(err) {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "update_workload", err)
 			return fmt.Errorf("update %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		} else if attempt == maxUpdateRetries {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "update_conflict", err)
 			return fmt.Errorf(
 				"update %s %s/%s after %d retries: %w",
 				kind,
@@ -468,7 +498,7 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 			if apierrors.IsNotFound(err) {
 				return nil
 			}
-			span.RecordError(err)
+			commontelemetry.SetError(span, "refresh_workload", err)
 			return fmt.Errorf("refresh %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		}
 	}

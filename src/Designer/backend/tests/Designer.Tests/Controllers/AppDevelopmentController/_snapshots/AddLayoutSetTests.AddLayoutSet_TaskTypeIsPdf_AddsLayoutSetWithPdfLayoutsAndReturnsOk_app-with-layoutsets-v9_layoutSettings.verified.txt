@@ -1,9 +1,6 @@
 ﻿{
-  Schema: https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json,
+  Schema: https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layoutSettings.schema.v1.json,
   Pages: {
-    Order: [
-      ServiceTask
-    ],
     PdfLayoutName: PdfLayout
   }
 }

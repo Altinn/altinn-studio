@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesProps } from './CodeListsWithTextResources';
@@ -15,9 +16,9 @@ import { textResourcesNb } from '../../../../test-data/textResources';
 import { Guard } from '@studio/guard';
 import { screen } from '@studio/ui-test';
 
-const onDeleteCodeListMock = jest.fn();
-const onUpdateCodeListIdMock = jest.fn();
-const onUpdateCodeListMock = jest.fn();
+const onDeleteCodeListMock = vi.fn();
+const onUpdateCodeListIdMock = vi.fn();
+const onUpdateCodeListMock = vi.fn();
 
 const codeListName = codeListsDataMock[0].title;
 const codeListUsageSourceMock1: CodeListIdSource = {
@@ -46,8 +47,6 @@ const codeListMultipleUsagesMock: CodeListReference[] = [
 ];
 
 describe('CodeListsWithTextResources', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the code list details closed by default', () => {
     renderCodeLists();
     const details = screen.getDetailsBySummary(codeListName);
@@ -179,7 +178,7 @@ describe('CodeListsWithTextResources', () => {
   it('Calls onUpdateCodeList and onCreateTextResource when creating a new text resource', async () => {
     const user = userEvent.setup();
     const codeListValueText = 'codeListValueText';
-    const onCreateTextResource = jest.fn();
+    const onCreateTextResource = vi.fn();
     const textResources = [{ id: 'test', value: 'some value' }];
     renderCodeLists({ onCreateTextResource, textResources });
 
@@ -267,7 +266,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('calls onDeleteCodeList when the user clicks the delete button and confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     renderCodeLists();
     const deleteCodeListButton = getButton(
@@ -283,7 +282,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('does not call onDeleteCodeList when it is not confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
 
     renderCodeLists();
     const deleteCodeListButton = getButton(
@@ -318,11 +317,11 @@ const changeCodeListId = async (
 
 const defaultProps: CodeListsWithTextResourcesProps = {
   codeListDataList: codeListsDataMock,
-  onCreateTextResource: jest.fn(),
+  onCreateTextResource: vi.fn(),
   onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
-  onUpdateTextResource: jest.fn(),
+  onUpdateTextResource: vi.fn(),
   codeListInEditMode: undefined,
   codeListNames: [],
   codeListsUsages: [],

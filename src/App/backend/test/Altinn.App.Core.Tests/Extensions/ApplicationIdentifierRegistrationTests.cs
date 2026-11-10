@@ -22,7 +22,7 @@ public sealed class ApplicationIdentifierRegistrationTests : IDisposable
     {
         public string Id => $"client-of-{appIdentifier.App}";
 
-        public Task<object?> GetExternalApiDataAsync(
+        public Task<object?> GetExternalApiData(
             InstanceIdentifier instanceIdentifier,
             Dictionary<string, string> queryParams
         ) => Task.FromResult<object?>(null);

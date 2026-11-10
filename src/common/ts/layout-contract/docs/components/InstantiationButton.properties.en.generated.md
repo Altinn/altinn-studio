@@ -45,5 +45,5 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Values used to prefill the new instance.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Values used to prefill the new instance. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
 </details>

@@ -178,6 +178,26 @@ internal sealed class CSharpSourceScanner
         return updated;
     }
 
+    /// <summary>
+    /// Deletes a file from disk and from the scanner's view, including the compilation and the pristine
+    /// detection view, so no detector reports code that no longer exists.
+    /// </summary>
+    public void Remove(ScannedCSharpFile file)
+    {
+        if (_isPristineView || !_files.Value.Remove(file))
+        {
+            throw new ArgumentException($"File is not part of this scanner: {file.Path}", nameof(file));
+        }
+
+        File.Delete(file.Path);
+        if (_compilation is not null && _trees.Remove(file, out var tree))
+        {
+            _compilation = _compilation.RemoveSyntaxTrees(tree);
+        }
+
+        _pristine?._files.Value.RemoveAll(pristineFile => pristineFile.Path == file.Path);
+    }
+
     internal SemanticModel? GetSemanticModel(ScannedCSharpFile file)
     {
         // Cached per file: a fresh model per access would re-bind from scratch every time. Update

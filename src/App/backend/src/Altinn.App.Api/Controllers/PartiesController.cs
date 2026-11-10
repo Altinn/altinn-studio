@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
@@ -205,11 +204,7 @@ public class PartiesController : ControllerBase
                 if (!details.CanRepresentParty(partyId))
                     return BadRequest($"User {auth.UserId} cannot represent party {partyId}.");
 
-                Response.Cookies.Append(
-                    _settings.GetAltinnPartyCookieName,
-                    partyId.ToString(CultureInfo.InvariantCulture),
-                    new CookieOptions { Domain = _settings.HostName }
-                );
+                PartySelectionCookie.Set(Response, _settings, partyId);
 
                 return Ok("Party successfully updated");
             }
@@ -219,11 +214,7 @@ public class PartiesController : ControllerBase
                 if (details.Party.PartyId != partyId)
                     return BadRequest($"Org {details.Party.OrgNumber} cannot represent party {partyId}.");
 
-                Response.Cookies.Append(
-                    _settings.GetAltinnPartyCookieName,
-                    partyId.ToString(CultureInfo.InvariantCulture),
-                    new CookieOptions { Domain = _settings.HostName }
-                );
+                PartySelectionCookie.Set(Response, _settings, partyId);
 
                 return Ok("Party successfully updated");
             }
@@ -233,11 +224,7 @@ public class PartiesController : ControllerBase
                 if (details.Party.PartyId != partyId)
                     return BadRequest($"Service owner {auth.Name} cannot represent party {partyId}.");
 
-                Response.Cookies.Append(
-                    _settings.GetAltinnPartyCookieName,
-                    partyId.ToString(CultureInfo.InvariantCulture),
-                    new CookieOptions { Domain = _settings.HostName }
-                );
+                PartySelectionCookie.Set(Response, _settings, partyId);
 
                 return Ok("Party successfully updated");
             }
@@ -247,11 +234,7 @@ public class PartiesController : ControllerBase
                 if (details.Party.PartyId != partyId)
                     return BadRequest($"System user {auth.SystemUserId} cannot represent party {partyId}.");
 
-                Response.Cookies.Append(
-                    _settings.GetAltinnPartyCookieName,
-                    partyId.ToString(CultureInfo.InvariantCulture),
-                    new CookieOptions { Domain = _settings.HostName }
-                );
+                PartySelectionCookie.Set(Response, _settings, partyId);
 
                 return Ok("Party successfully updated");
             }

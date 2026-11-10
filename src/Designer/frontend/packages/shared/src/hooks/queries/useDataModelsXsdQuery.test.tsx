@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries/useDataModelsXsdQuery';
 import type { DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
@@ -8,7 +9,7 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 describe('useDataModelsXsdQuery', () => {
   it('Calls getDataModelsXsd with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataXsd[] = [xsdMetadataMock];
-    const getDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
+    const getDataModelsXsd = vi.fn().mockImplementation(() => Promise.resolve(dataModels));
 
     const result = renderHookWithProviders(() => useDataModelsXsdQuery(org, app), {
       queries: { getDataModelsXsd },

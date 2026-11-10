@@ -7,20 +7,15 @@ import { configure as testingLibraryConfigure } from '@testing-library/dom';
 import dotenv from 'dotenv';
 import ResizeObserver from 'resize-observer-polyfill';
 import { vi } from 'vitest';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { GlobalData } from 'src/GlobalData';
-import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
-import type { doProcessNext, doUpdateAttachmentTags } from 'src/queries/queries';
-import type { AppQueries } from 'src/queries/types';
 
 import 'src/index.css';
 import 'src/styles/shared.css';
@@ -101,11 +96,15 @@ beforeEach(() => {
       loginUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goto={goTo}',
       upgradeAuthenticationLevelUrl:
         'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
+      allFormsUrl: 'https://tt02.altinn.no/skjemaoversikt',
       arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
       arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
       arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',
       accessManagementChangeAndRedirectUrl:
         'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
+      accessManagementUrl: 'https://am.ui.tt02.altinn.no/accessmanagement/ui',
+      rolesAndRightsHelpUrl: 'https://tt02.altinn.no/hjelp/profil/enkelttjenester-og-roller/',
+      arbeidsflatePartiesUrl: 'https://af.tt02.altinn.no/profile/parties',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
@@ -127,31 +126,6 @@ window.logInfoOnce = window.logError;
 
 window.scrollTo = () => {};
 document.getAnimations = () => [];
-
-vi.mock('axios', async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importOriginal needs the module namespace shape
-  const actual = await importOriginal<typeof import('axios')>();
-  const pendingRequest = vi.fn(() => new Promise(() => undefined));
-  const mockAxios = Object.assign(vi.fn(), {
-    create: vi.fn(),
-    delete: pendingRequest,
-    get: pendingRequest,
-    head: pendingRequest,
-    interceptors: {
-      request: { eject: vi.fn(), use: vi.fn() },
-      response: { eject: vi.fn(), use: vi.fn() },
-    },
-    isAxiosError: actual.default.isAxiosError,
-    options: pendingRequest,
-    patch: pendingRequest,
-    post: pendingRequest,
-    put: pendingRequest,
-    request: pendingRequest,
-  });
-  mockAxios.create.mockReturnValue(mockAxios);
-
-  return { ...actual, default: mockAxios };
-});
 
 // Add Request polyfill for tests that use fetch/Request
 if (!globalThis.Request) {
@@ -175,13 +149,3 @@ global.ResizeObserver = ResizeObserver;
 testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
-
-vi.mock('src/queries/queries', async () => ({
-  ...(await vi.importActual<AppQueries>('src/queries/queries')),
-  doProcessNext: vi.fn<typeof doProcessNext>(
-    async () => ({ data: getInstanceWithProcessMock() }) as AxiosResponse<IInstanceWithProcess>,
-  ),
-  doUpdateAttachmentTags: vi.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
-    tags: setTagsRequest.tags,
-  })),
-}));

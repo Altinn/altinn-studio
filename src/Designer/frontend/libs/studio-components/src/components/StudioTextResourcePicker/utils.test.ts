@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import { retrieveSelectedValues } from './utils';
 

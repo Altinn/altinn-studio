@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Altinn 3 App API for Endring av navn (RF-1453)",
-    "description": "App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>\n\nThis is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskId |\n|------------|------|----------------|-----------|--------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n|requiresActionToRead|FormData|0-10|application/xml|Task_1|\n|requiresActionToWrite|FormData|0-10|application/xml|Task_1|\n|task2DataType|Attachment|0-10|image/png|Task_2|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
+    "description": "App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>\n\nThis is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskIds |\n|------------|------|----------------|-----------|---------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n|requiresActionToRead|FormData|0-10|application/xml|Task_1|\n|requiresActionToWrite|FormData|0-10|application/xml|Task_1|\n|task2DataType|Attachment|0-10|image/png|Task_2|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
     "contact": {
       "name": "Digitaliseringsdirektoratet (altinn)",
       "url": "https://digdir-samarbeid.slack.com"
@@ -286,40 +286,112 @@
                           "title": "Json patch",
                           "type": "array",
                           "items": {
-                            "required": [
-                              "op",
-                              "path"
-                            ],
-                            "type": "object",
-                            "properties": {
-                              "op": {
-                                "title": "Patch operation",
-                                "enum": [
-                                  "add",
-                                  "remove",
-                                  "replace",
-                                  "move",
-                                  "copy",
-                                  "test"
+                            "title": "JSON Patch operation",
+                            "oneOf": [
+                              {
+                                "title": "add",
+                                "required": [
+                                  "op",
+                                  "path",
+                                  "value"
                                 ],
-                                "type": "string"
+                                "type": "object",
+                                "properties": {
+                                  "op": {
+                                    "enum": [
+                                      "add"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string",
+                                    "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                                  },
+                                  "value": {
+                                    "description": "Any JSON value, including null"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "description": "Adds a value, inserts into an array, or replaces an existing member"
                               },
-                              "from": {
-                                "title": "JsonPointer",
-                                "type": "string"
+                              {
+                                "title": "remove",
+                                "required": [
+                                  "op",
+                                  "path"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                  "op": {
+                                    "enum": [
+                                      "remove"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string",
+                                    "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "description": "Removes the value at the path"
                               },
-                              "path": {
-                                "title": "JsonPointer",
-                                "type": "string"
+                              {
+                                "title": "replace",
+                                "required": [
+                                  "op",
+                                  "path",
+                                  "value"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                  "op": {
+                                    "enum": [
+                                      "replace"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string",
+                                    "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                                  },
+                                  "value": {
+                                    "description": "Any JSON value, including null"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "description": "Replaces the value at the path, which must exist"
                               },
-                              "value": {
-                                "title": "the value",
-                                "description": "The value to add or replace"
+                              {
+                                "title": "test",
+                                "required": [
+                                  "op",
+                                  "path",
+                                  "value"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                  "op": {
+                                    "enum": [
+                                      "test"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string",
+                                    "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                                  },
+                                  "value": {
+                                    "description": "Any JSON value, including null"
+                                  }
+                                },
+                                "additionalProperties": false,
+                                "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
                               }
-                            },
-                            "additionalProperties": false
+                            ],
+                            "description": "One operation of an RFC 6902 JSON Patch document. move and copy are not supported"
                           },
-                          "description": "A standard RFC 6902 document describing changes to one data element"
+                          "description": "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported"
                         }
                       },
                       "additionalProperties": false
@@ -409,11 +481,30 @@
         "summary": "Delete data element",
         "description": "Delete data for a specific data element",
         "responses": {
-          "204": {
-            "description": "Data deleted"
+          "200": {
+            "description": "Data deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
           },
           "404": {
-            "description": "Data not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -516,6 +607,91 @@
             "$ref": "#/components/responses/ProblemDetails"
           },
           "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/instanceOwnerPartyId"
+        },
+        {
+          "$ref": "#/components/parameters/instanceGuid"
+        },
+        {
+          "$ref": "#/components/parameters/language"
+        }
+      ]
+    },
+    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/pdf/preview": {
+      "summary": "Preview a PDF",
+      "get": {
+        "tags": [
+          "Instances"
+        ],
+        "summary": "Preview a PDF",
+        "description": "Generate a preview of the PDF of the current task, or of a PDF or subform PDF service task, also one the instance has not reached yet. The preview is in the language given by `language`, or the user's language, and is marked as a preview in its footer. Previews are rate limited across all instances.",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "The PDF or subform PDF service task to preview. Defaults to the current task.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dataElementId",
+            "in": "query",
+            "description": "The subform data element to preview. Required when previewing a subform PDF service task.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The PDF preview",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The task is not a PDF or subform PDF service task, or the subform is missing or of the wrong data type",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The instance has no current task, or the task does not exist",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many previews. Try again after the number of seconds in the Retry-After header"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
             "$ref": "#/components/responses/ProblemDetails"
           },
           "500": {
@@ -699,6 +875,7 @@
             "name": "optionsId",
             "in": "path",
             "description": "OptionsId from a layout component.",
+            "required": true,
             "schema": {
               "enum": [
                 "fileSourceOptions"
@@ -776,6 +953,7 @@
             "name": "optionsId",
             "in": "path",
             "description": "OptionsId from a layout component.",
+            "required": true,
             "schema": {
               "enum": [
                 "fileSourceOptions"
@@ -1093,10 +1271,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1112,6 +1290,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1121,9 +1311,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1151,8 +1338,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1186,8 +1385,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1197,9 +1425,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1224,8 +1449,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1259,8 +1496,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1270,9 +1536,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1297,8 +1560,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1334,8 +1609,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1345,9 +1649,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1484,10 +1785,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1503,6 +1804,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1512,9 +1825,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1654,10 +1964,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1673,6 +1983,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1682,9 +2004,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1824,10 +2143,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1843,6 +2162,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1852,9 +2183,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1994,10 +2322,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -2013,6 +2341,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2022,9 +2362,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -2164,10 +2501,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -2183,6 +2520,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2192,9 +2541,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -2222,8 +2568,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2257,8 +2615,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2268,9 +2655,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     }
@@ -2823,6 +3207,18 @@
             "type": "string",
             "nullable": true
           },
+          "componentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rowIndexes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
           "code": {
             "type": "string",
             "nullable": true
@@ -2962,6 +3358,37 @@
         },
         "additionalProperties": {}
       },
+      "DataPostResponse": {
+        "required": [
+          "instance",
+          "newDataElementId",
+          "newDataModels",
+          "validationIssues"
+        ],
+        "type": "object",
+        "properties": {
+          "newDataElementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "instance": {
+            "$ref": "#/components/schemas/Instance"
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationSourcePair"
+            }
+          },
+          "newDataModels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataModelPairResponse"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "ProcessNext": {
         "type": "object",
         "properties": {
@@ -2972,6 +3399,219 @@
           "actionOnBehalfOf": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionType": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "UserAction": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "authorized": {
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ActionType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessElementInfo": {
+        "type": "object",
+        "properties": {
+          "flow": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "started": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "elementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "altinnTaskType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ended": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "validated": {
+            "$ref": "#/components/schemas/ValidationStatus"
+          },
+          "flowType": {
+            "type": "string",
+            "nullable": true
+          },
+          "actions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "nullable": true
+          },
+          "userActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserAction"
+            }
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "write": {
+            "type": "boolean"
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessTaskTypeInfo": {
+        "type": "object",
+        "properties": {
+          "altinnTaskType": {
+            "type": "string",
+            "nullable": true
+          },
+          "elementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowActivityStatus": {
+        "enum": [
+          "idle",
+          "processing",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "AppProcessWorkflowProgress": {
+        "required": [
+          "completed",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureKind": {
+        "enum": [
+          "stepFailed",
+          "dependencyFailed",
+          "engineFault",
+          "timeout"
+        ],
+        "type": "string"
+      },
+      "AppProcessWorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WorkflowActivityStatus"
+          },
+          "targetTask": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrying": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "failedAttempts": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "waitingReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "progress": {
+            "$ref": "#/components/schemas/AppProcessWorkflowProgress"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resumedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "currentTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failure": {
+            "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }
         },
         "additionalProperties": false
@@ -2992,7 +3632,7 @@
             "nullable": true
           },
           "currentTask": {
-            "$ref": "#/components/schemas/ProcessElementInfo"
+            "$ref": "#/components/schemas/AppProcessElementInfo"
           },
           "ended": {
             "type": "string",
@@ -3003,12 +3643,15 @@
             "type": "string",
             "nullable": true
           },
-          "actions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "boolean"
+          "processTasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppProcessTaskTypeInfo"
             },
             "nullable": true
+          },
+          "workflow": {
+            "$ref": "#/components/schemas/AppProcessWorkflowStatus"
           }
         },
         "additionalProperties": false
@@ -3111,6 +3754,14 @@
           },
           "taskId": {
             "type": "string",
+            "nullable": true,
+            "deprecated": true
+          },
+          "taskIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "maxSize": {
@@ -3384,6 +4035,23 @@
           },
           "includeAttachments": {
             "type": "boolean"
+          },
+          "includeDueBefore": {
+            "type": "boolean"
+          },
+          "includedDataValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "includedPresentationTexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3477,6 +4145,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "AppStatus": {
+        "enum": [
+          "Completed",
+          "Deprecated",
+          "UnderDevelopment",
+          "Withdrawn"
+        ],
+        "type": "string"
       },
       "InstanceSelection": {
         "type": "object",
@@ -3673,6 +4350,9 @@
             },
             "nullable": true
           },
+          "status": {
+            "$ref": "#/components/schemas/AppStatus"
+          },
           "id": {
             "type": "string"
           },
@@ -3859,6 +4539,13 @@
           "missing-from-xsd": {
             "type": "string",
             "nullable": true
+          },
+          "hiddenRange": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3869,37 +4556,6 @@
         "properties": {
           "melding": {
             "$ref": "#/components/schemas/Dummy"
-          }
-        },
-        "additionalProperties": false
-      },
-      "DataPostResponse": {
-        "required": [
-          "instance",
-          "newDataElementId",
-          "newDataModels",
-          "validationIssues"
-        ],
-        "type": "object",
-        "properties": {
-          "newDataElementId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "instance": {
-            "$ref": "#/components/schemas/Instance"
-          },
-          "validationIssues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationSourcePair"
-            }
-          },
-          "newDataModels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DataModelPairResponse"
-            }
           }
         },
         "additionalProperties": false

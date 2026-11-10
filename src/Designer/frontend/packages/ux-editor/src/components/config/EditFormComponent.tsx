@@ -1,10 +1,10 @@
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { FormComponentConfig } from './FormComponentConfig';
 import type { FormItem } from '../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { StudioFieldset } from '@studio/components';
+import { getComponentDefinition } from '../../data/componentCatalog';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
@@ -17,11 +17,11 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
   return (
     <StudioFieldset hideLegend>
       <FormComponentConfig
-        schema={schema}
+        properties={properties}
         component={component}
         editFormId={editFormId}
         handleComponentUpdate={handleComponentUpdate}

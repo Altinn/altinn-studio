@@ -30,14 +30,8 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     (t) => t === 'RadioButtons' || t === 'LikertItem',
   );
   const componentId = useIndexedId(baseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
-  );
-  const required = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
+  const required = useEvalExpression('required' in config ? config.required : undefined, CommonExpressions.required);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
@@ -114,7 +108,9 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
           {renderLegend && <Fieldset.Legend className={classes.legend}>{labelText}</Fieldset.Legend>}
           {description && (
             <Fieldset.Description
-              className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
+              className={cn(classes.description, {
+                [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false,
+              })}
             >
               <Lang id={description} />
             </Fieldset.Description>

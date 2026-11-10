@@ -96,6 +96,10 @@ export function evalExpr<V extends ExprVal = ExprVal>(
 
   try {
     const result = innerEvalExpr(evalParams);
+    // Any includes null. Typed UI properties instead need their configured fallback, such as false for hidden.
+    if (result === null && options.returnType === ExprVal.Any) {
+      return null as ExprValToActual<V>;
+    }
     if (result === null || result === undefined) {
       return options.defaultValue as ExprValToActual<V> | undefined;
     }

@@ -156,6 +156,18 @@ export function Dropdown({
           />
         )}
         <Suggestion
+          data-sr-added={langAsString('form_filler.suggestion_added')}
+          data-sr-clear={langAsString('form_filler.suggestion_clear')}
+          data-sr-empty={langAsString('form_filler.suggestion_empty')}
+          data-sr-found={langAsString('form_filler.suggestion_found')}
+          data-sr-invalid={langAsString('form_filler.suggestion_invalid')}
+          data-sr-items={langAsString('form_filler.suggestion_items')}
+          data-sr-of={langAsString('form_filler.suggestion_of')}
+          data-sr-plural={langAsString('form_filler.suggestion_plural')}
+          data-sr-remove={langAsString('form_filler.suggestion_remove')}
+          data-sr-removed={langAsString('form_filler.suggestion_removed')}
+          data-sr-singular={langAsString('form_filler.suggestion_singular')}
+          data-sr-toggle={langAsString('form_filler.suggestion_toggle')}
           multiple={false}
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'

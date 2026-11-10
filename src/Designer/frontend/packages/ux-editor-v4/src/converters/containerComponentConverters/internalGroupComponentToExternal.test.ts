@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { internalContainerComponentToExternal } from './internalContainerComponentToExternal';
 import type { FormContainer } from '../../types/FormContainer';

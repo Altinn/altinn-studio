@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v5"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/trace"
@@ -677,41 +677,43 @@ func (c *HttpApiClient) validateRequestURL(endpoint *url.URL) error {
 
 // retryableHTTPDo performs an HTTP request with retry logic.
 func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, error) {
-	var resp *http.Response
-	var err error
-
-	operation := func() error {
+	operation := func() (*http.Response, error) {
 		// Reset body for retries - after the first attempt, req.Body is consumed
 		if req.GetBody != nil {
-			req.Body, err = req.GetBody()
+			body, err := req.GetBody()
 			if err != nil {
-				return backoff.Permanent(err)
+				return nil, backoff.Permanent(err)
 			}
+			req.Body = body
 		}
 
-		if err = c.validateRequestURL(req.URL); err != nil {
-			return backoff.Permanent(err)
+		if err := c.validateRequestURL(req.URL); err != nil {
+			return nil, backoff.Permanent(err)
 		}
 
 		// The request URL is validated against configured Maskinporten hosts immediately above.
-		//nolint:bodyclose,gosec // The caller closes successful responses; SSRF is mitigated by validateRequestURL's allowlist check.
-		resp, err = c.client.Do(req)
+		resp, err := c.client.Do(req)
 		if err != nil {
-			return fmt.Errorf("execute Maskinporten request: %w", err)
+			return nil, fmt.Errorf("execute Maskinporten request: %w", err)
 		}
 		if resp.StatusCode >= http.StatusInternalServerError { // Retrying on 5xx server errors.
-			return c.handleErrorResponse(req, resp)
+			return nil, c.handleErrorResponse(req, resp)
 		}
-		return nil // No retry needed - success or client side error
+		return resp, nil // No retry needed - success or client side error
 	}
 
 	backoffStrategy := backoff.NewExponentialBackOff()
 	// Default setting is to 1.5x the time interval for every failure
 	backoffStrategy.InitialInterval = 1 * time.Second
 	backoffStrategy.MaxInterval = 5 * time.Second
-	backoffStrategy.MaxElapsedTime = 15 * time.Second
 
-	err = backoff.Retry(operation, backoffStrategy)
+	// Retries ignore the request's cancellation, so they run until the elapsed time is used up.
+	resp, err := backoff.Retry(
+		context.WithoutCancel(req.Context()),
+		operation,
+		backoff.WithBackOff(backoffStrategy),
+		backoff.WithMaxElapsedTime(15*time.Second),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("retry Maskinporten request: %w", err)
 	}

@@ -44,7 +44,7 @@ public class InstanceAppOptionsFactoryTests
     {
         public string Id => "vehicles";
 
-        public Task<AppOptions> GetInstanceAppOptionsAsync(
+        public Task<AppOptions> GetInstanceAppOptions(
             InstanceIdentifier instanceIdentifier,
             string? language,
             Dictionary<string, string> keyValuePairs

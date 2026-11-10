@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ThreadColumnCollapsed } from './ThreadColumnCollapsed';
 import { render, screen } from '@testing-library/react';
 import type { ThreadColumnHiddenProps } from './ThreadColumnCollapsed';
@@ -5,11 +6,11 @@ import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
 
 // Test data
-const onToggleCollapse = jest.fn();
+const onToggleCollapse = vi.fn();
 
 describe('ThreadColumnCollapsed', () => {
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should render the toggle button', () => {

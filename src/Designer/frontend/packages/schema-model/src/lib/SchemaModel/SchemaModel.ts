@@ -14,6 +14,7 @@ import {
   isDefinition,
   isDefinitionPointer,
   isDefinitionRoot,
+  isDefinitionRootPointer,
   isFieldOrCombination,
   isNodeValidParent,
   isReference,
@@ -414,7 +415,9 @@ export class SchemaModel extends SchemaModelBase {
     const parent = this.getParentNode(schemaPointer);
     this.deleteNodeWithChildrenRecursively(schemaPointer);
     // The names of combination children are their indices, so the remaining ones must be renumbered.
-    if (isCombination(parent)) this.synchronizeCombinationChildPointers(parent);
+    // Definitions are also children of the root node, which may be a combination, but they have names.
+    if (isCombination(parent) && !isDefinitionRootPointer(schemaPointer))
+      this.synchronizeCombinationChildPointers(parent);
     return this;
   }
 

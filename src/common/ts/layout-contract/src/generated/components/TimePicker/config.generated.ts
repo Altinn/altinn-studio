@@ -4,7 +4,6 @@ import {
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -12,9 +11,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompTimePickerExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'TimePicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'time';
@@ -23,9 +26,13 @@ export interface CompTimePickerExternal
   maxTime?: ExprValToActualOrExpr<ExprVal.String> | string;
 }
 
+export interface TimePickerSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type TimePickerSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & TimePickerSummaryOverrides)
+  | ({ componentType: 'TimePicker' } & TimePickerSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -51,8 +58,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompTimePickerExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: TimePickerSummaryOverrides;
   summaryOverridesWithRef: TimePickerSummaryOverridesWithRef;
 };
 
-// Source hash: fd6ac34bde24c41261da7f180a373aad54af401ceaea05b304de66d6e7379d4c
+// Source hash: 26bda881ce89ad0541ee5d08fb5353adc2d3d6958534728569937a8f22fa35d1

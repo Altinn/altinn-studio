@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
@@ -10,11 +11,12 @@ import {
   openConfigAndVerify,
   saveConfigChanges,
 } from './testConfigUtils';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 describe('ConfigArrayProperties', () => {
   it('should call handleComponentUpdate when array property is updated', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigArrayProperties({ props: { handleComponentUpdate: handleComponentUpdateMock } });
     await openConfigAndVerify({ user, property: supportedKey });
     await selectOption(user, 'option1');
@@ -40,7 +42,7 @@ describe('ConfigArrayProperties', () => {
     renderConfigArrayProperties({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.AttachmentList,
           [supportedKey]: enumValues,
         },
       },
@@ -60,7 +62,7 @@ describe('ConfigArrayProperties', () => {
 
   it('should call handleComponentUpdate in keepEditOpen mode when array property is updated', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigArrayProperties({
       props: {
         handleComponentUpdate: handleComponentUpdateMock,
@@ -85,16 +87,15 @@ describe('ConfigArrayProperties', () => {
   });
 });
 
-const supportedKey = 'supportedArrayProperty';
-const defaultArraySchema = {
-  properties: {
-    [supportedKey]: {
-      type: 'array',
-      items: {
-        type: 'string',
-        enum: ['option1', 'option2'],
-      },
+const supportedKey = 'dataTypeIds';
+const defaultArrayProperties: Record<string, PropertyDefinition> = {
+  [supportedKey]: {
+    type: 'array',
+    items: {
+      type: 'string',
+      allowedValues: ['option1', 'option2'],
     },
+    required: false,
   },
 };
 
@@ -117,9 +118,9 @@ const renderConfigArrayProperties = ({
   props?: Partial<ConfigArrayPropertiesProps>;
 }) => {
   const defaultProps: ConfigArrayPropertiesProps = {
-    schema: defaultArraySchema,
+    properties: defaultArrayProperties,
     component: componentMocks.Input,
-    handleComponentUpdate: jest.fn(),
+    handleComponentUpdate: vi.fn(),
     arrayPropertyKeys: [supportedKey],
   };
   return renderWithProviders(<ConfigArrayProperties {...defaultProps} {...props} />);

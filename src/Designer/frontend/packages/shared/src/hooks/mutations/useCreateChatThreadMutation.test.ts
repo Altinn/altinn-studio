@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -10,8 +11,6 @@ import type { CreateChatThreadPayload } from 'app-shared/types/api';
 const payload: CreateChatThreadPayload = { title: 'My new thread' };
 
 describe('useCreateChatThreadMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls createChatThread with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useCreateChatThreadMutation()).renderHookResult
       .result;
@@ -25,7 +24,7 @@ describe('useCreateChatThreadMutation', () => {
 
   it('Invalidates ChatThreads when creating a thread', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useCreateChatThreadMutation())
       .renderHookResult.result;
 

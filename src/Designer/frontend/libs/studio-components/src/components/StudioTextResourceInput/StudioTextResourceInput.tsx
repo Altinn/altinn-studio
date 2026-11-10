@@ -160,7 +160,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             clearButtonLabel={texts.clearSelection}
             className={cn(className, classes.searchField)}
             label={texts.textResourcePickerLabel}
-            noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
             onValueChange={onChangeCurrentId}
             required={required}
             textResources={textResources}

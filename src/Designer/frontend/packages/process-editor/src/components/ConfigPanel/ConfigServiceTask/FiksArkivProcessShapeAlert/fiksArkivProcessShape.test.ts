@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import type { ProcessShapeElement, ProcessShapeFlow } from './fiksArkivProcessShape';
 import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';

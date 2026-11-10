@@ -1,0 +1,24 @@
+# Routes apps' PDF requests to the relay to DIS Core. The runtime syncroot owns the
+# parent Service pdf/pdf-generator; pdf3-app owns this route and the relay.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pdf3
+  namespace: pdf
+spec:
+  parentRefs:
+  - group: ""
+    kind: Service
+    name: pdf-generator
+    namespace: pdf
+    port: 80
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /pdf
+    backendRefs:
+    - name: pdf3-relay
+      namespace: runtime-pdf3
+      kind: Service
+      port: 80

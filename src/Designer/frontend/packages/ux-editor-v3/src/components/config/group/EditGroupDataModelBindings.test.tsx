@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -20,7 +21,7 @@ const render = (
 ) => {
   const defaultProps: EditGroupDataModelBindingProps = {
     dataModelBindings: {},
-    onDataModelChange: jest.fn(),
+    onDataModelChange: vi.fn(),
   };
 
   renderWithMockStore({ appData: { ...mockAppData, ...appData } })(
@@ -47,7 +48,7 @@ describe('EditDataModelBindings', () => {
 
   it.skip('should respond to selecting data model field', async () => {
     const user = userEvent.setup();
-    const onDataModelChange = jest.fn();
+    const onDataModelChange = vi.fn();
     render({ onDataModelChange });
 
     const selectElement = screen.getByRole('combobox');

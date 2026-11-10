@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.AccessManagement;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models.Shared;
@@ -14,77 +15,75 @@ internal sealed class SigningDelegationService(
     Telemetry? telemetry = null
 ) : ISigningDelegationService
 {
-    public async Task<(List<SigneeContext>, bool success)> DelegateSigneeRights(
+    public async Task DelegateSigneeRights(
         string taskId,
         string instanceIdCombo,
-        Guid? instanceOwnerPartyUuid,
+        Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
         CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartDelegateSigneeRightsActivity(taskId);
-        if (instanceOwnerPartyUuid is null)
-        {
-            signeeContexts.ForEach(signeeContext =>
-            {
-                signeeContext.SigneeState.DelegationFailedReason =
-                    "Failed to delegate signee rights: Instance owner party UUID is null and cannot be used for delegating access.";
-                signeeContext.SigneeState.IsAccessDelegated = false;
-            });
-
-            return (signeeContexts, false);
-        }
-
         Guid instanceGuid = ParseInstanceGuid(instanceIdCombo);
-
         var appResourceId = AppResourceId.FromAppIdentifier(appIdentifier);
-        bool success = true;
 
         foreach (SigneeContext signeeContext in signeeContexts)
         {
             SigneeContextState state = signeeContext.SigneeState;
+            if (state.IsAccessDelegated)
+            {
+                continue;
+            }
+
+            Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
+            if (partyUuid is null)
+            {
+                state.DelegationFailedReason =
+                    "Failed to delegate signee rights: the signee's party has no party UUID.";
+                telemetry?.RecordDelegation(DelegationResult.Error);
+                continue;
+            }
+
+            logger.LogInformation(
+                "Delegating signee rights to {PartyUuid} from {InstanceOwnerPartyUuid} for {AppResourceIdValue}",
+                partyUuid,
+                instanceOwnerPartyUuid,
+                appResourceId.Value
+            );
+
+            DelegationRequest delegationRequest = new()
+            {
+                ResourceId = appResourceId.Value,
+                InstanceId = instanceGuid.ToString(),
+                From = new DelegationParty { Value = instanceOwnerPartyUuid.ToString() },
+                To = new DelegationParty { Value = partyUuid.Value.ToString() },
+                Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
+            };
 
             try
             {
-                if (state.IsAccessDelegated is false)
-                {
-                    Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
-                    logger.LogInformation(
-                        "Delegating signee rights to {PartyUuid} from {InstanceOwnerPartyUuid} for {AppResourceIdValue}",
-                        partyUuid,
-                        instanceOwnerPartyUuid,
-                        appResourceId.Value
-                    );
-
-                    DelegationRequest delegationRequest = new()
-                    {
-                        ResourceId = appResourceId.Value,
-                        InstanceId = instanceGuid.ToString(),
-                        From = new DelegationParty { Value = instanceOwnerPartyUuid.Value.ToString() },
-                        To = new DelegationParty
-                        {
-                            Value =
-                                partyUuid.ToString()
-                                ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
-                        },
-                        Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
-                    };
-                    await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
-                    state.IsAccessDelegated = true;
-                    telemetry?.RecordDelegation(DelegationResult.Success);
-                }
+                // Access Management accepts a repeated grant, so a retry may delegate again to signees an
+                // earlier attempt already reached.
+                await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
+                state.IsAccessDelegated = true;
+                state.DelegationFailedReason = null;
+                telemetry?.RecordDelegation(DelegationResult.Success);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (SigningFailures.ConcernsOnlyTheSignee(ex))
             {
-                logger.LogError(ex, "Failed to delegate signee rights");
+                // Retrying will not change Access Management's answer about this signee, and the others can still
+                // sign. Anything else fails the step, so the workflow engine retries it.
+                logger.LogError(ex, "Failed to delegate signee rights to {PartyUuid}", partyUuid);
                 state.DelegationFailedReason = "Failed to delegate signee rights: " + ex.Message;
                 telemetry?.RecordDelegation(DelegationResult.Error);
-                success = false;
+            }
+            catch (Exception)
+            {
+                telemetry?.RecordDelegation(DelegationResult.Error);
+                throw;
             }
         }
-
-        return (signeeContexts, success);
     }
 
     public async Task<(List<SigneeContext>, bool success)> RevokeSigneeRights(

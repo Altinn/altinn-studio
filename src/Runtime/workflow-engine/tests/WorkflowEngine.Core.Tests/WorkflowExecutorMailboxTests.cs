@@ -229,7 +229,10 @@ public class WorkflowExecutorMailboxTests
 
         Assert.Equal(
             new Dictionary<string, long>(StringComparer.Ordinal) { ["unregistered"] = 1, ["undecided"] = 1 },
-            collector.ByTag("engine.mailboxes.rendezvous.violations", "state")
+            collector.ByTag(
+                "altinn.workflow_engine.mailbox.rendezvous.violations",
+                "altinn.workflow_engine.mailbox.rendezvous.state"
+            )
         );
     }
 

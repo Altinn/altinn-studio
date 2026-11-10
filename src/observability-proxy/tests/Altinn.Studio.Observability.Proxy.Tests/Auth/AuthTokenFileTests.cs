@@ -30,7 +30,7 @@ public sealed class AuthTokenFileTests : IDisposable
         Assert.Equal(["otlp"], ingest.AllowedRouteGroups);
 
         var query = Assert.Single(tokens, token => token.SourceIdentity == "grafana");
-        Assert.Equal(["traces", "metrics", "logs"], query.AllowedRouteGroups);
+        Assert.Equal(["traces", "traces-logsql", "metrics", "logs"], query.AllowedRouteGroups);
     }
 
     [Fact]
@@ -119,6 +119,10 @@ public sealed class AuthTokenFileTests : IDisposable
         Assert.Equal(TokenTag.Of("old-secret-0123456789abcdef01234567"), oldSource.TokenTag);
         Assert.Equal(TokenTag.Of("new-secret-0123456789abcdef01234567"), newSource.TokenTag);
         Assert.NotEqual(oldSource.TokenTag, newSource.TokenTag);
+
+        // The list is [current, previous], so the slot says which one without naming either.
+        Assert.Equal(TokenSlot.Current, oldSource.TokenSlot);
+        Assert.Equal(TokenSlot.Previous, newSource.TokenSlot);
     }
 
     [Fact]
@@ -136,6 +140,7 @@ public sealed class AuthTokenFileTests : IDisposable
         var token = Assert.Single(CreateTokenFile(out _, logger).GetTokens());
 
         Assert.Equal("current-secret-0123456789abcdef0123", token.Token);
+        Assert.Equal(TokenSlot.Current, token.Slot);
         Assert.Empty(logger.Warnings);
     }
 

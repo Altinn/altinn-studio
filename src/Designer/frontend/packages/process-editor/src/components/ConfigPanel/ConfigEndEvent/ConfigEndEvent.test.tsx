@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
@@ -11,8 +12,6 @@ import {
 } from '../../../../test/mocks/bpmnContextMock';
 
 describe('ConfigEndEvent', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('should display the header for end event', () => {
     renderConfigEndEventPanel();
 

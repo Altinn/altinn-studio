@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
 import { useMoveProperty } from './useMoveProperty';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
@@ -30,7 +31,7 @@ const uniquePointerOfRoot = UNIQUE_POINTER_PREFIX + ROOT_POINTER;
 
 describe('useMoveProperty', () => {
   const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {
-    const save = jest.fn();
+    const save = vi.fn();
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     const appContextProps: Partial<SchemaEditorAppContextProps> = {
       schemaModel,
@@ -156,13 +157,13 @@ describe('useMoveProperty', () => {
     const pointerOfNewParent = objectNodeMock.schemaPointer;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
-    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    vi.spyOn(window, 'alert').mockImplementation(vi.fn());
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(0);
   });
 
   it('Updates the selected unique node pointer if moving a node that is selected into an object', () => {
-    const setSelectedUniquePointerMock = jest.fn();
+    const setSelectedUniquePointerMock = vi.fn();
     const { move, save } = setup({
       selectedUniquePointer: `${UNIQUE_POINTER_PREFIX}${fieldNode1Mock.schemaPointer}`,
       setSelectedUniquePointer: setSelectedUniquePointerMock,
@@ -181,7 +182,7 @@ describe('useMoveProperty', () => {
   });
 
   it('Updates the selected unique node pointer if moving a node that is selected into a combination node', () => {
-    const setSelectedUniquePointerMock = jest.fn();
+    const setSelectedUniquePointerMock = vi.fn();
     const pointerOfNodeToMove = UNIQUE_POINTER_PREFIX + toggableNodeMock.schemaPointer;
     const { move } = setup({
       selectedUniquePointer: pointerOfNodeToMove,
@@ -198,7 +199,7 @@ describe('useMoveProperty', () => {
   });
 
   it('Updates the selected unique node pointer when moving a node that is selected out of a referenced object', () => {
-    const setSelectedUniquePointerMock = jest.fn();
+    const setSelectedUniquePointerMock = vi.fn();
     const schemaPointerOfNodeToMove = childOfReferredNodeMock.schemaPointer;
     const nameOfNodeToMove = extractNameFromPointer(schemaPointerOfNodeToMove);
     const uniquePointerOfParent = UNIQUE_POINTER_PREFIX + referenceNodeMock.schemaPointer;
@@ -215,7 +216,7 @@ describe('useMoveProperty', () => {
   });
 
   it('Updates the selected unique node pointer when moving a node that is selected into a referenced object', () => {
-    const setSelectedUniquePointerMock = jest.fn();
+    const setSelectedUniquePointerMock = vi.fn();
     const schemaPointerOfNodeToMove = objectNodeMock.schemaPointer;
     const nameOfNodeToMove = extractNameFromPointer(schemaPointerOfNodeToMove);
     const uniquePointerOfNodeToMove = `${uniquePointerOfRoot}/${Keyword.Properties}/${nameOfNodeToMove}`;
@@ -237,7 +238,7 @@ describe('useMoveProperty', () => {
     const pointerOfNewParent = referredNodeMock.schemaPointer;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
-    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    vi.spyOn(window, 'alert').mockImplementation(vi.fn());
     move(pointerOfNodeToMove, target);
     expect(save).not.toHaveBeenCalled();
   });

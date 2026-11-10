@@ -22,6 +22,7 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.altinn.no/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.altinn.no/correspondence/api/v1/
         GeneralSettings__HostName: altinn.no
+        PlatformFrontendSettings__AllFormsUrl: https://altinn.no/skjemaoversikt
         PlatformFrontendSettings__LogoutUrl: https://platform.altinn.no/authentication/api/v1/logout
         PlatformFrontendSettings__LoginUrl: https://platform.altinn.no/authentication/api/v1/authentication?goto={goTo}
         PlatformFrontendSettings__UpgradeAuthenticationLevelUrl: https://platform.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high
@@ -29,6 +30,9 @@ patches:
         PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.altinn.no/inbox/{dialogId}
         PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.altinn.no/profile
         PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
+        PlatformFrontendSettings__AccessManagementUrl: https://am.ui.altinn.no/accessmanagement/ui
+        PlatformFrontendSettings__RolesAndRightsHelpUrl: https://altinn.no/hjelp/profil/enkelttjenester-og-roller/
+        PlatformFrontendSettings__ArbeidsflatePartiesUrl: https://af.altinn.no/profile/parties
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production
         AppSettings__EFormidlingSender: "991825827"
@@ -56,13 +60,17 @@ patches:
               "HostName": "altinn.no"
             },
             "PlatformFrontendSettings": {
+              "AllFormsUrl": "https://altinn.no/skjemaoversikt",
               "LogoutUrl": "https://platform.altinn.no/authentication/api/v1/logout",
               "LoginUrl": "https://platform.altinn.no/authentication/api/v1/authentication?goto={goTo}",
               "UpgradeAuthenticationLevelUrl": "https://platform.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high",
               "ArbeidsflateInboxUrl": "https://af.altinn.no/",
               "ArbeidsflateDialogUrl": "https://af.altinn.no/inbox/{dialogId}",
               "ArbeidsflateProfileUrl": "https://af.altinn.no/profile",
-              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}",
+              "AccessManagementUrl": "https://am.ui.altinn.no/accessmanagement/ui",
+              "RolesAndRightsHelpUrl": "https://altinn.no/hjelp/profil/enkelttjenester-og-roller/",
+              "ArbeidsflatePartiesUrl": "https://af.altinn.no/profile/parties"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",

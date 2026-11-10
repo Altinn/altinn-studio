@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -183,6 +184,7 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 	if err := c.printResolvedRunTarget(target); err != nil {
 		return err
 	}
+	c.deleteExpiredAppLogs()
 
 	runErr := c.runTarget(ctx, target, dotnetArgs, flags)
 	if errors.Is(runErr, errAppRunStopped) {
@@ -625,8 +627,8 @@ func (c *RunCommand) resolveDotnetTargetPath(ctx context.Context, spec appsvc.Do
 
 func lastNonEmptyLine(output []byte) string {
 	lines := bytes.Split(output, []byte{'\n'})
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := strings.TrimSpace(string(lines[i]))
+	for _, rawLine := range slices.Backward(lines) {
+		line := strings.TrimSpace(string(rawLine))
 		if line != "" {
 			return line
 		}
@@ -662,26 +664,48 @@ func (c *RunCommand) openAppLog(appID string) (*os.File, string, error) {
 		return nil, "", errStudioctlConfigRequired
 	}
 	logDir := c.cfg.AppLogDir(appsupport.SanitizeAppID(appID))
-	if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
-		return nil, "", fmt.Errorf("create app log directory: %w", err)
-	}
+	lastErr := errAppLogCreateCollision
 	for range maxAppLogCreateAttempts {
+		// Create the directory on each attempt: another run's log retention removes empty app log directories.
+		if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
+			return nil, "", fmt.Errorf("create app log directory: %w", err)
+		}
 		logPath, err := appsupport.NextLogPath(logDir, time.Now().UTC())
 		if err != nil {
-			return nil, "", fmt.Errorf("resolve app log path: %w", err)
+			lastErr = fmt.Errorf("resolve app log path: %w", err)
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, "", lastErr
 		}
 		//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
 		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, osutil.FilePermOwnerOnly)
-		if errors.Is(err, os.ErrExist) {
+		switch {
+		case errors.Is(err, os.ErrExist):
+			lastErr = errAppLogCreateCollision
 			continue
-		}
-		if err != nil {
-			return nil, "", fmt.Errorf("open app log: %w", err)
+		case err != nil:
+			lastErr = fmt.Errorf("open app log: %w", err)
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, "", lastErr
 		}
 		return logFile, logPath, nil
 	}
 
-	return nil, "", fmt.Errorf("create app log: %w", errAppLogCreateCollision)
+	return nil, "", fmt.Errorf("create app log: %w", lastErr)
+}
+
+// deleteExpiredAppLogs deletes old app run logs before this run creates its own,
+// so a run never deletes the log it writes to. Failure does not stop the run.
+func (c *RunCommand) deleteExpiredAppLogs() {
+	if c.cfg == nil {
+		return
+	}
+	if err := appsupport.DeleteExpiredLogs(c.cfg.AppLogsDir(), time.Now()); err != nil {
+		c.out.Verbosef("failed to delete expired app logs: %v", err)
+	}
 }
 
 func closeAppLog(out *ui.Output, logFile *os.File) {
@@ -716,6 +740,7 @@ func nativeAppRunInfo(processID int) studioctlserver.AppRegistration {
 	}
 }
 
+//nolint:errcheck // The process is being stopped, so its exit error is expected and not reported.
 func stopDotnetProcess(process *os.Process, waitErr <-chan error) {
 	signalProcessBestEffort(process, os.Interrupt)
 	select {

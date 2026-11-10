@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
-using Json.Patch;
 
 namespace Altinn.App.Api.Models;
 
@@ -10,10 +9,10 @@ namespace Altinn.App.Api.Models;
 public class DataPatchRequest
 {
     /// <summary>
-    /// The Patch operation to perform.
+    /// The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations.
     /// </summary>
     [JsonPropertyName("patch")]
-    public required JsonPatch Patch { get; init; }
+    public required List<JsonPatchOperation> Patch { get; init; }
 
     /// <summary>
     /// List of validators to ignore during the patch operation.

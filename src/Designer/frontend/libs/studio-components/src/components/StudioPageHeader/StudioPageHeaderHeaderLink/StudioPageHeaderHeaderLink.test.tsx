@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { HTMLAttributes } from 'react';
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';

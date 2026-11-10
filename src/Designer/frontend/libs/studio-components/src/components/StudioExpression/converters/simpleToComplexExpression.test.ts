@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { SimplifiedExpression } from '../types/SimplifiedExpression';
 import type {
   GenericRelationFunc,

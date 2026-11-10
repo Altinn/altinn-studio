@@ -2,14 +2,19 @@ import React, { ReactElement } from 'react';
 import { useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
-import { render as renderRtl, RenderOptions } from '@testing-library/react';
+import { act, render as renderRtl, RenderOptions } from '@testing-library/react';
 
+import { NotificationStatus } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import type { SigneeState } from 'src/core/queries/signeeList';
+
+let queryTest: ReturnType<typeof createQueryTestWrapper>;
 
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
@@ -23,10 +28,9 @@ vi.mock('src/utils/layout/DataModelLocation', () => ({
 vi.mock('react-router');
 vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/language/Lang');
-vi.mock('src/layout/SigneeList/api');
 vi.mock('src/layout/SigneeList/SigneeListError');
 
-const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
+const mockSigneeStates: SigneeState[] = [
   {
     name: 'name',
     organization: 'organization',
@@ -65,12 +69,11 @@ const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [
   },
 ];
 
-const mockedUseSigneeList = vi.mocked(useSigneeList);
-
 describe('SigneeListComponent', () => {
   beforeEach(() => {
     // resets all mocked functions to vi.fn()
     vi.resetAllMocks();
+    queryTest = createQueryTestWrapper();
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
     vi.mocked(SigneeListError).mockImplementation(({ error }: { error: Error }) => <>{error.message}</>);
@@ -93,20 +96,17 @@ describe('SigneeListComponent', () => {
     } as ReturnType<typeof useComponentConfig>);
   });
 
-  it('should render correctly', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: mockSigneeStates,
-      isLoading: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render correctly', async () => {
+    queryTest.queries.fetchSigneeList.mockResolvedValue(mockSigneeStates);
 
-    render(
+    await render(
       <SigneeListComponent
         baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
+    await screen.findByRole('row', { name: 'name organization signee_list.signee_status_signed' });
     screen.getByRole('heading', { name: /Signee List/ });
     screen.getByText('description');
     expect(screen.queryByRole('caption')).not.toBeInTheDocument();
@@ -125,31 +125,23 @@ describe('SigneeListComponent', () => {
     screen.getByRole('row', { name: 'name4 organization4 signee_list.signee_status_waiting' });
   });
 
-  it('should render error message when API call fails', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('API error'),
-    } as ReturnType<typeof useSigneeList>);
+  it('should render error message when API call fails', async () => {
+    queryTest.queries.fetchSigneeList.mockRejectedValue(new Error('API error'));
 
-    render(
+    await render(
       <SigneeListComponent
         baseComponentId='signee-list'
         containerDivRef={React.createRef()}
       />,
     );
 
-    screen.getByText('API error');
+    await screen.findByText('API error');
   });
 
-  it('should render spinner when loading', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
-    } as ReturnType<typeof useSigneeList>);
+  it('should render spinner when loading', async () => {
+    queryTest.queries.fetchSigneeList.mockImplementation(queryPromiseMock('fetchSigneeList').mock);
 
-    render(
+    await render(
       <SigneeListComponent
         baseComponentId='signee-list'
         containerDivRef={React.createRef()}
@@ -167,4 +159,5 @@ describe('SigneeListComponent', () => {
   });
 });
 
-const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => renderRtl(ui, options);
+const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  act(async () => renderRtl(ui, { ...options, wrapper: queryTest.wrapper }));

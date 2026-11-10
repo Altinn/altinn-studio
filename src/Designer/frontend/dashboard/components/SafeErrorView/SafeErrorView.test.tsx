@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { SafeErrorView, type SafeErrorViewProps } from './SafeErrorView';
@@ -9,7 +10,7 @@ describe('SafeErrorView', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { reload: jest.fn() },
+      value: { reload: vi.fn() },
     });
   });
 

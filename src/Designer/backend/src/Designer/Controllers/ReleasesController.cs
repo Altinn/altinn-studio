@@ -18,6 +18,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// Controller for creating, getting and updating releases
 /// </summary>
 [ApiController]
+[Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
 [AllowApiKey]
 [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
 [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
@@ -69,7 +70,7 @@ public class ReleasesController : ControllerBase
     /// <param name="createRelease">Release model</param>
     /// <returns>Created release</returns>
     [HttpPost]
-    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [Authorize(Policy = AltinnPolicy.MustHaveGiteaReleasePermission)]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
     public async Task<ActionResult<ReleaseEntity>> Create(
         string org,

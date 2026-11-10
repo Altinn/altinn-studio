@@ -3,17 +3,18 @@ import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';
 import type { AddedItem } from '../types';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { getTitleByComponentType } from '../../../../utils/language';
 import { ComponentButton } from '../ComponentButton';
 
 export type ItemCategoryProps = {
   items: IToolbarElement[];
   category: string;
-  selectedItemType: ComponentType | CustomComponentType;
+  selectedItemType: ComponentType | ComponentPreset;
   setAddedItem(addedItem: AddedItem): void;
   generateComponentId: (type: string) => string;
-  isFavorite: (componentType: ComponentType | CustomComponentType) => boolean;
+  isFavorite: (componentType: ComponentType | ComponentPreset) => boolean;
 };
 
 export const ItemCategory = ({

@@ -1,8 +1,6 @@
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
-using Json.Pointer;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Integration.Tests.Basic;
@@ -86,10 +84,14 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
                 [
                     new(
                         DataElementId: Guid.Parse(dataElement.Id),
-                        Patch: new JsonPatch(
-                            PatchOperation.Test(JsonPointer.Create("property1"), JsonNode.Parse(initialValue)),
-                            PatchOperation.Replace(JsonPointer.Create("property1"), JsonNode.Parse("\"2\"")),
-                            PatchOperation.Replace(JsonPointer.Create("property2"), JsonNode.Parse("\"2\""))
+                        Patch: JsonPatchOperation.ParseList(
+                            $$"""
+                            [
+                                { "op": "test", "path": "/property1", "value": {{initialValue}} },
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],
@@ -154,6 +156,26 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
 
         var hostedServices = await fixture.HostedServices.Get();
         await VerifyJson(hostedServices);
+    }
+
+    [Fact]
+    public async Task BuildOutput_IncludesModelXsd()
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+
+        // The XSD validator reads models/*.xsd at runtime, so Altinn.App.Api.targets must copy them to the
+        // build/publish output (what ends up in the Docker image), not just leave them in the project folder.
+        var binDirectory = Path.Join(fixture.AppProjectDirectory, "bin");
+        var assembly = Assert.Single(
+            Directory.GetFiles(
+                binDirectory,
+                "Altinn.Application.For.IntegrationTesting.dll",
+                SearchOption.AllDirectories
+            )
+        );
+        var xsdPath = Path.Join(Path.GetDirectoryName(assembly), "models", "model.xsd");
+        Assert.True(File.Exists(xsdPath), $"Expected {xsdPath} in the build output");
     }
 
     private static async Task<AppFixture.ApiResponse> CreateInstance(

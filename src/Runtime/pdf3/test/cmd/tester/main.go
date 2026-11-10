@@ -246,13 +246,15 @@ func addPDF3PublishResources(
 	bundle *cabundle.Bundle,
 	workloads []cabundle.KubernetesWorkload,
 ) (pdf3PublishedResources, func() error, error) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(root, "../.."))
 	proxyImage := &resource.BuiltImage{
-		ContextPath: root,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(root, "Dockerfile.proxy"),
 		Tag:         "pdf3-proxy:latest",
 	}
 	workerImage := &resource.BuiltImage{
-		ContextPath: root,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(root, "Dockerfile.worker"),
 		Tag:         "pdf3-worker:latest",
 	}
@@ -267,12 +269,12 @@ func addPDF3PublishResources(
 		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
 	}
 	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
-		filepath.Join(root, "infra/kustomize"),
+		filepath.Join(root, "infra/local"),
 		bundle,
 		workloads,
 	)
 	if err != nil {
-		return pdf3PublishedResources{}, nil, fmt.Errorf("prepare pdf3 kustomize artifact: %w", err)
+		return pdf3PublishedResources{}, nil, fmt.Errorf("prepare pdf3 local artifact: %w", err)
 	}
 	artifact := &resource.OCIArtifact{
 		Format:    resource.OCIArtifactFormatGeneric,
@@ -328,7 +330,7 @@ func addPDF3DeploymentResources(
 	objects := &resource.KubernetesObjectSet{
 		Name:      "deployment-pdf3",
 		Cluster:   runtime.ClusterRef(),
-		Path:      filepath.Join(root, "infra/kustomize/local-syncroot-"+variantName),
+		Path:      filepath.Join(root, "infra/local/syncroot-"+variantName),
 		DependsOn: deps,
 		Readiness: []resource.KubernetesReadinessCheck{
 			{

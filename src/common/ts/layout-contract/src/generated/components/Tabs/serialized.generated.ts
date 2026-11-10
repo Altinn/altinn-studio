@@ -1,8 +1,5 @@
-import {
-  ComponentBase,
-  SummarizableComponentProps,
-  TRBSummarizable,
-} from '@app/layout-contract/generated/common.generated';
+import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
+import { ComponentBase, TRBSummarizable } from '@app/layout-contract/generated/common.generated';
 
 export interface TabConfig {
   id: string;
@@ -13,12 +10,13 @@ export interface TabConfig {
 
 export type CompTabsSerialized = {
   type: 'Tabs';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable;
   size?: 'small' | 'medium' | 'large';
   defaultTab?: string;
   tabs: TabConfig[];
   dataModelBindings?: undefined;
-} & ComponentBase &
-  SummarizableComponentProps;
+} & ComponentBase;
 
-// Source hash: 51ccb132565d00d7865967016b4ffe7d7073a6fdd745043ffb809024e0f36a3f
+// Source hash: 30de3fd701b0e4a509112b204dfac1e2ec83914d1cf2f9414a166137bc8d1fe6

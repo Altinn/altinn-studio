@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -15,9 +19,12 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
+using Altinn.Studio.PolicyAdmin;
+using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
@@ -35,6 +42,13 @@ public class ResourceAdminController : ControllerBase
     private readonly IOrgService _orgService;
     private readonly IResourceRegistry _resourceRegistry;
     private readonly IResourceEnvironmentsService _resourceEnvironmentsService;
+    private readonly ISourceControl _sourceControl;
+    private readonly ILogger<ResourceAdminController> _logger;
+
+    /// <summary>
+    /// Limits how many policies are fetched from the resource registry at the same time.
+    /// </summary>
+    private const int MaxConcurrentPolicyRequests = 10;
 
     public ResourceAdminController(
         IGiteaClient giteaClient,
@@ -44,7 +58,10 @@ public class ResourceAdminController : ControllerBase
         IOptions<CacheSettings> cacheSettings,
         IOrgService orgService,
         IResourceRegistry resourceRegistry,
-        IResourceEnvironmentsService resourceEnvironmentsService
+        IResourceEnvironmentsService resourceEnvironmentsService,
+        IEnvironmentsService environmentsService,
+        ISourceControl sourceControl,
+        ILogger<ResourceAdminController> logger
     )
     {
         _giteaClient = giteaClient;
@@ -55,6 +72,8 @@ public class ResourceAdminController : ControllerBase
         _orgService = orgService;
         _resourceRegistry = resourceRegistry;
         _resourceEnvironmentsService = resourceEnvironmentsService;
+        _sourceControl = sourceControl;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -289,6 +308,144 @@ public class ResourceAdminController : ControllerBase
         return Ok(_resourceEnvironmentsService.GetEnvironmentsForOrg(org));
     }
 
+    /*
+    * The Altinn 2 roles below are deprecated and will be removed on 01.01.27. This list is kept in sync
+    * with deprecatedAltinn2Roles in frontend/packages/shared/src/utils/altinn2RoleUtils.ts.
+    */
+    private static readonly List<string> s_deprecatedAltinn2Subjects =
+    [
+        "urn:altinn:rolecode:a0238",
+        "urn:altinn:rolecode:a0236",
+        "urn:altinn:rolecode:kladm",
+        "urn:altinn:rolecode:a0293",
+        "urn:altinn:rolecode:hvask",
+        "urn:altinn:rolecode:a0294",
+        "urn:altinn:rolecode:utinn",
+        "urn:altinn:rolecode:gkbht",
+        "urn:altinn:rolecode:loper",
+        "urn:altinn:rolecode:boadm",
+        "urn:altinn:rolecode:apiadmnuf",
+        "urn:altinn:rolecode:pasig",
+        "urn:altinn:rolecode:ektj",
+        "urn:altinn:rolecode:siskd",
+        "urn:altinn:rolecode:sens01",
+        "urn:altinn:rolecode:revai",
+        "urn:altinn:rolecode:pavad",
+        "urn:altinn:rolecode:admai",
+        "urn:altinn:rolecode:uiluf",
+        "urn:altinn:rolecode:sens",
+        "urn:altinn:rolecode:bobes",
+        "urn:altinn:rolecode:a0288",
+        "urn:altinn:rolecode:attst",
+        "urn:altinn:rolecode:regna",
+        "urn:altinn:rolecode:a0278",
+        "urn:altinn:rolecode:priut",
+        "urn:altinn:rolecode:a0241",
+        "urn:altinn:rolecode:bobel",
+        "urn:altinn:rolecode:a0286",
+        "urn:altinn:rolecode:a0240",
+        "urn:altinn:rolecode:utomr",
+        "urn:altinn:rolecode:uihtl",
+        "urn:altinn:rolecode:komab",
+        "urn:altinn:rolecode:a0237",
+        "urn:altinn:rolecode:a0212",
+        "urn:altinn:rolecode:a0298",
+        "urn:altinn:rolecode:hadm",
+        "urn:altinn:rolecode:a0287",
+        "urn:altinn:rolecode:eckeyrole",
+        "urn:altinn:rolecode:apiadm",
+        "urn:altinn:rolecode:signe",
+        "urn:altinn:rolecode:a0239",
+        "urn:altinn:rolecode:a0282",
+    ];
+
+    /// <summary>
+    /// Lists the resources and apps owned by the organization whose policy still grants access to at
+    /// least one deprecated Altinn 2 role, together with the policy itself.
+    /// </summary>
+    [HttpGet]
+    [Route("designer/api/{org}/resources/altinn2resourcepolicies/{env}")]
+    public async Task<ActionResult<List<ResourceWithAltinn2Subject>>> GetAltinn2ResourcePolicies(
+        string org,
+        string env,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<ServiceResource> environmentResources = await _resourceRegistry.GetServiceResourceList(
+            env,
+            includeApps: true,
+            includeMigratedApps: true
+        );
+
+        List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(
+            s_deprecatedAltinn2Subjects,
+            env
+        );
+
+        HashSet<string> resourcesWithAltinn2Subjects = subjectResources
+            .SelectMany(subjectResource => subjectResource.Resources)
+            .Select(resource => resource.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        List<ServiceResource> resourcesToLoadPolicyFor = environmentResources
+            .Where(resource =>
+                resource?.Identifier is not null
+                && string.Equals(resource.HasCompetentAuthority?.Orgcode, org, StringComparison.OrdinalIgnoreCase)
+                && resourcesWithAltinn2Subjects.Contains(resource.Identifier)
+            )
+            .ToList();
+
+        ConcurrentBag<ResourceWithAltinn2Subject> altinn2ResourcePolicies = [];
+        List<FileSystemObject> resourceFiles = _repository.GetContents(org, RepositoryNames.Resources(org));
+
+        await Parallel.ForEachAsync(
+            resourcesToLoadPolicyFor,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = MaxConcurrentPolicyRequests,
+                CancellationToken = cancellationToken,
+            },
+            async (resource, _) =>
+            {
+                try
+                {
+                    XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resource.Identifier, env);
+
+                    if (policy != null)
+                    {
+                        altinn2ResourcePolicies.Add(
+                            new ResourceWithAltinn2Subject()
+                            {
+                                Identifier = resource.Identifier,
+                                ResourceType = resource.ResourceType,
+                                Policy = PolicyConverter.ConvertPolicy(policy),
+                                ExistsInGitea = resourceFiles.Exists(filename =>
+                                    filename.Name.Equals(resource.Identifier)
+                                ),
+                            }
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Could not fetch policy for resource {Identifier} in environment {Environment}",
+                        SanitizeForLog(resource.Identifier),
+                        SanitizeForLog(env)
+                    );
+                }
+            }
+        );
+
+        return altinn2ResourcePolicies.OrderBy(resource => resource.Identifier, StringComparer.Ordinal).ToList();
+    }
+
+    private static string SanitizeForLog(string? value)
+    {
+        return value?.Replace("\r", string.Empty).Replace("\n", string.Empty) ?? string.Empty;
+    }
+
     [HttpGet]
     [Route("designer/api/{org}/resources/resourcelist")]
     public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(
@@ -299,7 +456,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         IEnumerable<ListviewServiceResource> resources;
         List<ServiceResource> repositoryResourceList;
         List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
@@ -330,29 +487,7 @@ public class ResourceAdminController : ControllerBase
         }
         else
         {
-            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-
-            async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await _giteaClient.MapServiceResourceToListViewResource(
-                        org,
-                        repository,
-                        resource,
-                        cancellationToken
-                    );
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource =>
-                ProcessResourceAsync(resource)
-            );
-            resources = await Task.WhenAll(tasks);
+            resources = await MapToListviewResourcesWithHistory(org, repository, repositoryResourceList);
         }
 
         foreach (ListviewServiceResource listviewResource in resources)
@@ -422,7 +557,61 @@ public class ResourceAdminController : ControllerBase
             }
         }
 
-        return listviewServiceResources;
+        // filter out MigratedApp resources which exist only on tt02
+        return listviewServiceResources
+            .Where(x =>
+                x.Environments is not ["tt02"]
+                || x.Identifier is null
+                || !x.Identifier.StartsWith($"app_{org}_a", StringComparison.Ordinal)
+            )
+            .ToList();
+    }
+
+    private async Task<List<ListviewServiceResource>> MapToListviewResourcesWithHistory(
+        string org,
+        string repository,
+        List<ServiceResource> serviceResources
+    )
+    {
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            org,
+            repository,
+            AuthenticationHelper.GetDeveloperUserName(HttpContext)
+        );
+        Dictionary<string, FolderHistory> historyByFolder = _sourceControl.GetTopLevelFolderHistory(editingContext);
+
+        List<(ServiceResource Resource, FolderHistory? History)> resourcesWithHistory = serviceResources
+            .Select(resource =>
+                (
+                    resource,
+                    historyByFolder.GetValueOrDefault(
+                        ResourceAdminHelper.GetResourceFileStructureName(resource.Identifier)
+                    )
+                )
+            )
+            .ToList();
+
+        string[] authorNames = resourcesWithHistory
+            .Where(resourceWithHistory => resourceWithHistory.History is not null)
+            .Select(resourceWithHistory => resourceWithHistory.History!.FirstCommitAuthorName)
+            .Distinct()
+            .ToArray();
+        string[] authorFullNames = await Task.WhenAll(authorNames.Select(_giteaClient.GetUserFullName));
+        Dictionary<string, string> fullNameByAuthorName = authorNames
+            .Zip(authorFullNames)
+            .ToDictionary(names => names.First, names => names.Second);
+
+        return resourcesWithHistory
+            .Select(resourceWithHistory => new ListviewServiceResource
+            {
+                Identifier = resourceWithHistory.Resource.Identifier,
+                Title = resourceWithHistory.Resource.Title,
+                CreatedBy = resourceWithHistory.History is null
+                    ? null
+                    : fullNameByAuthorName[resourceWithHistory.History.FirstCommitAuthorName],
+                LastChanged = resourceWithHistory.History?.LastCommitTime.UtcDateTime,
+            })
+            .ToList();
     }
 
     [HttpGet]
@@ -447,13 +636,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
-        if (resource == null)
-        {
-            return StatusCode(404);
-        }
-
-        ServiceResourceStatus resourceStatus = new() { ResourceVersion = resource.Version, PublishedVersions = [] };
+        ServiceResourceStatus resourceStatus = new() { PublishedVersions = [] };
 
         IEnumerable<string> environments = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
         foreach (string envir in environments)
@@ -502,7 +685,7 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/addexistingresource/{resourceId}/{env}")]
     public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
             includeApps: true,
@@ -779,12 +962,72 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}")]
     public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
     {
-        if (repository == $"{org}-resources")
+        if (repository == RepositoryNames.Resources(org))
         {
             string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(id);
             string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
             ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
             _memoryCache.Remove($"resourcelist_${env}");
+            return publishResult;
+        }
+        else
+        {
+            Console.WriteLine("Invalid repository for resource");
+            return new StatusCodeResult(400);
+        }
+    }
+
+    /*
+    * This endpoint is only used for publishing updated policies with Altinn 2 subjects. Policy files
+    * are usually published together with resource metadata. When the Altinn 2 roles are deprecated on
+    * 01.01.27, this endpoint can be removed
+    */
+    [HttpPost]
+    [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+    [ValidateAntiForgeryToken]
+    [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}/policy")]
+    public async Task<ActionResult> PublishResourcePolicy(
+        string org,
+        string repository,
+        string id,
+        string env,
+        [FromBody] ResourcePolicy policyData
+    )
+    {
+        // check if resource exists
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            includeApps: true,
+            includeMigratedApps: true
+        );
+        ServiceResource? resource = allResources.Find(r => r.Identifier == id);
+        if (resource == null)
+        {
+            return new StatusCodeResult(404);
+        }
+        // check if resource owner is correct
+        else if (
+            !string.Equals(resource.HasCompetentAuthority?.Orgcode, org, StringComparison.CurrentCultureIgnoreCase)
+        )
+        {
+            return new StatusCodeResult(403);
+        }
+
+        if (repository == RepositoryNames.Resources(org))
+        {
+            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(policyData);
+
+            byte[] policyContent;
+            await using (MemoryStream stream = new MemoryStream())
+            await using (XmlWriter xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                XacmlSerializer.WritePolicy(xw, xacmlPolicy);
+                xw.Flush();
+                stream.Position = 0;
+                policyContent = stream.ToArray();
+            }
+
+            ActionResult publishResult = await _resourceRegistry.PublishResourcePolicy(id, env, policyContent);
             return publishResult;
         }
         else

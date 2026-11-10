@@ -1,10 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('LandingPage', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the title, description and image', () => {
     renderLandingPage();
     expect(

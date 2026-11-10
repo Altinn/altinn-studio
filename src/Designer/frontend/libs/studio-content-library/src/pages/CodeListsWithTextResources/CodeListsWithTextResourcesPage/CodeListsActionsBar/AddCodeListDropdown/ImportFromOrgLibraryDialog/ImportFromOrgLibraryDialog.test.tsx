@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import React, { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -7,12 +8,10 @@ import { ImportFromOrgLibraryDialog } from './';
 import type { ImportFromOrgLibraryDialogProps } from './ImportFromOrgLibraryDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const onImportCodeListFromOrg = jest.fn();
+const onImportCodeListFromOrg = vi.fn();
 const codeListIds: string[] = ['codeList1', 'codeList2'];
 
 describe('ImportFromOrgLibraryDialog', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the select with all its options and correct default option selected', () => {
     renderImportFromOrgLibraryDialog();
     const select = getSelect();

@@ -2,38 +2,33 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import { useStore } from 'zustand';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
-import type { AxiosRequestConfig } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import {
-  type useGetCachedInitialValidations,
-  useIsUpdatingInitialValidations,
-} from 'src/core/queries/backendValidation';
-import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
+import { useIsUpdatingInitialValidations } from 'src/core/queries/backendValidation';
+import { useFormDataSaveMutation, useIsSavingFormData, useIsSavingFormDataNow } from 'src/core/queries/formData';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
+import { createBatchedFormDataSetter } from 'src/features/formData/FormDataWriteBatch';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import {
-  backendValidationIssueGroupListToObject,
-  type BackendValidationIssueGroups,
-  IgnoredValidators,
-} from 'src/features/validation';
+import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
+import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap';
+import type { FormDataSaveRequest } from 'src/core/queries/formData';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
-import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
+import type { FDBatchedValue } from 'src/features/formData/FormDataWriteBatch';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
+import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
 import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
@@ -46,13 +41,30 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
+  // Rejects every write, as if all data elements were locked
+  locked: boolean;
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;
-  getCachedInitialValidations: ReturnType<typeof useGetCachedInitialValidations>;
+  getCalculationDataSources: () => ExpressionDataSources;
 }
 
-const saveFormDataMutationKey = ['saveFormData'] as const;
+const batchedLeafSetters = new WeakMap<FormStoreApi, ReturnType<typeof createBatchedFormDataSetter>>();
+
+function useBatchedSetLeafValue() {
+  const store = FormStore.raw.useStore();
+  return useCallback(
+    (change: FDBatchedValue) => {
+      let setter = batchedLeafSetters.get(store);
+      if (!setter) {
+        setter = createBatchedFormDataSetter((changes) => store.getState().data.setMultiLeafValues({ changes }));
+        batchedLeafSetters.set(store, setter);
+      }
+      return setter(change);
+    },
+    [store],
+  );
+}
 
 function adjustNestedFormStatus(rootStore: FormStoreApi, unsavedDelta: number, unloadWarningDelta: number) {
   rootStore.setState((state) => ({
@@ -61,243 +73,6 @@ function adjustNestedFormStatus(rootStore: FormStoreApi, unsavedDelta: number, u
       unloadWarnings: state.nestedFormStatus.unloadWarnings + unloadWarningDelta,
     },
   }));
-}
-
-function useFormDataSaveMutation() {
-  const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
-  const getDataModelUrl = useGetDataModelUrl();
-  const instanceId = useLaxInstanceId();
-  const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
-  const currentLanguage = useAsRef(useCurrentLanguage());
-  const dataModelsRef = useAsRef(FormStore.raw.useSelector((state) => state.data.models));
-  const saveFinished = FormStore.raw.useSelector((s) => s.data.saveFinished);
-  const cancelSave = FormStore.raw.useSelector((s) => s.data.cancelSave);
-  const isStateless = useIsStateless();
-  const debounce = FormStore.raw.useSelector((s) => s.data.debounce);
-  const selectedPartyId = useSelectedParty()?.partyId;
-  const waitFor = useWaitForState<
-    { prev: { [dataType: string]: object }; next: { [dataType: string]: object } },
-    FormStoreState
-  >(FormStore.raw.useStore());
-  const queryClient = useQueryClient();
-
-  // This updates the query cache with the new data models every time a save has finished. This means we won't have to
-  // refetch the data from the backend if the providers suddenly change (i.e. when navigating back and forth between
-  // the main form and a subform).
-  function updateQueryCache(result: FDSaveFinished) {
-    for (const { dataType, data, dataElementId } of result.newDataModels) {
-      const url = getDataModelUrl({ dataType, dataElementId });
-      if (!url) {
-        continue;
-      }
-      const queryKey = getFormDataQueryKey(url);
-      queryClient.setQueryData(queryKey, data);
-    }
-  }
-
-  function checkForRunawaySaving() {
-    const lastRequests = queryClient
-      .getMutationCache()
-      .findAll({ status: 'success', mutationKey: saveFormDataMutationKey })
-      .sort((a, b) => a.state.submittedAt - b.state.submittedAt)
-      .map((request) => ({
-        data: request.state.data,
-        submittedAt: request.state.submittedAt,
-      }))
-      .slice(-10);
-
-    if (lastRequests.length < 10) {
-      return;
-    }
-
-    const allTheSame = lastRequests.every(
-      (request, index) => index === 0 || deepEqual(request.data, lastRequests[0].data),
-    );
-
-    const hasAlternatingPattern =
-      !allTheSame && lastRequests.every((request, index) => deepEqual(request.data, lastRequests[index % 2].data));
-
-    if (!allTheSame && !hasAlternatingPattern) {
-      return;
-    }
-
-    // Calculate time differences between consecutive requests
-    const timeDiffs = lastRequests
-      .slice(1)
-      .map((request, index) => request.submittedAt - lastRequests[index].submittedAt);
-
-    // Calculate standard deviation and mean of time differences
-    const mean = timeDiffs.reduce((sum, diff) => sum + diff, 0) / timeDiffs.length;
-    const variance = timeDiffs.reduce((sum, diff) => sum + Math.pow(diff - mean, 2), 0) / timeDiffs.length;
-    const stdDev = Math.sqrt(variance);
-
-    // Consider timing suspicious if standard deviation is low relative to the mean.
-    // This suggests very regular intervals between saves (i.e. not user initiated). We purposefully don't check the
-    // actual duration of a save, because that can vary a lot between apps, depending on what the backend needs
-    // to do to process a save request.
-    const stdDevLow = stdDev < mean * 0.3;
-
-    if (stdDevLow) {
-      const message =
-        'Runaway saving detected, a bug in the application or the saving logic is causing the ' +
-        'form data to save repeatedly without real changes. Check the saving requests (in the browser devtools) and ' +
-        'verify the app and data model is not configured in a way that causes frontend to attempt to overwrite the ' +
-        'same data as backend is sending back. If the issue persists, contact support.';
-
-      console.error(message);
-      window.logError(message);
-      throw new Error(message);
-    }
-  }
-
-  return useMutation({
-    mutationKey: saveFormDataMutationKey,
-    scope: { id: saveFormDataMutationKey[0] },
-    mutationFn: async (): Promise<FDSaveFinished | undefined> => {
-      const { prev, next } = await waitForDataModelChanges();
-
-      // Don't need to save if there are no changes
-      if (deepEqual(prev, next)) {
-        return;
-      }
-
-      return isStateless ? saveStateless() : performMultiPatch();
-
-      async function waitForDataModelChanges() {
-        // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
-        // at the moment we're saving. This is especially important when automatically saving (and debouncing) when
-        // navigating away from the form context.
-        debounce('beforeSave');
-        return await waitFor((state, setReturnValue) => {
-          const dataModels = state.data.models;
-          const hasUnDebouncedChanges = Object.values(dataModels).some(
-            ({ debouncedCurrentData, currentData }) => debouncedCurrentData !== currentData,
-          );
-
-          if (!hasUnDebouncedChanges) {
-            const next = Object.entries(dataModels).reduce((next, [dataType, { debouncedCurrentData }]) => {
-              next[dataType] = debouncedCurrentData;
-              return next;
-            }, {});
-            const prev = Object.entries(dataModels).reduce((prev, [dataType, { lastSavedData }]) => {
-              prev[dataType] = lastSavedData;
-              return prev;
-            }, {});
-
-            setReturnValue({ prev, next });
-            return true;
-          }
-          return false;
-        });
-      }
-
-      async function saveStateless() {
-        const options: AxiosRequestConfig = {};
-        if (selectedPartyId !== undefined) {
-          options.headers = {
-            party: `partyid:${selectedPartyId}`,
-          };
-        }
-
-        // Stateless does not support multi patch, so we need to save each model independently
-        const newDataModels: Promise<UpdatedDataModel>[] = [];
-
-        for (const dataType of Object.keys(dataModelsRef.current)) {
-          if (next[dataType] === prev[dataType]) {
-            continue;
-          }
-          const url = getDataModelUrl({ dataType });
-          if (!url) {
-            throw new Error(`Cannot post data, url for dataType '${dataType}' could not be determined`);
-          }
-          newDataModels.push(
-            doPostStatelessFormData(url, next[dataType], options).then((newDataModel) => ({
-              dataType,
-              data: newDataModel,
-              dataElementId: undefined,
-            })),
-          );
-        }
-
-        if (newDataModels.length === 0) {
-          return;
-        }
-
-        return {
-          newDataModels: await Promise.all(newDataModels),
-          savedData: next,
-          validationIssues: undefined,
-        };
-      }
-
-      async function performMultiPatch() {
-        if (!multiPatchUrl) {
-          throw new Error(`Cannot patch data, multipatch url could not be determined`);
-        }
-
-        const patches: IPatchListItem[] = [];
-
-        for (const dataType of Object.keys(dataModelsRef.current)) {
-          const { dataElementId } = dataModelsRef.current[dataType];
-          if (dataElementId && next[dataType] !== prev[dataType]) {
-            const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
-            if (patch.length > 0) {
-              patches.push({ dataElementId, patch });
-            }
-          }
-        }
-
-        if (patches.length === 0) {
-          return;
-        }
-
-        const { newDataModels, validationIssues, instance } = (
-          await doPatchMultipleFormData(getUrlWithLanguage(multiPatchUrl, currentLanguage.current), {
-            patches,
-            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
-            ignoredValidators: IgnoredValidators,
-          })
-        ).data;
-
-        const dataModelChanges: UpdatedDataModel[] = [];
-        for (const { dataElementId, data } of newDataModels) {
-          const dataType = Object.keys(dataModelsRef.current).find(
-            (dataType) => dataModelsRef.current[dataType].dataElementId === dataElementId,
-          );
-          if (dataType) {
-            dataModelChanges.push({ dataType, data, dataElementId });
-          }
-        }
-
-        return {
-          newDataModels: dataModelChanges,
-          validationIssues: backendValidationIssueGroupListToObject(validationIssues),
-          instance,
-          savedData: next,
-        };
-      }
-    },
-    onError: () => {
-      cancelSave();
-    },
-    onSuccess: (result) => {
-      if (result) {
-        updateQueryCache(result);
-        saveFinished(result);
-      } else {
-        cancelSave();
-      }
-      checkForRunawaySaving();
-    },
-  });
-}
-
-function useIsSavingFormData() {
-  return (
-    useIsMutating({
-      mutationKey: ['saveFormData'],
-    }) > 0
-  );
 }
 
 export function FormDataWriteEffects() {
@@ -309,10 +84,94 @@ export function FormDataWriteEffects() {
   );
 }
 
+function useFormDataSave() {
+  const getDataModelUrl = useGetDataModelUrl();
+  const instanceId = useLaxInstanceId();
+  const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
+  const currentLanguage = useAsRef(useCurrentLanguage());
+  const dataModelsRef = useAsRef(FormStore.raw.useSelector((state) => state.data.models));
+  const saveFinished = FormStore.raw.useSelector((s) => s.data.saveFinished);
+  const cancelSave = FormStore.raw.useSelector((s) => s.data.cancelSave);
+  const isStateless = useIsStateless();
+  const debounce = FormStore.raw.useSelector((s) => s.data.debounce);
+  const selectedPartyId = useSelectedParty()?.partyId;
+  const waitFor = useWaitForState<{ prev: Record<string, object>; next: Record<string, object> }, FormStoreState>(
+    FormStore.raw.useStore(),
+  );
+
+  return useFormDataSaveMutation({
+    prepareSave: async (): Promise<FormDataSaveRequest | undefined> => {
+      // Read after debounce and after any earlier save has completed.
+      debounce('beforeSave');
+      const { prev, next } = await waitFor((state, setReturnValue) => {
+        const dataModels = state.data.models;
+        const hasUnDebouncedChanges = Object.values(dataModels).some(
+          ({ debouncedCurrentData, currentData }) => debouncedCurrentData !== currentData,
+        );
+        if (!hasUnDebouncedChanges) {
+          const next = Object.fromEntries(
+            Object.entries(dataModels).map(([dataType, model]) => [dataType, model.debouncedCurrentData]),
+          );
+          const prev = Object.fromEntries(
+            Object.entries(dataModels).map(([dataType, model]) => [dataType, model.lastSavedData]),
+          );
+          setReturnValue({ prev, next });
+          return true;
+        }
+        return false;
+      });
+      if (deepEqual(prev, next)) {
+        return;
+      }
+      const models = Object.entries(dataModelsRef.current).map(([dataType, { dataElementId }]) => ({
+        dataType,
+        dataElementId: dataElementId ?? undefined,
+        url: getDataModelUrl({ dataType, dataElementId: dataElementId ?? undefined }),
+      }));
+      if (isStateless) {
+        const changedModels = models.filter(({ dataType }) => next[dataType] !== prev[dataType]);
+        return changedModels.length
+          ? { mode: 'stateless', models: changedModels, savedData: next, partyId: selectedPartyId }
+          : undefined;
+      }
+      if (!multiPatchUrl) {
+        throw new Error('Cannot patch data, multipatch url could not be determined');
+      }
+      const patches: IPatchListItem[] = [];
+      for (const { dataType, dataElementId } of models) {
+        if (dataElementId && next[dataType] !== prev[dataType]) {
+          const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
+          if (patch.length > 0) {
+            patches.push({ dataElementId, patch });
+          }
+        }
+      }
+      return patches.length
+        ? {
+            mode: 'instance',
+            models,
+            savedData: next,
+            url: getUrlWithLanguage(multiPatchUrl, currentLanguage.current),
+            body: { patches, ignoredValidators: IgnoredValidators },
+          }
+        : undefined;
+    },
+    onSaved: (result) => {
+      if (result) {
+        saveFinished(result);
+      } else {
+        cancelSave();
+      }
+    },
+    onError: cancelSave,
+  });
+}
+
 function FormDataEffects() {
   const store = FormStore.raw.useStore();
   const parent = store.getState().parent;
   const rootStore = getRootFormStore(store);
+  const rootManualSaveRequested = useStore(rootStore, (state) => state.data.manualSaveRequested);
   const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
     s.data.autoSaving,
     s.data.lockedBy,
@@ -326,9 +185,10 @@ function FormDataEffects() {
     state.nestedFormStatus.unsaved,
     state.nestedFormStatus.unloadWarnings,
   ]);
+  const publishedStatus = useRef({ unsaved: 0, unloadWarnings: 0 });
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { mutate: performSave, error } = useFormDataSaveMutation();
+  const { mutate: performSave, error } = useFormDataSave();
   const isSaving = useIsSavingFormData();
   const isUpdatingInitialValidations = useIsUpdatingInitialValidations();
   const debounce = useDebounceImmediately();
@@ -347,12 +207,24 @@ function FormDataEffects() {
       return;
     }
 
-    adjustNestedFormStatus(rootStore, Number(hasUnsavedChanges), Number(shouldWarnBeforeUnload));
-
-    return () => {
-      adjustNestedFormStatus(rootStore, -Number(hasUnsavedChanges), -Number(shouldWarnBeforeUnload));
-    };
+    const next = { unsaved: Number(hasUnsavedChanges), unloadWarnings: Number(shouldWarnBeforeUnload) };
+    const previous = publishedStatus.current;
+    publishedStatus.current = next;
+    // Update both counters atomically. Removing and adding the status on every effect change could
+    // briefly report no nested changes and resolve a pending root save too early.
+    adjustNestedFormStatus(rootStore, next.unsaved - previous.unsaved, next.unloadWarnings - previous.unloadWarnings);
   }, [parent, rootStore, hasUnsavedChanges, shouldWarnBeforeUnload]);
+
+  useEffect(
+    () => () => {
+      if (parent) {
+        const previous = publishedStatus.current;
+        publishedStatus.current = { unsaved: 0, unloadWarnings: 0 };
+        adjustNestedFormStatus(rootStore, -previous.unsaved, -previous.unloadWarnings);
+      }
+    },
+    [parent, rootStore],
+  );
 
   // The data attribute tracks saveable changes for tests. Invalid input also requires an unload warning.
   useEffect(() => {
@@ -400,13 +272,15 @@ function FormDataEffects() {
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = FormStore.raw.useSelector((state) => hasDebouncedUnsavedChanges(state));
   const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
-  const shouldSave = needsToSave && (autoSaving || manualSaveRequested);
+  // A root save also flushes mounted subforms, including forms that only autosave on page changes.
+  const shouldSave =
+    (autoSaving && needsToSave) || ((manualSaveRequested || rootManualSaveRequested) && hasUnsavedChangesNow());
 
   useEffect(() => {
-    if (manualSaveRequested && !needsToSave) {
+    if (manualSaveRequested && !hasUnsavedChangesNow() && nestedUnsaved === 0) {
       requestManualSave(false);
     }
-  }, [manualSaveRequested, needsToSave, requestManualSave]);
+  }, [manualSaveRequested, hasUnsavedChanges, nestedUnsaved, hasUnsavedChangesNow, requestManualSave]);
 
   useEffect(() => {
     canSaveNow && shouldSave && performSave();
@@ -525,44 +399,46 @@ const useHasUnsavedChanges = () => {
 
 const useHasUnsavedChangesNow = () => {
   const store = FormStore.raw.useStore();
-  const queryClient = useQueryClient();
+  const isSavingNow = useIsSavingFormDataNow();
 
   return useCallback(() => {
     if (hasUnsavedChanges(store.getState())) {
       return true;
     }
 
-    const numRequests = queryClient.getMutationCache().findAll({
-      status: 'pending',
-      mutationKey: saveFormDataMutationKey,
-    }).length;
-
-    return numRequests > 0;
-  }, [store, queryClient]);
+    return isSavingNow();
+  }, [store, isSavingNow]);
 };
 
-const useWaitForSave = () => {
-  const requestSave = useRequestManualSave();
-  const waitFor = useWaitForState<undefined, FormStoreState | typeof ContextNotProvided>(FormStore.raw.useLaxStore());
+const useWaitForSave = ({ includeRoot = false }: { includeRoot?: boolean } = {}) => {
+  const currentStore = FormStore.raw.useLaxStore();
+  const store = currentStore !== ContextNotProvided && includeRoot ? getRootFormStore(currentStore) : currentStore;
+  const waitFor = useWaitForState<undefined, FormStoreState | typeof ContextNotProvided>(store);
 
   return useCallback(
     async (
       requestManualSave = false,
       extraReady?: (state: FormStoreState) => boolean,
-    ): Promise<BackendValidationIssueGroups | undefined> =>
-      await waitFor((state) => {
+    ): Promise<BackendValidationIssueGroups | undefined> => {
+      if (store === ContextNotProvided) {
+        return;
+      }
+
+      return await waitFor((state) => {
         if (state === ContextNotProvided) {
           return true;
         }
 
-        if (requestManualSave && !state.data.manualSaveRequested && hasDebouncedUnsavedChanges(state)) {
-          requestSave();
+        const hasChanges = hasUnsavedChanges(state) || state.nestedFormStatus.unsaved > 0;
+        if (requestManualSave && !state.data.manualSaveRequested && hasChanges) {
+          state.data.requestManualSave();
           return false;
         }
 
-        return !hasUnsavedChanges(state) && (extraReady ? extraReady(state) : true);
-      }),
-    [requestSave, waitFor],
+        return !hasChanges && (extraReady ? extraReady(state) : true);
+      });
+    },
+    [store, waitFor],
   );
 };
 
@@ -881,12 +757,25 @@ export const formDataHooks = {
   useSetLeafValue: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValue),
 
   /**
+   * Returns a function to set a value in a row in a list, by use of a callback that lets you find the correct row.
+   * The value is set in the first row where the callback returns true. If no row matches, nothing happens.
+   */
+  useSetLeafValueInList: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValueInList),
+
+  /**
    * This returns the raw method for setting multiple leaf values in the form data at once. This is
    * useful if you want to many values at the same time, atomically. This is probably too low-level
    * for what you really want to do, so consider using something like useDataModelBindings() instead.
    * @see useDataModelBindings
    */
   useSetMultiLeafValues: () => FormStore.raw.useStaticSelector((s) => s.data.setMultiLeafValues),
+
+  /**
+   * Collect writes from independent effects into one setMultiLeafValues call per form store in the next microtask.
+   * Return the setter's cleanup from the effect to discard its pending write when it changes or unmounts.
+   * Use useSetLeafValue for input handlers and callers that need the updated value synchronously.
+   */
+  useBatchedSetLeafValue,
 
   /**
    * The locking functionality allows you to prevent form data from saving, even if the user stops typing (or navigates
@@ -1011,6 +900,7 @@ export const formDataHooks = {
 
   /**
    * Returns a function you can use to wait until the form data is saved.
+   * Set includeRoot to wait for the root form and its mounted subforms, even when called inside a subform.
    * This will work (and return immediately) even if there is no form store in the tree.
    */
   useWaitForSave,

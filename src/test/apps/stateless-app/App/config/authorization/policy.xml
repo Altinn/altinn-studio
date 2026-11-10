@@ -312,7 +312,7 @@
     </xacml:Target>
   </xacml:Rule>
   <xacml:Rule RuleId="urn:altinn:example:ruleid:serviceowner-process" Effect="Permit">
-    <xacml:Description>Grants the service owner (ttd) the delete process-transition action(s) the v9 workflow engine replays out-of-band for ttd/stateless-app. Only the actions the standard org rules do not already cover are granted here: read, write (any state) and complete (end event) come from the regular org rules in this policy.</xacml:Description>
+    <xacml:Description>Grants the service owner (ttd) delete, which the app needs to delete its instances at process end. Read, write (any state) and complete (end event) come from the regular org rules in this policy.</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>

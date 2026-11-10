@@ -1,9 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useRequiredParams } from './useRequiredParams';
 import { useParams } from 'react-router-dom';
 
-jest.mock('react-router-dom', () => ({
-  useParams: jest.fn(),
+vi.mock('react-router-dom', () => ({
+  useParams: vi.fn(),
 }));
 
 type TestParams = {
@@ -13,12 +15,8 @@ type TestParams = {
 };
 
 describe('useRequiredParams', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('returns required single param when present', () => {
-    (useParams as jest.Mock).mockReturnValue({ owner: 'ttd' });
+    (useParams as Mock).mockReturnValue({ owner: 'ttd' });
 
     const { result } = renderHook(() => useRequiredParams<TestParams, 'owner'>('owner'));
 
@@ -26,7 +24,7 @@ describe('useRequiredParams', () => {
   });
 
   it('returns required params when all are present', () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       owner: 'ttd',
       app: 'my-app',
       environment: 'at22',
@@ -40,7 +38,7 @@ describe('useRequiredParams', () => {
   });
 
   it('throws when a required param is missing', () => {
-    (useParams as jest.Mock).mockReturnValue({ owner: 'ttd' });
+    (useParams as Mock).mockReturnValue({ owner: 'ttd' });
 
     expect(() => {
       renderHook(() => useRequiredParams<TestParams, 'owner' | 'app'>(['owner', 'app']));

@@ -23,12 +23,15 @@
 administratorbrukernavn
 administratorbrukernavnet
 administratorkontoer
+algetestdata
 appbiblioteket
 appens
 applikasjonsfeil
 applikasjonsmetrikker
 applikasjonsnavnet
+appstyrt
 appversjon
+arbeidsflytmotoren
 arbeidslagsnavn
 arbeidstidsdata
 autentiseringer
@@ -36,6 +39,8 @@ autentiseringsapplikasjonen
 autentiseringstjeneren
 autorisasjonsforespørselen
 autorisasjonsnavn
+avgiver
+avgivere
 avmerkingsboks
 avmerkingsbokser
 avpubliser
@@ -43,19 +48,22 @@ avpublisere
 avpubliserer
 avpubliseres
 avpublisering
-avpublisert
+avvisningsdialog
+avvisningsdialogen
+avvisningsknapp
 behandlingsreferanse
 bekreftelseskoden
 beskjæringsområde
+betalingsavtaler
 betalingsdetaljer
 betalingskvittering
 betalingsoppgave
 betalingssteg
 bildefil
 bildeopplaster
+borettslagsandel
 brukerdataene
 brukerkontoer
-brukerpålogging
 brukersynkronisering
 claimet
 datamodellbinding
@@ -64,20 +72,21 @@ datamodellfeltet
 datamodellknytning
 deaktiver
 delegerbar
+delegerbare
 delegeringstekst
 driftsmeldinger
-egenregistrering
 endringslogg
 endringsoppsummering
-endringstransaksjon
 endringstransaksjonen
 endringsvalg
 engangssamtykke
 enhetsregisterroller
+enkeltpersonforetaks
 filbane
 filbanen
 filendelse
 filendringene
+filinnhold
 filopplastingskomponent
 filopplastingskomponenter
 filskanning
@@ -96,6 +105,8 @@ gjenopprettingsprosessen
 handlingsknapp
 handlingstype
 headerne
+hjemmelserklæring
+hovedflyten
 infoside
 innboks
 innboksen
@@ -103,6 +114,8 @@ innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
+innsendingsknapp
+innsendingsrett
 instansier
 instansiering
 instansieringer
@@ -114,11 +127,15 @@ kompleksitetskrav
 komponentid
 konfigurasjonsfeil
 kontogjenoppretting
+kvalifiseringsprogrammet
 kvitteringsside
 lagringsnavn
+lønnsrelaterte
 låsstatus
+mappesti
 medieposisjon
 medlemsprofil
+meldingsboks
 metadataene
 migreringsverktøyene
 minimumshøyde
@@ -130,6 +147,8 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
+nedlastingsknapp
+nedkvitteringer
 nedtrekksliste
 nedtrekkslisten
 nedtrekksmeny
@@ -156,6 +175,9 @@ organisasjonsprosjekt
 pagineringsvalg
 portnummer
 postdomenet
+primærnæringsprodukter
+prioritetsbestemmelser
+programmeringsgrensesnitt
 prosessteg
 publiseringsdato
 publiseringshistorikk
@@ -169,12 +191,16 @@ redigerbare
 redigeringsknapp
 redigeringsvalg
 redigeringsverktøy
+registreringsenhet
 registreringssidene
+regnskapsføreradresse
+regnskapsrelaterte
 reindekseringskøen
 reinitialiser
 reinstallere
 renderingsregel
 renderingsregler
+reseksjonering
 resynkroniser
 rotbane
 rutenettoppsett
@@ -185,7 +211,10 @@ samtykkemetadata
 seksjonstittel
 sidenavigasjonen
 signatarliste
+signeringsknapp
 signeringsoppgave
+signeringsrett
+signeringsrettighet
 signeringsstatus
 signeringssteg
 sikkerhetsnøkkel
@@ -200,6 +229,7 @@ sorteringsproblemene
 sosialnettverkskontoer
 spørreparameter
 spørringsparameter
+statsforvalterens
 syntaksfeil
 tekstsøk
 temaets
@@ -219,9 +249,11 @@ tilgangstoken
 tillatelseslisten
 tilleggsadresse
 tilleggskontroller
+tilleggsstønad
 tittelraden
 tjenerdomene
 tjenerport
+transportløyvegarantister
 tredjepartsapplikasjon
 tredjepartsbiblioteker
 tvangsslett
@@ -238,6 +270,7 @@ underskjemaet
 underskjemakobling
 underuttrykk
 underuttrykket
+uskiftebo
 utformingsfanen
 utfyllingsoppgaver
 utfyllingssteget
@@ -252,6 +285,10 @@ valideringsregel
 valideringstyper
 vedleggstype
 vedlikeholderen
+velferdsstøtte
+vergehaver
+vergehaveren
+vergehaverens
 versjonsfeil
 vertsadresse
 vertsnavn
@@ -288,7 +325,6 @@ aktiverings             # aktiverings-e-post
 autoriserings           # Autoriserings-URL
 bekreftelses            # bekreftelses-e-post
 påloggings              # påloggings- og registreringssidene
-tofaktor                # tofaktor-autentisering
 trinnsautentisering     # 2-trinnsautentisering
 
 # Unusual but deliberate: calques and translator style in shipped UI text
@@ -298,9 +334,7 @@ autoriseringsforespørselen  # Gitea translation; a sibling key says 'autorisasj
 avstandsjustert             # Gitea's rendering of 'monospace' (avstandsjustert skrift)
 beskrivelsesløse            # ad-hoc -løse derivation in the Gitea UI (emneløse, ikonløse, beskrivelsesløse)
 bolsk                       # calque of 'boolean' used as a data-type label in the expression editor
-delstreng                   # calque of 'substring' in a Gitea validation message
 fravelg                     # calque of 'deselect' in the Gitea UI
-føderert                    # 'føderert avatar-oppslag' (federated) in the Gitea UI
 gjennomsynsforespørsel      # Gitea's rendering of 'review request'
 gjentagende                 # variant of 'gjentakende' in the Designer news feed
 godkjenningsoverskrift      # Gitea's rendering of 'authorization header'

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 
 import { EditStringValue } from './EditStringValue';
@@ -15,7 +16,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({ maxLength = undefined, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ maxLength = undefined, handleComponentChange = vi.fn() } = {}) => {
   await waitForData();
 
   return renderWithMockStore()(
@@ -37,12 +38,12 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
 };
 describe('EditStringValue', () => {
   it('should render', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await render({ handleComponentChange });
   });
 
   it(' Ensure that the onChange handler is called with the correct arguments', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await render({ handleComponentChange });
     const inputElement = screen.getByLabelText(
       textMock('ux_editor.component_properties.maxLength'),

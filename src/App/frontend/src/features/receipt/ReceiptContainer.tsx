@@ -5,11 +5,12 @@ import { formatDate } from 'date-fns';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
@@ -22,7 +23,7 @@ import {
   toDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { getDialogIdFromDataValues, returnUrlToArchive } from 'src/utils/urls/urlHelper';
+import { getDialogIdFromDataValues } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 
@@ -173,11 +174,17 @@ export const ReceiptContainer = () => {
           body={<Lang id='receipt.body' />}
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
-          subtitle={hiddenFromInbox ? undefined : <Lang id='receipt.subtitle' />}
-          subtitleurl={
-            hiddenFromInbox
-              ? undefined
-              : returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)
+          subtitle={
+            hiddenFromInbox ? undefined : (
+              <PlatformLink
+                className='altinnLink'
+                setting='ArbeidsflateInboxUrl'
+                partyId={instanceOwnerParty?.partyId}
+                dialogId={dialogId}
+              >
+                <Lang id='receipt.subtitle' />
+              </PlatformLink>
+            )
           }
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}

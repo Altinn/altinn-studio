@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { StudioLibraryElementProps, StudioLibraryElementTexts } from './StudioLibraryElement';
 import { StudioLibraryElement } from './StudioLibraryElement';
 import type { RenderResult } from '@testing-library/react';
@@ -17,7 +18,7 @@ const defaultProps: StudioLibraryElementProps = {
   href,
   latestPublishedVersion,
   name,
-  onClick: jest.fn(),
+  onClick: vi.fn(),
   texts,
 };
 
@@ -40,7 +41,7 @@ describe('StudioLibraryElement', () => {
   });
 
   it('Calls onClick when the element is clicked', async () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     renderLibraryElement({ onClick });
     const user = userEvent.setup();
     await user.click(screen.getByRole('link'));

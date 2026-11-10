@@ -22,8 +22,10 @@ describe('Organization lookup', () => {
     cy.gotoNavPage('OrganisationLookupPage');
 
     // Check that the component is rendered
-    cy.findByText(/Her legger du inn organisasjonsnummer/i).should('exist');
-    cy.findByRole('button', { name: /Hjelpetekst for legg til virksomhet/i }).should('exist');
+    cy.get('[data-componentid="organisationLookup"]').within(() => {
+      cy.findByText(/Her legger du inn organisasjonsnummer/i).should('exist');
+      cy.findByRole('button', { name: /Hjelpetekst for legg til virksomhet/i }).should('exist');
+    });
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).should('exist');
     cy.findByRole('button', { name: /Hent opplysninger/i }).should('exist');
 
@@ -36,6 +38,9 @@ describe('Organization lookup', () => {
     cy.findByLabelText('Organisasjonsnavn').within(() => {
       cy.findByText(/Skog og Fjell Consulting/i).should('exist');
     });
+
+    // Wait for the delayed announcement to take focus before starting another interaction.
+    cy.findByTestId('organization-lookup-status').should('have.focus');
 
     // Remove organization
     cy.findByRole('button', { name: /Fjern/i }).click();
@@ -54,7 +59,10 @@ describe('Organization lookup', () => {
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisation');
-    cy.findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i).should('exist');
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i, { selector: 'span' })
+      .should('exist');
+    cy.findByTestId('organization-lookup-status').should('have.focus');
 
     // Add interceptor for failed fetch due to server error
     cy.intercept('GET', organizationLookupIntercept, {
@@ -64,14 +72,21 @@ describe('Organization lookup', () => {
     // Fetch organization with server error
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisationServerError');
-    cy.findByText(/Ukjent feil. Vennligst prøv igjen senere/i).should('exist');
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Ukjent feil. Vennligst prøv igjen senere/i, { selector: 'span' })
+      .should('exist');
+    cy.findByTestId('organization-lookup-status').should('have.focus');
 
     // Type invalid orgNr
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatClear();
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatReplace('123456789');
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).should('have.value', '123456789');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Organisasjonsnummeret er ugyldig/i, { selector: 'span' })
+      .should('exist');
+    cy.findByTestId('organization-lookup-status').should('have.focus');
 
+    cy.findByRole('radio', { name: 'Ja' }).check();
     cy.changeLayout((component) => {
       if (component.type === 'OrganizationLookup') {
         component.showValidations = ['All'];

@@ -44,9 +44,9 @@ export const GROUPS = [
     english: 'en-gb',
   },
   {
-    // en.json is a partial translation by design: language support for
-    // English "is not yet available in the project" and the file "is not
-    // maintained" (src/Designer/frontend/AGENTS.md). Keys that exist in en
+    // en.json is a partial translation by design: Designer does not offer
+    // English to users, and en.json has only part of the texts
+    // (src/Designer/frontend/README.md). Keys that exist in en
     // must still exist in nb — Designer always runs with lng 'nb', so a key
     // missing from nb renders as the raw key.
     name: 'Designer frontend',
@@ -67,6 +67,20 @@ export const GROUPS = [
     },
     parity: 'en-subset-of-nb',
     english: 'en-gb',
+  },
+  {
+    // Check the displayed Norwegian text, not external role codes and URNs.
+    name: 'resourceadm role catalog',
+    format: 'esm-records',
+    files: {
+      nb: 'src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts',
+    },
+    exportName: 'AllRoles',
+    keyField: 'id',
+    fields: ['name', 'description', 'provider.name'],
+    parity: 'none',
+    english: null,
+    checkKeys: false,
   },
   {
     // An { nb, nn, en } triplet declared inline in code; the rest of
@@ -211,4 +225,5 @@ export const SCAN_PATTERNS = [
   '**/news.*.json',
   '**/resource.*.json',
   '**/applicationmetadata.json',
+  '**/AllRoles.ts',
 ];

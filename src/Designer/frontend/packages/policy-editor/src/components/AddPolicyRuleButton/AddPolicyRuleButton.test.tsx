@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AddPolicyRuleButton, type AddPolicyRuleButtonProps } from './AddPolicyRuleButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -5,14 +6,12 @@ import userEvent from '@testing-library/user-event';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
 
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 const defaultProps: AddPolicyRuleButtonProps = {
   onClick: mockOnClick,
 };
 
 describe('AddPolicyRuleButton', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls the onClick function when clicked', async () => {
     const user = userEvent.setup();
     renderAddPolicyRuleButton();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
@@ -17,6 +17,8 @@ export type StudioDropdownProps = {
   triggerButtonAriaLabel?: string;
   triggerButtonTitle?: string;
   triggerButtonClassName?: string;
+  /** For returning focus to the trigger, such as when a dialog an item opened closes along with the menu's items. */
+  triggerButtonRef?: Ref<HTMLButtonElement>;
 
   'data-color-scheme'?: 'light' | 'dark';
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose' | 'onOpen'>;
@@ -30,6 +32,7 @@ export function StudioDropdown({
   triggerButtonAriaLabel,
   triggerButtonTitle,
   triggerButtonClassName,
+  triggerButtonRef,
   children,
   'data-color': dataColor,
   'data-color-scheme': dataColorScheme,
@@ -48,6 +51,7 @@ export function StudioDropdown({
         aria-expanded={open}
         title={triggerButtonTitle}
         className={triggerButtonClassName}
+        ref={triggerButtonRef}
       >
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}

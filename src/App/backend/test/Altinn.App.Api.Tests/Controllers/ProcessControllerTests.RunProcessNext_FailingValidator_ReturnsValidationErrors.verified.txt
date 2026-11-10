@@ -20,6 +20,11 @@
       HasParent: true
     },
     {
+      Name: InstanceDataAccessor.RemoveHiddenDataForValidation,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
       Kind: Server,
       IdFormat: W3C,
@@ -47,6 +52,9 @@
         },
         {
           server.address: localhost
+        },
+        {
+          server.port: 80
         },
         {
           TestId: Guid_2
@@ -226,7 +234,7 @@
           validation.issue_count: 0
         },
         {
-          validator.remove_hidden_data: false
+          validator.remove_hidden_data: true
         },
         {
           validator.source: DataAnnotations

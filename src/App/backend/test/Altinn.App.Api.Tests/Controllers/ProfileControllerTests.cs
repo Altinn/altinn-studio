@@ -4,16 +4,13 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-    : ApiTestBase(factory, outputHelper),
-        IClassFixture<WebApplicationFactory<Program>>
+public class ProfileControllerTests(ITestOutputHelper outputHelper) : ApiTestBase(outputHelper)
 {
     [Fact]
     public async Task User()

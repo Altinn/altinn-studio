@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -30,8 +31,6 @@ const fieldNodeMock: FieldNode = {
 };
 
 describe('PrefillSection', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders with no source selected when there is no existing prefill mapping', () => {
     render();
     expect(
@@ -97,8 +96,8 @@ describe('PrefillSection', () => {
   });
 
   it('Saves the prefill config and updates the internal model when a field is selected for a known-field source', async () => {
-    const savePrefillConfig = jest.fn();
-    const save = jest.fn();
+    const savePrefillConfig = vi.fn();
+    const save = vi.fn();
     render(undefined, { savePrefillConfig, save });
     await user.selectOptions(
       screen.getByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
@@ -133,7 +132,7 @@ describe('PrefillSection', () => {
   });
 
   it('Saves the prefill config with the typed query parameter name on blur', async () => {
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     render(undefined, { savePrefillConfig });
     await user.selectOptions(
       screen.getByRole('combobox', { name: textMock('schema_editor.prefill.source') }),
@@ -151,7 +150,7 @@ describe('PrefillSection', () => {
   });
 
   it('Removes the existing mapping when the source is changed back to none', async () => {
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     const prefillConfig: PrefillConfig = { ER: { OrgNumber: dataBindingName } };
     render(
       { prefill: { source: PrefillSource.ER, key: 'OrgNumber' } },
@@ -165,7 +164,7 @@ describe('PrefillSection', () => {
   });
 
   it('Removes the mapping when the field selection is cleared for a known-field source', async () => {
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     const prefillConfig: PrefillConfig = { ER: { OrgNumber: dataBindingName } };
     render(
       { prefill: { source: PrefillSource.ER, key: 'OrgNumber' } },
@@ -179,7 +178,7 @@ describe('PrefillSection', () => {
   });
 
   it('Removes the mapping when the query parameter name is cleared on blur', async () => {
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     const prefillConfig: PrefillConfig = { QueryParameters: { caseId: dataBindingName } };
     render(
       { prefill: { source: PrefillSource.QueryParameters, key: 'caseId' } },
@@ -194,7 +193,7 @@ describe('PrefillSection', () => {
   });
 
   it('Preserves unrelated prefill mappings when saving a new mapping', async () => {
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     const prefillConfig: PrefillConfig = { ER: { Name: 'someOtherField' } };
     render(undefined, { prefillConfig, savePrefillConfig });
     await user.selectOptions(
@@ -219,7 +218,7 @@ describe('PrefillSection', () => {
       prefill: { source: PrefillSource.ER, key: 'OrgNumber' },
     };
     const schemaModel = SchemaModel.fromArray([fieldNodeMock, otherFieldNodeMock]);
-    const save = jest.fn();
+    const save = vi.fn();
     const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'otherField' } };
     render(undefined, { schemaModel, save, prefillConfig });
 

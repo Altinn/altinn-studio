@@ -14,6 +14,51 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
     public void Dispose() => _app.Dispose();
 
     [Fact]
+    public async Task RemovesSummaryPropertiesAfterLegacyComponentRenamesOnV9Reruns()
+    {
+        WriteV9Project();
+        _app.Write(
+            LayoutPath,
+            """
+            { "data": { "layout": [
+              // Keep ordinary titles and supported receipt rendering.
+              { "id": "heading", "type": "Header", "renderAsSummary": true, "forceShowInSummary": true,
+                "textResourceBindings": { "title": "heading.title", "summaryTitle": "summary.title", "summaryAccessibleTitle": "summary.accessible" } },
+              { "id": "organization", "type": "OrganisationLookup", "renderAsSummary": true },
+              { "id": "payment", "type": "Payment", "renderAsSummary": true, "forceShowInSummary": true }
+            ] } }
+            """
+        );
+
+        var result = await RunUpgrade();
+
+        Assert.Equal(0, result.ExitCode);
+        var text = _app.Read(LayoutPath);
+        Assert.Contains("// Keep ordinary titles and supported receipt rendering.", text);
+        var components = JsonNode
+            .Parse(
+                text,
+                documentOptions: new System.Text.Json.JsonDocumentOptions
+                {
+                    CommentHandling = System.Text.Json.JsonCommentHandling.Skip,
+                }
+            )
+            ?["data"]?["layout"];
+        Assert.NotNull(components);
+        Assert.Equal("Heading", components[0]?["type"]?.GetValue<string>());
+        Assert.Equal("heading.title", components[0]?["textResourceBindings"]?["title"]?.GetValue<string>());
+        Assert.Null(components[0]?["renderAsSummary"]);
+        Assert.Null(components[0]?["textResourceBindings"]?["summaryTitle"]);
+        Assert.Null(components[0]?["textResourceBindings"]?["summaryAccessibleTitle"]);
+        Assert.Equal("OrganizationLookup", components[1]?["type"]?.GetValue<string>());
+        Assert.Null(components[1]?["renderAsSummary"]);
+        Assert.True(components[2]?["renderAsSummary"]?.GetValue<bool>());
+        Assert.DoesNotContain("forceShowInSummary", text);
+        Assert.Equal(0, (await RunUpgrade()).ExitCode);
+        Assert.Equal(text, _app.Read(LayoutPath));
+    }
+
+    [Fact]
     public async Task FailedRuleConversionRunsLastPreservesSourcesAndIsIdempotent()
     {
         _app.Write(

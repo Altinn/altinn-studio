@@ -50,7 +50,7 @@ public class LayoutService(
             throw new InvalidOperationException("Cannot add order page to layout using groups.");
         }
 
-        AltinnPageLayout pageLayout = new();
+        AltinnPageLayout pageLayout = new(appRepository.LayoutSchemaUrl);
         if (pages.Order.Count > 0)
         {
             pageLayout = pageLayout.WithNavigationButtons(includeShowBackButton);
@@ -232,13 +232,15 @@ public class LayoutService(
         var deletedPages = originalOrder.Except(order).ToList();
         var createdPages = order.Except(originalOrder).ToList();
         // Validated before the first delete, so a refused name leaves the set untouched.
-        foreach (string pageId in createdPages)
-        {
-            appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
-        }
+        appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
-            appRepository.DeleteLayout(layoutSetId, pageId);
+            // Settings.json can list a page without a layout file when the repository was edited outside
+            // Designer. Removing that page from the groups is all there is left to do.
+            if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+            {
+                appRepository.DeleteLayout(layoutSetId, pageId);
+            }
             await mediatr.Publish(
                 new LayoutPageDeletedEvent
                 {
@@ -252,7 +254,13 @@ public class LayoutService(
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
-            AltinnPageLayout altinnPageLayout = new();
+            // A layout file can already exist for a page Settings.json does not list, for instance one whose
+            // name in Settings.json differs only in case. Adding the page keeps the content of that file.
+            if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+            {
+                continue;
+            }
+            AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {
                 altinnPageLayout = altinnPageLayout.WithNavigationButtons(includeShowBackButton);

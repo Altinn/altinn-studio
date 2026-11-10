@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ResourceTableProps } from './ResourceTable';
 import { ResourceTable } from './ResourceTable';
@@ -46,8 +47,8 @@ const mockResourceList: ResourceListItem[] = [
 ];
 
 describe('ResourceTable', () => {
-  const mockOnClickEditResource = jest.fn();
-  const mockOnClickImportResource = jest.fn();
+  const mockOnClickEditResource = vi.fn();
+  const mockOnClickImportResource = vi.fn();
 
   const defaultProps: ResourceTableProps = {
     list: mockResourceList,

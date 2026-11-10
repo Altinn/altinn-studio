@@ -10,6 +10,7 @@ import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { generateExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import { ExprVal } from 'src/features/expressions/types';
 import type { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { CommonPropertyKeys } from 'src/codegen/Common';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
@@ -63,11 +64,6 @@ export class ComponentConfig {
       this.inner.extends(CG.common('FormComponentProps'));
       this.extendTextResources(CG.common('TRBFormComp'));
     }
-    if (this.isFormLike()) {
-      this.inner.extends(CG.common('SummarizableComponentProps'));
-      this.extendTextResources(CG.common('TRBSummarizable'));
-      this.behaviors.isSummarizable = true;
-    }
   }
 
   public setType(type: string, symbol?: string): this {
@@ -90,7 +86,7 @@ export class ComponentConfig {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public addProperty(prop: GenerateProperty<any>): this {
+  public addProperty(prop: GenerateProperty<any> | GenerateCommonImport<CommonPropertyKeys>): this {
     this.inner.addProperty(prop);
     return this;
   }
@@ -138,6 +134,10 @@ export class ComponentConfig {
   private hasDataModelBindings(): boolean {
     const prop = this.inner.getProperty('dataModelBindings');
     return this.isFormLike() && prop !== undefined && !(prop.type instanceof GenerateRaw);
+  }
+
+  private supportsSummaryEditNavigation(): boolean {
+    return this.config.category === CompCategory.Form || this.hasDataModelBindings();
   }
 
   /**
@@ -209,12 +209,6 @@ export class ComponentConfig {
   }
 
   makeSummarizable(): this {
-    if (this.isFormLike()) {
-      throw new Error(`Component is a form or container component, it is always summarizable`);
-    }
-
-    this.extendTextResources(CG.common('TRBSummarizable'));
-    this.extends(CG.common('SummarizableComponentProps'));
     this.behaviors.isSummarizable = true;
     return this;
   }
@@ -241,12 +235,17 @@ export class ComponentConfig {
         );
       }
 
-      const overrides = extender
-        ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
-        : CG.common('ISummaryOverridesCommon');
+      const showNextButton = this.supportsSummaryEditNavigation();
+      const overrides =
+        extender || showNextButton
+          ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
+          : CG.common('ISummaryOverridesCommon');
 
-      if (extender && overrides instanceof GenerateObject) {
-        extender(overrides);
+      if (overrides instanceof GenerateObject) {
+        if (showNextButton) {
+          overrides.addProperty(CG.common('summaryShowNextButton'));
+        }
+        extender?.(overrides);
       }
 
       return this.makeSummaryOverridesUnion(overrides).exportAs(`${this.type}SummaryOverridesWithRef`);
@@ -291,7 +290,8 @@ export class ComponentConfig {
       return undefined;
     }
 
-    if (variant === 'plain' && !this.hasSummaryOverridesExtender) {
+    const hasSpecificOverrides = this.hasSummaryOverridesExtender || this.supportsSummaryEditNavigation();
+    if (variant === 'plain' && !hasSpecificOverrides) {
       return CG.common('ISummaryOverridesCommon');
     }
     if (variant === 'plain') {
@@ -300,7 +300,7 @@ export class ComponentConfig {
       });
     }
 
-    if (!this.hasSummaryOverridesExtender) {
+    if (!hasSpecificOverrides) {
       return this.makeSummaryOverridesUnion(CG.common('ISummaryOverridesCommon'));
     }
 
@@ -316,6 +316,11 @@ export class ComponentConfig {
   }
 
   private beforeFinalizing(): void {
+    if (!this.type) {
+      throw new Error('Component type must be set before finalizing its config');
+    }
+    this.inner.validateComponentBehaviors(this.behaviors, this.type);
+
     // We have to add these to our typescript types in order for ITextResourceBindings<T>, and similar to work.
     // Components that doesn't have them, will always have the 'undefined' value.
     if (!this.inner.hasProperty('dataModelBindings')) {
@@ -392,7 +397,11 @@ export class ComponentConfig {
 
   public generateComponentCatalogEntry(): ComponentDefinition {
     this.beforeFinalizing();
+    const definition = this.inner.toComponentCatalogDefinition();
     return {
+      ...(definition.type === 'object' && definition.additionalProperties
+        ? { additionalProperties: definition.additionalProperties }
+        : {}),
       kind: this.config.category === CompCategory.Container ? 'container' : 'component',
       category: this.config.category,
       capabilities: this.config.capabilities,
@@ -424,6 +433,24 @@ export class ComponentConfig {
     const implementsInterfaces: string[] = [];
 
     const additionalMethods: string[] = [];
+
+    if (this.behaviors.isSummarizable) {
+      const JSX = new CG.import({ import: 'JSX', from: 'react' });
+      const SummaryRendererProps = new CG.import({
+        import: 'SummaryRendererProps',
+        from: 'src/layout/LayoutComponent',
+      });
+      const Summary2Props = new CG.import({
+        import: 'Summary2Props',
+        from: 'src/layout/Summary2/SummaryComponent2/types',
+      });
+      additionalMethods.push(
+        `abstract renderSummary(props: ${SummaryRendererProps}): ${JSX}.Element | null;`,
+        `abstract renderSummary2(props: ${Summary2Props}): ${JSX}.Element | null;`,
+      );
+    } else {
+      additionalMethods.push('declare renderSummary?: never;', 'declare renderSummary2?: never;');
+    }
 
     if (this.hasDataModelBindings()) {
       additionalMethods.push(

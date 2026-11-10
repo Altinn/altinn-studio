@@ -2,7 +2,7 @@ import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 
 type Primitive = string | number | boolean;
-type PropertyValue = Primitive | Primitive[] | Record<string, unknown>;
+type PropertyValue = Primitive | Primitive[] | object;
 
 export const useTranslateKeyValue = (propertyValue: PropertyValue) => {
   const componentPropertyValue = useComponentPropertyLabel();

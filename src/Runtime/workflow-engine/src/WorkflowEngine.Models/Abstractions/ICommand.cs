@@ -9,7 +9,7 @@ namespace WorkflowEngine.Models.Abstractions;
 public interface ICommand
 {
     /// <summary>
-    /// The command type this descriptor handles (matches <see cref="CommandDefinition.Type"/>).
+    /// The type steps name to run this command (matches <see cref="CommandDefinition.Type"/>).
     /// </summary>
     string CommandType { get; }
 
@@ -27,7 +27,7 @@ public interface ICommand
 
     /// <summary>
     /// Validates deserialized command data and workflow context at enqueue time.
-    /// Called before persistence, giving descriptors a chance to reject invalid requests early.
+    /// Called before persistence, giving the command a chance to reject invalid requests early.
     /// </summary>
     CommandValidationResult Validate(object? commandData, object? workflowContext);
 
@@ -37,4 +37,19 @@ public interface ICommand
     /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/>.
     /// </summary>
     Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Describes the domain object a step works on, as telemetry attributes: the engine treats the command data
+    /// and the workflow context as opaque, so only the command can name what they refer to. The engine sets the
+    /// returned attributes on the step's span and on the workflow's entry span. None by default.
+    /// </summary>
+    /// <remarks>
+    /// Called on every attempt, with the same deserialized values <see cref="Execute"/> receives, before the
+    /// command runs — and only while those spans are recorded. Keep it cheap and free of I/O, and return
+    /// identifiers, never personal data or secrets, under keys the host defines for its domain: the engine's own
+    /// keys name engine concepts only.
+    /// A throw is logged and ignored: it never affects the step.
+    /// </remarks>
+    IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(object? commandData, object? workflowContext) =>
+        [];
 }

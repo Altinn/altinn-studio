@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -19,7 +20,6 @@ const mockDialogTexts: AboutAssistantDialogTexts = {
 describe('AboutAssistantDialog', () => {
   afterEach(() => {
     window.localStorage.clear();
-    jest.clearAllMocks();
   });
 
   it('should render the trigger button', () => {

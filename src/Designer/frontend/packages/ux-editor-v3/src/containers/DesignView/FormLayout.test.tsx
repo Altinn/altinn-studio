@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormLayoutProps } from './FormLayout';
 import { FormLayout } from './FormLayout';
 import { layoutMock } from '../../testing/layoutMock';
@@ -32,7 +33,7 @@ describe('FormLayout', () => {
 
 const render = (props?: Partial<FormLayoutProps>) =>
   renderWithMockStore()(
-    <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormItemContextProvider>

@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
@@ -35,7 +36,7 @@ describe('useDeleteOptionListMutation', () => {
       [QueryKey.OptionLists, org, app],
       [{ title: optionsListId, data: [] }],
     );
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const renderDeleteOptionListMutationResult = renderHookWithProviders(
       () => useDeleteOptionListMutation(org, app),
       { queryClient },

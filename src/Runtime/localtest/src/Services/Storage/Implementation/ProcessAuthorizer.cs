@@ -2,17 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Storage.Authorization;
 
 /// <summary>
-/// Authorizer for process operations.
+/// Authorizer for process operations. The app that owns the instance is always allowed: it commits
+/// process transitions and their data on behalf of a user it has already authorized.
 /// </summary>
 public class ProcessAuthorizer : IProcessAuthorizer
 {
     private readonly IAuthorization _authorizationService;
+    private readonly IClaimsPrincipalProvider _claimsPrincipalProvider;
     private readonly GeneralSettings _generalSettings;
 
     /// <summary>
@@ -20,32 +23,49 @@ public class ProcessAuthorizer : IProcessAuthorizer
     /// </summary>
     public ProcessAuthorizer(
         IAuthorization authorizationService,
+        IClaimsPrincipalProvider claimsPrincipalProvider,
         IOptions<GeneralSettings> settings
     )
     {
         _authorizationService = authorizationService;
+        _claimsPrincipalProvider = claimsPrincipalProvider;
         _generalSettings = settings.Value;
     }
 
     /// <inheritdoc/>
-    public Task<bool> AuthorizeProcessNext(Instance instance, ProcessState nextProcessState)
+    public Task<bool> AuthorizeProcessNext(
+        Instance instance,
+        ProcessState nextProcessState,
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(nextProcessState);
-        return Authorize(instance, nextProcessState);
+        return Authorize(instance, nextProcessState, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public Task<bool> AuthorizeInstanceLock(Instance instance) => Authorize(instance);
+    public Task<bool> AuthorizeInstanceLock(
+        Instance instance,
+        CancellationToken cancellationToken
+    ) => Authorize(instance, cancellationToken);
 
     /// <inheritdoc/>
-    public Task<bool> AuthorizeDataElementLock(Instance instance) => Authorize(instance);
+    public Task<bool> AuthorizeDataElementLock(
+        Instance instance,
+        CancellationToken cancellationToken
+    ) => Authorize(instance, cancellationToken);
 
     /// <inheritdoc/>
-    public Task<bool> AuthorizePresentationTextsUpdate(Instance instance) => Authorize(instance);
+    public Task<bool> AuthorizePresentationTextsUpdate(
+        Instance instance,
+        CancellationToken cancellationToken
+    ) => Authorize(instance, cancellationToken);
 
     /// <inheritdoc/>
-    public Task<bool> AuthorizeDataValuesUpdate(Instance instance) =>
-        AuthorizeWithSyncAdapterBypass(instance);
+    public Task<bool> AuthorizeDataValuesUpdate(
+        Instance instance,
+        CancellationToken cancellationToken
+    ) => AuthorizeWithSyncAdapterBypass(instance, cancellationToken);
 
     /// <summary>
     /// Get all actions that allow process next for the given task type.
@@ -67,18 +87,26 @@ public class ProcessAuthorizer : IProcessAuthorizer
         };
     }
 
-    private Task<bool> AuthorizeWithSyncAdapterBypass(Instance instance)
+    private Task<bool> AuthorizeWithSyncAdapterBypass(
+        Instance instance,
+        CancellationToken cancellationToken
+    )
     {
         if (_authorizationService.UserHasRequiredScope(_generalSettings.InstanceSyncAdapterScope))
         {
             return Task.FromResult(true);
         }
 
-        return Authorize(instance);
+        return Authorize(instance, cancellationToken);
     }
 
-    private async Task<bool> Authorize(Instance instance)
+    private async Task<bool> Authorize(Instance instance, CancellationToken cancellationToken)
     {
+        if (IsCalledByApp(instance))
+        {
+            return true;
+        }
+
         string? taskId = instance.Process?.CurrentTask?.ElementId;
         string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
 
@@ -91,7 +119,14 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
         foreach (string action in actions)
         {
-            if (await _authorizationService.AuthorizeInstanceAction(instance, action, taskId))
+            if (
+                await _authorizationService.AuthorizeInstanceAction(
+                    instance,
+                    action,
+                    taskId,
+                    cancellationToken
+                )
+            )
             {
                 return true;
             }
@@ -100,8 +135,17 @@ public class ProcessAuthorizer : IProcessAuthorizer
         return false;
     }
 
-    private async Task<bool> Authorize(Instance instance, ProcessState nextProcessState)
+    private async Task<bool> Authorize(
+        Instance instance,
+        ProcessState nextProcessState,
+        CancellationToken cancellationToken
+    )
     {
+        if (IsCalledByApp(instance))
+        {
+            return true;
+        }
+
         if (instance.Process?.CurrentTask is null)
         {
             return false;
@@ -112,7 +156,12 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
         if (nextProcessState.CurrentTask?.FlowType == "AbandonCurrentMoveToNext")
         {
-            return await _authorizationService.AuthorizeInstanceAction(instance, "reject", taskId);
+            return await _authorizationService.AuthorizeInstanceAction(
+                instance,
+                "reject",
+                taskId,
+                cancellationToken
+            );
         }
 
         if (
@@ -128,7 +177,14 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
         foreach (string action in actions)
         {
-            if (await _authorizationService.AuthorizeInstanceAction(instance, action, taskId))
+            if (
+                await _authorizationService.AuthorizeInstanceAction(
+                    instance,
+                    action,
+                    taskId,
+                    cancellationToken
+                )
+            )
             {
                 return true;
             }
@@ -136,4 +192,11 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
         return false;
     }
+
+    /// <summary>
+    /// Whether the caller is the app that owns the instance. Storage cannot yet tell an app token
+    /// from other service owner tokens, so any token for the org that owns the app qualifies.
+    /// </summary>
+    private bool IsCalledByApp(Instance instance) =>
+        _claimsPrincipalProvider.GetUser().GetOrg() is { } org && org == instance.Org;
 }

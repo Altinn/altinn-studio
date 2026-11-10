@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../../../../testing/mocks';
@@ -18,7 +19,7 @@ const sampleApiKey: BotAccountApiKey = {
 describe('useGetBotAccountApiKeysQuery', () => {
   it('should fetch and return bot account API keys', async () => {
     const queryClient = createQueryClientMock();
-    const queries = { getBotAccountApiKeys: jest.fn().mockResolvedValue([sampleApiKey]) };
+    const queries = { getBotAccountApiKeys: vi.fn().mockResolvedValue([sampleApiKey]) };
 
     const { result } = renderHookWithProviders(
       () => useGetBotAccountApiKeysQuery(testOrg, testBotAccountId),
@@ -35,7 +36,7 @@ describe('useGetBotAccountApiKeysQuery', () => {
 
   it('should not fetch when botAccountId is empty', () => {
     const queryClient = createQueryClientMock();
-    const queries = { getBotAccountApiKeys: jest.fn() };
+    const queries = { getBotAccountApiKeys: vi.fn() };
 
     renderHookWithProviders(() => useGetBotAccountApiKeysQuery(testOrg, ''), {
       queryClient,
@@ -47,7 +48,7 @@ describe('useGetBotAccountApiKeysQuery', () => {
 
   it('should return empty array when bot has no keys', async () => {
     const queryClient = createQueryClientMock();
-    const queries = { getBotAccountApiKeys: jest.fn().mockResolvedValue([]) };
+    const queries = { getBotAccountApiKeys: vi.fn().mockResolvedValue([]) };
 
     const { result } = renderHookWithProviders(
       () => useGetBotAccountApiKeysQuery(testOrg, testBotAccountId),

@@ -21,6 +21,9 @@ export interface ApplicationMetadata {
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
   messageBoxConfig?: MessageBoxConfig;
+  validFrom?: string | null;
+  validTo?: string | null;
+  disallowUserInstantiation?: boolean;
 }
 
 type HideAlwaysSettings = {
@@ -52,6 +55,5 @@ export interface IPartyTypesAllowed {
 }
 
 export interface IBackendFeaturesState {
-  jsonObjectInDataResponse: boolean; // Extended attachment validation
   addInstanceIdentifierToLayoutRequests: boolean; // Add instance identifier to layout requests
 }

@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Studio's syncroot entries for the operators the observability stack needs,
+# pointed at artifacts in the devenv kind fixture's registry. Applied by devenv
+# (src/Runtime/devenv, run with monitoring) before ../syncroot, since the stack's
+# resources need these operators' CRDs.
+resources:
+  - namespace.yaml
+  - ../../../studio/syncroot/base/otel-operator.yaml
+  - ../../../studio/syncroot/base/victoriametrics-operator.yaml
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/url
+        value: oci://kind-registry:5000/otel-operator-repo
+    target:
+      kind: OCIRepository
+      name: otel-operator
+  - patch: |-
+      - op: replace
+        path: /spec/url
+        value: oci://kind-registry:5000/victoriametrics-operator-repo
+    target:
+      kind: OCIRepository
+      name: victoriametrics-operator
+  - path: ../oci-repository.yaml
+    target:
+      kind: OCIRepository
+  - path: ../environment.yaml
+    target:
+      kind: Kustomization

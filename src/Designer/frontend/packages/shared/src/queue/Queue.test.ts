@@ -1,13 +1,15 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { Queue } from './Queue';
 
 describe('Queue', () => {
   let queue: Queue;
-  let callback: jest.Mock;
-  jest.useFakeTimers({ advanceTimers: true });
+  let callback: Mock;
+  vi.useFakeTimers({ shouldAdvanceTime: true });
 
   beforeEach(() => {
-    callback = jest.fn();
+    callback = vi.fn();
     queue = new Queue({ timeout: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
   });
 
@@ -29,7 +31,7 @@ describe('Queue', () => {
     expect(queue['queueTimeoutId']).toBeDefined();
     expect(callback).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
@@ -37,7 +39,7 @@ describe('Queue', () => {
     queue.addTaskToQueue({ id: 'task1', callback });
     queue.addTaskToQueue({ id: 'task2', callback });
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     expect(queue['queue'].length).toBe(0);
     expect(queue['queueTimeoutId']).toBeUndefined();
   });

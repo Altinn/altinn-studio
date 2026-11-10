@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateService, type CreateServiceProps } from './CreateService';
@@ -22,8 +23,8 @@ const orgMock: Organization = {
   full_name: 'unit-test',
 };
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
 }));
 
 const mockUserLogin: string = 'test';
@@ -69,7 +70,7 @@ const renderCreateService = (
 const originalWindowLocation = window.location;
 
 describe('CreateService', () => {
-  const windowLocationAssignMock = jest.fn();
+  const windowLocationAssignMock = vi.fn();
   beforeEach(() => {
     delete window.location;
     Object.defineProperty(window, 'location', {
@@ -82,7 +83,6 @@ describe('CreateService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,
@@ -178,7 +178,7 @@ describe('CreateService', () => {
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     const axiosError = createApiErrorMock(ServerCodes.Conflict);
-    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
+    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(axiosError));
 
     renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
@@ -197,7 +197,7 @@ describe('CreateService', () => {
     });
     await user.click(createBtn);
 
-    expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(axiosError);
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });
@@ -238,7 +238,7 @@ describe('CreateService', () => {
   it('should not display loading if process form fails, should display create and cancel button', async () => {
     const user = userEvent.setup();
     const axiosError = createApiErrorMock(ServerCodes.Conflict);
-    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
+    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(axiosError));
 
     renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
@@ -260,7 +260,7 @@ describe('CreateService', () => {
       });
     await user.click(getCreateBtn());
 
-    expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(axiosError);
 
     await waitFor(() =>
       expect(
@@ -299,7 +299,7 @@ describe('CreateService', () => {
 
   it('should call onSubmit with correct data when form is submitted', async () => {
     const user = userEvent.setup();
-    const addRepo = jest.fn().mockResolvedValue(repository);
+    const addRepo = vi.fn().mockResolvedValue(repository);
     const queryClient = createQueryClientMock();
     queryClient.setQueryData(
       [QueryKey.CustomTemplates, mockUser.login],
@@ -390,7 +390,7 @@ describe('CreateService', () => {
 
   it('should display template error message when template use fails', async () => {
     const user = userEvent.setup();
-    const addRepoMock = jest.fn().mockImplementation(() =>
+    const addRepoMock = vi.fn().mockImplementation(() =>
       Promise.reject({
         error: 'CustomTemplateException',
         response: { status: ServerCodes.BadRequest, data: { error: 'CustomTemplateException' } },

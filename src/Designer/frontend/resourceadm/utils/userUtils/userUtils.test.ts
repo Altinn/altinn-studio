@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getOrgNameByUsername, userHasAccessToOrganization } from './userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 

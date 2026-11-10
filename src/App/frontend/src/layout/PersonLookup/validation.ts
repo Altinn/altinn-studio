@@ -1,7 +1,7 @@
 import { Ajv, type JSONSchemaType } from 'ajv';
 import addErrors from 'ajv-errors';
 
-import type { Person, PersonLookupResponse } from 'src/layout/PersonLookup/PersonLookupComponent';
+import type { Person } from 'src/core/queries/lookup';
 
 const ajv = new Ajv({ allErrors: true });
 addErrors(ajv);
@@ -71,34 +71,3 @@ export function checkValidSsn(ssn: string): boolean {
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
 export const validateSsn = ajv.compile(ssnSchema);
-
-const personLookupResponseSchema: JSONSchemaType<PersonLookupResponse> = {
-  type: 'object',
-  oneOf: [
-    {
-      properties: {
-        success: { const: false },
-        personDetails: { type: 'null' },
-      },
-      required: ['success', 'personDetails'],
-    },
-    {
-      properties: {
-        success: { const: true },
-        personDetails: {
-          type: 'object',
-          properties: {
-            name: { type: 'string' },
-            ssn: { type: 'string' },
-          },
-          required: ['name', 'ssn'],
-          additionalProperties: true,
-        },
-      },
-      required: ['success', 'personDetails'],
-    },
-  ],
-  required: ['success', 'personDetails'],
-};
-
-export const validatePersonLookupResponse = ajv.compile(personLookupResponseSchema);

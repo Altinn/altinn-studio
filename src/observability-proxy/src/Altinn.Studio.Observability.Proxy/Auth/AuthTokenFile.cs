@@ -19,7 +19,9 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 ///
 /// Each identity accepts a list of tokens so that a rotation can overlap: the replaced token stays
 /// accepted next to the new one, and is dropped only after every source has moved. Outside a
-/// rotation both entries hold the same value, which is not reported.
+/// rotation both entries hold the same value, which is not reported. The first entry is the
+/// current slot and any later one the previous slot (<see cref="TokenSlot"/>), counted after
+/// duplicates are dropped.
 ///
 /// A top-level key the proxy does not know grants nothing, so a typo denies access rather than
 /// widening it. A token shorter than <see cref="MinimumTokenLength"/>, or one that is still a
@@ -157,7 +159,11 @@ internal sealed class AuthTokenFile
 
             foreach (var identity in identities)
             {
-                foreach (var token in identity.Tokens.Distinct(StringComparer.Ordinal))
+                foreach (
+                    var (token, position) in identity
+                        .Tokens.Distinct(StringComparer.Ordinal)
+                        .Select((token, position) => (token, position))
+                )
                 {
                     if (RejectionReason(token) is { } reason)
                     {
@@ -184,7 +190,12 @@ internal sealed class AuthTokenFile
                         );
                     }
 
-                    var entry = new BearerTokenOptions { Token = token, SourceIdentity = identity.Name };
+                    var entry = new BearerTokenOptions
+                    {
+                        Token = token,
+                        SourceIdentity = identity.Name,
+                        Slot = position == 0 ? TokenSlot.Current : TokenSlot.Previous,
+                    };
                     foreach (var routeGroup in routeGroups)
                     {
                         entry.AllowedRouteGroups.Add(routeGroup);
@@ -266,7 +277,7 @@ internal sealed class AuthTokenFile
         }
 
         return string.Equals(accessGroup, QueryGroup, StringComparison.OrdinalIgnoreCase)
-            ? ObservabilityPaths.ReadRouteGroups
+            ? ObservabilitySignal.ReadRouteGroups
             : [];
     }
 }

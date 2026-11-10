@@ -1,13 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FavoriteButton } from './FavoriteButton';
 import { repository } from 'app-shared/mocks/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const setStarredRepo = jest.fn();
-const unsetStarredRepo = jest.fn();
+const setStarredRepo = vi.fn();
+const unsetStarredRepo = vi.fn();
 
-jest.mock('../../hooks/mutations', () => ({
+vi.mock('../../hooks/mutations', () => ({
   useSetStarredRepoMutation: () => ({
     mutate: setStarredRepo,
   }),

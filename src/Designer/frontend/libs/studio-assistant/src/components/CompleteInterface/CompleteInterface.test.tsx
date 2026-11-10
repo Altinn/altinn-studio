@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { CompleteInterfaceProps } from './CompleteInterface';
 import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
@@ -8,8 +9,8 @@ import { MessageAuthor } from '../../types/MessageAuthor';
 import { mockChatThreads } from '../../mocks/mockChatThreads';
 
 // Test data
-const onSubmitMessage = jest.fn();
-const onSelectThread = jest.fn();
+const onSubmitMessage = vi.fn();
+const onSelectThread = vi.fn();
 
 const threadTitle1 = mockChatThreads[0].title;
 const threadTitle2 = mockChatThreads[1].title;
@@ -56,8 +57,8 @@ describe('CompleteInterface', () => {
 
   it('should render chat threads', () => {
     renderCompleteInterface({ chatThreads: mockChatThreads });
-    const thread1 = screen.getByRole('tab', { name: threadTitle1 });
-    const thread2 = screen.getByRole('tab', { name: threadTitle2 });
+    const thread1 = screen.getByRole('button', { name: threadTitle1 });
+    const thread2 = screen.getByRole('button', { name: threadTitle2 });
 
     expect(thread1).toBeInTheDocument();
     expect(thread2).toBeInTheDocument();
@@ -72,11 +73,11 @@ describe('CompleteInterface', () => {
 
   it('should call onSelectThread when a different thread is selected', async () => {
     const user = userEvent.setup();
-    const mockOnSelectThread = jest.fn();
+    const mockOnSelectThread = vi.fn();
     renderCompleteInterface({ chatThreads: mockChatThreads, onSelectThread: mockOnSelectThread });
 
-    const thread2Tab = screen.getByRole('tab', { name: threadTitle2 });
-    await user.click(thread2Tab);
+    const thread2Button = screen.getByRole('button', { name: threadTitle2 });
+    await user.click(thread2Button);
 
     expect(mockOnSelectThread).toHaveBeenCalledWith('2');
   });

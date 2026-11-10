@@ -1,10 +1,9 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
-
-import type { QueryClient } from '@tanstack/react-query';
+import type { RouteObject } from 'react-router';
 
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import * as appRoute from 'src/routes/app/app.route';
 import * as componentRoute from 'src/routes/component/component.route';
@@ -21,9 +20,36 @@ import { convertRouteModule } from 'src/routes/routeModule';
 import * as taskRoute from 'src/routes/task/task.route';
 import * as taskIndexRoute from 'src/routes/task/task-index.route';
 import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
-import type { ApiClients } from 'src/core/api-client/ApiClients';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
+import type { AppQueriesContext } from 'src/core/queries/types';
 
-export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
+/**
+ * The instance route and the routes below it. Tests route through them with `InstanceRoutesRouter`.
+ */
+export const instanceRoutes: RouteObject = {
+  path: routes.instance,
+  ...convertRouteModule(instanceRoute),
+  children: [
+    { index: true, ...convertRouteModule(instanceIndexRoute) },
+    { path: TaskKeys.ProcessEnd, ...convertRouteModule(processEndRoute) },
+    {
+      path: routes.task,
+      ...convertRouteModule(taskRoute),
+      children: [
+        { index: true, ...convertRouteModule(taskIndexRoute) },
+        {
+          path: routes.page,
+          children: [
+            { index: true, ...convertRouteModule(pageRoute) },
+            { path: routes.componentCatchAll, ...convertRouteModule(componentRoute) },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export function createRouter({ queryClient, queries }: { queryClient: AppQueryClient; queries: AppQueriesContext }) {
   return createBrowserRouter(
     [
       {
@@ -44,28 +70,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
               { index: true, ...convertRouteModule(statelessIndexRoute) },
             ],
           },
-          {
-            path: routes.instance,
-            ...convertRouteModule(instanceRoute),
-            children: [
-              { index: true, ...convertRouteModule(instanceIndexRoute) },
-              { path: TaskKeys.ProcessEnd, ...convertRouteModule(processEndRoute) },
-              {
-                path: routes.task,
-                ...convertRouteModule(taskRoute),
-                children: [
-                  { index: true, ...convertRouteModule(taskIndexRoute) },
-                  {
-                    path: routes.page,
-                    children: [
-                      { index: true, ...convertRouteModule(pageRoute) },
-                      { path: routes.componentCatchAll, ...convertRouteModule(componentRoute) },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+          instanceRoutes,
         ],
       },
       {
@@ -83,7 +88,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
       getContext() {
         const context = new RouterContextProvider();
         context.set(queryClientContext, queryClient);
-        context.set(apiClientsContext, apiClients);
+        context.set(appQueriesContext, queries);
         return context;
       },
     },

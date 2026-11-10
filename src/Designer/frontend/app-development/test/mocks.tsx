@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -77,6 +78,6 @@ export const renderHookWithProviders =
 
 const defaultPreviewContextProps: PreviewContextProps = {
   shouldReloadPreview: false,
-  doReloadPreview: jest.fn(),
-  previewHasLoaded: jest.fn(),
+  doReloadPreview: vi.fn(),
+  previewHasLoaded: vi.fn(),
 };

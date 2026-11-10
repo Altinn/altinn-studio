@@ -2,16 +2,13 @@ import {
   ComponentBase,
   FormComponentProps,
   IDataModelReference,
-  SummarizableComponentProps,
   TRBFormComp,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompAddToListExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
+export interface CompAddToListExternal extends ComponentBase, FormComponentProps {
   type: 'AddToList';
-  textResourceBindings?: TRBFormComp & TRBSummarizable;
+  textResourceBindings?: TRBFormComp;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IDataModelReference };
@@ -30,7 +27,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: true,
+    isSummarizable: false,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -45,4 +42,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: cc2485e9dc15f99dec15740bd19fd9da5aad139d4abcbe1a6d0a1c6d86ae2402
+// Source hash: 78b44bf268e7f97202b4de2bcc50c7e9048d17e7d887c83f9f96b26f0a043ca7

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Ref } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

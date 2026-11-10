@@ -35,6 +35,15 @@ public class TranslationServiceTests
                                 new TextResourceVariable() { Key = "second", DataSource = "customTextParameters" },
                             },
                         },
+                        new TextResourceElement
+                        {
+                            Id = "validation_errors.file_infected",
+                            Value = "Filen {0} inneholder virus.",
+                            Variables =
+                            [
+                                new TextResourceVariable() { Key = "filename", DataSource = "customTextParameters" },
+                            ],
+                        },
                     ],
                 }
             );
@@ -188,22 +197,141 @@ public class TranslationServiceTests
         await using var provider = _services.BuildServiceProvider();
         var translationService = provider.GetRequiredService<ITranslationService>();
 
-        var resultNn = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.Nn
-        );
+        var resultNn = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.Nn);
         Assert.Equal("Feltet er påkravd", resultNn);
 
-        var resultEn = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.En
-        );
+        var resultEn = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.En);
         Assert.Equal("Field is required", resultEn);
 
-        var resultNb = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.Nb
-        );
+        var resultNb = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.Nb);
         Assert.Equal("Feltet er påkrevd", resultNb);
+    }
+
+    [Theory]
+    [InlineData("pdf.preview_text", LanguageConst.Nb, "Dokumentet er en forhåndsvisning")]
+    [InlineData("pdf.preview_text", LanguageConst.Nn, "Dokumentet er ein førehandsvisning")]
+    [InlineData("pdf.preview_text", LanguageConst.En, "The document is a preview")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
+    [InlineData("validation_errors.missing_signatures", null, "Det mangler påkrevde signaturer.")]
+    [InlineData(
+        "validation_errors.invalid_signature_hash",
+        LanguageConst.Nb,
+        "Signerte data er endret etter at signaturen ble utført."
+    )]
+    [InlineData(
+        "validation_errors.invalid_signature_hash",
+        LanguageConst.Nn,
+        "Signerte data er endra etter at signaturen vart utført."
+    )]
+    [InlineData(
+        "validation_errors.invalid_signature_hash",
+        LanguageConst.En,
+        "The signed data has been modified after the signature was made."
+    )]
+    [InlineData(
+        "validation_errors.file_infected",
+        LanguageConst.En,
+        "The file is infected with malware and cannot be used."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback(string key, string? language, string expected)
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, language);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "validation_errors.file_too_large",
+        "maxSize",
+        "25",
+        "Filen er for stor. Største tillatte filstørrelse er 25 MB."
+    )]
+    [InlineData(
+        "validation_errors.xsd",
+        "path",
+        "/Skjema/dato",
+        "Feltet /Skjema/dato bryter reglene satt av XSD. Melding: "
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
+        string key,
+        string parameter,
+        string value,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, LanguageConst.Nb, new() { [parameter] = value });
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "validation_errors.too_many_data_elements",
+        "maxCount",
+        "3",
+        "Det er lagt til flere enn 3 elementer av typen vedlegg."
+    )]
+    [InlineData(
+        "validation_errors.too_few_data_elements",
+        "minCount",
+        "2",
+        "Det må legges til minst 2 elementer av typen vedlegg."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback_WithCountAndDataType(
+        string key,
+        string countParameter,
+        string count,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            key,
+            LanguageConst.Nb,
+            new() { [countParameter] = count, ["dataType"] = "vedlegg" }
+        );
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_ContentTypeNotAllowed_NamesAllowedTypes()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            "validation_errors.file_content_type_not_allowed",
+            LanguageConst.En,
+            new() { ["allowedContentTypes"] = "application/pdf, image/png" }
+        );
+
+        Assert.EndsWith("Allowed file types are: application/pdf, image/png.", result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_AppOverridesBuiltInValidationText_WithParameters()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            "validation_errors.file_infected",
+            LanguageConst.Nb,
+            new() { ["filename"] = "skjema.pdf", ["dataType"] = "vedlegg" }
+        );
+
+        Assert.Equal("Filen skjema.pdf inneholder virus.", result);
     }
 }

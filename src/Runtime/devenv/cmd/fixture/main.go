@@ -23,10 +23,11 @@ var (
 
 func main() {
 	var (
-		action   string
-		variant  string
-		cacheDir string
-		verbose  bool
+		action     string
+		variant    string
+		cacheDir   string
+		verbose    bool
+		monitoring bool
 	)
 
 	flag.StringVar(&action, "action", "", "Action to perform: run, stop (required)")
@@ -37,6 +38,7 @@ func main() {
 	flag.StringVar(&cacheDir, "c", defaultCacheDir, "Cache directory for config and certs (shorthand)")
 	flag.BoolVar(&verbose, "verbose", false, "Enable verbose output")
 	flag.BoolVar(&verbose, "v", false, "Enable verbose output (shorthand)")
+	flag.BoolVar(&monitoring, "monitoring", false, "Include the platform observability stack (run only)")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\n", os.Args[0])
@@ -45,18 +47,19 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
 		fmt.Fprintf(os.Stderr, "  %s --action run --variant standard\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s -a run -t minimal\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -a run -t minimal --monitoring\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s -a stop -t standard\n", os.Args[0])
 	}
 
 	flag.Parse()
 
-	if err := run(action, variant, cacheDir, verbose); err != nil {
+	if err := run(action, variant, cacheDir, verbose, monitoring); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(action, variant, cacheDir string, verbose bool) (runErr error) {
+func run(action, variant, cacheDir string, verbose, monitoring bool) (runErr error) {
 	// Validate action
 	action = strings.ToLower(strings.TrimSpace(action))
 	if action == "" {
@@ -88,7 +91,9 @@ func run(action, variant, cacheDir string, verbose bool) (runErr error) {
 	}
 
 	// Create the container runtime
-	runtime, err := kind.New(runtimeVariant, cacheDir, kind.DefaultOptions())
+	options := kind.DefaultOptions()
+	options.IncludeMonitoring = monitoring
+	runtime, err := kind.New(runtimeVariant, cacheDir, options)
 	if err != nil {
 		return fmt.Errorf("failed to create container runtime: %w", err)
 	}

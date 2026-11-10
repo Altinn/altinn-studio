@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StudioDetails, StudioTabs } from '@studio/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
@@ -29,41 +30,55 @@ export const PolicySubjectsPerson = ({
 }: PolicySubjectsPersonProps) => {
   const { t } = useTranslation();
   const { policyRule } = usePolicyRuleContext();
+  // The subject lists are large, so they are only rendered while visible
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>(TabId.AccessPackages);
 
   return (
-    <StudioDetails data-color='neutral'>
+    <StudioDetails
+      data-color='neutral'
+      onToggle={(event: Event) => setIsOpen((event.target as HTMLDetailsElement).open)}
+    >
       <StudioDetails.Summary className={classes.personAccordion}>
         <PersonIcon fontSize={28} /> {t('policy_editor.person_subjects_header')}
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
-        <StudioTabs defaultValue={TabId.AccessPackages}>
-          <StudioTabs.List>
-            <StudioTabs.Tab value={TabId.AccessPackages}>
-              {t('policy_editor.rule_card_subjects_access_packages')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={TabId.Guardian}>
-              {t('policy_editor.rule_card_subjects_guardianships')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={TabId.Other}>
-              {t('policy_editor.rule_card_subjects_other_roles')}
-            </StudioTabs.Tab>
-          </StudioTabs.List>
-          <StudioTabs.Panel value={TabId.AccessPackages}>
-            <PolicyAccessPackages accessPackages={personAccessPackages} isPersonSubject />
-          </StudioTabs.Panel>
-          <StudioTabs.Panel value={TabId.Guardian}>
-            <PolicyAccessPackages accessPackages={guardianshipAccessPackages} isPersonSubject />
-          </StudioTabs.Panel>
-          <StudioTabs.Panel value={TabId.Other}>
-            <RoleList
-              selectedSubjects={policyRule.subject}
-              subjects={personSubjects}
-              isPersonSubject
-              heading={t('policy_editor.rule_card_subjects_other_roles')}
-              handleChange={handleSubjectChange}
-            />
-          </StudioTabs.Panel>
-        </StudioTabs>
+        {isOpen && (
+          <StudioTabs value={activeTab} onChange={setActiveTab}>
+            <StudioTabs.List>
+              <StudioTabs.Tab value={TabId.AccessPackages}>
+                {t('policy_editor.rule_card_subjects_access_packages')}
+              </StudioTabs.Tab>
+              <StudioTabs.Tab value={TabId.Guardian}>
+                {t('policy_editor.rule_card_subjects_guardianships')}
+              </StudioTabs.Tab>
+              <StudioTabs.Tab value={TabId.Other}>
+                {t('policy_editor.rule_card_subjects_other_roles')}
+              </StudioTabs.Tab>
+            </StudioTabs.List>
+            <StudioTabs.Panel value={TabId.AccessPackages}>
+              {activeTab === TabId.AccessPackages && (
+                <PolicyAccessPackages accessPackages={personAccessPackages} isPersonSubject />
+              )}
+            </StudioTabs.Panel>
+            <StudioTabs.Panel value={TabId.Guardian}>
+              {activeTab === TabId.Guardian && (
+                <PolicyAccessPackages accessPackages={guardianshipAccessPackages} isPersonSubject />
+              )}
+            </StudioTabs.Panel>
+            <StudioTabs.Panel value={TabId.Other}>
+              {activeTab === TabId.Other && (
+                <RoleList
+                  selectedSubjects={policyRule.subject}
+                  subjects={personSubjects}
+                  isPersonSubject
+                  heading={t('policy_editor.rule_card_subjects_other_roles')}
+                  handleChange={handleSubjectChange}
+                />
+              )}
+            </StudioTabs.Panel>
+          </StudioTabs>
+        )}
       </StudioDetails.Content>
     </StudioDetails>
   );

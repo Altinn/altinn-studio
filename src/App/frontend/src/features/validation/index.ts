@@ -70,6 +70,7 @@ export type NodeVisibility = 'visible' | 'showAll' | number;
 export type ValidationSliceState = {
   state: ValidationState;
   otherDataElementBackendValidations: DataModelValidations;
+  otherDataElementComponentValidations: Record<string, BackendComponentValidation[]>;
   formMask: number;
   pageMasks: Record<string, number>;
   rowMasks: Record<string, number>;
@@ -87,6 +88,7 @@ export type ValidationSliceState = {
 
 export type ValidationState = {
   task: BaseValidation[];
+  component: BackendComponentValidation[];
 };
 
 export type DataModelValidations = {
@@ -140,7 +142,21 @@ export type FieldValidation<Severity extends ValidationSeverity = ValidationSeve
   // When showing all backend validations we want to associate the validations to nodes if we can, and show the rest as unclickable
   // In order to avoid showing the same validation multiple times we need a unique identifier.
   backendValidationId?: string;
+  // Indexed id of the component the backend linked this validation to. When set, the validation is shown only on
+  // that component instead of on every component bound to the field.
+  componentId?: string;
 };
+
+/**
+ * Backend validation linked to a component, but not to any field in the data model
+ */
+export type BackendComponentValidation<Severity extends ValidationSeverity = ValidationSeverity> =
+  BaseValidation<Severity> & {
+    // Indexed id of the component
+    componentId: string;
+    dataElementId?: string;
+    backendValidationId: string;
+  };
 
 export function hasBackendValidationId<T extends AnyValidation>(
   validation: T,
@@ -179,7 +195,8 @@ export type AnyValidation<Severity extends ValidationSeverity = ValidationSeveri
   | FieldValidation<Severity>
   | ComponentValidation<Severity>
   | AttachmentValidation<Severity>
-  | SubformValidation<Severity>;
+  | SubformValidation<Severity>
+  | BackendComponentValidation<Severity>;
 
 /**
  * The same as NodeValidation, but with a nodeId instead of a node.
@@ -203,6 +220,8 @@ export interface BackendValidationIssue {
   description?: string;
   field?: string;
   dataElementId: string;
+  componentId?: string; // Base component id the issue should be shown beside
+  rowIndexes?: number[]; // Repeating group row indexes for componentId
   severity: BackendValidationSeverity;
   source: string;
   noIncrementalUpdates?: boolean; // true if it will not be validated on PATCH, should be ignored when trying to submit

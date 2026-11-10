@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createRef, forwardRef } from 'react';
 import { useForwardedRef } from './useForwardedRef';
 import { render, screen } from '@testing-library/react';
@@ -19,7 +20,7 @@ describe('useForwardedRef', () => {
   });
 
   it('Forwards a callback ref to an internal ref', () => {
-    const callbackRef = jest.fn();
+    const callbackRef = vi.fn();
     render(<TestComponent ref={callbackRef} />);
     const button = screen.getByRole('button');
     expect(callbackRef).toHaveBeenCalledWith(button);

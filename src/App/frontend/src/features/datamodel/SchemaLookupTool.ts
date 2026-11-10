@@ -17,15 +17,17 @@ export type DataModelSchemaResult = {
  */
 export class SchemaLookupTool {
   private cache: Record<string, SchemaLookupResult> = {};
+  private nullableCache: Record<string, SchemaLookupResult> = {};
 
   constructor(
     private schema: JSONSchema7,
     private rootElementPath: string,
   ) {}
 
-  public getSchemaForPath(path: string): SchemaLookupResult {
-    if (path in this.cache) {
-      return this.cache[path];
+  public getSchemaForPath(path: string, preserveNullable = false): SchemaLookupResult {
+    const cache = preserveNullable ? this.nullableCache : this.cache;
+    if (path in cache) {
+      return cache[path];
     }
 
     const targetPointer = dotNotationToPointer(path);
@@ -33,9 +35,10 @@ export class SchemaLookupTool {
       schema: this.schema,
       rootElementPath: this.rootElementPath,
       targetPointer,
+      preserveNullable,
     });
 
-    this.cache[path] = result;
+    cache[path] = result;
     return result;
   }
 }

@@ -22,6 +22,7 @@ internal static class ProxyConfiguration
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:0"] = "traces",
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:1"] = "metrics",
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:2"] = "logs",
+            ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:3"] = "traces-logsql",
             ["ObservabilityProxy:Authentication:Tokens:1:Token"] = IngestToken,
             ["ObservabilityProxy:Authentication:Tokens:1:SourceIdentity"] = "runtime-prod",
             ["ObservabilityProxy:Authentication:Tokens:1:AllowedRouteGroups:0"] = "otlp",

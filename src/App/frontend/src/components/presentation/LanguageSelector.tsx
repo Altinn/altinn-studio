@@ -6,6 +6,7 @@ import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/LanguageSelector.module.css';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import {
   getAvailableLanguages,
@@ -18,13 +19,19 @@ export const LanguageSelector = () => {
   const isMobile = useIsMobile();
   const currentLanguage = useCurrentLanguage();
   const setCurrentLanguage = useSetCurrentLanguage();
+  const debounce = FormStore.data.useDebounceImmediately();
+  const waitForSave = FormStore.data.useWaitForSave({ includeRoot: true });
   const availableLanguages = getAvailableLanguages();
   const { langAsString } = useLanguage();
 
   const [isOpen, setIsOpen] = useState(false);
 
-  function updateLanguage(lang: string) {
+  async function updateLanguage(lang: string) {
     setIsOpen(false);
+    // Changing language replaces the form with a new bootstrap. Save the current form first so the
+    // bootstrap cannot read an old data version or race with the save triggered by unmounting it.
+    debounce('forced');
+    await waitForSave(true);
     setCurrentLanguage(lang);
   }
 

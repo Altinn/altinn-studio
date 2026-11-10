@@ -26,18 +26,18 @@ internal sealed class AppOptionsService : IAppOptionsService
     }
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetOptionsAsync(
+    public async Task<AppOptions> GetOptions(
         string optionId,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
         using var activity = _telemetry?.StartGetOptionsActivity();
-        return await _appOptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
+        return await _appOptionsFactory.GetOptionsProvider(optionId).GetAppOptions(language, keyValuePairs);
     }
 
     /// <inheritdoc/>
-    public async Task<AppOptions?> GetOptionsAsync(
+    public async Task<AppOptions?> GetOptions(
         InstanceIdentifier instanceIdentifier,
         string optionId,
         string? language,
@@ -48,7 +48,7 @@ internal sealed class AppOptionsService : IAppOptionsService
         var appOptionsProvider = _instanceAppOptionsFactory.GetOptionsProvider(optionId);
         if (appOptionsProvider != null)
         {
-            return await appOptionsProvider.GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
+            return await appOptionsProvider.GetInstanceAppOptions(instanceIdentifier, language, keyValuePairs);
         }
 
         return null;

@@ -81,7 +81,7 @@ public class DataLockController : ControllerBase
             return instanceError!;
         }
 
-        if (!await _processAuthorizer.AuthorizeDataElementLock(instance))
+        if (!await _processAuthorizer.AuthorizeDataElementLock(instance, cancellationToken))
         {
             return Forbid();
         }
@@ -157,7 +157,8 @@ public class DataLockController : ControllerBase
 
         bool authorized = await _authorizationService.AuthorizeAnyOfInstanceActions(
             instance,
-            ["write", "unlock", "reject"]
+            ["write", "unlock", "reject"],
+            cancellationToken
         );
         if (!authorized)
         {

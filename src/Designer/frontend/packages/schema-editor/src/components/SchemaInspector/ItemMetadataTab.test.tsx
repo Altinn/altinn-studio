@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { ItemMetadataTab } from './ItemMetadataTab';
@@ -12,7 +13,7 @@ import userEvent from '@testing-library/user-event';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org, app }),
 }));
 
@@ -32,7 +33,7 @@ describe('ItemMetadataTab', () => {
 
   it('should call mutation editing fields', async () => {
     const user = userEvent.setup({ delay: null });
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const dataType: DataType = {
       maxCount: 0,
       minCount: 0,
@@ -40,7 +41,7 @@ describe('ItemMetadataTab', () => {
         autoCreate: false,
       },
     };
-    const updateDataType = jest.fn(() => Promise.resolve());
+    const updateDataType = vi.fn(() => Promise.resolve());
     render({
       dataType,
       queries: {
@@ -89,7 +90,7 @@ const waitForLoadingToFinish = async () => {
 
 const waitForDebounce = async () => {
   await act(async () => {
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
   });
 };
 
@@ -101,7 +102,7 @@ type renderProps = {
 const render = ({ dataType = {}, queries }: renderProps) => {
   const queryClient = createQueryClientMock();
   queries = {
-    getDataType: jest.fn(() => Promise.resolve(dataType)),
+    getDataType: vi.fn(() => Promise.resolve(dataType)),
     ...queries,
   };
 

@@ -28,7 +28,7 @@ public class LegacyIValidationFormDataTests
             new DataType()
             {
                 Id = "test",
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 AppLogic = new() { ClassRef = typeof(TestModel).FullName },
             },
         },
@@ -104,7 +104,7 @@ public class LegacyIValidationFormDataTests
                             "field": "ddd",
                             "code": "test",
                             "description": "test",
-                            "customTextKey": null
+                            "customTextKey": "test"
                         },
                         {
                             "severity": 1,
@@ -113,7 +113,7 @@ public class LegacyIValidationFormDataTests
                             "field": "test",
                             "code": "test",
                             "description": "test",
-                            "customTextKey": null
+                            "customTextKey": "test"
                         }
                     ]
                     """

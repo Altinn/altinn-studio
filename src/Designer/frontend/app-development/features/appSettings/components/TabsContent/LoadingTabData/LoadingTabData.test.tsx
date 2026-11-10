@@ -1,10 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LoadingTabData } from './LoadingTabData';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('LoadingTabData', () => {
-  afterEach(jest.clearAllMocks);
-
   it('displays the spinner when the component loads', () => {
     render(<LoadingTabData />);
 

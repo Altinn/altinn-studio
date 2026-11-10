@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +15,10 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -257,7 +265,91 @@ public class AssistantWebSocketServiceTests
         _chatServiceMock.VerifyNoOtherCalls();
     }
 
-    private AssistantWebSocketService CreateService()
+    [Fact]
+    public async Task ListenerForwardsEachMessageInARootSpanWithTheUser()
+    {
+        const string Developer = "listener-test-user";
+        await using WebApplication agent = await StartAgentThatSendsOneMessageAsync();
+        var assistantClient = new Mock<IAssistantClient>();
+        var clients = new Mock<IHubClients<IAssistantClient>>();
+        clients.Setup(c => c.Group(Developer)).Returns(assistantClient.Object);
+        var hubContext = new Mock<IHubContext<AssistantProxyHub, IAssistantClient>>();
+        hubContext.Setup(h => h.Clients).Returns(clients.Object);
+        var spans = new List<Activity>();
+        // Initializes ServiceTelemetry first: creating its ActivitySource calls the listener's filter.
+        string sourceName = ServiceTelemetry.Source.Name;
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == sourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity =>
+            {
+                lock (spans)
+                {
+                    spans.Add(activity);
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+        using AssistantWebSocketService service = CreateService(agent.Urls.First(), hubContext.Object);
+
+        // The listener is started from a short-lived span, such as a hub's connect.
+        using (Activity caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start())
+        {
+            await service.EnsureConnectedAsync(Developer);
+        }
+
+        Activity forwarded = await ForwardedMessageSpanAsync(spans, Developer);
+        Assert.Equal(default, forwarded.ParentSpanId);
+        Assert.Equal(ActivityKind.Consumer, forwarded.Kind);
+        assistantClient.Verify(c => c.ReceiveAgentMessage(It.IsAny<object>()), Times.Once);
+    }
+
+    private static async Task<Activity> ForwardedMessageSpanAsync(List<Activity> spans, string developer)
+    {
+        for (int attempt = 0; attempt < 100; attempt++)
+        {
+            lock (spans)
+            {
+                Activity span = spans.Find(span =>
+                    span.DisplayName == "AssistantWebSocketService.ForwardMessage"
+                    && span.GetTagItem(ServiceTelemetry.Attributes.EndUserId) as string == developer
+                );
+                if (span is not null)
+                {
+                    return span;
+                }
+            }
+            await Task.Delay(50);
+        }
+        throw new TimeoutException("The listener forwarded no message.");
+    }
+
+    private static async Task<WebApplication> StartAgentThatSendsOneMessageAsync()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        WebApplication agent = builder.Build();
+        agent.UseWebSockets();
+        agent.Run(async context =>
+        {
+            using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            byte[] message = Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}""");
+            await webSocket.SendAsync(message, WebSocketMessageType.Text, true, CancellationToken.None);
+            try
+            {
+                await webSocket.ReceiveAsync(new byte[256], CancellationToken.None);
+            }
+            catch (WebSocketException) { }
+        });
+        await agent.StartAsync();
+        return agent;
+    }
+
+    private AssistantWebSocketService CreateService(
+        string agentUrl = "http://altinn-altinity-agents",
+        IHubContext<AssistantProxyHub, IAssistantClient> hubContext = null
+    )
     {
         var services = new ServiceCollection();
         services.AddTransient(_ => _chatServiceMock.Object);
@@ -265,8 +357,8 @@ public class AssistantWebSocketServiceTests
 
         return new AssistantWebSocketService(
             NullLogger<AssistantWebSocketService>.Instance,
-            Options.Create(new AssistantSettings { AgentUrl = "http://altinn-altinity-agents" }),
-            Mock.Of<IHubContext<AssistantProxyHub, IAssistantClient>>(),
+            Options.Create(new AssistantSettings { AgentUrl = agentUrl }),
+            hubContext ?? Mock.Of<IHubContext<AssistantProxyHub, IAssistantClient>>(),
             provider.GetRequiredService<IServiceScopeFactory>()
         );
     }

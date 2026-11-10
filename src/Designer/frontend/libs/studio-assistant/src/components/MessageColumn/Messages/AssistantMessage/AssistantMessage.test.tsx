@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { AssistantMessage, type AssistantMessageProps } from './AssistantMessage';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
@@ -101,7 +102,7 @@ describe('AssistantMessage', () => {
   it('marks the stored vote', () => {
     renderAssistantMessage({
       message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: true }),
-      onClearMessageFeedback: jest.fn(),
+      onClearMessageFeedback: vi.fn(),
     });
 
     expect(screen.getByRole('button', { name: messageFeedbackTexts.thumbsUp })).toHaveAttribute(
@@ -112,7 +113,7 @@ describe('AssistantMessage', () => {
 
   it('clears the vote with the traceId when the chosen thumb is pressed again', async () => {
     const user = userEvent.setup();
-    const onClearMessageFeedback = jest.fn();
+    const onClearMessageFeedback = vi.fn();
     renderAssistantMessage({
       message: createAssistantMessage({ traceId: 'trace-123', feedbackThumbsUp: false }),
       onClearMessageFeedback,
@@ -139,7 +140,7 @@ describe('AssistantMessage', () => {
 const defaultProps: AssistantMessageProps = {
   message: createAssistantMessage(),
   texts: mockTexts,
-  onMessageFeedback: jest.fn(),
+  onMessageFeedback: vi.fn(),
 };
 
 const renderAssistantMessage = (props: Partial<AssistantMessageProps> = {}): RenderResult =>

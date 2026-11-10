@@ -2,6 +2,10 @@ import { ActionComponent } from 'src/layout/LayoutComponent';
 
 export abstract class SigningActionsDef extends ActionComponent<'SigningActions'> {
   protected readonly type = 'SigningActions';
+
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
 }
 
-// Source hash: fa69b9f4fc762a83139cc7d4b249b334c631ee135b1d396c35bb4172afa5dde3
+// Source hash: 8e6f533aa91d2ec70b9cc1f6ba9cea2fa000544f982a187b35e405725b98ca1d

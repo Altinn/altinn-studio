@@ -231,7 +231,9 @@ func RequestPDFWithHost(
 		if readErr != nil {
 			return nil, fmt.Errorf("read error response body: %w", readErr)
 		}
-		return nil, fmt.Errorf("%w %d: %s", errUnexpectedStatusCode, resp.StatusCode, string(body))
+		// The proxy reports the worker for failed requests too, so tests can load their output
+		failed := &PdfResponse{Input: testInput, WorkerIP: resp.Header.Get("X-Worker-Ip")}
+		return failed, fmt.Errorf("%w %d: %s", errUnexpectedStatusCode, resp.StatusCode, string(body))
 	}
 
 	data, err := io.ReadAll(resp.Body)

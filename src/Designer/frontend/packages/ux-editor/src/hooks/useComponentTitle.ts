@@ -2,13 +2,14 @@ import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
-import { formItemConfigs } from '../data/formItemConfig';
+import { getFormItemConfig } from '../data/formItemConfig';
 import type { IToolbarElement } from '../types/global';
 import { textResourcesByLanguageSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTextResourcesSelector } from 'app-shared/hooks';
 import type { ITextResource } from 'app-shared/types/global';
 import { getTextResource, getTitleByComponentType } from '../utils/language';
+import { getTextResourceId } from '../utils/textResourceUtils';
 
 export function useComponentTitle(): (
   formItem: FormComponent | FormContainer | IToolbarElement,
@@ -22,7 +23,7 @@ export function useComponentTitle(): (
         'textResourceBindings' in formItem ? getTitleByTextResource(formItem) : null;
       if (titleFromResource) return titleFromResource;
 
-      const getDisplayName = formItemConfigs[formItem.type]?.getDisplayName;
+      const getDisplayName = getFormItemConfig(formItem.type).getDisplayName;
       const componentType = getDisplayName ? getDisplayName(formItem) : formItem.type;
       return getTitleByComponentType(componentType, t);
     },
@@ -36,7 +37,7 @@ const useTextResourceTitle = (): ((item: FormComponent | FormContainer) => strin
   );
   return useCallback(
     (item: FormComponent | FormContainer) =>
-      getTextResource(item.textResourceBindings?.title, textResources),
+      getTextResource(getTextResourceId(item.textResourceBindings?.title), textResources),
     [textResources],
   );
 };

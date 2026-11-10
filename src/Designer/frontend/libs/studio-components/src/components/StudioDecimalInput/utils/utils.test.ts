@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 
 describe('utils', () => {

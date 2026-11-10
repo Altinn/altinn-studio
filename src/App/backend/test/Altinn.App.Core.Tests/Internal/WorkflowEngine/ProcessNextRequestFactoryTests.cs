@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -6,6 +7,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -21,6 +23,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Auth;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +48,7 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// The primary state blob is opaque to the factory (it is neither inspected nor rewritten -
-    /// the side-effects workflow inherits Main's final state via the engine), so any string works.
+    /// the auxiliary workflow inherits the primary workflow's final state via the engine), so any string works.
     /// </summary>
     private const string SignedTestState = "signed-state-blob";
 
@@ -54,12 +57,12 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
         IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
-        params IPipelineServiceTask[] serviceTasks
+        params IServiceTask[] serviceTasks
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        foreach (IPipelineServiceTask st in serviceTasks)
+        foreach (IServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
         }
@@ -69,10 +72,9 @@ public class ProcessNextRequestFactoryTests
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
-        var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create())],
-            appImplFactory
-        );
+        var stepOptionsResolver = new ProcessStepOptionsResolver([
+            new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
+        ]);
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -104,6 +106,77 @@ public class ProcessNextRequestFactoryTests
                 var appData = JsonSerializer.Deserialize<AppCommandData>(data);
                 return appData?.CommandKey == commandKey;
             });
+
+    /// <summary>
+    /// Registers a handler of the hook kind with <paramref name="stepOptions"/>, a task hook running for the tasks
+    /// <paramref name="runsForTask"/> accepts (every task when null).
+    /// </summary>
+    private static void AddHookHandler(
+        IServiceCollection services,
+        Type handlerType,
+        Func<string, bool>? runsForTask = null,
+        ProcessStepOptions? stepOptions = null
+    )
+    {
+        Func<string, bool> runs = runsForTask ?? (_ => true);
+        if (handlerType == typeof(IOnTaskStartingHandler))
+        {
+            var handler = new Mock<IOnTaskStartingHandler>();
+            handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
+            services.AddSingleton(handler.Object);
+        }
+        else if (handlerType == typeof(IOnTaskEndingHandler))
+        {
+            var handler = new Mock<IOnTaskEndingHandler>();
+            handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
+            services.AddSingleton(handler.Object);
+        }
+        else if (handlerType == typeof(IOnTaskAbandoningHandler))
+        {
+            var handler = new Mock<IOnTaskAbandoningHandler>();
+            handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
+            services.AddSingleton(handler.Object);
+        }
+        else if (handlerType == typeof(IOnProcessEndedHandler))
+        {
+            var handler = new Mock<IOnProcessEndedHandler>();
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
+            services.AddSingleton(handler.Object);
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(nameof(handlerType), handlerType, null);
+        }
+    }
+
+    private static readonly Type[] _hookHandlerTypes =
+    [
+        typeof(IOnTaskStartingHandler),
+        typeof(IOnTaskEndingHandler),
+        typeof(IOnTaskAbandoningHandler),
+        typeof(IOnProcessEndedHandler),
+    ];
+
+    public static TheoryData<Type> HookHandlerTypes => new(_hookHandlerTypes);
+
+    /// <summary>A transition that plans the hook kind's step, and that step's command key.</summary>
+    private static (ProcessStateChange StateChange, string HookKey) TransitionPlanning(Type handlerType) =>
+        handlerType == typeof(IOnTaskStartingHandler) ? (CreateTaskToTaskTransition(), OnTaskStartingHook.Key)
+        : handlerType == typeof(IOnTaskEndingHandler) ? (CreateTaskToTaskTransition(), OnTaskEndingHook.Key)
+        : handlerType == typeof(IOnTaskAbandoningHandler) ? (CreateTaskAbandonToNextTask(), OnTaskAbandonHook.Key)
+        : (CreateTaskToEndTransition(), OnProcessEndedHook.Key);
+
+    /// <summary>One handler of every hook kind, the task hooks running for every task, so every hook step is planned.</summary>
+    private static void AddEveryHookHandler(IServiceCollection services)
+    {
+        foreach (Type handlerType in _hookHandlerTypes)
+        {
+            AddHookHandler(services, handlerType);
+        }
+    }
 
     private static ProcessStateChange CreateTaskToTaskTransition(
         string fromTaskId = "Task_1",
@@ -227,7 +300,13 @@ public class ProcessNextRequestFactoryTests
                         CurrentTask = new ProcessElementInfo { ElementId = fromTaskId, AltinnTaskType = "data" },
                     },
                 },
-                new InstanceEvent { EventType = InstanceEventType.process_EndEvent.ToString() },
+                // ProcessEngine stamps every event with the process state it produced, so the end
+                // event's ProcessInfo carries the ended state: no current task, EndEvent set.
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_EndEvent.ToString(),
+                    ProcessInfo = new ProcessState { CurrentTask = null, EndEvent = endEvent },
+                },
             ],
         };
     }
@@ -305,6 +384,35 @@ public class ProcessNextRequestFactoryTests
     private static List<string> ExtractCommandKeys(WorkflowEnqueueEnvelope bundle) =>
         ExtractCommandKeys(bundle.Request.Workflows[0]);
 
+    /// <summary>
+    /// Each app step's command key paired with the BPMN element label it carries, null where the step
+    /// carries none. Asserting the pair rather than the label alone keeps the sequence and the labeling
+    /// in one expectation, so a step that moves between the two lifecycle groups cannot keep a stale
+    /// element while still passing.
+    /// </summary>
+    private static List<(string CommandKey, string? Element)> ExtractCommandElements(WorkflowRequest workflow)
+    {
+        var pairs = new List<(string, string?)>();
+
+        foreach (StepRequest step in workflow.Steps)
+        {
+            if (step.Command.Type != "app" || step.Command.Data is not { } data)
+                continue;
+            if (JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey is not { } key)
+                continue;
+
+            string? element =
+                step.Labels is { } labels
+                && labels.TryGetValue(ProcessNextRequestFactory.ProcessNextElementLabel, out string? value)
+                    ? value
+                    : null;
+
+            pairs.Add((key, element));
+        }
+
+        return pairs;
+    }
+
     private static List<string> ExtractCommandKeys(WorkflowRequest workflow)
     {
         return workflow
@@ -323,49 +431,49 @@ public class ProcessNextRequestFactoryTests
         bundle
             .Request.Workflows.SelectMany(ExtractCommandKeys)
             .Concat(
-                TryExtractSideEffectsEnqueueRequest(bundle) is { } sideEffectsRequest
-                    ? sideEffectsRequest.Workflows.SelectMany(ExtractCommandKeys)
+                TryExtractAuxiliaryEnqueueRequest(bundle) is { } auxiliaryRequest
+                    ? auxiliaryRequest.Workflows.SelectMany(ExtractCommandKeys)
                     : []
             )
             .ToList();
 
     /// <summary>
-    /// Unwraps the enqueue request embedded in the Main workflow's EnqueueSideEffectsWorkflow step
-    /// payload (the request that step submits to the engine at the commit boundary), or null when
-    /// the transition has no side effects.
+    /// Unwraps the enqueue request embedded in the primary workflow's EnqueueAuxiliaryWorkflows step
+    /// payload (the request that step submits to the engine after the task start), or null when
+    /// the transition has no auxiliary steps.
     /// </summary>
-    private static WorkflowEnqueueRequest? TryExtractSideEffectsEnqueueRequest(WorkflowEnqueueEnvelope bundle)
+    private static WorkflowEnqueueRequest? TryExtractAuxiliaryEnqueueRequest(WorkflowEnqueueEnvelope bundle)
     {
         StepRequest? enqueueStep = bundle
             .Request.Workflows.SelectMany(workflow => workflow.Steps)
             .SingleOrDefault(step =>
                 step.Command.Type == "app"
                 && step.Command.Data is { } data
-                && JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey == EnqueueSideEffectsWorkflow.Key
+                && JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey == EnqueueAuxiliaryWorkflows.Key
             );
         if (enqueueStep is null)
             return null;
 
         var commandData = JsonSerializer.Deserialize<AppCommandData>(enqueueStep.Command.Data!.Value)!;
         return CommandPayloadSerializer
-            .Deserialize<EnqueueSideEffectsWorkflowPayload>(commandData.Payload)!
+            .Deserialize<EnqueueAuxiliaryWorkflowsPayload>(commandData.Payload)!
             .EnqueueRequest;
     }
 
-    private static List<WorkflowRequest> ExtractSideEffectsWorkflows(WorkflowEnqueueEnvelope bundle)
+    private static List<WorkflowRequest> ExtractAuxiliaryWorkflows(WorkflowEnqueueEnvelope bundle)
     {
-        WorkflowEnqueueRequest? request = TryExtractSideEffectsEnqueueRequest(bundle);
+        WorkflowEnqueueRequest? request = TryExtractAuxiliaryEnqueueRequest(bundle);
         Assert.NotNull(request);
         Assert.NotEmpty(request.Workflows);
         return [.. request.Workflows];
     }
 
     /// <summary>
-    /// The side-effect command keys across all sibling workflows, in declaration order (one
-    /// single-step workflow per side effect).
+    /// The command keys of the auxiliary steps across all auxiliary workflows, in declaration order (one
+    /// single-step workflow per auxiliary step).
     /// </summary>
-    private static List<string> ExtractSideEffectsCommandKeys(WorkflowEnqueueEnvelope bundle) =>
-        ExtractSideEffectsWorkflows(bundle).SelectMany(ExtractCommandKeys).ToList();
+    private static List<string> ExtractAuxiliaryCommandKeys(WorkflowEnqueueEnvelope bundle) =>
+        ExtractAuxiliaryWorkflows(bundle).SelectMany(ExtractCommandKeys).ToList();
 
     private static List<ExecuteServiceTaskPayload> ExtractExecuteServiceTaskPayloads(WorkflowEnqueueEnvelope bundle)
     {
@@ -410,6 +518,32 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task EveryEnqueue_MintsItsTokenForTheActorAndCommandsItCarries()
     {
+        var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
+        var transition = CreateTaskToTaskTransition();
+        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
+
+        var acquire = await factory.CreateAcquire(
+            instance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            language: null
+        );
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            transition,
+            "saved-state",
+            new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+
+        AssertTokenBindsItsRequest(acquire);
+        AssertTokenBindsItsRequest(dependent);
+    }
+
+    private static WorkflowCallbackTokenGenerator CreateSigningTokenGenerator()
+    {
         var secretProvider = new Mock<IWorkflowCallbackSecretProvider>();
         secretProvider
             .Setup(x => x.GetSigningSecret())
@@ -422,22 +556,7 @@ public class ProcessNextRequestFactoryTests
                     ExpiresAt = DateTimeOffset.UtcNow.AddDays(1),
                 }
             );
-        var factory = CreateFactory(callbackTokenGenerator: new WorkflowCallbackTokenGenerator(secretProvider.Object));
-        var transition = CreateTaskToTaskTransition();
-        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-
-        var acquire = await factory.CreateAcquire(instance, action: null, SignedTestState, "acquire-key");
-        var dependent = await factory.CreateDependent(
-            TestInstance,
-            transition,
-            "saved-state",
-            new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
-        );
-
-        AssertTokenBindsItsRequest(acquire);
-        AssertTokenBindsItsRequest(dependent);
+        return new WorkflowCallbackTokenGenerator(secretProvider.Object);
     }
 
     /// <summary>
@@ -460,23 +579,23 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("reject")]
-    public async Task CreateAcquire_ProducesOneStepWithActionPayloadAndLabels(string? action)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateAcquire_ProducesOneStepWithThePreparedTransitionAndLabels(bool toProcessEnd)
     {
         var factory = CreateFactory();
-        var transition = CreateTaskToTaskTransition();
+        var transition = toProcessEnd ? CreateTaskToEndTransition() : CreateTaskToTaskTransition();
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key");
+        var acquire = await factory.CreateAcquire(instance, transition, SignedTestState, "acquire-key", language: null);
         var workflow = Assert.Single(acquire.Request.Workflows);
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
         var command = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-        Assert.Equal(AcquireProcessingStatus.Key, command.CommandKey);
+        Assert.Equal(ProcessingStatusAcquirer.Key, command.CommandKey);
         var payload = Assert.IsType<AcquireProcessingStatusPayload>(
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
-        Assert.Equal(action, payload.Action);
+        Assert.Equal(JsonSerializer.Serialize(transition), JsonSerializer.Serialize(payload.ProcessStateChange));
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
@@ -495,17 +614,191 @@ public class ProcessNextRequestFactoryTests
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
             "dependent-key"
         );
-        Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, ExtractCommandKeys(dependent));
+        Assert.Equal("Task_1", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("0", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        if (toProcessEnd)
+        {
+            Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        }
+        else
+        {
+            // The same target as the workflow that enters the task, so status reads name it from the start.
+            Assert.Equal("Task_2", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        }
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, ExtractCommandKeys(dependent));
     }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    [InlineData("", "nn")]
+    [InlineData(" ", "nn")]
+    public async Task CreateAcquire_UserActor_CarriesTheRequestedLanguage_OrTheProfileLanguageWithoutOne(
+        string? requested,
+        string expected
+    )
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            requested
+        );
+
+        Assert.Equal(expected, GetActor(acquire).Language);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationTypes.Org, "en", "en")]
+    [InlineData(AuthenticationTypes.Org, null, "nb")]
+    [InlineData(AuthenticationTypes.ServiceOwner, "en", "en")]
+    [InlineData(AuthenticationTypes.ServiceOwner, null, "nb")]
+    [InlineData(AuthenticationTypes.SystemUser, "en", "en")]
+    [InlineData(AuthenticationTypes.SystemUser, null, "nb")]
+    public async Task CreateAcquire_ActorOtherThanAUser_CarriesTheRequestedLanguage_OrNbWithoutOne(
+        AuthenticationTypes kind,
+        string? requested,
+        string expected
+    )
+    {
+        Authenticated authentication = kind switch
+        {
+            AuthenticationTypes.Org => TestAuthentication.GetOrgAuthentication(),
+            AuthenticationTypes.ServiceOwner => TestAuthentication.GetServiceOwnerAuthentication(),
+            AuthenticationTypes.SystemUser => TestAuthentication.GetSystemUserAuthentication(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+        var factory = CreateFactory(authentication: authentication);
+
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            requested
+        );
+
+        Assert.Equal(expected, GetActor(acquire).Language);
+    }
+
+    [Fact]
+    public async Task CreateAcquire_RequestsDifferingOnlyInLanguage_AreOneRequestToTheEngineAndTheToken()
+    {
+        // A process/next retried in another language must reach the engine as the same W1, not as an idempotency
+        // conflict, and its token must bind the same actor: the engine hashes the body without its context, and
+        // the actor hash leaves the language out.
+        var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
+        Instance instance = CreateTask1Instance();
+
+        var english = await factory.CreateAcquire(
+            instance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            "en"
+        );
+        var bokmal = await factory.CreateAcquire(
+            instance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            "nb"
+        );
+
+        Assert.Equal("en", GetActor(english).Language);
+        Assert.Equal("nb", GetActor(bokmal).Language);
+        Assert.Equal(english.IdempotencyKey, bokmal.IdempotencyKey);
+        Assert.Equal(
+            JsonSerializer.Serialize(english.Request with { Context = null }),
+            JsonSerializer.Serialize(bokmal.Request with { Context = null })
+        );
+        Assert.Equal(GetActorHashClaim(english), GetActorHashClaim(bokmal));
+        AssertTokenBindsItsRequest(english);
+        AssertTokenBindsItsRequest(bokmal);
+    }
+
+    [Fact]
+    public async Task CreateDependent_KeepsTheLanguageOfTheActorItContinues()
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            "en"
+        );
+
+        // W2 is built in W1's callback from the actor the engine echoes, not from the callback's authentication.
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToTaskTransition(),
+            "saved-state",
+            GetActor(acquire),
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+
+        Assert.Equal("en", GetActor(dependent).Language);
+    }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    [InlineData(" ", "nn")]
+    public async Task CreateChainInitiating_ActorCarriesTheInstantiationLanguage_OrTheProfileLanguageWithoutOne(
+        string? language,
+        string expected
+    )
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "initiating-key",
+            SignedTestState,
+            isInstantiation: true,
+            language: language
+        );
+
+        Assert.Equal(expected, GetActor(bundle).Language);
+    }
+
+    private static Instance CreateTask1Instance() =>
+        new() { Id = TestInstance.Id, Process = CreateTaskToTaskTransition().OldProcessState };
+
+    private static AppWorkflowContext GetContext(WorkflowEnqueueEnvelope envelope) =>
+        JsonSerializer.Deserialize<AppWorkflowContext>(envelope.Request.Context!.Value)!;
+
+    private static Actor GetActor(WorkflowEnqueueEnvelope envelope) => GetContext(envelope).Actor;
+
+    private static string? GetActorHashClaim(WorkflowEnqueueEnvelope envelope) =>
+        new JsonWebTokenHandler()
+            .ReadJsonWebToken(GetContext(envelope).CallbackToken)
+            .GetClaim(JwtClaimTypes.WorkflowCallback.ActorHash)
+            .Value;
 
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
     {
         // Arrange
-        var factory = CreateFactory();
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
@@ -527,24 +820,128 @@ public class ProcessNextRequestFactoryTests
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            // MutateProcessState (between end and start)
-            MutateProcessState.Key,
+            // CommitProcessState (commit boundary, between end and start)
+            CommitProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState (commit boundary)
-            CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
-            EnqueueSideEffectsWorkflow.Key,
+            // Enqueues the auxiliary workflows once the task has started
+            EnqueueAuxiliaryWorkflows.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
-        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
+        // MovedToAltinnEvent is auxiliary and runs in its own auxiliary workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
+    }
+
+    [Fact]
+    public async Task Create_TaskToTaskTransition_LabelsLifecycleStepsWithTheElementTheyRunFor()
+    {
+        // Arrange
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert
+        List<(string CommandKey, string? Element)> expected =
+        [
+            // Task end commands run for the task being left.
+            (EndTask.Key, "Task_1"),
+            (CommonTaskFinalization.Key, "Task_1"),
+            (OnTaskEndingHook.Key, "Task_1"),
+            (LockTaskData.Key, "Task_1"),
+            // The transition's own steps belong to neither element.
+            (CommitProcessState.Key, null),
+            // Task start commands run for the task being entered.
+            (UnlockTaskData.Key, "Task_2"),
+            (CleanupGeneratedFromTask.Key, "Task_2"),
+            (OnTaskStartingHook.Key, "Task_2"),
+            (CommonTaskInitialization.Key, "Task_2"),
+            (StartTask.Key, "Task_2"),
+            (EnqueueAuxiliaryWorkflows.Key, null),
+            (ReleaseProcessingStatus.Key, null),
+        ];
+        Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
+
+        // Auxiliary workflows name no element either.
+        Assert.All(
+            ExtractAuxiliaryWorkflows(bundle),
+            wf => Assert.All(ExtractCommandElements(wf), pair => Assert.Null(pair.Element))
+        );
+    }
+
+    [Fact]
+    public async Task Create_TaskToEndTransition_LabelsProcessEndStepsWithTheEndEvent()
+    {
+        // Arrange
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
+        var stateChange = CreateTaskToEndTransition();
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert
+        List<(string CommandKey, string? Element)> expected =
+        [
+            (EndTask.Key, "Task_1"),
+            (CommonTaskFinalization.Key, "Task_1"),
+            (OnTaskEndingHook.Key, "Task_1"),
+            (LockTaskData.Key, "Task_1"),
+            // A process end has no current task, so the end event is the element these steps run for.
+            (CommitProcessState.Key, null),
+            (OnProcessEndedHook.Key, null),
+            (DeleteDataOnProcessEnd.Key, null),
+            (ReleaseProcessingStatus.Key, null),
+            (EnqueueAuxiliaryWorkflows.Key, null),
+        ];
+        Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
+    }
+
+    [Fact]
+    public async Task Create_ServiceTask_LeavesPostCommitStepsUnlabeled()
+    {
+        // Arrange
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
+        var stateChange = CreateTaskToTaskTransition(toAltinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert: ExecuteServiceTask runs for the entering task but stays unlabeled, because it sits
+        // after the task start — labeling it would draw that task's name a second time, around work the
+        // task-start bracket already named.
+        List<(string CommandKey, string? Element)> pairs = ExtractCommandElements(bundle.Request.Workflows[0]);
+        Assert.Equal((ExecuteServiceTask.Key, null), pairs[^1]);
+        Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == CommonTaskInitialization.Key).Element);
     }
 
     [Fact]
@@ -602,30 +999,26 @@ public class ProcessNextRequestFactoryTests
         );
 
         // Assert
-        var processStatePayloads = bundle
+        string? payload = bundle
             .Request.Workflows[0]
             .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
             .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
-            .Where(appData =>
-                appData?.CommandKey == MutateProcessState.Key || appData?.CommandKey == CommitProcessState.Key
-            )
-            .Select(appData => appData!.Payload)
-            .ToList();
+            .Single(appData => appData?.CommandKey == CommitProcessState.Key)!
+            .Payload;
 
-        Assert.Equal(2, processStatePayloads.Count);
-        foreach (string? payload in processStatePayloads)
-        {
-            Assert.NotNull(payload);
-            using var document = JsonDocument.Parse(payload);
-            Assert.Equal("processStateChange", document.RootElement.GetProperty("$type").GetString());
-        }
+        Assert.NotNull(payload);
+        using var document = JsonDocument.Parse(payload);
+        Assert.Equal("processStateChange", document.RootElement.GetProperty("$type").GetString());
     }
 
     [Fact]
     public async Task Create_SameTaskLoopRevisit_RunsCommonTaskInitializationBeforeServiceTaskExecution()
     {
         // Arrange
-        var factory = CreateFactory(serviceTasks: new FakeServiceTask("subformPdf"));
+        var factory = CreateFactory(
+            configureServices: AddEveryHookHandler,
+            serviceTasks: new FakeServiceTask("subformPdf")
+        );
         var stateChange = CreateSameTaskLoopRevisit();
 
         // Act
@@ -640,39 +1033,38 @@ public class ProcessNextRequestFactoryTests
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
+        // A service task composes no lifecycle stages by default, so no EndTask or StartTask step is planned.
         var expected = new List<string>
         {
-            EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            MutateProcessState.Key,
+            CommitProcessState.Key,
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
-            CommitProcessState.Key,
-            EnqueueSideEffectsWorkflow.Key,
+            EnqueueAuxiliaryWorkflows.Key,
             ExecuteServiceTask.Key,
         };
+        // The service task's continuation releases, so this workflow has no ReleaseProcessingStatus.
         Assert.Equal(expected, keys);
-        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
 
-        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
-        Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+        // MovedToAltinnEvent is auxiliary and runs in its own auxiliary workflow.
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
 
         var workflow = bundle.Request.Workflows.Single();
         Assert.Equal("Process next: Task_SubformPdf -> Task_SubformPdf", workflow.OperationId);
-        Assert.Equal("Task_SubformPdf:4", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_SubformPdf:5", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("4", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
     }
 
     [Fact]
     public async Task Create_TaskToEndTransition_ProducesCorrectCommandSequence()
     {
         // Arrange
-        var factory = CreateFactory();
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
         var stateChange = CreateTaskToEndTransition();
 
         // Act
@@ -694,28 +1086,28 @@ public class ProcessNextRequestFactoryTests
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            // MutateProcessState
-            MutateProcessState.Key,
-            // Process end commands (pre-commit)
-            OnProcessEndingHook.Key,
-            EndProcessLegacyHook.Key,
-            // CommitProcessState
+            // CommitProcessState saves the ended state and keeps processing
             CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
-            EnqueueSideEffectsWorkflow.Key,
+            // Process end commands (post-commit)
+            OnProcessEndedHook.Key,
+            DeleteDataOnProcessEnd.Key,
+            // The release is the workflow's last save
+            ReleaseProcessingStatus.Key,
+            // Enqueues the auxiliary workflows once the end is released
+            EnqueueAuxiliaryWorkflows.Key,
         };
         Assert.Equal(expected, keys);
 
-        // The non-critical CompletedAltinnEvent runs in the separate side-effects workflow.
+        // CompletedAltinnEvent is auxiliary and runs in its own auxiliary workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([CompletedAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+        Assert.Equal([CompletedAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
     }
 
     [Fact]
-    public async Task Create_InitialTaskStart_NoMutateProcessState_IncludesInstanceCreatedEvent()
+    public async Task Create_InitialTaskStart_CommitsBeforeTaskStart_IncludesInstanceCreatedEvent()
     {
         // Arrange
-        var factory = CreateFactory();
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
         var stateChange = CreateInitialTaskStart();
 
         // Act
@@ -729,29 +1121,27 @@ public class ProcessNextRequestFactoryTests
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
-
-        // No MutateProcessState because there is no task-end
-        Assert.DoesNotContain(MutateProcessState.Key, keys);
-
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
-            // Task start commands only
+            ProcessingStatusAcquirer.Key,
+            // CommitProcessState, with no task-end commands before it
+            CommitProcessState.Key,
+            // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState
-            CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
-            EnqueueSideEffectsWorkflow.Key,
+            // Enqueues the auxiliary workflows once the task has started
+            EnqueueAuxiliaryWorkflows.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
-        // Both events are non-critical and run in the side-effects workflow, in order.
+        // Both events are auxiliary and run in their own auxiliary workflows, in declaration order.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+        Assert.Equal([MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
     }
 
     [Fact]
@@ -779,7 +1169,7 @@ public class ProcessNextRequestFactoryTests
     public async Task Create_TaskAbandonToNextTask_ProducesCorrectCommandSequence()
     {
         // Arrange
-        var factory = CreateFactory();
+        var factory = CreateFactory(configureServices: AddEveryHookHandler);
         var stateChange = CreateTaskAbandonToNextTask();
 
         // Act
@@ -799,28 +1189,138 @@ public class ProcessNextRequestFactoryTests
             // Abandon commands
             AbandonTask.Key,
             OnTaskAbandonHook.Key,
-            // MutateProcessState
-            MutateProcessState.Key,
+            // CommitProcessState
+            CommitProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState
-            CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
-            EnqueueSideEffectsWorkflow.Key,
+            // Enqueues the auxiliary workflows once the task has started
+            EnqueueAuxiliaryWorkflows.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
-        // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
+        // MovedToAltinnEvent is auxiliary and runs in its own auxiliary workflow.
         Assert.Single(bundle.Request.Workflows);
-        Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+        Assert.Equal([MovedToAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
     }
 
     [Fact]
-    public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndMarksCommitPayload()
+    public async Task Create_NoHookHandlers_PlansNoHookSteps()
+    {
+        var factory = CreateFactory();
+        string[] hookKeys =
+        [
+            OnTaskStartingHook.Key,
+            OnTaskEndingHook.Key,
+            OnTaskAbandonHook.Key,
+            OnProcessEndedHook.Key,
+        ];
+
+        foreach (
+            ProcessStateChange stateChange in new[]
+            {
+                CreateInitialTaskStart(),
+                CreateTaskToTaskTransition(),
+                CreateTaskAbandonToNextTask(),
+                CreateTaskToEndTransition(),
+            }
+        )
+        {
+            var bundle = await factory.CreateChainInitiating(
+                TestInstance,
+                stateChange,
+                "test-process-next-idempotency-key",
+                SignedTestState
+            );
+
+            Assert.Empty(ExtractAllCommandKeys(bundle).Intersect(hookKeys));
+        }
+    }
+
+    [Fact]
+    public async Task Create_HookHandlersForTheTargetTaskOnly_PlanOnlyTheStartingHook()
+    {
+        var factory = CreateFactory(configureServices: services =>
+        {
+            AddHookHandler(services, typeof(IOnTaskStartingHandler), taskId => taskId == "Task_2");
+            AddHookHandler(services, typeof(IOnTaskEndingHandler), taskId => taskId == "Task_2");
+        });
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateTaskToTaskTransition("Task_1", "Task_2"),
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        List<string> keys = ExtractCommandKeys(bundle);
+        Assert.Contains(OnTaskStartingHook.Key, keys);
+        Assert.DoesNotContain(OnTaskEndingHook.Key, keys);
+    }
+
+    public static TheoryData<Type, string, bool> LeavingHookMatches =>
+        new()
+        {
+            { typeof(IOnTaskEndingHandler), "Task_1", true },
+            { typeof(IOnTaskEndingHandler), "Task_2", false },
+            { typeof(IOnTaskAbandoningHandler), "Task_1", true },
+            { typeof(IOnTaskAbandoningHandler), "Task_2", false },
+        };
+
+    [Theory]
+    [MemberData(nameof(LeavingHookMatches))]
+    public async Task Create_EndingAndAbandonHooks_AreMatchedAgainstTheTaskBeingLeft(
+        Type handlerType,
+        string handlerTask,
+        bool planned
+    )
+    {
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(services, handlerType, taskId => taskId == handlerTask)
+        );
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        // Both transitions leave Task_1 for Task_2.
+        Assert.Equal(planned, ExtractCommandKeys(bundle).Contains(hookKey));
+    }
+
+    [Theory]
+    [MemberData(nameof(HookHandlerTypes))]
+    public async Task Create_TwoHandlersOfAKindRunForTheTask_PlansTheHookStepToRefuseThem(Type handlerType)
+    {
+        var factory = CreateFactory(configureServices: services =>
+        {
+            AddHookHandler(services, handlerType);
+            AddHookHandler(services, handlerType);
+        });
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
+
+        // Planning succeeds: the step fails permanently when it runs, where refusing here would fail the callback
+        // that plans the transition, which the engine retries.
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        Assert.Single(ExtractCommandKeys(bundle), key => key == hookKey);
+    }
+
+    [Fact]
+    public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndLeavesTheReleaseToItsContinuation()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
@@ -836,21 +1336,22 @@ public class ProcessNextRequestFactoryTests
             "test-process-next-idempotency-key"
         );
 
-        // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
+        // Assert - ExecuteServiceTask is primary: it stays in the primary workflow, after the commit boundary.
         var keys = ExtractCommandKeys(bundle);
         Assert.Contains(ExecuteServiceTask.Key, keys);
         int saveIndex = keys.IndexOf(CommitProcessState.Key);
-        int enqueueSideEffectsIndex = keys.IndexOf(EnqueueSideEffectsWorkflow.Key);
+        int enqueueAuxiliaryIndex = keys.IndexOf(EnqueueAuxiliaryWorkflows.Key);
         int executeServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
-        Assert.True(enqueueSideEffectsIndex > saveIndex);
-        // The side effects are scheduled before the service task runs, so they never wait on it.
-        Assert.True(executeServiceTaskIndex > enqueueSideEffectsIndex);
+        Assert.True(enqueueAuxiliaryIndex > saveIndex);
+        // The auxiliary workflows are scheduled before the service task runs, so they never wait on it.
+        Assert.True(executeServiceTaskIndex > enqueueAuxiliaryIndex);
 
-        // MovedToAltinnEvent is non-critical and runs in the side-effects workflow instead.
+        // MovedToAltinnEvent is auxiliary and runs in its own auxiliary workflow instead.
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.Single(bundle.Request.Workflows);
-        Assert.Contains(MovedToAltinnEvent.Key, ExtractSideEffectsCommandKeys(bundle));
-        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
+        Assert.Contains(MovedToAltinnEvent.Key, ExtractAuxiliaryCommandKeys(bundle));
+        // The service task's continuation releases, so this workflow has none.
+        Assert.DoesNotContain(ReleaseProcessingStatus.Key, keys);
 
         var payload = Assert.Single(ExtractExecuteServiceTaskPayloads(bundle));
         Assert.Equal("signing", payload.ServiceTaskType);
@@ -865,37 +1366,40 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// A simple IServiceTask with configurable type and options — a real class, not a mock,
-    /// because Moq bypasses the forwarding Define default the factory relies on.
+    /// because an unstubbed mock returns null from DefineExecute, which the factory needs.
     /// </summary>
     private sealed class FakeServiceTask(string type, ProcessStepOptions? options = null) : IServiceTask
     {
         public string Type => type;
 
-        public ProcessStepOptions? StepOptions => options;
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute, options);
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide
-    /// options carry the 30 min timeout and the poll's 48 h wait budget; the stage overrides the timeout for
-    /// itself.
+    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally, each with its own
+    /// timeout, and the poll's 48 h wait budget on the Finally alone.
     /// </summary>
-    private sealed class SigningTask : IPipelineServiceTask
+    private sealed class SigningTask : IServiceTask
     {
         public string Type => "signing";
 
-        public ProcessStepOptions? StepOptions =>
-            new() { MaxExecutionTime = TimeSpan.FromMinutes(30), WaitBudget = TimeSpan.FromHours(48) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    _ => Task.FromResult(ServiceTaskStageResult.Completed()),
+                    _ => Task.FromResult(StageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+                .Finally(
+                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
+                    new ProcessStepOptions
+                    {
+                        MaxExecutionTime = TimeSpan.FromMinutes(30),
+                        WaitBudget = TimeSpan.FromHours(48),
+                    }
+                );
     }
 
     private static List<(
@@ -943,7 +1447,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", serviceTaskSteps[1].OperationId);
         Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
 
-        // Both stay critical: in Main, after the commit boundary and the side-effects enqueue.
+        // Both stay primary: in the primary workflow, after the commit boundary and the auxiliary enqueue.
         var keys = ExtractCommandKeys(bundle);
         int saveIndex = keys.IndexOf(CommitProcessState.Key);
         int firstServiceTaskIndex = keys.IndexOf(ExecuteServiceTask.Key);
@@ -965,57 +1469,47 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert — the concluding step carries the task's own options unchanged; the stage's own
-        // timeout wins field-wise over the task's, and the unset WaitBudget field is inherited
-        // from the task (deliberate: shared options are the default, and a budget is inert on a
-        // stage that never defers).
+        // Assert — each step carries exactly the options its own item declared: the stage's timeout, and the
+        // conclusion's timeout and wait budget. Nothing is shared between them, so the stage, which never
+        // defers, is not handed a budget it could never use.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         var dispatch = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 0).Step;
         var conclusion = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 1).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
-        Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
+        Assert.Null(dispatch.Command.WaitBudget);
         Assert.Equal(TimeSpan.FromMinutes(30), conclusion.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
     }
 
     private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> OnSegmentClosed(
-        ServiceTaskContext context,
-        MailboxClosedReason reason
-    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
     /// <summary>
     /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
     /// shown to resolve the <c>Finally</c>'s options.
     /// </summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(
@@ -1031,11 +1525,11 @@ public class ProcessNextRequestFactoryTests
     /// the declaring stage" is distinguishable from both "first" and "last" — the
     /// <c>send → unrelated stage → reply terminal</c> shape the design supports.
     /// </summary>
-    private sealed class SurroundedSendArchivingTask : IPipelineServiceTask
+    private sealed class SurroundedSendArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(PlainStage)
                 .Stage(
@@ -1049,18 +1543,16 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// Two exchanges, the first answered <em>mid-pipeline</em>: Main therefore carries only the pipeline's
-    /// first segment and hands over to that exchange's receiver, with the journal's send and the terminal
-    /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct
-    /// timeouts so the receive step can be shown to resolve the handler that answers <em>it</em>.
+    /// Two exchanges, the first answered <em>mid-pipeline</em>: the primary workflow therefore carries only the
+    /// pipeline's first segment and hands over to that exchange's receiver, with the journal's send and the terminal
+    /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct timeouts so the
+    /// receive step can be shown to resolve the handler that answers <em>it</em>.
     /// </summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -1107,11 +1599,11 @@ public class ProcessNextRequestFactoryTests
         );
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", sendStep.OperationId);
         // The send's own item and nothing else: the conclusion — item 1 here — answers the exchange, so it
-        // runs on the receive workflows rather than in Main.
+        // runs on the receive workflows rather than in the primary workflow.
         Assert.Equal(0, sendStep.Payload.ItemIndex);
 
-        // Main's last step is the segment's last stage: completing it is what enqueues the first receiver,
-        // from inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
+        // The primary workflow's last step is the segment's last stage: completing it is what enqueues the first
+        // receiver, from inside the still-unsettled step, so the frontier never reads empty while the exchange is open.
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
     }
@@ -1139,8 +1631,8 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", operationIds[mint - 1]);
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[mint + 1]);
         Assert.Single(operationIds, id => id.StartsWith(MintMailbox.Key, StringComparison.Ordinal));
-        // The declaring stage ends Main whether or not the exchange's handler follows it: the unrelated stage
-        // composed after the send rides the continuation that stage's completion enqueues.
+        // The declaring stage ends the primary workflow whether or not the exchange's handler follows it: the unrelated
+        // stage composed after the send rides the continuation that stage's completion enqueues.
         Assert.DoesNotContain($"{ExecuteServiceTask.Key}: 2", operationIds);
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[^1]);
 
@@ -1216,11 +1708,11 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to
-    /// split at a reply handler, a composed <c>HandleReplies</c> made Main's planning throw, so this shape
-    /// could not reach the engine at all. Main carries only the pipeline's <em>first</em> segment — the
-    /// archive's send, whose completion starts that exchange's receive leg — with the journal's send and the
-    /// terminal belonging to the workflows further down the chain.
+    /// The assembly half of multi-exchange, and the seam nothing else covers: until the planner learned to split at a
+    /// reply handler, a composed <c>HandleReplies</c> made the primary workflow's planning throw, so this shape could
+    /// not reach the engine at all. The primary workflow carries only the pipeline's <em>first</em> segment — the
+    /// archive's send, whose completion starts that exchange's receive leg — with the journal's send and the terminal
+    /// belonging to the workflows further down the chain.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipelineAnsweredMidPipeline_EndsMainAtTheFirstSend()
@@ -1246,7 +1738,7 @@ public class ProcessNextRequestFactoryTests
 
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(ExecuteServiceTask.Key, keys[^1]);
-        // Only the archive's mailbox is minted in Main: the journal's clock starts in the continuation.
+        // Only the archive's mailbox is minted in the primary workflow: the journal's clock starts in the continuation.
         Assert.Single(keys, key => key == MintMailbox.Key);
         Assert.Equal(0, ExtractMintPayload(bundle).StageIndex);
     }
@@ -1265,15 +1757,15 @@ public class ProcessNextRequestFactoryTests
         );
 
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
-        // The signing pipeline's conclusion is its item 1, and Main runs it as an ordinary step.
+        // The signing pipeline's conclusion is its item 1, and the primary workflow runs it as an ordinary step.
         Assert.Contains(serviceTaskSteps, s => s.Payload.ItemIndex == 1);
     }
 
     /// <summary>
-    /// Main runs the stages up to and including the first mailbox-opening one and stops there: the plain stage
-    /// composed after the send is a later segment's step, and the handler that answers the exchange — this
-    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone. Nothing hands over to that
-    /// exchange from Main: the stage between the two is what will, from the continuation it rides.
+    /// The primary workflow runs the stages up to and including the first mailbox-opening one and stops there: the
+    /// plain stage composed after the send is a later segment's step, and the handler that answers the exchange — this
+    /// pipeline's terminal, at item index 3 — is the receive workflow's step alone. Nothing hands over to that exchange
+    /// from the primary workflow: the stage between the two is what will, from the continuation it rides.
     /// </summary>
     [Fact]
     public async Task Create_MailboxPipeline_EndsMainAtTheOpeningStage()
@@ -1375,52 +1867,68 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToTask_LabelsSourceAndTarget()
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndInstance()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 },
-            },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            "Task_2"
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Equal(3, labels.Count);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal(4, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
         Assert.Equal("Task_2", labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.Equal(
+            new InstanceIdentifier(TestInstance).InstanceGuid.ToString("N"),
+            labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
+        );
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceOnly()
+    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceAndInstanceOnly()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState { CurrentTask = null, EndEvent = "EndEvent_1" },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            targetTaskId: null
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Single(labels);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.Equal(3, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.True(labels.ContainsKey(ProcessNextRequestFactory.ProcessNextInstanceGuidLabel));
+    }
+
+    [Theory]
+    [InlineData(null, "0")]
+    [InlineData(0, "0")]
+    [InlineData(12, "12")]
+    [InlineData(-12, "-12")]
+    public void CreateProcessNextLabels_SourceFlow_IsInvariantAndDefaultsToZero(int? flow, string expected)
+    {
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.NumberFormat.NegativeSign = "minus";
+        try
+        {
+            CultureInfo.CurrentCulture = culture;
+            var labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+                new InstanceIdentifier(TestInstance),
+                new ProcessElementInfo { ElementId = "Task_1", Flow = flow },
+                targetTaskId: null
+            );
+
+            Assert.Equal(expected, labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     [Fact]
@@ -1581,10 +2089,8 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The legacy hook must see the ended process and pre-cleanup data before the terminal commit.
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(EndProcessLegacyHook.Key, keys[^2]);
-        Assert.Equal(CommitProcessState.Key, keys[^1]);
+        // The release is the last step: with no auxiliary steps, nothing is enqueued after it.
+        Assert.Equal([CommitProcessState.Key, DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key], keys[^3..]);
     }
 
     [Fact]
@@ -1650,12 +2156,8 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain("DeleteDataElementsIfConfigured", keys);
         Assert.DoesNotContain("DeleteInstanceIfConfigured", keys);
-        // Other process end commands should still be present
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
-        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
-        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
-        Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
+        Assert.Equal(ProcessingStatusAcquirer.Key, keys[0]);
+        Assert.Contains(CommitProcessState.Key, keys);
     }
 
     [Fact]
@@ -1675,7 +2177,7 @@ public class ProcessNextRequestFactoryTests
         );
 
         var keys = ExtractCommandKeys(bundle);
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, keys);
         Assert.Equal(EndTask.Key, keys[0]);
         Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
         Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);
@@ -1714,7 +2216,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_WithSideEffects_EmbedsAnInvisibleIndependentRootAtTheCommitBoundary()
+    public async Task Create_WithAuxiliaryCommands_EmbedsAnAuxiliaryIndependentRootAtTheCommitBoundary()
     {
         // Arrange
         var factory = CreateFactory();
@@ -1728,39 +2230,36 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert - one Main workflow; the side-effects workflow travels inside the
-        // EnqueueSideEffectsWorkflow step payload and is only enqueued once the commit ran.
-        var main = Assert.Single(bundle.Request.Workflows);
-        Assert.Equal("Process next: Task_1 -> Task_2", main.OperationId);
-        Assert.Null(main.IsHead);
+        // Assert - one primary workflow; the auxiliary workflow travels inside the
+        // EnqueueAuxiliaryWorkflows step payload and is only enqueued once the commit ran.
+        var primary = Assert.Single(bundle.Request.Workflows);
+        Assert.Equal("Process next: Task_1 -> Task_2", primary.OperationId);
+        Assert.Null(primary.IsHead);
 
-        WorkflowEnqueueRequest? sideEffectsRequest = TryExtractSideEffectsEnqueueRequest(bundle);
-        Assert.NotNull(sideEffectsRequest);
-        // The embedded batch reuses the Main batch's labels and context (incl. callback token),
-        // so ops label queries find the side-effects workflow and its callbacks authenticate.
-        Assert.Equal(bundle.Request.Labels, sideEffectsRequest.Labels);
-        Assert.Null(sideEffectsRequest.Context);
+        WorkflowEnqueueRequest? auxiliaryRequest = TryExtractAuxiliaryEnqueueRequest(bundle);
+        Assert.NotNull(auxiliaryRequest);
+        // The embedded batch reuses the primary batch's labels and context (incl. callback token),
+        // so ops label queries find the auxiliary workflow and its callbacks authenticate.
+        Assert.Equal(bundle.Request.Labels, auxiliaryRequest.Labels);
+        Assert.Null(auxiliaryRequest.Context);
 
-        var sideEffects = Assert.Single(sideEffectsRequest.Workflows);
-        Assert.Equal(
-            $"Process next side-effects: Task_1 -> Task_2 · {MovedToAltinnEvent.Key}",
-            sideEffects.OperationId
-        );
-        // An independent root, invisible to the collection heads frontier: no dependencies, does
-        // not pick up the current heads, and never becomes a head itself.
-        Assert.False(sideEffects.IsHead);
-        Assert.False(sideEffects.DependsOnHeads);
-        Assert.Null(sideEffects.DependsOn);
-        // State and Links are runtime-only: EnqueueSideEffectsWorkflow injects the commit-time
-        // state blob and the Main workflow id when the step executes.
-        Assert.Null(sideEffects.State);
-        Assert.Null(sideEffects.Links);
+        var auxiliary = Assert.Single(auxiliaryRequest.Workflows);
+        Assert.Equal($"Process next auxiliary: Task_1 -> Task_2 · {MovedToAltinnEvent.Key}", auxiliary.OperationId);
+        // An independent auxiliary root: no dependencies, does not pick up the current heads, and
+        // never becomes a head itself.
+        Assert.False(auxiliary.IsHead);
+        Assert.False(auxiliary.DependsOnHeads);
+        Assert.Null(auxiliary.DependsOn);
+        // State and Links are runtime-only: EnqueueAuxiliaryWorkflows injects the commit-time
+        // state blob and the primary workflow id when the step executes.
+        Assert.Null(auxiliary.State);
+        Assert.Null(auxiliary.Links);
     }
 
     [Fact]
-    public async Task Create_NoSideEffects_EmitsSingleWorkflowWithoutEnqueueStep()
+    public async Task Create_NoAuxiliaryCommands_EmitsSingleWorkflowWithoutEnqueueStep()
     {
-        // Arrange - no events, no service task, no instantiation extras -> no side effects
+        // Arrange - no events, no service task, no instantiation extras -> no auxiliary steps
         var factory = CreateFactory(registerEvents: false);
         var stateChange = CreateTaskToTaskTransition();
 
@@ -1778,12 +2277,12 @@ public class ProcessNextRequestFactoryTests
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
         Assert.Equal(SignedTestState, workflow.State);
-        Assert.DoesNotContain(EnqueueSideEffectsWorkflow.Key, ExtractCommandKeys(bundle));
-        Assert.Null(TryExtractSideEffectsEnqueueRequest(bundle));
+        Assert.DoesNotContain(EnqueueAuxiliaryWorkflows.Key, ExtractCommandKeys(bundle));
+        Assert.Null(TryExtractAuxiliaryEnqueueRequest(bundle));
     }
 
     [Fact]
-    public async Task Create_InstantiationWithNotification_EmitsOneSingleStepSiblingPerSideEffect()
+    public async Task Create_InstantiationWithNotification_EmitsOneSingleStepAuxiliaryWorkflowPerCommand()
     {
         // Arrange
         var factory = CreateFactory();
@@ -1800,10 +2299,10 @@ public class ProcessNextRequestFactoryTests
             notification: notification
         );
 
-        // Assert - the effects are independent outcomes: each rides its own single-step sibling
-        // workflow so a dead-lettered event registration cannot starve the notification behind it.
+        // Assert - the auxiliary steps are independent outcomes: each rides its own single-step
+        // auxiliary workflow so a dead-lettered event registration cannot starve the notification behind it.
         Assert.Single(bundle.Request.Workflows);
-        List<WorkflowRequest> siblings = ExtractSideEffectsWorkflows(bundle);
+        List<WorkflowRequest> siblings = ExtractAuxiliaryWorkflows(bundle);
         Assert.Equal(
             [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
             siblings.SelectMany(ExtractCommandKeys).ToList()
@@ -1821,12 +2320,12 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_SideEffectsOperationIds_MatchTheMarkerPrefixAndNameTheEffect()
+    public async Task Create_AuxiliaryOperationIds_MatchTheMarkerPrefixAndNameTheCommand()
     {
         // The prefix is a human-readable naming convention for ops queries and logs only - not
         // load-bearing for identification (wait/settle scoping and failure classification key off
         // the engine-persisted IsHead == false directive). Guard the convention so ops queries
-        // against the OperationId keep working, and guard the per-effect suffix so siblings of the
+        // against the OperationId keep working, and guard the per-command suffix so siblings of the
         // same transition stay distinguishable in listings.
         var factory = CreateFactory();
         var stateChange = CreateTaskToTaskTransition();
@@ -1839,11 +2338,11 @@ public class ProcessNextRequestFactoryTests
         );
 
         Assert.All(
-            ExtractSideEffectsWorkflows(bundle),
+            ExtractAuxiliaryWorkflows(bundle),
             sibling =>
             {
                 Assert.StartsWith(
-                    ProcessNextRequestFactory.SideEffectsOperationIdPrefix,
+                    ProcessNextRequestFactory.AuxiliaryOperationIdPrefix,
                     sibling.OperationId,
                     StringComparison.Ordinal
                 );
@@ -1902,7 +2401,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationTimeout_OverridesCommandDefault()
+    public async Task StepOptions_ServiceTask_ConclusionTimeout_OverridesCommandDefault()
     {
         // Arrange - tier 3: a greedy service task asks for two hours
         var factory = CreateFactory(
@@ -1929,7 +2428,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationBothFields_HonorsBoth()
+    public async Task StepOptions_ServiceTask_ConclusionBothFields_HonorsBoth()
     {
         // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
         var factory = CreateFactory(
@@ -1962,7 +2461,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationRetryOnly_FallsBackToCommandTimeout()
+    public async Task StepOptions_ServiceTask_ConclusionRetryOnly_FallsBackToCommandTimeout()
     {
         // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
         var factory = CreateFactory(
@@ -2100,19 +2599,19 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(0, step.RetryStrategy.MaxRetries);
     }
 
-    [Fact]
-    public async Task StepOptions_TaskStartingHook_ImplementationOverride_IsApplied()
+    [Theory]
+    [MemberData(nameof(HookHandlerTypes))]
+    public async Task StepOptions_HookStep_CarriesItsHandlersOptions(Type handlerType)
     {
-        // Arrange - tier 3 on a lifecycle hook (not just service tasks)
-        var hookMock = new Mock<IOnTaskStartingHandler>();
-        hookMock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns(true);
-        hookMock
-            .Setup(h => h.StepOptions)
-            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) });
-        var factory = CreateFactory(configureServices: s => s.AddSingleton(hookMock.Object));
-        var stateChange = CreateTaskToTaskTransition();
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(
+                services,
+                handlerType,
+                stepOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+            )
+        );
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
 
-        // Act
         var bundle = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
@@ -2120,8 +2619,81 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert
-        var step = GetStep(bundle, OnTaskStartingHook.Key);
-        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+        Assert.Equal(TimeSpan.FromMinutes(3), GetStep(bundle, hookKey).Command.MaxExecutionTime);
+    }
+
+    [Theory]
+    [MemberData(nameof(HookHandlerTypes))]
+    public async Task StepOptions_HookHandlerWithInvalidOptions_ThrowsAtEnqueue(Type handlerType)
+    {
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(
+                services,
+                handlerType,
+                stepOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-1) }
+            )
+        );
+        (ProcessStateChange stateChange, _) = TransitionPlanning(handlerType);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.CreateChainInitiating(
+                TestInstance,
+                stateChange,
+                "test-process-next-idempotency-key",
+                SignedTestState
+            )
+        );
+
+        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), exception.Message);
+    }
+
+    private sealed class StagedStartTask : IProcessTask
+    {
+        public string Type => "staged";
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Stage(
+                    _ => Task.FromResult(StageResult.Completed()),
+                    new ProcessStepOptions
+                    {
+                        MaxExecutionTime = TimeSpan.FromMinutes(5),
+                        RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(2), maxRetries: 7),
+                    }
+                )
+                .Build();
+    }
+
+    [Fact]
+    public async Task Create_TaskWithStagedStartPipeline_PlansOneStepPerStageWithItsOptions()
+    {
+        var factory = CreateFactory(configureServices: s => s.AddSingleton<IProcessTask>(new StagedStartTask()));
+        var stateChange = CreateTaskToTaskTransition(toAltinnTaskType: "staged");
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        List<StepRequest> startSteps = bundle
+            .Request.Workflows[0]
+            .Steps.Where(step => step.OperationId.StartsWith(StartTask.Key, StringComparison.Ordinal))
+            .ToList();
+        Assert.Equal(["StartTask: 0", "StartTask: 1"], startSteps.Select(step => step.OperationId));
+        Assert.Null(startSteps[0].Command.MaxExecutionTime);
+        Assert.Null(startSteps[0].RetryStrategy);
+        Assert.Equal(TimeSpan.FromMinutes(5), startSteps[1].Command.MaxExecutionTime);
+        Assert.Equal(7, startSteps[1].RetryStrategy?.MaxRetries);
+        Assert.All(
+            startSteps,
+            step => Assert.Equal("Task_2", step.Labels?[ProcessNextRequestFactory.ProcessNextElementLabel])
+        );
+
+        // The task being left composes nothing of its own: one stage, at index 0.
+        StepRequest endStep = GetStep(bundle, EndTask.Key);
+        Assert.Equal($"{EndTask.Key}: 0", endStep.OperationId);
     }
 }

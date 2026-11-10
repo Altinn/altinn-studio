@@ -4,10 +4,10 @@ import type { ChangeEvent } from 'react';
 import { Fieldset, LiveValidationMessage, RequiredIndicator } from '@app/form-component';
 
 import { RadioButton } from 'src/components/form/RadioButton';
+import { type SigneeState } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { type SigneeState } from 'src/layout/SigneeList/api';
-import type { AuthorizedOrganizationDetails } from 'src/layout/SigningActions/api';
+import type { AuthorizedOrganizationDetails } from 'src/core/queries/signing';
 
 interface OnBehalfOfChooserProps {
   currentUserSignee: SigneeState | undefined;
@@ -32,7 +32,7 @@ export const OnBehalfOfChooser = ({
       legend={<Lang id='signing.submit_panel_radio_group_legend' />}
       description={<Lang id='signing.submit_panel_radio_group_description' />}
       required={true}
-      requiredIndicator={<RequiredIndicator />}
+      requiredIndicator={<RequiredIndicator required />}
       aria-describedby={errorId}
     >
       {currentUserSignee && (

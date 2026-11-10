@@ -12,12 +12,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.AltinnEvents;
 
 public class InstanceCreatedAltinnEventTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -59,7 +59,7 @@ public class InstanceCreatedAltinnEventTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         // The engine's step id is the idempotency key: it is what Altinn Events dedupes a retried
         // registration on, so a command that stopped passing it would silently restore at-least-once
         // publication.
@@ -100,7 +100,7 @@ public class InstanceCreatedAltinnEventTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("AddEvent failed", failed.ErrorMessage);
         Assert.Equal("Exception", failed.ExceptionType);
     }

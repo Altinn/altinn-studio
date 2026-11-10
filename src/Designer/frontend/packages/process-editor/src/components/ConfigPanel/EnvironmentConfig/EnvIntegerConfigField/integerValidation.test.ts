@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getIntegerValueErrorKey } from './integerValidation';
 
 const errorKey = 'process_editor.configuration_panel.environment_config.integer_error';

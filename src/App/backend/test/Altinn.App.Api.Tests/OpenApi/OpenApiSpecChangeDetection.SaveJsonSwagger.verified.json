@@ -106,37 +106,48 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
-              "application/json": {
+              "application/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
-              "text/json": {
+              "text/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -163,6 +174,26 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              }
+            }
           },
           "409": {
             "description": "Conflict",
@@ -408,16 +439,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -444,6 +465,16 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -488,16 +519,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -524,6 +545,16 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -691,30 +722,73 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "application/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "text/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               }
             }
+          },
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "Unauthorized"
@@ -807,6 +881,65 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
             "content": {
@@ -874,7 +1007,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -910,6 +1043,66 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPatchResponseMultiple"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -956,66 +1149,6 @@
           },
           "422": {
             "description": "Unprocessable Content",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1119,8 +1252,8 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1135,16 +1268,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -1193,6 +1316,16 @@
                 }
               },
               "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1258,15 +1391,6 @@
             }
           },
           {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "includeRowId",
             "in": "query",
             "description": "Whether to initialize or remove AltinnRowId fields in the model",
@@ -1287,6 +1411,66 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       },
@@ -1345,15 +1529,6 @@
             }
           },
           {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "language",
             "in": "query",
             "description": "The language selected by the user.",
@@ -1363,6 +1538,26 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Created",
             "content": {
@@ -1393,22 +1588,52 @@
               }
             }
           },
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -1417,6 +1642,36 @@
             "description": "Conflict",
             "content": {
               "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1489,7 +1744,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -1627,15 +1882,6 @@
             }
           },
           {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "ignoredValidators",
             "in": "query",
             "description": "comma separated string of validators to ignore",
@@ -1669,6 +1915,66 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2576,8 +2882,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2606,8 +2912,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2742,8 +3048,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2802,8 +3108,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4214,8 +4520,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4244,8 +4550,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4443,8 +4749,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4473,8 +4779,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5061,16 +5367,17 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/pdf/format": {
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/pdf/preview": {
       "get": {
         "tags": [
           "Pdf"
         ],
-        "summary": "Get the pdf formatting",
+        "summary": "Generate a preview of the PDF for the current task, or for a PDF or subform PDF service task in the process",
         "parameters": [
           {
             "name": "org",
             "in": "path",
+            "description": "unique identifier of the organization responsible for the app",
             "required": true,
             "schema": {
               "type": "string"
@@ -5079,6 +5386,7 @@
           {
             "name": "app",
             "in": "path",
+            "description": "application identifier which is unique within an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5087,6 +5395,7 @@
           {
             "name": "instanceOwnerPartyId",
             "in": "path",
+            "description": "unique id of the party that is the owner of the instance",
             "required": true,
             "schema": {
               "type": "integer",
@@ -5096,6 +5405,7 @@
           {
             "name": "instanceGuid",
             "in": "path",
+            "description": "unique id to identify the instance",
             "required": true,
             "schema": {
               "type": "string",
@@ -5103,12 +5413,28 @@
             }
           },
           {
-            "name": "dataGuid",
-            "in": "path",
-            "required": true,
+            "name": "taskId",
+            "in": "query",
+            "description": "The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dataElementId",
+            "in": "query",
+            "description": "The subform data element to preview. Required when previewing a subform PDF service task.",
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The language of the preview, such as nb or en. Defaults to the user's language.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -5116,20 +5442,21 @@
           "200": {
             "description": "OK",
             "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
               "text/plain": {
-                "schema": {}
-              },
-              "application/json": {
-                "schema": {}
-              },
-              "text/json": {
-                "schema": {}
-              },
-              "application/xml": {
-                "schema": {}
-              },
-              "text/xml": {
-                "schema": {}
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -5148,10 +5475,33 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too Many Requests"
           }
         }
       }
@@ -5258,173 +5608,6 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start": {
-      "post": {
-        "tags": [
-          "Process"
-        ],
-        "summary": "Starts the process of an instance.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "unique identifier of the organization responsible for the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "startEvent",
-            "in": "query",
-            "description": "a specific start event id to start the process, must be used if there are more than one start events",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
                 }
               }
             }
@@ -5544,17 +5727,79 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -5670,126 +5915,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess": {
-      "put": {
-        "tags": [
-          "Process"
-        ],
-        "summary": "Attempts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "unique identifier of the organization responsible for the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
+          "202": {
+            "description": "Accepted",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5843,36 +5970,27 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "application/problem+json": {
-                "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -7797,164 +7915,6 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate": {
-      "get": {
-        "tags": [
-          "Validate"
-        ],
-        "summary": "Validate a single data element (deprecated).\nUse `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "Unique identifier of the organization responsible for the app.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "Application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerId",
-            "in": "path",
-            "description": "Unique id of the party that is the owner of the instance.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceId",
-            "in": "path",
-            "description": "Unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "dataGuid",
-            "in": "path",
-            "description": "Unique id identifying specific data element",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}": {
       "post": {
         "tags": [
@@ -8060,8 +8020,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8090,8 +8050,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "409": {
+            "description": "Conflict",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8194,8 +8154,7 @@
             "nullable": true
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -8367,12 +8326,10 @@
         "type": "object",
         "properties": {
           "idempotencyKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "payload": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "acceptedAt": {
             "type": "string",
@@ -8392,8 +8349,7 @@
         "type": "object",
         "properties": {
           "commandKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "actor": {
             "$ref": "#/components/schemas/Actor"
@@ -8443,6 +8399,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "isFinalWaitCheck": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -8514,8 +8473,7 @@
             "nullable": true
           },
           "label": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -8583,8 +8541,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserAction"
-            },
-            "nullable": true
+            }
           },
           "read": {
             "type": "boolean"
@@ -8713,6 +8670,11 @@
             "format": "int32",
             "nullable": true
           },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "waitingReason": {
             "type": "string",
             "nullable": true
@@ -8740,6 +8702,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "AppStatus": {
+        "enum": [
+          "Completed",
+          "Deprecated",
+          "UnderDevelopment",
+          "Withdrawn"
+        ],
+        "type": "string"
       },
       "ApplicationLanguage": {
         "type": "object",
@@ -8919,9 +8890,11 @@
             },
             "nullable": true
           },
+          "status": {
+            "$ref": "#/components/schemas/AppStatus"
+          },
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "features": {
             "type": "object",
@@ -8934,8 +8907,7 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "promptForParty": {
             "type": "string",
@@ -8961,13 +8933,11 @@
         "properties": {
           "orgNumber": {
             "type": "string",
-            "description": "The organization number.",
-            "nullable": true
+            "description": "The organization number."
           },
           "orgName": {
             "type": "string",
-            "description": "The name of the organization.",
-            "nullable": true
+            "description": "The name of the organization."
           },
           "partyId": {
             "type": "integer",
@@ -9112,8 +9082,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -9159,6 +9128,23 @@
           },
           "includeAttachments": {
             "type": "boolean"
+          },
+          "includeDueBefore": {
+            "type": "boolean"
+          },
+          "includedDataValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "includedPresentationTexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9187,8 +9173,7 @@
         "type": "object",
         "properties": {
           "senderName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "text": {
             "$ref": "#/components/schemas/CustomText"
@@ -9205,16 +9190,13 @@
         "type": "object",
         "properties": {
           "nb": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "nn": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "en": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -9377,6 +9359,7 @@
             "nullable": true
           },
           "expressionValidationConfig": {},
+          "calculationConfig": {},
           "initialValidationIssues": {
             "type": "array",
             "items": {
@@ -9413,7 +9396,110 @@
         "type": "object",
         "properties": {
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations."
           },
           "ignoredValidators": {
             "type": "array",
@@ -9474,8 +9560,7 @@
                 "$ref": "#/components/schemas/ValidationIssueWithSource"
               }
             },
-            "description": "The validation issues that were found during the patch operation.",
-            "nullable": true
+            "description": "The validation issues that were found during the patch operation."
           },
           "newDataModel": {
             "description": "The current data model after the patch operation."
@@ -9639,6 +9724,14 @@
           },
           "taskId": {
             "type": "string",
+            "nullable": true,
+            "deprecated": true
+          },
+          "taskIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "maxSize": {
@@ -9901,15 +9994,13 @@
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/DataModelInfo"
-            },
-            "nullable": true
+            }
           },
           "staticOptions": {
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/StaticOptionSet"
-            },
-            "nullable": true
+            }
           },
           "validationIssues": {
             "type": "array",
@@ -10439,54 +10530,6 @@
         },
         "additionalProperties": false
       },
-      "JsonNode": {
-        "type": "object",
-        "properties": {
-          "options": {
-            "$ref": "#/components/schemas/JsonNodeOptions"
-          },
-          "parent": {
-            "$ref": "#/components/schemas/JsonNode"
-          },
-          "root": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonNodeOptions": {
-        "type": "object",
-        "properties": {
-          "propertyNameCaseInsensitive": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPatch": {
-        "type": "object",
-        "properties": {
-          "operations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PatchOperation"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPointer": {
-        "type": "object",
-        "properties": {
-          "segmentCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
       "KeyValueEntry": {
         "type": "object",
         "properties": {
@@ -10526,8 +10569,7 @@
             "nullable": true
           },
           "size": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -10555,13 +10597,11 @@
         "properties": {
           "socialSecurityNumber": {
             "type": "string",
-            "description": "The social security number of the person to search for.",
-            "nullable": true
+            "description": "The social security number of the person to search for."
           },
           "lastName": {
             "type": "string",
-            "description": "The last name of the person to search for.",
-            "nullable": true
+            "description": "The last name of the person to search for."
           }
         },
         "additionalProperties": false,
@@ -10643,18 +10683,6 @@
         },
         "additionalProperties": false
       },
-      "OperationType": {
-        "enum": [
-          "Unknown",
-          "add",
-          "remove",
-          "replace",
-          "move",
-          "copy",
-          "test"
-        ],
-        "type": "string"
-      },
       "OrderDetails": {
         "required": [
           "currency",
@@ -10665,8 +10693,7 @@
         "type": "object",
         "properties": {
           "paymentProcessorId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "receiver": {
             "$ref": "#/components/schemas/PaymentReceiver"
@@ -10675,15 +10702,13 @@
             "$ref": "#/components/schemas/Payer"
           },
           "currency": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "orderLines": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PaymentOrderLine"
-            },
-            "nullable": true
+            }
           },
           "allowedPayerTypes": {
             "type": "array",
@@ -10789,13 +10814,11 @@
         "properties": {
           "orgNr": {
             "type": "string",
-            "description": "The organization number",
-            "nullable": true
+            "description": "The organization number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           }
         },
         "additionalProperties": false,
@@ -10947,29 +10970,114 @@
             "format": "uuid"
           },
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations"
           }
         },
         "additionalProperties": false,
         "description": "Item class for the list of patches with Id"
-      },
-      "PatchOperation": {
-        "type": "object",
-        "properties": {
-          "op": {
-            "$ref": "#/components/schemas/OperationType"
-          },
-          "from": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "path": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "value": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
       },
       "Payer": {
         "type": "object",
@@ -11041,8 +11149,7 @@
         "type": "object",
         "properties": {
           "paymentId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "redirectUrl": {
             "type": "string",
@@ -11085,8 +11192,7 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/PaymentStatus"
@@ -11110,12 +11216,10 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "textResourceKey": {
             "type": "string",
@@ -11134,8 +11238,7 @@
             "format": "double"
           },
           "unit": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -11268,13 +11371,11 @@
         "properties": {
           "ssn": {
             "type": "string",
-            "description": "The social security number",
-            "nullable": true
+            "description": "The social security number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           },
           "firstName": {
             "type": "string",
@@ -11288,8 +11389,7 @@
           },
           "lastName": {
             "type": "string",
-            "description": "The last name",
-            "nullable": true
+            "description": "The last name"
           }
         },
         "additionalProperties": false,
@@ -11561,8 +11661,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags to set on the data element represented as string values.",
-            "nullable": true
+            "description": "A list of tags to set on the data element represented as string values."
           }
         },
         "additionalProperties": false,
@@ -11576,8 +11675,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags represented as string values.",
-            "nullable": true
+            "description": "A list of tags represented as string values."
           },
           "validationIssues": {
             "type": "array",
@@ -11654,8 +11752,7 @@
             "items": {
               "$ref": "#/components/schemas/AuthorizedOrganizationDetails"
             },
-            "description": "The list of authorized organizations.",
-            "nullable": true
+            "description": "The list of authorized organizations."
           }
         },
         "additionalProperties": false,
@@ -11672,8 +11769,7 @@
             "items": {
               "$ref": "#/components/schemas/DataElement"
             },
-            "description": "The data elements that should be signed.",
-            "nullable": true
+            "description": "The data elements that should be signed."
           }
         },
         "additionalProperties": false,
@@ -11690,8 +11786,7 @@
             "items": {
               "$ref": "#/components/schemas/SigneeState"
             },
-            "description": "The signees for the current task.",
-            "nullable": true
+            "description": "The signees for the current task."
           }
         },
         "additionalProperties": false,
@@ -11744,8 +11839,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AppOption"
-            },
-            "nullable": true
+            }
           },
           "downstreamParameters": {
             "type": "string",
@@ -11924,8 +12018,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "authorized": {
             "type": "boolean"
@@ -12131,6 +12224,18 @@
             "type": "string",
             "nullable": true
           },
+          "componentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rowIndexes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
           "code": {
             "type": "string",
             "nullable": true
@@ -12261,8 +12366,7 @@
             "format": "date-time"
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "httpStatusCode": {
             "type": "integer",
@@ -12280,8 +12384,7 @@
           "stepFailed",
           "dependencyFailed",
           "engineFault",
-          "timeout",
-          "acquireConflict"
+          "timeout"
         ],
         "type": "string"
       },
@@ -12373,7 +12476,7 @@
           }
         },
         "additionalProperties": {},
-        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow, for both instance creation and process start of an existing instance. Extends\nMicrosoft.AspNetCore.Mvc.ProblemDetails so the response remains valid `application/problem+json`; the\nworkflow-specific members are serialized alongside the standard ones and form a stable recovery\ncontract clients can react to."
+        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow of a new instance. Extends Microsoft.AspNetCore.Mvc.ProblemDetails so the response remains valid\n`application/problem+json`; the workflow-specific members are serialized alongside the standard\nones and form a stable recovery contract clients can react to."
       },
       "WorkflowInitializationState": {
         "enum": [
@@ -12387,7 +12490,6 @@
       "WorkflowRecommendedAction": {
         "enum": [
           "retryInstanceCreation",
-          "retryStartProcess",
           "inspectInstance",
           "resumeCurrentTask"
         ],
@@ -12398,12 +12500,10 @@
         "type": "object",
         "properties": {
           "method": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "path": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false,

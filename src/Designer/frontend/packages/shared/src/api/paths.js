@@ -83,8 +83,6 @@ export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
 export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
-export const subformPdfComponentPath = (org, app, layoutSetId) => `${uiFoldersLayoutSetPath(org, app, layoutSetId)}/subform-pdf-component`; // Post, Delete
-export const subformComponentsPath = (org, app) => `${uiFoldersPath(org, app)}/subform-components`; // Get
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
 export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 
@@ -135,6 +133,7 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const restartAppPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/restart`; // Post
 export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
@@ -183,13 +182,14 @@ export const appPolicyPath = (org, app) => `${apiBasePath}/${org}/${app}/policy`
 
 // Resourceadm
 export const resourcePolicyPath = (org, repo, id) => `${apiBasePath}/${org}/${repo}/policy/${id}`; // Get, Put
-export const resourceActionsPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/actionoptions`; // Get
 export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/subjectoptions`; // Get
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
 export const resourceEnvironmentsPath = (org) => `${apiBasePath}/${org}/resources/environments`; // Get
 export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
+export const altinn2ResourcePoliciesPath = (org, env) => `${apiBasePath}/${org}/resources/altinn2resourcepolicies/${env}`; // Get
+export const publishResourcePolicyPath = (org, repo, id, env) => `${apiBasePath}/${org}/resources/publish/${repo}/${id}/${env}/policy`; // Post
 export const resourceCreatePath = (org) => `${apiBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${apiBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${apiBasePath}/${org}/resources/updateresource/${id}`; // Put

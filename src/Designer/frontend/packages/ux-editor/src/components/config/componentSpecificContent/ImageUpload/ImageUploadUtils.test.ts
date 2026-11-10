@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ExternalCrop, InternalCrop } from './ImageUploadTypes';
 import {
   isRectangleShape,

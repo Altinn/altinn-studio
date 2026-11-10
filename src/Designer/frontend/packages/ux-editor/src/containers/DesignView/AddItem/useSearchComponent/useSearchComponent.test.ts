@@ -1,7 +1,8 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSearchComponent } from './useSearchComponent';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { renderHookWithProviders } from '../../../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { TestCase } from './types';
@@ -63,12 +64,11 @@ const translations = {
   'ux_editor.component_title.Checkboxes': 'Avmerkingsbokser',
 };
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('useSearchComponent', () => {
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.clearAllMocks();
+    vi.clearAllTimers();
   });
 
   describe('Initial state', () => {

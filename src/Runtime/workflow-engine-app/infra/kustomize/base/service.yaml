@@ -8,6 +8,7 @@ spec:
     - port: 80
       targetPort: 9090
       protocol: TCP
+      appProtocol: http
       name: http
   selector:
     app: workflow-engine-app

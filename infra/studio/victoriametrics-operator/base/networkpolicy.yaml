@@ -1,5 +1,6 @@
-# The operator only talks to the Kubernetes API server, and nothing needs to
-# talk to it. The policy selects the operator's pods only; the namespace also
+# The operator only talks to the Kubernetes API server, and only vmagent-self,
+# which scrapes the Victoria stack (infra/observability/studio/victoria), talks
+# to it. The policy selects the operator's pods only; the namespace also
 # holds the workloads it manages and the OpenTelemetry Collectors.
 #
 # Egress to the API server is allowed by port, to any destination, because it
@@ -33,10 +34,18 @@ spec:
     # The kubelet probes /health on this port. Traffic from the pod's own node
     # is exempt from NetworkPolicy in the Kubernetes spec, but allowing the port
     # keeps the probes independent of how the policy engine implements that.
-    # The metrics port, 8080, stays closed until something scrapes it.
     - ports:
         - protocol: TCP
           port: 8081
+    # The metrics port, for vmagent-self alone.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 8080
   egress:
     - to:
         - namespaceSelector:

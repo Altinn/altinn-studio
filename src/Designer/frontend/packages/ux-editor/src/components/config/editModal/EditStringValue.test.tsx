@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 
 import { EditStringValue } from './EditStringValue';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -12,7 +13,7 @@ const renderEditStringValue = ({
   multiple = false,
   enumValues = null,
   maxLength = undefined,
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
 } = {}) =>
   renderWithProviders(
     <EditStringValue
@@ -27,7 +28,6 @@ const renderEditStringValue = ({
           title: 'ServiceName',
         },
         maxLength: maxLength || '',
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       }}
     />,
@@ -72,7 +72,7 @@ describe('EditStringValue', () => {
   });
 
   it('should call onChange handler with the correct arguments', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditStringValue({ handleComponentChange });
     const inputElement = screen.getByLabelText(
       textMock('ux_editor.component_properties.maxLength'),
@@ -85,13 +85,12 @@ describe('EditStringValue', () => {
       textResourceBindings: {
         title: 'ServiceName',
       },
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
   it('should call onChange for enum values', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
 
     await user.selectOptions(screen.getByRole('combobox'), 'one');
@@ -102,13 +101,12 @@ describe('EditStringValue', () => {
         title: 'ServiceName',
       },
       maxLength: 'one',
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
   it('should call onChange for multiple enum values', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditStringValue({
       handleComponentChange,
       enumValues: ['one', 'two', 'three'],
@@ -126,7 +124,6 @@ describe('EditStringValue', () => {
           title: 'ServiceName',
         },
         maxLength: ['one'],
-        itemType: 'COMPONENT',
         dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });
@@ -151,7 +148,7 @@ describe('EditStringValue', () => {
   });
 
   it('should show the placeholder option as disabled', () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
 
     const placeholderOption = screen.getByRole('option', {
@@ -162,7 +159,7 @@ describe('EditStringValue', () => {
   });
 
   it('should set value when initially undefined and an option is clicked', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
 
     const selectElement = screen.getByRole('combobox', {
@@ -178,7 +175,6 @@ describe('EditStringValue', () => {
       textResourceBindings: {
         title: 'ServiceName',
       },
-      itemType: 'COMPONENT',
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });

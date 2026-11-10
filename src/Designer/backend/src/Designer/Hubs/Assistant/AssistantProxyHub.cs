@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -108,12 +107,10 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Invalid threadId format");
         }
 
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
-
-        await ValidateAssistantAccessAsync(org, app, developer);
-
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        // Only the access check matters here. StartWorkflow resolves the cost organization again.
+        await ResolveCostOrgOrDenyAccessAsync(context);
+
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(parsedThreadId, context);
         if (!isOwner)
         {
@@ -177,10 +174,9 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         // silently desync the session's persistence context.
         string org = ExtractRequiredString(request, "org");
         string app = ExtractRequiredString(request, "app");
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
 
-        await ValidateAssistantAccessAsync(org, app, developer);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        string costOrg = await ResolveCostOrgOrDenyAccessAsync(editingContext);
 
         _logger.LogInformation(
             "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
@@ -193,7 +189,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Invalid session_id format");
         }
 
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(threadId, editingContext);
         if (!isOwner)
         {
@@ -206,7 +201,13 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAssistantAsync(enrichedWithAttachments, developer, apiKey, sessionId);
+        var agentResponse = await ForwardRequestToAssistantAsync(
+            enrichedWithAttachments,
+            editingContext,
+            costOrg,
+            apiKey,
+            sessionId
+        );
 
         // Remove attachments from buffer only after successful forwarding
         _attachmentStore.RemoveAll(attachmentIds);
@@ -297,13 +298,20 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
-    private async Task ValidateAssistantAccessAsync(string org, string app, string developer)
+    private async Task<string> ResolveCostOrgOrDenyAccessAsync(AltinnRepoEditingContext editingContext)
     {
-        if (!await _canUseAiAssistantEvaluator.CanUseFeatureAsync(org, app))
+        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrg(editingContext.Org, editingContext.Repo);
+        if (costOrg == null)
         {
-            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
+            _logger.LogWarning(
+                "User {Developer} was denied assistant access for org {Org}",
+                editingContext.Developer,
+                editingContext.Org
+            );
             throw new HubException("Access denied");
         }
+
+        return costOrg;
     }
 
     private void ValidateConnectionOwnsSession(string sessionId)
@@ -331,45 +339,46 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
     private async Task<JsonElement> ForwardRequestToAssistantAsync(
         JsonElement request,
-        string developer,
+        AltinnRepoEditingContext editingContext,
+        string costOrg,
         string apiKey,
         string sessionId
     )
     {
-        var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        using var httpRequest = CreateAssistantHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        var enrichedRequest = EnrichRequestWithRepoUrlAndCostOrg(request, editingContext, costOrg);
+        using var httpRequest = CreateAssistantHttpRequest(
+            enrichedRequest,
+            editingContext.Developer,
+            apiKey,
+            sessionId
+        );
         var response = await SendRequestToAssistantAsync(httpRequest);
 
         return response;
     }
 
     /// <summary>
-    /// Enriches the workflow request with the repository URL built from org and app identifiers
+    /// Adds the repository URL and the cost organization to the workflow request.
     /// </summary>
     /// <param name="request">The original workflow request</param>
-    /// <returns>Enriched request with repo_url field</returns>
-    private JsonElement EnrichRequestWithRepoUrl(JsonElement request)
+    /// <param name="editingContext">The repository that the workflow works in</param>
+    /// <param name="costOrg">The organization that the LLM usage of the workflow is recorded on</param>
+    /// <returns>The request with the repo_url and cost_org fields</returns>
+    private JsonElement EnrichRequestWithRepoUrlAndCostOrg(
+        JsonElement request,
+        AltinnRepoEditingContext editingContext,
+        string costOrg
+    )
     {
-        if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
-        {
-            return request;
-        }
+        string repoUrl =
+            $"{_serviceRepositorySettings.RepositoryBaseURL}/{editingContext.Org}/{editingContext.Repo}.git";
 
-        string? org = orgElement.GetString();
-        string? app = appElement.GetString();
-
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
-
-        string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
-
-        var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
-        if (requestDict == null)
-        {
-            throw new HubException("Failed to parse workflow request");
-        }
+        var requestDict =
+            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
+            ?? throw new HubException("Failed to parse workflow request");
 
         requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
+        requestDict["cost_org"] = JsonSerializer.SerializeToElement(costOrg);
 
         return JsonSerializer.SerializeToElement(requestDict);
     }
@@ -446,7 +455,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
         _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
 
-        // The agents service rejects cancellation without the caller's identity —
+        // The assistant service rejects cancellation without the caller's identity —
         // it verifies the caller owns the session.
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,

@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioDragAndDropTree } from '../StudioDragAndDropTree';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
-const onAdd = jest.fn();
-const onMove = jest.fn();
+const onAdd = vi.fn();
+const onMove = vi.fn();
 const rootId = 'rootId';
 const emptyMessage = 'No items';
 const rootNodeId1 = '1';

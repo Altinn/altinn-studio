@@ -5,7 +5,6 @@ import {
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -13,22 +12,25 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompDropdownExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'Dropdown';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
 }
 
+export interface DropdownSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type DropdownSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Dropdown' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & DropdownSummaryOverrides)
+  | ({ componentType: 'Dropdown' } & DropdownSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -54,8 +56,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompDropdownExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: DropdownSummaryOverrides;
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: ebd254fba0dd72311209a2aae228069c59dedabf24dae38f994d8d1a2d6d1ce4
+// Source hash: b25e626953fe7e7c0eca0e9cd280f49b115331dd98b3da65539fa1d9acc7a7ff

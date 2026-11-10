@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useTreeViewRootContext } from './useTreeViewRootContext';
 import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
@@ -9,8 +10,8 @@ describe('useTreeViewRootContext', () => {
     const focusedId = 'foo';
     const rootId = 'baz';
     const selectedId = 'bar';
-    const setFocusedId = jest.fn();
-    const setSelectedId = jest.fn();
+    const setFocusedId = vi.fn();
+    const setSelectedId = vi.fn();
     const props: TreeViewRootContextProps = {
       focusableId,
       focusedId,
@@ -31,7 +32,7 @@ describe('useTreeViewRootContext', () => {
   });
 
   it('Throws an error if used outside of a TreeViewRootContext provider', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = (): ReturnType<typeof renderHook> => renderHook(useTreeViewRootContext);
     expect(renderFn).toThrow(
       'useTreeViewRootContext must be used within the TreeViewRoot component.',

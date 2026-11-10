@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { useComponentTitle } from './useComponentTitle';
 import { textMock } from '@studio/testing/mocks/i18nMock';

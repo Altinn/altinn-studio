@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { getStatusOptions, statusMap } from './appConfigStatusUtils';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
 
-const mockTranslationFunction = jest.fn((key: string) => `translated:${key}`);
+const mockTranslationFunction = vi.fn((key: string) => `translated:${key}`);
 
 describe('appConfigStatusUtils', () => {
   describe('getStatusOptions', () => {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -21,8 +22,6 @@ const settings: IValidationOnNavigationLayoutSettings[] = [
 ];
 
 describe('useUpdateValidationOnNavigationLayoutSettingsMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls updateValidationOnNavigationLayoutSettings with the correct parameters', async () => {
     const { result } = renderMutation();
     result.current.mutate(settings);

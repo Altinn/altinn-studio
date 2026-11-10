@@ -6,13 +6,13 @@
   "private": true,
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
-    "vite": "^6.3.2"
+    "vite": "8.2.2"
   },
   "scripts": {
     "build": "vite build",
     "start": "vite serve --host 0.0.0.0",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "jest --maxWorkers=50%",
+    "test": "yarn workspace studio-designer-frontend vitest run settings/",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
   }

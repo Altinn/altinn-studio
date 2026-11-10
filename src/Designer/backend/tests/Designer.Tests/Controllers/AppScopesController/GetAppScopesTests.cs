@@ -3,9 +3,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.AppScopesController.Base;
+using Designer.Tests.Controllers.AppScopesController.Utils;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppScopesController;
@@ -44,6 +46,28 @@ public class GetAppScopesTests
         using var response = await HttpClient.SendAsync(httpRequestMessage);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetAppScopes_Should_ReturnForbidden_WhenUserIsNotMemberOfOrg()
+    {
+        UserOrganizationServiceMock.Setup(x => x.UserIsMemberOfOrganization("ttd")).ReturnsAsync(false);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "empty-app"));
+
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetAppScopes_Should_ReturnOk_WhenUserIsMemberOfOrgWithoutOrgAccess()
+    {
+        OidcAuthHandlerType = typeof(TestOidcOtherOrgAuthHandler);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "empty-app"));
+
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Theory]

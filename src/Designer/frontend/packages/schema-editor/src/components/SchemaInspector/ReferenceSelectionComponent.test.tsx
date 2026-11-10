@@ -1,3 +1,4 @@
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
@@ -17,8 +18,8 @@ const user = userEvent.setup();
 // Test data:
 const buttonText = 'Gå til type';
 const label = 'Refererer til';
-const onChangeRef = jest.fn();
-const onGoToDefButtonClick = jest.fn();
+const onChangeRef = vi.fn();
+const onGoToDefButtonClick = vi.fn();
 const type1Name = 'type1';
 const type2Name = 'type2';
 const type1 = createNodeBase(Keyword.Definitions, type1Name);

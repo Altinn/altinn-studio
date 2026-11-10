@@ -7,6 +7,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
+      - '!src/App/backend/test/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
       - 'src/App/AppCoreDependency.props'
@@ -14,9 +15,12 @@ on:
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
+      - 'src/common/go/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
+      - 'src/App/frontend/cypress.config.js'
+      - 'src/App/frontend/scripts/cypress-*.js'
       - 'src/test/apps/**'
       - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
@@ -26,13 +30,39 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
+      - '.github/scripts/*cypress*'
+      - '.yarn/patches/@percy-cli-exec-*.patch'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # DIS Core's manifests for pdf3, published by deploy-runtime-pdf3.yaml.
+      - '!src/Runtime/pdf3/infra/core/**'
+      # DIS Edge's routes to pdf3, published by deploy-runtime-pdf3-edge.yaml.
+      - '!src/Runtime/pdf3/infra/edge/**'
+      # Package readmes are inputs to the NuGet packages.
+      - 'src/App/backend/README.md'
+      - 'src/App/codelists/README.md'
+      - 'src/App/fileanalyzers/README.md'
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
+
+# A deployed app gets these platform links from the platform, and studioctl leaves them unset on localtest, where the
+# app frontend shows them as not configured. We set them here so the links get the styling a user sees. No test
+# follows them, so localtest's start page is enough.
+env:
+  PlatformFrontendSettings__AllFormsUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflateProfileUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflatePartiesUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__AccessManagementUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__RolesAndRightsHelpUrl: http://local.altinn.cloud:8000/
 
 jobs:
   build-frontend:
@@ -108,7 +138,7 @@ jobs:
       - name: Resolve app process cache key
         id: app-process-cache-key
         shell: bash
-        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'src/App/AppCoreDependency.props', 'src/App/PackageVersioning.props', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', '!src/App/backend/test/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'src/App/AppCoreDependency.props', 'src/App/PackageVersioning.props', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
 
       - name: Cache app process outputs
         id: cache-app-process-outputs
@@ -117,11 +147,18 @@ jobs:
           path: app-process-build.tar.gz
           key: ${{ steps.app-process-cache-key.outputs.key }}
 
+      - name: Setup .NET
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/test/apps/global.json
+
       - name: Build app process outputs
         if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
+        working-directory: src/test/apps
         shell: bash
         run: |
-          mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
+          mapfile -t app_projects < <(find . -path '*/App/*.csproj' -type f | sort)
           if [ "${#app_projects[@]}" -eq 0 ]; then
             echo "No app projects were found."
             exit 1
@@ -216,7 +253,8 @@ jobs:
       )
     runs-on: self-hosted-ubuntu
     timeout-minutes: 120
-    needs: [build-frontend, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
+    needs:
+      [build-frontend, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -229,6 +267,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Reserve time for Cypress cleanup
+        shell: bash
+        run: echo "CYPRESS_JOB_DEADLINE_MS=$(( $(date +%s%3N) + 100 * 60 * 1000 ))" >> "$GITHUB_ENV"
 
       - name: Download app process outputs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -270,6 +312,8 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
+        # Leave time for cleanup and log uploads before the 120-minute job timeout.
+        timeout-minutes: 90
         env:
           CYPRESS_PROJECT_ID: o7mikf
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
@@ -295,28 +339,28 @@ jobs:
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
+            npx percy exec --parallel -- node ../../../.github/scripts/run-cypress-with-diagnostics.mjs npx cypress "${cypress_args[@]}"
           else
-            npx cypress "${cypress_args[@]}"
+            node ../../../.github/scripts/run-cypress-with-diagnostics.mjs npx cypress "${cypress_args[@]}"
           fi
 
       - name: Stop localtest
         if: always()
+        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
+        timeout-minutes: 5
         with:
-          name: app-frontend-logs-${{ matrix.containers }}
+          name: app-frontend-logs-${{ matrix.containers }}-${{ github.run_attempt }}
           path: |
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
-            src/App/frontend/workflow-engine-container.log
-            src/App/frontend/workflow-engine-database.dump
-            src/App/frontend/test/logs/*
+            src/App/frontend/test/logs/**
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**
 
@@ -329,7 +373,13 @@ jobs:
 
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    needs: [build-frontend-external, build-app-run-targets, build-studioctl, prepare-app-frontend-dependencies]
+    needs:
+      [
+        build-frontend-external,
+        build-app-run-targets,
+        build-studioctl,
+        prepare-app-frontend-dependencies,
+      ]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -371,16 +421,20 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
+        # Leave time for cleanup and log uploads before the 120-minute job timeout.
+        timeout-minutes: 90
         run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
 
       - name: Stop localtest
         if: always()
+        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
+        timeout-minutes: 5
         with:
           name: app-frontend-external-logs
           path: |

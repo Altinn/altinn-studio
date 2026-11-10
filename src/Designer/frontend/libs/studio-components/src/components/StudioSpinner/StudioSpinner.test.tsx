@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioSpinner } from './StudioSpinner';
@@ -6,8 +7,8 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 
 const mockTestId: string = 'testId';
 
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
+vi.mock('react', async () => ({
+  ...(await vi.importActual('react')),
   useId: (): string => mockTestId,
 }));
 

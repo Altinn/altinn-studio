@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -61,8 +62,6 @@ const acceptConsentRule: PolicyRuleCard = {
 };
 
 describe('ConsentResourcePolicyRulesEditor', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display rule for consenting', () => {
     renderConsentResourcePolicyRulesEditor();
 
@@ -97,7 +96,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
 
   it('should deselect all access lists after no access list restriction checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const onSaveFn = jest.fn();
+    const onSaveFn = vi.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const accessListCheckbox = screen.getByRole('checkbox', {
@@ -118,7 +117,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
 
   it('should set access list subjects in rule for request consent after access list checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const onSaveFn = jest.fn();
+    const onSaveFn = vi.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const accessListCheckbox = screen.getByRole('checkbox', {
@@ -142,7 +141,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
 
   it('should deselect no access list restriction checkbox in rule for request consent after access list checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const onSaveFn = jest.fn();
+    const onSaveFn = vi.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const allOrganizationsCheckbox = screen.getByRole('checkbox', {

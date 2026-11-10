@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -17,12 +18,12 @@ const component: FormFileUploaderComponent = {
   maxFileSizeInMB: 10,
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 0,
-  onClickAction: jest.fn(),
+  onClickAction: vi.fn(),
   type: ComponentTypeV3.FileUpload,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,

@@ -6,7 +6,7 @@ namespace Altinn.App.services.options
     {
         public string Id { get; set; } = "test";
 
-        public Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs)
+        public Task<AppOptions> GetInstanceAppOptions(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs)
         {
             string? source = keyValuePairs.GetValueOrDefault("source");
 

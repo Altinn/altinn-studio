@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyCardRules, type PolicyCardRulesProps } from './PolicyCardRules';
@@ -15,8 +16,6 @@ const defaultProps: PolicyCardRulesProps = {
 };
 
 describe('PolicyCardRule', () => {
-  afterEach(jest.clearAllMocks);
-
   it.each(mockPolicyEditorContextValue.policyRules)(
     'displays the rules when there are more than 0 rules',
     async (rule: PolicyRuleCard) => {

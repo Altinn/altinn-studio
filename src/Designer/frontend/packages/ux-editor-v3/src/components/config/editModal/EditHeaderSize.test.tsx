@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
@@ -19,7 +20,7 @@ const waitForData = async () => {
 
 const user = userEvent.setup();
 
-const render = async ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ size = undefined, handleComponentChange = vi.fn() } = {}) => {
   await waitForData();
 
   return renderWithMockStore()(
@@ -83,7 +84,7 @@ describe('HeaderSizeSelect', () => {
   });
 
   it('should call handleUpdateHeaderSize when size is changed', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await render({ handleComponentChange, size: 'h4' });
 
     await user.selectOptions(getComboBox(), 'h2');

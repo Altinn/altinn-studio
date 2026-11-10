@@ -1,15 +1,21 @@
 /* Chain rows — dependency-ordered spine rendering shared by the chain modal and the
- * grouped Recent view. Heads (isHead !== false) form a vertical spine; side-chain
- * workflows (isHead === false) indent under the head they belong to. Rows expand in
+ * grouped Recent view. Primary workflows form a vertical spine; auxiliary workflows
+ * (isHead === false) indent under the primary workflow they belong to. Rows expand in
  * place to the full pipeline card. */
 
 import { state, workflowData, parseTransition } from '../core/state.js';
-import { esc, escAttr, escJsArg, formatElapsed } from '../core/helpers.js';
-import { buildCardHTML, revealCard, revealFirstVisible, setCardFilterData } from './cards.js';
+import { esc, escAttr, escJsArg, formatElapsed, isAuxiliaryWorkflow } from '../core/helpers.js';
+import {
+    auxiliaryBadgeHTML,
+    buildCardHTML,
+    revealCard,
+    revealFirstVisible,
+    setCardFilterData,
+} from './cards.js';
 
 /** @typedef {import('../core/state.js').Workflow} Workflow */
 /** @typedef {{ from: string, to: string, kind: string }} ChainEdge */
-/** @typedef {{ wf: Workflow, isSide: boolean }} ChainItem */
+/** @typedef {{ wf: Workflow, isAuxiliary: boolean }} ChainItem */
 
 const TERMINAL_STATUSES = new Set([
     'Completed',
@@ -46,7 +52,7 @@ const durationHTML = (wf) => {
 };
 
 /**
- * Inner content of a collapsed chain row: name, side-chain badge, clickable step dots,
+ * Inner content of a collapsed chain row: name, auxiliary badge, clickable step dots,
  * duration, status pill.
  * @param {Workflow} wf @returns {string}
  */
@@ -61,12 +67,8 @@ const rowInnerHTML = (wf) => {
                 ` title="${escAttr(s.commandDetail)} (${escAttr(s.status)})"></span>`,
         )
         .join('');
-    const badge =
-        wf.isHead === false
-            ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
-            : '';
     return (
-        `<span class="chain-name" title="${escAttr(wf.operationId)}">${esc(name)}</span>${badge}` +
+        `<span class="chain-name" title="${escAttr(wf.operationId)}">${esc(name)}</span>${auxiliaryBadgeHTML(wf)}` +
         `<span class="chain-steps">${steps}</span>` +
         `<span class="header-spacer"></span>` +
         durationHTML(wf) +
@@ -79,17 +81,17 @@ const rowInnerHTML = (wf) => {
  * @param {Workflow} wf @returns {string}
  */
 const expandedInnerHTML = (wf) =>
-    `<div class="workflow-card${wf.isHead === false ? ' side-chain' : ''}" data-wfkey="${escAttr(wf.databaseId)}">${buildCardHTML(wf, true)}</div>`;
+    `<div class="workflow-card${isAuxiliaryWorkflow(wf) ? ' auxiliary' : ''}" data-wfkey="${escAttr(wf.databaseId)}">${buildCardHTML(wf, true)}</div>`;
 
 /**
  * A full chain node (row or expanded card), wrapped for spine layout and click handling.
- * @param {Workflow} wf @param {boolean} isSide @param {boolean} isRoot
+ * @param {Workflow} wf @param {boolean} isAuxiliary @param {boolean} isRoot
  * @returns {string}
  */
-const nodeHTML = (wf, isSide, isRoot) => {
+const nodeHTML = (wf, isAuxiliary, isRoot) => {
     const expanded = expandedRows.has(wf.databaseId);
     const cls =
-        `chain-node${isSide ? ' chain-side' : ''}${isRoot ? ' chain-root' : ''}` +
+        `chain-node${isAuxiliary ? ' chain-auxiliary' : ''}${isRoot ? ' chain-root' : ''}` +
         (expanded ? ' chain-expanded' : '');
     const hint = expanded ? 'click to collapse' : 'click to expand';
     return (
@@ -122,7 +124,7 @@ const wallClockEnd = (wf) =>
 /**
  * Render an ordered chain as HTML, registering each workflow in the shared store so
  * row interactions (expand, step modal) can resolve it later. Wall-clock gaps between
- * consecutive heads render as dividers — that is where the time went between the
+ * consecutive primary workflows render as dividers — that is where the time went between the
  * engine's transitions (e.g. the user working in the task).
  * @param {ChainItem[]} items
  * @param {string} [rootId] - workflow to mark with the cyan spine dot
@@ -134,48 +136,51 @@ export const renderChainList = (items, rootId = '', opts) => {
     if (opts?.truncated) {
         html += `<div class="chain-truncated" title="The connected graph exceeds the node cap; only the most recent workflows are shown">&#8943; earlier workflows not shown</div>`;
     }
-    let prevHeadEnd = NaN;
+    let prevPrimaryEnd = NaN;
     for (const item of items) {
         // Registering the freshest copy (live SSE object when present) can never go stale,
         // and guarantees row interactions resolve regardless of which surface rendered first.
         const wf = freshest(item.wf);
         workflowData[wf.databaseId] = wf;
-        if (!item.isSide) {
-            const gap = new Date(wf.createdAt).getTime() - prevHeadEnd;
+        if (!item.isAuxiliary) {
+            const gap = new Date(wf.createdAt).getTime() - prevPrimaryEnd;
             if (gap > GAP_THRESHOLD_MS) {
                 html += `<div class="chain-gap" title="Wall-clock gap before this transition was enqueued">+&thinsp;${esc(formatElapsed(gap / 1000))}</div>`;
             }
-            prevHeadEnd = wallClockEnd(wf);
+            prevPrimaryEnd = wallClockEnd(wf);
         }
-        html += nodeHTML(wf, item.isSide, wf.databaseId === rootId);
+        html += nodeHTML(wf, item.isAuxiliary, wf.databaseId === rootId);
     }
     html += '</div>';
     return html;
 };
 
 /**
- * Lay out a fetched graph as a spine of heads with side chains attached beneath them.
- * Heads are topologically sorted over `dependency` edges (Kahn, createdAt tiebreak, cycle
- * guard); each side chain attaches under the head it links to (link edges preferred —
- * side-effects workflows carry a link to their producer Main — falling back to any edge).
+ * Lay out a fetched graph as a spine of primary workflows with auxiliary workflows attached
+ * beneath them. Primary workflows are topologically sorted over `dependency` edges (Kahn,
+ * createdAt tiebreak, cycle guard); each auxiliary workflow attaches under the primary workflow
+ * it links to (link edges preferred — a process-next auxiliary workflow carries a link to the
+ * primary workflow that enqueued it — falling back to any edge).
  * @param {Workflow[]} nodes @param {ChainEdge[]} edges
  * @returns {ChainItem[]}
  */
 export const buildSpineFromEdges = (nodes, edges) => {
     const byId = new Map(nodes.map((n) => [n.databaseId, n]));
-    const headIds = new Set(nodes.filter((n) => n.isHead !== false).map((n) => n.databaseId));
+    const primaryIds = new Set(
+        nodes.filter((n) => !isAuxiliaryWorkflow(n)).map((n) => n.databaseId),
+    );
 
-    const indeg = new Map([...headIds].map((id) => [id, 0]));
+    const indeg = new Map([...primaryIds].map((id) => [id, 0]));
     /** @type {Map<string, string[]>} */
     const out = new Map();
     for (const e of edges) {
-        if (e.kind !== 'dependency' || !headIds.has(e.from) || !headIds.has(e.to)) continue;
+        if (e.kind !== 'dependency' || !primaryIds.has(e.from) || !primaryIds.has(e.to)) continue;
         out.set(e.from, [...(out.get(e.from) ?? []), e.to]);
         indeg.set(e.to, (indeg.get(e.to) ?? 0) + 1);
     }
     const byCreated = (/** @type {string} */ a, /** @type {string} */ b) =>
         String(byId.get(a)?.createdAt).localeCompare(String(byId.get(b)?.createdAt));
-    const ready = [...headIds].filter((id) => indeg.get(id) === 0).sort(byCreated);
+    const ready = [...primaryIds].filter((id) => indeg.get(id) === 0).sort(byCreated);
     /** @type {string[]} */
     const spine = [];
     while (ready.length) {
@@ -192,22 +197,22 @@ export const buildSpineFromEdges = (nodes, edges) => {
     }
     // Cycle guard — anything the sort missed still renders, appended in creation order.
     const emitted = new Set(spine);
-    spine.push(...[...headIds].filter((id) => !emitted.has(id)).sort(byCreated));
+    spine.push(...[...primaryIds].filter((id) => !emitted.has(id)).sort(byCreated));
 
     /** @type {Map<string, Workflow[]>} */
     const attached = new Map();
     /** @type {Workflow[]} */
     const orphans = [];
     for (const node of nodes) {
-        if (node.isHead !== false) continue;
+        if (!isAuxiliaryWorkflow(node)) continue;
         const touching = edges.filter(
             (e) =>
-                (e.from === node.databaseId && headIds.has(e.to)) ||
-                (e.to === node.databaseId && headIds.has(e.from)),
+                (e.from === node.databaseId && primaryIds.has(e.to)) ||
+                (e.to === node.databaseId && primaryIds.has(e.from)),
         );
         const edge = touching.find((e) => e.kind === 'link') ?? touching[0];
-        const headId = edge ? (headIds.has(edge.from) ? edge.from : edge.to) : null;
-        if (headId) attached.set(headId, [...(attached.get(headId) ?? []), node]);
+        const primaryId = edge ? (primaryIds.has(edge.from) ? edge.from : edge.to) : null;
+        if (primaryId) attached.set(primaryId, [...(attached.get(primaryId) ?? []), node]);
         else orphans.push(node);
     }
     const byNodeCreated = (/** @type {Workflow} */ a, /** @type {Workflow} */ b) =>
@@ -216,25 +221,25 @@ export const buildSpineFromEdges = (nodes, edges) => {
     /** @type {ChainItem[]} */
     const items = [];
     for (const id of spine) {
-        const head = byId.get(id);
-        if (!head) continue;
-        items.push({ wf: head, isSide: false });
-        for (const side of (attached.get(id) ?? []).sort(byNodeCreated)) {
-            items.push({ wf: side, isSide: true });
+        const primary = byId.get(id);
+        if (!primary) continue;
+        items.push({ wf: primary, isAuxiliary: false });
+        for (const aux of (attached.get(id) ?? []).sort(byNodeCreated)) {
+            items.push({ wf: aux, isAuxiliary: true });
         }
     }
-    for (const side of orphans.sort(byNodeCreated)) items.push({ wf: side, isSide: true });
+    for (const aux of orphans.sort(byNodeCreated)) items.push({ wf: aux, isAuxiliary: true });
     return items;
 };
 
 /**
  * Lay out a set of workflows as a spine using creation times alone — no edges needed.
- * Heads render in creation order; each side chain attaches under the latest head created
- * no more than 1s after it. Side chains are either enqueued while their producer head
- * executes (created after it, and always before the next head — heads gate the following
- * transition) or land in the same batch as their head, where insert order can put them a
- * few ms before it; the tolerance absorbs that jitter without ever reaching the next
- * head, which is a later transition away.
+ * Primary workflows render in creation order; each auxiliary workflow attaches under the latest
+ * primary workflow created no more than 1s after it. An auxiliary workflow is either enqueued
+ * while the primary workflow that produced it executes (created after it, and always before the
+ * next primary workflow — primary workflows gate the following transition) or lands in the same
+ * batch as it, where insert order can put it a few ms before; the tolerance absorbs that jitter
+ * without ever reaching the next primary workflow, which is a later transition away.
  * @param {Workflow[]} nodes
  * @returns {ChainItem[]}
  */
@@ -242,27 +247,27 @@ export const buildSpineByCreation = (nodes) => {
     const byNodeCreated = (/** @type {Workflow} */ a, /** @type {Workflow} */ b) =>
         String(a.createdAt).localeCompare(String(b.createdAt));
     const sorted = [...nodes].sort(byNodeCreated);
-    const heads = sorted.filter((n) => n.isHead !== false);
-    const sides = sorted.filter((n) => n.isHead === false);
-    if (!heads.length) return sides.map((wf) => ({ wf, isSide: true }));
+    const primaries = sorted.filter((n) => !isAuxiliaryWorkflow(n));
+    const auxiliaries = sorted.filter(isAuxiliaryWorkflow);
+    if (!primaries.length) return auxiliaries.map((wf) => ({ wf, isAuxiliary: true }));
 
     const t = (/** @type {Workflow} */ n) => new Date(n.createdAt).getTime();
     /** @type {Map<string, Workflow[]>} */
-    const attached = new Map(heads.map((h) => [h.databaseId, []]));
-    for (const side of sides) {
-        let target = heads[0];
-        for (const head of heads) {
-            if (t(head) <= t(side) + 1000) target = head;
+    const attached = new Map(primaries.map((p) => [p.databaseId, []]));
+    for (const aux of auxiliaries) {
+        let target = primaries[0];
+        for (const primary of primaries) {
+            if (t(primary) <= t(aux) + 1000) target = primary;
             else break;
         }
-        /** @type {Workflow[]} */ (attached.get(target.databaseId)).push(side);
+        /** @type {Workflow[]} */ (attached.get(target.databaseId)).push(aux);
     }
     /** @type {ChainItem[]} */
     const items = [];
-    for (const head of heads) {
-        items.push({ wf: head, isSide: false });
-        for (const side of /** @type {Workflow[]} */ (attached.get(head.databaseId))) {
-            items.push({ wf: side, isSide: true });
+    for (const primary of primaries) {
+        items.push({ wf: primary, isAuxiliary: false });
+        for (const aux of /** @type {Workflow[]} */ (attached.get(primary.databaseId))) {
+            items.push({ wf: aux, isAuxiliary: true });
         }
     }
     return items;

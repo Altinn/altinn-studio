@@ -1,6 +1,10 @@
+import type { JSX } from 'react';
+
 import { ContainerComponent } from 'src/layout/LayoutComponent';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class LikertDef extends ContainerComponent<'Likert'> {
   protected readonly type = 'Likert';
@@ -8,6 +12,10 @@ export abstract class LikertDef extends ContainerComponent<'Likert'> {
   directRender(): boolean {
     return true;
   }
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class LikertDef extends ContainerComponent<'Likert'> {
   ): string[];
 }
 
-// Source hash: 9f4ff0e884a386e0bb7094834342e218a438830e0b91a2103e8058118309c911
+// Source hash: 04a19b81cb80b8b104edac147cb7b7e93182a5c097bc61dbdc8feb76c20be796

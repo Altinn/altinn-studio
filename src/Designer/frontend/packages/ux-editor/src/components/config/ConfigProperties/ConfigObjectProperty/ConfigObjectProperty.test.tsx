@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ConfigObjectProperty, type ConfigObjectPropertyProps } from './ConfigObjectProperty';
 import { componentMocks } from '../../../../testing/componentMocks';
-import InputSchema from '../../../../testing/schemas/json/component/Input.schema.v1.json';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
-const somePropertyName = 'somePropertyName';
+const somePropertyName = 'formatting';
 
-jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
+vi.mock('../../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
-    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
+    propertyKey === somePropertyName ? 'Some description' : undefined,
 }));
 
 describe('ConfigObjectProperties', () => {
@@ -18,15 +19,13 @@ describe('ConfigObjectProperties', () => {
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            [somePropertyName]: {
-              type: 'object',
-              properties: {},
-              description: 'Some description',
-            },
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {},
+            additionalProperties: false,
+            description: { en: 'Some description', nb: 'En beskrivelse' },
+            required: false,
           },
         },
       },
@@ -37,18 +36,18 @@ describe('ConfigObjectProperties', () => {
 
   it('should call handleComponentUpdate when a nested boolean property is toggled', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
-        schema: {
-          properties: {
-            [somePropertyName]: {
-              type: 'object',
-              properties: {
-                readOnly: { type: 'boolean', default: false },
-              },
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {
+              readOnly: { type: 'boolean', default: false, required: false },
             },
+            additionalProperties: false,
+            required: false,
           },
         },
         handleComponentUpdate: handleComponentUpdateMock,
@@ -81,16 +80,62 @@ describe('ConfigObjectProperties', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should delete object property and close card when delete button is clicked', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+  it('preserves multiple edits to existing sibling properties until the object is saved', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdate = vi.fn();
+    const objectPropertyKey = 'customProperties';
+    renderConfigObjectProperty({
+      props: {
+        objectPropertyKey,
+        component: {
+          ...componentMocks.Input,
+          [objectPropertyKey]: { readOnly: false, required: false },
+        },
+        properties: {
+          [objectPropertyKey]: {
+            type: 'object',
+            properties: {
+              readOnly: { type: 'boolean', required: false },
+              required: { type: 'boolean', required: false },
+            },
+            additionalProperties: false,
+            required: false,
+          },
+        },
+        handleComponentUpdate,
+      },
+    });
+    await openCard(objectPropertyKey);
+
+    await user.click(
+      screen.getByRole('switch', {
+        name: textMock('ux_editor.component_properties.readOnly'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('switch', {
+        name: textMock('ux_editor.component_properties.required'),
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [objectPropertyKey]: { readOnly: true, required: true },
+      }),
+    );
+  });
+
+  it('should delete object property and close card when delete button is clicked', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
         component: {
           ...componentMocks.Input,
-          [somePropertyName]: { testField: 'testValue' },
+          [somePropertyName]: { currency: 'NOK' },
         },
         handleComponentUpdate: handleComponentUpdateMock,
       },
@@ -118,27 +163,28 @@ describe('ConfigObjectProperties', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigObjectPropertyProps = {
       objectPropertyKey: somePropertyName,
-      schema: {
-        ...InputSchema,
-        properties: {
-          [somePropertyName]: {
-            type: 'object',
-            properties: {},
-          },
-        },
-      },
+      properties: defaultObjectProperties,
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
       editFormId: 'test-form',
     };
     return renderWithProviders(<ConfigObjectProperty {...defaultProps} {...props} />);
   };
 });
 
-const openCard = async () => {
+const defaultObjectProperties: Record<string, PropertyDefinition> = {
+  [somePropertyName]: {
+    type: 'object',
+    properties: {},
+    additionalProperties: false,
+    required: false,
+  },
+};
+
+const openCard = async (propertyName = somePropertyName) => {
   const user = userEvent.setup();
   const openButton = await screen.findByRole('button', {
-    name: textMock(`ux_editor.component_properties.${somePropertyName}`),
+    name: textMock(`ux_editor.component_properties.${propertyName}`),
   });
   await user.click(openButton);
   expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();

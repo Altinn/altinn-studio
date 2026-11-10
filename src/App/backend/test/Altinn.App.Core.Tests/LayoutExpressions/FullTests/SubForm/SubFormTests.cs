@@ -91,14 +91,14 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
             new DataType()
             {
                 Id = DefaultDataType,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new ApplicationLogic() { ClassRef = _classRefMain },
                 MaxCount = 1,
             },
             new DataType()
             {
                 Id = SubformDataType,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new ApplicationLogic() { ClassRef = _classRefSub },
             },
         ],
@@ -343,6 +343,7 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
         _services.AddSingleton(_hostEnvironmentMock.Object);
         _services.AddSingleton(fixture.App.Services.GetRequiredService<IObjectModelValidator>());
         _services.AddSingleton(_generalSettings);
+        _services.AddSingleton(Options.Create(new AppSettings { RemoveHiddenData = false }));
         _services.AddTransient<IValidationService, ValidationService>();
         _services.AddTransient<IValidatorFactory, ValidatorFactory>();
         _services.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();

@@ -2,7 +2,7 @@ import type { Ref } from 'react';
 import React, { forwardRef, useState } from 'react';
 import type { StudioTabsProps } from '@studio/components';
 import {
-  StudioTextResourcePicker2,
+  StudioTextResourcePicker,
   StudioTextResourceValueEditor,
   StudioAlert,
   StudioTabs,
@@ -16,7 +16,7 @@ export type StudioTextResourceEditorTexts = {
   pickerLabel: string;
   valueEditorAriaLabel: string;
   valueEditorIdLabel: string;
-  noTextResourceOptionLabel: string;
+  noSearchResultsText: string;
   disabledSearchAlertText?: string;
   tabLabelType: string;
   tabLabelSearch: string;
@@ -59,8 +59,8 @@ function StudioTextResourceEditor(
     onTabChange?.(tab);
   };
 
-  const handleReferenceChange = (id?: string): void => {
-    onReferenceChange?.(id);
+  const handleReferenceChange = (id: string | null): void => {
+    onReferenceChange?.(id || undefined);
   };
 
   return (
@@ -89,12 +89,12 @@ function StudioTextResourceEditor(
           <StudioAlert data-color='info'>{texts.disabledSearchAlertText}</StudioAlert>
         )}
         {!disableSearch && (
-          <StudioTextResourcePicker2
+          <StudioTextResourcePicker
             label={texts.pickerLabel}
-            noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
+            emptyText={texts.noSearchResultsText}
             textResources={textResources}
-            textResourceId={textResourceId}
-            onReferenceChange={handleReferenceChange}
+            value={textResourceId}
+            onValueChange={handleReferenceChange}
           />
         )}
       </StudioTabs.Panel>

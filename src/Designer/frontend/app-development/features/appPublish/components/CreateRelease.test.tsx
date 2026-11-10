@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,6 +27,8 @@ const orgListWithTestOrg: OrgList = {
   },
 };
 
+const branchName = 'feature/new-page';
+
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -36,7 +39,7 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <TestAppRouter>
         <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-          <CreateRelease />
+          <CreateRelease branchName={branchName} />
         </ServicesContextProvider>
       </TestAppRouter>
     </FeatureFlagsContextProvider>,
@@ -71,7 +74,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not show Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -88,7 +91,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not show Maskinporten scopes notice when default scopes are already selected', async () => {
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+    const getSelectedMaskinportenScopes = vi.fn().mockImplementation(() =>
       Promise.resolve({
         scopes: [
           {
@@ -120,7 +123,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not fetch selected Maskinporten scopes or show the notice for personal apps', async () => {
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -151,15 +154,15 @@ describe('CreateRelease', () => {
     expect(inputVersionNumber).toHaveValue(newVersionNumber);
   });
 
-  it('calls mutation on valid form submission', async () => {
+  it('creates a release from the latest commit on the current branch', async () => {
     const user = userEvent.setup();
     const newVersionNumber = 'v1';
     const newVersionDescription = 'test version';
     const mockCommitId = '123';
-    const mockGetBranchStatus = jest
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockCommitId } }));
-    const mockCreateRelease = jest.fn();
+    const mockCreateRelease = vi.fn();
 
     renderCreateRelease({ getBranchStatus: mockGetBranchStatus, createRelease: mockCreateRelease });
 
@@ -178,15 +181,36 @@ describe('CreateRelease', () => {
     });
     await user.click(buildVersionButton);
 
-    expect(mockGetBranchStatus).toHaveBeenCalled();
+    expect(mockGetBranchStatus).toHaveBeenCalledWith(org, app, branchName);
     await waitFor(() => {
       expect(mockCreateRelease).toHaveBeenCalledWith(org, app, {
         tagName: newVersionNumber,
         name: newVersionNumber,
         body: newVersionDescription,
         targetCommitish: mockCommitId,
+        branch: branchName,
       });
     });
+  });
+
+  it('does not create a release when the latest commit on the branch cannot be fetched', async () => {
+    const user = userEvent.setup();
+    const mockCreateRelease = vi.fn();
+    renderCreateRelease({
+      getBranchStatus: vi.fn().mockImplementation(() => Promise.reject(new Error())),
+      createRelease: mockCreateRelease,
+    });
+
+    const inputVersionNumber = screen.getByLabelText(
+      textMock('app_create_release.release_version_number'),
+    );
+    await user.type(inputVersionNumber, 'v1');
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    );
+
+    expect(mockCreateRelease).not.toHaveBeenCalled();
+    expect(inputVersionNumber).toHaveValue('v1');
   });
 
   it('disables build version button when tag name is invalid', async () => {
@@ -207,7 +231,7 @@ describe('CreateRelease', () => {
   it('shows validation error for existing tag name', async () => {
     const user = userEvent.setup();
     const existingTagName = 'v1';
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [{ tagName: existingTagName, build: { result: BuildResult.succeeded } }],
       }),

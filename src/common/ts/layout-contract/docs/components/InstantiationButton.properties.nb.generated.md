@@ -45,5 +45,5 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Verdier som brukes til å forhåndsutfylle det nye eksemplaret.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Verdier som brukes til å forhåndsutfylle det nye eksemplaret. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>

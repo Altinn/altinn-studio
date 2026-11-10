@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { personToPayload, contactPointToPerson } from './personUtils';
 import type { Person } from './PersonDialog/PersonDialog';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
@@ -8,6 +9,7 @@ const personWithBoth: Person = {
   environments: ['tt02', 'production'],
   email: 'test@example.com',
   phone: '12345678',
+  reportFrequency: 'none',
 };
 
 const personEmailOnly: Person = {
@@ -16,6 +18,7 @@ const personEmailOnly: Person = {
   environments: ['tt02'],
   email: 'email@example.com',
   phone: '',
+  reportFrequency: 'none',
 };
 
 const personPhoneOnly: Person = {
@@ -24,6 +27,7 @@ const personPhoneOnly: Person = {
   environments: [],
   email: '',
   phone: '87654321',
+  reportFrequency: 'none',
 };
 
 const personNoMethods: Person = {
@@ -32,6 +36,7 @@ const personNoMethods: Person = {
   environments: [],
   email: '',
   phone: '',
+  reportFrequency: 'none',
 };
 
 describe('personToPayload', () => {
@@ -71,6 +76,7 @@ const contactPointWithBoth: ContactPoint = {
   name: 'Contact Point',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [
     { id: 'm1', methodType: 'email', value: 'cp@example.com' },
     { id: 'm2', methodType: 'sms', value: '11111111' },
@@ -82,6 +88,7 @@ const contactPointEmailOnly: ContactPoint = {
   name: 'Email Only',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm3', methodType: 'email', value: 'only@example.com' }],
 };
 
@@ -90,6 +97,7 @@ const contactPointNoMethods: ContactPoint = {
   name: 'No Methods',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
   methods: [],
 };
 

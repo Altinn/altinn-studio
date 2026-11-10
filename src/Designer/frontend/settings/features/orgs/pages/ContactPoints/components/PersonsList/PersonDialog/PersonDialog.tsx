@@ -9,11 +9,13 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
+  StudioSelect,
 } from '@studio/components';
+import type { ReportFrequency } from 'app-shared/types/ContactPoint';
+import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './PersonDialog.module.css';
 import {
   emailRegex,
-  phoneRegex,
   emailPlaceholder,
   phonePlaceholder,
   nameMaxLength,
@@ -22,7 +24,7 @@ import {
 } from '../../../../../constants/contactPointConstants';
 import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
-import { personToPayload } from '../personUtils';
+import { isValidPhoneNumber, personToPayload } from '../personUtils';
 
 export type Person = {
   name: string;
@@ -30,6 +32,7 @@ export type Person = {
   phone: string;
   isActive: boolean;
   environments: string[];
+  reportFrequency: ReportFrequency;
 };
 
 type PersonDialogProps = {
@@ -67,7 +70,7 @@ export const PersonDialog = ({
       : undefined;
 
   const phoneError =
-    submitted && trimmedPhone && !phoneRegex.test(trimmedPhone)
+    submitted && trimmedPhone && !isValidPhoneNumber(trimmedPhone)
       ? t('validation_errors.invalid_phone')
       : undefined;
 
@@ -80,7 +83,7 @@ export const PersonDialog = ({
     !!trimmedName &&
     (!!trimmedEmail || !!trimmedPhone) &&
     (!trimmedEmail || emailRegex.test(trimmedEmail)) &&
-    (!trimmedPhone || phoneRegex.test(trimmedPhone));
+    (!trimmedPhone || isValidPhoneNumber(trimmedPhone));
 
   const handleClose = () => {
     if (!isSaving) onClose();
@@ -150,6 +153,22 @@ export const PersonDialog = ({
             placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
           />
+          <StudioSelect
+            label={t('settings.orgs.contact_points.field_report_frequency')}
+            value={person.reportFrequency}
+            onChange={(e) =>
+              setPerson((prev) => ({
+                ...prev,
+                reportFrequency: e.target.value as ReportFrequency,
+              }))
+            }
+          >
+            {reportFrequencies.map((frequency) => (
+              <StudioSelect.Option key={frequency} value={frequency}>
+                {t(`settings.orgs.contact_points.report_frequency_${frequency}`)}
+              </StudioSelect.Option>
+            ))}
+          </StudioSelect>
           <StudioCheckboxGroup
             legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}

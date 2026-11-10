@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.AppDist;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,10 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
     {
         HttpStatusCode statusCode = ResolveStatusCode(exception);
         httpContext.Response.StatusCode = (int)statusCode;
+        if (statusCode < HttpStatusCode.InternalServerError)
+        {
+            HandledException.Record(httpContext, exception);
+        }
 
         bool includeExceptionDetails = environment.IsDevelopment();
 

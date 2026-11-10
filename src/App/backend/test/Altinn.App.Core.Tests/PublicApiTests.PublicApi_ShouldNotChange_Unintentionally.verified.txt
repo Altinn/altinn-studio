@@ -1,5 +1,5 @@
 ﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/app-lib-dotnet")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v11.0", FrameworkDisplayName=".NET 11.0")]
 namespace Altinn.App.Core.Configuration
 {
     public class AppSettings
@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Configuration
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FormLayoutJSONFileName { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
@@ -83,6 +82,10 @@ namespace Altinn.App.Core.Constants
         public const string POLICY_INSTANCE_INSTANTIATE = "InstanceInstantiate";
         public const string POLICY_INSTANCE_READ = "InstanceRead";
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
+    }
+    public static class DataValueKeys
+    {
+        public const string CopySourceInstanceId = "copy.sourceInstanceId";
     }
     public static class General
     {
@@ -765,6 +768,9 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
     {
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
+        public object? CalculationConfig { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -1425,14 +1431,12 @@ namespace Altinn.App.Core.Features
     public static class FeatureFlags
     {
         public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
-        public const string BetaPDFenabled = "BetaPDFenabled";
-        public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
         public const string SimpleTableEnabled = "SimpleTableEnabled";
     }
     public interface IAppOptionsProvider
     {
         string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptions(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
     public interface ICopyInstanceValidator
     {
@@ -1448,7 +1452,7 @@ namespace Altinn.App.Core.Features
     public interface IDataListProvider
     {
         string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataList(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
     public interface IDataProcessor
     {
@@ -1475,7 +1479,7 @@ namespace Altinn.App.Core.Features
     public interface IInstanceAppOptionsProvider
     {
         string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetInstanceAppOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetInstanceAppOptions(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
     public interface IInstanceDataAccessor
     {
@@ -1528,7 +1532,7 @@ namespace Altinn.App.Core.Features
     public interface IInstanceDataListProvider
     {
         string Id { get; }
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataList(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
     public interface IInstanceDataMutator : Altinn.App.Core.Features.IInstanceDataAccessor
     {
@@ -1563,25 +1567,10 @@ namespace Altinn.App.Core.Features
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Notifications.Future.NotificationOrderResponse> Order(Altinn.App.Core.Models.Notifications.Future.NotificationOrderRequest request, System.Threading.CancellationToken cancellationToken);
     }
-    [System.Obsolete("This interface was used for the old PDF generator, and is used for backwards comp" +
-        "atibility in the chromium based one. It will be removed in the future. Create a " +
-        "custom pdf layout instead if you need to customize the PDF layout.")]
-    public interface IPdfFormatter
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.LayoutSettings> FormatPdf(Altinn.App.Core.Models.LayoutSettings layoutSettings, object data);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.LayoutSettings> FormatPdf(Altinn.App.Core.Models.LayoutSettings layoutSettings, object data, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    public interface IProcessEnd
-    {
-        System.Threading.Tasks.Task End(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>? events);
-    }
     public interface IProcessExclusiveGateway
     {
         string GatewayId { get; }
-        [System.Obsolete("Use FilterAsync(List<SequenceFlow>, Instance, IInstanceDataAccessor, ProcessGatew" +
-            "ayInformation) instead")]
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> Filter(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
     }
     public interface ISmsNotificationClient
     {
@@ -1694,20 +1683,20 @@ namespace Altinn.App.Core.Features.DataLists
 {
     public interface IDataListsService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataList(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataList(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
     }
     public class NullDataListProvider : Altinn.App.Core.Features.IDataListProvider
     {
         public NullDataListProvider() { }
         public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataList(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
     }
     public class NullInstanceDataListProvider : Altinn.App.Core.Features.IInstanceDataListProvider
     {
         public NullInstanceDataListProvider() { }
         public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataList(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
     }
 }
 namespace Altinn.App.Core.Features.DataProcessing
@@ -1733,7 +1722,7 @@ namespace Altinn.App.Core.Features.ExternalApi
     public interface IExternalApiClient
     {
         string Id { get; }
-        System.Threading.Tasks.Task<object?> GetExternalApiDataAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
+        System.Threading.Tasks.Task<object?> GetExternalApiData(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
     }
     public interface IExternalApiService
     {
@@ -1908,8 +1897,8 @@ namespace Altinn.App.Core.Features.Options.Altinn3LibraryCodeList
     }
     public interface IAltinn3LibraryCodeListService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string org, string codeListId, string version, string? language, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(string org, string codeListId, string? version, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptions(string org, string codeListId, string version, string? language, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.Altinn3LibraryCodeListResponse> GetCachedCodeListResponse(string org, string codeListId, string? version, System.Threading.CancellationToken cancellationToken);
         Altinn.App.Core.Models.AppOptions MapAppOptions(Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.Altinn3LibraryCodeListResponse libraryCodeListResponse, string? language);
     }
 }
@@ -1931,16 +1920,16 @@ namespace Altinn.App.Core.Features.Options
     {
         public DefaultAppOptionsProvider(string id, System.IServiceProvider serviceProvider) { }
         public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptions(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
     }
     public interface IAppOptionsFileHandler
     {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>?> ReadOptionsFromFileAsync(string optionId);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>?> ReadOptionsFromFile(string optionId);
     }
     public interface IAppOptionsService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptionsAsync(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptions(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptions(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
         bool IsInstanceAppOptionsProviderRegistered(string optionId);
     }
 }
@@ -2143,47 +2132,53 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets
 }
 namespace Altinn.App.Core.Features.Process
 {
-    public sealed class FailedHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHookResult>
+    public sealed class DeferredServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredServiceTaskResult>
+    {
+        public DeferredServiceTaskResult() { }
+        public required System.TimeSpan Delay { get; init; }
+        public string? Reason { get; init; }
+    }
+    public sealed class FailedHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHandlerResult>
     {
         public required string ErrorMessage { get; init; }
     }
-    public abstract class HookResult : System.IEquatable<Altinn.App.Core.Features.Process.HookResult>
+    public sealed class FailedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedServiceTaskResult>
     {
-        protected HookResult() { }
-        public static Altinn.App.Core.Features.Process.FailedHookResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
+        public required string ErrorMessage { get; init; }
     }
-    public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public abstract class HandlerResult : System.IEquatable<Altinn.App.Core.Features.Process.HandlerResult>
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndingContext context);
+        protected HandlerResult() { }
+        public static Altinn.App.Core.Features.Process.FailedHandlerResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.FailedHandlerResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulHandlerResult Success() { }
     }
-    public interface IOnTaskAbandonHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public interface IOnProcessEndedHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandonContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
+    }
+    public interface IOnTaskAbandoningHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandoningContext context);
         bool ShouldRunForTask(string taskId);
     }
     public interface IOnTaskEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
         bool ShouldRunForTask(string taskId);
     }
     public interface IOnTaskStartingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
         bool ShouldRunForTask(string taskId);
-    }
-    public interface IPipelineServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
-    {
-        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder pipeline);
     }
     public interface IProcessStepConfigurable
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IPipelineServiceTask, Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline DefineExecute(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
     }
     public interface IServiceTaskReplyForwarder
     {
@@ -2200,32 +2195,49 @@ namespace Altinn.App.Core.Features.Process
         public MailboxOptions() { }
         public required System.TimeSpan Timeout { get; init; }
     }
-    public sealed class OnProcessEndingContext
+    public sealed class OnProcessEndedContext
     {
-        public OnProcessEndingContext() { }
+        public OnProcessEndedContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
-    public sealed class OnTaskAbandonContext
+    public sealed class OnTaskAbandoningContext
     {
-        public OnTaskAbandonContext() { }
+        public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
+    }
+    public sealed class PipelineBuilder
+    {
+        public Altinn.App.Core.Features.Process.ProcessTaskPipeline Build() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.StageContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder HandleReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.StageContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public enum ProcessStepBackoffType
     {
@@ -2253,6 +2265,7 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ProcessTaskPipeline { }
     public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
     {
         public ProcessTaskValidationContext() { }
@@ -2260,37 +2273,10 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Constants.HostingEnvironment Environment { get; init; }
         public required string TaskId { get; init; }
     }
-    public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
-    {
-        public ServiceTaskAttempt() { }
-        public System.DateTimeOffset? Deadline { get; init; }
-        public int RetryCount { get; init; }
-    }
     public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
-    public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
-    {
-        public ServiceTaskContext() { }
-        public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public System.DateTimeOffset ExecutionReferenceTime { get; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public required System.Guid StepId { get; init; }
-        public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
-        public required System.Guid WorkflowId { get; init; }
-    }
-    public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
-    {
-        public ServiceTaskDeferredResult() { }
-        public required System.TimeSpan Delay { get; init; }
-        public string? Reason { get; init; }
-    }
     public abstract class ServiceTaskExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>
     {
         public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
-    }
-    public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
-    {
-        public required string ErrorMessage { get; init; }
     }
     public sealed class ServiceTaskMailbox : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskMailbox>
     {
@@ -2307,14 +2293,6 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedRetryable(string errorMessage) { }
     }
     public sealed class ServiceTaskPipeline { }
-    public sealed class ServiceTaskPipelineBuilder
-    {
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder HandleReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-    }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {
         public ServiceTaskReply() { }
@@ -2343,40 +2321,57 @@ namespace Altinn.App.Core.Features.Process
     }
     public abstract class ServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
+        public static Altinn.App.Core.Features.Process.DeferredServiceTaskResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult Success(string? action = null) { }
     }
-    public sealed class ServiceTaskStageAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult> { }
-    public abstract class ServiceTaskStageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>
+    public sealed class StageAttempt : System.IEquatable<Altinn.App.Core.Features.Process.StageAttempt>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult AwaitNextReply() { }
+        public StageAttempt() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int RetryCount { get; init; }
     }
-    public abstract class ServiceTaskStageResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageResult>
+    public sealed class StageAwaitNextReplyResult : Altinn.App.Core.Features.Process.StageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.StageAwaitNextReplyResult> { }
+    public sealed class StageContext : System.IEquatable<Altinn.App.Core.Features.Process.StageContext>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Completed() { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedRetryable(string errorMessage) { }
+        public StageContext() { }
+        public Altinn.App.Core.Features.Process.StageAttempt Attempt { get; init; }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public Altinn.App.Core.Features.Process.StageWait Wait { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
-    public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
+    public abstract class StageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.StageExchangeResult>
     {
-        public ServiceTaskSuccessResult() { }
-        public string? Action { get; init; }
+        public static Altinn.App.Core.Features.Process.StageAwaitNextReplyResult AwaitNextReply() { }
     }
-    public sealed class ServiceTaskWait : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskWait>
+    public abstract class StageResult : Altinn.App.Core.Features.Process.StageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.StageResult>
     {
-        public ServiceTaskWait() { }
+        public static Altinn.App.Core.Features.Process.StageResult Completed() { }
+        public static Altinn.App.Core.Features.Process.StageResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.StageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.StageResult FailedRetryable(string errorMessage) { }
+    }
+    public sealed class StageWait : System.IEquatable<Altinn.App.Core.Features.Process.StageWait>
+    {
+        public StageWait() { }
         public System.DateTimeOffset? Deadline { get; init; }
         public int DeferCount { get; init; }
-        public bool IsFinalCheck { get; }
+        public bool IsFinalCheck { get; init; }
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
-    public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
+    public sealed class SuccessfulHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHandlerResult>
     {
-        public SuccessfulHookResult() { }
+        public SuccessfulHandlerResult() { }
+    }
+    public sealed class SuccessfulServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult>
+    {
+        public SuccessfulServiceTaskResult() { }
+        public string? Action { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect
@@ -2602,7 +2597,7 @@ namespace Altinn.App.Core.Helpers
     {
         public static readonly System.Text.Json.JsonSerializerOptions JsonSerializerOptionsDefaults;
         public static T Deserialize<T>(string content) { }
-        public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(System.Net.Http.HttpContent content, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<T> Deserialize<T>(System.Net.Http.HttpContent content, System.Threading.CancellationToken cancellationToken = default) { }
         public static string Serialize(Altinn.Platform.Register.Models.PartyLookup partyLookup) { }
     }
     public static class LinqExpressionHelpers
@@ -2731,7 +2726,7 @@ namespace Altinn.App.Core.Helpers.Serialization
     {
         public ModelDeserializer(Microsoft.Extensions.Logging.ILogger logger, System.Type modelType) { }
         public string? Error { get; }
-        public System.Threading.Tasks.Task<object?> DeserializeAsync(System.IO.Stream stream, string? contentType) { }
+        public System.Threading.Tasks.Task<object?> Deserialize(System.IO.Stream stream, string? contentType) { }
     }
     public sealed class ModelSerializationService
     {
@@ -2963,15 +2958,15 @@ namespace Altinn.App.Core.Internal.Auth
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IAuthorizationService
     {
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IUserTokenProvider
     {
@@ -3171,11 +3166,7 @@ namespace Altinn.App.Core.Internal.Expressions
         [System.Obsolete("Use the overload with evaluateRemoveWhenHidden parameter")]
         public static System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Layout.DataReference>> GetHiddenFieldsForRemoval(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state) { }
         public static System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Layout.DataReference>> GetHiddenFieldsForRemoval(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, bool evaluateRemoveWhenHidden) { }
-        [System.Obsolete("Use the async version of this method RemoveHiddenDataAsync")]
-        public static void RemoveHiddenData(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption) { }
-        [System.Obsolete("Use the overload with evaluateRemoveWhenHidden parameter")]
-        public static System.Threading.Tasks.Task RemoveHiddenDataAsync(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption) { }
-        public static System.Threading.Tasks.Task RemoveHiddenDataAsync(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption, bool evaluateRemoveWhenHidden) { }
+        public static System.Threading.Tasks.Task RemoveHiddenData(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption, bool evaluateRemoveWhenHidden) { }
         public static System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssue>> RunLayoutValidationsForRequired(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state) { }
     }
     public class LayoutEvaluatorState
@@ -3258,16 +3249,14 @@ namespace Altinn.App.Core.Internal.Pdf
 {
     public interface IPdfGeneratorClient
     {
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
     }
     public interface IPdfService
     {
-        System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.BinaryDataChange> GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string language, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GenerateSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, string language, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public class PdfGenerationException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -3280,14 +3269,22 @@ namespace Altinn.App.Core.Internal.Pdf
         public PdfGeneratorSettings() { }
         public string AppPdfPagePathTemplate { get; set; }
         public bool DisplayFooter { get; set; }
+        public Altinn.App.Core.Internal.Pdf.PdfPreviewRateLimitSettings PreviewRateLimit { get; set; }
         public string WaitForSelector { get; set; }
         public int WaitForTime { get; set; }
     }
+    public class PdfPreviewRateLimitSettings
+    {
+        public PdfPreviewRateLimitSettings() { }
+        public int PermitLimit { get; set; }
+        public int QueueLimit { get; set; }
+        public System.TimeSpan Window { get; set; }
+    }
     public sealed class SubformPdfContext : System.IEquatable<Altinn.App.Core.Internal.Pdf.SubformPdfContext>
     {
-        public SubformPdfContext(string ComponentId, string DataElementId) { }
-        public string ComponentId { get; init; }
+        public SubformPdfContext(string UiFolder, string DataElementId) { }
         public string DataElementId { get; init; }
+        public string UiFolder { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Prefill
@@ -3425,10 +3422,8 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         public AltinnSubformPdfConfiguration() { }
         [System.Xml.Serialization.XmlElement("filenameTextResourceKey", Namespace="http://altinn.no/process")]
         public string? FilenameTextResourceKey { get; set; }
-        [System.Xml.Serialization.XmlElement("subformComponentId", Namespace="http://altinn.no/process")]
-        public string? SubformComponentId { get; set; }
-        [System.Xml.Serialization.XmlElement("subformDataTypeId", Namespace="http://altinn.no/process")]
-        public string? SubformDataTypeId { get; set; }
+        [System.Xml.Serialization.XmlElement("subformUiFolder", Namespace="http://altinn.no/process")]
+        public string? SubformUiFolder { get; set; }
     }
     public class AltinnTaskExtension
     {
@@ -3530,6 +3525,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("failure")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("firstFailedAt")]
+        public System.DateTimeOffset? FirstFailedAt { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("progress")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowProgress? Progress { get; init; }
@@ -3729,21 +3727,15 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     public interface IProcessTask
     {
         string Type { get; }
-        System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineAbandon(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineEnd(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker
     {
         System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
         System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    public sealed class ProcessTaskContext
-    {
-        public ProcessTaskContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Profile
@@ -3777,10 +3769,10 @@ namespace Altinn.App.Core.Internal.Secrets
 {
     public interface ISecretsClient
     {
-        System.Threading.Tasks.Task<byte[]> GetCertificateAsync(string certificateName);
-        System.Threading.Tasks.Task<Microsoft.Azure.KeyVault.WebKey.JsonWebKey> GetKeyAsync(string keyName);
+        System.Threading.Tasks.Task<byte[]> GetCertificate(string certificateName);
+        System.Threading.Tasks.Task<Microsoft.Azure.KeyVault.WebKey.JsonWebKey> GetKey(string keyName);
         Microsoft.Azure.KeyVault.KeyVaultClient GetKeyVaultClient();
-        System.Threading.Tasks.Task<string> GetSecretAsync(string secretName);
+        System.Threading.Tasks.Task<string> GetSecret(string secretName);
     }
 }
 namespace Altinn.App.Core.Internal.Sign
@@ -3919,6 +3911,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("isFinalWaitCheck")]
+        public bool IsFinalWaitCheck { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
@@ -4706,6 +4700,24 @@ namespace Altinn.App.Core.Models.Layout.Components
         public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public static Altinn.App.Core.Models.Layout.Components.LikertComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
+    public sealed class MapComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
+    {
+        public MapComponent() { }
+        public required Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding? GeometriesBinding { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding? SimpleBinding { get; init; }
+        public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
+        public static Altinn.App.Core.Models.Layout.Components.MapComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+    }
+    public sealed class MapGeometriesBinding : System.IEquatable<Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding>
+    {
+        public MapGeometriesBinding() { }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Data { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Geometries { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsEditable { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsHidden { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Label { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Style { get; init; }
+    }
     public sealed class NonRepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public NonRepeatingGroupComponent() { }
@@ -5204,11 +5216,14 @@ namespace Altinn.App.Core.Models.Process
     {
         Retrying = 0,
         ResumeRequired = 1,
+        InstanceChanged = 2,
+        ConcurrentTransition = 3,
     }
     public class ProcessStartRequest
     {
         public ProcessStartRequest() { }
         public Altinn.Platform.Storage.Interface.Models.Instance Instance { get; set; }
+        public string? Language { get; set; }
         public System.Collections.Generic.Dictionary<string, string>? Prefill { get; set; }
         public string? StartEventId { get; set; }
         public System.Security.Claims.ClaimsPrincipal User { get; set; }
@@ -5256,7 +5271,6 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
-        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind
@@ -5377,18 +5391,16 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Validation.FrontendSeverityConverter?))]
         public Altinn.App.Core.Models.Validation.ValidationIssueSeverity? Severity { get; set; }
     }
-    public class ValidationException : Altinn.App.Core.Exceptions.AltinnException
-    {
-        public ValidationException() { }
-        public ValidationException(string message) { }
-        public ValidationException(string message, System.Exception inner) { }
-    }
     public class ValidationIssue
     {
         public ValidationIssue() { }
         [Newtonsoft.Json.JsonProperty(PropertyName="code")]
         [System.Text.Json.Serialization.JsonPropertyName("code")]
         public string? Code { get; set; }
+        [Newtonsoft.Json.JsonProperty(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore, PropertyName="componentId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("componentId")]
+        public string? ComponentId { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="customTextKey")]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
@@ -5408,6 +5420,10 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(PropertyName="field")]
         [System.Text.Json.Serialization.JsonPropertyName("field")]
         public string? Field { get; set; }
+        [Newtonsoft.Json.JsonProperty(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore, PropertyName="rowIndexes")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="severity")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
@@ -5426,7 +5442,6 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementFileInfected { get; }
             public static string DataElementFileScanPending { get; }
             public static string DataElementTooLarge { get; }
-            public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
             public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }
@@ -5465,6 +5480,9 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonPropertyName("code")]
         public required string? Code { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("componentId")]
+        public string? ComponentId { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -5483,6 +5501,9 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
         [System.Text.Json.Serialization.JsonPropertyName("noIncrementalUpdates")]
         public bool NoIncrementalUpdates { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
         public required Altinn.App.Core.Models.Validation.ValidationIssueSeverity Severity { get; set; }

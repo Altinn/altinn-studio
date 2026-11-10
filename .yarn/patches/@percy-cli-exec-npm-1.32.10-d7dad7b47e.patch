@@ -1,0 +1,15 @@
+diff --git a/dist/exec.js b/dist/exec.js
+index cabfa4d511fe460640d8f80e4c4f651c9f1b9120..21c6c6574b92dace2a0a32cb4c2e6b93cc8d6f9b 100644
+--- a/dist/exec.js
++++ b/dist/exec.js
+@@ -181,7 +181,9 @@ async function* spawn(cmd, args, percy) {
+     // run until an event is triggered
+     /* eslint-disable-next-line no-unmodified-loop-condition */
+     while (closed == null && error == null) {
+-      yield new Promise(r => setImmediate(r));
++      // Temporary workaround for https://github.com/percy/cli/issues/2460.
++      // Keep interrupt checks without busy-polling an idle child process.
++      yield new Promise(r => setTimeout(r, 100));
+     }
+     if (error) throw error;
+     return [closed];

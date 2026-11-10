@@ -109,7 +109,8 @@ Workflow-Id: Guid_3
   "executionDeadline": "{Scrubbed}",
   "deferCount": 0,
   "firstDeferredAt": null,
-  "waitDeadline": null
+  "waitDeadline": null,
+  "isFinalWaitCheck": false
 }
 
 HTTP/1.1 200
@@ -149,7 +150,8 @@ Workflow-Id: Guid_3
   "executionDeadline": "{Scrubbed}",
   "deferCount": 0,
   "firstDeferredAt": null,
-  "waitDeadline": null
+  "waitDeadline": null,
+  "isFinalWaitCheck": false
 }
 
 HTTP/1.1 200
@@ -186,6 +188,7 @@ Content-Type: application/json; charset=utf-8
   "dependents": {},
   "links": {},
   "initialState": "initial-workflow-state",
+  "role": "Primary",
   "steps": [
     {
       "databaseId": "Guid_4",

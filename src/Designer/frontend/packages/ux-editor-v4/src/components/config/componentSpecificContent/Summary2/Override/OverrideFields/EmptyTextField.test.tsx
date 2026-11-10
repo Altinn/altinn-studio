@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { EmptyTextField } from './EmptyTextField';
 import { component1IdMock } from '../../../../../../testing/layoutMock';
@@ -54,7 +55,7 @@ const emptyTextFieldTextBox = () =>
     name: /ux_editor.component_properties.summary.override.empty_field_text/i,
   });
 
-const onChangeMock = jest.fn();
+const onChangeMock = vi.fn();
 
 const render = () => {
   const override: Summary2OverrideConfig = {

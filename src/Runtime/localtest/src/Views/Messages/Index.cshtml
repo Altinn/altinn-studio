@@ -1,0 +1,110 @@
+@model MessagesViewModel
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h1>@ViewData["Title"]</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Refresh</a>
+        @* Instances and everything else Localtest stores are kept. *@
+        <form asp-action="Clear" method="post"
+              onsubmit="return confirm('Delete all stored messages, attachments and notification orders?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Clear messages</button>
+        </form>
+    </div>
+</div>
+<p class="text-muted">
+    What apps have sent through Localtest. Nothing leaves your machine: emails and SMS messages are shown here
+    instead of being sent.
+</p>
+<p class="text-muted small">
+    Localtest checks requests against selected rules of the Correspondence API, so a message that shows here can
+    still be refused in TT02, and it looks recipients up in the test data. It does not check the resource registry, access to the resource, the service owner agreement
+    or reservation against digital post (KRR). Test those in TT02.
+</p>
+
+<h2 class="h4 mt-4">Correspondence</h2>
+@if (Model.Correspondences.Count == 0)
+{
+    <p>No correspondence has been sent yet.</p>
+}
+else
+{
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Sent</th>
+                <th>Recipient</th>
+                <th>Title</th>
+                <th>Resource</th>
+                <th>Attachments</th>
+                <th>Notifications</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var correspondence in Model.Correspondences)
+            {
+                var title = MessagesDisplay.Title(correspondence);
+                <tr>
+                    <td class="text-nowrap">@MessagesDisplay.Time(correspondence.Created)</td>
+                    <td class="text-nowrap">@MessagesDisplay.Recipient(correspondence.Recipient)</td>
+                    <td><a asp-action="Details" asp-route-id="@correspondence.CorrespondenceId">@title</a></td>
+                    <td><code>@correspondence.ResourceId</code></td>
+                    <td>@(correspondence.AttachmentIds.Count == 0 ? "" : correspondence.AttachmentIds.Count.ToString())</td>
+                    <td>@MessagesDisplay.Summary(correspondence.Notifications)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2 class="h4 mt-5">Notification orders</h2>
+<p class="text-muted">Emails and SMS messages apps ordered directly from the Notifications API.</p>
+@if (Model.NotificationOrders.Count == 0)
+{
+    <p>No notifications have been ordered yet.</p>
+}
+else
+{
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr>
+                <th>Ordered</th>
+                <th>Channel</th>
+                <th>Recipients</th>
+                <th>Message</th>
+                <th>Senders reference</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.NotificationOrders)
+            {
+                <tr>
+                    <td class="text-nowrap">@MessagesDisplay.Time(order.Created)</td>
+                    <td>@order.Channel</td>
+                    <td>
+                        @foreach (var recipient in order.Recipients)
+                        {
+                            <div>@recipient</div>
+                        }
+                    </td>
+                    <td>
+                        @foreach (var template in order.Templates)
+                        {
+                            <div class="mb-2">
+                                <span class="badge text-bg-light">@template.Kind</span>
+                                @if (template.Subject is not null)
+                                {
+                                    <strong>@template.Subject</strong>
+                                }
+                                <div class="message-text">@template.Body</div>
+                            </div>
+                        }
+                    </td>
+                    <td><code>@order.SendersReference</code></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -36,12 +36,15 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route("designer/api/repos")]
 public class RepositoryController : ControllerBase
 {
+    private const int MaxPublishAttempts = 3;
+
     private readonly IGiteaClient _giteaClient;
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
     private readonly IBranchService _branchService;
     private readonly IAppTemplateCatalog _appTemplateCatalog;
+    private readonly IAppRepositorySearchService _appRepositorySearchService;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -55,13 +58,15 @@ public class RepositoryController : ControllerBase
     /// <param name="syncHub">websocket syncHub</param>
     /// <param name="branchService">the branch service</param>
     /// <param name="appTemplateCatalog">the available app scaffolds</param>
+    /// <param name="appRepositorySearchService">the search for the repositories that hold apps</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
         IHubContext<SyncHub, ISyncClient> syncHub,
         IBranchService branchService,
-        IAppTemplateCatalog appTemplateCatalog
+        IAppTemplateCatalog appTemplateCatalog,
+        IAppRepositorySearchService appRepositorySearchService
     )
     {
         _giteaClient = giteaClient;
@@ -70,27 +75,36 @@ public class RepositoryController : ControllerBase
         _syncHub = syncHub;
         _branchService = branchService;
         _appTemplateCatalog = appTemplateCatalog;
+        _appRepositorySearchService = appRepositorySearchService;
     }
 
     /// <summary>
     /// Returns a list over repositories specified by search parameters
     /// </summary>
     /// <remarks>
-    /// All parameters create the search parameters
+    /// All parameters create the search parameters. With <paramref name="excludeNonAppRepos"/>, the shared
+    /// repositories ({owner}-datamodels, {owner}-content and {owner}-resources) are left out of the page and the
+    /// total count, and the page count stays Gitea's. It can't be combined with a keyword.
     /// </remarks>
     /// <returns>List of filtered repositories that user has access to.</returns>
     [AllowApiKey]
     [HttpGet]
     [Route("search")]
-    public async Task<SearchResults> Search(
+    public async Task<ActionResult<SearchResults?>> Search(
         [FromQuery] string? keyword,
         [FromQuery] int uId,
         [FromQuery] string? sortBy,
         [FromQuery] string? order,
         [FromQuery] int page,
-        [FromQuery] int limit
+        [FromQuery] int limit,
+        [FromQuery] bool excludeNonAppRepos = false
     )
     {
+        if (excludeNonAppRepos && !string.IsNullOrEmpty(keyword))
+        {
+            return BadRequest("excludeNonAppRepos can't be combined with keyword.");
+        }
+
         SearchOptions searchOptions = new SearchOptions
         {
             Keyword = keyword,
@@ -100,8 +114,9 @@ public class RepositoryController : ControllerBase
             Page = page,
             Limit = limit,
         };
-        SearchResults repositories = await _giteaClient.SearchRepo(searchOptions);
-        return repositories;
+        return excludeNonAppRepos
+            ? await _appRepositorySearchService.SearchApps(searchOptions)
+            : await _giteaClient.SearchRepo(searchOptions);
     }
 
     /// <summary>
@@ -406,14 +421,52 @@ public class RepositoryController : ControllerBase
         }
         catch (LibGit2Sharp.NonFastForwardException)
         {
-            RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
-            _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
+            // Someone else pushed first. Combining puts the new commit on top of theirs and keeps the history
+            // linear, where pulling would add a merge commit.
+            string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
+                ? commitInfo.BranchName
+                : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
+            List<RepositoryContent> changedFiles = CombineAndPublish(authenticatedContext, branchName);
+            await NotifyFileSyncSuccesses(developer, changedFiles);
+        }
+    }
+
+    private List<RepositoryContent> CombineAndPublish(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        List<RepositoryContent> changedFiles = [];
+        for (int attempt = 1; ; attempt++)
+        {
+            CombineResult combineResult = _sourceControl.CombineWithRemoteBranch(authenticatedContext, branchName);
+            if (combineResult.HasConflicts)
             {
-                Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                SyncSuccess syncSuccess = new(source);
-                await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+                throw new LibGit2Sharp.NonFastForwardException(
+                    $"Combining with remote branch '{branchName}' met conflicts."
+                );
             }
+
+            changedFiles.AddRange(combineResult.ContentStatus);
+            try
+            {
+                _sourceControl.PublishBranch(authenticatedContext, branchName);
+                return changedFiles;
+            }
+            catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxPublishAttempts)
+            {
+                // Someone pushed again while this combined.
+            }
+        }
+    }
+
+    private async Task NotifyFileSyncSuccesses(string developer, IEnumerable<RepositoryContent> contentStatuses)
+    {
+        foreach (RepositoryContent repoContent in contentStatuses)
+        {
+            Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+            SyncSuccess syncSuccess = new(source);
+            await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
         }
     }
 
@@ -488,7 +541,7 @@ public class RepositoryController : ControllerBase
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
-    /// <returns>The branch info</returns>
+    /// <returns>The branch info, or no content if the branch does not exist in Gitea</returns>
     [HttpGet]
     [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
     public async Task<Branch> Branch(string org, string repository, [FromQuery] string? branch) =>
@@ -751,22 +804,25 @@ public class RepositoryController : ControllerBase
         var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
         var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
         Directory.CreateDirectory(tempAltinnFolderPath);
-        var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
+        var zipFilePath = Path.Combine(tempAltinnFolderPath, Path.GetRandomFileName());
 
         var fileStream = new FileStream(
             zipFilePath,
-            FileMode.Create,
+            FileMode.CreateNew,
             FileAccess.ReadWrite,
             FileShare.Read,
             512,
             FileOptions.DeleteOnClose
         );
-        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true))
+        try
         {
+            using var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true);
             IEnumerable<string> changedFiles;
             if (full)
             {
-                changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
+                changedFiles = RepositoryFileAccess
+                    .GetFiles(appRoot, appRoot, recursive: true)
+                    .Select(file => Path.GetRelativePath(appRoot, file));
             }
             else
             {
@@ -778,33 +834,18 @@ public class RepositoryController : ControllerBase
 
             foreach (var changedFile in changedFiles)
             {
-                archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
+                string filePath = RepositoryFileAccess.Validate(appRoot, Path.Join(appRoot, changedFile));
+                archive.CreateEntryFromFile(filePath, changedFile);
             }
+        }
+        catch
+        {
+            fileStream.Dispose();
+            throw;
         }
 
         fileStream.Seek(0, SeekOrigin.Begin);
 
         return File(fileStream, "application/zip", zipFileName);
-    }
-
-    private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
-    {
-        var ret = new List<string>();
-        foreach (var directory in currentDir.EnumerateDirectories())
-        {
-            if (directory.Name == ".git")
-            {
-                continue;
-            }
-
-            ret.AddRange(GetFilesInDirectory(appRoot, directory));
-        }
-
-        foreach (var file in currentDir.GetFiles())
-        {
-            ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
-        }
-
-        return ret;
     }
 }

@@ -1,4 +1,5 @@
-﻿import { SlackContactProvider } from 'app-shared/getInTouch/providers/SlackContactProvider';
+import { describe, expect, it } from 'vitest';
+import { SlackContactProvider } from 'app-shared/getInTouch/providers/SlackContactProvider';
 
 describe('SlackContactProvider', () => {
   it('should return correct Slack link based on selectedChannel', () => {

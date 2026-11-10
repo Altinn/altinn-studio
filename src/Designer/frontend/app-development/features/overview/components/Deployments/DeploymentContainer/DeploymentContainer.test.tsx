@@ -1,9 +1,12 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { AppInEnvironment } from 'app-shared/types/api/RunningApp';
 import { app, org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
@@ -23,7 +26,7 @@ describe('DeploymentContainer', () => {
 
   it('shows an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+      getOrgList: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('overview.deployments_loading')),
@@ -32,10 +35,18 @@ describe('DeploymentContainer', () => {
     expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
   });
 
-  it('renders page', async () => {
+  it.each<{ environmentList?: AppInEnvironment[] }>([
+    { environmentList: undefined },
+    { environmentList: [] },
+  ])('renders page when the environment list is $environmentList', async ({ environmentList }) => {
     const envName = 'tt02';
     render({
-      getEnvironments: jest.fn().mockImplementation(() =>
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList }),
+        ),
+      getEnvironments: vi.fn().mockImplementation(() =>
         Promise.resolve([
           {
             ...environment,
@@ -43,7 +54,7 @@ describe('DeploymentContainer', () => {
           },
         ]),
       ),
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {
@@ -52,7 +63,7 @@ describe('DeploymentContainer', () => {
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {

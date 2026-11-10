@@ -42,6 +42,9 @@ function initializeApplicationInsights(
     const insights = new ApplicationInsights({
       config: {
         ...config,
+        // The SDK would send one trace ID with every API request from a page, so the backend would trace a whole
+        // session as one trace. Each request starts its own trace at the load balancer instead.
+        disableCorrelationHeaders: true,
         connectionString,
         extensions: [reactPlugin as unknown as ITelemetryPlugin],
       },

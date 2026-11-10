@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import type { RenderWithProvidersData } from './renderWithProviders';
@@ -15,14 +16,14 @@ export const renderHookWithProviders =
   (hook: () => any) => {
     const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-      save: jest.fn(),
+      save: vi.fn(),
       selectedUniquePointer: null,
-      setSelectedUniquePointer: jest.fn(),
+      setSelectedUniquePointer: vi.fn(),
       selectedTypePointer: null,
-      setSelectedTypePointer: jest.fn(),
+      setSelectedTypePointer: vi.fn(),
       name: 'Test',
       prefillConfig: {},
-      savePrefillConfig: jest.fn(),
+      savePrefillConfig: vi.fn(),
       ...appContextProps,
     };
 

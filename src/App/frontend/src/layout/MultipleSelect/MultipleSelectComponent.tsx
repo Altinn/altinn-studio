@@ -67,7 +67,7 @@ export function MultipleSelectComponent({
       title={title}
       help={help}
       description={description}
-      showOptionalMarking={!!config.labelSettings?.optionalIndicator}
+      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
       labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLabel={overrideDisplay?.renderLabel}

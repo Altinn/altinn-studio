@@ -200,7 +200,8 @@ public class FormBootstrapControllerTests
         authContext.Setup(x => x.Current).Returns(TestAuthentication.GetUserAuthentication(userPartyId: 501337));
 
         var pdp = new Mock<IPDP>();
-        pdp.Setup(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(new XacmlJsonResponse());
+        pdp.Setup(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new XacmlJsonResponse());
 
         var controller = CreateController(
             Mock.Of<IInstanceClientWithStorageMetadata>(),
@@ -215,7 +216,10 @@ public class FormBootstrapControllerTests
 
         var forbidden = Assert.IsType<StatusCodeResult>(result.Result);
         Assert.Equal(StatusCodes.Status403Forbidden, forbidden.StatusCode);
-        pdp.Verify(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Once);
+        pdp.Verify(
+            x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -226,7 +230,7 @@ public class FormBootstrapControllerTests
         authContext.Setup(x => x.Current).Returns(TestAuthentication.GetUserAuthentication(userPartyId: 501337));
 
         var pdp = new Mock<IPDP>();
-        pdp.Setup(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+        pdp.Setup(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new XacmlJsonResponse { Response = [new() { Decision = XacmlContextDecision.Permit.ToString() }] }
             );
@@ -244,7 +248,10 @@ public class FormBootstrapControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.IsType<FormBootstrapResponse>(ok.Value);
-        pdp.Verify(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Once);
+        pdp.Verify(
+            x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -267,7 +274,10 @@ public class FormBootstrapControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.IsType<FormBootstrapResponse>(ok.Value);
-        pdp.Verify(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Never);
+        pdp.Verify(
+            x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     private static Mock<IAppResources> CreateStatelessAppResources()

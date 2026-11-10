@@ -1,4 +1,5 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { describe, expect, it, vi } from 'vitest';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ImageUploadComponent, type ImageUploadComponentProps } from './ImageUploadComponent';
 import { ShapeOptions } from './ImageUploadUtils';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -10,7 +11,6 @@ const defaultComponent = {
   id: 'imageUpload1',
   type: ComponentType.ImageUpload,
   label: 'Upload Image',
-  itemType: 'COMPONENT' as const,
   crop: { shape: ShapeOptions.Circle, diameter: 100 },
 };
 
@@ -28,7 +28,7 @@ describe('ImageUploadComponent', () => {
 
   it('should call handleComponentChange with new crop values when changes are saved', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     renderImageUploadComponent({ handleComponentChange: handleComponentChangeMock });
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.crop_shape'),
@@ -58,7 +58,7 @@ const renderImageUploadComponent = (props: Partial<ImageUploadComponentProps> = 
       ...defaultComponent,
       ...props.component,
     },
-    handleComponentChange: jest.fn(),
+    handleComponentChange: vi.fn(),
   };
 
   const combinedProps = { ...defaultProps, ...props };

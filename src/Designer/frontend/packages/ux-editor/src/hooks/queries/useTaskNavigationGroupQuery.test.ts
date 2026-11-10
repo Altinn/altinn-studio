@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useTaskNavigationGroupQuery } from './useTaskNavigationGroupQuery';
@@ -11,11 +12,9 @@ const taskNavigationGroups: TaskNavigationGroup[] = [
   { taskId: 'task1', taskType: 'taskType1', name: 'name1' },
   { taskId: 'task2', taskType: 'taskType2', name: 'name2' },
 ];
-const getTaskNavigationGroup = jest.fn(() => Promise.resolve(taskNavigationGroups));
+const getTaskNavigationGroup = vi.fn(() => Promise.resolve(taskNavigationGroups));
 
 describe('useTaskNavigationGroupQuery', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls getTaskNavigationGroup and stores the result in the cache', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderHookWithProviders(() => useTaskNavigationGroupQuery(org, app), {

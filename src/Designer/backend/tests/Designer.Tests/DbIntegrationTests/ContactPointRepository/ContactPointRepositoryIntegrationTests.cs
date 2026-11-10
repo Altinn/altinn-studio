@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.ContactPoints;
+using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -151,12 +152,40 @@ public class ContactPointRepositoryIntegrationTests : DbIntegrationTestsBase
         Assert.Empty(deletedMethods);
     }
 
+    [Fact]
+    public async Task GetReportTargetsAsync_ShouldReturnEachSubscribedOrgAndEnvironmentOnce()
+    {
+        var org = $"org-{Guid.NewGuid():N}";
+        var otherOrg = $"org-{Guid.NewGuid():N}";
+        List<ContactMethodDbModel> Email() => [CreateMethodDbModel(ContactMethodType.Email, "report@example.com")];
+
+        await SeedContactPointAsync(org, "weekly", true, ["tt02", "prod"], Email(), ReportFrequency.Weekly);
+        await SeedContactPointAsync(org, "weekly-duplicate", true, ["tt02"], Email(), ReportFrequency.Weekly);
+        await SeedContactPointAsync(org, "weekly-inactive", false, ["at22"], Email(), ReportFrequency.Weekly);
+        await SeedContactPointAsync(org, "daily", true, ["yt01"], Email(), ReportFrequency.Daily);
+        await SeedContactPointAsync(org, "no-report", true, ["at23"], Email());
+        await SeedContactPointAsync(otherOrg, "weekly", true, ["tt02"], Email(), ReportFrequency.Weekly);
+
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ContactPointRepository(
+            DbFixture.DbContext
+        );
+
+        var result = await repository.GetReportTargetsAsync(ReportFrequency.Weekly);
+
+        Assert.Equal(
+            [new ReportTarget(org, "prod"), new ReportTarget(org, "tt02")],
+            result.Where(target => target.Org == org)
+        );
+        Assert.Contains(new ReportTarget(otherOrg, "tt02"), result);
+    }
+
     private async Task<ContactPointDbModel> SeedContactPointAsync(
         string org,
         string name,
         bool isActive,
         List<string> environments,
-        List<ContactMethodDbModel> methods
+        List<ContactMethodDbModel> methods,
+        ReportFrequency reportFrequency = ReportFrequency.None
     )
     {
         var contactPoint = new ContactPointDbModel
@@ -168,6 +197,7 @@ public class ContactPointRepositoryIntegrationTests : DbIntegrationTestsBase
             CreatedAt = DateTimeOffset.UtcNow,
             Environments = environments,
             Methods = methods,
+            ReportFrequency = (int)reportFrequency,
         };
 
         foreach (var method in contactPoint.Methods)

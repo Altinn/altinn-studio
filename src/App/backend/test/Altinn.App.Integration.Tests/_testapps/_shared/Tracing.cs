@@ -12,6 +12,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -51,7 +52,6 @@ public static class TracingDI
         services.AddSingleton<IInstanceDataListProvider, InstanceDataListProvider>();
         services.AddSingleton<IInstantiationProcessor, InstantiationProcessor>();
         services.AddSingleton<IInstantiationValidator, InstantiationValidator>();
-        services.AddSingleton<IProcessEnd, ProcessEnd>();
         services.AddSingleton<IProcessTask, TracingDataProcessTask>();
         services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
@@ -128,9 +128,9 @@ internal sealed class AppOptionsProvider : IAppOptionsProvider
 {
     public string Id => "tracing-app-options";
 
-    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
-        SnapshotLogger.LogInfo("IAppOptionsProvider.GetAppOptionsAsync");
+        SnapshotLogger.LogInfo("IAppOptionsProvider.GetAppOptions");
         return Task.FromResult(new AppOptions());
     }
 }
@@ -155,9 +155,9 @@ internal sealed class DataListProvider : IDataListProvider
 {
     public string Id => "tracing-data-list";
 
-    public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<DataList> GetDataList(string? language, Dictionary<string, string> keyValuePairs)
     {
-        SnapshotLogger.LogInfo("IDataListProvider.GetDataListAsync");
+        SnapshotLogger.LogInfo("IDataListProvider.GetDataList");
         return Task.FromResult(new DataList());
     }
 }
@@ -217,13 +217,13 @@ internal sealed class InstanceAppOptionsProvider : IInstanceAppOptionsProvider
 {
     public string Id => "tracing-instance-app-options";
 
-    public Task<AppOptions> GetInstanceAppOptionsAsync(
+    public Task<AppOptions> GetInstanceAppOptions(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
-        SnapshotLogger.LogInfo("IInstanceAppOptionsProvider.GetInstanceAppOptionsAsync");
+        SnapshotLogger.LogInfo("IInstanceAppOptionsProvider.GetInstanceAppOptions");
         return Task.FromResult(new AppOptions());
     }
 }
@@ -232,13 +232,13 @@ internal sealed class InstanceDataListProvider : IInstanceDataListProvider
 {
     public string Id => "tracing-instance-data-list";
 
-    public Task<DataList> GetInstanceDataListAsync(
+    public Task<DataList> GetInstanceDataList(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
-        SnapshotLogger.LogInfo("IInstanceDataListProvider.GetInstanceDataListAsync");
+        SnapshotLogger.LogInfo("IInstanceDataListProvider.GetInstanceDataList");
         return Task.FromResult(new DataList());
     }
 }
@@ -261,35 +261,23 @@ internal sealed class InstantiationValidator : IInstantiationValidator
     }
 }
 
-internal sealed class ProcessEnd : IProcessEnd
-{
-    public Task End(Instance instance, List<InstanceEvent>? events)
-    {
-        SnapshotLogger.LogInfo("IProcessEnd.End");
-        return Task.CompletedTask;
-    }
-}
-
 internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Start")).Build();
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.End")).Build();
 
-    public Task Abandon(ProcessTaskContext context)
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Abandon")).Build();
+
+    private static Task<StageResult> Log(string message)
     {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        SnapshotLogger.LogInfo(message);
+        return Task.FromResult(StageResult.Completed());
     }
 }
 
@@ -297,22 +285,19 @@ internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Start")).Build();
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.End")).Build();
 
-    public Task Abandon(ProcessTaskContext context)
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Abandon")).Build();
+
+    private static Task<StageResult> Log(string message)
     {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        SnapshotLogger.LogInfo(message);
+        return Task.FromResult(StageResult.Completed());
     }
 }
 
@@ -377,12 +362,12 @@ internal sealed class ExternalApiClient : IExternalApiClient
 {
     public string Id => "tracing-external-api";
 
-    public Task<object?> GetExternalApiDataAsync(
+    public Task<object?> GetExternalApiData(
         InstanceIdentifier instanceIdentifier,
         Dictionary<string, string> queryParams
     )
     {
-        SnapshotLogger.LogInfo("IExternalApiClient.GetExternalApiDataAsync");
+        SnapshotLogger.LogInfo("IExternalApiClient.GetExternalApiData");
         return Task.FromResult<object?>(new object());
     }
 }
@@ -400,9 +385,9 @@ internal sealed class FileAnalyzer : IFileAnalyzer
 
 internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
 {
-    public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
+    public Task<List<AppOption>?> ReadOptionsFromFile(string optionId)
     {
-        SnapshotLogger.LogInfo("IAppOptionsFileHandler.ReadOptionsFromFileAsync");
+        SnapshotLogger.LogInfo("IAppOptionsFileHandler.ReadOptionsFromFile");
         return Task.FromResult<List<AppOption>?>([]);
     }
 }

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
 import type { FormComponent } from '../types/FormComponent';

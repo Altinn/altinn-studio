@@ -1,9 +1,5 @@
-import {
-  ComponentBase,
-  SummarizableComponentProps,
-  TRBSummarizable,
-} from '@app/layout-contract/generated/common.generated';
-import { CompCategory } from '@app/layout-contract';
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
+import { ComponentBase, TRBSummarizable } from '@app/layout-contract/generated/common.generated';
 
 export interface CardConfig {
   media?: string;
@@ -17,8 +13,10 @@ export type CardsColor = 'neutral' | 'subtle';
 
 export type CardsMediaPosition = 'top' | 'bottom';
 
-export interface CompCardsExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompCardsExternal extends ComponentBase {
   type: 'Cards';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable;
   mediaPosition?: CardsMediaPosition;
   minMediaHeight?: string;
@@ -56,4 +54,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 349a9299fc1f1b4d8f9bc843618c53204e1077702b6e7c44b1824173284f6ea8
+// Source hash: 29bae1866a45c0da9c5bc1396fa4f0fb57ab263e479232bf9f6622e11260c008

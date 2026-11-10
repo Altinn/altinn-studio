@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
@@ -17,7 +18,7 @@ describe('formLayoutsUtils', () => {
     it('Adds navigation buttons to all layouts if there are multiple layouts', async () => {
       const layout1Id = 'layout1';
       const layout2Id = 'layout2';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layout1Id]: createEmptyLayout(),
         [layout2Id]: createEmptyLayout(),
@@ -36,12 +37,12 @@ describe('formLayoutsUtils', () => {
 
     it('Removes navigation buttons if there is only one layout', async () => {
       const layoutId = 'layout1';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
       };

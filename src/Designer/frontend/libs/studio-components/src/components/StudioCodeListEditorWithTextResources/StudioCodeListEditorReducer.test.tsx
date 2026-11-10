@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { textResources } from './test-data/textResources';
 import type { ReducerAction, ReducerState } from './StudioCodeListEditorReducer';

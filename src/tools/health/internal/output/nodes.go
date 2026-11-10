@@ -12,7 +12,7 @@ import (
 
 // PrintNodeResults prints the node results as a formatted table.
 //
-//nolint:funlen,nestif // Node output is a single table formatter with two row layouts.
+//nolint:funlen,gocognit,nestif // Node output is a single table formatter with two row layouts.
 func PrintNodeResults(w io.Writer, results []kubernetes.NodeResult) error {
 	// Sort results: errors first, then by cluster name
 	sort.SliceStable(results, func(i, j int) bool {

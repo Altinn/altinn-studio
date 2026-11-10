@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { LocalImageProps } from './LocalImage';
 import { LocalImage } from './LocalImage';
@@ -53,9 +54,9 @@ const getLibraryModalHeading = () =>
     name: textMock('ux_editor.properties_panel.images.choose_from_library_modal_title'),
   });
 
-const onDeleteImageMock = jest.fn();
-const onDeleteImageReferenceOnlyMock = jest.fn();
-const onImageChangeMock = jest.fn();
+const onDeleteImageMock = vi.fn();
+const onDeleteImageReferenceOnlyMock = vi.fn();
+const onImageChangeMock = vi.fn();
 const defaultProps: LocalImageProps = {
   componentHasExternalImageReference: false,
   fileName: undefined,

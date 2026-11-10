@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import {
   allOfNodeMock,
   arrayNodeMock,
@@ -25,7 +26,6 @@ import {
   unusedDefinitionMock,
   unusedDefinitionWithSameNameAsExistingObjectMock,
 } from '../../../test/uiSchemaMock';
-import { expect } from '@jest/globals';
 import { extractNameFromPointer } from '../pointerUtils';
 import { ROOT_POINTER } from '../constants';
 import { SchemaModel } from './SchemaModel';

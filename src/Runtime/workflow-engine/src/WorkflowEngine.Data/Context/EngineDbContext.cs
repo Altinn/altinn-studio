@@ -47,8 +47,26 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.CollectionKey);
+            // Backs the per-collection rollup behind the collections health view
+            // (GetCollectionWorkflowCounts). Namespace is in the key because a collection key is
+            // unique per namespace, not globally; status and is_head ride along so the grouped
+            // COUNT(*) FILTER never leaves the index. Supersedes the bare collection_key index —
+            // a leading-column prefix serves every lookup that one did.
+            entity
+                .HasIndex(e => new { e.CollectionKey, e.Namespace })
+                .IncludeProperties(e => new { e.Status, e.IsHead });
+
             entity.HasIndex(e => new { e.Namespace, e.Status });
+
+            // Backs the collections discovery scan (?failures=), which is driven
+            // workflows → collections: only failed rows are indexed, so the scan is proportional
+            // to the failures rather than to the namespace. is_head rides along for the
+            // primary/auxiliary facet. Same constancy contract as the other partial indexes —
+            // the filter interpolates the status set the query itself uses.
+            entity
+                .HasIndex(e => new { e.Namespace, e.CollectionKey }, "ix_workflows_namespace_collection_key_failed")
+                .HasFilter($"status IN ({PersistentItemStatusMap.FailedSqlList})")
+                .IncludeProperties(e => e.IsHead);
 
             // Backs the throttle sweep's per-namespace GROUP BY counts over incomplete
             // workflows, reading no column the index does not carry. Deliberately narrow:
@@ -160,7 +178,12 @@ internal sealed class EngineDbContext : DbContext
         modelBuilder.Entity<WorkflowCollectionEntity>(entity =>
         {
             entity.HasKey(e => new { e.Key, e.Namespace });
-            entity.HasIndex(e => e.Namespace);
+
+            // Keyset pagination reads WHERE namespace = … AND key > cursor ORDER BY key. The
+            // primary key leads with key, so it cannot serve namespace-equality and key-order
+            // together; this composite does, and a leading-column prefix still serves every
+            // namespace lookup the bare index did.
+            entity.HasIndex(e => new { e.Namespace, e.Key });
         });
 
         // Configure NamespaceThrottle entity
@@ -284,7 +307,7 @@ internal sealed class EngineDbContext : DbContext
             entity.ToTable(table =>
                 // One of the two stamps is always set at insert: a row with neither would read as parked forever.
                 table.HasCheckConstraint(
-                    "ck_mailbox_receivers_birth_is_recorded",
+                    "ck_mailbox_receivers_enqueue_outcome_is_recorded",
                     "held_at IS NOT NULL OR released_at IS NOT NULL"
                 )
             );

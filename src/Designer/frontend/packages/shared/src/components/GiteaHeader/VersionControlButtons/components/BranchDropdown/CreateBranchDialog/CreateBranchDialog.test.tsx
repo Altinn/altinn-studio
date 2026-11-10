@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CreateBranchDialogProps } from './CreateBranchDialog';
@@ -7,8 +8,8 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const onClose = jest.fn();
-const onCreateBranch = jest.fn();
+const onClose = vi.fn();
+const onCreateBranch = vi.fn();
 
 describe('CreateBranchDialog', () => {
   const originalLocation = window.location;
@@ -16,12 +17,11 @@ describe('CreateBranchDialog', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { reload: jest.fn() },
+      value: { reload: vi.fn() },
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     Object.defineProperty(window, 'location', {
       writable: true,
       value: originalLocation,
@@ -150,7 +150,6 @@ describe('CreateBranchDialog', () => {
 const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
-  currentBranch: 'master',
   existingBranchNames: [],
   createError: '',
   isLoading: false,

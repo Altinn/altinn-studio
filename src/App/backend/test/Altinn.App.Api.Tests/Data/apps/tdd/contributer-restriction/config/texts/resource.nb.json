@@ -2,7 +2,7 @@
   "language": "nb-NO",
   "resources": [
     {
-      "id": "backend.validation_errors.required",
+      "id": "validation_errors.required",
       "value": "{0} is required in component with id {1}.{2}.{3} for binding {4}",
       "variables": [
         {

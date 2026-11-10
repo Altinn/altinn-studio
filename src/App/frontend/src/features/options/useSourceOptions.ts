@@ -20,11 +20,13 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();
   const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
-  const rawValues = FormStore.data.useDebouncedSelect((pick) => {
-    if (!groupReference || !valueSubPath) {
+  const groupRows = FormStore.data.useDebouncedPick(groupReference);
+  const groupDataType = groupReference?.dataType;
+  const groupField = groupReference?.field;
+  const rawValues = useMemoDeepEqual(() => {
+    if (groupDataType === undefined || groupField === undefined || !valueSubPath) {
       return [];
     }
-    const groupRows = pick(groupReference);
     if (!Array.isArray(groupRows)) {
       return [];
     }
@@ -32,7 +34,7 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
     const output: { value: string; dataModelLocation: IDataModelReference }[] = [];
     for (const idx in groupRows) {
       const index = parseInt(idx, 10);
-      const rowReference = { dataType: groupReference.dataType, field: `${groupReference.field}[${index}]` };
+      const rowReference = { dataType: groupDataType, field: `${groupField}[${index}]` };
       const value = dot.pick(valueSubPath, groupRows[index]) ?? '';
 
       output.push({
@@ -42,7 +44,7 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
     }
 
     return output;
-  });
+  }, [groupDataType, groupField, valueSubPath, groupRows]);
 
   const dataSources = useExpressionDataSources(source);
   return useMemoDeepEqual(() => {

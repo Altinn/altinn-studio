@@ -1,12 +1,10 @@
 import React from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
-import type { properties } from '../../../../testing/schemas/json/component/ActionButton.schema.v1.json';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
-import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 
-type ActionButtonMainProperties = (keyof typeof properties)[];
-const actionButtonMainProperties: ActionButtonMainProperties = ['action', 'buttonStyle'];
+const actionButtonMainProperties = ['action', 'buttonStyle'];
 
 type ActionButtonMainConfigProps = {
   component: FormItem<ComponentType.ActionButton>;
@@ -19,13 +17,13 @@ export const ActionButtonMainConfig = ({
   handleComponentChange,
   className,
 }: ActionButtonMainConfigProps): React.ReactElement => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
 
   return (
     <ConfigStringProperties
       component={component}
       handleComponentUpdate={handleComponentChange}
-      schema={schema}
+      properties={properties}
       stringPropertyKeys={actionButtonMainProperties}
       className={className}
     />

@@ -126,7 +126,7 @@ public class CustomTemplateService : ICustomTemplateService
         CancellationToken cancellationToken = default
     )
     {
-        string templateRepo = GetContentRepoName(templateOwner);
+        string templateRepo = RepositoryNames.Content(templateOwner);
         string templateCacheFolderPath = Path.Combine(
             _serviceRepoSettings.RepositoryLocation,
             _templateSettings.Cache.LocalCacheFolder,
@@ -245,7 +245,7 @@ public class CustomTemplateService : ICustomTemplateService
 
     private async Task<CustomTemplate> GetCustomTemplate(string owner, string id)
     {
-        string templateRepo = GetContentRepoName(owner);
+        string templateRepo = RepositoryNames.Content(owner);
 
         string path = Path.Combine(TemplateFolder, id, TemplateFileName);
 
@@ -291,12 +291,15 @@ public class CustomTemplateService : ICustomTemplateService
 
     private void DeleteContent(string org, string repository, string developer, string path)
     {
-        // remove paths are validated as part of template retrieval. So we can assume they are safe to use here.
-        string targetPath = Path.Combine(_serviceRepoSettings.GetServicePath(org, repository, developer), path);
+        string repositoryPath = RepositoryFileAccess.Validate(
+            _serviceRepoSettings.RepositoryLocation,
+            _serviceRepoSettings.GetServicePath(org, repository, developer)
+        );
+        string targetPath = RepositoryFileAccess.Validate(repositoryPath, Path.Combine(repositoryPath, path));
 
         if (Directory.Exists(targetPath))
         {
-            Directory.Delete(targetPath, true);
+            DirectoryHelper.DeleteFilesAndDirectory(targetPath);
         }
         else if (File.Exists(targetPath))
         {
@@ -313,7 +316,7 @@ public class CustomTemplateService : ICustomTemplateService
         CancellationToken cancellationToken = default
     )
     {
-        string templateRepo = GetContentRepoName(templateOwner);
+        string templateRepo = RepositoryNames.Content(templateOwner);
 
         string templateCachePath = Path.Combine(
             _serviceRepoSettings.RepositoryLocation,
@@ -360,7 +363,10 @@ public class CustomTemplateService : ICustomTemplateService
 
         await DirectoryHelper.CopyDirectoryAsync(
             cacheTemplateContentPath,
-            _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer)
+            RepositoryFileAccess.Validate(
+                _serviceRepoSettings.RepositoryLocation,
+                _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer)
+            )
         );
     }
 
@@ -383,7 +389,10 @@ public class CustomTemplateService : ICustomTemplateService
         {
             string projectPattern = projectGroup.Key;
             var projectFiles = DirectoryHelper.ResolveFilesFromPattern(
-                _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer),
+                RepositoryFileAccess.Validate(
+                    _serviceRepoSettings.RepositoryLocation,
+                    _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer)
+                ),
                 projectPattern
             );
 
@@ -455,11 +464,6 @@ public class CustomTemplateService : ICustomTemplateService
         }
 
         throw new TimeoutException($"Could not acquire template cache lock after {maxRetries} retries");
-    }
-
-    private static string GetContentRepoName(string org)
-    {
-        return $"{org}-content";
     }
 
     /// <summary>
@@ -575,7 +579,10 @@ public class CustomTemplateService : ICustomTemplateService
 
                 // Calculate relative path and save to cache
                 string relativePath = GetRelativePathWithinContent(fileMetadata.Path, remoteTemplateContentPath);
-                string targetPath = Path.Combine(cacheTemplateContentPath, relativePath);
+                string targetPath = RepositoryFileAccess.Validate(
+                    cacheTemplateContentPath,
+                    Path.Combine(cacheTemplateContentPath, relativePath)
+                );
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
 

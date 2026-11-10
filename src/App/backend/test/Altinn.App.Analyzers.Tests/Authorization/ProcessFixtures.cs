@@ -6,13 +6,7 @@ namespace Altinn.App.Analyzers.Tests.Authorization;
 /// <param name="Id">The BPMN element id.</param>
 /// <param name="TaskType">The <c>altinn:taskType</c> value.</param>
 /// <param name="Actions">Process actions the task declares (the default <c>processAction</c> type).</param>
-/// <param name="ServerActions">Actions the task declares as <c>type="serverAction"</c>.</param>
-internal sealed record ProcessTask(
-    string Id,
-    string TaskType,
-    string[]? Actions = null,
-    string[]? ServerActions = null
-);
+internal sealed record ProcessTask(string Id, string TaskType, string[]? Actions = null);
 
 /// <summary>Builds process.bpmn documents in the shape the Studio process editor produces.</summary>
 internal static class ProcessFixtures
@@ -28,11 +22,6 @@ internal static class ProcessFixtures
             foreach (var action in task.Actions ?? [])
             {
                 actions.Append($"<altinn:action>{action}</altinn:action>");
-            }
-
-            foreach (var action in task.ServerActions ?? [])
-            {
-                actions.Append($"""<altinn:action type="serverAction">{action}</altinn:action>""");
             }
 
             var actionsXml = actions.Length == 0 ? "" : $"<altinn:actions>{actions}</altinn:actions>";

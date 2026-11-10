@@ -57,7 +57,7 @@ The component also supports the [common component properties](../common-properti
             <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Video sources for each supported language.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Video sources for each supported language. Additional property names are allowed. Value type: string.</div></div>
       </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="video.src.nb">

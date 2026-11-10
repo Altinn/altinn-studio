@@ -29,14 +29,14 @@ describe('Hide row in group', () => {
     // for such fields in the data model.
     cy.waitUntilSaved();
 
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1');
     cy.get(appFrontend.group.mainGroup).find('tr').should('not.exist');
     cy.get(appFrontend.group.hiddenRowsInfoMsg).should('exist');
 
     // Hiding rows with value over 1000 to split the group in two
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
     cy.get(appFrontend.group.mainGroup)
       .find('tr')
       .should('have.length', 2 + headerRow);
@@ -148,12 +148,8 @@ describe('Hide row in group', () => {
       cy.get(appFrontend.group.saveMainGroup).click();
     });
     cy.findByRole('button', { name: 'Rediger NOK 6' }).should('be.visible');
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    // The backend stores this field as a non-nullable integer and normalizes an empty value to zero.
-    // Let that save finish before entering the threshold, so its response cannot interrupt typing.
-    cy.waitUntilSaved();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 0');
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('{moveToEnd}5');
+    // Replace the threshold without saving an empty integer, which the backend normalizes to zero.
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('5');
     cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 5');
 
     // Wait for the row to be hidden before testing navigation past it.
@@ -234,8 +230,8 @@ describe('Hide row in group', () => {
     cy.get(appFrontend.group.newValue).type('23');
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
 
     cy.navPage('repeating (store endringer)').click();
 

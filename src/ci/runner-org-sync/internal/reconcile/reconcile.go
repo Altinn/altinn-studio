@@ -212,8 +212,8 @@ func (r *Reconciler) Run(ctx context.Context) (Report, error) {
 		if tokenErr != nil {
 			// Auth failures hit every subsequent org with the same PAT —
 			// fail fast instead of cascading the same root cause across
-			// the whole desired set. K8s records the CronJob failure and
-			// the next tick retries with whatever the latest PAT in KV is.
+			// the whole desired set. The caller reports the failure through
+			// telemetry, and the next tick retries with the latest PAT in KV.
 			if errors.Is(tokenErr, gitea.ErrUnauthorized) {
 				return report, fmt.Errorf("reconcile: mint token for %s: %w", org.Code, tokenErr)
 			}

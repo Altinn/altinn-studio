@@ -9,9 +9,10 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
+import { useSummaryCaptionProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 const emptyArray: never[] = [];
@@ -19,7 +20,6 @@ const emptyArray: never[] = [];
 export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'SimpleTable');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'SimpleTable');
-  const required = useEvalExpression(config.required, Expressions.SimpleTable.required);
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.SimpleTable.textResourceBindings.summaryTitle,
@@ -31,6 +31,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
 
@@ -59,14 +60,19 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
       targetBaseId={targetBaseComponentId}
       content={
         !Array.isArray(data) || data.length === 0
-          ? required
-            ? SummaryContains.EmptyValueRequired
-            : SummaryContains.EmptyValueNotRequired
+          ? SummaryContains.EmptyValueNotRequired
           : SummaryContains.SomeUserContent
       }
     >
       <AppTable
-        caption={title && <Caption title={<Lang id={title} />} />}
+        caption={
+          title && (
+            <Caption
+              {...captionProps}
+              title={<Lang id={title} />}
+            />
+          )
+        }
         data={Array.isArray(data) ? data : emptyArray}
         columns={config.columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}

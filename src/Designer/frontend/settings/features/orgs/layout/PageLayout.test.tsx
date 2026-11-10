@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { PageLayout } from './PageLayout';
@@ -7,9 +8,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';
 
-jest.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   Outlet: () => <div>Outlet</div>,
 }));
 

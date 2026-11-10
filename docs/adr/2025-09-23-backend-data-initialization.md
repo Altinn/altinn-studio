@@ -1,6 +1,6 @@
 # ADR: Move most initial data loading to app-backend
 
-- **Status:** Approved
+- Status: Accepted
 - **Date:** 2025-09-23
 - **Owner:** Team Studio
 - **Related:** Altinn/altinn-studio#16309 (Epic) ([GitHub][1])

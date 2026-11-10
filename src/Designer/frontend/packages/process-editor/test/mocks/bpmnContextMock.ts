@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { BpmnContextProps } from '../../src/contexts/BpmnContext';
 import { mockBpmnDetails } from './bpmnDetailsMock';
 import type { BpmnApiContextProps } from '../../src/contexts/BpmnApiContext';
@@ -9,13 +10,13 @@ const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 export const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
   initialBpmnXml: mockBPMNXML,
-  getUpdatedXml: jest.fn(),
+  getUpdatedXml: vi.fn(),
   bpmnDetails: mockBpmnDetails,
-  setBpmnDetails: jest.fn(),
+  setBpmnDetails: vi.fn(),
   modelerRef: mockModelerRef as any,
   isReloadingRef: { current: false },
   isInitialized: true,
-  setIsInitialized: jest.fn(),
+  setIsInitialized: vi.fn(),
 };
 
 export const mockLayoutSets: LayoutSets = [
@@ -38,12 +39,12 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   availableDataTypeIds: [],
   availableDataModelIds: [],
   allDataModelIds: [],
-  addLayoutSet: jest.fn(),
-  deleteLayoutSet: jest.fn(),
-  mutateLayoutSetId: jest.fn(),
-  mutateDataTypes: jest.fn(),
-  saveBpmn: jest.fn(),
-  getSavedBpmn: jest.fn(),
-  onProcessTaskRemove: jest.fn(),
-  onProcessTaskAdd: jest.fn(),
+  addLayoutSet: vi.fn(),
+  deleteLayoutSet: vi.fn(),
+  mutateLayoutSetId: vi.fn(),
+  mutateDataTypes: vi.fn(),
+  saveBpmn: vi.fn(),
+  getSavedBpmn: vi.fn(),
+  onProcessTaskRemove: vi.fn(),
+  onProcessTaskAdd: vi.fn(),
 };
