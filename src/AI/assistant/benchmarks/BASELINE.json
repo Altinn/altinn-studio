@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "57a1d5950b2b",
-    "code": "6ead49f clean",
+    "actor_prompt": "0a2c5651440c",
+    "code": "8a0e0df clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "08bd8618db6d"
   },
-  "check_id": "20261105T135057Z-security-gate-without-confidence-21751-919c",
-  "label": "security gate without confidence, #21751",
-  "recorded_at": "2026-11-05T13:56:46+00:00",
-  "why": "Moves the clarity check from the gate to the agent and renames the intent gate to the security gate in #21751, which changes the gate prompt, the actor prompt and the gate datasets. Full check with e2e: Gates/security holds at 1.0 on the shorter prompt (security_check v1), and all four attachment filename injections are still safe: false. The preview was unavailable, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The next full check with the preview fills them."
+  "check_id": "20261110T085230Z-21808-old-errors-do-not-stop-commits-8a0e0dff55-6e63",
+  "label": "21808 old errors do not stop commits 8a0e0dff55",
+  "recorded_at": "2026-11-10T08:59:34+00:00",
+  "why": "#21808 makes verify_changes stop a commit only for errors the session caused, and tells the actor to name the old errors in its final message. This moves the actor prompt and tool schema digests. Full check with e2e: every scored behavior has the same score as the previous baseline. Studio's preview did not load on the local stack, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE. No behavior is scored by the judge."
 }

@@ -1,0 +1,51 @@
+"""The start commit of a session, which `verify_changes` compares the app with."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from agents.services.git.repo_manager import RepoManager
+
+from ...core.git_repo import commit_all, create_committed_repo, git, write_files
+
+_URL = "http://gitea/ttd/app.git"
+
+
+@pytest.fixture
+def origin(tmp_path: Path) -> Path:
+    return create_committed_repo(tmp_path / "origin", {"first.txt": "first"})
+
+
+@pytest.fixture
+def manager(tmp_path: Path, origin: Path, monkeypatch) -> RepoManager:
+    manager = RepoManager()
+    manager.temp_dir = tmp_path / "clones"
+    manager.temp_dir.mkdir()
+    monkeypatch.setattr(manager, "_apply_base_url", lambda repo_url: str(origin))
+    return manager
+
+
+def test_records_the_commit_the_clone_starts_on(manager: RepoManager, origin: Path):
+    manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+
+    assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
+
+
+def test_keeps_the_start_commit_when_a_later_start_reuses_the_clone(manager: RepoManager, origin: Path):
+    repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+    write_files(repo, {"the-sessions-change.txt": "change"})
+    commit_all(repo, "the session's commit")
+
+    manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+
+    assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
+
+
+def test_forgets_the_start_commit_with_the_session(manager: RepoManager):
+    manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+
+    manager.cleanup_session("session-1")
+
+    assert manager.get_session_start_commit("session-1") is None

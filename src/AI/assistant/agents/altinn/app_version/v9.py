@@ -1,4 +1,4 @@
-"""Altinn app v9: one UI folder per process task, and the in-repo layout schema."""
+"""Altinn app v9: one UI folder per process task, and the in-repo layout contract schemas."""
 
 from __future__ import annotations
 
@@ -51,6 +51,7 @@ V9_PROFILE = AppVersionProfile(
     version_rules_prompt=_VERSION_RULES_PROMPT,
     layout_schema_location=str(get_config().LAYOUT_SCHEMA_V9_DIR / _LAYOUT_SCHEMA_FILE_NAME),
     layout_schema_display_url=_LAYOUT_SCHEMA_DISPLAY_URL,
+    text_resources_schema_location=str(get_config().TEXT_RESOURCES_SCHEMA_V9_PATH),
     binding_constraints={
         **VERSION_NEUTRAL_BINDING_CONSTRAINTS,
         "Datepicker": _DATEPICKER_CONSTRAINTS,

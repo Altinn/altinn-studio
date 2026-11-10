@@ -23,7 +23,13 @@ export function useLabel({
   const shouldShowLabel = (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && title;
   const labelText = shouldShowLabel ? <Lang id={title} /> : undefined;
 
-  const getRequiredComponent = () => (required ? <RequiredIndicator required={required} /> : undefined);
+  const getRequiredComponent = () =>
+    required ? (
+      <RequiredIndicator
+        required={required}
+        readOnly={readOnly}
+      />
+    ) : undefined;
   const getOptionalComponent = () =>
     required === false ? (
       <OptionalIndicator

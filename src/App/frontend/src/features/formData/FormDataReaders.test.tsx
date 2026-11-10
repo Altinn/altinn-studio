@@ -89,7 +89,7 @@ async function render(props: TestProps) {
         autoCreate: true,
         classRef: name,
       },
-      taskId: 'Task_1',
+      taskIds: ['Task_1'],
       maxCount: 1,
       minCount: 1,
     }));

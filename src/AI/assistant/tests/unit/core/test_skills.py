@@ -201,6 +201,21 @@ class TestFormatSkillListing:
 
 class TestSkillTool:
     @pytest.mark.asyncio
+    async def test_returns_a_long_skill_in_parts(self, tmp_path):
+        body = "".join(f"Rule {n}: give the app owner read and write rights.\n" for n in range(600))
+        _write_skill(tmp_path, "long", "Desc.", body=body)
+        tool = SkillTool(discover_skills(tmp_path))
+        ctx = _ctx()
+
+        first = await tool.run(SkillArgs(skill="long"), ctx)
+        offset = first.metadata["end_line"] + 1
+        rest = await tool.run(SkillArgs(skill="long", offset=offset), ctx)
+
+        assert f"To read them, call `skill` with the same `skill` and `offset` {offset}" in first.content
+        assert rest.content.endswith("You have now read all of the long skill.]")
+        assert first.metadata["source"] == rest.metadata["source"] == {"title": "long", "kind": "skill"}
+
+    @pytest.mark.asyncio
     async def test_loads_known_skill(self, tmp_path):
         _write_skill(tmp_path, "known", "Desc.", body="# Skill body here")
         tool = SkillTool(discover_skills(tmp_path))

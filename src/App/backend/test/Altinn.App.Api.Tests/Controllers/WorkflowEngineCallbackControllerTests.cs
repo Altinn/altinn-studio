@@ -1237,7 +1237,7 @@ public class WorkflowEngineCallbackControllerTests
             new DataType
             {
                 Id = DataTypeId,
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 AllowedContentTypes = [ContentType],
                 MaxCount = 10,
             }

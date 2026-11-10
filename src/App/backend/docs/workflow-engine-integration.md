@@ -21,7 +21,11 @@ settle between the two. Instantiation runs as one workflow that starts with the 
 these rules:
 
 - `CommitProcessState` is the commit boundary. It runs after the task-end or abandon steps and before the task-start
-  steps, so each group runs while Storage holds the task it belongs to.
+  steps, so each group runs while Storage holds the task it belongs to. Storage checks a data type's `taskIds` against
+  the stored current task, with no exception for a process transition, so a task-end step can write the leaving task's
+  data and a task-start step the entering task's, and neither can write data bound to another task.
+- The process-end steps run after the commit. The one write made with no current task is `DeleteDataOnProcessEnd`,
+  which Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
 - A process hook gets a step only when one of the app's handlers runs for the task, or for the process end, so a

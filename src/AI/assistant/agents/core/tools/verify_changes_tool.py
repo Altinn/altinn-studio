@@ -13,30 +13,41 @@ so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
+Only the errors that the session caused stop the commit.  A check that
+returns findings goes through `_compare_with_start`, which does the check
+on disk and at the start commit of the session.  An error that the start
+commit also has is old: the result shows it in `old_errors` and does not
+fail.  Only the text resource check and the text key check return
+findings.  The other checks fail for each error.
+
 Validation runs in-process — no network round-trip except the (cached)
-v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
+v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import subprocess
+from collections.abc import Callable
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from agents.altinn.findings import Finding, split_new_and_old
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
-from agents.altinn.resources.validator import resource_validator_tool
+from agents.altinn.resources.validator import ResourceValidator, text_resource_ids, text_resource_warnings
 from agents.core.tool import LoopContext, ToolResult, WriteTool
+from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
 
-# App files can start with a UTF-8 BOM.
-_JSON_FILE_ENCODING = "utf-8-sig"
+_TEXTS_DIR = "App/config/texts"
 _MAX_LISTED_ERRORS = 10
 _MAX_LISTED_WARNINGS = 5
-_MAX_LISTED_TEXT_KEYS = 8
+_MAX_LISTED_OLD_ERRORS = 10
 _MAX_LISTED_COMPONENT_TYPES = 3
 _SCHEMA_VIOLATION_KEYWORDS = (
     "additionalproperties",
@@ -60,8 +71,14 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         "official Altinn schemas.  Routes each file to the right "
         "validator based on its path: layout JSON, text resource JSON, "
         "or basic JSON parse for everything else.  Returns "
-        "`{passed, checked_files, notes}` where notes list per-file "
-        "outcomes and any validation errors.\n\n"
+        "`{passed, checked_files, notes, old_errors}` where notes list "
+        "per-file outcomes and the errors to fix.\n\n"
+        "`old_errors` lists errors in text resources and text keys that the "
+        "app already had when this session started.  They don't block the "
+        "commit, and you don't fix them unless the user asks: name them in "
+        "your final message instead.  The other checks have no `old_errors`: "
+        "they fail on every error in the files you changed, including ones "
+        "that were there before, so fix what the notes report.\n\n"
         "WHEN to call: between your last edit and `commit_session_branch`.  "
         "Always.  `commit_session_branch` refuses to run if any changed "
         "file has not been verified since its last edit.\n\n"
@@ -84,54 +101,87 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
                 is_error=True,
             )
 
-        file_notes, verified_now = _verify_files(ctx, changed)
-        cross_file_passed, cross_file_notes = _run_cross_file_checks(ctx, changed)
-        notes = file_notes + cross_file_notes
-        passed = verified_now == set(changed) and cross_file_passed
+        results = await asyncio.to_thread(_run_checks, ctx, changed)
+        passed = all(result.passed for result in results)
 
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
         if passed:
             verified_set: set[str] = ctx.extras.setdefault("verified_files", set())
-            verified_set.update(verified_now)
+            verified_set.update(changed)
 
+        old_errors = [error for result in results for error in result.old_errors]
         body = {
             "passed": passed,
             "checked_files": changed,
-            "notes": notes,
+            "notes": [note for result in results for note in result.notes],
+            "old_errors": _limit(old_errors, _MAX_LISTED_OLD_ERRORS, "old error(s)"),
         }
         return ToolResult(
             content=json.dumps(body, ensure_ascii=False, indent=2),
             is_error=not passed,
-            metadata={"file_count": len(changed), "passed": passed},
+            metadata={"file_count": len(changed), "passed": passed, "old_error_count": len(old_errors)},
         )
 
 
-def _verify_files(ctx: LoopContext, changed: list[str]) -> tuple[list[str], set[str]]:
-    """Return the notes for each file and the files that passed."""
-    notes: list[str] = []
-    passed_files: set[str] = set()
+@dataclass(frozen=True)
+class _Result:
+    """The result of one check.  The `old_errors` do not make `passed` false."""
+
+    passed: bool
+    notes: list[str]
+    old_errors: list[str] = field(default_factory=list)
+
+
+def _run_checks(ctx: LoopContext, changed: list[str]) -> list[_Result]:
+    """The checks read files and start git.  Thus `run` does them in a thread, not on the event loop."""
+    return _verify_files(ctx, changed) + [check(ctx, changed) for check in _CROSS_FILE_CHECKS]
+
+
+def _verify_files(ctx: LoopContext, changed: list[str]) -> list[_Result]:
+    results: list[_Result] = []
     for file_path in changed:
         try:
-            ok, file_notes = _verify_one(ctx, file_path)
+            results.append(_verify_one(ctx, file_path))
         except Exception as exc:
-            ok = False
-            file_notes = [f"{file_path}: verifier crashed — {exc}"]
-        notes.extend(file_notes)
-        if ok:
-            passed_files.add(file_path)
-    return notes, passed_files
+            results.append(_Result(False, [f"{file_path}: verifier crashed — {exc}"]))
+    return results
 
 
-def _run_cross_file_checks(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
-    notes: list[str] = []
-    passed = True
-    for cross_file_check in _CROSS_FILE_CHECKS:
-        check_ok, check_notes = cross_file_check(ctx, changed)
-        notes.extend(check_notes)
-        passed = passed and check_ok
-    return passed, notes
+# ---------------------------------------------------------------------------
+# Errors the session caused, and errors the app already had
+# ---------------------------------------------------------------------------
+
+
+def _compare_with_start(
+    ctx: LoopContext, check: Callable[[AppFiles], list[Finding]], file_path: str | None = None
+) -> _Result:
+    """Do the check on the app on disk, and on the app at the start commit of the session.
+
+    A finding that the start commit also has is old.  All other findings are
+    new, and only new findings make the check fail.  If the start commit is
+    unknown, each finding is new.  The check must read the app only through
+    its `AppFiles`.  `file_path` goes before each finding, for a check whose
+    locations are in that file.
+    """
+    repo = Path(ctx.repo_path)
+    findings = check(WorkingTreeFiles(repo))
+    at_start = check(CommitFiles(repo, ctx.start_commit)) if findings and ctx.start_commit else []
+    split = split_new_and_old(findings, at_start)
+    prefix = f"{file_path}: " if file_path else ""
+    return _Result(
+        passed=not split.new,
+        notes=_limit([prefix + finding.describe() for finding in split.new], _MAX_LISTED_ERRORS, "error(s)"),
+        old_errors=[prefix + finding.describe() for finding in split.old],
+    )
+
+
+def _limit(items: list[str], limit: int, what: str) -> list[str]:
+    listed = items[:limit]
+    if len(items) > limit:
+        listed.append(f"…and {len(items) - limit} more {what}")
+    return listed
 
 
 # ---------------------------------------------------------------------------
@@ -139,26 +189,26 @@ def _run_cross_file_checks(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
 # ---------------------------------------------------------------------------
 
 
-def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
-    """Return `(passed, notes)` for a single changed file."""
+def _verify_one(ctx: LoopContext, file_path: str) -> _Result:
+    """Check a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
         # `discard_file_changes` removes the entry from `changed_files`,
         # so reaching this branch means the file was deleted some other
         # way — flag it rather than crash.
-        return False, [f"{file_path}: file does not exist on disk"]
+        return _Result(False, [f"{file_path}: file does not exist on disk"])
 
     if _is_layout_file(file_path):
-        return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
+        return _Result(*_validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location))
     if _is_text_resource(file_path):
         return _validate_resource(ctx, file_path, full_path)
     if _is_layout_settings(file_path):
-        return _validate_layout_settings(file_path, full_path)
+        return _Result(*_validate_layout_settings(file_path, full_path))
     if file_path.endswith(".json"):
-        return _basic_json_check(file_path, full_path)
+        return _Result(*_basic_json_check(file_path, full_path))
     # Non-JSON file (.cs, .xml, .razor, …): no automated validator wired
     # in.  Don't fail commit on these — flag for the model's awareness.
-    return True, [f"{file_path}: no automated validator for this file type"]
+    return _Result(True, [f"{file_path}: no automated validator for this file type"])
 
 
 def _is_layout_file(file_path: str) -> bool:
@@ -194,7 +244,7 @@ def _is_text_resource(file_path: str) -> bool:
 _NAVIGATION_COMPONENT_TYPES = {"NavigationButtons", "NavigationBar"}
 
 
-def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> _Result:
     """In a multi-page layout set, every changed page must carry a
     navigation component.
 
@@ -208,7 +258,7 @@ def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
     repo = Path(ctx.repo_path)
     candidates = (_describe_missing_navigation(repo, f) for f in changed if _is_layout_file(f))
     notes = [note for note in candidates if note]
-    return not notes, notes
+    return _Result(not notes, notes)
 
 
 def _describe_missing_navigation(repo: Path, file_path: str) -> str | None:
@@ -218,7 +268,7 @@ def _describe_missing_navigation(repo: Path, file_path: str) -> str | None:
         return None  # single-page set (or unreadable settings) — nothing to navigate
     if Path(file_path).stem not in order:
         return None  # not part of the ordered page flow
-    if _has_navigation_component(repo / file_path):
+    if _has_navigation_component(repo, file_path):
         return None
     return (
         f"{file_path}: page is in a multi-page flow ({len(order)} pages in "
@@ -234,97 +284,93 @@ def _describe_missing_navigation(repo: Path, file_path: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+def _check_text_keys(ctx: LoopContext, changed: list[str]) -> _Result:
     """Every `textResourceBindings` key must exist in every language the app serves.
 
     A key missing from one language renders as the key itself in that language.
     """
-    repo = Path(ctx.repo_path)
-    by_language = _text_keys_by_language(repo)
-    if not by_language:
-        return True, []  # no readable text resources — nothing to resolve against
-
-    notes = [
-        note
-        for layout in _select_layouts_to_check(repo, changed)
-        for note in _describe_missing_text_keys(repo, layout, by_language)
-    ]
-    return not notes, notes
+    layouts = _select_layouts_to_check(Path(ctx.repo_path), changed)
+    if not layouts:
+        return _Result(True, [])
+    return _compare_with_start(ctx, lambda files: _missing_text_keys(files, layouts))
 
 
-def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[Path]:
+def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[str]:
     # A changed resource file can strip a key any layout still references.
     if any(_is_text_resource(f) for f in changed):
         return _all_layout_files(repo)
-    return [repo / f for f in changed if _is_layout_file(f)]
+    return [f for f in changed if _is_layout_file(f)]
 
 
-def _describe_missing_text_keys(repo: Path, layout: Path, by_language: dict[str, set[str]]) -> list[str]:
-    referenced = _referenced_text_keys(layout)
-    notes: list[str] = []
-    for language, known in sorted(by_language.items()):
-        missing = sorted(key for key in referenced if key not in known)
-        if missing:
-            notes.append(
-                f"{layout.relative_to(repo)}: text key(s) {_list_text_keys(missing)} have no entry in "
-                f"`App/config/texts/resource.{language}.json`, so the page shows the "
-                "key instead of the text in that language."
+def _missing_text_keys(files: AppFiles, layouts: list[str]) -> list[Finding]:
+    """One finding for each binding with a key that a language does not have.
+
+    The location is the component.  Thus a new component that uses a missing
+    key is a new finding, also when the page had that missing key before.
+    If no text resource file is readable, there are no findings.
+    """
+    by_language = _text_keys_by_language(files)
+    findings: list[Finding] = []
+    for layout in layouts:
+        for binding in _text_key_bindings(_parse_json(files.read_text(layout))):
+            findings.extend(
+                Finding(
+                    "missing-text-key",
+                    f"{layout}: {binding.component_id}" if binding.component_id else layout,
+                    f"`{binding.name}` uses text key `{binding.key}`, which has no entry in "
+                    f"`{_TEXTS_DIR}/resource.{language}.json`, so the page shows the key instead of the text "
+                    "in that language.",
+                )
+                for language, known in sorted(by_language.items())
+                if binding.key not in known
             )
-    return notes
+    return findings
 
 
-def _list_text_keys(keys: list[str]) -> str:
-    listed = ", ".join(f"`{key}`" for key in keys[:_MAX_LISTED_TEXT_KEYS])
-    if len(keys) > _MAX_LISTED_TEXT_KEYS:
-        listed += f", and {len(keys) - _MAX_LISTED_TEXT_KEYS} more"
-    return listed
-
-
-def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
+def _text_keys_by_language(files: AppFiles) -> dict[str, set[str]]:
     """The ids each `resource.<language>.json` defines."""
-    texts_dir = repo / "App" / "config" / "texts"
     by_language: dict[str, set[str]] = {}
-    for path in sorted(texts_dir.glob("resource.*.json")):
-        keys = _read_text_keys(path)
-        if keys is not None:
-            by_language[_infer_resource_language(str(path))] = keys
+    for path in files.list_dir(_TEXTS_DIR):
+        if not PurePosixPath(path).match("resource.*.json"):
+            continue
+        parsed = _parse_json(files.read_text(path))
+        if isinstance(parsed, dict):
+            by_language[_infer_resource_language(path)] = set(text_resource_ids(parsed))
     return by_language
 
 
-def _read_text_keys(resource_path: Path) -> set[str] | None:
-    try:
-        parsed = json.loads(resource_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except OSError, json.JSONDecodeError:
-        return None
-    return {
-        entry["id"]
-        for entry in parsed.get("resources") or []
-        if isinstance(entry, dict) and isinstance(entry.get("id"), str)
-    }
+def _all_layout_files(repo: Path) -> list[str]:
+    paths = (p.relative_to(repo).as_posix() for p in repo.glob("App/ui/**/*.json"))
+    return sorted(p for p in paths if _is_layout_file(p))
 
 
-def _all_layout_files(repo: Path) -> list[Path]:
-    return sorted(p for p in repo.glob("App/ui/**/*.json") if _is_layout_file(str(p)))
+@dataclass(frozen=True)
+class _TextKeyBinding:
+    component_id: str | None
+    name: str
+    key: str
 
 
-def _referenced_text_keys(layout_path: Path) -> set[str]:
-    keys: set[str] = set()
+def _text_key_bindings(parsed_layout: Any) -> list[_TextKeyBinding]:
+    found: list[_TextKeyBinding] = []
     # An unreadable layout has no keys here: the schema validator owns unreadable layouts.
-    for component in _read_layout_components(layout_path) or []:
-        if isinstance(component, dict):
-            keys.update(_get_bound_text_keys(component))
-    return keys
-
-
-def _get_bound_text_keys(component: dict[str, Any]) -> set[str]:
-    bindings = component.get("textResourceBindings") or {}
-    return {value for value in bindings.values() if isinstance(value, str) and value.strip()}
+    for component in _layout_components(parsed_layout) or []:
+        bindings = component.get("textResourceBindings") if isinstance(component, dict) else None
+        if not isinstance(bindings, dict):
+            continue
+        component_id = component.get("id") if isinstance(component.get("id"), str) else None
+        found.extend(
+            _TextKeyBinding(component_id, name, key)
+            for name, key in bindings.items()
+            if isinstance(key, str) and key.strip()
+        )
+    return found
 
 
 def _read_page_order(settings_path: Path) -> list[str] | None:
     """Return `pages.order` from a layout-set Settings.json, or None."""
     try:
-        settings = json.loads(settings_path.read_text(encoding=_JSON_FILE_ENCODING))
+        settings = json.loads(settings_path.read_text(encoding=APP_FILE_ENCODING))
     except OSError, json.JSONDecodeError:
         return None
     order = (settings.get("pages") or {}).get("order")
@@ -333,22 +379,29 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
     return None
 
 
-def _has_navigation_component(layout_path: Path) -> bool:
+def _has_navigation_component(repo: Path, file_path: str) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
-    components = _read_layout_components(layout_path)
+    components = _layout_components(_parse_json(WorkingTreeFiles(repo).read_text(file_path)))
     if components is None:
         return True  # unreadable/invalid JSON is the schema validator's problem
     return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in components)
 
 
-def _read_layout_components(layout_path: Path) -> list[Any] | None:
-    """Return `data.layout`, or None when the file is unreadable or has no layout list."""
-    try:
-        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except OSError, json.JSONDecodeError:
-        return None
-    layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
+def _layout_components(parsed: Any) -> list[Any] | None:
+    """Return `data.layout`, or None when the layout is unreadable or has no layout list."""
+    data = parsed.get("data") if isinstance(parsed, dict) else None
+    layout = data.get("layout") if isinstance(data, dict) else None
     return layout if isinstance(layout, list) else None
+
+
+def _parse_json(text: str | None) -> Any:
+    """The parsed JSON, or None when there is no text or it is not JSON"""
+    if text is None:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -356,7 +409,7 @@ def _read_layout_components(layout_path: Path) -> list[Any] | None:
 # ---------------------------------------------------------------------------
 
 
-def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> _Result:
     """A file the app version does not have may only change if it is already in the repo.
 
     An unfinished v9 upgrade keeps `layout-sets.json` and the rule files, and
@@ -369,7 +422,7 @@ def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> tuple[bo
         for pattern, replacement in forbidden_patterns.items()
         if PurePosixPath(file_path).match(pattern) and not _exists_in_head(ctx.repo_path, file_path)
     ]
-    return not notes, notes
+    return _Result(not notes, notes)
 
 
 def _exists_in_head(repo_path: str, file_path: str) -> bool:
@@ -392,7 +445,7 @@ _CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden
 def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
     """Validate a layout JSON in-process against the app version's layout schema."""
     try:
-        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        json_content = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -453,16 +506,16 @@ def _as_full_layout(parsed: Any) -> dict[str, Any]:
     return {"data": {"layout": []}}
 
 
-def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tuple[bool, list[str]]:
+def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Result:
     """Validate a text resource in-process (schema + business rules).
 
     Language is inferred from the filename (`resource.nb.json` → `nb`);
     defaults to `nb` when the pattern doesn't match.
     """
     try:
-        resource_json = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        resource_json = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
-        return False, [f"{file_path}: cannot read — {exc}"]
+        return _Result(False, [f"{file_path}: cannot read — {exc}"])
 
     language = _infer_resource_language(file_path)
     with trace_span(
@@ -470,25 +523,45 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tup
         metadata={"span_type": "TOOL", "file_path": file_path, "language": language},
     ) as span:
         span.update(input={"file_content": resource_json})
-        result = resource_validator_tool(
-            user_goal="verify_changes",
-            resource_json=resource_json,
-            language=language,
-            repo_path=ctx.repo_path,
-        )
-        span.update(output={"result": {"valid": result.get("valid")}})
+        try:
+            resource = json.loads(resource_json)
+        except json.JSONDecodeError as exc:
+            # A file that is not JSON always fails, also when the syntax error
+            # is old.  The parser stops at the syntax error, so the check cannot
+            # find the errors that the session caused.
+            span.update(output={"result": {"valid": False}})
+            return _Result(False, [f"{file_path}: invalid JSON — {exc}"])
+        try:
+            schema = get_layout_schema(ctx.app_version_profile.text_resources_schema_location)
+        except Exception as exc:
+            span.update(output={"error": str(exc)})
+            return _Result(False, [f"{file_path}: could not load text resource schema — {exc}"])
 
-    if result.get("valid") is True:
-        notes = [f"{file_path}: resource schema valid"]
-        warnings = result.get("warnings") or []
-        for w in warnings[:_MAX_LISTED_WARNINGS]:
-            notes.append(f"  - warning: {w}")
-        return True, notes
+        validator = ResourceValidator(schema)
+        result = _compare_with_start(ctx, lambda files: _text_resource_errors(validator, files, file_path), file_path)
+        span.update(output={"result": {"valid": result.passed}})
 
-    errors = result.get("errors") or []
-    notes = [f"{file_path}: resource validation failed ({len(errors)} error(s))"]
-    notes.extend(_format_errors(errors))
-    return False, notes
+    status = [f"{file_path}: no new errors"] if result.passed else []
+    hints = [f"{file_path}: warning: {w}" for w in _resource_warnings(ctx, resource, language)]
+    return replace(result, notes=[*status, *result.notes, *hints])
+
+
+def _resource_warnings(ctx: LoopContext, resource: Any, language: str) -> list[str]:
+    ids_by_language = _text_keys_by_language(WorkingTreeFiles(Path(ctx.repo_path)))
+    ids_by_language.pop(language, None)
+    return _limit(text_resource_warnings(resource, ids_by_language), _MAX_LISTED_WARNINGS, "warning(s)")
+
+
+def _text_resource_errors(validator: ResourceValidator, files: AppFiles, file_path: str) -> list[Finding]:
+    """A file that is missing or is not JSON has no findings.  `_validate_resource` makes such a file on disk fail."""
+    content = files.read_text(file_path)
+    if content is None:
+        return []
+    try:
+        resource = json.loads(content)
+    except json.JSONDecodeError:
+        return []
+    return validator.find_errors(resource)
 
 
 def _infer_resource_language(file_path: str) -> str:
@@ -510,7 +583,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
     `input.file_content` shape.
     """
     try:
-        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
+        json_content = full_path.read_text(encoding=APP_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -532,7 +605,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
 def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Last-resort check — does the file parse as JSON?"""
     try:
-        with full_path.open("r", encoding=_JSON_FILE_ENCODING) as handle:
+        with full_path.open("r", encoding=APP_FILE_ENCODING) as handle:
             json.load(handle)
     except json.JSONDecodeError as exc:
         return False, [f"{file_path}: invalid JSON — {exc}"]
@@ -542,10 +615,8 @@ def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]
 
 
 def _format_errors(errors: list[Any]) -> list[str]:
-    formatted = [f"  - {_describe_error(e)}" for e in errors[:_MAX_LISTED_ERRORS]]
-    if len(errors) > _MAX_LISTED_ERRORS:
-        formatted.append(f"  - …and {len(errors) - _MAX_LISTED_ERRORS} more")
-    return formatted
+    described = [_describe_error(e) for e in errors]
+    return [f"  - {line}" for line in _limit(described, _MAX_LISTED_ERRORS, "error(s)")]
 
 
 def _describe_error(err: Any) -> str:

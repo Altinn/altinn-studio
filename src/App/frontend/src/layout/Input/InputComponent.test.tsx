@@ -82,6 +82,19 @@ describe('InputComponent', () => {
     expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('mock-id-validations'));
   });
 
+  it('does not show the required tag on a required read-only field', async () => {
+    await render({
+      component: {
+        required: true,
+        readOnly: true,
+        textResourceBindings: { title: 'Input label' },
+      },
+    });
+
+    expect(screen.getByText('Input label')).toBeInTheDocument();
+    expect(screen.queryByText('Må fylles ut')).not.toBeInTheDocument();
+  });
+
   it('updates the error state when masked backend validations are shown', async () => {
     function ShowBackendValidations() {
       const showAll = FormStore.raw.useSelector((state) => state.validation.setShowAllUnboundValidations);

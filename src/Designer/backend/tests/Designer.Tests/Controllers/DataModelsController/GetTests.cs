@@ -56,7 +56,9 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
                             AutoCreate = true,
                             ClassRef = "Altinn.App.Models.HvemErHvem_M",
                         },
+#pragma warning disable CS0618 // hvem-er-hvem binds its data model with the v8 taskId
                         TaskId = "Task_1",
+#pragma warning restore CS0618
                         MaxCount = 1,
                         MinCount = 1,
                     },

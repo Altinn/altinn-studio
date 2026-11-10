@@ -88,6 +88,19 @@ describe('List component', () => {
     // Summary2 is a bit more tricky to find
     cy.get('table').last().should('have.not.have.attr', 'id');
     cy.get('table').last().findAllByRole('row').should('have.length', 3); // Header + 2 row
+    cy.get('table')
+      .last()
+      .find('thead th')
+      .should(($headers) => {
+        expect([...$headers].map((header) => header.textContent)).to.deep.equal(['Navn', 'Alder', 'Yrke']);
+      });
+    cy.get('table')
+      .last()
+      .find('colgroup col')
+      .should('have.length', 3)
+      .and(($columns) => {
+        expect([...$columns].map((column) => column.style.width)).to.deep.equal(['55%', '', '25%']);
+      });
 
     // Find Kåre, make sure he's selected in both summaries
     cy.get(list).findByRole('cell', { name: 'Kåre' }).parent().click();

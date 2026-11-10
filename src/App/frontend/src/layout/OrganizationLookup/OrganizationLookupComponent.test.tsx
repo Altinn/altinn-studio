@@ -253,4 +253,16 @@ describe('OrganizationLookupComponent', () => {
     expect(screen.queryByRole('button', { name: /Hent opplysninger/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Fjern/i })).not.toBeInTheDocument();
   });
+
+  it('does not show the required tag when required and read only', async () => {
+    await render({
+      component: {
+        required: true,
+        readOnly: true,
+      },
+    });
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.queryByText('Må fylles ut')).not.toBeInTheDocument();
+  });
 });

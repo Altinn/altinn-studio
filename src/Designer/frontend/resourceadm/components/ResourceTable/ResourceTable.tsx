@@ -109,8 +109,8 @@ export const ResourceTable = ({
 
   const getListItemTitle = (listItem): string => {
     return (
-      listItem.title[i18n?.language] ||
-      listItem.title.nb ||
+      listItem.title?.[i18n?.language] ||
+      listItem.title?.nb ||
       t('dashboard.resource_table_row_missing_title')
     );
   };

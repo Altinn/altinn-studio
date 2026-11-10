@@ -10,12 +10,11 @@ using Altinn.Platform.Register.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class LookupPersonControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class LookupPersonControllerTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -28,8 +27,8 @@ public class LookupPersonControllerTests : ApiTestBase, IClassFixture<WebApplica
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public LookupPersonControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public LookupPersonControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task Post_PersonSearch_HappyPath_ReturnsOk()
