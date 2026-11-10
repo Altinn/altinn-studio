@@ -14,11 +14,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 
+### Changed
+
+- A process step that gets a 403 from Storage or another platform call now fails at once instead of retrying, so the workflow engine's failure alert fires. After fixing the cause, such as a missing right in `config/authorization/policy.xml`, resume the process. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
+
 ### Fixed
 
 - List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
 - Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
 
 ## [9.0.0-preview.10] - 2026-11-09
 
@@ -41,7 +46,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- A 403 from Storage when a process step's changes are saved is now logged with an explanation: the app owner probably lacks a right in `config/authorization/policy.xml`, and the log names the rights to look for. The step still retries, so deploying a fixed policy lets the process continue. ([#21739](https://github.com/Altinn/altinn-studio/pull/21739))
 - Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
