@@ -60,6 +60,13 @@ describe('CreateRelease', () => {
     ).toBeInTheDocument();
   });
 
+  it('disables browser autocomplete for the version number field', () => {
+    renderCreateRelease();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toHaveAttribute('autocomplete', 'off');
+  });
+
   it('shows Maskinporten scopes notice for app backend version 9 preview when default scopes are missing', async () => {
     renderCreateRelease({
       getAppVersion: () =>
