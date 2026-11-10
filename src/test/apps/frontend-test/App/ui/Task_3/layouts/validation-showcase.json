@@ -32,7 +32,7 @@
         "actions": [
           {
             "type": "ServerAction",
-            "id": "loadRepeatingValidationExamples"
+            "id": "generatePets"
           }
         ]
       },

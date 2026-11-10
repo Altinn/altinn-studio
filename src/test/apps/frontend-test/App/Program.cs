@@ -36,7 +36,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IUserAction, ShiftingOptionsRemoveAll>();
     services.AddTransient<IUserAction, SortPetsAction>();
     services.AddTransient<IUserAction, GeneratePetsAction>();
-    services.AddTransient<IUserAction, LoadRepeatingValidationExamples>();
     services.AddMimeTypeValidation();
     services.AddTransient<IDataWriteProcessor, ChangenameDataProcessor>();
 }
