@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
+
 ### Fixed
 
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
