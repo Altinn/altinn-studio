@@ -36,6 +36,7 @@ type hostConfig struct {
 	UsernsMode    string                   `json:"UsernsMode,omitempty"`
 	Binds         []string                 `json:"Binds,omitempty"`
 	Mounts        []mount                  `json:"Mounts,omitempty"`
+	Tmpfs         map[string]string        `json:"Tmpfs,omitempty"`
 	ExtraHosts    []string                 `json:"ExtraHosts,omitempty"`
 	CapAdd        []string                 `json:"CapAdd,omitempty"`
 }

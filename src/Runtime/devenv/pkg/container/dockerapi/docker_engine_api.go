@@ -307,6 +307,7 @@ func buildCreateRequest(cfg types.ContainerConfig, platform types.ContainerPlatf
 		PortBindings:  portBindings,
 		Binds:         binds,
 		Mounts:        mounts,
+		Tmpfs:         buildTmpfs(cfg.Volumes),
 		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: buildRestartPolicy(cfg.RestartPolicy),
 		NetworkMode:   primaryNetwork,
@@ -379,6 +380,9 @@ func buildMounts(volumes []types.VolumeMount) ([]mount, []string) {
 	var mounts []mount
 	var binds []string
 	for _, v := range volumes {
+		if v.Type == types.VolumeMountTypeTmpfs {
+			continue
+		}
 		if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
 			options := string(v.SELinuxRelabel)
 			if v.ReadOnly {
@@ -399,6 +403,21 @@ func buildMounts(volumes []types.VolumeMount) ([]mount, []string) {
 		})
 	}
 	return mounts, binds
+}
+
+// buildTmpfs maps each tmpfs mount's path to its options. It is nil when there is none.
+func buildTmpfs(volumes []types.VolumeMount) map[string]string {
+	var tmpfs map[string]string
+	for _, v := range volumes {
+		if v.Type != types.VolumeMountTypeTmpfs {
+			continue
+		}
+		if tmpfs == nil {
+			tmpfs = map[string]string{}
+		}
+		tmpfs[v.ContainerPath] = v.Options
+	}
+	return tmpfs
 }
 
 func detectPlatform(ctx context.Context, api *engine, hostHint string) (types.ContainerPlatform, error) {
@@ -779,16 +798,24 @@ func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *in
 	return nil
 }
 
-// ContainerRemove removes a container.
+// ContainerRemove removes a container and its anonymous volumes.
 // Returns ErrContainerNotFound if the container does not exist.
 func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force bool) error {
-	if err := c.api.call(ctx, http.MethodDelete, "/containers/"+nameOrID, forceQuery(force), nil, nil); err != nil {
+	if err := c.api.call(ctx, http.MethodDelete, "/containers/"+nameOrID, removeQuery(force), nil, nil); err != nil {
 		if isNotFound(err) {
 			return types.ErrContainerNotFound
 		}
 		return fmt.Errorf("failed to remove container: %w", err)
 	}
 	return nil
+}
+
+// removeQuery removes the container's anonymous volumes with it (v=1): they are unreachable once the container is
+// gone. Named volumes and bind mounts are left alone.
+func removeQuery(force bool) url.Values {
+	query := forceQuery(force)
+	query.Set("v", "1")
+	return query
 }
 
 // NetworkCreate creates a new network.

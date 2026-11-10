@@ -1,0 +1,343 @@
+{
+  "groups": [
+    { "name": "default", "containers": ["postgres", "register", "profile", "authentication", "authorization", "storage", "access-management", "events", "resource-registry", "notifications", "localtest", "pdf3", "workflow-engine"] },
+    { "name": "minimal", "containers": ["localtest", "storage", "workflow-engine", "otel-files"] },
+    { "name": "dialogporten", "containers": ["dialogporten-graphql", "dialogporten-service", "dialogporten-adapter"] },
+    { "name": "receipt", "containers": ["receipt"] },
+    { "name": "correspondence", "containers": ["correspondence"] },
+    { "name": "arbeidsflate", "containers": ["arbeidsflate"] },
+    { "name": "monitoring", "containers": ["grafana", "otel-collector"] }
+  ],
+  "public": { "host": "local.altinn.cloud", "port": 8000, "subdomains": ["pdf", "workflow-engine", "app-frontend", "af"] },
+  "containers": {
+    "postgres": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres",
+      "tag": "sha-ddef433",
+      "port": 5432,
+      "health": "tcp",
+      "envs": {
+        "POSTGRES_PASSWORD": "postgres",
+        "POSTGRES_USER": "postgres",
+        "TZ": "UTC"
+      },
+      "volumes": {
+        "postgres-data": "/var/lib/postgresql"
+      }
+    },
+    "register": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-register",
+      "tag": "sha-ddef433",
+      "port": 5020,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__OpenIdWellKnownEndpoint": "{{origin}}/authentication/api/v1/openid/",
+        "PlatformSettings__ApiAuthorizationEndpoint": "http://authorization/authorization/api/v1/"
+      }
+    },
+    "profile": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-profile",
+      "tag": "sha-ddef433",
+      "port": 5030,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Profile__PlatformEndpoint": "{{origin}}/",
+        "PostgreSqlSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_profile_admin;Password={0};Database=profiledb",
+        "PostgreSqlSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_profile;Password={0};Database=profiledb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register"]
+    },
+    "authentication": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication",
+      "tag": "sha-ddef433",
+      "port": 5101,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["register", "profile"]
+    },
+    "authorization": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization",
+      "tag": "sha-ddef433",
+      "port": 5070,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Authorization__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["register", "profile"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "storage": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-storage",
+      "tag": "sha-ddef433",
+      "port": 5010,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__PlatformEndpoint": "{{origin}}/",
+        "PostgreSqlSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_storage_admin;Password={0};Database=storagedb",
+        "PostgreSqlSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_storage;Password={0};Database=storagedb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres"],
+      "volumes": {
+        "storage-blobs": "/data/blobs"
+      }
+    },
+    "access-management": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management",
+      "tag": "sha-ddef433",
+      "port": 5080,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__AccessManagement__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["postgres", "register", "resource-registry", "profile"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "events": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-events",
+      "tag": "sha-ddef433",
+      "port": 5080,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Events__PlatformEndpoint": "{{origin}}/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_events_admin;Password={0};Database=eventsdb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_events;Password={0};Database=eventsdb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register", "authorization"]
+    },
+    "resource-registry": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry",
+      "tag": "sha-ddef433",
+      "port": 5100,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__ResourceRegistry__PlatformEndpoint": "{{origin}}/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_authorization_admin;Password={0};Database=resourceregistrydb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_authorization;Password={0};Database=resourceregistrydb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "storage"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "notifications": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications",
+      "tag": "sha-ddef433",
+      "port": 5090,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Notifications__PlatformEndpoint": "{{origin}}/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_notifications_admin;Password={0};Database=notificationsdb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_notifications;Password={0};Database=notificationsdb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register", "profile", "authorization", "authentication"]
+    },
+    "localtest": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest",
+      "tag": "sha-ddef433",
+      "envs": {
+        "Localtest__AccessTokenCertificatePath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__PlatformEndpoint": "{{origin}}/"
+      },
+      "volumes": {
+        "localtest-data": "/data"
+      }
+    },
+    "pdf3": {
+      "registry": "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker",
+      "tag": "tt02",
+      "port": 5031,
+      "health": "/health/ready",
+      "caBundle": true,
+      "envs": {
+        "PDF3_ENVIRONMENT": "localtest",
+        "PDF3_LOCALTEST_PUBLIC_BASE_URL": "{{origin}}",
+        "PDF3_QUEUE_SIZE": "3",
+        "TZ": "Europe/Oslo"
+      }
+    },
+    "workflow-engine": {
+      "registry": "ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app",
+      "tag": "tt02",
+      "port": 9090,
+      "health": "/api/v1/health/ready",
+      "envs": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HTTP_PORTS": "9090",
+        "AppCommandSettings__CommandEndpoint": "{{origin}}/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+        "ConnectionStrings__WorkflowEngine": "Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres"
+      },
+      "dependsOn": ["postgres"]
+    },
+    "redis": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-redis",
+      "tag": "sha-ddef433",
+      "port": 6379,
+      "health": "tcp"
+    },
+    "dialogporten-webapi": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-webapi",
+      "tag": "sha-ddef433",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["postgres", "redis", "register", "authentication", "authorization", "access-management", "events", "resource-registry"]
+    },
+    "dialogporten-graphql": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-graphql",
+      "tag": "sha-ddef433",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["dialogporten-webapi"]
+    },
+    "dialogporten-service": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-service",
+      "tag": "sha-ddef433",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["dialogporten-webapi"]
+    },
+    "dialogporten-adapter": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-adapter",
+      "tag": "sha-ddef433",
+      "port": 5011,
+      "envs": {
+        "Localtest__Adapter__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["storage", "register", "authentication", "dialogporten-webapi"]
+    },
+    "receipt": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-receipt",
+      "tag": "sha-ddef433",
+      "port": 5060,
+      "envs": {
+        "GeneralSettings__Hostname": "{{host}}",
+        "GeneralSettings__OpenIdWellKnownEndpoint": "{{origin}}/authentication/api/v1/openid/",
+        "Localtest__Receipt__PlatformEndpoint": "{{origin}}/",
+        "PlatformSettings__ApiAuthenticationEndpoint": "{{origin}}/authentication/api/v1/",
+        "PlatformSettings__ApiProfileEndpoint": "http://profile/profile/api/v1/",
+        "PlatformSettings__ApiRegisterEndpoint": "http://register/register/api/v1/",
+        "PlatformSettings__ApiStorageEndpoint": "http://storage/storage/api/v1/"
+      },
+      "dependsOn": ["register", "profile", "authentication", "storage"]
+    },
+    "correspondence": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-correspondence",
+      "tag": "sha-ddef433",
+      "port": 2525,
+      "envs": {
+        "DatabaseOptions__ConnectionString": "Host=postgres;Port=5432;Database=correspondence;Username=correspondence;Password=localtest",
+        "GeneralSettings__RedisConnectionString": "redis:6379,defaultDatabase=1",
+        "Localtest__Correspondence__PlatformEndpoint": "{{origin}}/"
+      },
+      "dependsOn": ["postgres", "register", "profile", "authorization", "resource-registry", "notifications", "events", "redis", "dialogporten-webapi"],
+      "volumes": {
+        "correspondence-blobs": "/mnt/storage"
+      }
+    },
+    "arbeidsflate-bff": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate-bff",
+      "tag": "sha-ddef433",
+      "port": 80,
+      "health": "/api/readiness",
+      "envs": {
+        "AUTH_CONTEXT_COOKIE_DOMAIN": "{{host}}",
+        "DB_CONNECTION_STRING": "postgres://arbeidsflate:localtest@postgres:5432/arbeidsflate",
+        "DIALOGPORTEN_URL": "http://localtest:8080/dialogporten",
+        "ENABLE_GRAPHIQL": "true",
+        "ENABLE_INIT_SESSION_ENDPOINT": "true",
+        "ENVIRONMENT": "test",
+        "HOSTNAME": "{{origin:af}}",
+        "MASKINPORTEN_CLIENT_ID": "991825827",
+        "MASKINPORTEN_ISSUER": "http://localtest:8080/localtest/api/maskinporten/",
+        "NODE_ENV": "production",
+        "OIDC_CLIENT_ID": "arbeidsflate-localtest",
+        "OIDC_CLIENT_SECRET": "arbeidsflate-localtest-secret",
+        "OIDC_PLATFORM_URL": "{{origin}}/authentication/api/v1/openid",
+        "PLATFORM_BASEURL": "http://localtest:8080",
+        "REDIS_CONNECTION_STRING": "redis://redis:6379/2",
+        "SESSION_SECRET": "localtest-arbeidsflate-session-secret-not-a-secret"
+      },
+      "dependsOn": ["postgres", "redis", "register", "profile", "authentication", "dialogporten-graphql"]
+    },
+    "arbeidsflate": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate",
+      "tag": "sha-ddef433",
+      "port": 80,
+      "health": "/",
+      "envs": {
+        "DIALOGPORTEN_STREAM_URL": "{{origin}}/dialogporten/graphql/stream"
+      },
+      "dependsOn": ["arbeidsflate-bff"]
+    },
+    "victoria-metrics": {
+      "registry": "docker.io/victoriametrics/victoria-metrics",
+      "tag": "v1.153.0@sha256:5eff7af5341e401471002f58d106d399e614a62f3d240f2dbc21901e49eed5dd",
+      "port": 8428
+    },
+    "victoria-traces": {
+      "registry": "docker.io/victoriametrics/victoria-traces",
+      "tag": "v0.12.0@sha256:80919fcc85cc6dd87f598d20ccf42d0ab1120de8f25d4dcf08c5ea2515a496ba",
+      "port": 10428
+    },
+    "victoria-logs": {
+      "registry": "docker.io/victoriametrics/victoria-logs",
+      "tag": "v1.52.0@sha256:47b820890d64c4575a2a0a46415dcd8a4fd59a0f1fcd6a377693d7aea639442e",
+      "port": 9428
+    },
+    "otel-files": {
+      "registry": "docker.io/otel/opentelemetry-collector-contrib",
+      "tag": "0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+      "port": 4318,
+      "health": "tcp",
+      "otlpReceiver": { "grpcPort": 4317, "output": "/telemetry" },
+      "files": {
+        "/etc/otelcol-contrib/config.yaml": "monitoring/otel-files.yaml",
+        "/etc/otelcol-contrib/processors.yaml": "monitoring/otel-processors.yaml"
+      }
+    },
+    "otel-collector": {
+      "registry": "docker.io/otel/opentelemetry-collector-contrib",
+      "tag": "0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+      "port": 4318,
+      "health": "tcp",
+      "otlpReceiver": { "grpcPort": 4317 },
+      "files": {
+        "/etc/otelcol-contrib/config.yaml": "monitoring/otel-collector.yaml",
+        "/etc/otelcol-contrib/processors.yaml": "monitoring/otel-processors.yaml"
+      },
+      "dependsOn": ["victoria-metrics", "victoria-traces", "victoria-logs"]
+    },
+    "grafana": {
+      "registry": "docker.io/grafana/grafana",
+      "tag": "12.4.8@sha256:7753ad493720e33560077e8bc5e05fbce4ade777f1387b19ab5050b6777111dd",
+      "port": 3000,
+      "health": "/api/health",
+      "envs": {
+        "GF_AUTH_ANONYMOUS_ENABLED": "true",
+        "GF_AUTH_ANONYMOUS_ORG_ROLE": "Admin",
+        "GF_AUTH_DISABLE_LOGIN_FORM": "true",
+        "GF_LOG_LEVEL": "error",
+        "GF_PLUGINS_PREINSTALL_AUTO_UPDATE": "false",
+        "GF_PLUGINS_PREINSTALL_SYNC": "victoriametrics-logs-datasource@0.32.0",
+        "GF_SERVER_ROOT_URL": "{{origin}}/grafana/",
+        "GF_SERVER_SERVE_FROM_SUB_PATH": "true"
+      },
+      "files": {
+        "/etc/grafana/provisioning/dashboards/dashboards.yaml": "monitoring/grafana-dashboards.yaml",
+        "/etc/grafana/provisioning/datasources/datasources.yaml": "monitoring/grafana-datasources.yaml",
+        "/var/lib/grafana/dashboards": "monitoring/grafana-dashboards"
+      },
+      "dependsOn": ["victoria-metrics", "victoria-traces", "victoria-logs"]
+    }
+  }
+}

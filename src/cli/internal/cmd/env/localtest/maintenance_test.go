@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
-	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -35,10 +34,10 @@ func TestPreflightAppliesScheduledWorkflowEngineResetOnce(t *testing.T) {
 		client,
 	)
 
-	if err := localtest.Preflight(t.Context(), envtypes.UpOptions{}); err != nil {
+	if err := localtest.Preflight(t.Context(), UpOptions{}); err != nil {
 		t.Fatalf("Preflight() error = %v", err)
 	}
-	if err := localtest.Preflight(t.Context(), envtypes.UpOptions{}); err != nil {
+	if err := localtest.Preflight(t.Context(), UpOptions{}); err != nil {
 		t.Fatalf("second Preflight() error = %v", err)
 	}
 	if resetCount != 1 {
@@ -64,7 +63,7 @@ func TestPreflightKeepsScheduledWorkflowEngineResetAfterFailure(t *testing.T) {
 		client,
 	)
 
-	err := localtest.Preflight(t.Context(), envtypes.UpOptions{})
+	err := localtest.Preflight(t.Context(), UpOptions{})
 	if !errors.Is(err, errWorkflowEngineResetFailed) {
 		t.Fatalf("Preflight() error = %v, want wrapped reset failure", err)
 	}

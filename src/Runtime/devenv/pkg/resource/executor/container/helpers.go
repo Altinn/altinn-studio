@@ -170,10 +170,13 @@ func containerSpecHash(c *resource.Container, imageID string, networks []string)
 
 	volumeEntries := make([]string, 0, len(c.Volumes))
 	for _, v := range c.Volumes {
-		volumeEntries = append(
-			volumeEntries,
-			fmt.Sprintf("%s|%s|%t|%s", v.HostPath, v.ContainerPath, v.ReadOnly, normalizedVolumeMountType(v.Type)),
-		)
+		entry := fmt.Sprintf("%s|%s|%t|%s", v.HostPath, v.ContainerPath, v.ReadOnly, normalizedVolumeMountType(v.Type))
+		// Only when set, so the hash of a mount without options, and of every container created before there were
+		// options, stays the same.
+		if v.Options != "" {
+			entry += "|" + v.Options
+		}
+		volumeEntries = append(volumeEntries, entry)
 	}
 	writeSortedList(&b, "volumes", volumeEntries)
 

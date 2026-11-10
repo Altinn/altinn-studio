@@ -28,6 +28,17 @@ internal static class ServiceCollectionExtensions
                 client.DefaultRequestHeaders.UserAgent.ParseAdd(StudioctlUserAgent.Value);
             }
         );
+        // A registration provisions the app, which reads it and writes to several platform services: allow for that.
+        services.AddHttpClient(
+            FrontDoorRegistration.HttpClientName,
+            static client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(2);
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(StudioctlUserAgent.Value);
+            }
+        );
+        services.AddSingleton(FrontDoorRegistrationOptions.FromConfiguration(configuration));
+        services.AddSingleton<FrontDoorRegistration>();
         services.AddSingleton<IPortListenerSource, LinuxPortListeners>();
         services.AddSingleton<IPortListenerSource, MacPortListeners>();
         services.AddSingleton<IPortListenerSource, WindowsPortListeners>();

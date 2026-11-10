@@ -102,6 +102,21 @@ func TestCandidateFromContainer(t *testing.T) {
 		false,
 	)
 
+	onNetwork := runningContainer("app", appcontainers.DefaultContainerPort, "5005")
+	onNetwork.Labels = map[string]string{appcontainers.LabelFrontDoorURL: "http://ttd-test:5005"}
+	assertCandidate(t, "carries the front door's address of a container on the localtest-v2 network",
+		onNetwork,
+		appcontainers.Candidate{
+			ContainerID:  "id",
+			Name:         "app",
+			HostPort:     5005,
+			Description:  "container app",
+			Source:       "container",
+			FrontDoorURL: "http://ttd-test:5005",
+		},
+		true,
+	)
+
 	assertCandidate(t, "ignores missing default port",
 		runningContainer("app", "5006", "5006"),
 		appcontainers.Candidate{},

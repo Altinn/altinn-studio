@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -35,7 +35,8 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	CABundle          *stack.CABundle // the host's STUDIO_CA_BUNDLE, which pdf3 takes; nil for none
+	RuntimeUser       string          // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	RuntimeUsernsMode string
 	Images            config.ImagesConfig
 	Paths             Paths
@@ -90,6 +91,7 @@ func newVolume(hostPath, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeBind,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       false,
 	}
 }
@@ -100,6 +102,7 @@ func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeBind,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       true,
 	}
 }
@@ -110,6 +113,7 @@ func newNamedVolume(name, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeVolume,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       false,
 	}
 }
@@ -209,28 +213,14 @@ func newContainerResource(
 				HandleDestroyError: nil,
 				RetainOnDestroy:    false,
 			},
-			WaitForReady: true,
+			WaitForReady:   true,
+			ReadinessProbe: nil,
 		},
 		NetworkAliases: spec.NetworkAliases,
 		RestartPolicy:  "",
 		User:           containerUser,
 		UsernsMode:     usernsMode,
 	}
-}
-
-// RuntimeUser decides how a container that reads or writes the developer's files runs on the detected
-// toolchain: as the developer's uid:gid (empty on Windows, which has no uids and where Docker Desktop's file
-// sharing makes mounts readable anyway), with podman keeping that uid inside the container, and with bind
-// mounts relabelled where SELinux enforces. The localtest containers and an app container run the same way.
-func RuntimeUser(toolchain types.ContainerToolchain) (user, usernsMode string, relabelBinds bool) {
-	if runtime.GOOS != osutil.OSWindows {
-		user = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
-	}
-	if toolchain.Platform == types.PlatformPodman {
-		usernsMode = "keep-id"
-		relabelBinds = toolchain.SELinux
-	}
-	return user, usernsMode, relabelBinds
 }
 
 // RelabelBindMounts marks bind mounts shared for SELinux when the runtime needs it.

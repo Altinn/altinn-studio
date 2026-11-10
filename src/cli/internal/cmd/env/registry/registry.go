@@ -8,6 +8,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	envlocaltestv2 "altinn.studio/studioctl/internal/cmd/env/localtestv2"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -47,7 +48,15 @@ func WithContainerClient(client container.ContainerClient) Option {
 	}
 }
 
-// Envs returns all environment runtime implementations.
+// Runtimes returns every runtime, for one command, the default (localtest) first.
+func Runtimes(cfg *config.Config) []envtypes.Runtime {
+	return []envtypes.Runtime{
+		envlocaltest.NewRuntime(cfg),
+		envlocaltestv2.NewRuntime(cfg),
+	}
+}
+
+// Envs returns every runtime's environment, with the runtimes' default flags.
 func Envs(opts ...Option) ([]envtypes.Env, error) {
 	resolved := options{
 		cfg:             nil,
@@ -64,7 +73,10 @@ func Envs(opts ...Option) ([]envtypes.Env, error) {
 		return nil, fmt.Errorf("registry: %w", errOutputRequired)
 	}
 
-	return []envtypes.Env{
-		envlocaltest.NewEnv(resolved.cfg, resolved.out, resolved.containerClient),
-	}, nil
+	runtimes := Runtimes(resolved.cfg)
+	envs := make([]envtypes.Env, 0, len(runtimes))
+	for _, runtime := range runtimes {
+		envs = append(envs, runtime.Env(resolved.containerClient, resolved.out))
+	}
+	return envs, nil
 }

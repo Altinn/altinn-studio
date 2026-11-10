@@ -29,5 +29,8 @@ components:
   frontendDevServer:
     kind: frontend-dev
     host: app-frontend.local.altinn.cloud
+  arbeidsflate:
+    kind: platform
+    host: af.local.altinn.cloud
 appRouteTemplate:
   pathPrefixTemplate: /{org}/{app}
