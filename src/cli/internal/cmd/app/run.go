@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +10,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/tailscale/hujson"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/appcontainers"
@@ -151,6 +154,12 @@ func ReadAppID(appPath string) (string, error) {
 	content, err := os.ReadFile(metadataPath) //nolint:gosec // App path is the detected local app root.
 	if err != nil {
 		return "", fmt.Errorf("read application metadata: %w", err)
+	}
+
+	// Match the runtime's app-file grammar without rewriting the file or its source offsets.
+	content, err = hujson.Standardize(bytes.TrimPrefix(content, []byte{0xef, 0xbb, 0xbf}))
+	if err != nil {
+		return "", fmt.Errorf("parse application metadata: %w", err)
 	}
 
 	var metadata appMetadata
