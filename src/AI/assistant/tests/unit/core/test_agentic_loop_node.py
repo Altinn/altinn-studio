@@ -609,7 +609,7 @@ def _head(repo: Path) -> str:
 
 
 def _files_on_remote_branch(repo: Path) -> dict[str, str]:
-    """Return the content of each file on the remote session branch. Empty if the branch does not exist."""
+    """Return the content of each file on the remote session branch."""
     remote = repo.parent / "origin.git"
     listed = subprocess.run(
         ["git", "ls-tree", "-r", "--name-only", _SESSION_BRANCH], cwd=remote, capture_output=True, text=True
@@ -629,11 +629,15 @@ _UNREACHABLE = ConnectionError("gitea unreachable")
 
 
 class _Remote:
-    """Replaces the repo manager. A push goes to the bare repository that `repo` is a clone of.
+    """A replacement for the repo manager. A push goes to the bare repository that `repo` is a clone of.
 
-    `results` gives the result of each push in sequence: True for a push that the
-    remote accepts, False for a push that it rejects, or an exception. The last
-    result applies to all later pushes.
+    `results` gives the result of each push in sequence:
+
+    - True: the remote accepts the push.
+    - False: the remote rejects the push.
+    - An exception: the push raises it.
+
+    The last result applies to all later pushes.
     """
 
     def __init__(self, repo: Path, results: tuple[bool | Exception, ...]):
@@ -1012,7 +1016,7 @@ class TestUnsavedFiles:
         assert node._unsaved_files(self._ctx(repo)) == ["App/ui/\ufffd.json"]
 
     async def test_the_auto_commit_saves_a_file_with_a_carriage_return_in_its_name(self, monkeypatch, repo):
-        """A carriage return that becomes a line feed gives a path that does not exist, and that fails verification."""
+        """In text mode, the carriage return becomes a line feed. That path does not exist, thus verification fails."""
         write_files(repo, {"App/ui/a\rb.json": '{"edited": true}'})
         _use_remote(monkeypatch, repo)
         ctx = self._ctx(repo)

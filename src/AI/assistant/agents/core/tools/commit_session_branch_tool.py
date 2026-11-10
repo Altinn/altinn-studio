@@ -36,15 +36,13 @@ def unverified_changed_files(ctx: LoopContext) -> set[str]:
 
 
 def track_uncommitted_files(ctx: LoopContext) -> None:
-    """Record as changed each file that git shows as not committed.
+    """Add each file that git shows as not committed to the changed files.
 
     A commit takes all files in the working tree. An earlier turn can leave an
-    edit that the tools of this turn did not record, for example a file that
-    did not pass `verify_changes`. The edit must pass `verify_changes` before a
-    commit. `ctx.extras["edits_not_from_tools"]` keeps these files until a tool
-    writes them, so that the refusal can tell the model that no tool made the
-    change. Raise `OSError` or `subprocess.SubprocessError` if git cannot read
-    the working tree.
+    edit that the tools of this turn did not record. This edit must also pass
+    `verify_changes` before a commit. `edits_not_from_tools` keeps these files
+    until a tool writes them. Thus the refusal can tell the model that no tool
+    made these changes.
     """
     recorded = {posixpath.normpath(path) for path in ctx.extras.get("changed_files") or set()}
     not_from_tools: set[str] = ctx.extras.setdefault("edits_not_from_tools", set())
@@ -57,9 +55,9 @@ def track_uncommitted_files(ctx: LoopContext) -> None:
 def _unverified_refusal(ctx: LoopContext, unverified: set[str]) -> str:
     """Tell the model which files stop the commit.
 
-    The model does not know about a change that no tool made in this turn, and
-    can think that it must not touch the file. Thus the refusal names these
-    files apart from the files that the model edited.
+    The model has no record of a change that no tool made in this turn. In
+    manual runs, the model did not fix such a file, and asked the user. Thus
+    the refusal names these files separately.
     """
     not_from_tools = unverified & (ctx.extras.get("edits_not_from_tools") or set())
     from_tools = unverified - not_from_tools
@@ -95,10 +93,10 @@ def _session_branch_name(ctx: LoopContext) -> str:
 
 
 def _commit_to_push_again(ctx: LoopContext) -> str | None:
-    """Return the last commit if its push failed, or None if the remote has all commits.
+    """Return the last commit if the remote does not have all local commits, or None.
 
-    The working tree is clean, thus there is nothing to commit. But a commit
-    with a failed push stays in the container until a later push succeeds.
+    The working tree is clean. But a commit with a failed push stays in the
+    container until a later push succeeds.
     """
     if not git_ops.unpushed_files(ctx.repo_path):
         return None
@@ -188,8 +186,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
-        # The remote branch has the latest commit. A failed push sets this flag
-        # to False, because the remote branch does not have the local commit.
+        # The render check runs only if the remote branch has the latest commit.
         ctx.extras["session_pushed"] = True
         return ToolResult(
             content=f"Committed {commit_hash} to {branch} and pushed.",

@@ -79,9 +79,9 @@ def uncommitted_files(repo_path: str) -> list[str]:
 def unpushed_files(repo_path: str) -> list[str]:
     """Return the paths in the local commits that no remote branch has.
 
-    A successful `git push` moves the remote-tracking branch, thus git knows
-    which commits are on the remote. Raise `subprocess.CalledProcessError` if
-    `repo_path` is not a git repository.
+    A `git push` that succeeds moves the remote-tracking branch. Thus git has a
+    record of the commits on the remote. Raise `subprocess.CalledProcessError`
+    if `repo_path` is not a git repository.
     """
     return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
 
@@ -89,10 +89,10 @@ def unpushed_files(repo_path: str) -> list[str]:
 def _paths(repo_path: str, *args: str) -> set[str]:
     """Run a git command that prints paths with `-z`, and return the paths.
 
-    A file name is a sequence of bytes, and not always UTF-8. An invalid byte
-    becomes U+FFFD, because a decode error must not stop the run. The function
-    decodes the bytes itself, because in text mode `subprocess` changes a
-    carriage return in a file name to a line feed.
+    A file name is a sequence of bytes, and is not always UTF-8. An invalid byte
+    becomes U+FFFD, so that a decode error does not stop the run. In text mode,
+    `subprocess` changes a carriage return to a line feed. Thus the function
+    decodes the bytes itself.
     """
     output = subprocess.run(["git", *args], cwd=repo_path, capture_output=True, check=True).stdout
     return {path for path in output.decode("utf-8", errors="replace").split("\0") if path}
