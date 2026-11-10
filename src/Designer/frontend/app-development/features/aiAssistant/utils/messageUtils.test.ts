@@ -4,7 +4,6 @@ import {
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
-  shouldSkipBranchOps,
 } from './messageUtils';
 
 // Test data
@@ -52,13 +51,6 @@ describe('messageUtils', () => {
   describe('getAssistantMessageTimestamp', () => {
     it('uses assistant timestamp', () => {
       expect(getAssistantMessageTimestamp(baseAssistantMessage)).toEqual(new Date(testTimestamp));
-    });
-  });
-
-  describe('shouldSkipBranchOps', () => {
-    it('returns true for chat mode or explicit flag', () => {
-      expect(shouldSkipBranchOps({ mode: 'chat' })).toBe(true);
-      expect(shouldSkipBranchOps({ no_branch_operations: true })).toBe(true);
     });
   });
 });

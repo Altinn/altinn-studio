@@ -1,4 +1,4 @@
-"""The start commit of a session, which `verify_changes` compares the app with."""
+"""The records of a session: the start commit, which `verify_changes` compares the app with, and the pushed branch."""
 
 from __future__ import annotations
 
@@ -49,3 +49,38 @@ def test_forgets_the_start_commit_with_the_session(manager: RepoManager):
     manager.cleanup_session("session-1")
 
     assert manager.get_session_start_commit("session-1") is None
+
+
+def _commit_on_branch(repo: Path, branch: str) -> None:
+    git(repo, "checkout", "-b", branch)
+    write_files(repo, {"the-sessions-change.txt": "change"})
+    commit_all(repo, "the session's commit")
+
+
+def test_gives_a_pushed_branch_one_time(manager: RepoManager):
+    repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+    _commit_on_branch(repo, "assistant_session-1")
+
+    manager.push_branch("session-1", "assistant_session-1")
+
+    assert manager.take_unreported_push("session-1") == "assistant_session-1"
+    assert manager.take_unreported_push("session-1") is None
+
+
+def test_gives_no_branch_when_the_push_fails(manager: RepoManager):
+    manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+
+    with pytest.raises(Exception, match="Failed to push"):
+        manager.push_branch("session-1", "assistant_session-1")
+
+    assert manager.take_unreported_push("session-1") is None
+
+
+def test_forgets_the_pushed_branch_with_the_session(manager: RepoManager):
+    repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+    _commit_on_branch(repo, "assistant_session-1")
+    manager.push_branch("session-1", "assistant_session-1")
+
+    manager.cleanup_session("session-1")
+
+    assert manager.take_unreported_push("session-1") is None

@@ -27,7 +27,3 @@ export function formatRejectedEventMessage(
 export function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
   return new Date(assistantMessage.timestamp || Date.now());
 }
-
-export function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
-  return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
-}

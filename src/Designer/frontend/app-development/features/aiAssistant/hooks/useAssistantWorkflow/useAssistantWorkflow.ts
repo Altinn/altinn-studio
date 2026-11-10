@@ -23,7 +23,6 @@ import {
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
-  shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
 
@@ -69,8 +68,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   } = useAssistantWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
-  const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
-  const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
+  const { mutateAsync: resetRepository } = useResetRepositoryMutation(org, app);
+  const { mutateAsync: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
@@ -254,14 +253,16 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [threads.chatThreads],
   );
 
-  const resetRepoForSession = useCallback(
-    (sessionId: string) => {
-      const branch = buildSessionBranchName(sessionId);
-      resetRepository(undefined, {
-        onSuccess: () => {
-          checkoutBranch(branch);
-        },
-      });
+  // A callback on `mutate` does not run after this hook unmounts. The reset is slow,
+  // and the user can go to a different page before the checkout starts.
+  const switchToPushedBranch = useCallback(
+    async (branch: string) => {
+      try {
+        await resetRepository();
+        await checkoutBranch(branch);
+      } catch {
+        // The mutation cache shows the error to the user, except for a checkout conflict.
+      }
     },
     [resetRepository, checkoutBranch],
   );
@@ -291,11 +292,11 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
       markWorkflowCompleted(threadId, assistantMessage);
 
-      if (!shouldSkipBranchOps(assistantMessage)) {
-        resetRepoForSession(threadId);
+      if (assistantMessage.pushedBranch) {
+        switchToPushedBranch(assistantMessage.pushedBranch);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, refreshMessages],
+    [switchToPushedBranch, markWorkflowCompleted, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -573,13 +574,6 @@ function findStepIndexByToolUseId(steps: TrailStep[], toolUseId: string): number
     if (steps[index].toolUseId === toolUseId) return index;
   }
   return -1;
-}
-
-function buildSessionBranchName(sessionId: string): string {
-  const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
-    ? sessionId.substring(8, 16)
-    : sessionId.substring(0, 8);
-  return `assistant_${uniqueIdWithoutPrefix}`;
 }
 
 function createThreadTitle(messageContent: string): string {

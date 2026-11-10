@@ -92,7 +92,9 @@ sequenceDiagram
   D->>DB: Save the message in the chat thread
   D-->>B: assistant_message with persistedMessageId
   A-->>D: done
-  B->>D: Reset the repo and check out the session branch
+  opt The answer has pushedBranch
+    B->>D: Reset the repo and check out that branch
+  end
 ```
 
 _Event flow from the assistant service to the user._
