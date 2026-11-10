@@ -319,6 +319,12 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
 
+        // After every step that reads or writes layouts, so they all see the IDs the app has, including the
+        // ConditionalRendering rules and the PDF layouts that target components, and the renames reach the
+        // layouts those steps add.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateComponentIds(projectFolder));
+
         // After the PDF service task migration, so the PDF service tasks it adds are included.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
@@ -1943,6 +1949,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating subform PDF tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Renames component IDs the v9 layout schema rejects, such as IDs with '_' or ending in '-1', and the
+    /// references to them in the same UI folder.
+    /// </summary>
+    static async Task<int> MigrateComponentIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Component IDs");
+        try
+        {
+            var result = await ComponentIdMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "All component IDs are valid in v9",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error renaming component IDs", ex);
         }
     }
 
