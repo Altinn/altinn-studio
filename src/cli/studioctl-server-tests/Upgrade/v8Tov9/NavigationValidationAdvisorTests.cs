@@ -49,7 +49,7 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
     [InlineData("task")]
     [InlineData("app")]
     [InlineData("legacy-app")]
-    public async Task ChangedValidation_ReportsTodoWithLocationAndAction_AndKeepsAllFiles(string level)
+    public async Task ChangedValidation_ReportsTodoWithLocationAndEffect_AndKeepsAllFiles(string level)
     {
         Settings(level == "task" ? CurrentRequired : null);
         if (level == "app")
@@ -75,8 +75,15 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
             todo,
             StringComparison.Ordinal
         );
-        Assert.Contains("Review and test this behavior before deploying", todo, StringComparison.Ordinal);
-        Assert.Contains("Keep validateOnNext if intended, or remove it", todo, StringComparison.Ordinal);
+        var inheritedFile = level switch
+        {
+            "page" => "App/ui/Task_1/layouts/B.json",
+            "task" => "App/ui/Task_1/Settings.json",
+            "app" => "App/ui/Settings.json",
+            _ => "App/ui/layout-sets.json",
+        };
+        Assert.Contains($"validation in {inheritedFile} in v9", todo, StringComparison.Ordinal);
+        Assert.EndsWith("Settings unchanged.", todo, StringComparison.Ordinal);
         foreach (var (path, contents) in before)
             Assert.Equal(contents, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
         Assert.Equal(before.Count, Directory.EnumerateFiles(_app.Root, "*", SearchOption.AllDirectories).Count());
@@ -175,7 +182,7 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
         Assert.Contains("Backward navigation will now check", todo, StringComparison.Ordinal);
         Assert.Contains("previously", todo, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(
-            "continue allowing backward navigation without this validation",
+            "Previously, this component allowed backward navigation without validation.",
             todo,
             StringComparison.Ordinal
         );
