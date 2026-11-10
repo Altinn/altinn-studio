@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"runtime"
 	"slices"
 	"strings"
 
@@ -88,13 +89,22 @@ func (e *Env) checkPortFree(ctx context.Context, port string) error {
 		return nil
 	}
 
-	// Both addresses: Linux refuses a loopback bind beside a program on every address, but macOS lets one through.
-	for _, host := range []string{components.PublishedHostIP, "0.0.0.0"} {
+	for _, host := range listenCheckHosts() {
 		if err := tryListen(ctx, host, port); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// listenCheckHosts are the addresses checkPortFree listens on. The environment publishes on loopback only. Linux
+// refuses a loopback bind beside a program on every address, so loopback alone answers there: a bind on every address
+// would also refuse a program on another one. macOS lets that loopback bind through, so other systems try both.
+func listenCheckHosts() []string {
+	if runtime.GOOS == "linux" {
+		return []string{components.PublishedHostIP}
+	}
+	return []string{components.PublishedHostIP, "0.0.0.0"}
 }
 
 // tryListen listens on the address and closes it again.
