@@ -4383,6 +4383,7 @@ namespace Altinn.App.Core.Models
     public class PageGroup
     {
         public PageGroup() { }
+        public bool? ExpandedByDefault { get; set; }
         public bool? MarkWhenCompleted { get; set; }
         public string? Name { get; set; }
         public required System.Collections.Generic.List<string> Order { get; set; }
