@@ -7,7 +7,7 @@ export interface AssistantMessageData {
   timestamp?: string | number;
   filesChanged?: string[];
   sources?: Source[];
-  /** The session branch that the run pushed to Gitea. Absent when the run pushed nothing. */
+  /** The session branch that the assistant pushed a commit to. Designer checks out only this branch. */
   pushedBranch?: string;
   traceId?: string;
   attachmentInstructionFlagged?: boolean;

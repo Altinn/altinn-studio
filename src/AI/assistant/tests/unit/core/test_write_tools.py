@@ -563,8 +563,6 @@ class TestCommitSessionBranch:
         assert ctx.extras["session_branch"].startswith("assistant_")
         # The render check runs only after a push that succeeded.
         assert ctx.extras.get("session_pushed") is True
-        # The final message names this branch for Designer to check out.
-        assert ctx.extras["pushed_branch"] == ctx.extras["session_branch"]
 
         # Second commit should reuse the cached branch.
         args2 = tool.input_schema.model_validate({"message": "second"})
@@ -600,12 +598,10 @@ class TestCommitSessionBranch:
         )
 
         tool = CommitSessionBranchTool()
-        ctx = _write_ctx()
-        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), ctx)
+        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), _write_ctx())
         assert result.is_error
         assert "deadbeef" in result.content
         assert "rejected" in result.content.lower()
-        assert "pushed_branch" not in ctx.extras
 
     async def test_refuses_when_changed_files_have_not_been_verified(self, monkeypatch):
         # git_ops.commit must NOT be called when the gate fires.
@@ -672,12 +668,10 @@ class TestCommitSessionBranch:
         )
 
         tool = CommitSessionBranchTool()
-        ctx = _write_ctx()
-        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), ctx)
+        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), _write_ctx())
         assert result.is_error
         assert "feedface" in result.content
         assert "gitea unreachable" in result.content
-        assert "pushed_branch" not in ctx.extras
 
 
 class TestTextKeysResolve:

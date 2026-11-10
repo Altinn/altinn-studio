@@ -46,7 +46,7 @@ from agents.core import (
 from agents.core.tools.commit_session_branch_tool import track_uncommitted_files, unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
-from agents.services.git import git_ops
+from agents.services.git import git_ops, repo_manager
 from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
@@ -655,9 +655,10 @@ def _emit_workflow_completion(
     saved: bool,
     unsaved_files: list[str],
 ) -> None:
-    """Emit the final `assistant_message` and `done` the frontend needs to close
-    out a session; without both it renders empty bubbles and never runs its
-    post-workflow logic, such as checking out the session branch.
+    """Send the final `assistant_message` and `done`.
+
+    Without these two events, the frontend shows empty bubbles and does not
+    end the run. For example, it does not check out the pushed branch.
     """
     changes = _changes_sentence(
         unsaved_files,
@@ -689,15 +690,15 @@ def _emit_workflow_completion(
                 "Ignoring the report for session %s: the turn had no attachment content",
                 state.session_id,
             )
-    pushed_branch = ctx.extras.get("pushed_branch")
+    # A cancelled turn sends no final message. Thus the repo manager keeps the
+    # push, and the final message of the next turn gives the branch.
+    pushed_branch = repo_manager.get_repo_manager().take_unreported_push(state.session_id)
     if pushed_branch:
-        # Designer checks out only this branch. A turn that pushed nothing
-        # leaves the user's repository and branch as they were.
         message_data["pushedBranch"] = pushed_branch
     else:
-        # Designer tabs loaded before `pushedBranch` existed check out the
-        # session branch unless this flag is set, and that branch may not exist.
-        # Remove the flag when no open tab runs that frontend.
+        # Designer tabs with an old frontend do not read `pushedBranch`. Without
+        # this flag, they reset the repo and check out the session branch.
+        # Remove the flag when no open tab has the old frontend.
         message_data["no_branch_operations"] = True
     trace_id = state.trace_id or get_current_trace_id()
     if trace_id:

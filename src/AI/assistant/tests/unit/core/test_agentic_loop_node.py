@@ -644,6 +644,7 @@ class _Remote:
         self.repo = repo
         self.results = results
         self.pushes = 0
+        self.unreported_pushes: dict[str, str] = {}
 
     def push_branch(self, session_id, branch_name):
         result = self.results[min(self.pushes, len(self.results) - 1)]
@@ -652,7 +653,11 @@ class _Remote:
             raise result
         if result:
             git(self.repo, "push", "origin", branch_name)
+            self.unreported_pushes[session_id] = branch_name
         return result
+
+    def take_unreported_push(self, session_id):
+        return self.unreported_pushes.pop(session_id, None)
 
 
 def _use_remote(monkeypatch, repo: Path, *results: bool | Exception) -> _Remote:
@@ -716,17 +721,20 @@ async def _handle_events(
     pushed: bool = True,
     pushes: tuple[bool | Exception, ...] = (),
     render_checks: list[ToolResult] | None = None,
+    remote: _Remote | None = None,
 ):
     """Run `handle` and return the final state, and the data of the final message and of `done`.
 
     `pushes` gives the result of each push in sequence. Without it, `pushed` is
-    the result of all pushes.
+    the result of all pushes. `remote` is the remote from an earlier turn of the
+    session. Without it, the turn gets a new remote.
     """
     events: list = []
     _patch_loop(monkeypatch, fake_run_loop)
     monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", events.append)
     monkeypatch.setattr(node.VerifyChangesTool, "run", _verify_returning(verifies))
-    _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
+    if remote is None:
+        _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
     checks = list(render_checks or [_outcome(is_error=True, unavailable=True)])
 
     # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
@@ -1345,8 +1353,8 @@ class TestTraceRecordsTheCommit:
 
 
 class TestPushedBranchInFinalMessage:
-    """Designer checks out the branch that the final message names. A turn
-    names it only if a push of the turn reached Gitea."""
+    """Designer checks out the branch that the final message gives. The message
+    gives the branch only if Gitea has a push that no earlier message gave."""
 
     @pytest.mark.parametrize(
         ("edits", "outcome"),
@@ -1379,6 +1387,18 @@ class TestPushedBranchInFinalMessage:
 
         _, message, _ = await _handle_events(
             monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps), pushes=(True, False)
+        )
+
+        assert message["pushedBranch"] == _SESSION_BRANCH
+
+    async def test_the_next_final_message_names_the_branch_that_a_cancelled_turn_pushed(self, monkeypatch, repo):
+        remote = _use_remote(monkeypatch, repo)
+        cancelled = _loop_ending(TerminationReason.CANCELLED, edits=("App/ui/a.json",), model_commits=True)
+        _patch_loop(monkeypatch, cancelled)
+        await handle(_state(repo_path=str(repo)))
+
+        _, message, _ = await _handle_events(
+            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED), remote=remote
         )
 
         assert message["pushedBranch"] == _SESSION_BRANCH

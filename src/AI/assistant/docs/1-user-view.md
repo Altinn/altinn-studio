@@ -35,7 +35,7 @@ _The two modes, and the permission prompt that connects them._
 
 While the assistant works, the user sees an activity trail. Each line is a short Norwegian status, for example "Leser App/ui/form/layouts/Side1.json" or "Validerer endringer". The model text also appears in the chat. The user can stop the run at any time.
 
-At the end, the user gets a final message. It lists the changed files and the sources that the assistant used. If the assistant pushed a commit, Designer then checks out the session branch, so that the preview shows the changed app. If not, the user stays on their branch. The user can give a thumbs up or a thumbs down on each answer.
+At the end, the user gets a final message. It lists the changed files and the sources that the assistant used. If the assistant pushed a commit, Designer checks out the session branch. Then the preview shows the changed app. If not, Designer does not change the branch of the user. The user can give a thumbs up or a thumbs down on each answer.
 
 ```mermaid
 sequenceDiagram

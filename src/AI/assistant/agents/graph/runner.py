@@ -194,6 +194,7 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
         "content": decline_text,
         "filesChanged": [],
         "sources": [],
+        # Only Designer tabs with an old frontend read this flag. Refer to `_emit_workflow_completion`.
         "no_branch_operations": True,
     }
     # Same event identity as a real answer: lets the frontend dedupe

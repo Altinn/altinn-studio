@@ -72,8 +72,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   } = useAssistantWebSocket();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
-  const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
-  const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
+  const { mutateAsync: resetRepository } = useResetRepositoryMutation(org, app);
+  const { mutateAsync: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   // Trail-clock anchor per thread; each step records its offset from this.
   const workflowStartedAtMsByThreadRef = useRef<Record<string, number>>({});
@@ -257,13 +257,16 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [threads.chatThreads],
   );
 
+  // A callback on `mutate` does not run after this hook unmounts. The reset is slow,
+  // and the user can go to a different page before the checkout starts.
   const switchToPushedBranch = useCallback(
-    (branch: string) => {
-      resetRepository(undefined, {
-        onSuccess: () => {
-          checkoutBranch(branch);
-        },
-      });
+    async (branch: string) => {
+      try {
+        await resetRepository();
+        await checkoutBranch(branch);
+      } catch {
+        // The mutation cache shows the error to the user.
+      }
     },
     [resetRepository, checkoutBranch],
   );
@@ -326,7 +329,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      // A run that pushed nothing names no branch, so the user's repository and branch stay as they were.
       if (assistantMessage.pushedBranch) {
         switchToPushedBranch(assistantMessage.pushedBranch);
       }

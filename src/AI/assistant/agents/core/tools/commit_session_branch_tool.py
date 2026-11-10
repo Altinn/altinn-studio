@@ -188,9 +188,6 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
 
         # The render check runs only if the remote branch has the latest commit.
         ctx.extras["session_pushed"] = True
-        # A later failed push sets `session_pushed` to False, but Gitea keeps
-        # this commit. The final message names the branch, so that Designer checks it out.
-        ctx.extras["pushed_branch"] = branch
         return ToolResult(
             content=f"Committed {commit_hash} to {branch} and pushed.",
             metadata={"commit": commit_hash, "branch": branch, "pushed": True},
