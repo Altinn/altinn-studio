@@ -798,3 +798,47 @@ func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
 		t.Fatalf("app codes = %s, want a WorkflowEngineCallback code", data)
 	}
 }
+
+func TestReadAppIDAcceptsAppFileJSON(t *testing.T) {
+	t.Parallel()
+	for _, content := range []string{
+		`{"id":"ttd/json-config"}`,
+		`{/* id */ "id":"ttd/json-config"}`,
+		`{"id":"ttd/json-config",}`,
+		"// metadata\n{\"id\":\"ttd/json-config\",} /* end */",
+		"\xef\xbb\xbf{/* id */ \"id\":\"ttd/json-config\",}",
+	} {
+		t.Run(content, func(t *testing.T) {
+			t.Parallel()
+			appPath := t.TempDir()
+			writeAppMetadata(t, appPath, content)
+			got, err := appsvc.ReadAppID(appPath)
+			if err != nil || got != "ttd/json-config" {
+				t.Fatalf("ReadAppID() = %q, %v", got, err)
+			}
+			raw, err := os.ReadFile(filepath.Join(appPath, "App", "config", "applicationmetadata.json"))
+			if err != nil || string(raw) != content {
+				t.Fatalf("metadata changed: %q, %v", raw, err)
+			}
+		})
+	}
+}
+
+func TestReadAppIDRejectsMalformedAppFileJSON(t *testing.T) {
+	t.Parallel()
+	for _, content := range []string{
+		`{"id":"ttd/json-config",,}`,
+		`{"id":"ttd/json-config"} {}`,
+		`{/* unclosed "id":"ttd/json-config"}`,
+		`{id:"ttd/json-config"}`,
+	} {
+		t.Run(content, func(t *testing.T) {
+			t.Parallel()
+			appPath := t.TempDir()
+			writeAppMetadata(t, appPath, content)
+			if _, err := appsvc.ReadAppID(appPath); err == nil {
+				t.Fatal("ReadAppID() accepted malformed JSON")
+			}
+		})
+	}
+}
