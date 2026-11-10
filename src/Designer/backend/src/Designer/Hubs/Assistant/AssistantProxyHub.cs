@@ -130,7 +130,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             }
         );
 
-        await _webSocketService.RegisterSessionAsync(threadId, context);
+        await _webSocketService.RegisterSessionAsync(threadId, developer);
 
         _logger.LogInformation(
             "Registered session {SessionId} for developer {Developer} on connection {ConnectionId}",
@@ -168,10 +168,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateConnectionOwnsSession(sessionId);
 
-        // Re-register session on the agents WS before starting. The editing context is
-        // rebuilt from the start request, so re-verify thread ownership against it —
-        // otherwise a request with a different org/app than the one registered would
-        // silently desync the session's persistence context.
+        // The request's org and app decide which repository the assistant works in, so the
+        // developer must own the thread in that app.
         string org = ExtractRequiredString(request, "org");
         string app = ExtractRequiredString(request, "app");
 
@@ -196,7 +194,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         }
 
         await _webSocketService.EnsureConnectedAsync(developer);
-        await _webSocketService.RegisterSessionAsync(sessionId, editingContext);
+        await _webSocketService.RegisterSessionAsync(sessionId, developer);
 
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 

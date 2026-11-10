@@ -36,10 +36,6 @@ export function formatRejectedEventMessage(
   return parts.join('\n\n');
 }
 
-export function getAssistantMessageContent(assistantMessage: AssistantMessageData): string {
-  return assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
-}
-
 export function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
   return new Date(assistantMessage.timestamp || Date.now());
 }

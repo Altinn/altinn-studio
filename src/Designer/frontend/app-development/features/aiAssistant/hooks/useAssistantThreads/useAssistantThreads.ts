@@ -88,8 +88,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
     [deleteChatMessage],
   );
 
-  // Pulls a server-persisted message into the cache — the render path for
-  // assistant messages the backend already stored (persistedMessageId set).
+  // Pulls messages that Designer saved, such as the assistant's answers, into the cache.
   const refreshMessages = useCallback(
     (threadId: string): void => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });

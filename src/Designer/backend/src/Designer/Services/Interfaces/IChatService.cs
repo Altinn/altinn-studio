@@ -49,6 +49,17 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>
+    /// Saves a message in a thread that the developer created, whatever app the thread belongs to.
+    /// </summary>
+    /// <returns>The saved message, or null if the developer has no thread with this id.</returns>
+    Task<ChatMessageEntity?> CreateMessageInDeveloperThreadAsync(
+        Guid threadId,
+        string developer,
+        CreateChatMessageRequest request,
+        CancellationToken cancellationToken = default
+    );
+
     Task DeleteMessageAsync(
         Guid threadId,
         Guid messageId,

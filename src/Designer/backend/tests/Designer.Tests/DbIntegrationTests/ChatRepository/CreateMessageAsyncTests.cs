@@ -152,4 +152,34 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
 
         DbFixture.DbContext.ChangeTracker.Clear();
     }
+
+    [Fact]
+    public async Task CreateMessageAsync_WithAnEventIdAlreadySaved_ShouldReturnTheSavedMessage()
+    {
+        var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
+        await DbFixture.PrepareThreadInDatabase(threadEntity);
+        string eventId = Guid.NewGuid().ToString("N");
+
+        // Each Designer replica builds its own copy of the same assistant answer.
+        var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant
+        );
+        firstCopy.EventId = eventId;
+        var secondCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant
+        );
+        secondCopy.EventId = eventId;
+
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
+        var firstSaved = await repository.CreateMessageAsync(firstCopy);
+        var secondSaved = await repository.CreateMessageAsync(secondCopy);
+
+        Assert.Equal(firstSaved.Id, secondSaved.Id);
+        int savedCount = await DbFixture
+            .DbContext.ChatMessages.AsNoTracking()
+            .CountAsync(m => m.ThreadId == threadEntity.Id);
+        Assert.Equal(1, savedCount);
+    }
 }

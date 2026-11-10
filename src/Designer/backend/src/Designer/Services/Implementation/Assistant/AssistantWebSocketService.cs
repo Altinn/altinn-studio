@@ -31,7 +31,9 @@ namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
 /// <para>
-/// Every replica sees every event, so persistence is deduplicated on the agent's event id.
+/// The assistant service streams each developer's events to every replica that has a connection
+/// for that developer. Each replica saves the assistant's answers, and the save is deduplicated on
+/// the agent's event id.
 /// </para>
 /// </summary>
 public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
@@ -54,11 +56,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
     private readonly ConcurrentDictionary<string, DeveloperConnection> _connections = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _connectLocks = new();
-
-    // sessionId (== chat thread id) → the editing context it was registered
-    // under. Lets the listener persist assistant messages into the right
-    // app's thread without any browser tab involved.
-    private readonly ConcurrentDictionary<string, AltinnRepoEditingContext> _sessionContexts = new();
 
     public AssistantWebSocketService(
         ILogger<AssistantWebSocketService> logger,
@@ -117,17 +114,14 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
     }
 
-    public async Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext)
+    public async Task RegisterSessionAsync(string sessionId, string developer)
     {
-        string developer = editingContext.Developer;
         if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
         {
             throw new InvalidOperationException(
                 $"No live agents WebSocket for developer {developer}. Call EnsureConnectedAsync first."
             );
         }
-
-        TrackSessionContext(sessionId, editingContext);
 
         var frame = JsonSerializer.SerializeToUtf8Bytes(
             new
@@ -151,7 +145,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     {
         if (_connections.TryRemove(developer, out var connection))
         {
-            RemoveSessionContextsForDeveloper(developer);
             await CloseWebSocketAsync(connection);
         }
     }
@@ -222,7 +215,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                         continue;
                     }
 
-                    await TryPersistAssistantMessageAsync(messageNode);
+                    await TryPersistAssistantMessageAsync(developer, messageNode);
 
                     var message = JsonSerializer.SerializeToElement(messageNode);
                     await _hubContext.Clients.Group(developer).ReceiveAgentMessage(message);
@@ -259,44 +252,17 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     /// </summary>
     private void RemoveConnection(string developer, DeveloperConnection connection)
     {
-        if (_connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection)))
-        {
-            RemoveSessionContextsForDeveloper(developer);
-        }
+        _connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection));
     }
 
     /// <summary>
-    /// Drops the session→editing-context entries for a developer whose agents connection
-    /// closed. Events for those sessions can no longer arrive, and without eviction the
-    /// map would grow for the lifetime of the process. Re-registration on the next
-    /// connection restores the entries.
+    /// Saves an assistant answer in the developer's thread and stamps the saved message's id onto the
+    /// event, so the answer is kept even when no browser tab is open. The thread row gives the app, so
+    /// any replica can save the answer, also one where the session was never registered. Every replica
+    /// saves its copy of the event, and the event id makes the copies one message. A failure is logged,
+    /// and the event is forwarded without the id.
     /// </summary>
-    internal void RemoveSessionContextsForDeveloper(string developer)
-    {
-        foreach (var entry in _sessionContexts)
-        {
-            if (entry.Value.Developer == developer)
-            {
-                _sessionContexts.TryRemove(entry);
-            }
-        }
-    }
-
-    internal void TrackSessionContext(string sessionId, AltinnRepoEditingContext editingContext)
-    {
-        _sessionContexts[sessionId] = editingContext;
-    }
-
-    /// <summary>
-    /// Persists a final assistant message server-side so the answer survives
-    /// regardless of how many browser tabs (including zero) are listening, and
-    /// stamps the persisted id onto the event so clients render it without
-    /// persisting their own copy — which duplicated messages when several tabs
-    /// received the same broadcast. Any failure is logged and the event is
-    /// forwarded unenriched; the frontend then falls back to persisting
-    /// client-side, so an answer is never lost to a persistence error.
-    /// </summary>
-    internal async Task TryPersistAssistantMessageAsync(JsonNode message)
+    internal async Task TryPersistAssistantMessageAsync(string developer, JsonNode message)
     {
         try
         {
@@ -311,18 +277,9 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 return;
             }
 
-            if (!_sessionContexts.TryGetValue(sessionId, out AltinnRepoEditingContext? editingContext))
-            {
-                _logger.LogWarning(
-                    "No editing context registered for session {SessionId}; leaving persistence to the client",
-                    sessionId
-                );
-                return;
-            }
-
             JsonNode? data = message["data"];
 
-            // Same field fallback order as the frontend's getAssistantMessageContent.
+            // The answer is in the first of these fields that is set.
             string? content =
                 data?["response"]?.GetValue<string>()
                 ?? data?["message"]?.GetValue<string>()
@@ -353,13 +310,17 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
             using var scope = _scopeFactory.CreateScope();
             var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-            ChatMessageEntity? created = await chatService.CreateMessageAsync(threadId, request, editingContext);
+            ChatMessageEntity? created = await chatService.CreateMessageInDeveloperThreadAsync(
+                threadId,
+                developer,
+                request
+            );
             if (created is null)
             {
                 _logger.LogWarning(
-                    "Server-side persist skipped for session {SessionId}: thread not found or not owned by {Developer}",
+                    "Did not save the assistant message for session {SessionId}: {Developer} has no thread with this id",
                     sessionId,
-                    editingContext.Developer
+                    developer
                 );
                 return;
             }
@@ -373,7 +334,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to persist assistant message server-side; forwarding unenriched");
+            _logger.LogError(ex, "Failed to save the assistant message; forwarding it without the message id");
         }
     }
 

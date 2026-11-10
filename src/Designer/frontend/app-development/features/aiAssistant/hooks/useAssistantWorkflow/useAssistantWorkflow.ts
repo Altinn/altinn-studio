@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   UserMessage,
-  AssistantMessage,
   Message,
   WorkflowEvent,
   WorkflowStatus,
@@ -24,7 +23,6 @@ import {
   decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
   formatRejectionMessage,
-  getAssistantMessageContent,
   getAssistantMessageTimestamp,
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
@@ -271,7 +269,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   );
 
   const handleAssistantMessage = useCallback(
-    async (event: WorkflowEvent & { type: 'assistant_message' }) => {
+    (event: WorkflowEvent & { type: 'assistant_message' }) => {
       const threadId = event.session_id;
       if (!threadId) return;
 
@@ -288,51 +286,22 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         }
       }
 
-      const messageContent = getAssistantMessageContent(assistantMessage);
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(threadId, assistantMessage, messageTimestamp);
 
-      if (assistantMessage.persistedMessageId) {
-        // Already persisted server-side — refetch instead of writing a client copy.
-        refreshMessages(threadId);
-        if (assistantMessage.traceId) {
-          setTraceIdsByMessageId((prev) => ({
-            ...prev,
-            [assistantMessage.persistedMessageId]: assistantMessage.traceId,
-          }));
-        }
-      } else {
-        // Server-side persist failed or was skipped — persist client-side instead.
-        const finalAssistantMessage: AssistantMessage = {
-          role: MessageAuthor.Assistant,
-          content: messageContent,
-          createdAt: messageTimestamp.toISOString(),
-          filesChanged: assistantMessage.filesChanged || [],
-          sources: assistantMessage.sources || [],
-          traceId: assistantMessage.traceId,
-          attachmentInstructionFlagged: assistantMessage.attachmentInstructionFlagged,
-        };
-        try {
-          const persisted = await createMessage(threadId, finalAssistantMessage);
-
-          if (assistantMessage.traceId && persisted?.id) {
-            setTraceIdsByMessageId((prev) => ({
-              ...prev,
-              [persisted.id]: assistantMessage.traceId,
-            }));
-          }
-        } catch (error) {
-          // Release the dedupe key, or a redelivery of this answer is dropped for good.
-          if (dedupeKey) handledAssistantEventsRef.current.delete(dedupeKey);
-          console.error('Failed to persist assistant message:', error);
-        }
+      // Designer saves the answer before it forwards the event, so the refetch shows it. Saving a copy
+      // here would duplicate the answer.
+      refreshMessages(threadId);
+      const { persistedMessageId, traceId } = assistantMessage;
+      if (persistedMessageId && traceId) {
+        setTraceIdsByMessageId((prev) => ({ ...prev, [persistedMessageId]: traceId }));
       }
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(threadId);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, createMessage, refreshMessages],
+    [resetRepoForSession, markWorkflowCompleted, refreshMessages],
   );
 
   const handleWorkflowEvent = useCallback(

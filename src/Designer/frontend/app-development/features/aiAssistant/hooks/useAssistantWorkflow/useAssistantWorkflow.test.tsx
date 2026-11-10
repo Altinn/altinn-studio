@@ -319,11 +319,8 @@ describe('useAssistantWorkflow', () => {
     expect(threads.createMessage).not.toHaveBeenCalled();
   });
 
-  it('persists a duplicated assistant_message event only once', async () => {
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
-    });
+  it('handles a duplicated assistant_message event only once', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
@@ -342,12 +339,16 @@ describe('useAssistantWorkflow', () => {
 
     renderUseAssistantWorkflow(threads);
 
-    // The same event delivered twice — a stale second connection or HMR
-    // leftovers replay the exact payload, traceId included.
+    // Each Designer replica forwards its own copy of the event, traceId included.
     const duplicatedEvent: AssistantMessageEvent = {
       type: 'assistant_message',
       session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-1', mode: 'chat' },
+      data: {
+        content: 'Svar',
+        traceId: 'trace-1',
+        mode: 'chat',
+        persistedMessageId: 'server-message-id',
+      },
     };
 
     await act(async () => {
@@ -355,7 +356,8 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!(duplicatedEvent);
     });
 
-    expect(threads.createMessage).toHaveBeenCalledTimes(1);
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(1);
+    expect(threads.createMessage).not.toHaveBeenCalled();
   });
 
   it('keeps the workflow active when the cancel request fails', async () => {
@@ -398,10 +400,7 @@ describe('useAssistantWorkflow', () => {
   });
 
   it('dedupes a redelivered assistant_message that has an eventId but no traceId', async () => {
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
-    });
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
@@ -432,18 +431,11 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!(duplicatedEvent);
     });
 
-    expect(threads.createMessage).toHaveBeenCalledTimes(1);
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(1);
   });
 
-  it('retries a redelivered assistant_message when the first persist failed', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: vi
-        .fn()
-        .mockRejectedValueOnce(new Error('Persist failed'))
-        .mockResolvedValue({ id: 'persisted-message-id' }),
-    });
+  it('does not save a copy of the answer when the event has no persistedMessageId', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
@@ -460,23 +452,20 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads);
 
-    const event: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-retry', mode: 'chat' },
-    };
-
+    // The copy from a Designer replica that could not save the answer.
     await act(async () => {
-      capturedOnAgentMessage!(event);
-    });
-    await act(async () => {
-      capturedOnAgentMessage!(event);
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
+      });
     });
 
-    expect(threads.createMessage).toHaveBeenCalledTimes(2);
-    consoleErrorSpy.mockRestore();
+    expect(threads.createMessage).not.toHaveBeenCalled();
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
   it('evicts the oldest dedupe keys so late duplicates of old runs are reprocessed', async () => {
@@ -558,7 +547,7 @@ describe('useAssistantWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
-  it('persists assistant message using thread ID, not backend session ID', async () => {
+  it('refreshes the thread that the event session_id names', async () => {
     const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
@@ -588,13 +577,10 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!(assistantMessageEvent);
     });
 
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'database-thread-id',
-      expect.objectContaining({ role: MessageAuthor.Assistant, content: 'Assistant reply' }),
-    );
+    expect(threads.refreshMessages).toHaveBeenCalledWith('database-thread-id');
   });
 
-  it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
+  it('refreshes the submission thread even when the user has switched to another thread', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
@@ -638,14 +624,8 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!(assistantMessageEvent);
     });
 
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'thread-a',
-      expect.objectContaining({
-        role: MessageAuthor.Assistant,
-        content: 'Assistant reply for thread A',
-      }),
-    );
-    expect(threads.createMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(threads.refreshMessages).not.toHaveBeenCalledWith('thread-b');
   });
 
   it('routes workflow status updates by event session_id, leaving other threads untouched', async () => {

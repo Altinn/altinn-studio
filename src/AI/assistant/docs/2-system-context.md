@@ -76,7 +76,7 @@ _The start request returns quickly. The real work happens after the response._
 
 ## Events come back
 
-The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
+The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open. Every Designer replica that has a WebSocket for the developer gets every event, and each one saves the answer. The event id makes these saves one message. The browser only fetches the saved answer.
 
 ```mermaid
 sequenceDiagram

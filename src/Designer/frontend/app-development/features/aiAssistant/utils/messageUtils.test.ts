@@ -5,7 +5,6 @@ import {
   decorateMessagesWithTraceIds,
   formatRejectedEventMessage,
   formatRejectionMessage,
-  getAssistantMessageContent,
   getAssistantMessageTimestamp,
   shouldSkipBranchOps,
 } from './messageUtils';
@@ -49,12 +48,6 @@ describe('messageUtils', () => {
 
     it('falls back to the rejection header alone when the event carries no details', () => {
       expect(formatRejectedEventMessage({}, texts)).toBe(texts.heading);
-    });
-  });
-
-  describe('getAssistantMessageContent', () => {
-    it('uses assistant response content', () => {
-      expect(getAssistantMessageContent(baseAssistantMessage)).toBe('Hello');
     });
   });
 

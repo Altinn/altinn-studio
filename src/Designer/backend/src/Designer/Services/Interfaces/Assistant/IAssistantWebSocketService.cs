@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 
@@ -19,11 +18,9 @@ public interface IAssistantWebSocketService
 
     /// <summary>
     /// Sends a session-registration frame so the assistant service starts streaming
-    /// events for the given session over the shared connection, and records the
-    /// session's editing context so assistant messages can be persisted
-    /// server-side into the right app's chat thread.
+    /// events for the given session over the developer's shared connection.
     /// </summary>
-    Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext);
+    Task RegisterSessionAsync(string sessionId, string developer);
 
     /// <summary>
     /// Closes the agents WebSocket for this developer.
