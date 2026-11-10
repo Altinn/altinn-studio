@@ -82,6 +82,34 @@ func TestCheckPortFreeRefusesAPortAnotherProgramListensOn(t *testing.T) {
 	}
 }
 
+// Most programs that hold a port listen on every address, not on 127.0.0.1 alone: a dev server on 0.0.0.0, or macOS's
+// AirPlay receiver on *:5000 and *:7000. Docker Desktop and Podman machine then fail to publish the port, after env up
+// has removed the running localtest container. Linux refuses a loopback bind next to a wildcard listener; BSD
+// sockets (macOS) let one with SO_REUSEADDR, which Go sets on every listener, through.
+func TestCheckPortFreeRefusesAPortAnotherProgramListensOnEveryAddress(t *testing.T) {
+	t.Parallel()
+
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(t.Context(), "tcp4", ":0")
+	if err != nil {
+		t.Fatalf("Listen() error = %v", err)
+	}
+	t.Cleanup(func() {
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Errorf("Close() error = %v", closeErr)
+		}
+	})
+	_, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
+	env := newPortTestEnv(t, containertypes.ContainerInfo{})
+
+	if err := env.checkPortFree(t.Context(), port); !errors.Is(err, errPortInUse) {
+		t.Fatalf("checkPortFree() error = %v, want errPortInUse for a port held on 0.0.0.0", err)
+	}
+}
+
 func TestCheckPortFreeAcceptsTheRunningLocaltestsOwnPort(t *testing.T) {
 	t.Parallel()
 
