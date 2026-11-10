@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	selfcmd "altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestExistingInstallDirUsesPath(t *testing.T) {
@@ -63,6 +64,18 @@ func TestLocationInPathFallsBackToEnvironment(t *testing.T) {
 	t.Setenv("PATH", dir)
 
 	if !selfcmd.LocationInPath(dir, nil) {
+		t.Fatal("LocationInPath() = false, want true")
+	}
+}
+
+func TestLocationInPathIgnoresCaseOnWindows(t *testing.T) {
+	if runtime.GOOS != osutil.OSWindows {
+		t.Skip("only Windows compares paths without regard to case")
+	}
+
+	t.Setenv("PATH", `c:\users\me\appdata\local\programs\studioctl\`)
+
+	if !selfcmd.LocationInPath(`C:\Users\me\AppData\Local\Programs\studioctl`, nil) {
 		t.Fatal("LocationInPath() = false, want true")
 	}
 }

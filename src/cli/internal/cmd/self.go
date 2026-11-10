@@ -45,6 +45,8 @@ type applyBundleOptions struct {
 	TargetDir  string
 	Candidates []selfcmd.Candidate
 	WarnPath   bool
+	// AddToPath lets a Windows install add TargetDir to the user's PATH. It is false when --path chose TargetDir.
+	AddToPath bool
 }
 
 type uninstallBinaryFunc func() (installpkg.UninstallResult, error)
@@ -170,6 +172,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 
 	candidates := selfcmd.DetectCandidates(nil)
 
+	addToPath := targetPath == ""
 	if targetPath == "" {
 		selected, err := c.resolveInstallLocation(ctx, candidates)
 		if err != nil {
@@ -181,7 +184,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		targetPath = selected
 	}
 
-	return c.performInstall(ctx, targetPath, candidates)
+	return c.performInstall(ctx, targetPath, candidates, addToPath)
 }
 
 func (c *SelfCommand) resolveInstallLocation(
@@ -237,6 +240,7 @@ func (c *SelfCommand) performInstall(
 	ctx context.Context,
 	targetPath string,
 	candidates []selfcmd.Candidate,
+	addToPath bool,
 ) error {
 	bundle, err := c.service.CurrentBundle(os.Getenv(config.EnvResourcesArchive), targetPath)
 	if err != nil {
@@ -247,6 +251,7 @@ func (c *SelfCommand) performInstall(
 		TargetDir:  targetPath,
 		Candidates: candidates,
 		WarnPath:   true,
+		AddToPath:  addToPath,
 	})
 }
 
@@ -308,10 +313,7 @@ func (c *SelfCommand) applyBundle(
 			}
 
 			if opts.WarnPath && !selfcmd.LocationInPath(opts.TargetDir, opts.Candidates) {
-				c.out.Println("")
-				c.out.Warning("This directory is not in your PATH.")
-				c.out.Println("")
-				c.out.Println(selfcmd.LocationPathInstructions(opts.TargetDir))
+				c.addToPathOrExplain(opts)
 			}
 		},
 	})
@@ -324,6 +326,37 @@ func (c *SelfCommand) applyBundle(
 	}
 	restoreOnFailure = false
 	return nil
+}
+
+// addToPathOrExplain adds the install directory to the user's PATH on Windows. Elsewhere, or when that fails, it
+// prints how to add it.
+func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
+	if opts.AddToPath && runtime.GOOS == osutil.OSWindows {
+		added, err := selfcmd.AddToUserPath(opts.TargetDir, c.out)
+		switch {
+		case err != nil:
+			c.out.Verbosef("failed to add %s to PATH: %v", opts.TargetDir, err)
+		case added:
+			c.out.Successf(
+				"Added %s to your PATH. Terminals opened from now on will find %s.",
+				opts.TargetDir,
+				osutil.CurrentBin(),
+			)
+			return
+		default:
+			c.out.Printlnf(
+				"%s is already on your PATH. Terminals opened from now on will find %s.",
+				opts.TargetDir,
+				osutil.CurrentBin(),
+			)
+			return
+		}
+	}
+
+	c.out.Println("")
+	c.out.Warning("This directory is not in your PATH.")
+	c.out.Println("")
+	c.out.Println(selfcmd.LocationPathInstructions(opts.TargetDir))
 }
 
 func (c *SelfCommand) handleNoWritableLocations() error {
@@ -411,6 +444,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, name string, args []string)
 		TargetDir:  "",
 		Candidates: nil,
 		WarnPath:   false,
+		AddToPath:  false,
 	}); err != nil {
 		return fmt.Errorf("apply update bundle: %w", err)
 	}
