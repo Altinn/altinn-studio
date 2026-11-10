@@ -57,7 +57,7 @@ export function RepeatingGroupTableField({ baseComponentId }: { baseComponentId:
   );
 }
 
-export function RepeatingGroupTableErrors({
+export function RepeatingGroupTableMessages({
   validations,
   tableIds,
   columnSpan,
@@ -75,9 +75,9 @@ export function RepeatingGroupTableErrors({
 
   return (
     <Table.Row
-      className={classes.errorRow}
+      className={classes.messageRow}
       data-for-row={index}
-      data-testid='table-row-validation-errors'
+      data-testid='table-row-validation-messages'
     >
       {fields.map((id, fieldIndex) => {
         // A single field gets the full row, while simultaneous field messages get adjoining panels.
@@ -87,7 +87,7 @@ export function RepeatingGroupTableErrors({
           <Table.Cell
             key={id}
             colSpan={endColumn - startColumn}
-            className={classes.errorCell}
+            className={classes.messageCell}
           >
             <FieldMessages
               baseComponentId={id}

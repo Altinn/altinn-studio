@@ -33,8 +33,8 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepeatingGroupRowValidation } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import {
-  RepeatingGroupTableErrors,
   RepeatingGroupTableField,
+  RepeatingGroupTableMessages,
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
@@ -276,7 +276,7 @@ export function RepeatingGroupTableRow({
         )}
       </Table.Row>
       {!mobileView && (
-        <RepeatingGroupTableErrors
+        <RepeatingGroupTableMessages
           validations={rowValidations.filter((validation) => tableEditingIds.includes(validation.baseComponentId))}
           tableIds={tableIds}
           columnSpan={tableItems.length + columnCount}
