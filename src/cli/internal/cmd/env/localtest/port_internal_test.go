@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -279,5 +280,23 @@ func TestUpChecksTheRecordedPort(t *testing.T) {
 
 	if err := env.Up(t.Context(), envtypes.UpOptions{Detach: true}); !errors.Is(err, errPortPublished) {
 		t.Fatalf("Up() error = %v, want the clash of the recorded 5300 with pdf3", err)
+	}
+}
+
+// env up --port doesn't use env config's port, so a hand-edited setting outside the range must not refuse it: env up
+// goes on to check the port it was given (5300, which pdf3 publishes, so that it stops there).
+func TestUpWithPortDoesNotRefuseItForTheSetting(t *testing.T) {
+	t.Parallel()
+
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Images: testResetImages()}
+	if err := config.SaveSettings(cfg, config.Settings{Env: config.EnvSettings{Port: 80}}); err != nil {
+		t.Fatalf("SaveSettings() error = %v", err)
+	}
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), mock.New())
+
+	err := env.Up(t.Context(), envtypes.UpOptions{Port: 5300, Detach: true})
+	if !errors.Is(err, errPortPublished) {
+		t.Fatalf("Up(--port 5300) error = %v, want the clash with pdf3, not the env config port", err)
 	}
 }
