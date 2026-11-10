@@ -10,7 +10,6 @@ godebug x509sslcertoverrideplatform=0
 require (
 	altinn.studio/devenv v0.0.0
 	github.com/mattn/go-runewidth v0.0.27
-	github.com/tailscale/hujson v0.0.0-20260727124030-b80ff77dac4f
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1

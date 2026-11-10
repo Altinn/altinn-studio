@@ -15,7 +15,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- `studioctl` can now identify and start apps whose `applicationmetadata.json` contains comments, trailing commas, or a UTF-8 byte order mark (BOM).
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
     - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window
