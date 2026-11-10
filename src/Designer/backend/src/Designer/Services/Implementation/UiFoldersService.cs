@@ -342,13 +342,11 @@ public class UiFoldersService : IUiFoldersService
     {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType? dataType = applicationMetadata.DataTypes.Find(type => type.Id == dataTypeId);
-        // dataType.taskId != connectedTaskId means that the data type is used by another task, so we should not delete it.
-        if (dataType == null || dataType.TaskId != connectedTaskId)
+        if (dataType == null || !dataType.UnbindFromTask(connectedTaskId, usesTaskIds: true))
         {
             return;
         }
 
-        dataType.TaskId = null;
         await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
     }
 

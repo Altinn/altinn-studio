@@ -111,7 +111,7 @@ spec:
         error_mode: ignore
         metrics:
           datapoint:
-            - 'IsMatch(metric.name, "^http\\.client\\.") and IsMatch(datapoint.attributes["server.address"], "^otel-router\\.(runtime-obs|observability)\\.svc\\.cluster\\.local$")'
+            - 'IsMatch(metric.name, "^http\\.client\\.") and IsMatch(datapoint.attributes["server.address"], "^otel-router\\.(runtime-obs|observability|product-studio-obs)\\.svc\\.cluster\\.local$")'
       transform/drop:
         metric_statements:
           - context: datapoint

@@ -76,6 +76,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
         Application appMetadataAfter = await GetApplicationMetadataFile(org, targetRepository, developer);
 
+#pragma warning disable CS0618 // app-with-layoutsets is a v8 app, which binds a data type with taskId
         Assert.Equal(
             connectedTaskId,
             appMetadataBefore.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId
@@ -83,6 +84,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         Assert.Equal(layoutSetsBefore.Sets.Count - 1, layoutSetsAfter.Sets.Count);
         Assert.Null(appMetadataAfter.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId);
+#pragma warning restore CS0618
         Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
     }
 

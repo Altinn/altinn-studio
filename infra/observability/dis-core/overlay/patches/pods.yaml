@@ -1,0 +1,33 @@
+# Both collectors. Appended to base's env, as a strategic merge patch would replace the whole list,
+# which has no merge key in a custom resource. Without k8s_attributes, the collectors' own metrics
+# get their pod's attributes from these (service.telemetry in router-config.yaml and
+# gateway-config.yaml).
+- op: add
+  path: /spec/env/-
+  value:
+    name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+- op: add
+  path: /spec/env/-
+  value:
+    name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+- op: add
+  path: /spec/env/-
+  value:
+    name: NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+- op: add
+  path: /spec/podAnnotations
+  value:
+    # Not meshed, as pdf3's workers, which send here, aren't either. DIS Core denies inbound traffic
+    # to meshed pods by default, and patches/network-policy.yaml decides who reaches the collectors.
+    # The platform's collector accepts OTLP from unmeshed pods.
+    linkerd.io/inject: disabled
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"

@@ -187,14 +187,14 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          # The collector has no k8sattributes processor, which needs a ClusterRole, so the pod
-          # describes itself.
+          # Studio's collectors in DIS Core (infra/observability/dis-core) have no k8sattributes
+          # processor, which needs a ClusterRole, so the pod describes itself.
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: "k8s.pod.uid=$(POD_UID),k8s.pod.name=$(POD_NAME),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=pdf3-worker"
           - name: OTEL_SERVICE_NAME
             value: "pdf3-worker"
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: "http://pdf3-collector.product-studio-pdf3.svc.cluster.local:4317"
+            value: "http://otel-router.product-studio-obs.svc.cluster.local:4317"
           - name: OTEL_METRIC_EXPORT_INTERVAL
             value: "15000"
           - name: TZ
