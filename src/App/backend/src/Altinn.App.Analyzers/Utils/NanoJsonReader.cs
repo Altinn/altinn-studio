@@ -194,7 +194,7 @@ public class JsonValue
         int currentPosition = Start;
         Debug.Assert(Type == JsonType.Array);
         Debug.Assert(FullJson[currentPosition] == '[');
-        currentPosition = JsonReader.SkipWhitespace(FullJson, currentPosition + 1);
+        currentPosition = JsonReader.SkipTrivia(FullJson, currentPosition + 1);
         if (FullJson[currentPosition] == ']')
         {
             _end = currentPosition + 1;
@@ -205,12 +205,12 @@ public class JsonValue
         {
             var item = JsonReader.ReadNextValue(FullJson, currentPosition);
             yield return item;
-            currentPosition = JsonReader.SkipWhitespace(FullJson, item.End);
+            currentPosition = JsonReader.SkipTrivia(FullJson, item.End);
             char sep = FullJson[currentPosition];
             if (sep == ',')
             {
                 // Check for trailing comma
-                currentPosition = JsonReader.SkipWhitespace(FullJson, currentPosition + 1);
+                currentPosition = JsonReader.SkipTrivia(FullJson, currentPosition + 1);
                 if (FullJson[currentPosition] == ']')
                 {
                     _end = currentPosition + 1;
@@ -235,7 +235,7 @@ public class JsonValue
         int currentPosition = Start;
         Debug.Assert(FullJson[currentPosition] == '{');
 
-        currentPosition = JsonReader.SkipWhitespace(FullJson, currentPosition + 1);
+        currentPosition = JsonReader.SkipTrivia(FullJson, currentPosition + 1);
         if (FullJson[currentPosition] == '}')
         {
             _end = currentPosition + 1;
@@ -248,7 +248,7 @@ public class JsonValue
             {
                 throw new NanoJsonException("Keys in json object must be string", FullJson, currentPosition, key.End);
             }
-            currentPosition = JsonReader.SkipWhitespace(FullJson, key.End);
+            currentPosition = JsonReader.SkipTrivia(FullJson, key.End);
 
             if (FullJson[currentPosition] != ':')
             {
@@ -257,12 +257,12 @@ public class JsonValue
 
             var value = JsonReader.ReadNextValue(FullJson, currentPosition + 1);
             yield return new JsonProperty(key, value);
-            currentPosition = JsonReader.SkipWhitespace(FullJson, value.End);
+            currentPosition = JsonReader.SkipTrivia(FullJson, value.End);
             char sep = FullJson[currentPosition];
             if (sep == ',')
             {
                 // Check for trailing comma
-                currentPosition = JsonReader.SkipWhitespace(FullJson, currentPosition + 1);
+                currentPosition = JsonReader.SkipTrivia(FullJson, currentPosition + 1);
                 if (FullJson[currentPosition] == '}')
                 {
                     _end = currentPosition + 1;
@@ -328,7 +328,7 @@ public static class JsonReader
 {
     public static JsonValue ReadNextValue(string fullJson, int start)
     {
-        int pos = SkipWhitespace(fullJson, start);
+        int pos = SkipTrivia(fullJson, start);
 
         return fullJson[pos] switch
         {
@@ -397,25 +397,60 @@ public static class JsonReader
         return new(JsonType.Number, fullJson, index, nextIndex);
     }
 
-    public static int SkipWhitespace(string fullJson, int startPosition)
+    /// <summary>
+    /// Skips app-file whitespace and comments without rewriting source offsets used by diagnostics.
+    /// </summary>
+    public static int SkipTrivia(string fullJson, int startPosition, bool allowEnd = false)
     {
-        int currentPosition = startPosition;
-
-        if (currentPosition >= fullJson.Length)
+        if (startPosition >= fullJson.Length && !allowEnd)
         {
             throw new NanoJsonException("End of json encountered", fullJson, startPosition, null);
         }
 
-        while (char.IsWhiteSpace(fullJson, currentPosition))
+        int position = startPosition;
+        while (position < fullJson.Length)
         {
-            currentPosition++;
-            if (currentPosition >= fullJson.Length)
+            if (char.IsWhiteSpace(fullJson, position))
             {
-                throw new NanoJsonException("End of json encountered", fullJson, startPosition, currentPosition);
+                position++;
+                continue;
             }
+
+            if (fullJson[position] != '/' || position + 1 >= fullJson.Length)
+            {
+                break;
+            }
+
+            if (fullJson[position + 1] == '/')
+            {
+                position += 2;
+                while (position < fullJson.Length && fullJson[position] is not ('\r' or '\n'))
+                {
+                    position++;
+                }
+                continue;
+            }
+
+            if (fullJson[position + 1] == '*')
+            {
+                int end = fullJson.IndexOf("*/", position + 2, StringComparison.Ordinal);
+                if (end < 0)
+                {
+                    throw new NanoJsonException("Unterminated comment", fullJson, position, null);
+                }
+                position = end + 2;
+                continue;
+            }
+
+            break;
         }
 
-        return currentPosition;
+        if (position == fullJson.Length && !allowEnd)
+        {
+            throw new NanoJsonException("End of json encountered", fullJson, startPosition, position);
+        }
+
+        return position;
     }
 
     public static bool CompareStringWithBuffer(ReadOnlySpan<char> nonEscapedString, ReadOnlySpan<char> jsonBuffer)

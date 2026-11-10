@@ -39,8 +39,8 @@ internal static class MetadataFile
             }
 
             // The reader is lazy and reports a syntax error only where it reads, so read the whole document first,
-            // and like System.Text.Json accept nothing but whitespace after it.
-            if (!string.IsNullOrWhiteSpace(content.Substring(metadata.End)))
+            // and like the runtime accept only whitespace and comments after it.
+            if (JsonReader.SkipTrivia(content, metadata.End, allowEnd: true) != content.Length)
             {
                 return null;
             }
