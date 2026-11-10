@@ -1,4 +1,5 @@
 {
+  // Query parameter prefill uses the same app-file JSON grammar.
   "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
   "allowOverwrite": false,
   "ER": {},
@@ -9,5 +10,5 @@
   "QueryParameters": {
     "jobTitle": "JobTitle",
     "programmer": "queryParam2"
-  }
+  },
 }

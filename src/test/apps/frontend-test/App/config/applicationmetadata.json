@@ -1,4 +1,5 @@
 {
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/application/application-metadata.schema.v1.json",
   "id": "ttd/frontend-test",
   "org": "ttd",
@@ -172,6 +173,6 @@
   "created": "2021-02-06T15:18:12.2060944Z",
   "createdBy": "jeeva",
   "lastChanged": "2021-02-06T15:18:12.2062288Z",
-  "lastChangedBy": "jeeva"
+  "lastChangedBy": "jeeva",
 }
 
