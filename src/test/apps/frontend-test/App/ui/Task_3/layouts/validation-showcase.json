@@ -84,20 +84,7 @@
         "labelSettings": {
           "optionalIndicator": false
         },
-        "options": [
-          {
-            "label": "Hund",
-            "value": "Dog"
-          },
-          {
-            "label": "Katt",
-            "value": "Cat"
-          },
-          {
-            "label": "Kanin",
-            "value": "Rabbit"
-          }
-        ]
+        "optionsId": "pet-species"
       },
       {
         "id": "validation-default-age",
@@ -197,20 +184,7 @@
         "labelSettings": {
           "optionalIndicator": false
         },
-        "options": [
-          {
-            "label": "Hund",
-            "value": "Dog"
-          },
-          {
-            "label": "Katt",
-            "value": "Cat"
-          },
-          {
-            "label": "Kanin",
-            "value": "Rabbit"
-          }
-        ]
+        "optionsId": "pet-species"
       },
       {
         "id": "validation-mixed-age",
@@ -302,20 +276,7 @@
         "labelSettings": {
           "optionalIndicator": false
         },
-        "options": [
-          {
-            "label": "Hund",
-            "value": "Dog"
-          },
-          {
-            "label": "Katt",
-            "value": "Cat"
-          },
-          {
-            "label": "Kanin",
-            "value": "Rabbit"
-          }
-        ]
+        "optionsId": "pet-species"
       },
       {
         "id": "validation-table-age",
