@@ -1,14 +1,8 @@
 import React, { Children, cloneElement, isValidElement } from 'react';
 import type { ReactNode } from 'react';
 
-import {
-  CheckmarkCircleIcon,
-  ExclamationmarkTriangleIcon,
-  InformationSquareIcon,
-  XMarkOctagonFillIcon,
-} from '@navikt/aksel-icons';
+import { Link, ValidationMessage } from '@digdir/designsystemet-react';
 
-import classes from 'src/components/message/ValidationMessage.module.css';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguageWithForcedPath } from 'src/features/language/useLanguage';
@@ -17,21 +11,12 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
 import type { NodeRefValidation } from 'src/features/validation';
 
-export const validationSeverityPresentation = {
-  error: { Icon: XMarkOctagonFillIcon, color: 'danger' },
-  warning: { Icon: ExclamationmarkTriangleIcon, color: 'warning' },
-  info: { Icon: InformationSquareIcon, color: 'info' },
-  success: { Icon: CheckmarkCircleIcon, color: 'success' },
-} as const;
-
-export function ValidationMessage({
+export function RepeatingGroupValidationMessage({
   validation,
   onNavigate,
-  navigateToField = true,
 }: {
   validation: NodeRefValidation;
   onNavigate?: () => void;
-  navigateToField?: boolean;
 }) {
   const location = getDataModelLocationForIndexedNode(validation.nodeId, FormStore.bootstrap.useLayoutLookups());
   const path =
@@ -40,34 +25,30 @@ export function ValidationMessage({
       : undefined;
   const { lang } = useLanguageWithForcedPath(path);
   const navigate = useNavigateToComponent();
-  const { Icon, color } = validationSeverityPresentation[validation.severity];
   const message = lang(
     validation.message.key,
     validation.message.params,
     validation.message.customTextParameters,
     validation.message.fallback,
   );
-  const handleNavigate = () => {
-    onNavigate?.();
-    void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
-  };
 
   return (
-    <div className={classes.message}>
-      <span
-        data-color={color}
-        className={classes.severityIcon}
-      >
-        <Icon aria-hidden />
+    <ValidationMessage
+      asChild
+      data-size='md'
+      data-color={validation.severity === 'error' ? 'danger' : validation.severity}
+    >
+      <div>
         <span className={utilClasses.visuallyHidden}>
           <Lang id={`group.validation_severity_${validation.severity}`} />
         </span>
-      </span>
-      <div>
-        {navigateToField ? (
+        {onNavigate ? (
           <NavigableMessage
-            onNavigate={handleNavigate}
             nodeId={validation.nodeId}
+            onNavigate={() => {
+              onNavigate();
+              void navigate(validation.nodeId, validation.baseComponentId, { error: validation });
+            }}
           >
             {message}
           </NavigableMessage>
@@ -75,7 +56,7 @@ export function ValidationMessage({
           message
         )}
       </div>
-    </div>
+    </ValidationMessage>
   );
 }
 
@@ -133,15 +114,19 @@ export function NavigableMessage({
       text[text.length - 1] = lastPart.trimEnd();
     }
     parts.push(
-      <button
+      <Link
         key={parts.length}
-        type='button'
-        className={classes.messageLink}
-        onClick={onNavigate}
-        data-target-node={nodeId}
+        asChild
+        data-color='neutral'
       >
-        {text}
-      </button>,
+        <button
+          type='button'
+          onClick={onNavigate}
+          data-target-node={nodeId}
+        >
+          {text}
+        </button>
+      </Link>,
     );
     if (trailingSpace) {
       parts.push(trailingSpace);

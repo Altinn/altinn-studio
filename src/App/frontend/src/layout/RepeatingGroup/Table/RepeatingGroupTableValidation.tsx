@@ -2,11 +2,14 @@ import React, { useEffect, useRef } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
 
-import { ValidationMessage, validationSeverityPresentation } from 'src/components/message/ValidationMessage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { getRowValidationSeverity } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
+import {
+  getRowValidationSeverity,
+  validationSeverityPresentation,
+} from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation.module.css';
+import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation } from 'src/features/validation';
@@ -145,10 +148,7 @@ function FieldMessages({
     >
       {validations.map((validation) => (
         <li key={getUniqueKey(validation)}>
-          <ValidationMessage
-            validation={validation}
-            navigateToField={false}
-          />
+          <RepeatingGroupValidationMessage validation={validation} />
         </li>
       ))}
     </ul>

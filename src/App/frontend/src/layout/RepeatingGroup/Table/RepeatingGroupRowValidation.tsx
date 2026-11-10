@@ -1,14 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Button, Popover } from '@digdir/designsystemet-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import {
+  CheckmarkCircleIcon,
+  ExclamationmarkTriangleIcon,
+  InformationSquareIcon,
+  XMarkIcon,
+  XMarkOctagonFillIcon,
+} from '@navikt/aksel-icons';
 
-import { ValidationMessage, validationSeverityPresentation } from 'src/components/message/ValidationMessage';
-import messageClasses from 'src/components/message/ValidationMessage.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation.module.css';
+import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
+
+export const validationSeverityPresentation = {
+  error: { Icon: XMarkOctagonFillIcon, color: 'danger' },
+  warning: { Icon: ExclamationmarkTriangleIcon, color: 'warning' },
+  info: { Icon: InformationSquareIcon, color: 'info' },
+  success: { Icon: CheckmarkCircleIcon, color: 'success' },
+} as const;
 
 const severityOrder: ValidationSeverity[] = ['error', 'warning', 'info', 'success'];
 export function getRowValidationSeverity(validations: NodeRefValidation[]): ValidationSeverity | undefined {
@@ -102,11 +114,11 @@ function RowValidationPopover({
             </Button>
             <ul
               data-size='md'
-              className={`${messageClasses.list} ${classes.messages}`}
+              className={classes.messages}
             >
               {validations.map((validation) => (
                 <li key={getUniqueKey(validation)}>
-                  <ValidationMessage
+                  <RepeatingGroupValidationMessage
                     validation={validation}
                     onNavigate={() => setOpen(false)}
                   />
