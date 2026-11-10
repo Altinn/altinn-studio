@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Altinn.App.Core.Features.ExternalApi;
@@ -22,6 +23,21 @@ public class AppMetadataTest
 
     private readonly string _appBasePath =
         Path.Join(PathUtils.GetCoreTestsPath(), "Internal", "App", "TestData") + Path.DirectorySeparatorChar;
+
+    [Fact]
+    public void GetApplicationMetadata_accepts_comments_and_trailing_commas_without_rewriting_source()
+    {
+        const string json = """
+            // App metadata
+            { "id": "ttd/app", "dataTypes": [], }
+            """;
+        var files = new AppFiles(Encoding.UTF8.GetBytes(json), null, null);
+
+        var metadata = SetupAppMetadata(files).ApplicationMetadata;
+
+        Assert.Equal("ttd/app", metadata.Id);
+        Assert.Equal(json, Encoding.UTF8.GetString(files.ApplicationMetadata.Span));
+    }
 
     [Fact]
     public async Task GetApplicationMetadata_desrializes_file_from_disk()

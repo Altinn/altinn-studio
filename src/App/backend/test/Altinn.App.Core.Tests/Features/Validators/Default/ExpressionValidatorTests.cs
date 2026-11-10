@@ -75,20 +75,7 @@ public class ExpressionValidatorTests
         await RunExpressionValidationTest(fileName, folder);
     }
 
-    [Fact]
-    public async Task Validation_rules_with_comments_and_trailing_commas_are_evaluated()
-    {
-        var folder = Path.Join(
-            PathUtils.GetCoreTestsPath(),
-            "Features",
-            "Validators",
-            "expression-validation-tests",
-            "backend"
-        );
-        await RunExpressionValidationTest("repeating-hidden.json", folder, appFileSyntax: true);
-    }
-
-    private async Task RunExpressionValidationTest(string fileName, string folder, bool appFileSyntax = false)
+    private async Task RunExpressionValidationTest(string fileName, string folder)
     {
         var testCase = await LoadData(fileName, folder);
 
@@ -130,9 +117,11 @@ public class ExpressionValidatorTests
                     : new TextResource { Language = "nb", Resources = testCase.TextResources }
             );
 
-        var json = JsonSerializer.Serialize(testCase.ValidationConfig);
-        var rawConfig = appFileSyntax ? "{/* validation rules */" + json[1..^1] + ",}" : json;
-        var validationIssues = await _validator.ValidateFormData(dataElement, dataAccessor, rawConfig);
+        var validationIssues = await _validator.ValidateFormData(
+            dataElement,
+            dataAccessor,
+            JsonSerializer.Serialize(testCase.ValidationConfig)
+        );
 
         var result = validationIssues.Select(i => new
         {
