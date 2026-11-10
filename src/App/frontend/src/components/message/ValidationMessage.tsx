@@ -98,10 +98,25 @@ function MessageContent({
 
 // Parsed messages can contain external or app-specific links. Leave those links independent
 // of field navigation so they keep their own destinations and never sit inside a button.
-function containsLink(node: ReactNode): boolean {
-  return Children.toArray(node).some(
-    (child) =>
-      isValidElement<{ children?: ReactNode }>(child) && (isMessageLink(child) || containsLink(child.props.children)),
+// Only known phrasing elements may be placed inside a navigation button. Keep flow
+// containers and custom components intact and navigate from the text inside them.
+function isNavigablePhrasing(node: ReactNode): boolean {
+  if (!isValidElement<{ children?: ReactNode }>(node)) {
+    return true;
+  }
+  return (
+    typeof node.type === 'string' &&
+    ['span', 'strong', 'em', 'b', 'i', 'u', 's', 'small', 'sub', 'sup', 'code', 'abbr', 'br'].includes(node.type) &&
+    !isMessageLink(node) &&
+    Children.toArray(node.props.children).every(isNavigablePhrasing)
+  );
+}
+
+function hasNavigableText(node: ReactNode): boolean {
+  return Children.toArray(node).some((child) =>
+    isValidElement<{ children?: ReactNode }>(child)
+      ? hasNavigableText(child.props.children)
+      : /[\p{L}\p{N}]/u.test(String(child)),
   );
 }
 
@@ -109,7 +124,7 @@ function isMessageLink(node: React.ReactElement<{ children?: ReactNode }>): bool
   return 'href' in node.props || 'to' in node.props || 'setting' in node.props;
 }
 
-function NavigableMessage({
+export function NavigableMessage({
   children,
   onNavigate,
   nodeId,
@@ -124,7 +139,7 @@ function NavigableMessage({
     if (text.length === 0) {
       return;
     }
-    if (text.every((part) => typeof part === 'string' && part.trim() === '')) {
+    if (!hasNavigableText(text)) {
       parts.push(...text);
       text = [];
       return;
@@ -152,13 +167,16 @@ function NavigableMessage({
   };
 
   for (const child of Children.toArray(children)) {
-    if (!isValidElement<{ children?: ReactNode }>(child) || !containsLink(child)) {
+    if (isNavigablePhrasing(child)) {
       text.push(child);
       continue;
     }
     flushText();
+    if (!isValidElement<{ children?: ReactNode }>(child)) {
+      continue;
+    }
     parts.push(
-      isMessageLink(child)
+      isMessageLink(child) || child.props.children === undefined
         ? child
         : cloneElement(
             child,
