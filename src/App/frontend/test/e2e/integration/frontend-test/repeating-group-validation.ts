@@ -1,10 +1,7 @@
-import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
-
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
-import type { ValidationSeverity } from 'src/features/validation';
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -16,21 +13,9 @@ const model = 'nested-group';
 const indicator = '[data-testid="row-validation-indicator"]';
 const row = (index: number) => `#group-validationGroup-table-body > tr[data-row-num="${index}"]`;
 
-function setup({
-  edit = {},
-  nested = false,
-  deferred = false,
-}: {
-  edit?: CompRepeatingGroupExternal['edit'];
-  nested?: boolean;
-  deferred?: boolean;
-} = {}) {
+function setup(nested: boolean) {
+  const deferred = !nested;
   interceptAltinnAppGlobalData((data) => {
-    data.textResources?.resources.push({
-      id: 'row.warning',
-      value: 'Kontroller beløpet {0}. [Les mer](https://www.altinn.no/)',
-      variables: [{ key: 'amount', dataSource: 'customTextParameters' }],
-    });
     data.textResources?.resources.push({
       id: 'row.nested',
       value: 'Kontroller: {0}',
@@ -41,7 +26,7 @@ function setup({
   });
   const initialData = {
     'Endringsmelding-grp-9786': {
-      'OversiktOverEndringene-grp-9788': [400, 300, 200, 100, 0].map((value, index) => ({
+      'OversiktOverEndringene-grp-9788': [400, 300].map((value, index) => ({
         altinnRowId: `00000000-0000-4000-8000-00000000000${index}`,
         [valueField]: { value },
         [commentField]: { value: '' },
@@ -86,10 +71,8 @@ function setup({
           tableHeaders: ['validationValue'],
           textResourceBindings: {
             title: 'Endringer i beløp',
-            editButtonOpen: 'Se og endre',
-            editButtonClose: 'Lukk raden',
           },
-          edit: { mode: 'showTable', multiPage: nested, ...edit },
+          edit: { mode: 'showTable', multiPage: nested },
         },
         {
           id: 'validationValue',
@@ -131,30 +114,18 @@ function setup({
       body.layouts.repeating.data.layout = components;
       body.dataModels[model].expressionValidationConfig = null;
       const dataElementId = body.dataModels[model].dataElementId!;
-      const messages: { severity: 1 | 2 | 3 | 5; index: number; description: string }[] = nested
-        ? [{ severity: 2, index: 1, description: 'Kontroller den andre kommentaren' }]
-        : [
-            { severity: 1, index: 0, description: 'Beløpet må korrigeres' },
-            { severity: 2, index: 0, description: 'Kontroller beløpet' },
-            { severity: 2, index: 1, description: 'Kontroller beløpet' },
-            { severity: 3, index: 2, description: 'Beløpet er hentet fra forrige år' },
-            { severity: 5, index: 3, description: 'Beløpet er bekreftet' },
-          ];
-      body.dataModels[model].initialValidationIssues = deferred
-        ? []
-        : messages.map(({ index, severity, description }) => ({
-            dataElementId,
-            severity,
-            description,
-            source: 'RowValidationTest',
-            field: nested
-              ? `${groupField}[${index}].${nestedField}[1].${commentField}.value`
-              : `${groupField}[${index}].${valueField}.value`,
-            ...(nested ? { customTextKey: 'row.nested' } : {}),
-            ...(severity === 2 && !nested
-              ? { customTextKey: 'row.warning', customTextParameters: { amount: index === 0 ? '400' : '300' } }
-              : {}),
-          }));
+      body.dataModels[model].initialValidationIssues = nested
+        ? [
+            {
+              dataElementId,
+              severity: 2,
+              description: 'Kontroller den andre kommentaren',
+              source: 'RowValidationTest',
+              field: `${groupField}[1].${nestedField}[1].${commentField}.value`,
+              customTextKey: 'row.nested',
+            },
+          ]
+        : [];
       res.send(body);
     });
   });
@@ -163,101 +134,11 @@ function setup({
   cy.gotoNavPage('repeating');
 }
 
-function checkIndicator(index: number, severity: ValidationSeverity) {
-  const colors = { error: 'danger', warning: 'warning', info: 'info', success: 'success' };
-  cy.get(row(index)).find(indicator).should('be.visible').and('have.attr', 'data-color', colors[severity]);
-}
-
-describe('Repeating group row validation', () => {
-  it('keeps configured labels and exposes all messages with their links and parameters', () => {
-    setup();
-    checkIndicator(0, 'error');
-    checkIndicator(1, 'warning');
-    checkIndicator(2, 'info');
-    checkIndicator(3, 'success');
-    cy.get(row(4)).find(indicator).should('not.exist');
-    cy.get(row(0)).findByRole('button', { name: 'Se og endre 400' }).should('be.visible');
-    cy.get('#group-validationGroup').screenshot('row-validation-desktop');
-
-    cy.get(row(0)).find(indicator).click();
-    cy.findByRole('dialog', { name: 'Meldinger' }).as('messages').should('be.focused');
-    cy.get('@messages').findAllByRole('listitem').should('have.length', 2);
-    cy.get('@messages').should('contain.text', 'Beløpet må korrigeres').and('contain.text', 'Kontroller beløpet 400.');
-    cy.get('@messages').findByRole('button', { name: 'Opprinnelig beløp' }).should('not.exist');
-    cy.get('@messages').findByRole('button', { name: 'Beløpet må korrigeres' }).should('be.visible');
-    cy.get('@messages').findByRole('button', { name: 'Kontroller beløpet 400.' }).should('be.visible');
-    cy.get('@messages').find('li > [data-field="validation"]').should('have.length', 2);
-    cy.get('@messages').find('li > [data-field="validation"]').first().should('have.attr', 'data-color', 'danger');
-    cy.get('@messages').find('li > [data-field="validation"]').last().should('have.attr', 'data-color', 'warning');
-    cy.get('@messages')
-      .findByRole('link', { name: 'Les mer' })
-      .should('have.attr', 'href', 'https://www.altinn.no/')
-      .then(($link) => {
-        expect($link.closest('button')).to.have.length(0);
-        expect($link[0].previousSibling?.textContent).to.equal(' ');
-        // Exercise the link without leaving the test app or opening another browser tab.
-        $link[0].addEventListener('click', (event) => event.preventDefault(), { once: true });
-      })
-      .click();
-    cy.get('@messages').should('be.visible');
-    cy.injectAxe();
-    cy.checkA11y('[data-testid="row-validation-messages"]:popover-open');
-    cy.screenshot('row-validation-popover', { capture: 'viewport' });
-    cy.get('@messages').type('{esc}');
-    cy.get(row(0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
-
-    cy.press('Space');
-    cy.findByRole('dialog', { name: 'Meldinger' }).should('have.focus');
-    cy.press('Tab');
-    cy.focused().should('have.attr', 'aria-label', 'Lukk');
-    cy.press('Space');
-    cy.get(row(0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
-    cy.press('Space');
-    cy.findByRole('dialog', { name: 'Meldinger' }).find('button[data-target-node="validationValue-0"]').first().click();
-    cy.get('#validationValue-0').should('have.focus');
-    cy.get(row(0)).find(indicator).should('have.attr', 'aria-expanded', 'false');
-    cy.get(row(0)).findByRole('button', { name: 'Lukk raden 400' }).should('be.visible');
-    cy.get('#validationValue-0').closest('[data-componentid]').should('contain.text', 'Beløpet må korrigeres');
-    // The row remains open, and its indicator must still expose both messages.
-    cy.get(row(0)).find(indicator).click();
-    cy.findByRole('dialog', { name: 'Meldinger' }).findByRole('button', { name: 'Beløpet må korrigeres' }).focus();
-    for (const type of ['keyDown', 'keyUp']) {
-      cy.then(() =>
-        Cypress.automation('remote:debugger:protocol', {
-          command: 'Input.dispatchKeyEvent',
-          params: {
-            type,
-            key: 'Enter',
-            code: 'Enter',
-            windowsVirtualKeyCode: 13,
-            ...(type === 'keyDown' ? { text: '\r', unmodifiedText: '\r' } : {}),
-          },
-        }),
-      );
-    }
-    cy.get('#validationValue-0').should('have.focus');
-    cy.findByRole('dialog', { name: 'Meldinger' }).should('not.exist');
-    cy.get(appFrontend.errorReport).should('not.exist');
-    for (const index of [1, 2, 3]) {
-      cy.get(row(index)).find(indicator).click({ scrollBehavior: 'center' });
-      cy.get(row(index)).find(indicator).should('be.inViewport');
-      cy.findByRole('dialog', { name: 'Meldinger' }).should('be.inViewport');
-      cy.findByRole('dialog', { name: 'Meldinger' })
-        .find(`button[data-target-node="validationValue-${index}"]`)
-        .click();
-      cy.get(`#validationValue-${index}`).should('have.focus');
-      cy.get(row(index)).find(indicator).should('have.attr', 'aria-expanded', 'false');
-    }
-    cy.findByRole('button', { name: /Neste/ }).last().click();
-    cy.get(appFrontend.errorReport)
-      .should('contain.text', 'Beløpet må korrigeres')
-      .and('not.contain.text', 'Kontroller beløpet');
-  });
-
+describe('Repeating group nested validation and visibility', () => {
   it('opens a nested field on the right internal page and preserves nested row context', () => {
-    setup({ nested: true });
+    setup(true);
     cy.get(row(0)).find(indicator).should('not.exist');
-    checkIndicator(1, 'warning');
+    cy.get(row(1)).find(indicator).should('have.attr', 'data-color', 'warning');
     cy.get(row(1)).find(indicator).click();
     cy.findByRole('dialog', { name: 'Meldinger' }).should('contain.text', 'Kontroller: Andre kommentar');
     cy.findByRole('dialog', { name: 'Meldinger' })
@@ -268,53 +149,11 @@ describe('Repeating group row validation', () => {
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
   });
 
-  for (const mode of ['onlyTable', 'hidden-actions', 'compact-vertical-mobile'] as const) {
-    it(`keeps indicators available in ${mode}`, () => {
-      const mobile = mode === 'compact-vertical-mobile';
-      setup({
-        edit:
-          mode === 'onlyTable'
-            ? { mode: 'onlyTable', deleteButton: false }
-            : mode === 'hidden-actions'
-              ? { editButton: false, deleteButton: false }
-              : { compactButtons: true, buttonLayout: 'vertical' },
-      });
-      if (mobile) {
-        cy.viewport(390, 844);
-      }
-      checkIndicator(0, 'error');
-      checkIndicator(1, 'warning');
-      if (mode === 'onlyTable') {
-        cy.get('#group-validationGroup').screenshot('row-validation-editable-table');
-      }
-      if (mobile) {
-        cy.get('#group-validationGroup').scrollIntoView();
-        cy.screenshot('row-validation-mobile-rows', { capture: 'viewport' });
-      }
-      cy.get(row(0)).find(indicator).click();
-      cy.findByRole('dialog', { name: 'Meldinger' }).should('be.visible');
-      if (mobile) {
-        cy.screenshot('row-validation-mobile', { capture: 'viewport' });
-      }
-      cy.findByRole('dialog', { name: 'Meldinger' })
-        .find('button[data-target-node="validationValue-0"]')
-        .first()
-        .click();
-      cy.get(row(0)).find(indicator).should('have.attr', 'aria-expanded', 'false');
-      if (mode !== 'hidden-actions') {
-        cy.get('#validationValue-0').should('have.focus');
-      }
-      if (mode === 'onlyTable') {
-        cy.get('#group-validationGroup').findByTestId('repeating-group-edit-button').should('not.exist');
-      }
-    });
-  }
-
   it('does not reveal deferred validations until existing visibility rules reveal them', () => {
-    setup({ deferred: true });
+    setup(false);
     cy.get('#group-validationGroup').find(indicator).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).last().click();
-    checkIndicator(0, 'error');
+    cy.get(row(0)).find(indicator).should('have.attr', 'data-color', 'danger');
     cy.get(appFrontend.errorReport).should('contain.text', 'opprinnelig beløp');
     cy.changeLayout((component) => {
       if (component.id === 'validationValue') {

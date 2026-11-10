@@ -1,4 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+
+import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 
 const appFrontend = new AppFrontend();
 const variants = ['default', 'mixed', 'table'] as const;
@@ -61,7 +64,8 @@ describe('Repeating group validation showcase', () => {
     cy.get('#validation-table-species-0').should('have.attr', 'aria-invalid', 'false');
     cy.get('#validation-table-age-0').should('have.attr', 'aria-invalid', 'false');
     cy.get('#validation-table-name-0').should('have.attr', 'aria-invalid', 'true');
-    cy.get('[data-validation="validation-table-name-0"]').parent().should('have.css', 'clip-path', 'inset(50%)');
+    cy.get('[data-validation="validation-table-name-0"]').should('have.css', 'clip-path', 'inset(50%)');
+    cy.get('[data-validation="validation-table-name-0"]').should('have.attr', 'aria-live', 'assertive');
     cy.get('#validation-table-name-0')
       .should('have.attr', 'aria-describedby')
       .and('include', 'validation-table-name-0-validations');
@@ -90,6 +94,9 @@ describe('Repeating group validation showcase', () => {
       .findByRole('button', { name: /Alderen er høyere enn/ })
       .click();
     cy.get('#validation-default-age-4').should('have.focus');
+    openRow('default', 3);
+    dialog().findByRole('button', { name: 'Alderen er kontrollert.' }).click();
+    cy.get('#validation-default-age-3').should('have.focus');
 
     cy.get('#group-validation-table-table-body > [data-for-row="1"]').should(
       'contain.text',
@@ -123,6 +130,124 @@ describe('Repeating group validation showcase', () => {
       .click();
     cy.get('#validation-default-name-0').should('have.focus');
   });
+
+  it('preserves configured edit labels, rich message links and keyboard navigation while rows are open', () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.textResources?.resources.push({
+        id: 'row.warning',
+        value: 'Kontroller alderen {0}. [Les mer](https://www.altinn.no/)',
+        variables: [{ key: 'age', dataSource: 'customTextParameters' }],
+      });
+    });
+    cy.intercept('POST', '**/actions*', (req) => {
+      req.on('response', (res) => {
+        const action: ActionResult = res.body;
+        for (const groups of Object.values(action.updatedValidationIssues ?? {})) {
+          for (const issue of Object.values(groups).flat()) {
+            if (issue.componentId === 'validation-default-age' && issue.rowIndexes?.[0] === 4) {
+              issue.customTextKey = 'row.warning';
+              issue.customTextParameters = { age: '12' };
+            }
+          }
+        }
+        res.send(action);
+      });
+    });
+    setup();
+    cy.changeLayout((component) => {
+      if (component.id === 'validation-default') {
+        component.textResourceBindings = {
+          ...component.textResourceBindings,
+          editButtonOpen: 'Se og endre',
+          editButtonClose: 'Lukk raden',
+        };
+      }
+    });
+    cy.get(row('default', 4)).findByRole('button', { name: 'Se og endre Milo' }).should('be.visible');
+    openRow('default', 4);
+    dialog().should('be.focused').findAllByRole('listitem').should('have.length', 2);
+    dialog().find('li > [data-field="validation"]').first().should('have.attr', 'data-color', 'danger');
+    dialog().find('li > [data-field="validation"]').last().should('have.attr', 'data-color', 'warning');
+    dialog().findByRole('button', { name: 'Kontroller alderen 12.' }).should('be.visible');
+    dialog()
+      .findByRole('link', { name: 'Les mer' })
+      .should('have.attr', 'href', 'https://www.altinn.no/')
+      .then(($link) => {
+        expect($link.closest('button')).to.have.length(0);
+        expect($link[0].previousSibling?.textContent).to.equal(' ');
+        $link[0].addEventListener('click', (event) => event.preventDefault(), { once: true });
+      })
+      .click();
+    dialog().should('be.visible');
+    cy.injectAxe();
+    cy.checkA11y('[data-testid="row-validation-messages"]:popover-open');
+    dialog().type('{esc}');
+    cy.get(row('default', 4)).find(indicator).should('be.focused').and('have.attr', 'aria-expanded', 'false');
+    cy.press('Space');
+    dialog().should('be.focused');
+    cy.press('Tab');
+    cy.focused().should('have.attr', 'aria-label', 'Lukk');
+    cy.press('Space');
+    cy.get(row('default', 4)).find(indicator).should('be.focused');
+    cy.press('Space');
+    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).click();
+    cy.get('#validation-default-name-4').should('have.focus');
+    cy.get('#validation-default-name-4')
+      .closest('[data-componentid]')
+      .should('contain.text', 'Oppgi navnet slik det står i registeret.');
+    cy.get(row('default', 4)).findByRole('button', { name: 'Lukk raden Milo' }).should('be.visible');
+    openRow('default', 4);
+    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).focus();
+    for (const type of ['keyDown', 'keyUp']) {
+      cy.then(() =>
+        Cypress.automation('remote:debugger:protocol', {
+          command: 'Input.dispatchKeyEvent',
+          params: {
+            type,
+            key: 'Enter',
+            code: 'Enter',
+            windowsVirtualKeyCode: 13,
+            ...(type === 'keyDown' ? { text: '\r', unmodifiedText: '\r' } : {}),
+          },
+        }),
+      );
+    }
+    cy.get('#validation-default-name-4').should('have.focus');
+    dialog().should('not.exist');
+    cy.get(appFrontend.errorReport)
+      .should('contain.text', 'Oppgi navnet slik det står i registeret.')
+      .and('not.contain.text', 'Kontroller alderen');
+  });
+
+  for (const mode of ['onlyTable', 'hidden-actions', 'compact-vertical-mobile'] as const) {
+    it(`keeps indicators available in ${mode}`, () => {
+      setup();
+      cy.changeLayout((component) => {
+        if (component.id === 'validation-default' && component.type === 'RepeatingGroup') {
+          component.edit =
+            mode === 'onlyTable'
+              ? { mode: 'onlyTable', deleteButton: false }
+              : mode === 'hidden-actions'
+                ? { editButton: false, deleteButton: false }
+                : { compactButtons: true, buttonLayout: 'vertical' };
+        }
+      });
+      if (mode === 'compact-vertical-mobile') {
+        cy.viewport(390, 844);
+      }
+      cy.get(row('default')).find(indicator).should('have.attr', 'data-color', 'danger');
+      cy.get(row('default', 1)).find(indicator).should('have.attr', 'data-color', 'warning');
+      openRow('default', 0);
+      dialog().findByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' }).click();
+      cy.get(row('default')).find(indicator).should('have.attr', 'aria-expanded', 'false');
+      if (mode !== 'hidden-actions') {
+        cy.get('#validation-default-name-0').should('have.focus');
+      }
+      if (mode === 'onlyTable') {
+        cy.get('#group-validation-default').findByTestId('repeating-group-edit-button').should('not.exist');
+      }
+    });
+  }
 
   it('targets a row container separately from the entire repeating group', () => {
     setup();
