@@ -129,6 +129,10 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 
 	manifest := components.NewManifest(buildOpts)
 	if err := e.checkPort(ctx, manifest.Resources, topology.IngressPort()); err != nil {
+		if opts.Port == 0 && !hasRecord && !exists { // a new environment, at the env config port or the default
+			return fmt.Errorf("%w; choose another with --port, or for every new environment with '%s env config set "+
+				"port'", err, osutil.CurrentBin())
+		}
 		return fmt.Errorf("%w; choose another --port", err)
 	}
 	// Recorded before anything starts, so that a start that fails half-way leaves every other command pointing at

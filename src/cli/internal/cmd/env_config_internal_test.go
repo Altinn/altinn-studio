@@ -52,6 +52,8 @@ func TestEnvConfigRefusesBadInput(t *testing.T) {
 		args []string
 	}{
 		{args: []string{"config", "set", "port", "70000"}, want: ErrInvalidFlagValue},
+		{args: []string{"config", "set", "port", "-1"}, want: ErrInvalidFlagValue},
+		{args: []string{"config", "set", "port", "80"}, want: ErrInvalidFlagValue},
 		{args: []string{"config", "set", "port", "abc"}, want: ErrInvalidFlagValue},
 		{args: []string{"config", "set", "port"}, want: ErrInvalidFlagValue},
 		{args: []string{"config", "get", "colour"}, want: errUnknownSetting},
@@ -61,6 +63,18 @@ func TestEnvConfigRefusesBadInput(t *testing.T) {
 		command, _ := newEnvConfigCommand(t)
 		if err := command.Run(t.Context(), tt.args); !errors.Is(err, tt.want) {
 			t.Fatalf("Run(%v) error = %v, want %v", tt.args, err, tt.want)
+		}
+	}
+}
+
+// set and unset print no value, so --json would be silently ignored.
+func TestEnvConfigRefusesJSONWhereThereIsNothingToFormat(t *testing.T) {
+	t.Parallel()
+
+	for _, args := range [][]string{{"config", "set", "port", "8100", "--json"}, {"config", "unset", "port", "--json"}} {
+		command, _ := newEnvConfigCommand(t)
+		if err := command.Run(t.Context(), args); err == nil {
+			t.Fatalf("Run(%v) error = nil, want --json refused", args)
 		}
 	}
 }

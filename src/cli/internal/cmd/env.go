@@ -177,7 +177,8 @@ func (c *EnvCommand) Usage() string {
 		"",
 		"Options for 'env up':",
 		"  -d, --detach     Run in background (default: true)",
-		"  --port PORT      Serve localtest on this host port until env down (default: env config port, else "+
+		"  --port PORT      Serve localtest on this host port until env down (default: the environment's port,",
+		"                   for a new one env config port, else "+
 			envtopology.DefaultIngressPortString()+")",
 		"  --monitoring     Start monitoring stack",
 		"  --pgadmin        Start pgAdmin for the workflow-engine database",
@@ -291,7 +292,8 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 			"Options:",
 			"  -r, --runtime    Runtime to use (default: localtest)",
 			"  -d, --detach     Run in background (default: true)",
-			"  --port PORT      Serve localtest on this host port until env down (default: env config port, else "+
+			"  --port PORT      Serve localtest on this host port until env down (default: the environment's port,",
+			"                   for a new one env config port, else "+
 				envtopology.DefaultIngressPortString()+")",
 			"  --monitoring     Start monitoring stack",
 			"  --pgadmin        Start pgAdmin for the workflow-engine database",

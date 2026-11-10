@@ -49,10 +49,13 @@ func configuredPort(cfg *config.Config) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("read the env config port: %w", err)
 	}
-	if settings.Env.Port != 0 {
-		return settings.Env.Port, nil
+	if settings.Env.Port == 0 {
+		return envtopology.DefaultIngressPort(), nil
 	}
-	return envtopology.DefaultIngressPort(), nil
+	if err := ValidatePublicPort(settings.Env.Port, "env.port in "+cfg.SettingsPath()); err != nil {
+		return 0, err
+	}
+	return settings.Env.Port, nil
 }
 
 // ReadState returns the recorded state and whether there is one. Without one, it is the zero State.

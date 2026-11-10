@@ -1,6 +1,7 @@
 package localtest
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -141,5 +142,20 @@ func TestRecordedTopologyPrefersTheRecordToTheConfiguredPort(t *testing.T) {
 	}
 	if got := topology.IngressPort(); got != "8100" {
 		t.Fatalf("IngressPort() = %q, want 8100", got)
+	}
+}
+
+// A hand-edited config.yaml can hold a port env config set would refuse.
+func TestConfiguredPortRefusesAPortOutOfRange(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir()}
+	if err := os.WriteFile(cfg.SettingsPath(), []byte("env:\n  port: 70000\n"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	_, err := configuredPort(cfg)
+	if !errors.Is(err, errPortOutOfRange) || !strings.Contains(err.Error(), cfg.SettingsPath()) {
+		t.Fatalf("configuredPort() error = %v, want out of range, naming %s", err, cfg.SettingsPath())
 	}
 }

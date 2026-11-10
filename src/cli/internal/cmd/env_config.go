@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -50,7 +51,7 @@ func (c *EnvCommand) configUsage() string {
 		"  unset KEY          Go back to the built-in default",
 		"",
 		"Settings:",
-		"  port               Host port env up serves localtest on without --port (built-in: "+
+		"  port               Host port env up starts a new environment on without --port (built-in: "+
 			envtopology.DefaultIngressPortString()+")",
 		"",
 		"Options:",
@@ -134,7 +135,7 @@ func (c *EnvCommand) runConfigSet(args []string) error {
 	if err != nil {
 		return fmt.Errorf("%w: port: %q is not a number", ErrInvalidFlagValue, parsed.positional[1])
 	}
-	if err = envtopology.ValidatePort(port, envConfigPortKey); err != nil {
+	if err = envlocaltest.ValidatePublicPort(port, envConfigPortKey); err != nil {
 		return fmt.Errorf("%w: %w", ErrInvalidFlagValue, err)
 	}
 	return c.updatePort(port)
@@ -151,8 +152,8 @@ func (c *EnvCommand) runConfigUnset(args []string) error {
 	return c.updatePort(0)
 }
 
-// updatePort saves the port setting, zero for the built-in default. A running environment keeps its port until it is
-// started again, after env down.
+// updatePort saves the port setting, zero for the built-in default. An environment that exists keeps its port until
+// env down.
 func (c *EnvCommand) updatePort(port int) error {
 	settings, err := c.loadSettings()
 	if err != nil {
@@ -162,21 +163,23 @@ func (c *EnvCommand) updatePort(port int) error {
 	if err := config.SaveSettings(c.cfg, settings); err != nil {
 		return fmt.Errorf("env config: %w", err)
 	}
-	c.out.Printlnf("env up now starts localtest on port %d. A running environment keeps its port until env down.",
+	c.out.Printlnf("env up now starts a new environment on port %d. One that exists keeps its port until env down.",
 		portSetting(settings).Value)
 	return nil
 }
 
 func (c *EnvCommand) parseConfigArgs(subCmd string, args []string, positional int) (envConfigArgs, bool, error) {
 	var parsed envConfigArgs
-	for len(args) > 0 && len(parsed.positional) < positional && !strings.HasPrefix(args[0], "-") {
+	for len(args) > 0 && len(parsed.positional) < positional && !isFlag(args[0]) {
 		parsed.positional = append(parsed.positional, args[0])
 		args = args[1:]
 	}
 
 	fs := flag.NewFlagSet("env config "+subCmd, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
-	fs.BoolVar(&parsed.jsonOutput, "json", false, "Output as JSON")
+	if subCmd == envConfigList || subCmd == envConfigGet {
+		fs.BoolVar(&parsed.jsonOutput, "json", false, "Output as JSON")
+	}
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			c.out.Print(c.configUsage())
@@ -189,6 +192,15 @@ func (c *EnvCommand) parseConfigArgs(subCmd string, args []string, positional in
 			configUsageLine(subCmd))
 	}
 	return parsed, false, nil
+}
+
+// isFlag reports whether an argument is a flag rather than a value. A negative number is a value, so that set
+// refuses it as a port rather than as an unknown flag.
+func isFlag(arg string) bool {
+	if _, err := strconv.Atoi(arg); err == nil {
+		return false
+	}
+	return strings.HasPrefix(arg, "-")
 }
 
 func configUsageLine(subCmd string) string {
