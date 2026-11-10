@@ -251,16 +251,11 @@ public class WorkflowEngineCallbackController : ControllerBase
                     ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
                     activity?.SetStatus(ActivityStatusCode.Error, rejection);
 
-                    // Retryable, like a 403 inside a command. Storage authorizes before it commits anything and
-                    // checks the policy on every attempt, so once a policy fix is deployed the same step saves and
-                    // the transition goes on by itself. A permanent failure would instead leave each affected
-                    // instance stuck until someone resumes it. The answer is a 500 and not Storage's 403 because the
-                    // engine's default retry strategy does not retry a 403.
-                    return Problem(
-                        title: ex.GetType().Name,
-                        detail: rejection,
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
+                    // Permanent, like a 403 inside a command. Retrying cannot clear a missing grant, and a
+                    // terminal failure raises the engine's failure alert at once instead of when the retries run
+                    // out. Storage authorizes before it commits anything, so once a policy fix is deployed,
+                    // resuming the workflow runs this step again and the save goes through.
+                    return NonRetryableProblem(ex.GetType().Name, rejection, StatusCodes.Status422UnprocessableEntity);
                 }
 
                 string updatedState = await _workflowCallbackStateService.CaptureState(
@@ -394,7 +389,9 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
 
-                if (failed.NonRetryable)
+                // A service-owner 403 fails permanently even when the command reported it as retryable, for the
+                // same reasons as a 403 on the save above.
+                if (failed.NonRetryable || failed.ServiceOwnerAuthorizationDenied)
                 {
                     return NonRetryableProblem(
                         failed.ExceptionType,

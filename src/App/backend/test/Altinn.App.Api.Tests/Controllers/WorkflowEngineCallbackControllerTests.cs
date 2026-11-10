@@ -760,7 +760,7 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_DiagnosesIt_AndTheSameStepSavesAfterAPolicyFix()
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_FailsPermanently_AndAResumeSavesAfterAPolicyFix()
     {
         await using ControllerSetup setup = CreateSetup(services =>
         {
@@ -773,9 +773,9 @@ public class WorkflowEngineCallbackControllerTests
         IActionResult denied = await setup.Execute(AddBinaryDataCommand.Key, stepId);
 
         var objectResult = Assert.IsType<ObjectResult>(denied);
-        Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
         Assert.True(LoggedDenialDiagnosis(setup));
         Activity callback = Assert.Single(
             setup.ServiceProvider.GetRequiredService<TelemetrySink>().CapturedActivities,
@@ -786,9 +786,10 @@ public class WorkflowEngineCallbackControllerTests
 
         setup.Services.Storage.ForbidMutations = false;
 
-        IActionResult retried = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+        // A resume runs the failed step again, with the same step ID.
+        IActionResult resumed = await setup.Execute(AddBinaryDataCommand.Key, stepId);
 
-        Assert.IsType<OkObjectResult>(retried);
+        Assert.IsType<OkObjectResult>(resumed);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.Single(storedInstance.Data);
     }

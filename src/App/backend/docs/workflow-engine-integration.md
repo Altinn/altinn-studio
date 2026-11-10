@@ -49,7 +49,7 @@ and returns the re-signed state.
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
 | 404                     | No command has the key.                                                                       |
 | 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
-| 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
+| 422                     | A permanent failure, such as invalid state, an actor mismatch, a stale save or a 403.         |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
 - Every command is idempotent, because the engine retries steps.
@@ -97,10 +97,10 @@ Callbacks save as the service owner, acting on the request's check of the user's
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
 lists. Storage always lets the app owner commit a process transition.
 
-A 403 on a callback's save usually means the policy lacks one of those rights, and Storage has committed nothing. The
-callback logs which policy to check and answers with a 500, because the engine's
-[default retry strategy](../../../Runtime/workflow-engine-app/src/WorkflowEngine.App/appsettings.json) stops on a 403.
-A deployed policy fix therefore lets the same step save, and the transition goes on by itself.
+A 403 from Storage, on a callback's save or inside a command, usually means the policy lacks one of those rights. The
+callback logs which policy to check and fails the step permanently, since retrying cannot clear a missing right, so
+the engine's failure alert fires at once. Storage commits nothing when it denies a save, so after a policy fix is
+deployed, resuming the workflow runs the same step again.
 
 The gateways also run as the service owner, through the data accessor they are given. A gateway that calls
 `IDataClient` directly acts as the caller, and the accessor does not see what it changes.

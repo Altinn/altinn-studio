@@ -87,13 +87,12 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     }
 
     [Fact]
-    public void A_Failed_Result_Flags_The_Denial_Without_Changing_The_Retry_Classification()
+    public void A_Failed_Result_Flags_The_Denial_And_Keeps_The_Commands_Retry_Classification()
     {
         var result = FailedWorkflowEngineCommandResult.Retryable(Platform(HttpStatusCode.Forbidden));
 
         Assert.True(result.ServiceOwnerAuthorizationDenied);
-        // The diagnosis is an explanation, not a reclassification: a 403 stays retryable so the
-        // engine's behaviour and the caller's response are unchanged.
+        // The callback, not the result, turns a denial into a permanent failure.
         Assert.False(result.NonRetryable);
     }
 
