@@ -187,7 +187,8 @@ func (c *EnvCommand) parseConfigArgs(subCmd string, args []string, positional in
 		}
 		return parsed, false, fmt.Errorf("parsing flags: %w", err)
 	}
-	if len(parsed.positional) != positional || fs.NArg() > 0 {
+	parsed.positional = append(parsed.positional, fs.Args()...)
+	if len(parsed.positional) != positional {
 		return parsed, false, fmt.Errorf("%w: usage: %s env config %s", ErrInvalidFlagValue, osutil.CurrentBin(),
 			configUsageLine(subCmd))
 	}
