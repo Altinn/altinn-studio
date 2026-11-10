@@ -7,7 +7,7 @@ import type { CompNavigationButtonsExternal } from '@app/layout-contract/generat
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
-import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
+import { Form } from 'src/components/form/Form';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -15,6 +15,8 @@ interface RenderProps extends Omit<Partial<RenderGenericComponentTestProps<'Navi
   component: CompNavigationButtonsExternal;
   currentPageId?: 'layout1' | 'layout2';
   pageValidation?: PageValidation;
+  taskValidation?: PageValidation;
+  appValidation?: PageValidation;
   formDataOverride?: object;
   inputRequired?: boolean;
 }
@@ -52,16 +54,27 @@ describe('NavigationButtons', () => {
     genericProps,
     currentPageId = 'layout1',
     pageValidation,
+    taskValidation,
+    appValidation,
     formDataOverride,
     inputRequired = false,
   }: RenderProps) => {
-    window.altinnAppGlobalData.ui = getUiConfigMock(
-      (obj) => (obj.folders.Task_1.pages = { order: ['layout1', 'layout2'] }),
-    );
+    window.altinnAppGlobalData.ui = getUiConfigMock((obj) => {
+      obj.folders.Task_1.pages = { order: ['layout1', 'layout2'], validationOnNavigation: taskValidation };
+      obj.settings = { ...obj.settings, validationOnNavigation: appValidation };
+    });
+
+    window.altinnAppGlobalData.textResources = {
+      language: 'nb',
+      resources: [
+        { id: 'layout1', value: 'First page' },
+        { id: 'layout2', value: 'Second page' },
+      ],
+    };
 
     return await renderGenericComponentTest({
       type: 'NavigationButtons',
-      renderer: (props) => <NavigationButtonsComponent {...props} />,
+      renderer: () => <Form />,
       component,
       genericProps,
       initialPage: currentPageId,
@@ -83,7 +96,7 @@ describe('NavigationButtons', () => {
                       },
                       readOnly: false,
                       required: inputRequired,
-                      textResourceBindings: {},
+                      textResourceBindings: { title: 'Required value' },
                     },
                     ...(currentPageId === 'layout1' ? [component] : []),
                   ],
@@ -101,10 +114,11 @@ describe('NavigationButtons', () => {
                       },
                       readOnly: false,
                       required: inputRequired,
-                      textResourceBindings: {},
+                      textResourceBindings: { title: 'Required value' },
                     },
                     ...(currentPageId === 'layout2' ? [component] : []),
                   ],
+                  ...(pageValidation && { validationOnNavigation: pageValidation }),
                 },
               },
             };
@@ -140,34 +154,79 @@ describe('NavigationButtons', () => {
     expect(screen.getByText('Forrige')).toBeInTheDocument();
   });
 
-  test('uses page validation when button has no validation config', async () => {
-    await render({
-      component: navButton1,
-      pageValidation: { page: 'current', show: ['Required'] },
-      formDataOverride: {},
-      inputRequired: true,
-    });
+  const requiredValidation: PageValidation = { page: 'current', show: ['Required'] };
+  const customValidation: PageValidation = { page: 'current', show: ['CustomBackend'] };
+  const validationSources = [
+    { level: 'page', pageValidation: requiredValidation },
+    { level: 'task', taskValidation: requiredValidation },
+    { level: 'app', appValidation: requiredValidation },
+  ];
+
+  test.each(validationSources)('inherits $level validation when no forward setting is supplied', async (source) => {
+    await render({ ...source, component: navButton1, formDataOverride: {}, inputRequired: true });
 
     await userEvent.click(screen.getByText('Neste'));
 
+    await screen.findByTestId('ErrorReport');
     await waitFor(() => expect(screen.getByText('Neste').closest('button')).not.toBeDisabled());
-
     expect(screen.getByText('Neste')).toBeInTheDocument();
   });
 
-  test('page validation overrides button validation', async () => {
+  test.each(validationSources)('component validation can relax $level validation', async (source) => {
+    await render({ ...source, component: navButton3, formDataOverride: {}, inputRequired: true });
+
+    await userEvent.click(screen.getByText('Neste'));
+
+    await waitFor(() => expect(screen.queryByText('Neste')).not.toBeInTheDocument());
+  });
+
+  test.each([
+    { level: 'page', pageValidation: customValidation },
+    { level: 'task', taskValidation: customValidation },
+    { level: 'app', appValidation: customValidation },
+  ])('component validation can tighten $level validation', async (source) => {
     await render({
-      component: navButton3,
-      pageValidation: { page: 'current', show: ['Required'] },
+      ...source,
+      component: { ...navButton1, validateOnNext: requiredValidation },
       formDataOverride: {},
       inputRequired: true,
     });
 
     await userEvent.click(screen.getByText('Neste'));
 
+    await screen.findByTestId('ErrorReport');
     await waitFor(() => expect(screen.getByText('Neste').closest('button')).not.toBeDisabled());
-
     expect(screen.getByText('Neste')).toBeInTheDocument();
+  });
+
+  test.each(validationSources)('explicit backward validation is honored with $level defaults', async (source) => {
+    await render({
+      ...source,
+      component: { ...navButton2, validateOnPrevious: requiredValidation },
+      currentPageId: 'layout2',
+      formDataOverride: {},
+      inputRequired: true,
+    });
+
+    await userEvent.click(screen.getByText('Forrige'));
+
+    await screen.findByTestId('ErrorReport');
+    await waitFor(() => expect(screen.getByText('Forrige').closest('button')).not.toBeDisabled());
+    expect(screen.getByText('Forrige')).toBeInTheDocument();
+  });
+
+  test.each(validationSources)('does not inherit $level validation for backward navigation', async (source) => {
+    await render({
+      ...source,
+      component: navButton2,
+      currentPageId: 'layout2',
+      formDataOverride: {},
+      inputRequired: true,
+    });
+
+    await userEvent.click(screen.getByText('Forrige'));
+
+    await waitFor(() => expect(screen.queryByText('Forrige')).not.toBeInTheDocument());
   });
 
   test('button validation is used when page has no validation config', async () => {
