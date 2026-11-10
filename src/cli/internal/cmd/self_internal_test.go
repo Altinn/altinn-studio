@@ -328,6 +328,37 @@ func TestDefaultInstallLocation(t *testing.T) {
 	}
 }
 
+func TestAddToPathOrExplainWarnsOnlyWhenDirectoryIsNotOnPath(t *testing.T) {
+	dir := t.TempDir()
+	tests := []struct {
+		name        string
+		path        string
+		wantWarning bool
+	}{
+		{name: "on PATH", path: dir, wantWarning: false},
+		{name: "not on PATH", path: t.TempDir(), wantWarning: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("PATH", tt.path)
+			var stderr bytes.Buffer
+			command := &SelfCommand{out: ui.NewOutput(io.Discard, &stderr, false)}
+
+			command.addToPathOrExplain(applyBundleOptions{
+				TargetDir:  dir,
+				Candidates: nil,
+				WarnPath:   true,
+				AddToPath:  false,
+			})
+
+			if got := strings.Contains(stderr.String(), "not in your PATH"); got != tt.wantWarning {
+				t.Fatalf("warned = %v, want %v; stderr = %q", got, tt.wantWarning, stderr.String())
+			}
+		})
+	}
+}
+
 func TestInstallLocationPathInstructionsWindowsUsesTrailingBackslash(t *testing.T) {
 	t.Parallel()
 	if runtime.GOOS != osutil.OSWindows {

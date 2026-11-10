@@ -312,7 +312,7 @@ func (c *SelfCommand) applyBundle(
 				c.out.Successf("Binary installed to %s", result.BinaryPath)
 			}
 
-			if opts.WarnPath && !selfcmd.LocationInPath(opts.TargetDir, opts.Candidates) {
+			if opts.WarnPath {
 				c.addToPathOrExplain(opts)
 			}
 		},
@@ -329,8 +329,10 @@ func (c *SelfCommand) applyBundle(
 }
 
 // addToPathOrExplain adds the install directory to the user's PATH on Windows. Elsewhere, or when that fails, it
-// prints how to add it.
+// prints how to add it unless this process already has it on PATH.
 func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
+	inPath := selfcmd.LocationInPath(opts.TargetDir, opts.Candidates)
+	// This process's PATH can hold the directory for this session only, so check the user's saved PATH as well.
 	if opts.AddToPath && runtime.GOOS == osutil.OSWindows {
 		added, err := selfcmd.AddToUserPath(opts.TargetDir, c.out)
 		switch {
@@ -343,14 +345,19 @@ func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
 				osutil.CurrentBin(),
 			)
 			return
-		default:
+		case !inPath:
 			c.out.Printlnf(
 				"%s is already on your PATH. Terminals opened from now on will find %s.",
 				opts.TargetDir,
 				osutil.CurrentBin(),
 			)
 			return
+		default:
+			return
 		}
+	}
+	if inPath {
+		return
 	}
 
 	c.out.Println("")
