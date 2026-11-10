@@ -9,6 +9,7 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
 {
     private const string CurrentAll = """{"page":"current","show":["All"]}""";
     private const string PreviousAll = """{"page":"currentAndPrevious","show":["All"]}""";
+    private const string CurrentEmpty = """{"page":"current","show":[]}""";
     private const string CurrentRequired = """{"page":"current","show":["Required"]}""";
     private readonly TempAppFolder _app = new();
 
@@ -112,11 +113,35 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
         Assert.Empty((await Analyze()).Messages);
     }
 
-    [Fact]
-    public async Task EmptyValidationLists_AreEquivalentRegardlessOfScope()
+    [Theory]
+    [InlineData("all", "current")]
+    [InlineData("currentAndPrevious", "current")]
+    [InlineData("current", "currentAndPrevious")]
+    public async Task EmptyValidationLists_StillCheckImmediatelyShownErrorsOnSelectedPages(
+        string inheritedScope,
+        string componentScope
+    )
     {
-        Settings("""{"page":"all","show":[]}""");
-        Page(Navigation("""{"page":"current","show":[]}"""));
+        Settings($$$"""{"page":"{{{inheritedScope}}}","show":[]}""");
+        Page(Navigation($$$"""{"page":"{{{componentScope}}}","show":[]}"""));
+
+        var result = await Analyze();
+
+        Assert.True(result.RequiresManualFollowUp);
+        Assert.Contains("Forward navigation will validate", Assert.Single(result.Todos), StringComparison.Ordinal);
+        var component = JsonNode.Parse(_app.Read("ui/Task_1/layouts/B.json"))?["data"]?["layout"]?[0];
+        Assert.Equal(componentScope, component?["validateOnNext"]?["page"]?.GetValue<string>());
+        Assert.Empty(Assert.IsType<JsonArray>(component?["validateOnNext"]?["show"]));
+    }
+
+    [Theory]
+    [InlineData("B", CurrentEmpty)]
+    [InlineData("B", """{"show":[]}""")]
+    [InlineData("A", """{"page":"currentAndPrevious","show":[]}""")]
+    public async Task EmptyValidationLists_WithEquivalentPageScopes_AreSilent(string page, string config)
+    {
+        Settings(CurrentEmpty);
+        Page(Navigation(config), page: page);
 
         Assert.Empty((await Analyze()).Messages);
     }
@@ -188,13 +213,32 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
         );
     }
 
-    [Fact]
-    public async Task EmptyBackwardValidation_IsSilent()
+    [Theory]
+    [InlineData("NavigationButtons", "validateOnPrevious", CurrentAll)]
+    [InlineData("NavigationButtons", "validateOnPrevious", CurrentEmpty)]
+    [InlineData("NavigationBar", "validateOnBackward", CurrentAll)]
+    [InlineData("NavigationBar", "validateOnBackward", CurrentEmpty)]
+    public async Task EmptyBackwardValidation_CanStartBlockingOnImmediatelyShownErrors(
+        string type,
+        string property,
+        string inherited
+    )
     {
-        Settings(CurrentAll);
-        Page(Navigation("""{"page":"current","show":[]}""", "validateOnPrevious"));
+        Settings(inherited);
+        Page(Navigation(CurrentEmpty, property, type));
+        var original = _app.Read("ui/Task_1/layouts/B.json");
 
-        Assert.Empty((await Analyze()).Messages);
+        var result = await Analyze();
+
+        Assert.True(result.RequiresManualFollowUp);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("component 'navigation', " + property, todo, StringComparison.Ordinal);
+        Assert.Contains(
+            "Backward navigation will now check validation errors shown immediately on this page",
+            todo,
+            StringComparison.Ordinal
+        );
+        Assert.Equal(original, _app.Read("ui/Task_1/layouts/B.json"));
     }
 
     [Theory]
