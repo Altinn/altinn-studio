@@ -25,9 +25,14 @@ func NewLocal(ingressPort string) Local {
 	}
 }
 
+// DefaultIngressPort returns the default ingress port.
+func DefaultIngressPort() int {
+	return defaultDefinition().Ingress.DefaultHostPort
+}
+
 // DefaultIngressPortString returns the default ingress port as a string.
 func DefaultIngressPortString() string {
-	return strconv.Itoa(defaultDefinition().Ingress.DefaultHostPort)
+	return strconv.Itoa(DefaultIngressPort())
 }
 
 // IngressPort returns the local environment ingress port.

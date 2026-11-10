@@ -124,7 +124,7 @@ hosts file, so explain that effect before running it with the host's normal priv
 
 Open the `url` from the `run` result; `logPath` identifies its log file. `app ps` reports status in `running` and
 `apps[]`, but does not return the app URL. Localtest's root page, the `url` in `studioctl env status --json`
-(`http://local.altinn.cloud:8000` unless `env up --port` chose another), contains the login form, not the app.
+(`http://local.altinn.cloud:8000` unless `env up --port` or `env config` chose another), contains the login form, not the app.
 
 ### Test changes to Altinn Studio itself
 

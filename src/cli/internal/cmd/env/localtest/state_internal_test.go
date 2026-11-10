@@ -59,6 +59,7 @@ func TestStartState(t *testing.T) {
 	t.Parallel()
 
 	recorded := State{PublicPort: 8100}
+	const configured = 8300
 	tests := []struct {
 		name   string
 		port   int
@@ -67,13 +68,13 @@ func TestStartState(t *testing.T) {
 	}{
 		{name: "--port wins over the recorded port", port: 8200, exists: true, want: 8200},
 		{name: "an existing environment keeps its port", port: 0, exists: true, want: 8100},
-		{name: "a new environment starts at the default", port: 0, exists: false, want: 0},
+		{name: "a new environment starts at the configured port", port: 0, exists: false, want: configured},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := startState(tt.port, recorded, tt.exists); got.PublicPort != tt.want {
+			if got := startState(tt.port, recorded, tt.exists, configured); got.PublicPort != tt.want {
 				t.Fatalf("startState() port = %d, want %d", got.PublicPort, tt.want)
 			}
 		})
@@ -95,5 +96,43 @@ func TestRemoveStateForgetsTheRecordedPort(t *testing.T) {
 	}
 	if state, err := ReadState(cfg); err != nil || state.PublicPort != 0 {
 		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	}
+}
+
+func TestRecordedTopologyWithoutARecordIsTheConfiguredPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir()}
+	if err := config.SaveSettings(cfg, config.Settings{Env: config.EnvSettings{Port: 8300}}); err != nil {
+		t.Fatalf("SaveSettings() error = %v", err)
+	}
+
+	topology, err := RecordedTopology(cfg)
+	if err != nil {
+		t.Fatalf("RecordedTopology() error = %v", err)
+	}
+	if got := topology.IngressPort(); got != "8300" {
+		t.Fatalf("IngressPort() = %q, want 8300", got)
+	}
+}
+
+// A running environment keeps the port it was started at, whatever env config says now.
+func TestRecordedTopologyPrefersTheRecordToTheConfiguredPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir()}
+	if err := config.SaveSettings(cfg, config.Settings{Env: config.EnvSettings{Port: 8300}}); err != nil {
+		t.Fatalf("SaveSettings() error = %v", err)
+	}
+	if err := WriteState(cfg, State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	topology, err := RecordedTopology(cfg)
+	if err != nil {
+		t.Fatalf("RecordedTopology() error = %v", err)
+	}
+	if got := topology.IngressPort(); got != "8100" {
+		t.Fatalf("IngressPort() = %q, want 8100", got)
 	}
 }

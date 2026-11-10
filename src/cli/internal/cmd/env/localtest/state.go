@@ -34,13 +34,33 @@ func (s State) Topology() envtopology.Local {
 	return envtopology.NewLocal(strconv.Itoa(s.PublicPort))
 }
 
-// RecordedTopology is the environment's public URLs at the port it was last started with, or at the default port.
+// RecordedTopology is the environment's public URLs at the port it was started with. With nothing recorded, it is
+// where env up would start it: at the env config port, or the default.
 func RecordedTopology(cfg *config.Config) (envtopology.Local, error) {
 	state, err := ReadState(cfg)
 	if err != nil {
 		return envtopology.Local{}, err
 	}
-	return state.Topology(), nil
+	if state.PublicPort != 0 {
+		return state.Topology(), nil
+	}
+	port, err := configuredPort(cfg)
+	if err != nil {
+		return envtopology.Local{}, err
+	}
+	return State{PublicPort: port}.Topology(), nil
+}
+
+// configuredPort is the port env up starts a new environment at: the env config port, or the default.
+func configuredPort(cfg *config.Config) (int, error) {
+	settings, err := config.LoadSettings(cfg)
+	if err != nil {
+		return 0, fmt.Errorf("read the env config port: %w", err)
+	}
+	if settings.Env.Port != 0 {
+		return settings.Env.Port, nil
+	}
+	return envtopology.DefaultIngressPort(), nil
 }
 
 // ReadState returns the recorded state, or the zero State when there is none.
@@ -87,15 +107,15 @@ func RemoveState(cfg *config.Config) error {
 }
 
 // startState is the state env up starts the environment with: --port when it is given, the recorded port while the
-// environment exists, and the default otherwise.
-func startState(port int, recorded State, exists bool) State {
+// environment exists, and the configured port otherwise.
+func startState(port int, recorded State, exists bool, configured int) State {
 	switch {
 	case port != 0:
 		return State{PublicPort: port}
 	case exists:
 		return recorded
 	default:
-		return State{PublicPort: 0}
+		return State{PublicPort: configured}
 	}
 }
 

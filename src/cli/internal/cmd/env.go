@@ -164,6 +164,7 @@ func (c *EnvCommand) Usage() string {
 		"Subcommands:",
 		"  up       Start the environment",
 		"  down     Stop the environment",
+		"  config   Show or change the defaults of env up",
 		"  hosts    Manage localtest hosts-file entries",
 		"  reset    Delete persisted environment data",
 		"  status   Show environment status",
@@ -174,7 +175,7 @@ func (c *EnvCommand) Usage() string {
 		"",
 		"Options for 'env up':",
 		"  -d, --detach     Run in background (default: true)",
-		"  --port PORT      Serve localtest on this host port until env down (default: "+
+		"  --port PORT      Serve localtest on this host port until env down (default: env config port, else "+
 			envtopology.DefaultIngressPortString()+")",
 		"  --monitoring     Start monitoring stack",
 		"  --pgadmin        Start pgAdmin for the workflow-engine database",
@@ -202,6 +203,8 @@ func (c *EnvCommand) Run(ctx context.Context, args []string) error {
 		return c.runUp(ctx, subArgs)
 	case "down":
 		return c.runDown(ctx, subArgs)
+	case "config":
+		return c.runConfig(subArgs)
 	case "hosts":
 		return c.runHosts(ctx, subArgs)
 	case "reset":
@@ -286,7 +289,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 			"Options:",
 			"  -r, --runtime    Runtime to use (default: localtest)",
 			"  -d, --detach     Run in background (default: true)",
-			"  --port PORT      Serve localtest on this host port until env down (default: "+
+			"  --port PORT      Serve localtest on this host port until env down (default: env config port, else "+
 				envtopology.DefaultIngressPortString()+")",
 			"  --monitoring     Start monitoring stack",
 			"  --pgadmin        Start pgAdmin for the workflow-engine database",
