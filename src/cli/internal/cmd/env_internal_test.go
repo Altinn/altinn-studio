@@ -273,7 +273,7 @@ func TestParseUpFlagsPort(t *testing.T) {
 func TestParseUpFlagsRejectsAPortOutOfRange(t *testing.T) {
 	t.Parallel()
 
-	for _, port := range []string{"0", "65536"} {
+	for _, port := range []string{"0", "80", "1023", "65536"} {
 		command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
 		_, _, err := command.parseUpFlags([]string{"--port", port})
 		if !errors.Is(err, ErrInvalidFlagValue) {

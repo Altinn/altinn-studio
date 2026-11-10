@@ -321,7 +321,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 		}
 	})
 	if portSet {
-		if err := envtopology.ValidatePort(f.port, "--port"); err != nil {
+		if err := envlocaltest.ValidatePublicPort(f.port, "--port"); err != nil {
 			return f, false, fmt.Errorf("%w: %w", ErrInvalidFlagValue, err)
 		}
 	}

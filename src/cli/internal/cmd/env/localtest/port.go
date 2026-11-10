@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net"
 	"slices"
 	"strings"
@@ -14,10 +13,24 @@ import (
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 )
 
+// minPublicPort is the lowest port localtest can serve the environment on: it listens on the port inside its container
+// too, so that the environment's containers reach it at the public URL, as a user that may not use lower ports.
+const minPublicPort = 1024
+
 var (
-	errPortPublished = errors.New("the environment already publishes this port")
-	errPortInUse     = errors.New("the port is in use on this machine")
+	errPortPublished  = errors.New("the environment already publishes this port")
+	errPortInUse      = errors.New("the port is in use on this machine")
+	errPortOutOfRange = errors.New("must be between 1024 and 65535")
 )
+
+// ValidatePublicPort refuses a port localtest can't serve the environment on.
+func ValidatePublicPort(port int, field string) error {
+	if port < minPublicPort || port > 65535 {
+		return fmt.Errorf("%s: %w: localtest listens on the port inside its container too, as a user that may not "+
+			"use lower ports", field, errPortOutOfRange)
+	}
+	return nil
+}
 
 // checkPublicPort refuses a public port that one of the environment's containers also publishes on the host, which
 // would keep that container from starting. The ports come from the containers env up is about to start, so they
@@ -76,14 +89,10 @@ func (e *Env) checkPortFree(ctx context.Context, port string) error {
 	return nil
 }
 
-// tryListen listens on the address and closes it again. A port this user may not listen on, such as one below 1024 on
-// Linux, passes: a rootful container runtime can still publish it, so the runtime decides.
+// tryListen listens on the address and closes it again.
 func tryListen(ctx context.Context, host, port string) error {
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(ctx, "tcp4", net.JoinHostPort(host, port))
-	if errors.Is(err, fs.ErrPermission) {
-		return nil
-	}
 	if err != nil {
 		return fmt.Errorf("%w: port %s (%w); choose another --port", errPortInUse, port, err)
 	}

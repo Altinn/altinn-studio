@@ -5,8 +5,6 @@ import (
 	"errors"
 	"io"
 	"net"
-	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -154,25 +152,6 @@ func TestCheckPortFreeRefusesAHeldPortTheRunningLocaltestDoesNotPublish(t *testi
 	}
 }
 
-// Linux keeps ports below net.ipv4.ip_unprivileged_port_start from other users, but a rootful container runtime can
-// still publish them.
-func TestCheckPortFreeLeavesAPortThisUserMayNotListenOnToTheRuntime(t *testing.T) {
-	t.Parallel()
-
-	raw, err := os.ReadFile("/proc/sys/net/ipv4/ip_unprivileged_port_start")
-	if err != nil || os.Geteuid() == 0 {
-		t.Skip("needs Linux and a user other than root")
-	}
-	if start, err := strconv.Atoi(strings.TrimSpace(string(raw))); err != nil || start <= 80 {
-		t.Skip("port 80 is open to every user here")
-	}
-	env := newPortTestEnv(t, containertypes.ContainerInfo{})
-
-	if err := env.checkPortFree(t.Context(), "80"); err != nil {
-		t.Fatalf("checkPortFree(80) error = %v, want nil", err)
-	}
-}
-
 func TestCheckPortFreeAcceptsAFreePort(t *testing.T) {
 	t.Parallel()
 
@@ -219,4 +198,17 @@ func newPortTestEnv(t *testing.T, localtest containertypes.ContainerInfo) *Env {
 		return localtest, nil
 	}
 	return NewEnv(&config.Config{DataDir: t.TempDir()}, ui.NewOutput(io.Discard, io.Discard, false), client)
+}
+
+func TestValidatePublicPort(t *testing.T) {
+	t.Parallel()
+
+	for port, want := range map[int]error{
+		0: errPortOutOfRange, 80: errPortOutOfRange, 1023: errPortOutOfRange, 1024: nil, 65535: nil,
+		65536: errPortOutOfRange,
+	} {
+		if err := ValidatePublicPort(port, "--port"); !errors.Is(err, want) {
+			t.Fatalf("ValidatePublicPort(%d) error = %v, want %v", port, err, want)
+		}
+	}
 }
