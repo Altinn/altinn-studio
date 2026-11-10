@@ -335,6 +335,23 @@ func TestDown_IgnoresUnmanagedNameCollision(t *testing.T) {
 	}
 }
 
+func TestDown_ForgetsTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testImages()}
+	if err := localtest.WriteState(cfg, localtest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	env := newTestEnvWithConfig(mock.New(), cfg)
+	if err := env.Down(context.Background()); !errors.Is(err, envtypes.ErrAlreadyStopped) {
+		t.Fatalf("Down() error = %v, want ErrAlreadyStopped", err)
+	}
+	if state, err := localtest.ReadState(cfg); err != nil || state.PublicPort != 0 {
+		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	}
+}
+
 func TestDown_StopsStaleManagedResources(t *testing.T) {
 	t.Parallel()
 

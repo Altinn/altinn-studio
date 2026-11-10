@@ -47,6 +47,21 @@ func TestReset_RemovesPersistedDataWhenAlreadyStopped(t *testing.T) {
 	assertNotExists(t, workflowEngineDataDir)
 }
 
+func TestReset_ForgetsTheRecordedPort(t *testing.T) {
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testResetImages()}
+	if err := WriteState(cfg, State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), containermock.New())
+	if err := env.Reset(context.Background()); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if state, err := ReadState(cfg); err != nil || state.PublicPort != 0 {
+		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	}
+}
+
 func TestReset_StopsManagedResourcesBeforeRemovingPersistedData(t *testing.T) {
 	dataDir := t.TempDir()
 	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")

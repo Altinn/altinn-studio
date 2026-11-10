@@ -18,9 +18,9 @@ const (
 	stateFileName = "state.json"
 )
 
-// State is the configuration the localtest environment was last started with. Every command that reaches the
-// environment reads it, so that studioctl-server, apps and diagnostics all use the port env up chose. It says
-// nothing about whether the environment still runs.
+// State is the configuration the localtest environment was started with. Every command that reaches the environment
+// reads it, so that studioctl-server, apps and diagnostics all use the port env up chose. It lasts as long as the
+// environment: env down and env reset remove it. It says nothing about whether the environment still runs.
 type State struct {
 	// PublicPort is the host port localtest serves the environment on (env up --port). Zero is the default.
 	PublicPort int `json:"publicPort,omitempty"`
@@ -76,6 +76,27 @@ func WriteState(cfg *config.Config, state State) error {
 		return fmt.Errorf("write localtest state: %w", err)
 	}
 	return nil
+}
+
+// RemoveState forgets the recorded state, so that the next env up starts at the default port.
+func RemoveState(cfg *config.Config) error {
+	if err := os.Remove(statePath(cfg)); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("remove localtest state: %w", err)
+	}
+	return nil
+}
+
+// startState is the state env up starts the environment with: --port when it is given, the recorded port while the
+// environment exists, and the default otherwise.
+func startState(port int, recorded State, exists bool) State {
+	switch {
+	case port != 0:
+		return State{PublicPort: port}
+	case exists:
+		return recorded
+	default:
+		return State{PublicPort: 0}
+	}
 }
 
 func statePath(cfg *config.Config) string {

@@ -105,13 +105,15 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
-	state, err := ReadState(e.cfg)
+	recorded, err := ReadState(e.cfg)
 	if err != nil {
 		return err
 	}
-	if opts.Port != 0 {
-		state.PublicPort = opts.Port
+	exists, err := e.hasManagedResources(ctx)
+	if err != nil {
+		return err
 	}
+	state := startState(opts.Port, recorded, exists)
 	topology := state.Topology()
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
@@ -176,12 +178,18 @@ func (e *Env) Down(ctx context.Context) error {
 		return err
 	}
 	if !hasResources {
+		if err := RemoveState(e.cfg); err != nil {
+			return err
+		}
 		return envtypes.ErrAlreadyStopped
 	}
 
 	destroyManifest := components.NewManifest(e.buildDestroyOptions())
 	if err := e.destroyResources(ctx, destroyManifest.Resources, stoppingEnvironmentMessage); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
+	}
+	if err := RemoveState(e.cfg); err != nil {
+		return err
 	}
 
 	e.out.Success("Environment stopped")
@@ -210,6 +218,9 @@ func (e *Env) Reset(ctx context.Context) error {
 
 	e.out.Println("Deleting persisted localtest data...")
 	if err := e.deletePersistedData(ctx); err != nil {
+		return err
+	}
+	if err := RemoveState(e.cfg); err != nil {
 		return err
 	}
 

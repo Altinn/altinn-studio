@@ -54,3 +54,46 @@ func TestReadStateRefusesAnUnreadableFile(t *testing.T) {
 		t.Fatalf("ReadState() error = %v, want an error naming %s", err, statePath(cfg))
 	}
 }
+
+func TestStartState(t *testing.T) {
+	t.Parallel()
+
+	recorded := State{PublicPort: 8100}
+	tests := []struct {
+		name   string
+		port   int
+		exists bool
+		want   int
+	}{
+		{name: "--port wins over the recorded port", port: 8200, exists: true, want: 8200},
+		{name: "an existing environment keeps its port", port: 0, exists: true, want: 8100},
+		{name: "a new environment starts at the default", port: 0, exists: false, want: 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := startState(tt.port, recorded, tt.exists); got.PublicPort != tt.want {
+				t.Fatalf("startState() port = %d, want %d", got.PublicPort, tt.want)
+			}
+		})
+	}
+}
+
+func TestRemoveStateForgetsTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir()}
+	if err := WriteState(cfg, State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	for range 2 { // removing an absent state is no error
+		if err := RemoveState(cfg); err != nil {
+			t.Fatalf("RemoveState() error = %v", err)
+		}
+	}
+	if state, err := ReadState(cfg); err != nil || state.PublicPort != 0 {
+		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	}
+}
