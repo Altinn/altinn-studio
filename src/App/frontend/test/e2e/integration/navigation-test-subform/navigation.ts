@@ -391,6 +391,10 @@ describe('navigation', () => {
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Informasjon/)
+        .should('have.attr', 'aria-expanded', 'true')
+        .click();
+      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'false');
+      cy.navGroup(/Informasjon/)
         .find(ICON_COMPLETE)
         .should('be.visible');
       cy.openNavGroup(/Informasjon/);
