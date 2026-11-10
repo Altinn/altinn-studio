@@ -32,7 +32,7 @@ public class GeneratePetsAction : IUserAction
             data.Endringsmeldinggrp9786.Avgivergrp9787 ??= new();
             data.Endringsmeldinggrp9786.Avgivergrp9787.OppgavegiverNavndatadef68 = new()
             {
-                value = "fields,error,warning,info,success",
+                value = "fields",
             };
             return UserActionResult.SuccessResult([]);
         }

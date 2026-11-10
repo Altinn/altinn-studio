@@ -30,26 +30,18 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
         // The controls are hidden until example rows are loaded, so they cannot clear the sender name in other tests.
         var selected = (model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value ?? "")
             .Split(',').ToHashSet();
-        var severities = new (string Key, ValidationIssueSeverity Severity)[]
-        {
-            ("error", ValidationIssueSeverity.Error),
-            ("warning", ValidationIssueSeverity.Warning),
-            ("info", ValidationIssueSeverity.Informational),
-            ("success", ValidationIssueSeverity.Success),
-        }.Where(item => selected.Contains(item.Key)).Select(item => item.Severity).ToArray();
         var issues = new List<ValidationIssue>();
-        if (severities.Length == 0)
-        {
-            return issues;
-        }
-
         var dataElement = dataAccessor.GetDataElementsForType("nested-group").Single();
         foreach (var variant in Variants)
         {
             var componentId = $"validation-{variant}";
             if (selected.Contains("groups"))
             {
-                foreach (var severity in severities)
+                foreach (var severity in new[]
+                {
+                    ValidationIssueSeverity.Error, ValidationIssueSeverity.Warning,
+                    ValidationIssueSeverity.Informational, ValidationIssueSeverity.Success,
+                })
                 {
                     issues.Add(new ValidationIssue
                     {
@@ -68,8 +60,7 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
 
             for (var rowIndex = 0; rowIndex < pets.Count; rowIndex++)
             {
-                var messages = GetFieldMessages(pets[rowIndex].UniqueId)
-                    .Where(message => severities.Contains(message.Severity)).ToArray();
+                var messages = GetFieldMessages(pets[rowIndex].UniqueId);
                 if (selected.Contains("rows") && messages.Length > 0)
                 {
                     issues.Add(new ValidationIssue

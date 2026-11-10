@@ -380,7 +380,7 @@
         },
         "textResourceBindings": {
           "title": "Valideringer som skal vises",
-          "description": "Velg minst én plassering og én alvorlighetsgrad. Trykk Neste for å vise meldingene."
+          "description": "Velg hvor valideringene skal vises. Trykk Neste for å vise meldingene."
         },
         "options": [
           {
@@ -394,22 +394,6 @@
           {
             "label": "På hele gruppen",
             "value": "groups"
-          },
-          {
-            "label": "Feil",
-            "value": "error"
-          },
-          {
-            "label": "Advarsler",
-            "value": "warning"
-          },
-          {
-            "label": "Informasjon",
-            "value": "info"
-          },
-          {
-            "label": "Bekreftelser",
-            "value": "success"
           }
         ],
         "labelSettings": {
