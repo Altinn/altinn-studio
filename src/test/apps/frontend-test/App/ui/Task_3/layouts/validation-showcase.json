@@ -66,8 +66,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": "Navn",
-          "tableTitle": "Navn"
+          "title": "Navn"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -80,8 +79,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": "Dyreslag",
-          "tableTitle": "Dyreslag"
+          "title": "Dyreslag"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -108,8 +106,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": "Alder",
-          "tableTitle": "Alder"
+          "title": "Alder"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -182,8 +179,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": "Navn",
-          "tableTitle": "Navn"
+          "title": "Navn"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -196,8 +192,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": "Dyreslag",
-          "tableTitle": "Dyreslag"
+          "title": "Dyreslag"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -224,8 +219,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": "Alder",
-          "tableTitle": "Alder"
+          "title": "Alder"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -290,8 +284,7 @@
           "simpleBinding": "Pets.Name"
         },
         "textResourceBindings": {
-          "title": "Navn",
-          "tableTitle": "Navn"
+          "title": "Navn"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -304,8 +297,7 @@
           "simpleBinding": "Pets.Species"
         },
         "textResourceBindings": {
-          "title": "Dyreslag",
-          "tableTitle": "Dyreslag"
+          "title": "Dyreslag"
         },
         "labelSettings": {
           "optionalIndicator": false
@@ -332,8 +324,7 @@
           "simpleBinding": "Pets.Age"
         },
         "textResourceBindings": {
-          "title": "Alder",
-          "tableTitle": "Alder"
+          "title": "Alder"
         },
         "labelSettings": {
           "optionalIndicator": false
