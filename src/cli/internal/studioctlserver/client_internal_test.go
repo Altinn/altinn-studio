@@ -13,7 +13,12 @@ import (
 	"testing"
 	"time"
 
+	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/container/mock"
+	"altinn.studio/devenv/pkg/container/types"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -315,7 +320,7 @@ func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing
 		t.Fatalf("write base topology config: %v", err)
 	}
 
-	got, err := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	got, err := buildStartConfig(t.Context(), cfg, "8000", "/path/to/studioctl", localtestV2Containers(false))
 	if err != nil {
 		t.Fatalf("buildStartConfig() error = %v", err)
 	}
@@ -332,6 +337,60 @@ func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing
 			got.BoundTopologyConfigPath,
 			cfg.BoundTopologyConfigPath(),
 		)
+	}
+}
+
+func TestBuildStartConfig_RegistersWithTheFrontDoorAtTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := localtestv2.WriteState(cfg, localtestv2.State{
+		CertificateDir: "/certs", PublicHost: "origin.test", PublicPort: 18000,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := buildStartConfig(t.Context(), cfg, "8000", "/path/to/studioctl", localtestV2Containers(true))
+	if err != nil {
+		t.Fatalf("buildStartConfig() error = %v", err)
+	}
+	if got.LocaltestURL != "http://127.0.0.1:18000" || !got.RegisterApps || got.HostBridgeURL != "" {
+		t.Fatalf("start config %+v", got)
+	}
+}
+
+// A state file whose containers are gone (a reboot, a docker rm) starts the server as without localtest-v2: the host
+// bridge on, no registration with a front door that is not there.
+func TestBuildStartConfig_IgnoresAStateFileWithoutContainers(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := localtestv2.WriteState(cfg, localtestv2.State{
+		CertificateDir: "/certs", PublicHost: "origin.test", PublicPort: 18000,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := buildStartConfig(t.Context(), cfg, "8000", "/path/to/studioctl", localtestV2Containers(false))
+	if err != nil {
+		t.Fatalf("buildStartConfig() error = %v", err)
+	}
+	if got.LocaltestURL != LocaltestURL("8000") || got.RegisterApps || got.HostBridgeURL != HostBridgeURL("8000") {
+		t.Fatalf("start config %+v, want the one without localtest-v2", got)
+	}
+}
+
+// localtestV2Containers is a container runtime where a localtest-v2 container runs or none does.
+func localtestV2Containers(running bool) localtestv2.ContainerClientFunc {
+	return func(context.Context) (container.ContainerClient, error) {
+		client := mock.New()
+		client.ListContainersFunc = func(_ context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+			if !running || filter.Labels[containerbackend.GraphIDLabel] != localtestv2.GraphID {
+				return nil, nil
+			}
+			return []types.ContainerInfo{
+				{Name: "localtest-v2-localtest", State: types.ContainerState{Running: true}},
+			}, nil
+		}
+		return client, nil
 	}
 }
 

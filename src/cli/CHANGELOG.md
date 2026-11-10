@@ -9,6 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl env up -r localtest-v2` runs the platform's own services, such as Storage and Register, instead of localtest's emulation. Apps run against it unchanged. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
+    - `--with` adds optional services, such as `arbeidsflate`
+    - `--minimal` starts a small stack with its telemetry in JSON Lines files
+    - `--host` and `--port` serve it on another address
+    - `--dev-<container>` builds a container from a Dockerfile
+
 ### Changed
 
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
@@ -16,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
+- `studioctl env down`, `env reset` and `studioctl run --mode container` no longer leave an unnamed volume behind for each container they remove. Your named volumes are kept. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
     - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window

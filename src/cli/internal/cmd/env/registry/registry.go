@@ -8,6 +8,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	envlocaltestv2 "altinn.studio/studioctl/internal/cmd/env/localtestv2"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -51,6 +52,7 @@ func WithContainerClient(client container.ContainerClient) Option {
 func Runtimes(cfg *config.Config) []envtypes.Runtime {
 	return []envtypes.Runtime{
 		envlocaltest.NewRuntime(cfg),
+		envlocaltestv2.NewRuntime(cfg),
 	}
 }
 

@@ -5,6 +5,6 @@
 {"query":{"follow":["1"],"stderr":["1"],"stdout":["1"],"tail":["100"]},"method":"GET","path":"/containers/ctr/logs"},
 {"query":{"condition":["not-running"]},"method":"POST","path":"/containers/ctr/wait"},
 {"query":{"t":["5"]},"method":"POST","path":"/containers/ctr/stop"},
-{"query":{"force":["1"]},"method":"DELETE","path":"/containers/ctr"},
+{"query":{"force":["1"],"v":["1"]},"method":"DELETE","path":"/containers/ctr"},
 {"query":{"force":["1"]},"method":"DELETE","path":"/volumes/vol"}
 ]

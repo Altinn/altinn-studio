@@ -14,7 +14,8 @@ App developers install and use it as
 `studioctl env up` runs the newest localtest build from `main`, and the pdf3 and workflow engine builds that tt02 runs.
 It checks for newer builds each time it starts the environment, and starts with the images already on the machine
 when it cannot reach the registry. [images.go](internal/config/images.go) pins the other images and names the
-variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`.
+variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`. That is the `localtest` runtime.
+[localtest-v2](docs/localtest-v2.md#images) runs the images its manifest pins instead.
 
 `studioctl env status` shows the build each container runs. Quote it in a bug report, since the tags that follow tt02
 move with each deployment.
@@ -22,6 +23,11 @@ move with each deployment.
 studioctl supplies the configuration of the containers it starts, so a change to that configuration must keep working
 with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has
 the rule.
+
+## localtest-v2
+
+`studioctl env up -r localtest-v2` runs the Altinn Platform's own services instead of localtest's emulation of them.
+[localtest-v2](docs/localtest-v2.md) says how to use it and how it is built.
 
 ## Development
 

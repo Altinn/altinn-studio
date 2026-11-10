@@ -181,6 +181,28 @@ func TestClient_EmptyIDFailsBeforeRequest(t *testing.T) {
 	}
 }
 
+// A removed container takes its anonymous volumes (v=1), forced or not.
+func TestContainerRemove_RemovesAnonymousVolumes(t *testing.T) {
+	t.Parallel()
+	for _, force := range []bool{true, false} {
+		var got string
+		c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+			got = req.Method + " " + req.URL.RawQuery
+			w.WriteHeader(http.StatusNoContent)
+		})
+		if err := c.ContainerRemove(t.Context(), "app", force); err != nil {
+			t.Fatalf("ContainerRemove(force=%v) error = %v", force, err)
+		}
+		want := "DELETE v=1"
+		if force {
+			want = "DELETE force=1&v=1"
+		}
+		if got != want {
+			t.Fatalf("ContainerRemove(force=%v) sent %q, want %q", force, got, want)
+		}
+	}
+}
+
 func TestNetworkRemove_SDKErrorClassification(t *testing.T) {
 	t.Parallel()
 	for _, status := range []int{http.StatusConflict, http.StatusForbidden} {

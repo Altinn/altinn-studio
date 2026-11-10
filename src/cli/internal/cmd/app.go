@@ -309,7 +309,11 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		}
 	}
 
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	v2, err := findLocaltestV2(ctx, c.server.cfg, containerruntime.Detect)
+	if err != nil {
+		return err
+	}
+	topology := v2.Topology()
 	spec, err := c.service.BuildDotnetRunSpec(
 		ctx,
 		result.AppRoot,

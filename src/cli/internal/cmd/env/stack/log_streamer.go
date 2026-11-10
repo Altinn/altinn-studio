@@ -77,13 +77,15 @@ func (s *LogStreamer) Stream(ctx context.Context, component string, follow, json
 		containers = s.containers
 	}
 
+	// Without a component, the running containers. A named component's container is streamed whenever it exists,
+	// running or not: the log of one that exited is what explains why it stopped answering.
 	var runningContainers []string
 	for _, name := range containers {
 		state, err := s.client.ContainerState(ctx, name)
 		if err != nil {
 			continue // container doesn't exist
 		}
-		if state.Running {
+		if state.Running || component != "" {
 			runningContainers = append(runningContainers, name)
 		}
 	}

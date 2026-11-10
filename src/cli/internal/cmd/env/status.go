@@ -22,6 +22,12 @@ type ContainerStatus struct {
 
 // Status is the runtime status payload of `env status`.
 type Status struct {
+	// Origin is the localtest-v2 public origin, http://<host>:<port>.
+	Origin string `json:"origin,omitempty"`
+	// Mode is the localtest-v2 mode when it is not the default stack: "minimal".
+	Mode string `json:"mode,omitempty"`
+	// Emulated are the containers the front door emulates in that mode, in start order.
+	Emulated   []string          `json:"emulated,omitempty"`
 	Containers []ContainerStatus `json:"containers"`
 	Running    bool              `json:"running"`
 	AnyRunning bool              `json:"anyRunning"`

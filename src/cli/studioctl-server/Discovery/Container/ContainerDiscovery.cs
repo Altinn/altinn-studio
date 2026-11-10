@@ -85,8 +85,12 @@ internal sealed class ContainerDiscovery : IAppDiscovery
             return [];
         }
 
-        return JsonSerializer.Deserialize<List<ContainerCandidate>>(stdout, _jsonOptions) ?? [];
+        return Parse(stdout);
     }
+
+    /// <summary>The candidates of <c>studioctl __app-containers</c>'s output.</summary>
+    internal static IReadOnlyList<ContainerCandidate> Parse(string json) =>
+        JsonSerializer.Deserialize<List<ContainerCandidate>>(json, _jsonOptions) ?? [];
 
     private static void KillBestEffort(System.Diagnostics.Process process)
     {
@@ -101,7 +105,7 @@ internal sealed class ContainerDiscovery : IAppDiscovery
         }
     }
 
-    private static IReadOnlyList<AppDiscoveryCandidate> ToDiscoveryCandidates(
+    internal static IReadOnlyList<AppDiscoveryCandidate> ToDiscoveryCandidates(
         IReadOnlyList<ContainerCandidate> candidates
     )
     {
@@ -123,15 +127,25 @@ internal sealed class ContainerDiscovery : IAppDiscovery
             candidate.Description,
             candidate.ContainerId,
             candidate.Name,
-            candidate.HostPort
+            candidate.HostPort,
+            FrontDoorUri(candidate.FrontDoorUrl)
         );
     }
 
-    private sealed record ContainerCandidate(
+    /// <summary>The container's address on the localtest-v2 network, when it has a valid one.</summary>
+    private static Uri? FrontDoorUri(string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttp ? uri : null;
+
+    /// <param name="FrontDoorUrl">
+    /// Where the localtest-v2 front door reaches the container (<c>http://&lt;alias&gt;:&lt;port&gt;</c> on the localtest-v2
+    /// network), from its <c>altinn.studio/front-door-url</c> label. Absent for a container that is not on that network.
+    /// </param>
+    internal sealed record ContainerCandidate(
         [property: JsonPropertyName("containerId")] string ContainerId,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("hostPort")] int HostPort,
         [property: JsonPropertyName("source")] string Source,
-        [property: JsonPropertyName("description")] string Description
+        [property: JsonPropertyName("description")] string Description,
+        [property: JsonPropertyName("frontDoorUrl")] string? FrontDoorUrl = null
     );
 }

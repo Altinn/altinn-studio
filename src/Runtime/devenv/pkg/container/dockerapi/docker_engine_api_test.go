@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -112,6 +113,61 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 	}}
 	if !slices.Equal(hostCfg.Mounts, wantMounts) {
 		t.Fatalf("hostCfg.Mounts = %#v, want %#v", hostCfg.Mounts, wantMounts)
+	}
+}
+
+func TestBuildCreateRequest_TmpfsGoesToHostConfigTmpfsNotMounts(t *testing.T) {
+	t.Parallel()
+
+	cfg := types.ContainerConfig{
+		Image: "postgres",
+		Volumes: []types.VolumeMount{
+			{
+				HostPath:      "/certs",
+				ContainerPath: "/certs",
+				Type:          types.VolumeMountTypeBind,
+				ReadOnly:      true,
+			},
+			{ContainerPath: "/var/lib/postgresql", Type: types.VolumeMountTypeTmpfs},
+			{ContainerPath: "/data/blobs", Type: types.VolumeMountTypeTmpfs, Options: "size=1g"},
+		},
+	}
+
+	request, err := buildCreateRequest(cfg, types.PlatformDocker)
+	if err != nil {
+		t.Fatalf("buildCreateRequest() error = %v", err)
+	}
+
+	hostCfg := request.HostConfig
+	wantTmpfs := map[string]string{"/var/lib/postgresql": "", "/data/blobs": "size=1g"}
+	if !maps.Equal(hostCfg.Tmpfs, wantTmpfs) {
+		t.Fatalf("hostCfg.Tmpfs = %#v, want %#v", hostCfg.Tmpfs, wantTmpfs)
+	}
+	wantMounts := []mount{{Type: "bind", Source: "/certs", Target: "/certs", ReadOnly: true}}
+	if !slices.Equal(hostCfg.Mounts, wantMounts) {
+		t.Fatalf("hostCfg.Mounts = %#v, want %#v", hostCfg.Mounts, wantMounts)
+	}
+	if len(hostCfg.Binds) != 0 {
+		t.Fatalf("hostCfg.Binds = %#v, want none", hostCfg.Binds)
+	}
+
+	encoded, err := json.Marshal(hostCfg)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if want := `"Tmpfs":{"/data/blobs":"size=1g","/var/lib/postgresql":""}`; !strings.Contains(string(encoded), want) {
+		t.Fatalf("host config JSON = %s, want %s", encoded, want)
+	}
+}
+
+func TestBuildTmpfs_NilWithoutTmpfsMounts(t *testing.T) {
+	t.Parallel()
+
+	got := buildTmpfs(
+		[]types.VolumeMount{{HostPath: "data", ContainerPath: "/data", Type: types.VolumeMountTypeVolume}},
+	)
+	if got != nil {
+		t.Fatalf("buildTmpfs() = %#v, want nil", got)
 	}
 }
 

@@ -38,6 +38,32 @@ func TestBuildCreateArgs_UserNamespaceAndRelabelBind(t *testing.T) {
 	}
 }
 
+func TestBuildCreateArgs_Tmpfs(t *testing.T) {
+	t.Parallel()
+
+	args := buildCreateArgs(types.ContainerConfig{
+		Name:  "storage",
+		Image: "alpine",
+		Volumes: []types.VolumeMount{
+			{ContainerPath: "/var/lib/postgresql", Type: types.VolumeMountTypeTmpfs},
+			{ContainerPath: "/data/blobs", Type: types.VolumeMountTypeTmpfs, Options: "size=1g"},
+		},
+	})
+
+	for _, want := range [][]string{
+		{"--tmpfs", "/var/lib/postgresql"},
+		{"--tmpfs", "/data/blobs:size=1g"},
+	} {
+		i := slices.Index(args, want[1])
+		if i < 1 || args[i-1] != want[0] {
+			t.Fatalf("buildCreateArgs() missing %q in %#v", want, args)
+		}
+	}
+	if slices.Contains(args, "-v") {
+		t.Fatalf("buildCreateArgs() mounts a tmpfs with -v: %#v", args)
+	}
+}
+
 func TestParsePodmanVersionIgnoresNonStringFields(t *testing.T) {
 	t.Parallel()
 
@@ -256,6 +282,27 @@ func TestIsVolumeNotFoundOutput(t *testing.T) {
 			got := isVolumeNotFoundOutput(tt.output)
 			if got != tt.want {
 				t.Fatalf("isVolumeNotFoundOutput() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBuildRemoveArgs_RemovesAnonymousVolumes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		want  []string
+		force bool
+	}{
+		{name: "force", force: true, want: []string{"rm", "--volumes", "-f", "probe"}},
+		{name: "no force", force: false, want: []string{"rm", "--volumes", "probe"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := buildRemoveArgs("probe", tt.force); !slices.Equal(got, tt.want) {
+				t.Fatalf("buildRemoveArgs() = %v, want %v", got, tt.want)
 			}
 		})
 	}
