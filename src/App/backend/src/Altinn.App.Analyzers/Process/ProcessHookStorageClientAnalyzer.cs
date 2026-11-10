@@ -15,8 +15,8 @@ namespace Altinn.App.Analyzers;
 /// referenced package is not seen.
 /// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported; calls that target another
 /// instance on purpose can suppress the warning.
-/// The mutator cannot set a substatus or confirm the instance as complete, so for those calls the message says that
-/// instead of pointing at it.
+/// The mutator cannot set a substatus or confirm the instance as complete, so for those calls the message does not
+/// point at it. For a complete confirmation it names <c>autoConfirmCompleteOnProcessEnd</c> instead.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
@@ -29,12 +29,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
     private const string UseTheMutator = "Use the instance data mutator from the context for the current instance";
     private const string NoMutatorReplacement =
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
-
-    private static readonly string[] _instanceClientMethodsWithoutReplacement =
-    [
-        "AddCompleteConfirmation",
-        "UpdateSubstatus",
-    ];
+    private const string ConfirmOnProcessEnd =
+        "Storage refuses this call then. Set autoConfirmCompleteOnProcessEnd in applicationmetadata.json to confirm "
+        + "the instance as complete when the process ends";
 
     private static readonly string[] _clientTypeNames =
     [
@@ -161,9 +158,14 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (hook is null)
             return;
 
-        bool hasNoReplacement =
-            SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
-            && _instanceClientMethodsWithoutReplacement.Contains(target.Name);
+        string advice = SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
+            ? target.Name switch
+            {
+                "AddCompleteConfirmation" => ConfirmOnProcessEnd,
+                "UpdateSubstatus" => NoMutatorReplacement,
+                _ => UseTheMutator,
+            }
+            : UseTheMutator;
 
         context.ReportDiagnostic(
             Diagnostic.Create(
@@ -172,7 +174,7 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
                 client.Name,
                 target.Name,
                 hook,
-                hasNoReplacement ? NoMutatorReplacement : UseTheMutator
+                advice
             )
         );
     }

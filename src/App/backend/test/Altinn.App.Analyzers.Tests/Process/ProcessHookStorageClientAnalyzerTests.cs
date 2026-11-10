@@ -285,9 +285,9 @@ public class ProcessHookStorageClientAnalyzerTests
     }
 
     [Theory]
-    [InlineData("AddCompleteConfirmation(1337, System.Guid.Empty)")]
-    [InlineData("UpdateSubstatus(1337, System.Guid.Empty, new Substatus())")]
-    public async Task Does_Not_Point_At_The_Mutator_For_A_Call_It_Cannot_Replace(string call)
+    [InlineData("AddCompleteConfirmation(1337, System.Guid.Empty)", "Set autoConfirmCompleteOnProcessEnd")]
+    [InlineData("UpdateSubstatus(1337, System.Guid.Empty, new Substatus())", "has no replacement for it")]
+    public async Task Does_Not_Point_At_The_Mutator_For_A_Call_It_Cannot_Replace(string call, string advice)
     {
         var diagnostics = await Analyze(
             $$"""
@@ -305,7 +305,7 @@ public class ProcessHookStorageClientAnalyzerTests
 
         Diagnostic diagnostic = Assert.Single(diagnostics);
         Assert.Equal("ALTINNAPP0501", diagnostic.Id);
-        Assert.Contains("has no replacement for it", diagnostic.GetMessage(), StringComparison.Ordinal);
+        Assert.Contains(advice, diagnostic.GetMessage(), StringComparison.Ordinal);
         Assert.DoesNotContain("Use the instance data mutator", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
