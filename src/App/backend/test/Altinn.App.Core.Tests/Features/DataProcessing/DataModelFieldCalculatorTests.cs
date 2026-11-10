@@ -62,6 +62,31 @@ public sealed class DataModelFieldCalculatorTests
     }
 
     [Fact]
+    public async Task Calculation_rules_with_comments_and_trailing_commas_are_evaluated()
+    {
+        var folder = Path.Join(
+            PathUtils.GetCoreTestsPath(),
+            "Features",
+            "DataProcessing",
+            "data-field-value-calculator-tests"
+        );
+        var testCase = await LoadData("single-expression-number.json", folder);
+        Setup(testCase);
+        var json = JsonSerializer.Serialize(testCase.CalculationConfig);
+        var rawConfig = "{/* calculation rules */" + json[1..^1] + ",}";
+
+        await _dataModelFieldCalculator.CalculateFormData(_instanceDataAccessor, _dataElement, rawConfig);
+
+        var result = await _instanceDataAccessor.GetFormDataWrapper(_dataElement);
+        foreach (var expected in testCase.Expects)
+        {
+            Assert.True(expected.Result.HasValue);
+            Assert.Equal(expected.Result.Value.ToObject(), result.Get(expected.Field));
+        }
+        Assert.Empty(_logger.Collector.GetSnapshot());
+    }
+
+    [Fact]
     public async Task ShouldLogErrorAndThrowWhenExpressionEvaluatorThrowsException()
     {
         var testCaseJson = """

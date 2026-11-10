@@ -105,6 +105,42 @@ public class FormBootstrapServiceTests
         return services.BuildServiceProvider();
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Bootstrap_accepts_the_app_file_grammar_for_schemas_and_rules(bool comments, bool trailingCommas)
+    {
+        var metadata = CreateAppMetadata("model");
+        SetupMocks(metadata);
+        string Json(string properties) =>
+            "{" + (comments ? "/* configuration */" : "") + properties + (trailingCommas ? "," : "") + "}";
+        _appResources.Setup(x => x.GetModelJsonSchema("model")).Returns(Json("\"type\":\"object\""));
+        _appResources.Setup(x => x.GetValidationConfiguration("model")).Returns(Json("\"validations\":{}"));
+        _appResources.Setup(x => x.GetCalculationConfiguration("model")).Returns(Json("\"calculations\":{}"));
+
+        var response = await CreateService()
+            .GetInstanceFormBootstrap(CreateTestInstance("Task_1"), "Task_1", null, false, "nb");
+        var model = response.DataModels["model"];
+
+        Assert.Equal("object", Assert.IsType<JsonElement>(model.Schema).GetProperty("type").GetString());
+        Assert.Equal(
+            JsonValueKind.Object,
+            Assert.IsType<JsonElement>(model.ExpressionValidationConfig).GetProperty("validations").ValueKind
+        );
+        Assert.Equal(
+            JsonValueKind.Object,
+            Assert.IsType<JsonElement>(model.CalculationConfig).GetProperty("calculations").ValueKind
+        );
+        // Browser JSON parsing must succeed without app-file parsing extensions.
+        using var browserPayload = JsonDocument.Parse(JsonSerializer.Serialize(response));
+        Assert.Equal(
+            JsonValueKind.Object,
+            browserPayload.RootElement.GetProperty("dataModels").GetProperty("model").GetProperty("schema").ValueKind
+        );
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_ReturnsExpectedShape()
     {
