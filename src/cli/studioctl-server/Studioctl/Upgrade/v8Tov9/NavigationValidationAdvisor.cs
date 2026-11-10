@@ -40,11 +40,18 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             {
                 var type = StringValue(component["type"]);
                 var properties = string.Equals(type, "NavigationButtons", StringComparison.OrdinalIgnoreCase)
-                    ? new[] { "validateOnNext", "validateOnPrevious" }
-                    : ["validateOnForward", "validateOnBackward"];
-                for (var direction = 0; direction < properties.Length; direction++)
+                    ? new[]
+                    {
+                        ("validateOnNext", NavigationDirection.Forward),
+                        ("validateOnPrevious", NavigationDirection.Backward),
+                    }
+                    :
+                    [
+                        ("validateOnForward", NavigationDirection.Forward),
+                        ("validateOnBackward", NavigationDirection.Backward),
+                    ];
+                foreach (var (property, direction) in properties)
                 {
-                    var property = properties[direction];
                     if (component[property] is null || !CanNavigate(data, component, page, order, direction))
                         continue;
 
@@ -80,7 +87,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
     private void AnalyzeSetting(
         JsonObject component,
         string property,
-        int direction,
+        NavigationDirection direction,
         PageContext context,
         InheritedValidation inherited,
         List<UpgradeMessage> messages
@@ -107,7 +114,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             return;
         }
 
-        if (direction == 1 && after.Categories == Categories.None)
+        if (direction == NavigationDirection.Backward && after.Categories == Categories.None)
             return;
         var beforePages = CheckedPages(before.Page, context.Page, context.Order);
         var afterPages = CheckedPages(after.Page, context.Page, context.Order);
@@ -115,7 +122,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             before.Page == after.Page
             || (beforePages is not null && afterPages is not null && beforePages.SetEquals(afterPages));
         if (
-            direction == 0
+            direction == NavigationDirection.Forward
             && (
                 (before.Categories == after.Categories && samePages)
                 || (before.Categories == Categories.None && after.Categories == Categories.None)
@@ -124,11 +131,11 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             return;
 
         var difference =
-            direction == 1
+            direction == NavigationDirection.Backward
                 ? $"Backward navigation will now check {DescribeCategories(after.Categories)} on {DescribePages(after.Page)}. Previously, this component allowed backward navigation without validation."
                 : DescribeForward(before, after, samePages);
         var action =
-            direction == 1
+            direction == NavigationDirection.Backward
                 ? "continue allowing backward navigation without this validation"
                 : $"continue using the {inherited.Level}-level validation";
         messages.Todo(
@@ -215,12 +222,18 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         }
     }
 
-    private static bool CanNavigate(JsonObject data, JsonObject component, string page, string[]? order, int direction)
+    private static bool CanNavigate(
+        JsonObject data,
+        JsonObject component,
+        string page,
+        string[]? order,
+        NavigationDirection direction
+    )
     {
         if (IsTrue(data["hidden"]) || IsTrue(component["hidden"]))
             return false;
         if (
-            direction == 1
+            direction == NavigationDirection.Backward
             && string.Equals(StringValue(component["type"]), "NavigationButtons", StringComparison.OrdinalIgnoreCase)
             && component["showBackButton"] is JsonValue back
             && back.TryGetValue<bool>(out var showBack)
@@ -230,7 +243,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         if (order is null)
             return true;
         var index = Array.IndexOf(order, page);
-        return index >= 0 && (direction == 0 ? index < order.Length - 1 : index > 0);
+        return index >= 0 && (direction == NavigationDirection.Forward ? index < order.Length - 1 : index > 0);
     }
 
     private static bool IsTrue(JsonNode? node) =>
@@ -339,6 +352,12 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
     }
 
     private string DisplayPath(string file) => Path.GetRelativePath(projectFolder, file).Replace('\\', '/');
+
+    private enum NavigationDirection
+    {
+        Forward,
+        Backward,
+    }
 
     private sealed record SettingsFile(string File, JsonObject? Root, string? Error = null);
 
