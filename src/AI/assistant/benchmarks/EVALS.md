@@ -360,7 +360,7 @@ and Langfuse is a projection of it, so the two cannot drift.
 **Prove a score is stable.** Every pinned check is deterministic code, so a score is
 repeatable given the same model output. The model output is not: across the runs in
 `benchmarks/runs`, `scope.declines-in-users-language` has landed anywhere between 0.533 and
-1.000 and `confidence.band-matches-outcome` between 0.500 and 0.967, on unchanged code and
+1.000 and the retired `confidence.band-matches-outcome` between 0.500 and 0.967, on unchanged code and
 an unchanged model, because one item is a large share of a small dataset. The noise floor is
 a single global number and cannot express that, so read a small dataset's movement as noise
 until it is bigger.

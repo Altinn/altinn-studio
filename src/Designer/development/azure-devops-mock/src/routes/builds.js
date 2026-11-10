@@ -163,7 +163,7 @@ const runningApp = (params, deploy) => {
 export const runtimeGatewayRunningAppRoute = (req, res) => {
   const deploy = findRunningDeploy(req.params);
   if (!deploy) {
-    res.sendStatus(404);
+    res.sendStatus(204);
     return;
   }
 

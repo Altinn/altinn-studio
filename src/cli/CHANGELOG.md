@@ -9,15 +9,60 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` reports navigation validation settings that may behave differently after upgrading or need manual review. TODOs identify what to review and test, and the settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845))
+
 ### Changed
 
+- `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
+
+### Fixed
+
+- Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
+    - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
+    - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window
+
+## [0.1.0-preview.33] - 2026-11-09
+
+### Changed
+
+- `studioctl app upgrade v9` moves the Altinn.App packages to the latest v9 release, at least `9.0.0-preview.10`, also for apps already on v9. An app on `9.0.0-preview.8` or `9.0.0-preview.9` with `taskIds` in `applicationmetadata.json` has lost its data types' tasks: run the upgrade again. ([#21816](https://github.com/Altinn/altinn-studio/pull/21816))
+
+## [0.1.0-preview.32] - 2026-11-09
+
+### Added
+
+- `studioctl app upgrade v9` binds data types to tasks with `taskIds`:
+    - replaces `taskId` with `taskIds` in `applicationmetadata.json` ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+    - removes `AppSettings:EnforceDataTypeTaskId` and points out when it was off, since the app APIs now always refuse writes to a data type outside its tasks ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
+
+### Changed
+
+- Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, also during a process transition. Once the process has ended it allows only the deletion `autoDeleteOnProcessEnd` asks for. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+
+### Fixed
+
+- `studioctl app upgrade v9` points the gateways after an eFormidling service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the task's first form in `applicationmetadata.json`. A gateway the PDF service task step already pinned keeps its value; without a layout-set data model it asks you to set it. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+
+## [0.1.0-preview.31] - 2026-11-06
+
+### Added
+
+- Localtest gives persons and system users the access packages (`accessPackages`) in `testData.json`, so app policy rules on access packages decide as in the platform. Roles also give the packages Access Management gives for them, such as most packages for daglig leder (`DAGL`). The built-in user Pengelens Partner holds `lonn` and `regnskapsforer-med-signeringsrettighet` for DDG Fitness. ([#21743](https://github.com/Altinn/altinn-studio/pull/21743))
+
+### Changed
+
+- Breaking: The built-in Localtest users no longer hold daglig leder (`DAGL`) for themselves, as a person cannot. They keep `REGNA` and `PRIV`, so an app policy that grants only `DAGL` no longer lets them act for themselves. ([#21743](https://github.com/Altinn/altinn-studio/pull/21743))
 - Breaking: Container runtimes must support Docker API 1.40 or newer for automatic version selection. Upgrade Docker Engine installations older than 19.03. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
 - Set `DOCKER_API_VERSION` as `major.minor`, such as `1.41`. Malformed values such as `1.41.0` now prevent connections configured with `DOCKER_HOST`. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
 
 ### Fixed
 
+- In Localtest, a sub-unit gets the roles held for its main unit in authorization decisions, as in the platform, and every person gets the citizen access packages (`innbygger-*`) for themselves. ([#21743](https://github.com/Altinn/altinn-studio/pull/21743))
 - With Podman, `studioctl app build` and `studioctl run` leave out the files an app's `Dockerfile.dockerignore` excludes, as they do with Docker. ([#21584](https://github.com/Altinn/altinn-studio/issues/21584))
 - `studioctl doctor` shows the Docker API version in use as _Client_, such as 1.41 with Podman, instead of an incorrectly reported 1.51. ([#21702](https://github.com/Altinn/altinn-studio/pull/21702))
+- With app-localtest running, an app started with `dotnet run` or from an IDE reaches it again instead of reporting `Localtest API could not be reached` because studioctl is installed. ([#21731](https://github.com/Altinn/altinn-studio/pull/21731))
 
 ## [0.1.0-preview.30] - 2026-10-29
 

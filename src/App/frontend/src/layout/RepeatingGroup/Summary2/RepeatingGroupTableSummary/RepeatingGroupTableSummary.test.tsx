@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
@@ -523,4 +524,3 @@ describe('RepeatingGroupTableSummary', () => {
     });
   };
 });
-import type { Mock } from 'vitest';

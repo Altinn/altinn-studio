@@ -10,8 +10,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -141,6 +143,25 @@ public class DatamodelsController : ControllerBase
         await _schemaModelService.UpdateSchema(editingContext, modelPath, content, saveOnly, cancellationToken);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Generates the C# classes, the XSD and the application metadata of a data model from the request, without
+    /// reading or writing a repository.
+    /// </summary>
+    /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
+    [HttpPost]
+    [AllowApiKey]
+    [IgnoreAntiforgeryToken]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Route("datamodel/generate")]
+    public async Task<ActionResult<GeneratedDatamodel>> GenerateDatamodel([FromBody] GenerateDatamodelRequest request)
+    {
+        return Ok(await _schemaModelService.GenerateDatamodel(request));
     }
 
     /// <summary>

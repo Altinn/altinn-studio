@@ -13,8 +13,7 @@ spec:
   timeout: 5m
   prune: true
   # Waiting for every resource would also wait for ExternalSecrets whose Vault secret doesn't
-  # exist yet, such as observability-ingest-token, and keep the Kustomization from being ready
-  # until it does. It is ready once these are, and pdf3-proxy only becomes ready with its API
+  # exist yet, and keep the Kustomization from being ready until it does. It is ready once these are, and pdf3-proxy only becomes ready with its API
   # keys.
   wait: false
   healthChecks:
@@ -29,10 +28,6 @@ spec:
     - apiVersion: apps/v1
       kind: Deployment
       name: pdf3-worker
-      namespace: product-studio-pdf3
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: pdf3-collector
       namespace: product-studio-pdf3
   path: set-per-environment
   targetNamespace: product-studio-pdf3

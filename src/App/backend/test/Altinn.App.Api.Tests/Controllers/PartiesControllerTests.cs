@@ -2,15 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class PartiesControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-    : ApiTestBase(factory, outputHelper),
-        IClassFixture<WebApplicationFactory<Program>>
+public class PartiesControllerTests(ITestOutputHelper outputHelper) : ApiTestBase(outputHelper)
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";

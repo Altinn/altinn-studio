@@ -74,7 +74,7 @@ internal sealed class WorkflowStepSet
         var group = new WorkflowStepSet()
             .AddStep(UnlockTaskData.Key, new TaskDataLockPayload(context.TaskId))
             .AddStep(CleanupGeneratedFromTask.Key)
-            .AddStep(OnTaskStartingHook.Key)
+            .AddHookStep(OnTaskStartingHook.Key, context.StartingHook)
             .AddStep(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
             .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
@@ -113,23 +113,30 @@ internal sealed class WorkflowStepSet
     /// <summary>
     /// The steps for a task end event.
     /// </summary>
-    public static WorkflowStepSet GetTaskEndSteps(string taskId, ProcessTaskPipeline endPipeline)
+    public static WorkflowStepSet GetTaskEndSteps(
+        string taskId,
+        ProcessTaskPipeline endPipeline,
+        IOnTaskEndingHandler? endingHook
+    )
     {
         return new WorkflowStepSet()
             .AddProcessTaskStages(EndTask.Key, endPipeline)
             .AddStep(CommonTaskFinalization.Key)
-            .AddStep(OnTaskEndingHook.Key)
+            .AddHookStep(OnTaskEndingHook.Key, endingHook)
             .AddStep(LockTaskData.Key, new TaskDataLockPayload(taskId));
     }
 
     /// <summary>
     /// The steps for a task abandon event.
     /// </summary>
-    public static WorkflowStepSet GetTaskAbandonSteps(ProcessTaskPipeline abandonPipeline)
+    public static WorkflowStepSet GetTaskAbandonSteps(
+        ProcessTaskPipeline abandonPipeline,
+        IOnTaskAbandoningHandler? abandonHook
+    )
     {
         return new WorkflowStepSet()
             .AddProcessTaskStages(AbandonTask.Key, abandonPipeline)
-            .AddStep(OnTaskAbandonHook.Key);
+            .AddHookStep(OnTaskAbandonHook.Key, abandonHook);
     }
 
     /// <summary>
@@ -138,7 +145,7 @@ internal sealed class WorkflowStepSet
     public static WorkflowStepSet GetProcessEndSteps(ProcessEndContext context)
     {
         var group = new WorkflowStepSet()
-            .AddPrimaryPostCommitStep(OnProcessEndedHook.Key)
+            .AddPrimaryPostCommitHookStep(OnProcessEndedHook.Key, context.ProcessEndedHook)
             .AddPrimaryPostCommitStep(DeleteDataOnProcessEnd.Key);
 
         if (context.ConfirmComplete)
@@ -160,6 +167,19 @@ internal sealed class WorkflowStepSet
     private WorkflowStepSet AddStep(string commandKey, CommandRequestPayload? payload = null)
     {
         _lifecycleSteps.Add(CreateStep(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a hook's lifecycle step when an app handler runs for it, with the handler's own step options. Without a
+    /// handler the step would have nothing to run.
+    /// </summary>
+    private WorkflowStepSet AddHookStep(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _lifecycleSteps.Add(CreateStep(commandKey, declaredOptions: handler.StepOptions));
+        }
         return this;
     }
 
@@ -194,6 +214,18 @@ internal sealed class WorkflowStepSet
     private WorkflowStepSet AddPrimaryPostCommitStep(string commandKey, CommandRequestPayload? payload = null)
     {
         _primaryPostCommitSteps.Add(CreateStep(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a hook's step after the commit, on the same terms as <see cref="AddHookStep"/>.
+    /// </summary>
+    private WorkflowStepSet AddPrimaryPostCommitHookStep(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _primaryPostCommitSteps.Add(CreateStep(commandKey, declaredOptions: handler.StepOptions));
+        }
         return this;
     }
 

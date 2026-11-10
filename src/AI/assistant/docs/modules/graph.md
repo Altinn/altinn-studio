@@ -1,20 +1,20 @@
 # Graph: gates, intake, spec and the loop node
 
-Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/intent_parser.py`
+Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/security_checker.py`
 
 ## Runner and gates
 
-`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The intent check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The intent check fails closed: if it cannot run, a write request stops.
+`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The security check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The security check fails closed: if it cannot run, a write request stops.
 
 ```mermaid
 flowchart TD
   S["Scope check, all runs"] --> Q{"In scope?"}
   Q -- No --> X["Chat: polite decline. Workflow: reject"]
-  Q -- Yes --> I["Intent check, workflow mode only"]
-  I -- "safe, confidence 0.30 or more" --> G["Run the graph"]
+  Q -- Yes --> I["Security check, workflow mode only"]
+  I -- "safe" --> G["Run the graph"]
 ```
 
-_The gates. An unsafe or unclear goal stops with `GoalRejected` and gets suggestions._
+_The gates. An unsafe goal stops with `GoalRejected` and gets suggestions. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
 
 ```mermaid
 flowchart LR
@@ -82,7 +82,12 @@ Code: `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`
 
 This node prepares the loop and handles the result. It finds the app version (v8 or v9), builds the system prompt and registers the tools. In chat mode it connects the permission broker, so a write tool can ask the user.
 
-After the loop, workflow mode has two safety steps. If the model changed files but did not commit, the node verifies and commits the files. If the commit exists, the node runs the render check. On a failure, it gives the error to the model for one more loop run.
+After the loop, workflow mode has two safety steps:
+
+- The node saves the edits that the model did not save. An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The session has its own clone of the app, thus all changes in the clone are edits of the assistant. The flags of the tools are for one turn only, thus the node asks git which edits are not saved. Then it verifies, commits and pushes these edits.
+- If all edits are saved and a push in this turn succeeded, the node runs the render check. If a page does not render, the node gives the error to the model for one more loop run.
+
+The node reports success only if the assistant saved all its edits.
 
 ```mermaid
 flowchart TD
@@ -107,4 +112,7 @@ flowchart LR
 
 _The event bridge. A `tool_use_id` lets the frontend replace a placeholder line in place._
 
-The final message also gets two flags. `no_branch_operations` tells Designer not to check out a branch in chat mode. `attachmentInstructionFlagged` tells Designer to show the injection warning.
+The final message can also have these fields:
+
+- `pushedBranch` is the session branch, if the assistant pushed a commit after the previous final message. A cancelled turn sends no final message, thus the next final message has its push. Designer resets the repo and checks out this branch, so that the preview shows the change. Without the field, Designer does not change the repo or the branch of the user.
+- `attachmentInstructionFlagged` tells Designer to show the injection warning.

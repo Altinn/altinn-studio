@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Hubs.Assistant;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -31,7 +30,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
 /// <para>
-/// Every replica sees every event, so persistence is deduplicated on the agent's event id.
+/// The assistant service sends the events of a developer to each replica that has a connection for
+/// that developer. Each replica saves the answers. The database keeps one message for each event id.
 /// </para>
 /// </summary>
 public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
@@ -55,11 +55,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     private readonly ConcurrentDictionary<string, DeveloperConnection> _connections = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _connectLocks = new();
 
-    // sessionId (== chat thread id) → the editing context it was registered
-    // under. Lets the listener persist assistant messages into the right
-    // app's thread without any browser tab involved.
-    private readonly ConcurrentDictionary<string, AltinnRepoEditingContext> _sessionContexts = new();
-
     public AssistantWebSocketService(
         ILogger<AssistantWebSocketService> logger,
         IOptions<AssistantSettings> settings,
@@ -73,61 +68,13 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         _scopeFactory = scopeFactory;
     }
 
-    public async Task EnsureConnectedAsync(string developer)
+    public Task EnsureConnectedAsync(string developer) => GetOrConnectAsync(developer);
+
+    public async Task RegisterSessionAsync(string sessionId, string developer)
     {
-        if (_connections.TryGetValue(developer, out var existing) && existing.IsAlive)
-        {
-            _logger.LogInformation("Reusing existing agents WebSocket for developer {Developer}", developer);
-            return;
-        }
-
-        var sem = _connectLocks.GetOrAdd(developer, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
-        try
-        {
-            if (_connections.TryGetValue(developer, out var existing2) && existing2.IsAlive)
-            {
-                _logger.LogInformation(
-                    "Reusing existing agents WebSocket for developer {Developer} (after lock)",
-                    developer
-                );
-                return;
-            }
-
-            var wsUri = BuildWebSocketUri(_settings.AgentUrl);
-            var webSocket = new ClientWebSocket();
-            await webSocket.ConnectAsync(wsUri, CancellationToken.None);
-
-            _logger.LogInformation("Opened new agents WebSocket for developer {Developer}", developer);
-
-            var connection = new DeveloperConnection(developer, webSocket);
-            _connections[developer] = connection;
-
-            // The listener runs for as long as the agent's WebSocket is open, so it starts without the caller's
-            // trace. Each message it forwards is a root span of its own.
-            _ = Task.Run(() =>
-            {
-                Activity.Current = null;
-                return ListenForMessagesAsync(developer, connection);
-            });
-        }
-        finally
-        {
-            sem.Release();
-        }
-    }
-
-    public async Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext)
-    {
-        string developer = editingContext.Developer;
-        if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
-        {
-            throw new InvalidOperationException(
-                $"No live agents WebSocket for developer {developer}. Call EnsureConnectedAsync first."
-            );
-        }
-
-        TrackSessionContext(sessionId, editingContext);
+        // The agent's WebSocket can close while the developer's SignalR connection stays open, such as when
+        // the assistant service restarts.
+        DeveloperConnection connection = await GetOrConnectAsync(developer);
 
         var frame = JsonSerializer.SerializeToUtf8Bytes(
             new
@@ -147,11 +94,56 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         _logger.LogInformation("Registered session {SessionId} for developer {Developer}", sessionId, developer);
     }
 
+    private async Task<DeveloperConnection> GetOrConnectAsync(string developer)
+    {
+        if (_connections.TryGetValue(developer, out var existing) && existing.IsAlive)
+        {
+            _logger.LogInformation("Reusing existing agents WebSocket for developer {Developer}", developer);
+            return existing;
+        }
+
+        var sem = _connectLocks.GetOrAdd(developer, _ => new SemaphoreSlim(1, 1));
+        await sem.WaitAsync();
+        try
+        {
+            if (_connections.TryGetValue(developer, out var existing2) && existing2.IsAlive)
+            {
+                _logger.LogInformation(
+                    "Reusing existing agents WebSocket for developer {Developer} (after lock)",
+                    developer
+                );
+                return existing2;
+            }
+
+            var wsUri = BuildWebSocketUri(_settings.AgentUrl);
+            var webSocket = new ClientWebSocket();
+            await webSocket.ConnectAsync(wsUri, CancellationToken.None);
+
+            _logger.LogInformation("Opened new agents WebSocket for developer {Developer}", developer);
+
+            var connection = new DeveloperConnection(developer, webSocket);
+            _connections[developer] = connection;
+
+            // The listener runs for as long as the agent's WebSocket is open, so it starts without the caller's
+            // trace. Each message it forwards is a root span of its own.
+            _ = Task.Run(() =>
+            {
+                Activity.Current = null;
+                return ListenForMessagesAsync(developer, connection);
+            });
+
+            return connection;
+        }
+        finally
+        {
+            sem.Release();
+        }
+    }
+
     public async Task CloseConnectionAsync(string developer)
     {
         if (_connections.TryRemove(developer, out var connection))
         {
-            RemoveSessionContextsForDeveloper(developer);
             await CloseWebSocketAsync(connection);
         }
     }
@@ -222,7 +214,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                         continue;
                     }
 
-                    await TryPersistAssistantMessageAsync(messageNode);
+                    await TryPersistAssistantMessageAsync(developer, messageNode);
 
                     var message = JsonSerializer.SerializeToElement(messageNode);
                     await _hubContext.Clients.Group(developer).ReceiveAgentMessage(message);
@@ -259,44 +251,15 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     /// </summary>
     private void RemoveConnection(string developer, DeveloperConnection connection)
     {
-        if (_connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection)))
-        {
-            RemoveSessionContextsForDeveloper(developer);
-        }
+        _connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection));
     }
 
     /// <summary>
-    /// Drops the session→editing-context entries for a developer whose agents connection
-    /// closed. Events for those sessions can no longer arrive, and without eviction the
-    /// map would grow for the lifetime of the process. Re-registration on the next
-    /// connection restores the entries.
+    /// Saves an assistant answer in the developer's thread and adds the id of the saved message to the
+    /// event. The save needs only the thread id and the developer, so any replica can save the answer.
+    /// If the save fails, this method logs the error, and the listener forwards the event without the id.
     /// </summary>
-    internal void RemoveSessionContextsForDeveloper(string developer)
-    {
-        foreach (var entry in _sessionContexts)
-        {
-            if (entry.Value.Developer == developer)
-            {
-                _sessionContexts.TryRemove(entry);
-            }
-        }
-    }
-
-    internal void TrackSessionContext(string sessionId, AltinnRepoEditingContext editingContext)
-    {
-        _sessionContexts[sessionId] = editingContext;
-    }
-
-    /// <summary>
-    /// Persists a final assistant message server-side so the answer survives
-    /// regardless of how many browser tabs (including zero) are listening, and
-    /// stamps the persisted id onto the event so clients render it without
-    /// persisting their own copy — which duplicated messages when several tabs
-    /// received the same broadcast. Any failure is logged and the event is
-    /// forwarded unenriched; the frontend then falls back to persisting
-    /// client-side, so an answer is never lost to a persistence error.
-    /// </summary>
-    internal async Task TryPersistAssistantMessageAsync(JsonNode message)
+    internal async Task TryPersistAssistantMessageAsync(string developer, JsonNode message)
     {
         try
         {
@@ -311,33 +274,35 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 return;
             }
 
-            if (!_sessionContexts.TryGetValue(sessionId, out AltinnRepoEditingContext? editingContext))
+            if (message["data"] is not JsonObject data)
             {
-                _logger.LogWarning(
-                    "No editing context registered for session {SessionId}; leaving persistence to the client",
-                    sessionId
-                );
                 return;
             }
 
-            JsonNode? data = message["data"];
-
-            // Same field fallback order as the frontend's getAssistantMessageContent.
+            // The answer is in the first of these fields that is set.
             string? content =
-                data?["response"]?.GetValue<string>()
-                ?? data?["message"]?.GetValue<string>()
-                ?? data?["content"]?.GetValue<string>();
+                ReadOptional(data, "response", AsString)
+                ?? ReadOptional(data, "message", AsString)
+                ?? ReadOptional(data, "content", AsString);
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;
             }
 
-            List<string>? filesChanged = data!["filesChanged"]?.Deserialize<List<string>>();
-            List<ChatSourceEntity>? sources = data["sources"]
-                ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
-            string? traceId = data["traceId"]?.GetValue<string>();
-            string? eventId = data["eventId"]?.GetValue<string>();
-            bool? attachmentInstructionFlagged = data["attachmentInstructionFlagged"]?.GetValue<bool>();
+            List<string>? filesChanged = ReadOptional(data, "filesChanged", node => node.Deserialize<List<string>>());
+            List<ChatSourceEntity>? sources = ReadOptional(
+                data,
+                "sources",
+                node => node.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions)
+            );
+            string? traceId = ReadOptional(data, "traceId", AsString);
+            bool? attachmentInstructionFlagged = ReadOptional<bool?>(
+                data,
+                "attachmentInstructionFlagged",
+                node => node.GetValue<bool>()
+            );
+            // The assistant service stamps an event id on each answer, so each replica saves it under the same id.
+            string? eventId = ReadOptional(data, "eventId", AsString);
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -353,17 +318,23 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
             using var scope = _scopeFactory.CreateScope();
             var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-            ChatMessageEntity? created = await chatService.CreateMessageAsync(threadId, request, editingContext);
+            ChatMessageEntity? created = await chatService.CreateMessageInDeveloperThreadAsync(
+                threadId,
+                developer,
+                request
+            );
             if (created is null)
             {
                 _logger.LogWarning(
-                    "Server-side persist skipped for session {SessionId}: thread not found or not owned by {Developer}",
+                    "Did not save the assistant message for session {SessionId}: {Developer} has no thread with this id",
                     sessionId,
-                    editingContext.Developer
+                    developer
                 );
                 return;
             }
 
+            // A browser tab that still runs an older version of Designer saves its own copy of the answer
+            // when the event has no persistedMessageId.
             data["persistedMessageId"] = created.Id.ToString();
             _logger.LogInformation(
                 "Persisted assistant message {MessageId} for session {SessionId}",
@@ -373,7 +344,30 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to persist assistant message server-side; forwarding unenriched");
+            _logger.LogError(ex, "Failed to save the assistant message; forwarding it without the message id");
+        }
+    }
+
+    private static string? AsString(JsonNode node) => node.GetValue<string>();
+
+    /// <summary>
+    /// Reads a field that the save can do without. A value of an unexpected type costs that field, not the answer.
+    /// </summary>
+    private T? ReadOptional<T>(JsonObject data, string field, Func<JsonNode, T?> read)
+    {
+        try
+        {
+            JsonNode? node = data[field];
+            return node is null ? default : read(node);
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Ignored the field {Field} of an assistant message, because its value has an unexpected type",
+                field
+            );
+            return default;
         }
     }
 

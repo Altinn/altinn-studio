@@ -42,16 +42,15 @@ classDiagram
 
 _The manifest model. `check` runs only the evals that a pinned behavior claims._
 
-| Eval                         | Kind       | What it runs                                            |
-| ---------------------------- | ---------- | ------------------------------------------------------- |
-| `Gates/scope`                | prompt     | The scope prompt on one question                        |
-| `Gates/intent-safety`        | prompt     | The intent prompt, scored on the safe verdict           |
-| `Gates/confidence`           | prompt     | The intent prompt, scored on the side of the 0.30 limit |
-| `Planner/intake`             | prompt     | The intake prompt, scored on the intent family          |
-| `Planner/spec`               | planner    | The spec prompt on a real PDF                           |
-| `Loop/traces`                | generation | One actor turn, replayed from a production trace        |
-| `Benchmarks/forms`           | e2e        | A full agent run that builds an app                     |
-| `Redteam/indirect-injection` | prompt     | Orphan: the corpus exists, but no runner uses it        |
+| Eval                         | Kind       | What it runs                                     |
+| ---------------------------- | ---------- | ------------------------------------------------ |
+| `Gates/scope`                | prompt     | The scope prompt on one question                 |
+| `Gates/security`             | prompt     | The security prompt, scored on the safe verdict  |
+| `Planner/intake`             | prompt     | The intake prompt, scored on the intent family   |
+| `Planner/spec`               | planner    | The spec prompt on a real PDF                    |
+| `Loop/traces`                | generation | One actor turn, replayed from a production trace |
+| `Benchmarks/forms`           | e2e        | A full agent run that builds an app              |
+| `Redteam/indirect-injection` | prompt     | Orphan: the corpus exists, but no runner uses it |
 
 ## Four kinds of eval
 

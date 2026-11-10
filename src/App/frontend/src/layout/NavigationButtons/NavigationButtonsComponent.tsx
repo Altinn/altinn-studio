@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { useCurrentProcessKey, useIsAnyProcessing, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
@@ -12,17 +13,12 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import {
-  useCurrentProcessKey,
-  useIsAnyProcessing,
-  useProcessingMutationWithKey,
-} from 'src/hooks/useProcessingMutation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
@@ -91,10 +87,9 @@ function NavigationButtonsComponentInner({
   );
 
   const { getPageValidation } = usePageValidation(baseComponentId);
-  // Use component-level validation if set, otherwise fall back to page-level
-  // When page-level validation is set, only validate forward navigation
-  const validateOnForward = getPageValidation() ?? config.validateOnNext;
-  const validateOnBackward = getPageValidation() ? undefined : config.validateOnPrevious;
+  // Inherited validation applies only to forward navigation.
+  const validateOnForward = config.validateOnNext ?? getPageValidation();
+  const validateOnBackward = config.validateOnPrevious;
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();

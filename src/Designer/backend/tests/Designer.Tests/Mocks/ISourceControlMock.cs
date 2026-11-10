@@ -208,11 +208,6 @@ public class ISourceControlMock : ISourceControl
         throw new NotImplementedException();
     }
 
-    public void StoreAppTokenForUser(string token, string developer)
-    {
-        throw new NotImplementedException();
-    }
-
     public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
     {
         return;

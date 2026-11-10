@@ -441,10 +441,12 @@ internal sealed class SigningService(
     {
         try
         {
-            List<SigneeContext> signeeContexts = await GetSigneeContexts(
+            // The saved signee state is what the rights were delegated from. The signee contexts merged with the
+            // signatures are not: there, a person who signed for an organization has replaced the organization.
+            List<SigneeContext> signeeContexts = await _signeeContextsManager.GetSigneeContexts(
                 instanceDataMutator,
                 signatureConfiguration,
-                cancellationToken: cancellationToken
+                cancellationToken
             );
             List<SigneeContext> signeeContextsWithDelegation =
             [

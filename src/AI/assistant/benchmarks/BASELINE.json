@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "333710f2f15b",
-    "code": "519a974 clean",
-    "dataset": "116 items 90d5f6e70f83",
+    "actor_prompt": "0a2c5651440c",
+    "code": "d34b08c clean",
+    "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "f2076778eb7a"
   },
-  "check_id": "20261021T081022Z-repo-owner-from-repo-url-519a974da8-d01f",
-  "label": "repo owner from repo_url 519a974da8",
-  "recorded_at": "2026-10-21T08:15:41+00:00",
-  "why": "Takes the repository owner from repo_url in #21389, which changes benchmarks/preview_check.py. Full check with e2e and the preview check: every pinned behavior scored, at the same scores as the earlier baseline."
+  "check_id": "20261110T111846Z-21822-success-only-when-the-assistant-saved-its-edits-b3b1",
+  "label": "#21822 success only when the assistant saved its edits",
+  "recorded_at": "2026-11-10T11:25:03+00:00",
+  "why": "#21822 reports success only when the assistant saved its edits, and changes the description of commit_session_branch. This moves the tools digest. Full check with e2e: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview did not load on the local stack, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
 }

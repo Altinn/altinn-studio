@@ -1,0 +1,44 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: observability
+  namespace: product-studio-obs
+  annotations:
+    # The root Kustomization points the sourceRef of an annotated Kustomization at its own
+    # source, the artifact this file is in.
+    clusterconfig.azure.com/use-managed-source: "true"
+spec:
+  interval: 5m
+  retryInterval: 1m
+  timeout: 5m
+  prune: true
+  # Waiting for every resource would also wait for the ExternalSecret, which isn't ready until
+  # someone writes the ingest token to the Vault. The collectors run without it.
+  wait: false
+  healthChecks:
+    - apiVersion: vault.dis.altinn.cloud/v1alpha1
+      kind: Vault
+      name: observability
+      namespace: product-studio-obs
+    # The operator's Deployments for the OpenTelemetryCollectors.
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: otel-router-collector
+      namespace: product-studio-obs
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: otel-gateway-collector
+      namespace: product-studio-obs
+  path: set-per-environment
+  # The variables in the collectors' configuration, set per environment. K8S_CLUSTER_NAME is the
+  # AKS cluster's name, which resource_detection/aks reads from Azure in the runtime clusters.
+  postBuild:
+    substitute:
+      ENVIRONMENT: set-per-environment
+      K8S_CLUSTER_NAME: set-per-environment
+  targetNamespace: product-studio-obs
+  serviceAccountName: flux-applier
+  sourceRef:
+    kind: OCIRepository
+    name: product-studio-obs
+    namespace: product-studio-obs

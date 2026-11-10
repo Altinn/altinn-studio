@@ -42,7 +42,7 @@ public static class EntityExtensions
     {
         entity.Org = editingContext.Org;
         entity.App = editingContext.Repo;
-        entity.Created = timeProvider.GetUtcNow().DateTime;
+        entity.Created = timeProvider.GetUtcNow().UtcDateTime;
         entity.CreatedBy = editingContext.Developer;
 
         return entity;

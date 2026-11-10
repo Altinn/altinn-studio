@@ -145,6 +145,14 @@ public class AltinnAppGitRepository : AltinnGitRepository
         return applicationMetaData;
     }
 
+    /// <summary>
+    /// Serializes the application metadata to the text of <c>applicationmetadata.json</c>.
+    /// </summary>
+    public static string SerializeApplicationMetadata(ApplicationMetadata applicationMetadata)
+    {
+        return JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
+    }
+
     public async Task<ServiceConfiguration> GetServiceConfiguration(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -176,7 +184,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// <param name="applicationMetadata">The updated application metadata to persist.</param>
     public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
     {
-        string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
+        string metadataAsJson = SerializeApplicationMetadata(applicationMetadata);
         string appMetadataRelativeFilePath = Path.Combine(ConfigFolderPath, AppMetadataFilename);
         await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
     }

@@ -90,10 +90,12 @@ public class RuntimeGatewayClientTests
         );
     }
 
-    [Fact]
-    public async Task GetRunningAppDeployment_WhenTheAppDoesNotRun_ReturnsNull()
+    [Theory]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task GetRunningAppDeployment_WhenTheAppDoesNotRun_ReturnsNull(HttpStatusCode statusCode)
     {
-        using var handler = new RespondingHandler(HttpStatusCode.NotFound);
+        using var handler = new RespondingHandler(statusCode);
         var client = CreateClient(handler);
 
         var deployment = await client.GetRunningAppDeployment(

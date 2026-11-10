@@ -1,0 +1,230 @@
+import axios from 'axios';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { JSONSchema7 } from 'json-schema';
+
+import { doPerformAction } from 'src/core/api-client/actions.api';
+import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
+import { instanceApi } from 'src/core/api-client/instance.api';
+import { fetchOrg, fetchPerson } from 'src/core/api-client/lookup.api';
+import { partyApi } from 'src/core/api-client/party.api';
+import { fetchAuthorizedOrganizationDetails, fetchSigneeList } from 'src/core/api-client/signing.api';
+import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api';
+import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { GlobalData } from 'src/GlobalData';
+import { getFileContentType } from 'src/utils/attachmentsUtils';
+import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
+import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
+import {
+  appPath,
+  getDataElementIdUrl,
+  getDataElementUrl,
+  getDataModelTypeUrl,
+  getFileUploadUrl,
+  getFormBootstrapUrlForInstance,
+  getFormBootstrapUrlForStateless,
+  getLayoutsUrl,
+  getOrderDetailsUrl,
+  getPaymentInformationForTaskUrl,
+  getProcessNextUrl,
+  getProcessResumeUrl,
+  getUpdateFileTagsUrl,
+  refreshJwtTokenUrl,
+} from 'src/utils/urls/appUrlHelper';
+import { customEncodeURI } from 'src/utils/urls/urlHelper';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { DataPostResponse } from 'src/features/attachments';
+import type { IDataList } from 'src/features/dataLists';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
+import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
+import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
+import type { BackendValidationIssuesWithSource } from 'src/features/validation';
+import type { ILayoutCollection } from 'src/layout/layout';
+import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
+
+export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
+  httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
+
+export const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
+
+export const doAttachmentUpload = async (
+  instanceId: string,
+  dataTypeId: string,
+  language: string,
+  file: File,
+): Promise<DataPostResponse> => {
+  const url = getFileUploadUrl(instanceId, dataTypeId, language);
+  const contentType = getFileContentType(file);
+
+  const config: AxiosRequestConfig = {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
+    },
+  };
+
+  return (await httpPost<DataPostResponse>(url, config, file)).data;
+};
+
+export type SetTagsRequest = {
+  tags: string[];
+};
+
+type UpdateTagsResponse = {
+  tags: string[];
+  validationIssues?: BackendValidationIssuesWithSource[];
+};
+
+export const doUpdateAttachmentTags = async ({
+  instanceId,
+  dataElementId,
+  setTagsRequest,
+}: {
+  instanceId: string;
+  dataElementId: string;
+  setTagsRequest: SetTagsRequest;
+}) => {
+  const url = getUpdateFileTagsUrl(instanceId, dataElementId);
+  const response = await httpPut<UpdateTagsResponse, SetTagsRequest>(url, setTagsRequest, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error('Failed to update tags on attachment');
+  }
+
+  return response.data;
+};
+
+export const doAttachmentRemove = async (
+  instanceId: string,
+  dataElementId: string,
+  language: string,
+): Promise<void> => {
+  const response = await httpDelete(getDataElementUrl(instanceId, dataElementId, language));
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error('Failed to remove attachment');
+  }
+};
+
+export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
+  const response = await httpPost<DataPostResponse>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error('Failed to add sub form');
+  }
+  const newDataElement = response.data.instance.data.find((element) => element.id === response.data.newDataElementId);
+  if (!newDataElement) {
+    throw new Error('Created subform data element is missing from the instance');
+  }
+  return newDataElement;
+};
+
+export const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
+  const response = await httpDelete(getDataElementIdUrl(instanceId, dataElementId));
+  if (response.status < 200 || response.status >= 300) {
+    throw new Error('Failed to delete sub form');
+  }
+};
+
+// New multi-patch endpoint for stateful apps
+export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
+  httpPatch<IDataModelMultiPatchResponse>(url, data);
+
+// When saving data for stateless apps
+export const doPostStatelessFormData = async (
+  url: string,
+  data: object,
+  options?: AxiosRequestConfig,
+): Promise<object> => (await httpPost<object>(url, options, data)).data;
+
+export const fetchLogo = async (): Promise<string> =>
+  (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
+
+export type OptionsResponse = Pick<AxiosResponse<IRawOption[]>, 'data' | 'headers'>;
+
+export const fetchOptions = (url: string): Promise<OptionsResponse | null> => httpGetRaw<IRawOption[]>(url);
+
+export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
+
+export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
+
+export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
+
+export const fetchPaymentInformationForTask = (
+  instanceId: string,
+  language?: string,
+  taskId?: string,
+): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
+
+export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
+  httpGet(getOrderDetailsUrl(instanceId, language));
+
+export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
+  // Hacky (and only) way to get the correct CDN url
+  const schemaBaseUrl = document
+    .querySelector('script[src$="altinn-app-frontend.js"]')
+    ?.getAttribute('src')
+    ?.replace('altinn-app-frontend.js', 'schemas/json/layout/');
+
+  if (!schemaBaseUrl) {
+    return Promise.resolve(null);
+  }
+
+  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
+};
+
+export function fetchExternalApi({
+  instanceId,
+  externalApiId,
+}: {
+  instanceId: string;
+  externalApiId: string;
+}): Promise<unknown> {
+  const externalApiUrl = `${appPath}/instances/${instanceId}/api/external/${externalApiId}`;
+  return httpGet(externalApiUrl);
+}
+
+export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
+  const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
+  return (await axios.get(postalCodesUrl)).data;
+};
+
+export const fetchFormBootstrapForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForInstance(options);
+  return httpGet<FormBootstrapResponse>(url);
+};
+
+export const fetchFormBootstrapForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+  prefill?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForStateless(options);
+  return httpGet<FormBootstrapResponse>(url);
+};
+
+export const { fetchBackendValidations } = backendValidationApi;
+export const {
+  getInstance,
+  getActiveInstances,
+  create: createInstance,
+  createWithPrefill: createInstanceWithPrefill,
+} = instanceApi;
+export const { getPartiesAllowedToInstantiateHierarchical, setSelectedParty } = partyApi;
+export const { fetchTextResources } = textResourcesApi;
+export { fetchPerson, fetchOrg };
+export { fetchSigneeList, fetchSigningDocuments, fetchAuthorizedOrganizationDetails };
+
+export { doPerformAction };

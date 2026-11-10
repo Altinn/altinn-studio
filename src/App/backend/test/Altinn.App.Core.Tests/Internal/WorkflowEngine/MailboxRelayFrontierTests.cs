@@ -334,7 +334,7 @@ public class MailboxRelayFrontierTests
                 g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
                 == "callback-token"
             ),
-            new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
+            new ProcessStepOptionsResolver([]),
             processEngine.Object
         );
     }

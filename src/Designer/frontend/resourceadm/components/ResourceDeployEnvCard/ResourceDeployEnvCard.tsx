@@ -11,13 +11,19 @@ import {
   StudioTag,
 } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
-import { type Environment } from '../../utils/resourceUtils';
+import { getEnvLabel, type EnvId } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
+type PublishError = {
+  title?: string;
+  status: number;
+  detail: string;
+};
+
 export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
-  env: Environment;
+  env: EnvId;
   currentEnvVersion: string;
   newEnvVersion?: string;
 };
@@ -28,7 +34,7 @@ export type ResourceDeployEnvCardProps = {
  *    to an environment and information about the resource version
  *
  * @property {boolean}[isDeployPossible] - Flag for if deploy is possible or not
- * @property {Environment}[env] - The name of the environment
+ * @property {EnvId}[env] - The name of the environment
  * @property {string}[currentEnvVersion] - The current version in the environment
  * @property {string}[newEnvVersion] - The new version the resource will deploy to
  *
@@ -42,7 +48,7 @@ export const ResourceDeployEnvCard = ({
 }: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [hasNoPublishAccess, setHasNoPublishAccess] = useState<boolean>(false);
+  const [publishError, setPublishError] = useState<PublishError | null>(null);
   const { org, app, resourceId } = useUrlParams();
 
   // Query function for publishing a resource
@@ -50,13 +56,33 @@ export const ResourceDeployEnvCard = ({
     usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
-    publishResource(env.id, {
+    setPublishError(null);
+    publishResource(env, {
       onSuccess: () => {
-        toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
+        toast.success(
+          t('resourceadm.resource_published_success', { envName: t(getEnvLabel(env)) }),
+        );
       },
       onError: (error: Error) => {
         if ((error as ResourceError).response?.status === 403) {
-          setHasNoPublishAccess(true);
+          setPublishError({
+            detail: t('resourceadm.resource_publish_no_access', { envName: t(getEnvLabel(env)) }),
+            status: 403,
+          });
+        } else if ((error as ResourceError).response?.status === 409) {
+          setPublishError({
+            detail: t('resourceadm.resource_publish_conflict', { envName: t(getEnvLabel(env)) }),
+            status: 409,
+          });
+        } else {
+          const statusCode = (error as ResourceError).response?.status || 500;
+          setPublishError({
+            title: (error as ResourceError).response?.data?.title || undefined,
+            status: statusCode,
+            detail:
+              (error as ResourceError).response?.data?.detail ||
+              t('resourceadm.resource_publish_error', { statusCode: statusCode }),
+          });
         }
       },
     });
@@ -69,7 +95,7 @@ export const ResourceDeployEnvCard = ({
       ) : (
         <>
           <StudioParagraph>
-            <strong>{t(env.label)}</strong>
+            <strong>{t(getEnvLabel(env))}</strong>
           </StudioParagraph>
           <StudioParagraph>{t('resourceadm.deploy_version_number_text')}</StudioParagraph>
           <div className={classes.envWrapper}>
@@ -77,21 +103,24 @@ export const ResourceDeployEnvCard = ({
             {newEnvVersion && (
               <>
                 <ArrowRightIcon
-                  title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
+                  title={t('resourceadm.deploy_card_arrow_icon', { env: t(getEnvLabel(env)) })}
                   fontSize='1.5rem'
                 />
                 <StudioTag data-color='success'>{newEnvVersion}</StudioTag>
               </>
             )}
           </div>
-          <StudioButton disabled={!isDeployPossible || hasNoPublishAccess} onClick={handlePublish}>
-            {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
+          <StudioButton disabled={!isDeployPossible} onClick={handlePublish}>
+            {t('resourceadm.deploy_card_publish', { env: t(getEnvLabel(env)) })}
           </StudioButton>
-          {hasNoPublishAccess && (
+          {publishError && (
             <StudioAlert data-color='danger'>
-              <StudioParagraph>
-                {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
-              </StudioParagraph>
+              {publishError.title && (
+                <StudioParagraph>
+                  <strong>{publishError.title}</strong>
+                </StudioParagraph>
+              )}
+              <StudioParagraph>{publishError.detail}</StudioParagraph>
             </StudioAlert>
           )}
         </>

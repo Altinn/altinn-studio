@@ -102,9 +102,7 @@ describe('AddressComponent', () => {
         required: true,
         simplified: true,
       },
-      queries: {
-        fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
-      },
+      queries: { fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }) },
     });
 
     expect(screen.queryByText(/postnummer er ugyldig/i)).not.toBeInTheDocument();
@@ -184,9 +182,7 @@ describe('AddressComponent', () => {
 
   it('should update post place after typing zip code with debouncing', async () => {
     await render({
-      queries: {
-        fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }),
-      },
+      queries: { fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }) },
     });
 
     await userEvent.type(screen.getByRole('textbox', { name: 'Postnr Valgfritt' }), '0001{backspace}2');

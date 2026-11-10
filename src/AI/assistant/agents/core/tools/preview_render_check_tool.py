@@ -94,7 +94,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
 def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | None:
     if not is_enabled:
         return _report_unavailable("Preview render check is disabled in this deployment.")
-    if not ctx.extras.get("session_committed") or not ctx.extras.get("session_branch"):
+    if not ctx.extras.get("session_pushed") or not ctx.extras.get("session_branch"):
         return ToolResult(
             content=(
                 "Nothing to check yet: the preview renders the pushed session "

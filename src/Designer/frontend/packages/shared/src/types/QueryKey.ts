@@ -90,6 +90,7 @@ export enum QueryKey {
 
   // Resourceadm
   ResourceList = 'ResourceList',
+  ResourceEnvironments = 'ResourceEnvironments',
   Altinn2ResourcePolicies = 'Altinn2ResourcePolicies',
   ResourcePolicy = 'ResourcePolicy',
   ResourcePolicySubjects = 'ResourcePolicySubjects',

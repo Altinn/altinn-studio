@@ -7,16 +7,13 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Register.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class AuthorizationControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-    : ApiTestBase(factory, outputHelper),
-        IClassFixture<WebApplicationFactory<Program>>
+public class AuthorizationControllerTests(ITestOutputHelper outputHelper) : ApiTestBase(outputHelper)
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";

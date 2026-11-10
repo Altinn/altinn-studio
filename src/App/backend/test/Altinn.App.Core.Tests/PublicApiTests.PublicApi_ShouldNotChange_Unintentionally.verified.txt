@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Configuration
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FormLayoutJSONFileName { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
@@ -1528,6 +1527,8 @@ namespace Altinn.App.Core.Features
             where T :  class { }
         public static System.Threading.Tasks.Task<T?> GetFormData<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.Platform.Storage.Interface.Models.DataType dataType)
             where T :  class { }
+        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
+            where T :  class { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper?> GetFormDataWrapper(this Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.ModelBinding modelBinding, Altinn.App.Core.Models.DataElementIdentifier? defaultDataElementIdentifier) { }
     }
     public interface IInstanceDataListProvider
@@ -1543,7 +1544,11 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task ReplaceFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model);
+        void SetDataValue(string key, string? value);
+        void SetPresentationText(string key, string? value);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+        void UpdateDataElementMetadata(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, Altinn.App.Core.Models.DataElementMetadataUpdate update);
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -2201,27 +2206,35 @@ namespace Altinn.App.Core.Features.Process
         public OnProcessEndedContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskAbandoningContext
     {
         public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class PipelineBuilder
     {
@@ -4112,6 +4125,15 @@ namespace Altinn.App.Core.Models
         public static bool operator !=(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
         public static bool operator ==(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
     }
+    public sealed class DataElementMetadataUpdate : System.IEquatable<Altinn.App.Core.Models.DataElementMetadataUpdate>
+    {
+        public DataElementMetadataUpdate() { }
+        public string? Filename { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? Metadata { get; init; }
+        public System.Collections.Generic.IReadOnlyList<System.Guid>? Refs { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Tags { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? UserDefinedMetadata { get; init; }
+    }
     public class DataList
     {
         public DataList() { }
@@ -4378,6 +4400,7 @@ namespace Altinn.App.Core.Models
     public class PageGroup
     {
         public PageGroup() { }
+        public bool? ExpandedByDefault { get; set; }
         public bool? MarkWhenCompleted { get; set; }
         public string? Name { get; set; }
         public required System.Collections.Generic.List<string> Order { get; set; }
@@ -4408,13 +4431,16 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<string>? ExcludeFromPdf { get; set; }
         public bool? ExpandedWidth { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         public bool? HideCloseButton { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
         public string? PdfLayoutName { get; set; }
         public bool? ShowExpandWidthButton { get; set; }
         public bool? ShowLanguageSelector { get; set; }
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public class QueryResponse<T>
     {
@@ -4484,6 +4510,8 @@ namespace Altinn.App.Core.Models
         AllExceptRequired = 5,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("All")]
         All = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
+        Invalid = 7,
     }
 }
 namespace Altinn.App.Core.Models.Expressions
@@ -5386,12 +5414,6 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Validation.FrontendSeverityConverter?))]
         public Altinn.App.Core.Models.Validation.ValidationIssueSeverity? Severity { get; set; }
     }
-    public class ValidationException : Altinn.App.Core.Exceptions.AltinnException
-    {
-        public ValidationException() { }
-        public ValidationException(string message) { }
-        public ValidationException(string message, System.Exception inner) { }
-    }
     public class ValidationIssue
     {
         public ValidationIssue() { }
@@ -5443,7 +5465,6 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementFileInfected { get; }
             public static string DataElementFileScanPending { get; }
             public static string DataElementTooLarge { get; }
-            public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
             public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }

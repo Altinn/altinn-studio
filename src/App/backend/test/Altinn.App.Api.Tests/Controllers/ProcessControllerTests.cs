@@ -25,6 +25,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
@@ -33,10 +34,7 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -46,7 +44,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ProcessControllerTests : ApiTestBase
 {
     // Define constants
     private const string Org = "tdd";
@@ -68,8 +66,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     // Constructor with common setup
-    public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public ProcessControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
@@ -418,6 +416,67 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task RunProcessNext_TaskEndingHandlerMutatorWrites_AreSavedWithTheTransition()
+    {
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(SetupPdfGeneratorMock().Object);
+            services.AddSingleton<IOnTaskEndingHandler>(new MutatorMembersTaskEndHandler());
+        };
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+
+        Assert.True(nextResponse.IsSuccessStatusCode, await nextResponse.Content.ReadAsStringAsync());
+        Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Equal("2026-1", instance.DataValues?["caseNumber"]);
+        Assert.Equal("Name change", instance.PresentationTexts?["caseTitle"]);
+        Assert.Equal("Kari Nordmann", instance.PresentationTexts?["Navn"]);
+        DataElement formElement = JsonSerializer.Deserialize<DataElement>(
+            await File.ReadAllTextAsync(
+                TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid)
+            ),
+            _jsonSerializerOptions
+        )!;
+        Assert.Equal(["checked"], formElement.Tags);
+        Assert.Equal([("checkedBy", "hook")], formElement.Metadata?.Select(entry => (entry.Key, entry.Value)));
+        Assert.Equal([("TheKey", "42")], formElement.UserDefinedMetadata?.Select(entry => (entry.Key, entry.Value)));
+        Assert.Equal("skjema.xml", formElement.Filename);
+        Assert.Contains(
+            "<name>Kari Nordmann</name>",
+            TestData.GetDataElementBlobContnet(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid),
+            StringComparison.Ordinal
+        );
+    }
+
+    private sealed class MutatorMembersTaskEndHandler : IOnTaskEndingHandler
+    {
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public async Task<HandlerResult> Execute(OnTaskEndingContext context)
+        {
+            IInstanceDataMutator mutator = context.InstanceDataMutator;
+            DataElement formElement = mutator.Instance.Data.Single(dataElement => dataElement.DataType == "default");
+            Skjema skjema = await mutator.GetFormDataCopy<Skjema>(formElement);
+            skjema.Melding!.Name = "Kari Nordmann";
+            await mutator.ReplaceFormData(formElement, skjema);
+            mutator.UpdateDataElementMetadata(
+                formElement,
+                new DataElementMetadataUpdate
+                {
+                    Tags = ["checked"],
+                    Metadata = [new KeyValueEntry { Key = "checkedBy", Value = "hook" }],
+                    UserDefinedMetadata = [new KeyValueEntry { Key = "TheKey", Value = "42" }],
+                    Filename = "skjema.xml",
+                }
+            );
+            mutator.SetDataValue("caseNumber", "2026-1");
+            mutator.SetPresentationText("caseTitle", "Name change");
+            return HandlerResult.Success();
+        }
+    }
+
+    [Fact]
     public async Task RunProcessNext_VerifyUpdatePresentationTextsAndDataValues()
     {
         // Pre-assert that pretest does not contain presentation texts or data values
@@ -721,23 +780,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hidden"),
-                        JsonNode.Parse("\"value that is hidden\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenNotRemove"),
-                        JsonNode.Parse("\"value that is not removed\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenPage"),
-                        JsonNode.Parse("\"HiddenPage to be removed\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenPageNotRemove"),
-                        JsonNode.Parse("\"HiddenPageNotRemove to not be removed\"")
-                    )
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "add", "path": "/melding/hidden", "value": "value that is hidden" },
+                        { "op": "add", "path": "/melding/hiddenNotRemove", "value": "value that is not removed" },
+                        { "op": "add", "path": "/melding/hiddenPage", "value": "HiddenPage to be removed" },
+                        { "op": "add", "path": "/melding/hiddenPageNotRemove", "value": "HiddenPageNotRemove to not be removed" }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },
@@ -819,9 +870,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Replace(JsonPointer.Create("melding", "toggle"), JsonNode.Parse("true")),
-                    PatchOperation.Add(JsonPointer.Create("melding", "hiddenRange"), JsonNode.Parse("999"))
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "replace", "path": "/melding/toggle", "value": true },
+                        { "op": "add", "path": "/melding/hiddenRange", "value": 999 }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },
@@ -916,7 +971,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                             new DataType()
                             {
                                 Id = saveToDataType,
-                                TaskId = "Task_1",
+                                TaskIds = ["Task_1"],
                                 AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef },
                             }
                         );
@@ -944,11 +999,12 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "SF_test"),
-                        JsonNode.Parse("\"value that is in shadow field\"")
-                    )
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "add", "path": "/melding/SF_test", "value": "value that is in shadow field" }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },

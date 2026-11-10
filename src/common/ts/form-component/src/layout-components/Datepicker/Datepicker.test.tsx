@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 
 import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { Datepicker } from './Datepicker';
@@ -66,5 +66,56 @@ describe('Datepicker', () => {
     await user.type(screen.getByRole('textbox'), '15.03.2025');
 
     expect(onValueChange).toHaveBeenLastCalledWith('2025-03-15');
+  });
+
+  it('mounts a calendar only while it is open and restores input focus after selection', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render({ value: '2025-03-15', format: 'dd.MM.yyyy', onValueChange });
+    expect(screen.queryByRole('grid', { hidden: true })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Open date picker' }));
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { selected: true })).toHaveTextContent('15');
+    await user.click(screen.getByRole('button', { name: 'Thursday, March 20th, 2025' }));
+
+    expect(onValueChange).toHaveBeenLastCalledWith('2025-03-20');
+    expect(screen.queryByRole('grid', { hidden: true })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus());
+    await user.click(screen.getByRole('button', { name: 'Open date picker' }));
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+  });
+
+  it('keeps month/year selection and date limits available after lazy opening', async () => {
+    const user = userEvent.setup();
+    render({ value: '2025-03-15', minDate: '2025-03-10', maxDate: '2026-04-20' });
+    await user.click(screen.getByRole('button', { name: 'Open date picker' }));
+    expect(screen.getByRole('button', { name: 'Sunday, March 9th, 2025' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Monday, March 10th, 2025' })).toBeEnabled();
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Select year' }), '2026');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Select month' }), '3');
+    expect(screen.getByRole('button', { name: 'Tuesday, April 21st, 2026' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Monday, April 20th, 2026' })).toBeEnabled();
+  });
+
+  it('preserves invalid typed dates on blur without mounting a calendar', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render({ format: 'dd.MM.yyyy', onValueChange });
+    await user.type(screen.getByRole('textbox'), '31.02.2025');
+    await user.tab();
+    expect(screen.getByRole('textbox')).toHaveValue('31.02.2025');
+    expect(onValueChange).toHaveBeenLastCalledWith('31.02.2025');
+    expect(screen.queryByRole('grid', { hidden: true })).not.toBeInTheDocument();
+  });
+
+  it('does not open a calendar for a readonly field', async () => {
+    const user = userEvent.setup();
+    render({ value: '2025-03-15', readOnly: true });
+    const button = screen.getByRole('button', { name: 'Open date picker' });
+    expect(button).toBeDisabled();
+    await user.click(button);
+    expect(screen.queryByRole('grid', { hidden: true })).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
   });
 });

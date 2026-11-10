@@ -11,7 +11,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,7 +19,7 @@ namespace Altinn.App.Api.Helpers.Patch;
 /// <summary>
 /// Service for applying patches to form data elements
 /// </summary>
-public class InternalPatchService
+internal class InternalPatchService
 {
     private readonly IHostEnvironment _hostingEnvironment;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -59,7 +58,7 @@ public class InternalPatchService
     /// </summary>
     public Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
-        Dictionary<Guid, JsonPatch> patches,
+        Dictionary<Guid, List<JsonPatchOperation>> patches,
         string? language,
         List<string>? ignoredValidators
     ) =>
@@ -75,7 +74,7 @@ public class InternalPatchService
     internal async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
         StorageVersionMetadata versions,
-        Dictionary<Guid, JsonPatch> patches,
+        Dictionary<Guid, List<JsonPatchOperation>> patches,
         string? language,
         List<string>? ignoredValidators,
         int? expectedProcessStateVersion
@@ -122,26 +121,17 @@ public class InternalPatchService
 
             var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
-            var patchResult = jsonPatch.Apply(oldModelNode);
-
-            if (!patchResult.IsSuccess)
+            var (patchedModelNode, patchError) = ToPatchedModel(
+                JsonPatchApplier.Apply(jsonPatch, oldModelNode),
+                oldModel,
+                dataElementGuid
+            );
+            if (patchError is not null)
             {
-                bool testOperationFailed = patchResult.Error.Contains("is not equal to the indicated value.");
-                return new DataPatchError()
-                {
-                    Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
-                    Detail = patchResult.Error,
-                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
-                    Status = testOperationFailed
-                        ? StatusCodes.Status409Conflict
-                        : StatusCodes.Status422UnprocessableEntity,
-                    PreviousModel = oldModel,
-                    DataElementId = dataElementGuid,
-                    PatchOperationIndex = patchResult.Operation,
-                };
+                return patchError;
             }
 
-            var newModelResult = DeserializeModel(oldModel.GetType(), patchResult.Result);
+            var newModelResult = DeserializeModel(oldModel.GetType(), patchedModelNode);
             if (!newModelResult.Success)
             {
                 return new ProblemDetails()
@@ -305,6 +295,8 @@ public class InternalPatchService
         var dataWriteProcessors = _appImplementationFactory.GetAll<IDataWriteProcessor>();
         foreach (var dataWriteProcessor in dataWriteProcessors)
         {
+            // An earlier processor may have replaced a form's data; the next one must edit what gets saved.
+            changes = await WithCurrentFormData(dataMutator, changes);
             using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
             try
             {
@@ -316,6 +308,79 @@ public class InternalPatchService
                 throw;
             }
         }
+    }
+
+    /// <summary>
+    /// Maps the outcome of applying a patch to the patched model, or to the problem the API answers with.
+    /// </summary>
+    private static (JsonNode? PatchedModelNode, DataPatchError? Error) ToPatchedModel(
+        JsonPatchApplyResult outcome,
+        object oldModel,
+        Guid dataElementGuid
+    ) =>
+        outcome switch
+        {
+            JsonPatchApplied applied => (applied.Document, (DataPatchError?)null),
+            JsonPatchFailed failed => (
+                (JsonNode?)null,
+                new DataPatchError()
+                {
+                    Title = failed.IsTestFailure ? "Precondition in patch failed" : "Patch Operation Failed",
+                    Detail = failed.Message,
+                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
+                    Status = failed.IsTestFailure
+                        ? StatusCodes.Status409Conflict
+                        : StatusCodes.Status422UnprocessableEntity,
+                    PreviousModel = oldModel,
+                    DataElementId = dataElementGuid,
+                    PatchOperationIndex = failed.OperationIndex,
+                }
+            ),
+        };
+
+    /// <summary>
+    /// Points each updated form in <paramref name="changes"/> at the object the unit of work holds now.
+    /// <see cref="IInstanceDataMutator.ReplaceFormData"/> gives the element a new object, and the save writes that one.
+    /// </summary>
+    private static async Task<DataElementChanges> WithCurrentFormData(
+        IInstanceDataMutator dataMutator,
+        DataElementChanges changes
+    )
+    {
+        List<DataElementChange> current = new(changes.AllChanges.Count);
+        bool replaced = false;
+        foreach (DataElementChange change in changes.AllChanges)
+        {
+            if (
+                change is FormDataChange { Type: ChangeType.Updated } formDataChange
+                && await dataMutator.GetFormData(formDataChange.DataElementIdentifier) is { } formData
+                && !ReferenceEquals(formData, formDataChange.CurrentFormData)
+            )
+            {
+                replaced = true;
+                current.Add(
+                    new FormDataChange(
+                        type: ChangeType.Updated,
+                        dataElement: formDataChange.DataElement,
+                        contentType: formDataChange.ContentType,
+                        dataType: formDataChange.DataType,
+                        previousFormDataWrapper: formDataChange.PreviousFormDataWrapper,
+                        currentFormDataWrapper: FormDataWrapperFactory.Create(
+                            formData,
+                            formDataChange.DataType,
+                            formDataChange.DataElement
+                        ),
+                        previousBinaryData: formDataChange.PreviousBinaryData,
+                        currentBinaryData: null
+                    )
+                );
+                continue;
+            }
+
+            current.Add(change);
+        }
+
+        return replaced ? new DataElementChanges(current) : changes;
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)

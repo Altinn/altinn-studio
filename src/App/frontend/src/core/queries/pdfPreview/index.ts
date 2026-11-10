@@ -1,6 +1,6 @@
 import { skipToken, useQueries } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { getUiConfig } from 'src/features/form/ui';
 
 const pdfPreviewQueryKeys = {

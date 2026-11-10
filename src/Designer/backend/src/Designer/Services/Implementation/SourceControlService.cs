@@ -695,36 +695,6 @@ public class SourceControlService(
         );
     }
 
-    /// <inheritdoc/>
-    public void StoreAppTokenForUser(string token, string developer)
-    {
-        using var activity = StartActivity();
-        ExecuteWithTelemetry(
-            activity,
-            (token, developer),
-            static (self, ctx) =>
-            {
-                self.CheckAndCreateDeveloperFolder(ctx.developer);
-
-                string path = Path.Join(self._repositorySettings.RepositoryLocation, ctx.developer, "AuthToken.txt");
-                File.WriteAllText(path, ctx.token);
-            }
-        );
-    }
-
-    /// <summary>
-    /// Verifies if there exist a developer folder
-    /// </summary>
-    private void CheckAndCreateDeveloperFolder(string developer)
-    {
-        string path = Path.Join(_repositorySettings.RepositoryLocation, developer);
-
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-    }
-
     public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) =>
         Path.Join(
             Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")

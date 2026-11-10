@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -27,7 +28,7 @@ internal sealed class ProcessTaskDataLocker : IProcessTaskDataLocker
     public async Task Unlock(string taskId, Instance instance)
     {
         ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
-        List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
+        List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.IsBoundToTask(taskId));
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)
         {
@@ -48,7 +49,7 @@ internal sealed class ProcessTaskDataLocker : IProcessTaskDataLocker
     public async Task Lock(string taskId, Instance instance)
     {
         ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
-        List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
+        List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.IsBoundToTask(taskId));
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)
         {

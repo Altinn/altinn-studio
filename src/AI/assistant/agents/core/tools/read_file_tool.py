@@ -1,4 +1,4 @@
-"""`read_file` — read one file from the session repository.
+"""`read_file` — read one file, or one part of it, from the session repository.
 
 Marks the file as read, so `edit_file` and `write_file` may change it.
 """
@@ -11,32 +11,29 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
-from .utils.repo_files import PathError, mark_read, resolve_repo_path
-
-# Cap on a single read's payload — without this, a 200kB schema file
-# would dominate the model's context budget.  Truncation marker mirrors
-# the compaction layer's style so the model recognizes it.
-_MAX_READ_CHARS = 60_000
+from .utils.repo_files import PathError, file_key, mark_read, resolve_repo_path
+from .utils.text_parts import PartLimit, PartOffset, text_part
 
 
 class ReadFileArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    path: str = Field(min_length=1, description="Repo-relative path.")
+    path: str = Field(min_length=1, description="Repo-relative path, with no leading `/` and no `..`.")
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class ReadFileTool(Tool[ReadFileArgs]):
     name = "read_file"
     description = (
-        "Read a file from the session repository and return its contents.\n\n"
+        "Read a file from the session repository and return its text.\n\n"
         "USE this BEFORE editing or overwriting any file — `edit_file` and "
         "`write_file` will refuse to touch a file you haven't read.  Also "
         "use it whenever you need to confirm the exact current text of a "
         "section (for example, before constructing an `edit_file` "
         "`old_string`).\n\n"
-        "Returns the file's full text.  Very large files are truncated; if "
-        "the truncation marker appears, narrow your inspection by reading a "
-        "more specific file or using one of the `altinn_*` lookup tools.\n\n"
-        "Takes one input: `path` — repo-relative (no leading `/`, no `..`)."
+        "A long file comes back in parts.  Read every part before you act on "
+        "the whole file, such as when you translate or check every text in a "
+        "text resource file."
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
@@ -49,18 +46,19 @@ class ReadFileTool(Tool[ReadFileArgs]):
         if isinstance(text, ToolResult):
             return text
 
-        mark_read(ctx, args.path)
-
-        if len(text) > _MAX_READ_CHARS:
-            head = text[:_MAX_READ_CHARS]
-            return ToolResult(
-                content=(
-                    head + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
-                    "Use a more specific tool or read a smaller file if you need the rest.]"
-                ),
-                metadata={"truncated": True, "chars": len(text)},
-            )
-        return ToolResult(content=text, metadata={"chars": len(text)})
+        result = text_part(
+            ctx,
+            text,
+            offset=args.offset,
+            limit=args.limit,
+            key=file_key(args.path),
+            source=args.path,
+            tool=self.name,
+            same_args="the same `path`",
+        )
+        if not result.is_error:
+            mark_read(ctx, args.path)
+        return result
 
 
 def _find_file(ctx: LoopContext, rel_path: str) -> Path | ToolResult:
