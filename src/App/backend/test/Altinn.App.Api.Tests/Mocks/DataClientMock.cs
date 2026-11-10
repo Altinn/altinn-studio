@@ -825,14 +825,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             values => instance.PresentationTexts = values
         );
 
-        if (mutation.AddCompleteConfirmation)
-        {
-            instance.CompleteConfirmations ??= [];
-            instance.CompleteConfirmations.Add(
-                new CompleteConfirmation { StakeholderId = instance.Org, ConfirmedOn = DateTime.UtcNow }
-            );
-        }
-
         bool processStateChanged = mutation.ProcessState?.State is not null;
         if (mutation.ProcessState?.State is { } processState)
         {
