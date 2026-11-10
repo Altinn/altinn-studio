@@ -72,6 +72,7 @@ internal static class ServiceOwnerAuthorizationDiagnostics
             + $"and [delete] if the app deletes the instance at process end (autoDeleteOnProcessEnd). Running the "
             + $"v8 to v9 upgrade adds the missing rule. If the policy already grants them, the 403 can be a "
             + $"temporary failure in Altinn Authorization, which a retry clears. (A 403 from a platform call your "
-            + $"own handler makes is unrelated to the app's policy.)";
+            + $"own handler makes can be unrelated to the app's policy, so check which call was denied and whether "
+            + $"it was made as the service owner.)";
     }
 }

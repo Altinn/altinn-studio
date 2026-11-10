@@ -105,9 +105,9 @@ A 403 on a callback's save, or on a call a command makes as the service owner, u
 those rights, and the callback logs which policy to check. A 403 from a platform call that an app's own handler makes
 can have another cause, so check which call was denied before changing the policy.
 
-The step stays retryable. Storage also answers 403 when Altinn Authorization fails to reach a decision, and nothing in
-the response tells that from a missing right, so a permanent failure would fail every step that saves during an
-Authorization outage. On the save the callback answers a 500, because the engine's
+The step stays retryable. Storage also answers 403 when Altinn Authorization fails to reach a decision, and its
+response does not distinguish that from a missing right, so a permanent failure would fail every step that saves
+during an Authorization outage. On the save the callback answers a 500, because the engine's
 [default retry strategy](../../../Runtime/workflow-engine-app/src/WorkflowEngine.App/appsettings.json) stops on a 403.
 Storage commits nothing when it denies a save, so the same step saves once the cause is gone.
 

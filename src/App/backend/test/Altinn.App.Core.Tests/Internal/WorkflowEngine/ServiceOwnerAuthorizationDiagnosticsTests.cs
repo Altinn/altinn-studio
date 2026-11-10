@@ -83,7 +83,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
         string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
 
         Assert.Contains("If it was one the app makes on its own behalf", description, StringComparison.Ordinal);
-        Assert.Contains("your own handler makes is unrelated", description, StringComparison.Ordinal);
+        Assert.Contains("your own handler makes can be unrelated", description, StringComparison.Ordinal);
     }
 
     [Fact]

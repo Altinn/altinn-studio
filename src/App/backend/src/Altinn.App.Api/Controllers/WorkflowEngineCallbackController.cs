@@ -178,6 +178,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         catch (Exception ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
         {
             ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }
 
@@ -263,8 +264,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                     activity?.SetStatus(ActivityStatusCode.Error, rejection);
 
                     // Retryable, like a 403 inside a command. Storage also answers 403 when Altinn Authorization
-                    // fails to reach a decision, and nothing in the response tells that from a missing grant, so a
-                    // permanent failure would fail every in-flight step during an Authorization outage. Storage
+                    // fails to reach a decision, and its response does not distinguish that from a missing grant, so
+                    // a permanent failure would fail every in-flight step during an Authorization outage. Storage
                     // authorizes before it commits anything, so the same step saves once the cause is gone. The
                     // answer is a 500 and not Storage's 403 because the engine's default retry strategy stops on
                     // a 403.
@@ -485,6 +486,14 @@ public class WorkflowEngineCallbackController : ControllerBase
                 "Workflow callback state could not be restored for this instance.",
                 StatusCodes.Status422UnprocessableEntity
             );
+        }
+        // The acquire also saves to Storage as the service owner, so a 403 on it gets the same diagnosis before it
+        // reaches the engine as a retryable 500.
+        catch (Exception e) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(e))
+        {
+            ReportServiceOwnerDenial(ProcessingStatusAcquirer.Key, instanceId, activity);
+            activity?.SetStatus(ActivityStatusCode.Error, e.Message);
+            throw;
         }
 
         switch (acquisition)
