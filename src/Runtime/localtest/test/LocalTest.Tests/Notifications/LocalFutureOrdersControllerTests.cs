@@ -297,6 +297,9 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
     [InlineData("")]
     [InlineData("\"delayDays\": 0,")]
     [InlineData("\"delayDays\": 7, \"requestedSendTime\": \"2100-01-01T00:00:00Z\",")]
+    [InlineData("\"delayDays\": \"seven\",")]
+    [InlineData("\"requestedSendTime\": \"next week\",")]
+    [InlineData("\"delayDays\": 2147483647,")]
     public async Task Post_ReminderWithoutOneValidSchedule_IsRefusedAndStoresNothing(string schedule)
     {
         var request = Order("order-8", DateTimeOffset.UtcNow, "4");
@@ -359,6 +362,31 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
             expectedChannelStatuses,
             shipment.GetProperty("recipients").EnumerateArray().Select(r => r.GetProperty("status").GetString())
         );
+    }
+
+    [Fact]
+    public async Task Post_UnreadableRequestedSendTime_IsRefused()
+    {
+        var request = Order("order-9", DateTimeOffset.UtcNow, "4");
+        request["requestedSendTime"] = JsonNode.Parse("\"next week\"");
+
+        Assert.IsType<BadRequestObjectResult>(await _controller.Post(request));
+    }
+
+    [Fact]
+    public async Task Post_ShipmentNotStored_LetsARetryRegisterTheOrder()
+    {
+        // A file where the shipments folder belongs fails the shipment write.
+        string shipmentsFolder = Path.Join(_storagePath, "notifications", "shipments");
+        Directory.CreateDirectory(Path.GetDirectoryName(shipmentsFolder)!);
+        await File.WriteAllTextAsync(shipmentsFolder, "");
+        await Assert.ThrowsAnyAsync<IOException>(() => _controller.Post(Order("order-10", DateTimeOffset.UtcNow, "4")));
+        File.Delete(shipmentsFolder);
+
+        var retried = await _controller.Post(Order("order-10", DateTimeOffset.UtcNow, "4"));
+
+        Assert.IsType<CreatedResult>(retried);
+        Assert.IsType<OkObjectResult>(await _controller.GetShipment(ShipmentId(Body(retried))));
     }
 
     [Fact]

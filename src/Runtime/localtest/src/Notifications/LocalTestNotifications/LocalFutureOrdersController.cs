@@ -71,7 +71,11 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 : "delivered";
             string[] channels = Channels(recipient);
             string? sendersReference = request["sendersReference"]?.GetValue<string>();
-            DateTimeOffset sendTime = request["requestedSendTime"]?.GetValue<DateTimeOffset>() ?? DateTimeOffset.UtcNow;
+            if (!TryRead(request["requestedSendTime"], out DateTimeOffset? requestedSendTime))
+            {
+                return BadRequest("requestedSendTime must be a date and time, such as 2026-11-10T12:00:00Z.");
+            }
+            DateTimeOffset sendTime = requestedSendTime ?? DateTimeOffset.UtcNow;
 
             var shipments = new List<StoredShipment>
             {
@@ -82,7 +86,9 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             {
                 if (ReminderSendTime(reminder, sendTime) is not { } reminderSendTime)
                 {
-                    return BadRequest("A reminder needs either delayDays of at least 1 or requestedSendTime, not both.");
+                    return BadRequest(
+                        "A reminder needs either delayDays, a number of days from 1, or requestedSendTime, a date and time, but not both."
+                    );
                 }
 
                 JsonObject reminderRecipient = reminder?["recipient"] as JsonObject ?? recipient;
@@ -105,13 +111,14 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 [.. shipments.Skip(1).Select(s => new ShipmentReference(s.ShipmentId, s.SendersReference))]
             );
 
-            await Write(orderFile, new StoredOrder(response));
             DateTimeOffset created = DateTimeOffset.UtcNow;
             for (int i = 0; i < shipments.Count; i++)
             {
                 await Write(ShipmentFile(shipments[i].ShipmentId), shipments[i]);
                 await Write(MessagesPageFile(shipments[i].ShipmentId), MessagesPageOrder(shipments[i], shipmentRecipients[i], created));
             }
+            // Last, since a repeated idempotency id returns this order: it must not name shipments never written.
+            await Write(orderFile, new StoredOrder(response));
 
             return Created($"notifications/api/v1/future/orders/{response.NotificationOrderId}", response);
         }
@@ -278,16 +285,30 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
 
     /// <summary>
     /// When a reminder goes out, as Notifications works it out: <c>delayDays</c> counts from the order's send time,
-    /// and <c>requestedSendTime</c> stands on its own. Notifications refuses a reminder with both, with neither, or
-    /// with less than a day's delay, which is <c>null</c> here.
+    /// and <c>requestedSendTime</c> stands on its own. Notifications refuses a reminder with both, with neither, with
+    /// less than a day's delay, or with a value of the wrong type, which is <c>null</c> here.
     /// </summary>
     private static DateTimeOffset? ReminderSendTime(JsonNode? reminder, DateTimeOffset orderSendTime) =>
-        (reminder?["delayDays"]?.GetValue<int>(), reminder?["requestedSendTime"]?.GetValue<DateTimeOffset>()) switch
-        {
-            (int delayDays and >= 1, null) => orderSendTime.AddDays(delayDays),
-            (null, DateTimeOffset sendTime) => sendTime,
-            _ => null,
-        };
+        TryRead(reminder?["delayDays"], out int? delayDays)
+        && TryRead(reminder?["requestedSendTime"], out DateTimeOffset? requestedSendTime)
+            ? (delayDays, requestedSendTime) switch
+            {
+                (int days and >= 1, null) when days <= (DateTimeOffset.MaxValue - orderSendTime).TotalDays =>
+                    orderSendTime.ToUniversalTime().AddDays(days),
+                (null, DateTimeOffset sendTime) => sendTime,
+                _ => null,
+            }
+            : null;
+
+    /// <summary>
+    /// Reads a property that may be left out. <c>false</c> when it is there but is not a <typeparamref name="T"/>.
+    /// </summary>
+    private static bool TryRead<T>(JsonNode? node, out T? value)
+        where T : struct
+    {
+        value = node is JsonValue json && json.TryGetValue(out T read) ? read : null;
+        return node is null || value is not null;
+    }
 
     private static async Task Write<T>(FileInfo file, T value)
     {
