@@ -167,7 +167,12 @@ export function OrganizationLookupComponent({
               htmlFor={`${componentId}_orgnr`}
               label={langAsString('organization_lookup.orgnr_label')}
               required={required}
-              requiredIndicator={<RequiredIndicator required={required} />}
+              requiredIndicator={
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+              }
               optionalIndicator={
                 <OptionalIndicator
                   required={required}

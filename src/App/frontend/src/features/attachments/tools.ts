@@ -13,13 +13,6 @@ import type { FormStoreState } from 'src/features/form/FormContext';
 import type { CompExternal } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
-export const attachmentMutationKeys = {
-  all: ['attachments'] as const,
-  upload: () => [...attachmentMutationKeys.all, 'upload'] as const,
-  update: () => [...attachmentMutationKeys.all, 'update'] as const,
-  remove: () => [...attachmentMutationKeys.all, 'remove'] as const,
-};
-
 export type AttachmentNode = {
   id: string;
   baseId: string;
@@ -65,7 +58,7 @@ export function isCanonicalAttachmentData(
   const dataType = application.dataTypes.find((candidate) => candidate.id === data.dataType);
   return (
     !!dataType &&
-    (!dataType.taskId || dataType.taskId === taskId) &&
+    (!dataType.taskIds?.length || (!!taskId && dataType.taskIds.includes(taskId))) &&
     !dataType.appLogic?.classRef &&
     dataType.id !== 'ref-data-as-pdf'
   );

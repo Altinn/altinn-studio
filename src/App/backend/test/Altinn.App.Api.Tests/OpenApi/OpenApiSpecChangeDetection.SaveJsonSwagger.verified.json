@@ -7915,164 +7915,6 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate": {
-      "get": {
-        "tags": [
-          "Validate"
-        ],
-        "summary": "Validate a single data element (deprecated).\nUse `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "Unique identifier of the organization responsible for the app.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "Application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerId",
-            "in": "path",
-            "description": "Unique id of the party that is the owner of the instance.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceId",
-            "in": "path",
-            "description": "Unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "dataGuid",
-            "in": "path",
-            "description": "Unique id identifying specific data element",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}": {
       "post": {
         "tags": [
@@ -8861,6 +8703,15 @@
         },
         "additionalProperties": false
       },
+      "AppStatus": {
+        "enum": [
+          "Completed",
+          "Deprecated",
+          "UnderDevelopment",
+          "Withdrawn"
+        ],
+        "type": "string"
+      },
       "ApplicationLanguage": {
         "type": "object",
         "properties": {
@@ -9038,6 +8889,9 @@
               "$ref": "#/components/schemas/AppMetadataContactPoint"
             },
             "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppStatus"
           },
           "id": {
             "type": "string"
@@ -9870,6 +9724,14 @@
           },
           "taskId": {
             "type": "string",
+            "nullable": true,
+            "deprecated": true
+          },
+          "taskIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "maxSize": {

@@ -24,7 +24,7 @@ import type { IDataModelBindingsForList } from '@app/layout-contract/generated/c
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
+import { useDataListQuery } from 'src/core/queries/dataLists';
 import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -39,7 +39,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
-import type { Filter } from 'src/features/dataLists/useDataListQuery';
+import type { Filter } from 'src/core/queries/dataLists';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Row = Record<string, string | number | boolean>;
@@ -60,7 +60,7 @@ type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponent
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
   const isMobile = useIsMobile();
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
@@ -107,9 +107,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
     (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
   );
-  const selectedRow = !isMultipleSelection
-    ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
-    : '';
+  const selectedRow =
+    !readOnly && !isMultipleSelection
+      ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
+      : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
     if (instanceLocked) {
       return;
@@ -121,6 +122,9 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     setValues(next);
   }
   function isRowSelected(row: Row): boolean {
+    if (readOnly) {
+      return false;
+    }
     if (isMultipleSelection) {
       return isChecked(row);
     }
@@ -133,7 +137,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       data-size='sm'
     >
       <Lang id={title} />
-      <RequiredIndicator required={required} />
+      <RequiredIndicator
+        required={required}
+        readOnly={readOnly}
+      />
       <OptionalIndicator
         required={required}
         readOnly={readOnly}
@@ -171,7 +178,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         <strong>
           <Lang id={tableHeaders[key]} />
         </strong>
-        <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
+        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
@@ -218,7 +225,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
@@ -249,7 +259,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
@@ -293,7 +306,12 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       baseComponentId={baseComponentId}
       isSummary={isSummary}
     >
-      <Table className={classes.listTable}>
+      <Table
+        className={cn(classes.listTable, {
+          [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
+        })}
+      >
         {isSummary ? (
           (title || description || help) && (
             <Caption
@@ -315,6 +333,17 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             )}
           </caption>
         ) : null}
+        {config.tableColumns && (
+          <colgroup>
+            {!readOnly && <col className={classes.selectionColumn} />}
+            {Object.keys(config.tableHeaders).map((key) => (
+              <col
+                key={key}
+                style={{ width: config.tableColumns?.[key]?.width }}
+              />
+            ))}
+          </colgroup>
+        )}
         <Table.Head>
           <Table.Row>
             {!readOnly && (
@@ -387,7 +416,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
-                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>

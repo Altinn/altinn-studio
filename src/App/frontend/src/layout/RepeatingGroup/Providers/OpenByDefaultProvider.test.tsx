@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import {
@@ -19,7 +20,7 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';
 
@@ -109,6 +110,11 @@ describe('openByDefault', () => {
         </RepeatingGroupProvider>
       ),
       queries: {
+        ...(onServiceTaskPage
+          ? {
+              getInstance: async () => getInstanceAtServiceTaskMock(),
+            }
+          : undefined),
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.dataModels[defaultDataTypeMock].initialData = {
@@ -121,13 +127,6 @@ describe('openByDefault', () => {
             };
           }),
       },
-      apis: onServiceTaskPage
-        ? {
-            instanceApi: {
-              getInstance: async () => getInstanceAtServiceTaskMock(),
-            },
-          }
-        : undefined,
     });
   }
 
@@ -159,8 +158,8 @@ describe('openByDefault', () => {
           ? expect.objectContaining({ patches: [expect.objectContaining({ patch: expectedPatch })] })
           : expect.anything(),
       );
-      mutations.doPatchMultipleFormData.resolve({
-        data: {
+      mutations.doPatchMultipleFormData.resolve(
+        httpResponse({
           validationIssues: [],
           newDataModels: [
             {
@@ -169,8 +168,8 @@ describe('openByDefault', () => {
             },
           ],
           instance: getInstanceDataMock(),
-        } satisfies IDataModelMultiPatchResponse,
-      });
+        } satisfies IDataModelMultiPatchResponse),
+      );
       (mutations.doPatchMultipleFormData.mock as Mock).mockClear();
     }
 
@@ -181,7 +180,7 @@ describe('openByDefault', () => {
     // the state doesn't change again.
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(getState()).toEqual(state);
-    expect(mutations?.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
+    expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
 
     if (expectedWarning) {
       await waitFor(() => expect(window.logWarn).toHaveBeenCalled());
@@ -582,4 +581,3 @@ describe('openByDefault', () => {
     },
   );
 });
-import type { Mock } from 'vitest';

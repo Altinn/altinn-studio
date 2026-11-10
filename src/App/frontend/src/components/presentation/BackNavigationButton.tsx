@@ -6,15 +6,15 @@ import cn from 'classnames';
 
 import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useExitSubform } from 'src/hooks/useNavigatePage';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: { className?: string }) {

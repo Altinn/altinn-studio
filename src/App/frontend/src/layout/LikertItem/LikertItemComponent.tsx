@@ -76,7 +76,10 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
         >
           <span>
             <Lang id={title} />
-            <RequiredIndicator required={required} />
+            <RequiredIndicator
+              required={required}
+              readOnly={readOnly}
+            />
             <OptionalIndicator
               required={required}
               readOnly={readOnly}

@@ -4874,6 +4874,15 @@
                 "type": "string"
               }
             },
+            "tableColumns": {
+              "title": "Table columns",
+              "description": "Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.",
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "$ref": "#/definitions/ITableColumnWidth"
+              }
+            },
             "sortableColumns": {
               "title": "Sortable columns",
               "description": "An array of column keys that can be sorted (note that your API backend needs to support this as well). The column has to be represented by the the header name that is written in tableHeaders.",
@@ -4937,6 +4946,7 @@
             "dataModelBindings": true,
             "deletionStrategy": true,
             "tableHeaders": true,
+            "tableColumns": true,
             "sortableColumns": true,
             "pagination": true,
             "dataListId": true,
@@ -10704,6 +10714,20 @@
           "description": "Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.",
           "default": 2,
           "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ITableColumnWidth": {
+      "title": "ITableColumnWidth",
+      "type": "object",
+      "properties": {
+        "width": {
+          "title": "Width",
+          "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
+          "default": "auto",
+          "type": "string",
+          "pattern": "^([0-9]{1,2}%|100%|auto)$"
         }
       },
       "additionalProperties": false

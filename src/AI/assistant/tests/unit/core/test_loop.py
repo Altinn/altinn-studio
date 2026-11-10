@@ -848,6 +848,8 @@ class TestResultCapping:
         # Capped to 100 chars of body + a truncation marker.
         assert tr.content.startswith("x" * 100)
         assert "truncated" in tr.content
+        # Tools that return text in parts size them from the same cap.
+        assert ctx.max_result_chars == 100
 
 
 # ---------------------------------------------------------------------------

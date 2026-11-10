@@ -630,7 +630,7 @@ const common = {
       ),
     ),
   ITableColumnFormatting: () => new CG.obj().additionalProperties(CG.common('ITableColumnProperties')),
-  ITableColumnProperties: () =>
+  ITableColumnWidth: () =>
     new CG.obj(
       new CG.prop(
         'width',
@@ -643,6 +643,10 @@ const common = {
           )
           .setPattern(/^([0-9]{1,2}%|100%|auto)$/),
       ),
+    ),
+  ITableColumnProperties: () =>
+    new CG.obj(
+      ...CG.common('ITableColumnWidth').getProperties(),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
       new CG.prop(

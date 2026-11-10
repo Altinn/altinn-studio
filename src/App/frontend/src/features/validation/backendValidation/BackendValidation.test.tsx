@@ -9,7 +9,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 function makeIssue(field: string, text: string, source: string): BackendValidationIssue {
@@ -99,9 +99,9 @@ describe('BackendValidation', () => {
     await user.type(screen.getByRole('textbox', { name: 'Email' }), 'ola');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ Email: 'ola' }, [{ source: 'EmailValidator', issues: [] }]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(makeSaveResponse({ Email: 'ola' }, [{ source: 'EmailValidator', issues: [] }])),
+    );
     await user.click(screen.getByRole('button', { name: 'Save attachment tags' }));
     await screen.findAllByText('Missing attachment');
     expect(screen.getAllByText('Bootstrap field error')).toHaveLength(1);
@@ -110,11 +110,11 @@ describe('BackendValidation', () => {
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '12345678');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '12345678', Email: 'ola' }, [
-        { source: 'PhoneNumberValidator', issues: [] },
-      ]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(
+        makeSaveResponse({ PhoneNumber: '12345678', Email: 'ola' }, [{ source: 'PhoneNumberValidator', issues: [] }]),
+      ),
+    );
     await waitFor(() => expect(screen.queryByText('Bootstrap field error')).not.toBeInTheDocument());
     expect(screen.queryByText('Bootstrap component error')).not.toBeInTheDocument();
   });
@@ -126,25 +126,29 @@ describe('BackendValidation', () => {
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '123' }, [
-        {
-          source: 'PhoneNumberValidator',
-          issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
-        },
-      ]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(
+        makeSaveResponse({ PhoneNumber: '123' }, [
+          {
+            source: 'PhoneNumberValidator',
+            issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
+          },
+        ]),
+      ),
+    );
     await screen.findAllByText('Invalid phone number');
 
     // Only the email validator runs when the email changes
     await user.type(screen.getByRole('textbox', { name: 'Email' }), 'ola');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '123', Email: 'ola' }, [
-        { source: 'EmailValidator', issues: [makeIssue('Email', 'Invalid email', 'EmailValidator')] },
-      ]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(
+        makeSaveResponse({ PhoneNumber: '123', Email: 'ola' }, [
+          { source: 'EmailValidator', issues: [makeIssue('Email', 'Invalid email', 'EmailValidator')] },
+        ]),
+      ),
+    );
     await screen.findAllByText('Invalid email');
 
     expect(screen.getAllByText('Invalid phone number')[0]).toBeInTheDocument();
@@ -158,14 +162,16 @@ describe('BackendValidation', () => {
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '123' }, [
-        {
-          source: 'PhoneNumberValidator',
-          issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
-        },
-      ]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(
+        makeSaveResponse({ PhoneNumber: '123' }, [
+          {
+            source: 'PhoneNumberValidator',
+            issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
+          },
+        ]),
+      ),
+    );
     await screen.findAllByText('Invalid phone number');
 
     await user.click(screen.getByRole('button', { name: 'Save attachment tags' }));
@@ -182,22 +188,24 @@ describe('BackendValidation', () => {
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '123' }, [
-        {
-          source: 'PhoneNumberValidator',
-          issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
-        },
-      ]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(
+        makeSaveResponse({ PhoneNumber: '123' }, [
+          {
+            source: 'PhoneNumberValidator',
+            issues: [makeIssue('PhoneNumber', 'Invalid phone number', 'PhoneNumberValidator')],
+          },
+        ]),
+      ),
+    );
     await screen.findAllByText('Invalid phone number');
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '45678');
     await user.tab();
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
-    mutations.doPatchMultipleFormData.resolve({
-      data: makeSaveResponse({ PhoneNumber: '12345678' }, [{ source: 'PhoneNumberValidator', issues: [] }]),
-    });
+    mutations.doPatchMultipleFormData.resolve(
+      httpResponse(makeSaveResponse({ PhoneNumber: '12345678' }, [{ source: 'PhoneNumberValidator', issues: [] }])),
+    );
 
     await waitFor(() => expect(screen.queryByText('Invalid phone number')).not.toBeInTheDocument());
     expect(screen.getByRole('textbox', { name: 'Phone number' })).toBeValid();

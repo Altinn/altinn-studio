@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useIsFetching, useQueryClient } from 'src/core/queries/reactQuery';
+import { useIsFetchingData, useIsFetchingDataNow } from 'src/core/queries/useIsFetchingData';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
 export const loadingAttribute = 'data-loading';
@@ -29,10 +29,10 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
 
 function useIsReadyForPrint(type: ReadyType) {
   const assetsLoaded = useAssetsLoaded();
-  const isFetching = useIsFetching() > 0;
+  const isFetching = useIsFetchingData();
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const hasErrors = useHasElementsByAttribute(errorAttribute);
-  const queryClient = useQueryClient();
+  const isFetchingNow = useIsFetchingDataNow();
   const [settled, setSettled] = useState(false);
   const blocked = !assetsLoaded || isFetching || hasLoaders || (type === 'print' && hasErrors);
 
@@ -47,14 +47,14 @@ function useIsReadyForPrint(type: ReadyType) {
     waitForAnimationFrames(2).then(() => {
       const blockingSelector =
         type === 'print' ? `[${loadingAttribute}], [${errorAttribute}]` : `[${loadingAttribute}]`;
-      if (!cancelled && queryClient.isFetching() === 0 && !document.querySelector(blockingSelector)) {
+      if (!cancelled && !isFetchingNow() && !document.querySelector(blockingSelector)) {
         setSettled(true);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [blocked, queryClient, type]);
+  }, [blocked, isFetchingNow, type]);
 
   return !blocked && settled;
 }

@@ -131,6 +131,7 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
               {...fieldProps}
               label={t('app_create_release.release_version_number')}
               onChange={handleTagNameChange}
+              autoComplete='off'
             />
           </div>
         )}

@@ -21,6 +21,11 @@ browsers.
   [observability-proxy](../src/observability-proxy) to VictoriaMetrics, VictoriaTraces and VictoriaLogs.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
   `altinn-studio-logs` and `altinn-studio-traces-logsql`.
+- In DIS Core, our services share the collectors in the namespace `product-studio-obs`. Services that reported to the
+  platform's Azure Monitor before they moved there, such as Storage, also report to the platform's collector. The
+  router sends it their telemetry unsampled. The platform's collector samples and filters it by its own rules, and
+  stores it in the cluster's Application Insights and Azure Monitor Workspace. It finds each service's pod by
+  `k8s.pod.uid`, so without it the telemetry looks like the router's.
 
 [infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
@@ -303,13 +308,15 @@ section.
 - The router sets `deployment.environment.name` from the cluster, overwriting any value a service sets.
 - In a service owner's own cluster, the router sets `altinn.service_owner` on the resource, unless the service has set
   it.
-- The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`.
+- The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`. In DIS Core,
+  where the collectors may not read pods, the deployment sets the pod's metadata in `OTEL_RESOURCE_ATTRIBUTES`
+  instead, as pdf3's does.
 - The router drops logs below WARN.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
-  namespaces that our services emit, such as `http.*`, `signalr.server.*` and the language runtimes' `dotnet.*` and
-  `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
-  process.
+  namespaces that our services emit, such as `http.*`, `signalr.server.*`, `cicd.*` and the language runtimes'
+  `dotnet.*` and `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series
+  it adds per process.
 - The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.sampling` only to mark a
   trace to be kept.
 

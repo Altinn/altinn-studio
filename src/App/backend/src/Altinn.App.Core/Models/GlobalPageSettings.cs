@@ -187,6 +187,12 @@ public enum ValidationMask
     /// </summary>
     [JsonStringEnumMemberName("All")]
     All,
+
+    /// <summary>
+    /// Input that cannot be saved.
+    /// </summary>
+    [JsonStringEnumMemberName("Invalid")]
+    Invalid,
 }
 
 /// <summary>

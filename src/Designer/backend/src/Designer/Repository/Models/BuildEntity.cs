@@ -42,4 +42,18 @@ public class BuildEntity
     /// </summary>
     [JsonProperty("finished")]
     public DateTime? Finished { get; set; }
+
+    /// <summary>
+    /// When Azure DevOps queued the run. Read from Azure DevOps when Designer polls the run, and not stored.
+    /// </summary>
+    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DateTime? Queued { get; set; }
+
+    /// <summary>
+    /// The name of the pipeline the run belongs to. Read from Azure DevOps when Designer polls the run, and not stored.
+    /// </summary>
+    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string PipelineName { get; set; }
 }

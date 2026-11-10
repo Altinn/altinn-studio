@@ -168,7 +168,12 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               htmlFor={`${componentId}_ssn`}
               label={langAsString('person_lookup.ssn_label')}
               required={required}
-              requiredIndicator={<RequiredIndicator required={required} />}
+              requiredIndicator={
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+              }
               optionalIndicator={
                 <OptionalIndicator
                   required={required}
@@ -225,7 +230,12 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <Label
               htmlFor={`${componentId}_name`}
               required={required}
-              requiredIndicator={<RequiredIndicator required={required} />}
+              requiredIndicator={
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+              }
               optionalIndicator={
                 <OptionalIndicator
                   required={required}

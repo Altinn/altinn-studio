@@ -34,7 +34,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -50,7 +50,7 @@
       "allowedContributors": [
         "app:owned"
       ],
-      "taskId": "Task_2",
+      "taskIds": ["Task_2"],
       "maxSize": 25,
       "maxCount": 1,
       "minCount": 0,
@@ -67,7 +67,7 @@
       "allowedContributors": [
         "app:owned"
       ],
-      "taskId": "Task_3",
+      "taskIds": ["Task_3"],
       "maxSize": 25,
       "maxCount": 1,
       "minCount": 0,

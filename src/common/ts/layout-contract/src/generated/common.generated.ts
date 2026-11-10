@@ -577,6 +577,10 @@ export interface ITableColumnsTextOverflow {
   maxHeight?: number;
 }
 
+export interface ITableColumnWidth {
+  width?: string;
+}
+
 export interface LabeledComponentProps {
   labelSettings?: ILabelSettings;
 }
@@ -659,4 +663,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 7cb16414d81a4de3c51a7ac1b7bf8a8d073b191658b117161c3a9ff5401bef1b
+// Source hash: 2bec1f33d6556538af9888bacfa8fa469fc9bd61e1626bef7671c028c26f5673

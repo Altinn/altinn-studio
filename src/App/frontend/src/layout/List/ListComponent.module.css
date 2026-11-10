@@ -7,7 +7,8 @@
   padding-bottom: var(--ds-size-4);
 }
 
-.listTable th:first-of-type {
+.listTable:not(.configuredColumns) th:first-of-type,
+.selectionColumn {
   width: 100px;
 }
 
@@ -27,6 +28,10 @@
 
 .listTable td {
   font-size: 16px;
+}
+
+.readOnly tr {
+  cursor: default;
 }
 
 .selectedRow,

@@ -2122,6 +2122,21 @@ const IDataModelBindingsForList = {
   },
 } as const;
 
+const ITableColumnWidth = {
+  type: 'object',
+  properties: {
+    width: {
+      type: 'string',
+      pattern: '^([0-9]{1,2}%|100%|auto)$',
+      title: ITableColumnProperties['properties']['width']['title'],
+      description: ITableColumnProperties['properties']['width']['description'],
+      default: 'auto',
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const IPagination = {
   type: 'object',
   properties: {
@@ -8720,6 +8735,21 @@ const generatedContract = {
           },
           examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
           required: true,
+        },
+        tableColumns: {
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'object',
+            properties: ITableColumnWidth['properties'],
+            additionalProperties: false,
+          },
+          title: { en: 'Table columns', nb: 'Tabellkolonner' },
+          description: {
+            en: 'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+            nb: 'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+          },
+          required: false,
         },
         sortableColumns: {
           type: 'array',
