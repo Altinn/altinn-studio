@@ -1,6 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 
 const appFrontend = new AppFrontend();
@@ -48,6 +49,58 @@ function assertTableArrows() {
 }
 
 describe('Repeating group validation showcase', () => {
+  it('contains examples to seeded rows while preserving edits and mixed row order', () => {
+    cy.viewport(1440, 1000);
+    cy.intercept('GET', '**/bootstrap-form/Task_3**').as('showcaseBootstrap');
+    cy.goto('group');
+    cy.gotoNavPage('Validering i grupper');
+    for (const variant of variants) {
+      cy.get(`#group-validation-${variant}`).should('not.exist');
+    }
+    cy.findByRole('checkbox', { name: 'På feltene' }).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).should('be.visible');
+    cy.findByRole('button', { name: 'Last eksempeldata' }).click();
+    cy.waitUntilSaved();
+    cy.get('@showcaseBootstrap').then(({ request, response }) => {
+      const bootstrap: FormBootstrapResponse = response!.body;
+      const url = `${request.url.split('/bootstrap-form/')[0]}/data/${bootstrap.dataModels['nested-group'].dataElementId}`;
+      cy.getCookie('XSRF-TOKEN').then((token) => {
+        const headers = { 'X-XSRF-TOKEN': token?.value };
+        cy.request(url).then(({ body }) => {
+          body.Pets = [
+            { UniqueId: 'legacy-pet', Name: 'Legacy', Species: 'Dog', Age: 1 },
+            { UniqueId: 'validation-showcase-milo', Name: 'Milo', Species: 'Dog', Age: 12 },
+          ];
+          cy.request({ method: 'PUT', url, headers, body });
+          cy.reload();
+          cy.waitForLoad();
+          cy.get('#validation-table-name-1').clear();
+          cy.get('#validation-table-name-1').type('Milo endret');
+          cy.get('#validation-table-age-1').clear();
+          cy.get('#validation-table-age-1').type('13');
+          cy.dsSelect('#validation-table-species-1', 'Katt Ofte sett i morsomme videoer på nettet');
+          cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
+          cy.waitUntilSaved();
+          for (const variant of variants) {
+            cy.get(`#group-validation-${variant}`).should('be.visible');
+          }
+          cy.request(url).then(({ body: edited }) => {
+            edited.Pets = edited.Pets.filter((pet: { UniqueId: string }) => pet.UniqueId === 'legacy-pet');
+            cy.request({ method: 'PUT', url, headers, body: edited });
+          });
+          cy.reload();
+          cy.waitForLoad();
+          for (const variant of variants) {
+            cy.get(`#group-validation-${variant}`).should('not.exist');
+          }
+          cy.findByRole('checkbox', { name: 'På feltene' }).should('not.exist');
+          cy.findByRole('button', { name: 'Last eksempeldata' }).should('be.visible');
+          cy.findByRole('button', { name: /Neste/ }).should('be.visible');
+        });
+      });
+    });
+  });
+
   it('shows isolated messages, mixed severity and a clean row in every layout', () => {
     setup();
     const colors = ['danger', 'warning', 'info', 'success', 'danger'];
@@ -90,12 +143,10 @@ describe('Repeating group validation showcase', () => {
     dialog().findAllByRole('listitem').should('have.length', 2);
     dialog().findByRole('button', { name: 'Navn' }).should('not.exist');
     dialog().findByRole('button', { name: 'Alder' }).should('not.exist');
-    dialog()
-      .findByRole('button', { name: /Alderen er høyere enn/ })
-      .click();
+    dialog().find('button[data-target-node="validation-default-age-4"]').click();
     cy.get('#validation-default-age-4').should('have.focus');
     openRow('default', 3);
-    dialog().findByRole('button', { name: 'Alderen er kontrollert.' }).click();
+    dialog().find('button[data-target-node="validation-default-age-3"]').click();
     cy.get('#validation-default-age-3').should('have.focus');
 
     cy.get('#group-validation-table-table-body > [data-for-row="1"]').should(
@@ -110,7 +161,7 @@ describe('Repeating group validation showcase', () => {
     assertTableArrows();
 
     openRow('mixed', 2);
-    dialog().findByRole('button', { name: 'Alderen er hentet fra registeret.' }).click();
+    dialog().find('button[data-target-node="validation-mixed-age-2"]').click();
     cy.get('#validation-mixed-age-2').should('have.focus');
     cy.get('#group-validation-mixed').find(appFrontend.group.editContainer).as('mixedEditor');
     cy.get('@mixedEditor').find('#validation-mixed-name-2').should('not.exist');
@@ -119,7 +170,7 @@ describe('Repeating group validation showcase', () => {
 
     openRow('table', 4);
     dialog().findAllByRole('listitem').should('have.length', 2);
-    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).click();
+    dialog().find('button[data-target-node="validation-table-name-4"]').click();
     cy.get('#validation-table-name-4').should('have.focus');
     cy.viewport(1050, 1000);
     assertTableArrows();
@@ -135,7 +186,8 @@ describe('Repeating group validation showcase', () => {
     interceptAltinnAppGlobalData((data) => {
       data.textResources?.resources.push({
         id: 'row.warning',
-        value: 'Kontroller alderen {0}. [Les mer](https://www.altinn.no/)',
+        value:
+          'Kontroller **alderen {0}**.\n\n- Kontroller registeret.\n- [Les mer](https://www.altinn.no/)\n\n<a href="../repeating" data-link-type="LinkToPotentialPage">Se beløp</a>',
         variables: [{ key: 'age', dataSource: 'customTextParameters' }],
       });
     });
@@ -165,22 +217,35 @@ describe('Repeating group validation showcase', () => {
     });
     cy.get(row('default', 4)).findByRole('button', { name: 'Se og endre Milo' }).should('be.visible');
     openRow('default', 4);
-    dialog().should('be.focused').findAllByRole('listitem').should('have.length', 2);
+    dialog().should('be.focused').children('ul').children('li').should('have.length', 2);
     dialog().find('li > [data-field="validation"]').first().should('have.attr', 'data-color', 'danger');
     dialog().find('li > [data-field="validation"]').last().should('have.attr', 'data-color', 'warning');
-    dialog().findByRole('button', { name: 'Kontroller alderen 12.' }).should('be.visible');
+    dialog().findAllByRole('button', { name: 'Vis i skjemaet' }).should('have.length', 2);
+    dialog().find('strong').should('have.text', 'alderen 12');
+    dialog().find('li li').should('have.length', 2);
+    dialog()
+      .find('button[data-target-node="validation-default-age-4"]')
+      .should(($action) => {
+        const messageId = $action.attr('aria-describedby')!;
+        expect($action[0].ownerDocument.getElementById(messageId)?.textContent).to.contain('Kontroller alderen 12.');
+      });
+    dialog().contains('p', 'Kontroller').click();
+    dialog().should('be.visible');
     dialog()
       .findByRole('link', { name: 'Les mer' })
       .should('have.attr', 'href', 'https://www.altinn.no/')
       .then(($link) => {
         expect($link.closest('button')).to.have.length(0);
-        expect($link[0].previousSibling?.textContent).to.equal(' ');
         $link[0].addEventListener('click', (event) => event.preventDefault(), { once: true });
       })
       .click();
     dialog().should('be.visible');
     cy.injectAxe();
     cy.checkA11y('[data-testid="row-validation-messages"]:popover-open');
+    dialog().findByRole('link', { name: 'Se beløp' }).click();
+    cy.location('pathname').should('include', '/repeating');
+    cy.gotoNavPage('Validering i grupper');
+    openRow('default', 4);
     dialog().type('{esc}');
     cy.get(row('default', 4)).find(indicator).should('be.focused').and('have.attr', 'aria-expanded', 'false');
     cy.press('Space');
@@ -190,14 +255,14 @@ describe('Repeating group validation showcase', () => {
     cy.press('Space');
     cy.get(row('default', 4)).find(indicator).should('be.focused');
     cy.press('Space');
-    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).click();
+    dialog().find('button[data-target-node="validation-default-name-4"]').click();
     cy.get('#validation-default-name-4').should('have.focus');
     cy.get('#validation-default-name-4')
       .closest('[data-componentid]')
       .should('contain.text', 'Oppgi navnet slik det står i registeret.');
     cy.get(row('default', 4)).findByRole('button', { name: 'Lukk raden Milo' }).should('be.visible');
     openRow('default', 4);
-    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).focus();
+    dialog().find('button[data-target-node="validation-default-name-4"]').focus();
     for (const type of ['keyDown', 'keyUp']) {
       cy.then(() =>
         Cypress.automation('remote:debugger:protocol', {
@@ -238,7 +303,7 @@ describe('Repeating group validation showcase', () => {
       cy.get(row('default')).find(indicator).should('have.attr', 'data-color', 'danger');
       cy.get(row('default', 1)).find(indicator).should('have.attr', 'data-color', 'warning');
       openRow('default', 0);
-      dialog().findByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' }).click();
+      dialog().find('button[data-target-node="validation-default-name-0"]').click();
       cy.get(row('default')).find(indicator).should('have.attr', 'aria-expanded', 'false');
       if (mode !== 'hidden-actions') {
         cy.get('#validation-default-name-0').should('have.focus');
@@ -265,9 +330,6 @@ describe('Repeating group validation showcase', () => {
       dialog().type('{esc}');
     }
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
-    for (const label of ['Advarsler', 'Informasjon', 'Bekreftelser']) {
-      cy.findByRole('checkbox', { name: label }).uncheck();
-    }
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();
     cy.get(appFrontend.errorReport).should('contain.text', 'Kontroller kjæledyrene i denne gruppen samlet.');
@@ -277,33 +339,9 @@ describe('Repeating group validation showcase', () => {
     }
   });
 
-  it('filters the backend messages by severity without marking clean cells or rows', () => {
+  it('clears validations when all targets are disabled', () => {
     setup();
-    const severities = [
-      { label: 'Feil', color: 'danger', index: 0 },
-      { label: 'Advarsler', color: 'warning', index: 1 },
-      { label: 'Informasjon', color: 'info', index: 2 },
-      { label: 'Bekreftelser', color: 'success', index: 3 },
-    ];
-    for (const severity of severities) {
-      for (const item of severities) {
-        cy.findByRole('checkbox', { name: item.label }).uncheck();
-      }
-      cy.findByRole('checkbox', { name: severity.label }).check();
-      cy.waitUntilSaved();
-      for (const variant of variants) {
-        cy.get(row(variant, severity.index)).find(indicator).should('have.attr', 'data-color', severity.color);
-        cy.get(row(variant, 5)).find(indicator).should('not.exist');
-      }
-      cy.get('[data-testid="table-row-validation-messages"] [data-validation-for]').should(
-        'have.attr',
-        'data-color',
-        severity.color,
-      );
-    }
-    for (const item of severities) {
-      cy.findByRole('checkbox', { name: item.label }).uncheck();
-    }
+    cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
     cy.waitUntilSaved();
     cy.get(indicator).should('not.exist');
     cy.get(fieldIndicator).should('not.exist');

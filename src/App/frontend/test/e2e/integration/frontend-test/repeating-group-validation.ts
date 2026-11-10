@@ -141,9 +141,7 @@ describe('Repeating group nested validation and visibility', () => {
     cy.get(row(1)).find(indicator).should('have.attr', 'data-color', 'warning');
     cy.get(row(1)).find(indicator).click();
     cy.findByRole('dialog', { name: 'Meldinger' }).should('contain.text', 'Kontroller: Andre kommentar');
-    cy.findByRole('dialog', { name: 'Meldinger' })
-      .findByRole('button', { name: 'Kontroller: Andre kommentar' })
-      .click();
+    cy.findByRole('dialog', { name: 'Meldinger' }).find('button[data-target-node="validationComment-1-1"]').click();
     cy.get('#validationComment-1-1').should('be.visible').and('have.focus');
     cy.get('#group-validationNested-1-table-body > tr[data-row-num="1"]').find(indicator).should('be.visible');
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
