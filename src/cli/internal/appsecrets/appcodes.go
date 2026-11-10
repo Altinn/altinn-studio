@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	// devWorkflowEngineCallbackID identifies the development code among the codes of its kind.
-	devWorkflowEngineCallbackID = "local-dev"
+	// devCodeID identifies a development code among the codes of its kind.
+	devCodeID = "local-dev"
 
-	// devWorkflowEngineCallbackCode is the development code itself. Callback tokens are signed with
-	// HMAC-SHA256, so the app libraries refuse anything shorter than 16 bytes.
+	// devWorkflowEngineCallbackCode and devNotificationCallbackCode are the development codes themselves.
+	// Callback tokens are signed with HMAC-SHA256, so the app libraries refuse anything shorter than 16 bytes.
 	devWorkflowEngineCallbackCode = "LOCAL-DEV-ONLY-workflow-engine-callback-secret"
+	devNotificationCallbackCode   = "LOCAL-DEV-ONLY-notification-callback-secret"
 
 	// devIssuedAt and devExpiresAt bracket every local run: the code is valid from before any of them and
 	// until long after, because nothing rotates it locally.
@@ -35,7 +36,8 @@ type appCode struct {
 }
 
 // appCodeKinds holds the codes by callback. The operator omits a kind it has issued no codes for, and so does
-// studioctl: only the workflow engine's callback is minted and verified by the app alone.
+// studioctl: it issues the callbacks the app both mints and verifies, the workflow engine's and the notification
+// send condition's. A payment provider's callback is verified against a code the provider also holds.
 //
 //nolint:tagliatelle // JSON names match the file the operator provisions in a cluster.
 type appCodeKinds struct {
@@ -60,9 +62,10 @@ func AppCodesPath(dir string) string {
 // WriteDevelopmentAppCodes provisions the development app codes into the secrets directory. The directory is
 // created, and made owner-only, through the one EnsureDir every writer goes through.
 //
-// Workflow engine callbacks are authenticated with an app-minted JWT signed by a WorkflowEngineCallback app
-// code. The app both mints and verifies the token, so this value never has to match anything else, and a
-// fixed one is enough for a local run. In the cloud the operator provisions and rotates the codes into this
+// Workflow engine callbacks, and the send condition Altinn Notifications calls before it sends an instantiation
+// notification, are authenticated with an app-minted JWT signed by a WorkflowEngineCallback or
+// NotificationCallback app code. The app both mints and verifies the token, so these values never have to match
+// anything else, and fixed ones are enough for a local run. In the cloud the operator provisions and rotates the codes into this
 // same file, which is why studioctl writes the file rather than handing the app a configuration value.
 //
 // The write is skipped when the file already holds exactly this content, so that an app polling it is not
@@ -100,16 +103,18 @@ func WriteDevelopmentAppCodes(dir string) error {
 func developmentAppCodes() appCodesFile {
 	return appCodesFile{
 		AppCodes: appCodeKinds{
-			NotificationCallback: nil,
-			PaymentsCallback:     nil,
-			WorkflowEngineCallback: []appCode{
-				{
-					Code:      devWorkflowEngineCallbackCode,
-					ExpiresAt: devExpiresAt,
-					ID:        devWorkflowEngineCallbackID,
-					IssuedAt:  devIssuedAt,
-				},
-			},
+			NotificationCallback:   []appCode{developmentAppCode(devNotificationCallbackCode)},
+			PaymentsCallback:       nil,
+			WorkflowEngineCallback: []appCode{developmentAppCode(devWorkflowEngineCallbackCode)},
 		},
+	}
+}
+
+func developmentAppCode(code string) appCode {
+	return appCode{
+		Code:      code,
+		ExpiresAt: devExpiresAt,
+		ID:        devCodeID,
+		IssuedAt:  devIssuedAt,
 	}
 }

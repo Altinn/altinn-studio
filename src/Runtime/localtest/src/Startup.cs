@@ -113,6 +113,10 @@ namespace LocalTest
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddHttpClient<AuthorizationApiClient>();
             services.AddHttpClient<AltinnOrgsClient>();
+            services.AddHttpClient(
+                LocalFutureOrdersController.SendConditionClient,
+                client => client.Timeout = TimeSpan.FromSeconds(30)
+            );
             services.AddSingleton<IPDP, PDPAppSI>();
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();

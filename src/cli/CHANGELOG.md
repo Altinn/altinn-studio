@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Instantiation notifications work locally. Localtest lists them on the _Messages_ page and reports them delivered, or not sent when the app's send condition says so. `studioctl run` provides the app code that signs that condition. Put `localtest:failed`, `localtest:reserved` or `localtest:pending` in the notification's text for another outcome. ([#21686](https://github.com/Altinn/altinn-studio/pull/21686))
+
 ### Changed
 
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
