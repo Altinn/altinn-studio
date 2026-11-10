@@ -310,10 +310,23 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
         return node is null || value is not null;
     }
 
+    /// <summary>
+    /// Writes the whole file under a temporary name first. A write cut short then cannot leave a truncated order that
+    /// fails every retry, and the Messages page never reads a partly written one.
+    /// </summary>
     private static async Task Write<T>(FileInfo file, T value)
     {
         file.Directory?.Create();
-        await System.IO.File.WriteAllTextAsync(file.FullName, JsonSerializer.Serialize(value, _serializerOptions));
+        string temporaryFile = $"{file.FullName}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            await System.IO.File.WriteAllTextAsync(temporaryFile, JsonSerializer.Serialize(value, _serializerOptions));
+            System.IO.File.Move(temporaryFile, file.FullName, overwrite: true);
+        }
+        finally
+        {
+            System.IO.File.Delete(temporaryFile);
+        }
     }
 
     private FileInfo OrderFile(string idempotencyId) =>
@@ -332,8 +345,11 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
     private FileInfo ShipmentFile(Guid shipmentId) =>
         new(Path.Combine(StoragePath(), "shipments", shipmentId + ".json"));
 
+    /// <summary>
+    /// Joined as <see cref="LocalTest.Controllers.MessagesController"/> does, so the page reads where orders are written.
+    /// </summary>
     private string StoragePath() =>
-        settings.Value.LocalTestingStorageBasePath + settings.Value.NotificationsStorageFolder;
+        Path.Join(settings.Value.LocalTestingStorageBasePath, settings.Value.NotificationsStorageFolder);
 
     private sealed record StoredOrder(OrderResponse Response);
 

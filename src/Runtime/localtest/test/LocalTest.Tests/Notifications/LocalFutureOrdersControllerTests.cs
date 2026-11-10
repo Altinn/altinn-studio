@@ -130,10 +130,13 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
     private static Guid ReminderShipmentId(JsonElement order) =>
         order.GetProperty("Reminders")[0].GetProperty("ShipmentId").GetGuid();
 
-    private async Task<List<NotificationOrderView>> MessagesPageOrdersBySendTime()
+    private async Task<List<NotificationOrderView>> MessagesPageOrdersBySendTime(string? storageBasePath = null)
     {
         var settings = Options.Create(
-            new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath + Path.DirectorySeparatorChar }
+            new LocalPlatformSettings
+            {
+                LocalTestingStorageBasePath = storageBasePath ?? _storagePath + Path.DirectorySeparatorChar,
+            }
         );
         using var repository = new LocalCorrespondenceRepository(
             settings,
@@ -387,6 +390,18 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
 
         Assert.IsType<CreatedResult>(retried);
         Assert.IsType<OkObjectResult>(await _controller.GetShipment(ShipmentId(Body(retried))));
+    }
+
+    [Fact]
+    public async Task Post_StorageBasePathWithoutSeparator_ListsTheOrderOnTheMessagesPage()
+    {
+        var controller = new LocalFutureOrdersController(
+            Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath })
+        );
+
+        await controller.Post(Order("order-11", DateTimeOffset.UtcNow, "4"));
+
+        Assert.Single(await MessagesPageOrdersBySendTime(_storagePath));
     }
 
     [Fact]
