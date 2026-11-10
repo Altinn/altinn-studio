@@ -7,7 +7,7 @@ import pytest
 
 from agents.core import LoopContext, WebFetchTool
 from agents.core.tools import web_fetch_tool
-from agents.core.tools.web_fetch_tool import MAX_REDIRECTS, MAX_RESPONSE_CHARS
+from agents.core.tools.web_fetch_tool import MAX_REDIRECTS
 
 from .conftest import Handler
 
@@ -65,10 +65,13 @@ def _redirect_to(location: str, *, status: int = 200) -> Handler:
     return handle
 
 
-async def _fetch(url: str, **args):
+def _ctx() -> LoopContext:
+    return LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
+
+
+async def _fetch(url: str, ctx: LoopContext | None = None, **args):
     tool = WebFetchTool()
-    ctx = LoopContext(session_id="s1", repo_path="/repo", allow_app_changes=False)
-    return await tool.run(tool.input_schema(url=url, **args), ctx)
+    return await tool.run(tool.input_schema(url=url, **args), ctx or _ctx())
 
 
 class TestRefusedUrls:
@@ -162,12 +165,31 @@ class TestPageContent:
 
         assert result.content == '{"<b>": 1}'
 
-    async def test_truncates_a_long_response(self, serve):
-        serve(_respond("x" * (MAX_RESPONSE_CHARS + 1), content_type="text/plain"))
+    async def test_returns_a_long_page_in_parts(self, serve):
+        page = "".join(f"Line {n} of the guide\n" for n in range(1_500))
+        serve(_respond(page, content_type="text/plain"))
 
-        result = await _fetch(DOCS_URL)
+        ctx = _ctx()
+        first = await _fetch(DOCS_URL, ctx=ctx)
+        last_line = first.metadata["end_line"]
+        rest = await _fetch(DOCS_URL, offset=last_line + 1, ctx=ctx)
 
-        assert result.content == "x" * MAX_RESPONSE_CHARS + "\n…[truncated]"
+        assert not first.is_error
+        assert first.content.endswith(
+            f"in {DOCS_URL}.  So far, you have not read lines {last_line + 1}–1500.  "
+            f"To read them, call `web_fetch` with the same `url` and `offset` {last_line + 1}.]"
+        )
+        assert rest.content.endswith(f"You have now read all of {DOCS_URL}.]")
+        assert first.metadata["source"]["url"] == rest.metadata["source"]["url"] == DOCS_URL
+
+    async def test_refuses_an_offset_past_the_end_of_the_page(self, serve):
+        serve(_respond("<p>Guides</p>"))
+
+        result = await _fetch(DOCS_URL, offset=5)
+
+        assert result.is_error
+        # An error result must not record the page as a consulted source.
+        assert "source" not in result.metadata
 
     async def test_filter_keeps_the_lines_that_contain_every_word(self, serve):
         serve(
@@ -183,12 +205,23 @@ class TestPageContent:
 
         assert result.content == "- [Signering](https://docs.altinn.studio/nb/altinn-studio/v9/signing/index.md)"
 
-    async def test_filter_applies_before_truncation(self, serve):
-        serve(_respond("x" * (MAX_RESPONSE_CHARS + 1) + "\nmatch", content_type="text/plain"))
+    async def test_filter_applies_before_the_page_is_split_into_parts(self, serve):
+        page = "".join(f"Line {n} of the guide\n" for n in range(5_000)) + "match"
+        serve(_respond(page, content_type="text/plain"))
 
         result = await _fetch(DOCS_URL, filter="match")
 
         assert result.content == "match"
+
+    async def test_filter_names_itself_in_the_note_on_a_long_result(self, serve):
+        page = "".join(f"Line {n} of the guide\n" for n in range(1_500))
+        serve(_respond(page, content_type="text/plain"))
+
+        result = await _fetch(DOCS_URL, filter="guide")
+
+        assert result.metadata["truncated"]
+        assert f"in the lines of {DOCS_URL} that match `guide`." in result.content
+        assert "call `web_fetch` with the same `url` and `filter` and `offset`" in result.content
 
     async def test_filter_says_when_no_line_matches(self, serve):
         serve(_respond("one\ntwo", content_type="text/plain"))

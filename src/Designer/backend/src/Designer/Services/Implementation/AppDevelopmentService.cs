@@ -262,7 +262,8 @@ public class AppDevelopmentService : IAppDevelopmentService
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
             cancellationToken
         );
-        return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced);
+        bool usesTaskIds = _appVersionService.IsV9App(altinnRepoEditingContext);
+        return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced, usesTaskIds);
     }
 
     /// <inheritdoc />
@@ -345,7 +346,11 @@ public class AppDevelopmentService : IAppDevelopmentService
         return foundLayoutSet.DataType;
     }
 
-    private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
+    private IEnumerable<string> GetAppMetadataModelIds(
+        ApplicationMetadata applicationMetadata,
+        bool onlyUnReferenced,
+        bool usesTaskIds
+    )
     {
         var appMetaDataDataTypes = applicationMetadata.DataTypes.Where(data =>
             data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef)
@@ -353,7 +358,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         if (onlyUnReferenced)
         {
-            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType => string.IsNullOrEmpty(dataType.TaskId));
+            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType => !dataType.IsBoundToAnyTask(usesTaskIds));
             return unReferencedDataTypes.Select(datatype => datatype.Id);
         }
 
@@ -607,7 +612,9 @@ public class AppDevelopmentService : IAppDevelopmentService
     {
         var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId);
+#pragma warning disable CS0618 // Layout sets exist only in v8 apps, which bind a data type with TaskId
         dataType.TaskId = null;
+#pragma warning restore CS0618
         await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
     }
 

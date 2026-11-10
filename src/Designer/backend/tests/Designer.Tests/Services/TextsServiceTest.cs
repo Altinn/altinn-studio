@@ -366,7 +366,8 @@ public class TextsServiceTest : IDisposable
             altinnStorageAppMetadataClient,
             altinnGitRepositoryFactory,
             new Mock<IHttpContextAccessor>().Object,
-            giteaClientMock
+            giteaClientMock,
+            new AppVersionService(altinnGitRepositoryFactory)
         );
         Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
         OptionsService optionsService = new(

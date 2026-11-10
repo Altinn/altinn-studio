@@ -1,15 +1,14 @@
 """`web_fetch` — fetch a documentation page from an allowlisted domain.
 
 Exists so the model can follow the `studio-docs` skill: search the docs
-index (llms.txt) for the relevant page, then fetch it.  The index is far
-larger than the response cap, so `filter` returns only the lines that
-match.  Deliberately narrow:
+index (llms.txt) for the relevant page, then fetch it.  The index runs
+to many parts, so `filter` returns only the lines that match.  Deliberately narrow:
 
   * Allowlisted hosts only (docs.altinn.studio, altinncdn.no) — this is
     a docs reader, not a general HTTP client.  Keeping the list tight
     also keeps prompt-injection surface small: pages fetched are
     first-party Altinn documentation.
-  * GET only, response capped, HTML reduced to readable text.
+  * GET only, HTML reduced to readable text, long pages read in parts.
   * Redirects are followed, because the docs site sends each URL without
     a final slash to the URL with the slash.  Each redirect must pass the
     same allowlist check as the first URL.
@@ -32,8 +31,9 @@ from pydantic import BaseModel, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
+from .utils.text_parts import PartLimit, PartOffset, text_part
+
 ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "altinn.studio"}
-MAX_RESPONSE_CHARS = 60_000
 FETCH_TIMEOUT_SECONDS = 20.0
 MAX_REDIRECTS = 3
 
@@ -65,6 +65,8 @@ class WebFetchArgs(BaseModel):
             "docs index, for example `/altinn-studio/v9/ signering` on https://docs.altinn.studio/nb/llms.txt."
         ),
     )
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class WebFetchTool(Tool[WebFetchArgs]):
@@ -76,8 +78,7 @@ class WebFetchTool(Tool[WebFetchArgs]):
         "(docs.altinn.studio) or an official schema (altinncdn.no).  Use "
         "together with the `studio-docs` skill: search the docs index with "
         "`filter` for the right page, then fetch that page's URL.  "
-        "HTML is reduced to readable text; responses are capped at "
-        f"{MAX_RESPONSE_CHARS} characters, after `filter` is applied."
+        "HTML is reduced to readable text."
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True
@@ -90,13 +91,35 @@ class WebFetchTool(Tool[WebFetchArgs]):
         if isinstance(response, ToolResult):
             return response
         text, title = _extract_page(response, args.filter)
-        metadata: dict[str, object] = {"url": str(response.url), "chars": len(text)}
+        url = str(response.url)
+        line_filter = args.filter if args.filter and args.filter.split() else None
+        if line_filter:
+            key = f"url:{url}#filter:{line_filter}"
+            part_source = f"the lines of {url} that match `{line_filter}`"
+            same_args = "the same `url` and `filter`"
+        else:
+            key = f"url:{url}"
+            part_source = url
+            same_args = "the same `url`"
+        result = text_part(
+            ctx,
+            text,
+            offset=args.offset,
+            limit=args.limit,
+            key=key,
+            source=part_source,
+            tool=self.name,
+            same_args=same_args,
+        )
+        if result.is_error:
+            return result
+        result.metadata["url"] = url
         # Consulted-source record, collected by the loop and shown in the
         # chat UI.  Ground truth: this page WAS fetched.
         source = await _source(response, title)
         if source is not None:
-            metadata["source"] = source
-        return ToolResult(content=text, metadata=metadata)
+            result.metadata["source"] = source
+        return result
 
 
 def _check_url(url: str) -> ToolResult | None:
@@ -158,8 +181,6 @@ def _extract_page(response: httpx.Response, line_filter: str | None = None) -> t
         text = _html_to_text(text)
     if line_filter and line_filter.split():
         text = _matching_lines(text, line_filter)
-    if len(text) > MAX_RESPONSE_CHARS:
-        text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
     return text, title
 
 

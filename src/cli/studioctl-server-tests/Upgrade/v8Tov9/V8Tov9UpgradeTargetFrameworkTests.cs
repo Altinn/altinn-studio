@@ -218,14 +218,14 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
 
     [Theory]
     [InlineData("net8.0", "8.11.3")]
-    [InlineData("net10.0", "9.0.0-preview.7")]
-    public async Task DefaultUpgrade_FreshAndResumedAppsGetCompatiblePackagesAndNet11(
+    [InlineData("net10.0", "9.0.0-preview.10")]
+    public async Task DefaultUpgrade_FreshAndResumedAppsGetTheLatestPackagesAndNet11(
         string framework,
         string apiVersion
     )
     {
         WritePackageApp(framework, apiVersion);
-        WritePackageVersion("9.0.0-preview.8");
+        WritePackageVersion("9.0.0-preview.11");
 
         var result = await RunDefault();
 
@@ -233,7 +233,7 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
         Assert.Equal("net11.0", Framework());
         Assert.All(
             XDocument.Load(Path.Combine(_app.Root, "App", "App.csproj")).Descendants("PackageReference"),
-            reference => Assert.Equal("9.0.0-preview.8", reference.Attribute("Version")?.Value)
+            reference => Assert.Equal("9.0.0-preview.11", reference.Attribute("Version")?.Value)
         );
         Assert.Contains(
             "sdk:11.0-alpine",
@@ -273,14 +273,14 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
             XDocument.Load(Path.Combine(_app.Root, "App", "App.csproj")).Descendants("PackageReference"),
             reference => Assert.Equal(apiVersion, reference.Attribute("Version")?.Value)
         );
-        Assert.Contains("at least 9.0.0-preview.8", Report(result), StringComparison.Ordinal);
+        Assert.Contains("at least 9.0.0-preview.10", Report(result), StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task DefaultUpgrade_PreservesANewerExactPinAndUsesItsSchemaVersionOnRerun()
+    public async Task DefaultUpgrade_PreservesAnExactPinOfTheLatestVersionAndUsesItsSchemaVersionOnRerun()
     {
-        const string version = "[9.0.0-preview.9]";
-        const string schemaVersion = "9.0.0-preview.9";
+        const string version = "[9.0.0-preview.11]";
+        const string schemaVersion = "9.0.0-preview.11";
         WritePackageApp("net10.0", schemaVersion);
         var projectPath = Path.Combine(_app.Root, "App", "App.csproj");
         var project = XDocument.Load(projectPath);
@@ -314,9 +314,9 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
         int expectedExitCode
     )
     {
-        WritePackageApp("net10.0", "9.0.0-preview.8");
-        WritePackageVersion("9.0.0-preview.9");
-        WritePackage("Fixture.Extension", "1.0.0", apiDependency: "9.0.0-preview.9");
+        WritePackageApp("net10.0", "9.0.0-preview.10");
+        WritePackage("Altinn.App.Api", "9.0.0-preview.11");
+        WritePackage("Fixture.Extension", "1.0.0", apiDependency: "9.0.0-preview.11");
         var projectPath = Path.Combine(_app.Root, "App", "App.csproj");
         var project = XDocument.Load(projectPath);
         Assert
@@ -346,7 +346,7 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
         if (manualDockerfile)
             Assert.Contains("No .NET base image found", Report(result), StringComparison.Ordinal);
         Assert.Equal(
-            "9.0.0-preview.9",
+            "9.0.0-preview.11",
             XDocument
                 .Load(projectPath)
                 .Descendants("PackageReference")
@@ -355,7 +355,7 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
                 ?.Value
         );
         Assert.Contains(
-            SchemaRefMigration.AppDistUrl("9.0.0-preview.9") + "/schemas/json/layout/layout.schema.v1.json",
+            SchemaRefMigration.AppDistUrl("9.0.0-preview.11") + "/schemas/json/layout/layout.schema.v1.json",
             _app.Read("schema.json"),
             StringComparison.Ordinal
         );

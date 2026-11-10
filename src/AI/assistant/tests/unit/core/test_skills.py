@@ -216,6 +216,21 @@ class TestFormatSkillListing:
 
 class TestSkillTool:
     @pytest.mark.asyncio
+    async def test_returns_a_long_skill_in_parts(self, tmp_path):
+        body = "".join(f"Rule {n}: give the app owner read and write rights.\n" for n in range(600))
+        _write_skill(tmp_path, "long", "Desc.", body=body)
+        tool = SkillTool(discover_skills(tmp_path))
+        ctx = _ctx()
+
+        first = await tool.run(SkillArgs(skill="long"), ctx)
+        offset = first.metadata["end_line"] + 1
+        rest = await tool.run(SkillArgs(skill="long", offset=offset), ctx)
+
+        assert f"To read them, call `skill` with the same `skill` and `offset` {offset}" in first.content
+        assert rest.content.endswith("You have now read all of the long skill.]")
+        assert first.metadata["source"] == rest.metadata["source"] == {"title": "long", "kind": "skill"}
+
+    @pytest.mark.asyncio
     async def test_loads_known_skill(self, tmp_path):
         _write_skill(tmp_path, "known", body="# Skill body here")
         tool = SkillTool(discover_skills(tmp_path))
@@ -253,6 +268,23 @@ class TestSkillTool:
         assert not result.is_error
         assert result.content == "# Roles"
         assert result.metadata["file"] == "references/roles.md"
+
+    @pytest.mark.asyncio
+    async def test_returns_a_long_linked_file_in_parts(self, tmp_path):
+        skill_file = _write_skill(tmp_path, "known", body="Short body.")
+        roles = "".join(f"Role {n}: may read and write the instance.\n" for n in range(1_000))
+        _write_reference(skill_file, "references/roles.md", roles)
+        tool = SkillTool(discover_skills(tmp_path))
+        ctx = _ctx()
+
+        await tool.run(SkillArgs(skill="known"), ctx)
+        first = await tool.run(SkillArgs(skill="known", file="references/roles.md"), ctx)
+        offset = first.metadata["end_line"] + 1
+        rest = await tool.run(SkillArgs(skill="known", file="references/roles.md", offset=offset), ctx)
+
+        assert f"call `skill` with the same `skill` and `file` and `offset` {offset}" in first.content
+        assert rest.content.endswith("You have now read all of `references/roles.md` in the known skill.]")
+        assert first.metadata["file"] == rest.metadata["file"] == "references/roles.md"
 
     @pytest.mark.asyncio
     async def test_a_missing_file_is_an_error_that_lists_the_files(self, tmp_path):

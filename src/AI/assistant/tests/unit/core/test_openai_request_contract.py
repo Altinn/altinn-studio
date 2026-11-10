@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from agents.core.llm_adapter import build_openai_request
+from agents.core.llm_adapter import _message_to_openai, build_openai_request
+from agents.core.messages import AssistantMessage, TextBlock, ToolResultBlock, ToolUseBlock, UserMessage
 from shared.utils.models import is_reasoning_model
 
 MESSAGES = [{"role": "user", "content": "hei"}]
@@ -100,3 +101,35 @@ class TestShapeInvariants:
     def test_no_tools_means_no_tools_key(self):
         """An empty tools list is not the same as omitting it for some endpoints."""
         assert "tools" not in _request(True, tools=[])
+
+
+class TestToolResultOrder:
+    def test_a_notice_beside_tool_results_comes_after_them(self):
+        """The loop adds its wrap-up and truncation notices to the message that
+        carries the tool results.  OpenAI rejects a request where anything comes
+        between an assistant's tool calls and their results."""
+        conversation = [
+            AssistantMessage(
+                content=[
+                    ToolUseBlock(id="call_1", name="read_file", input={"path": "a"}),
+                    ToolUseBlock(id="call_2", name="read_file", input={"path": "b"}),
+                ]
+            ),
+            UserMessage(
+                content=[
+                    ToolResultBlock(tool_use_id="call_1", content="a"),
+                    ToolResultBlock(tool_use_id="call_2", content="b"),
+                    TextBlock(text="4 turns left"),
+                ]
+            ),
+        ]
+
+        translated = [m for message in conversation for m in _message_to_openai(message)]
+
+        assert [(m["role"], m.get("tool_call_id")) for m in translated] == [
+            ("assistant", None),
+            ("tool", "call_1"),
+            ("tool", "call_2"),
+            ("user", None),
+        ]
+        assert translated[-1]["content"] == "4 turns left"

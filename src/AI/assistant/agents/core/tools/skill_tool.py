@@ -17,6 +17,8 @@ from pydantic import AliasChoices, BaseModel, Field
 from agents.core.skills import Skill, SkillFileError
 from agents.core.tool import LoopContext, Tool, ToolResult
 
+from .utils.text_parts import PartLimit, PartOffset, text_part
+
 
 class SkillArgs(BaseModel):
     # Models reach for `name` first; accepting it costs a wasted turn per skill.
@@ -31,6 +33,8 @@ class SkillArgs(BaseModel):
             "Leave it out to load the skill itself."
         ),
     )
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class SkillTool(Tool[SkillArgs]):
@@ -71,11 +75,31 @@ class SkillTool(Tool[SkillArgs]):
                 content=f"Failed to load skill {args.skill!r}: {exc}",
                 is_error=True,
             )
+        if args.file:
+            key = f"skill:{skill.name}/{args.file}"
+            part_source = f"`{args.file}` in the {skill.name} skill"
+            same_args = "the same `skill` and `file`"
+        else:
+            key = f"skill:{skill.name}"
+            part_source = f"the {skill.name} skill"
+            same_args = "the same `skill`"
+        result = text_part(
+            ctx,
+            content,
+            offset=args.offset,
+            limit=args.limit,
+            key=key,
+            source=part_source,
+            tool=self.name,
+            same_args=same_args,
+        )
+        if result.is_error:
+            return result
         source: dict[str, str] = {"title": skill.title or skill.name, "kind": "skill"}
         docs_url = skill.docs_url_for(version_label)
         if docs_url:
             source["url"] = docs_url
-        metadata: dict[str, object] = {"skill": skill.name, "source": source}
+        result.metadata.update({"skill": skill.name, "source": source})
         if args.file:
-            metadata["file"] = args.file
-        return ToolResult(content=content, metadata=metadata)
+            result.metadata["file"] = args.file
+        return result
