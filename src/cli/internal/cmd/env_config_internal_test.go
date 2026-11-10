@@ -32,15 +32,26 @@ func TestEnvConfigSetsGetsAndUnsetsThePort(t *testing.T) {
 	}
 }
 
-func TestEnvConfigListShowsTheBuiltInPort(t *testing.T) {
+func TestEnvConfigListShowsOnlyWhatIsSet(t *testing.T) {
 	t.Parallel()
 
 	command, out := newEnvConfigCommand(t)
+	if err := command.Run(t.Context(), []string{"config", "--json"}); err != nil {
+		t.Fatalf("list error = %v", err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "[]" {
+		t.Fatalf("list --json = %q, want [] with nothing set", got)
+	}
+
+	if err := command.Run(t.Context(), []string{"config", "set", "port", "8100"}); err != nil {
+		t.Fatalf("set error = %v", err)
+	}
+	out.Reset()
 	if err := command.Run(t.Context(), []string{"config"}); err != nil {
 		t.Fatalf("list error = %v", err)
 	}
-	if !strings.Contains(out.String(), "8000 (built-in)") {
-		t.Fatalf("output = %q, want the built-in port", out.String())
+	if !strings.Contains(out.String(), "8100") || strings.Contains(out.String(), "8000") {
+		t.Fatalf("list = %q, want the port set, not the built-in one", out.String())
 	}
 }
 

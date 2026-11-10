@@ -45,7 +45,7 @@ func (c *EnvCommand) configUsage() string {
 		"Show or change the defaults of the environment.",
 		"",
 		"Subcommands:",
-		"  list               Show the settings (the default)",
+		"  list               Show the settings you have set (the default)",
 		"  get KEY            Print a setting's value",
 		"  set KEY VALUE      Change a setting",
 		"  unset KEY          Go back to the built-in default",
@@ -91,13 +91,21 @@ func (c *EnvCommand) runConfigList(args []string) error {
 	if err != nil {
 		return err
 	}
-	list := []envConfigSetting{portSetting(settings)}
+	// Only what is set: a built-in default listed beside it would look like something unset can remove.
+	list := make([]envConfigSetting, 0, 1)
+	if setting := portSetting(settings); setting.Set {
+		list = append(list, setting)
+	}
 	if parsed.jsonOutput {
 		return printJSONOutput(c.out, "env config list", list)
 	}
+	if len(list) == 0 {
+		c.out.Println("No settings set.")
+		return nil
+	}
 	table := ui.NewTable(ui.NewColumn("Setting"), ui.NewColumn("Value"))
 	for _, setting := range list {
-		table.Row(ui.Text(setting.Key), ui.Text(describeSettingValue(setting)))
+		table.Row(ui.Text(setting.Key), ui.Text(strconv.Itoa(setting.Value)))
 	}
 	c.out.RenderTable(table)
 	return nil
@@ -244,11 +252,4 @@ func portSetting(settings config.Settings) envConfigSetting {
 		Default: defaultPort,
 		Set:     settings.Env.Port != 0,
 	}
-}
-
-func describeSettingValue(setting envConfigSetting) string {
-	if setting.Set {
-		return strconv.Itoa(setting.Value)
-	}
-	return strconv.Itoa(setting.Value) + " (built-in)"
 }
