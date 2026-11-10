@@ -1,33 +1,31 @@
 import { type LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
-import { QueryClient } from '@tanstack/react-query';
-
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
-import { instanceApi } from 'src/core/api-client/instance.api';
-import { partyApi } from 'src/core/api-client/party.api';
-import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader } from 'src/routes/index/index.loader';
+import { setupFakeApp } from 'src/test/renderWithProviders';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
+
+let queries: ReturnType<typeof setupFakeApp>['queries'];
+let mutations: ReturnType<typeof setupFakeApp>['mutations'];
+beforeEach(() => {
+  ({ queries, mutations } = setupFakeApp());
+});
 
 vi.mock('react-router', async () => ({
   ...(await vi.importActual('react-router')),
   redirect: vi.fn((url: string) => ({ status: 302, headers: new Map([['Location', url]]) })),
 }));
 
-vi.mock('src/core/api-client/instance.api');
-
 function createLoaderArgs(): LoaderFunctionArgs {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+  const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  context.set(apiClientsContext, { backendValidationApi, instanceApi, partyApi, textResourcesApi });
+  context.set(appQueriesContext, queries);
   return createLoaderFunctionArgs({ context });
 }
 
@@ -50,11 +48,11 @@ describe('index clientLoader', () => {
         lastChangedBy: 'Sophie Salt',
       },
     ];
-    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue(activeInstances);
 
     await clientLoader(createLoaderArgs());
 
-    expect(instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith('/instance-selection');
   });
   it('does not create an instance when the service is closed', async () => {
@@ -63,12 +61,12 @@ describe('index clientLoader', () => {
       onEntry: { show: 'new-instance' },
       validTo: '2020-01-01T00:00:00Z',
     });
-    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
 
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
-    expect(instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.createInstance.mock).not.toHaveBeenCalled();
   });
 
   it('reports a closed service when the backend rejects creation with 410', async () => {
@@ -76,8 +74,8 @@ describe('index clientLoader', () => {
     window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
       onEntry: { show: 'new-instance' },
     });
-    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(instanceApi.create).mockRejectedValue(
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(
       Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
     );
 

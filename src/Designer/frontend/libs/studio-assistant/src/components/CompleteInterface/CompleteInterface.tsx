@@ -79,7 +79,6 @@ export function CompleteInterface({
               texts={texts}
               chatThreads={chatThreads}
               selectedThreadId={activeThreadId || undefined}
-              currentSessionId={activeThreadId}
               onSelectThread={onSelectThread}
               onDeleteThread={onDeleteThread}
               onCreateThread={handleCreateThread}

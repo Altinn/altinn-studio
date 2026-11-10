@@ -9,6 +9,9 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useFormBootstrapQuery } from 'src/core/queries/formBootstrap';
+import { useSelectFromInstanceData } from 'src/core/queries/instance';
+import { OrderDetailsProvider, PaymentInformationProvider } from 'src/core/queries/payment';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -35,19 +38,13 @@ import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutS
 import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
-import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
-import {
-  useOptimisticallyUpdateCachedInstance,
-  useSelectFromInstanceData,
-} from 'src/features/instance/InstanceContext';
+import { useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
-import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
-import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';

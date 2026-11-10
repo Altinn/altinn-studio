@@ -22,7 +22,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { getAvailableEnvironments } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { UrlConstants } from '../../utils/urlUtils';
 import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
@@ -261,11 +261,8 @@ export const DeployResourcePage = ({
         );
       }
       case 'success': {
-        const getVersionString = (env: string): string => {
-          return (
-            publishStatusData.publishedVersions.find((v) => v.environment === env)?.version ??
-            t('resourceadm.deploy_not_deployed')
-          );
+        const getVersionString = (version: string | null): string => {
+          return version ?? t('resourceadm.deploy_not_deployed');
         };
 
         return (
@@ -306,13 +303,13 @@ export const DeployResourcePage = ({
                 {t('resourceadm.deploy_select_env_label')}
               </StudioParagraph>
               <div className={classes.environmentWrapper}>
-                {getAvailableEnvironments(org).map((env) => {
-                  const versionString = getVersionString(env.id);
+                {publishStatusData.publishedVersions.map((publishedVersion) => {
+                  const versionString = getVersionString(publishedVersion.version);
                   return (
                     <ResourceDeployEnvCard
-                      key={env.id}
+                      key={publishedVersion.environment}
                       isDeployPossible={isDeployPossible(versionString)}
-                      env={env}
+                      env={publishedVersion.environment as EnvId}
                       currentEnvVersion={versionString}
                       newEnvVersion={
                         resourceVersionText !== versionString ? resourceVersionText : undefined

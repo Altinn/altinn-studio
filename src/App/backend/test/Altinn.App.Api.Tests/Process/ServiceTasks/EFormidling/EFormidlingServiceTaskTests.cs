@@ -10,14 +10,13 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Process.ServiceTasks.EFormidling;
 
-public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class EFormidlingServiceTaskTests : ApiTestBase
 {
     private const string Org = "ttd";
     private const string App = "service-tasks";
@@ -28,8 +27,8 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
 
     private readonly Mock<IEFormidlingService> _eFormidlingServiceMock = new();
 
-    public EFormidlingServiceTaskTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public EFormidlingServiceTaskTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {

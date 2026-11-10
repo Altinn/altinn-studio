@@ -39,8 +39,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType2", TaskIds = [taskId] },
             ],
         };
 
@@ -79,8 +79,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType2", TaskIds = [taskId] },
             ],
         };
 
@@ -119,8 +119,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType3", TaskIds = ["task2"] },
             ],
         };
 
@@ -159,8 +159,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType3", TaskIds = ["task2"] },
             ],
         };
 

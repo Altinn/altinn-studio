@@ -4,6 +4,7 @@ import {
   IDataModelReference,
   IQueryParameters,
   ISummaryOverridesCommon,
+  ITableColumnWidth,
   LabeledComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -21,6 +22,7 @@ export interface CompListExternal extends ComponentBase, FormComponentProps, Lab
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
   tableHeaders: { [key: string]: string };
+  tableColumns?: { [key: string]: ITableColumnWidth };
   sortableColumns?: string[];
   pagination?: IPagination;
   dataListId: string;
@@ -77,4 +79,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: 5bf25d846ccc4dc9dce5c441c5885ee094e130879af554e450868db41539a49d
+// Source hash: f5dd3863d4fefca4dae8d6525297caf6a5ad312d526eff95ff5c0b11f5b441ab

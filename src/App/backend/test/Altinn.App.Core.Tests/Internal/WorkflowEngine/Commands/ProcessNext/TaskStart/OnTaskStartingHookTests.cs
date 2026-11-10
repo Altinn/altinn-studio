@@ -30,7 +30,7 @@ public class OnTaskStartingHookTests
                 CommandKey = OnTaskStartingHook.Key,
                 Actor = new Actor { UserId = 1337 },
                 State = "{}",
-                WorkflowId = Guid.Empty,
+                WorkflowId = Guid.NewGuid(),
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
@@ -94,6 +94,8 @@ public class OnTaskStartingHookTests
                     It.Is<OnTaskStartingContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.WorkflowId == context.Payload.WorkflowId
+                        && c.StepId == context.Payload.StepId
                     )
                 ),
             Times.Once

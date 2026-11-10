@@ -41,6 +41,9 @@ public class AppTestDataModel
             Org = org,
             Party = party,
             Person = person,
+            OrgUnits = Orgs.ToDictionary(
+                o => o.PartyId.ToString(),
+                o => new TestDataOrgUnit(o.PartyId, o.OrgNumber, o.ParentPartyId, o.UnitType)),
         };
     }
 
@@ -57,28 +60,34 @@ public class AppTestDataModel
     public TestDataAuthorization GetTestDataAuthorization()
     {
         var claims = Persons.Where(p => p.CustomClaims.Count > 0).ToDictionary(p => p.UserId.ToString(), p => p.CustomClaims);
+        // The parties a person can be given roles or access packages for: organizations and other persons
         var parties = GetOrgPartiesWithChildren();
+        foreach (var person in Persons)
+        {
+            parties.TryAdd(person.PartyId.ToString(), person.ToParty());
+        }
         var partyList = Persons
             .ToDictionary(
                 p => p.UserId.ToString(),
                 p => {
                     var partiesForUser = new List<Party>{p.ToParty()};
-                    partiesForUser.AddRange(p.PartyRoles.Keys.Select(partyId =>
-                        parties.TryGetValue(partyId.ToString(), out var value) ? value! : null!
-                    ));
-                    return partiesForUser.Where(p=>p is not null).ToList();
+                    partiesForUser.AddRange(p.PartyRoles.Keys.Union(p.AccessPackages.Keys)
+                        .Where(partyId => partyId != p.PartyId)
+                        .Select(partyId => parties.GetValueOrDefault(partyId.ToString()))
+                        .OfType<Party>());
+                    return partiesForUser;
                 });
         var roles = Persons.ToDictionary(p => p.UserId.ToString(), p => p.PartyRoles.ToDictionary(r => r.Key.ToString(), r => r.Value));
+        var accessPackages = Persons
+            .Where(p => p.AccessPackages.Count > 0)
+            .ToDictionary(
+                p => p.UserId.ToString(),
+                p => p.AccessPackages.ToDictionary(a => a.Key.ToString(), a => AccessPackageIdentifier.Normalize(a.Value)));
 
         var systems = Systems?.ToDictionary(s => s.Id, s => new TestDataSystem(
             s.Id,
             s.Name,
-            s.SystemUsers?.ToDictionary(su => su.Id, su => new TestDataSystemUser(
-                su.Id,
-                s.Id,
-                su.OrgNumber,
-                su.Actions
-            )) ?? new()
+            s.SystemUsers.ToDictionary(su => su.Id, su => su.ToTestDataSystemUser(s.Id))
         ));
 
         return new TestDataAuthorization
@@ -86,15 +95,11 @@ public class AppTestDataModel
             Claims = claims,
             PartyList = partyList,
             Roles = roles,
+            AccessPackages = accessPackages,
             Systems = systems ?? new(),
             SystemUsers = Systems?
                 .SelectMany(s => s.SystemUsers.Select(su => (SystemId: s.Id, SystemUser: su)))
-                .ToDictionary(d => d.SystemUser.Id, d => new TestDataSystemUser(
-                    d.SystemUser.Id,
-                    d.SystemId,
-                    d.SystemUser.OrgNumber,
-                    d.SystemUser.Actions
-                )) ?? new()
+                .ToDictionary(d => d.SystemUser.Id, d => d.SystemUser.ToTestDataSystemUser(d.SystemId)) ?? new()
         };
     }
 
@@ -120,15 +125,15 @@ public class AppTestDataModel
             Orgs = localData.Register.Org.Values.Select(org =>
             {
                 var party = localData.Register.Party.Values.FirstOrDefault(p => p.OrgNumber == org.OrgNumber);
-                var parentParty = localData.Authorization.PartyList.Values.SelectMany(l => l).FirstOrDefault(p => p.ChildParties?.Any(cp => cp.PartyId == party?.PartyId) == true);
+                var unit = party is null ? null : localData.Register.OrgUnits.GetValueOrDefault(party.PartyId.ToString());
                 return new AppTestOrg()
                 {
                     PartyId = party?.PartyId ?? negativePartyId--,
                     PartyUuid = party?.PartyUuid,
-                    ParentPartyId = parentParty?.PartyId,
+                    ParentPartyId = unit?.ParentPartyId,
                     TelephoneNumber = org.TelephoneNumber,
                     UnitStatus = org.UnitStatus,
-                    UnitType = party?.UnitType ?? org.UnitType, // These are inconsistent in the original TestData folder
+                    UnitType = unit?.UnitType ?? party?.UnitType ?? org.UnitType, // These are inconsistent in the original TestData folder
                     BusinessAddress = org.BusinessAddress,
                     BusinessPostalCity = org.BusinessPostalCity,
                     BusinessPostalCode = org.BusinessPostalCode,
@@ -152,6 +157,7 @@ public class AppTestDataModel
                 var customClaims = localData.Authorization.Claims.TryGetValue(profile.UserId.ToString(), out var v) ? v : new();
 
                 var userRoles = localData.Authorization.Roles.TryGetValue(profile.UserId.ToString(), out var roles) ? roles : null;
+                var userAccessPackages = localData.Authorization.AccessPackages.TryGetValue(profile.UserId.ToString(), out var packages) ? packages : null;
 
                 return new AppTestPerson()
                 {
@@ -175,11 +181,24 @@ public class AppTestDataModel
                     TelephoneNumber = p.TelephoneNumber,
                     MobileNumber = p.MobileNumber,
                     PartyRoles = userRoles?.ToDictionary(r => int.Parse(r.Key), r => r.Value) ?? new(),
+                    AccessPackages = userAccessPackages?.ToDictionary(a => int.Parse(a.Key), a => a.Value) ?? new(),
                     CustomClaims = customClaims,
                     UserId = profile.UserId,
                     Language = profile.ProfileSettingPreference?.Language,
                     UserName = profile.UserName,
                 };
+            }).ToList(),
+            Systems = localData.Authorization.Systems.Values.Select(system => new AppTestSystem()
+            {
+                Id = system.Id,
+                Name = system.Name,
+                SystemUsers = system.SystemUsers.Values.Select(su => new AppTestSystemUser()
+                {
+                    Id = su.Id,
+                    OrgNumber = su.OrgNumber,
+                    Actions = su.Actions,
+                    AccessPackages = su.AccessPackages.ToList(),
+                }).ToList(),
             }).ToList(),
         };
         return constructedAppData;
@@ -296,6 +315,17 @@ public class AppTestPerson
     public List<CustomClaim> CustomClaims { get; set; } = new();
     [JsonPropertyName("partyRoles")]
     public Dictionary<int, List<Role>> PartyRoles { get; set; } = new();
+    private Dictionary<int, List<string>> _accessPackages = new();
+    /// <summary>
+    /// The access packages the person holds, by the party id they are held for. A package is its identifier
+    /// (<c>lonn</c>) or its URN (<c>urn:altinn:accesspackage:lonn</c>). A JSON <c>null</c> is read as empty.
+    /// </summary>
+    [JsonPropertyName("accessPackages")]
+    public Dictionary<int, List<string>> AccessPackages
+    {
+        get => _accessPackages;
+        set => _accessPackages = value ?? new();
+    }
     [JsonPropertyName("addressCity")]
     public string? AddressCity { get; set; }
     [JsonPropertyName("addressHouseLetter")]
@@ -408,8 +438,14 @@ public class AppTestSystem
     public string Id { get; set; } = default!;
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
+    private IEnumerable<AppTestSystemUser> _systemUsers = [];
+    /// <summary>The system users of the system. A missing list or JSON <c>null</c> is read as empty.</summary>
     [JsonPropertyName("systemUsers")]
-    public IEnumerable<AppTestSystemUser> SystemUsers { get; set; } = default!;
+    public IEnumerable<AppTestSystemUser> SystemUsers
+    {
+        get => _systemUsers;
+        set => _systemUsers = value ?? [];
+    }
 }
 
 public class AppTestSystemUser
@@ -418,6 +454,21 @@ public class AppTestSystemUser
     public string Id { get; set; } = default!;
     [JsonPropertyName("orgNumber")]
     public string OrgNumber { get; set; } = default!;
+    private IEnumerable<string> _actions = [];
+    /// <summary>The actions the system user may perform (a localtest shortcut). A missing list or JSON <c>null</c> is read as empty.</summary>
     [JsonPropertyName("actions")]
-    public IEnumerable<string> Actions { get; set; } = default!;
+    public IEnumerable<string> Actions
+    {
+        get => _actions;
+        set => _actions = value ?? [];
+    }
+    /// <summary>
+    /// The access packages the system user holds for its own organization (<see cref="OrgNumber"/>), as identifiers or
+    /// URNs. A JSON <c>null</c> is read as empty.
+    /// </summary>
+    [JsonPropertyName("accessPackages")]
+    public List<string>? AccessPackages { get; set; }
+
+    public TestDataSystemUser ToTestDataSystemUser(string systemId) =>
+        new(Id, systemId, OrgNumber, Actions, AccessPackageIdentifier.Normalize(AccessPackages));
 }

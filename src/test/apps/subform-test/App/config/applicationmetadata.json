@@ -35,7 +35,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -56,7 +56,7 @@
         "allowUserDelete": true,
         "allowInSubform": true
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 3,
       "minCount": 1,
       "enableFileScan": false,
@@ -77,7 +77,7 @@
         "allowUserDelete": true,
         "allowInSubform": true
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 0,
       "minCount": 0,
       "enableFileScan": false,
@@ -90,7 +90,7 @@
       "allowedContentTypes": [
         "image/png"
       ],
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxSize": 10,
       "maxCount": 20,
       "minCount": 0,

@@ -16,22 +16,21 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ActionsControllerTests : ApiTestBase
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(
         JsonSerializerDefaults.Web
     );
     private readonly ITestOutputHelper _outputHelper;
 
-    public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public ActionsControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         _outputHelper = outputHelper;
     }

@@ -69,7 +69,11 @@ def cap_tool_result(content: str, max_chars: int) -> str:
         return content
     head = content[:max_chars]
     omitted = len(content) - max_chars
-    return f"{head}\n\n[…truncated {omitted} chars — call the tool again with a narrower query if you need more]"
+    return (
+        f"{head}\n\n[…truncated {omitted} chars.  You have not seen the rest of this result, so do not "
+        "treat it as read or handled.  The same call returns the same cut result, so do not repeat it.  "
+        "If you need the rest, ask for less, such as one file with `read_file`.]"
+    )
 
 
 def message_chars(message: Message) -> int:

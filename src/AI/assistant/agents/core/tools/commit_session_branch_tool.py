@@ -11,10 +11,15 @@ The tool requires `ctx.allow_app_changes`.
 
 from __future__ import annotations
 
+import posixpath
+import subprocess
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git import git_ops
+
+from .utils.repo_files import mark_changed
 
 
 def unverified_changed_files(ctx: LoopContext) -> set[str]:
@@ -28,6 +33,47 @@ def unverified_changed_files(ctx: LoopContext) -> set[str]:
     changed: set[str] = ctx.extras.get("changed_files") or set()
     verified: set[str] = ctx.extras.get("verified_files") or set()
     return changed - verified
+
+
+def track_uncommitted_files(ctx: LoopContext) -> None:
+    """Add each file that git shows as not committed to the changed files.
+
+    A commit takes all files in the working tree. An earlier turn can leave an
+    edit that the tools of this turn did not record. This edit must also pass
+    `verify_changes` before a commit. `edits_not_from_tools` keeps these files
+    until a tool writes them. Thus the refusal can tell the model that no tool
+    made these changes.
+    """
+    recorded = {posixpath.normpath(path) for path in ctx.extras.get("changed_files") or set()}
+    not_from_tools: set[str] = ctx.extras.setdefault("edits_not_from_tools", set())
+    for path in git_ops.uncommitted_files(ctx.repo_path):
+        if path not in recorded:
+            mark_changed(ctx, path)
+            not_from_tools.add(path)
+
+
+def _unverified_refusal(ctx: LoopContext, unverified: set[str]) -> str:
+    """Tell the model which files stop the commit.
+
+    The model has no record of a change that no tool made in this turn. In
+    manual runs, the model did not fix such a file, and asked the user. Thus
+    the refusal names these files separately.
+    """
+    not_from_tools = unverified & (ctx.extras.get("edits_not_from_tools") or set())
+    from_tools = unverified - not_from_tools
+    lines = ["Refusing to commit."]
+    if from_tools:
+        lines.append(
+            "The following changed files have not been verified since their last edit — run "
+            f"`verify_changes` first, then retry: {sorted(from_tools)}"
+        )
+    if not_from_tools:
+        lines.append(
+            f"Git shows changes in these files that no tool made in this turn: {sorted(not_from_tools)}.  "
+            "`commit_session_branch` commits all changes, also these.  Fix them and run "
+            "`verify_changes`, or undo them with `discard_file_changes`."
+        )
+    return "\n".join(lines)
 
 
 def _session_branch_name(ctx: LoopContext) -> str:
@@ -44,6 +90,19 @@ def _session_branch_name(ctx: LoopContext) -> str:
     name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
+
+
+def _commit_to_push_again(ctx: LoopContext) -> str | None:
+    """Return the last commit if the remote does not have all local commits, or None.
+
+    The working tree is clean. But a commit with a failed push stays in the
+    container until a later push succeeds.
+    """
+    if not git_ops.unpushed_files(ctx.repo_path):
+        return None
+    head = git_ops.head_commit(ctx.repo_path)
+    # The short hash, in the format that `git_ops.commit` returns.
+    return head[:8] if head else None
 
 
 class CommitSessionBranchArgs(BaseModel):
@@ -71,26 +130,24 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
         "  - Nothing to commit: working tree is clean.  Probably you already "
         "committed the changes — check your earlier tool results.\n"
         "  - Push rejected / push raises: the commit is local-only.  You can "
-        "retry with the same message, or stop and let the user resolve."
+        "retry with the same message, which pushes the commit again, or stop "
+        "and let the user resolve."
     )
     input_schema = CommitSessionBranchArgs
     is_concurrency_safe = False
 
     async def run(self, args: CommitSessionBranchArgs, ctx: LoopContext) -> ToolResult:
+        try:
+            track_uncommitted_files(ctx)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return ToolResult(content=f"Commit failed: git cannot read the working tree: {exc}", is_error=True)
         unverified = unverified_changed_files(ctx)
         if unverified:
-            return ToolResult(
-                content=(
-                    "Refusing to commit: the following changed files have not "
-                    "been verified since their last edit — run `verify_changes` "
-                    f"first, then retry: {sorted(unverified)}"
-                ),
-                is_error=True,
-            )
+            return ToolResult(content=_unverified_refusal(ctx, unverified), is_error=True)
 
         branch = _session_branch_name(ctx)
         try:
-            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch)
+            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch) or _commit_to_push_again(ctx)
         except Exception as exc:
             return ToolResult(content=f"Commit failed: {exc}", is_error=True)
 
@@ -114,6 +171,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             repo_manager = get_repo_manager()
             pushed = repo_manager.push_branch(ctx.session_id, branch)
         except Exception as exc:
+            ctx.extras["session_pushed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but push failed: {exc}"),
                 is_error=True,
@@ -121,16 +179,15 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             )
 
         if not pushed:
+            ctx.extras["session_pushed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but the push was rejected."),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
-        # Record that the session has committed at least once so the
-        # agentic node's auto-commit safety net doesn't fire a duplicate
-        # commit when the loop finishes normally.
-        ctx.extras["session_committed"] = True
+        # The render check runs only if the remote branch has the latest commit.
+        ctx.extras["session_pushed"] = True
         return ToolResult(
             content=f"Committed {commit_hash} to {branch} and pushed.",
             metadata={"commit": commit_hash, "branch": branch, "pushed": True},

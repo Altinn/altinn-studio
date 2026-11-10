@@ -2,15 +2,9 @@ import React, { useState } from 'react';
 import { createMemoryRouter, LoaderFunctionArgs, RouterContextProvider, RouterProvider } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import {
-  useBackendValidationApi,
-  useInstanceApi,
-  usePartyApi,
-  useTextResourcesApi,
-} from 'src/core/contexts/ApiProvider';
-import { useQueryClient } from 'src/core/queries/reactQuery';
+import { useAppMutations, useAppQueries, useAppQueryClient } from 'src/core/queries/AppQueriesProvider';
 import { instanceRoutes } from 'src/router';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 
 export const PageNavigationRouter =
@@ -51,13 +45,8 @@ export function createLoaderFunctionArgs(partialArgs: Partial<LoaderFunctionArgs
  * the renderer must render an `<Outlet />`.
  */
 export function InstanceRoutesRouter({ children, path }: PropsWithChildren<{ path: string }>) {
-  const queryClient = useQueryClient();
-  const apiClients = {
-    backendValidationApi: useBackendValidationApi(),
-    partyApi: usePartyApi(),
-    instanceApi: useInstanceApi(),
-    textResourcesApi: useTextResourcesApi(),
-  };
+  const queryClient = useAppQueryClient();
+  const queries = { ...useAppQueries(), ...useAppMutations() };
 
   // Created once, so a re-render does not run the loaders again
   const [router] = useState(() =>
@@ -67,7 +56,7 @@ export function InstanceRoutesRouter({ children, path }: PropsWithChildren<{ pat
       getContext() {
         const context = new RouterContextProvider();
         context.set(queryClientContext, queryClient);
-        context.set(apiClientsContext, apiClients);
+        context.set(appQueriesContext, queries);
         return context;
       },
     }),
