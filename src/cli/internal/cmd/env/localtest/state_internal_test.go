@@ -50,7 +50,7 @@ func TestReadStateRefusesAnUnreadableFile(t *testing.T) {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
 
-	if _, err := ReadState(cfg); err == nil || !strings.Contains(err.Error(), statePath(cfg)) {
+	if _, _, err := ReadState(cfg); err == nil || !strings.Contains(err.Error(), statePath(cfg)) {
 		t.Fatalf("ReadState() error = %v, want an error naming %s", err, statePath(cfg))
 	}
 }
@@ -61,20 +61,26 @@ func TestStartState(t *testing.T) {
 	recorded := State{PublicPort: 8100}
 	const configured = 8300
 	tests := []struct {
-		name   string
-		port   int
-		exists bool
-		want   int
+		name      string
+		port      int
+		hasRecord bool
+		exists    bool
+		want      int
 	}{
-		{name: "--port wins over the recorded port", port: 8200, exists: true, want: 8200},
-		{name: "an existing environment keeps its port", port: 0, exists: true, want: 8100},
-		{name: "a new environment starts at the configured port", port: 0, exists: false, want: configured},
+		{name: "--port wins over the recorded port", port: 8200, hasRecord: true, exists: true, want: 8200},
+		{name: "a recorded port lasts until env down", port: 0, hasRecord: true, exists: false, want: 8100},
+		// Started before studioctl recorded the port, so env config, changed since, must not move it (R1).
+		{name: "an environment without a record keeps the default", port: 0, hasRecord: false, exists: true,
+			want: envtopology.DefaultIngressPort()},
+		{name: "a new environment starts at the configured port", port: 0, hasRecord: false, exists: false,
+			want: configured},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := startState(tt.port, recorded, tt.exists, configured); got.PublicPort != tt.want {
+			got := startState(tt.port, recorded, tt.hasRecord, tt.exists, configured)
+			if got.PublicPort != tt.want {
 				t.Fatalf("startState() port = %d, want %d", got.PublicPort, tt.want)
 			}
 		})
@@ -94,12 +100,13 @@ func TestRemoveStateForgetsTheRecordedPort(t *testing.T) {
 			t.Fatalf("RemoveState() error = %v", err)
 		}
 	}
-	if state, err := ReadState(cfg); err != nil || state.PublicPort != 0 {
-		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	if state, found, err := ReadState(cfg); err != nil || found {
+		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
 	}
 }
 
-func TestRecordedTopologyWithoutARecordIsTheConfiguredPort(t *testing.T) {
+// With nothing recorded, the environment, if any, was started at the default port, so env config doesn't apply (R1).
+func TestRecordedTopologyWithoutARecordIsTheDefaultPort(t *testing.T) {
 	t.Parallel()
 
 	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir()}
@@ -111,8 +118,8 @@ func TestRecordedTopologyWithoutARecordIsTheConfiguredPort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RecordedTopology() error = %v", err)
 	}
-	if got := topology.IngressPort(); got != "8300" {
-		t.Fatalf("IngressPort() = %q, want 8300", got)
+	if got := topology.IngressPort(); got != envtopology.DefaultIngressPortString() {
+		t.Fatalf("IngressPort() = %q, want %s", got, envtopology.DefaultIngressPortString())
 	}
 }
 

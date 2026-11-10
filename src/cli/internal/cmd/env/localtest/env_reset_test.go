@@ -57,8 +57,8 @@ func TestReset_ForgetsTheRecordedPort(t *testing.T) {
 	if err := env.Reset(context.Background()); err != nil {
 		t.Fatalf("Reset() error = %v", err)
 	}
-	if state, err := ReadState(cfg); err != nil || state.PublicPort != 0 {
-		t.Fatalf("ReadState() = %+v, %v, want the zero state", state, err)
+	if state, found, err := ReadState(cfg); err != nil || found {
+		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
 	}
 }
 

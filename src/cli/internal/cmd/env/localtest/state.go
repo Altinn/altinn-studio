@@ -34,21 +34,13 @@ func (s State) Topology() envtopology.Local {
 	return envtopology.NewLocal(strconv.Itoa(s.PublicPort))
 }
 
-// RecordedTopology is the environment's public URLs at the port it was started with. With nothing recorded, it is
-// where env up would start it: at the env config port, or the default.
+// RecordedTopology is the environment's public URLs at the port it was last started with, or at the default port.
 func RecordedTopology(cfg *config.Config) (envtopology.Local, error) {
-	state, err := ReadState(cfg)
+	state, _, err := ReadState(cfg)
 	if err != nil {
 		return envtopology.Local{}, err
 	}
-	if state.PublicPort != 0 {
-		return state.Topology(), nil
-	}
-	port, err := configuredPort(cfg)
-	if err != nil {
-		return envtopology.Local{}, err
-	}
-	return State{PublicPort: port}.Topology(), nil
+	return state.Topology(), nil
 }
 
 // configuredPort is the port env up starts a new environment at: the env config port, or the default.
@@ -63,20 +55,20 @@ func configuredPort(cfg *config.Config) (int, error) {
 	return envtopology.DefaultIngressPort(), nil
 }
 
-// ReadState returns the recorded state, or the zero State when there is none.
-func ReadState(cfg *config.Config) (State, error) {
+// ReadState returns the recorded state and whether there is one. Without one, it is the zero State.
+func ReadState(cfg *config.Config) (State, bool, error) {
 	data, err := os.ReadFile(statePath(cfg))
 	if errors.Is(err, os.ErrNotExist) {
-		return State{PublicPort: 0}, nil
+		return State{PublicPort: 0}, false, nil
 	}
 	if err != nil {
-		return State{}, fmt.Errorf("read localtest state: %w", err)
+		return State{}, false, fmt.Errorf("read localtest state: %w", err)
 	}
 	var state State
 	if err := json.Unmarshal(data, &state); err != nil {
-		return State{}, fmt.Errorf("parse localtest state %s: %w", statePath(cfg), err)
+		return State{}, false, fmt.Errorf("parse localtest state %s: %w", statePath(cfg), err)
 	}
-	return state, nil
+	return state, true, nil
 }
 
 // WriteState records the state the environment is started with.
@@ -106,14 +98,18 @@ func RemoveState(cfg *config.Config) error {
 	return nil
 }
 
-// startState is the state env up starts the environment with: --port when it is given, the recorded port while the
-// environment exists, and the configured port otherwise.
-func startState(port int, recorded State, exists bool, configured int) State {
+// startState is the state env up starts the environment with: --port when it is given, the recorded port until
+// env down or env reset forgets it, and the env config port for a new environment. The record, not the containers,
+// decides: studioctl itself removes the containers without forgetting the port, as a scheduled workflow-engine data
+// reset does. An environment without a record was started before studioctl recorded the port, so at the default.
+func startState(port int, recorded State, hasRecord, exists bool, configured int) State {
 	switch {
 	case port != 0:
 		return State{PublicPort: port}
-	case exists:
+	case hasRecord:
 		return recorded
+	case exists:
+		return State{PublicPort: envtopology.DefaultIngressPort()}
 	default:
 		return State{PublicPort: configured}
 	}

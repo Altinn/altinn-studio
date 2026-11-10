@@ -21,10 +21,10 @@ move with each deployment.
 
 ## Another port than 8000
 
-`studioctl env up --port <port>` serves the environment on another host port when 8000 is taken. studioctl records the
-port, so `run`, `app env` and `env status` use it, until `env down` or `env reset` forgets it.
-`studioctl env config set port <port>` makes another port the default for every `env up`, and
-`studioctl env config unset port` goes back to 8000.
+`studioctl env up --port <port>` serves the environment on another host port, 1024 or above, when 8000 is taken.
+studioctl records the port, so `run`, `app env` and `env status` use it, until `env down` or `env reset` forgets it.
+`studioctl env config set port <port>` makes another port the default for an environment `env up` starts, and
+`studioctl env config unset port` goes back to 8000. An environment that exists keeps its port until `env down`.
 
 studioctl supplies the configuration of the containers it starts, so a change to that configuration must keep working
 with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has

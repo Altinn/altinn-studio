@@ -65,32 +65,6 @@ func TestEnvConfigRefusesBadInput(t *testing.T) {
 	}
 }
 
-// Without a running environment, an app started from an IDE takes the port env up would start localtest at.
-func TestRunEnvUsesTheConfiguredPortWithoutAnEnvironment(t *testing.T) {
-	t.Parallel()
-
-	appRoot := writeEnvCommandApp(t)
-	command, out := newEnvCommand(t)
-	if err := config.SaveSettings(command.cfg, config.Settings{Env: config.EnvSettings{Port: 8300}}); err != nil {
-		t.Fatalf("SaveSettings() error = %v", err)
-	}
-
-	if err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"}); err != nil {
-		t.Fatalf("runEnv() error = %v", err)
-	}
-
-	var got map[string]string
-	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
-		t.Fatalf("json.Unmarshal() error = %v", err)
-	}
-	assertEnvCommandValue(
-		t,
-		got,
-		"PlatformSettings__ApiStorageEndpoint",
-		"http://local.altinn.cloud:8300/storage/api/v1/",
-	)
-}
-
 func newEnvConfigCommand(t *testing.T) (*EnvCommand, *bytes.Buffer) {
 	t.Helper()
 	home := t.TempDir()
@@ -112,4 +86,24 @@ func getPortSetting(t *testing.T, command *EnvCommand, out *bytes.Buffer) envCon
 		t.Fatalf("json.Unmarshal(%q) error = %v", out.String(), err)
 	}
 	return setting
+}
+
+// An environment with no recorded port was started at the default port, whatever env config says now. env up --port
+// with the configured port must move it there, not report it as already running at 8000.
+func TestLocaltestPortChangedComparesAnUnrecordedEnvironmentWithTheDefault(t *testing.T) {
+	t.Parallel()
+
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data")}
+	if err := config.SaveSettings(cfg, config.Settings{Env: config.EnvSettings{Port: 8300}}); err != nil {
+		t.Fatalf("SaveSettings() error = %v", err)
+	}
+
+	changed, err := localtestPortChanged(cfg, 8300)
+	if err != nil {
+		t.Fatalf("localtestPortChanged() error = %v", err)
+	}
+	if !changed {
+		t.Fatal("localtestPortChanged(8300) = false, want true: nothing recorded, so localtest serves 8000")
+	}
 }

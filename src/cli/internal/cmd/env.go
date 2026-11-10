@@ -89,7 +89,9 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 	} else {
 		out.Printlnf("%s is running.", o.Runtime)
 	}
-	out.Printlnf("Access the platform at: %s", o.Status.URL)
+	if o.Status.URL != "" {
+		out.Printlnf("Access the platform at: %s", o.Status.URL)
+	}
 	out.Println("")
 	renderLocaltestStatus(out, o.Status)
 	return nil
@@ -322,7 +324,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 		}
 	})
 	if portSet {
-		if err := envtopology.ValidatePort(f.port, "--port"); err != nil {
+		if err := envlocaltest.ValidatePublicPort(f.port, "--port"); err != nil {
 			return f, false, fmt.Errorf("%w: %w", ErrInvalidFlagValue, err)
 		}
 	}
@@ -408,7 +410,7 @@ func (c *EnvCommand) runLocaltestUp(
 		return fmt.Errorf("env up: %w", err)
 	}
 	if portChanged && status.AnyRunning && !flags.jsonOutput {
-		c.out.Warning("Apps that were running still use the previous port. Restart them.")
+		c.out.Warning("Restart any app you started before the port changed: it still uses the previous port.")
 	}
 	return envUpOutput{
 		Runtime:        runtimeLocaltest,
