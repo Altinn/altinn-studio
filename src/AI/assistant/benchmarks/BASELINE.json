@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "57a1d5950b2b",
-    "code": "7e572c6 clean",
+    "actor_prompt": "0a2c5651440c",
+    "code": "8a0e0df clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "20527e6284a3"
+    "tools": "08bd8618db6d"
   },
-  "check_id": "20261109T133904Z-21809-read-files-in-parts-7e572c696b-e7b9",
-  "label": "21809 read files in parts 7e572c696b",
-  "recorded_at": "2026-11-09T13:45:39+00:00",
-  "why": "#21809 adds offset and limit to read_file, web_fetch and skill, so that the actor reads a long text in parts. This moves the tool schema digest. Full check with e2e: every scored behavior has the same score as the previous baseline. Studio's preview did not load on the local stack, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE. No behavior is scored by the judge."
+  "check_id": "20261110T085230Z-21808-old-errors-do-not-stop-commits-8a0e0dff55-6e63",
+  "label": "21808 old errors do not stop commits 8a0e0dff55",
+  "recorded_at": "2026-11-10T08:59:34+00:00",
+  "why": "#21808 makes verify_changes stop a commit only for errors the session caused, and tells the actor to name the old errors in its final message. This moves the actor prompt and tool schema digests. Full check with e2e: every scored behavior has the same score as the previous baseline. Studio's preview did not load on the local stack, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE. No behavior is scored by the judge."
 }
