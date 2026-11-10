@@ -80,6 +80,22 @@ func TestLocationInPathIgnoresCaseOnWindows(t *testing.T) {
 	}
 }
 
+func TestIsCandidateLocation(t *testing.T) {
+	t.Parallel()
+
+	own := filepath.Join(t.TempDir(), "Programs", "studioctl")
+	candidates := []selfcmd.Candidate{
+		{Path: own, InPath: false, Writable: true, NeedsSudo: false, Recommended: true},
+	}
+
+	if !selfcmd.IsCandidateLocation(own+string(filepath.Separator), candidates) {
+		t.Fatal("IsCandidateLocation(candidate) = false, want true")
+	}
+	if selfcmd.IsCandidateLocation(filepath.Join(t.TempDir(), "tools"), candidates) {
+		t.Fatal("IsCandidateLocation(directory reused from PATH) = true, want false")
+	}
+}
+
 func canonicalPath(t *testing.T, path string) string {
 	t.Helper()
 

@@ -359,6 +359,85 @@ func TestAddToPathOrExplainWarnsOnlyWhenDirectoryIsNotOnPath(t *testing.T) {
 	}
 }
 
+var errAddToUserPathTest = errors.New("registry unavailable")
+
+func TestAddToPathOrExplainOnWindows(t *testing.T) {
+	if runtime.GOOS != osutil.OSWindows {
+		t.Skip("only Windows adds to the user PATH")
+	}
+
+	dir := t.TempDir()
+	tests := []struct {
+		err        error
+		name       string
+		wantStdout string
+		wantStderr string
+		inPath     bool
+		added      bool
+	}{
+		{name: "added", inPath: false, added: true, err: nil, wantStdout: "Added", wantStderr: ""},
+		{
+			name:       "saved but not in this session",
+			inPath:     false,
+			added:      false,
+			err:        nil,
+			wantStdout: "already on your PATH",
+			wantStderr: "",
+		},
+		{name: "saved and in this session", inPath: true, added: false, err: nil, wantStdout: "", wantStderr: ""},
+		{
+			name:       "write failed",
+			inPath:     false,
+			added:      false,
+			err:        errAddToUserPathTest,
+			wantStdout: "to your PATH",
+			wantStderr: "not in your PATH",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := t.TempDir()
+			if tt.inPath {
+				path = dir
+			}
+			t.Setenv("PATH", path)
+			var stdout, stderr bytes.Buffer
+			command := &SelfCommand{
+				out: ui.NewOutput(&stdout, &stderr, false),
+				addToUserPath: func(string, *ui.Output) (bool, error) {
+					return tt.added, tt.err
+				},
+			}
+
+			command.addToPathOrExplain(applyBundleOptions{
+				TargetDir:  dir,
+				Candidates: nil,
+				WarnPath:   true,
+				AddToPath:  true,
+			})
+
+			if !containsOrEmpty(stdout.String(), tt.wantStdout) || !containsOrEmpty(stderr.String(), tt.wantStderr) {
+				t.Fatalf(
+					"stdout = %q, stderr = %q; want %q and %q",
+					stdout.String(),
+					stderr.String(),
+					tt.wantStdout,
+					tt.wantStderr,
+				)
+			}
+		})
+	}
+}
+
+// containsOrEmpty reports whether got contains want, or is empty when want is.
+func containsOrEmpty(got, want string) bool {
+	if want == "" {
+		return got == ""
+	}
+	return strings.Contains(got, want)
+}
+
 func TestInstallLocationPathInstructionsWindowsUsesTrailingBackslash(t *testing.T) {
 	t.Parallel()
 	if runtime.GOOS != osutil.OSWindows {

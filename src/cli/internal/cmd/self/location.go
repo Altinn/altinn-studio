@@ -17,7 +17,8 @@ import (
 // ErrNoWritableInstallLocation is returned when no install location can be used.
 var ErrNoWritableInstallLocation = errors.New("no writable install location found")
 
-const installedCommandName = "studioctl"
+// InstalledCommandName is the command studioctl installs as, whatever the file that installed it is called.
+const InstalledCommandName = "studioctl"
 
 // Candidate describes a possible binary install directory.
 type Candidate struct {
@@ -30,7 +31,7 @@ type Candidate struct {
 
 // ExistingInstallDir returns the directory of an existing studioctl on PATH.
 func ExistingInstallDir() (string, bool) {
-	path, err := exec.LookPath(installedCommandName)
+	path, err := exec.LookPath(InstalledCommandName)
 	if err != nil || path == "" {
 		return "", false
 	}
@@ -133,6 +134,16 @@ func windowsInstallLocationCandidates(inPath map[string]bool, out *ui.Output) []
 	})
 
 	return candidates
+}
+
+// IsCandidateLocation reports whether dir is one of candidates.
+func IsCandidateLocation(dir string, candidates []Candidate) bool {
+	for _, candidate := range candidates {
+		if pathKey(candidate.Path) == pathKey(dir) {
+			return true
+		}
+	}
+	return false
 }
 
 // IsOwnInstallDir reports whether dir is %LOCALAPPDATA%\Programs\studioctl, the Windows install directory no other

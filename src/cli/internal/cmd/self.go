@@ -39,6 +39,7 @@ type SelfCommand struct {
 	service          *installpkg.Service
 	transition       *selfcmd.Transition
 	interactiveInput func() (io.Reader, func() error, error)
+	addToUserPath    func(dir string, out *ui.Output) (bool, error)
 }
 
 type applyBundleOptions struct {
@@ -59,6 +60,7 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 		service:          installpkg.NewService(cfg, envInstallHooks(cfg, out)),
 		transition:       selfcmd.NewTransition(cfg, out),
 		interactiveInput: ui.InteractiveInput,
+		addToUserPath:    selfcmd.AddToUserPath,
 	}
 }
 
@@ -172,7 +174,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 
 	candidates := selfcmd.DetectCandidates(nil)
 
-	addToPath := targetPath == ""
+	explicitPath := targetPath != ""
 	if targetPath == "" {
 		selected, err := c.resolveInstallLocation(ctx, candidates)
 		if err != nil {
@@ -184,6 +186,9 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		targetPath = selected
 	}
 
+	// Only studioctl's own locations go on PATH. A directory reused because studioctl is on PATH there may be one an
+	// earlier --path chose.
+	addToPath := !explicitPath && selfcmd.IsCandidateLocation(targetPath, candidates)
 	return c.performInstall(ctx, targetPath, candidates, addToPath)
 }
 
@@ -334,7 +339,7 @@ func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
 	inPath := selfcmd.LocationInPath(opts.TargetDir, opts.Candidates)
 	// This process's PATH can hold the directory for this session only, so check the user's saved PATH as well.
 	if opts.AddToPath && runtime.GOOS == osutil.OSWindows {
-		added, err := selfcmd.AddToUserPath(opts.TargetDir, c.out)
+		added, err := c.addToUserPath(opts.TargetDir, c.out)
 		switch {
 		case err != nil:
 			c.out.Verbosef("failed to add %s to PATH: %v", opts.TargetDir, err)
@@ -342,14 +347,14 @@ func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
 			c.out.Successf(
 				"Added %s to your PATH. Terminals opened from now on will find %s.",
 				opts.TargetDir,
-				osutil.CurrentBin(),
+				selfcmd.InstalledCommandName,
 			)
 			return
 		case !inPath:
 			c.out.Printlnf(
 				"%s is already on your PATH. Terminals opened from now on will find %s.",
 				opts.TargetDir,
-				osutil.CurrentBin(),
+				selfcmd.InstalledCommandName,
 			)
 			return
 		default:
