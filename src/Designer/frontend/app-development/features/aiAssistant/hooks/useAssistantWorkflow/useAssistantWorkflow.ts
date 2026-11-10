@@ -265,7 +265,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         await resetRepository();
         await checkoutBranch(branch);
       } catch {
-        // The mutation cache shows the error to the user.
+        // The mutation cache shows the error to the user, except for a checkout conflict.
       }
     },
     [resetRepository, checkoutBranch],

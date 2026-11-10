@@ -115,5 +115,4 @@ _The event bridge. A `tool_use_id` lets the frontend replace a placeholder line 
 The final message can also have these fields:
 
 - `pushedBranch` is the session branch, if the assistant pushed a commit after the previous final message. A cancelled turn sends no final message, thus the next final message has its push. Designer resets the repo and checks out this branch, so that the preview shows the change. Without the field, Designer does not change the repo or the branch of the user.
-- The assistant sets `no_branch_operations` if the message has no `pushedBranch`. Only Designer tabs with an old frontend read this flag.
 - `attachmentInstructionFlagged` tells Designer to show the injection warning.

@@ -473,7 +473,7 @@ class TestHandle:
         assert "read-only mode" in captured["system_prompt"]
         assert not commits
         message_events = [e for e in seen if e.type == "assistant_message"]
-        assert message_events[0].data["no_branch_operations"] is True
+        assert "pushedBranch" not in message_events[0].data
 
     async def test_conversation_history_is_threaded_into_loop(self, monkeypatch, repo):
         from agents.graph.state import ConversationMessage
@@ -1370,7 +1370,6 @@ class TestPushedBranchInFinalMessage:
         )
 
         assert "pushedBranch" not in message
-        assert message["no_branch_operations"] is True
 
     async def test_a_pushed_commit_names_the_branch(self, monkeypatch, repo):
         _, message, _ = await _handle_events(
@@ -1380,7 +1379,6 @@ class TestPushedBranchInFinalMessage:
         )
 
         assert message["pushedBranch"] == _SESSION_BRANCH
-        assert "no_branch_operations" not in message
 
     async def test_a_later_rejected_push_keeps_the_branch_that_gitea_has(self, monkeypatch, repo):
         steps = {"edits": ("App/ui/a.json",), "model_commits": True, "edits_after_commit": ("App/ui/b.json",)}

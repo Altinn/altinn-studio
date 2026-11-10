@@ -695,11 +695,6 @@ def _emit_workflow_completion(
     pushed_branch = repo_manager.get_repo_manager().take_unreported_push(state.session_id)
     if pushed_branch:
         message_data["pushedBranch"] = pushed_branch
-    else:
-        # Designer tabs with an old frontend do not read `pushedBranch`. Without
-        # this flag, they reset the repo and check out the session branch.
-        # Remove the flag when no open tab has the old frontend.
-        message_data["no_branch_operations"] = True
     trace_id = state.trace_id or get_current_trace_id()
     if trace_id:
         message_data["traceId"] = trace_id
