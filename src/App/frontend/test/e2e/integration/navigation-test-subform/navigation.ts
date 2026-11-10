@@ -25,12 +25,16 @@ describe('navigation', () => {
         hideAppNameInPdf: false,
         validationOnNavigation: { page: 'current', show: ['Required'] },
       });
+    cy.window().its('altinnAppGlobalData.ui.folders.subform.pages.groups.1.expandedByDefault').should('equal', true);
     cy.findByRole('heading', { name: 'Skjemasider' }).should('be.visible');
 
     cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
     cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
     cy.waitForLoad();
     cy.findByRole('heading', { name: 'Skjemasider for kjøretøy' }).should('be.visible');
+    cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'true');
+    cy.navGroup(/Informasjon/).should('not.have.attr', 'aria-current');
+    cy.navGroup(/Informasjon/, /Merke/).should('be.visible');
 
     cy.findByRole('button', { name: 'Neste' }).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'registreringsnummer');
@@ -244,7 +248,7 @@ describe('navigation', () => {
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Registreringsnummer/).should('have.attr', 'aria-current', 'page');
       cy.navGroup(/Registreringsnummer/).should('not.have.attr', 'aria-expanded');
-      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'false');
+      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/Informasjon/).should('not.have.attr', 'aria-current');
       cy.openNavGroup(/Informasjon/);
       cy.navGroup(/Informasjon/, /Merke/).should('not.have.attr', 'aria-current');
