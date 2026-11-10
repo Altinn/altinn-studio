@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `studioctl app upgrade v9` renames component IDs that v9 does not accept, such as `Summary_form` or `Header-1`, and the references to them in layouts and `Settings.json`. It lists C# files that still use an old ID.
+- `studioctl app upgrade v9` renames component IDs that v9 does not accept, such as `Summary_form` or `Header-1`, and the references to them in layouts and `Settings.json`. It lists C# files that still use an old ID. ([#21833](https://github.com/Altinn/altinn-studio/pull/21833))
 
 ## [0.1.0-preview.33] - 2026-11-09
 
