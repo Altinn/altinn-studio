@@ -2,7 +2,6 @@
   display: flex;
   align-items: flex-start;
   gap: var(--ds-size-1);
-  position: relative;
 }
 
 .control {
@@ -36,25 +35,6 @@
 .indicator > svg {
   width: 1.25em;
   height: 1.25em;
-}
-
-/* Single text controls can contain the indicator. Other field types keep it beside the control. */
-.field[data-indicator-placement='inside'] > .indicator {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-}
-
-.field[data-indicator-placement='inside']:has(.indicator) :is(input, textarea) {
-  padding-inline-end: var(--ds-size-10);
-}
-
-.field[data-component-type='Dropdown'] > .indicator {
-  inset-inline-end: var(--ds-size-7);
-}
-
-.field[data-component-type='Dropdown']:has(.indicator) :is(input, select) {
-  padding-inline-end: var(--ds-size-16);
 }
 
 .messageRow > .messageCell {

@@ -10,26 +10,18 @@ import {
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation.module.css';
 import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
-import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export function RepeatingGroupTableField({ baseComponentId }: { baseComponentId: string }) {
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const severity = getRowValidationSeverity(validations);
-  const config = useComponentConfig(baseComponentId);
-  const indicatorInsideControl =
-    config.type === 'Dropdown' ||
-    config.type === 'TextArea' ||
-    (config.type === 'Input' && !config.textResourceBindings?.suffix);
   const presentation = severity ? validationSeverityPresentation[severity] : undefined;
 
   return (
     <div
       className={classes.field}
       data-validation-field={baseComponentId}
-      data-component-type={config.type}
-      data-indicator-placement={indicatorInsideControl ? 'inside' : undefined}
     >
       <div className={classes.control}>
         <GenericComponent
