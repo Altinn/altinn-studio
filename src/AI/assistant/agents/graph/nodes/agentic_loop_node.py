@@ -228,6 +228,7 @@ async def handle(state: AgentState) -> AgentState:
             None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)
         ),
         app_version_profile=app_version_profile,
+        start_commit=state.start_commit,
     )
     ctx.extras["app_name"] = state.app_name
 

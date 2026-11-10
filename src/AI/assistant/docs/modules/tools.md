@@ -53,3 +53,11 @@ flowchart LR
 ```
 
 _How `verify_changes` picks a validator. It also checks text keys and page navigation._
+
+`verify_changes` stops a commit only for the errors that the session caused. Thus the old errors in an app do not stop a correct change. A check returns each error as a finding: a rule, a location and a message. `verify_changes` does the same check on the files at the start commit, and compares the findings as multisets. A finding that the start commit also has is old. It goes into `old_errors` and does not stop the commit.
+
+The location is the name of the item that has the error, for example a text resource ID. It is not the position of the item, because the position changes when the session adds a text above it. The start commit is the commit that the session started from. `HEAD` is not sufficient, because `HEAD` contains the errors of the session after the session commits.
+
+An old JSON syntax error is an exception. If the session changes a text resource file that has one, the session must correct the syntax error before it can commit. The JSON parser stops at the syntax error, so `verify_changes` cannot do a check of the file. After the correction, each error in the file is new.
+
+Only the text resource check and the text key check return findings. The other checks stop the commit for each error in a changed file. The system prompt tells the model to show the old errors in its final message and to offer to correct them.
