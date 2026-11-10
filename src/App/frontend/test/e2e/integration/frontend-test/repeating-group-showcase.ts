@@ -76,34 +76,19 @@ describe('Repeating group validation showcase', () => {
       .should('have.attr', 'colspan', '4');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 12);
     cy.get(appFrontend.errorReport)
-      .findAllByRole('button', { name: 'Navn' })
-      .first()
-      .should('have.css', 'text-decoration-line', 'underline')
-      .parent()
-      .findByText('Navnet stemmer ikke med opplysningene i registeret.')
-      .should('be.visible');
+      .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
+      .should('have.length', 3);
     cy.injectAxe();
     cy.checkA11y();
 
     openRow('default', 4);
     dialog().findByRole('heading').should('not.exist');
-    cy.get(appFrontend.errorReport)
-      .find('ul')
-      .then(($summaryList) => {
-        dialog()
-          .find('ul')
-          .then(($popoverList) => {
-            for (const property of ['fontSize', 'lineHeight', 'paddingLeft'] as const) {
-              expect(getComputedStyle($popoverList[0])[property]).to.equal(getComputedStyle($summaryList[0])[property]);
-            }
-            const summaryEntry = $summaryList[0].querySelectorAll('li')[1];
-            const popoverEntry = $popoverList[0].querySelectorAll('li')[1];
-            expect(getComputedStyle(popoverEntry).marginTop).to.equal(getComputedStyle(summaryEntry).marginTop);
-            expect(getComputedStyle(popoverEntry).padding).to.equal(getComputedStyle(summaryEntry).padding);
-          });
-      });
     dialog().findAllByRole('listitem').should('have.length', 2);
-    dialog().findByRole('button', { name: 'Alder' }).click();
+    dialog().findByRole('button', { name: 'Navn' }).should('not.exist');
+    dialog().findByRole('button', { name: 'Alder' }).should('not.exist');
+    dialog()
+      .findByRole('button', { name: /Alderen er høyere enn/ })
+      .click();
     cy.get('#validation-default-age-4').should('have.focus');
 
     cy.get('#group-validation-table-table-body > [data-for-row="1"]').should(
@@ -118,7 +103,7 @@ describe('Repeating group validation showcase', () => {
     assertTableArrows();
 
     openRow('mixed', 2);
-    dialog().findByRole('button', { name: 'Alder' }).click();
+    dialog().findByRole('button', { name: 'Alderen er hentet fra registeret.' }).click();
     cy.get('#validation-mixed-age-2').should('have.focus');
     cy.get('#group-validation-mixed').find(appFrontend.group.editContainer).as('mixedEditor');
     cy.get('@mixedEditor').find('#validation-mixed-name-2').should('not.exist');
@@ -127,12 +112,15 @@ describe('Repeating group validation showcase', () => {
 
     openRow('table', 4);
     dialog().findAllByRole('listitem').should('have.length', 2);
-    dialog().findByRole('button', { name: 'Navn' }).click();
+    dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).click();
     cy.get('#validation-table-name-4').should('have.focus');
     cy.viewport(1050, 1000);
     assertTableArrows();
     cy.get('#group-validation-table-table-body > [data-for-row="4"] [data-validation-for]').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findAllByRole('button', { name: 'Navn' }).first().click();
+    cy.get(appFrontend.errorReport)
+      .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
+      .first()
+      .click();
     cy.get('#validation-default-name-0').should('have.focus');
   });
 
@@ -141,7 +129,10 @@ describe('Repeating group validation showcase', () => {
     cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
     cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
     cy.waitUntilSaved();
-    cy.get(appFrontend.errorReport).should('contain.text', 'Samlet kontroll: Balder');
+    cy.get(appFrontend.errorReport).should(
+      'contain.text',
+      'Denne meldingen gjelder opplysningene om kjæledyret samlet.',
+    );
     for (const variant of variants) {
       openRow(variant, 0);
       dialog().findAllByRole('listitem').should('have.length', 1);

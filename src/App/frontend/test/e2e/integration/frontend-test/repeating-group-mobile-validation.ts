@@ -64,13 +64,17 @@ describe('Repeating-group validation on mobile', () => {
         expect(bounds.left).to.be.at.least(0);
         expect(bounds.right).to.be.at.most(width);
       });
-      dialog().findByRole('button', { name: 'Alder' }).click();
+      dialog()
+        .findByRole('button', { name: /Alderen er høyere enn/ })
+        .click();
       cy.get('#validation-default-age-4').should('have.focus');
       cy.get('#validation-default-name-4').should('be.visible');
       cy.get('#group-validation-default').should('contain.text', 'Oppgi navnet slik det står i registeret.');
 
       openRow('mixed', 4);
-      dialog().findByRole('button', { name: 'Alder' }).click();
+      dialog()
+        .findByRole('button', { name: /Alderen er høyere enn/ })
+        .click();
       cy.get('#validation-mixed-age-4').should('have.focus');
       cy.get('#validation-mixed-name-4').should('be.visible');
       cy.get(row('mixed', 4)).find('#validation-mixed-name-4').should('exist');
@@ -79,14 +83,14 @@ describe('Repeating-group validation on mobile', () => {
         .find('#validation-mixed-name-4')
         .should('not.exist');
       openRow('mixed', 4);
-      dialog().findByRole('button', { name: 'Navn' }).click();
+      dialog().findByRole('button', { name: 'Oppgi navnet slik det står i registeret.' }).click();
       cy.get('#validation-mixed-name-4').should('have.focus');
       cy.get('#validation-mixed-age-4').should('be.visible');
 
       openRow('table', 1);
       cy.tab();
       cy.tab();
-      cy.focused().should('have.text', 'Dyreslag');
+      cy.focused().should('contain.text', 'Dyreslaget er endret siden forrige innrapportering.');
       for (const type of ['keyDown', 'keyUp']) {
         cy.then(() =>
           Cypress.automation('remote:debugger:protocol', {
@@ -102,7 +106,10 @@ describe('Repeating-group validation on mobile', () => {
         );
       }
       cy.get('#validation-table-species-1').should('have.focus');
-      cy.get(appFrontend.errorReport).findAllByRole('button', { name: 'Navn' }).first().click();
+      cy.get(appFrontend.errorReport)
+        .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
+        .first()
+        .click();
       cy.get('#validation-default-name-0').should('have.focus');
       assertWithinViewport(width);
       cy.testWcag();
@@ -119,7 +126,10 @@ describe('Repeating-group validation on mobile', () => {
       expect(bounds.bottom).to.be.at.most(390);
     });
     dialog().findByRole('button', { name: 'Lukk' }).should('be.visible');
-    dialog().findByRole('button', { name: 'Alder' }).scrollIntoView().click();
+    dialog()
+      .findByRole('button', { name: /Alderen er høyere enn/ })
+      .scrollIntoView()
+      .click();
     cy.get('#validation-table-age-4').should('have.focus');
   });
 
