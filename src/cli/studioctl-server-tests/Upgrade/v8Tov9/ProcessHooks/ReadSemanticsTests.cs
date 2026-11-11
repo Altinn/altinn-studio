@@ -4,8 +4,8 @@ using static Studioctl.Tests.Upgrade.v8Tov9.ProcessHooks.StorageCallStubs;
 namespace Studioctl.Tests.Upgrade.v8Tov9.ProcessHooks;
 
 /// <summary>
-/// C-RF1 and C-RF2: a form read stays live only where the code never changes what it read, or writes it back to the
-/// same element right after changing it; any other read becomes a copy, as v8's read was.
+/// C-RF1 and C-RF2: a form read becomes a read of the model the transition saves. Where the code writes the form back
+/// right after changing it the write goes; any other write stays, and what v9 then saves beyond v8 is reported.
 /// </summary>
 public sealed class ReadSemanticsTests : IDisposable
 {
@@ -61,7 +61,7 @@ public sealed class ReadSemanticsTests : IDisposable
             },
             {
                 // dsb/elvirksomhet App/logic/TaskProcessing/ProcessTaskEnd.cs:27-43.
-                "a read that is changed and written with the obsolete overloads: a copy, and the write",
+                "a read that is changed and written with the obsolete overloads: the write stays",
                 """
                     public class Form { public string? Name { get; set; } }
 
@@ -100,7 +100,7 @@ public sealed class ReadSemanticsTests : IDisposable
                         }
 
                         private async Task<Form> GetForm({{IInstanceDataMutator}} dataMutator, int partyId, DataElement dataElement) =>
-                            (Form)await dataMutator.GetFormDataCopy(dataElement);
+                            (Form)await dataMutator.GetFormData(dataElement);
                     }
                     """
             },
@@ -192,7 +192,7 @@ public sealed class ReadSemanticsTests : IDisposable
             },
             {
                 // krt/krt-3010a-1 App/logic/ProcessTaskEnd.cs:43-51.
-                "a change outside the block of the write: a copy",
+                "a change outside the block of the write: the write stays",
                 """
                     public class Model { public string? A { get; set; } public string? B { get; set; } }
 
@@ -224,7 +224,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var dataElement = instance.Data.First(d => d.DataType == "model");
-                            var dataModel = (Model)await dataMutator.GetFormDataCopy(dataElement);
+                            var dataModel = (Model)await dataMutator.GetFormData(dataElement);
                             dataModel.A = "a";
                             if (taskId == "Task_1")
                             {
@@ -238,7 +238,7 @@ public sealed class ReadSemanticsTests : IDisposable
             },
             {
                 // lt/sasp App/logic/TaskProcessing/ProcessTaskEnd.cs:28-40.
-                "a return between the change and the write: a copy",
+                "a return between the change and the write: the write stays",
                 """
                     public class Form { public string? A { get; set; } }
 
@@ -268,7 +268,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var dataElement = instance.Data.First(d => d.DataType == "form");
-                            var form = (Form)await dataMutator.GetFormDataCopy(dataElement);
+                            var form = (Form)await dataMutator.GetFormData(dataElement);
                             form.A = "a";
                             if (taskId != "Task_1")
                                 return {{HandlerResult}}.Success();
@@ -280,7 +280,7 @@ public sealed class ReadSemanticsTests : IDisposable
             },
             {
                 // v8 saved nothing when Validate threw.
-                "a write back in a try whose catch goes on without it: a copy, and the write stays",
+                "a write back in a try whose catch goes on without it: the write stays",
                 """
                     public class Skjema { public string? A { get; set; } }
 
@@ -321,7 +321,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var el = instance.Data[0];
-                            var data = await dataMutator.GetFormDataCopy(el);
+                            var data = await dataMutator.GetFormData(el);
                             if (data is not Skjema s)
                                 return {{HandlerResult}}.Success();
                             try
@@ -343,59 +343,11 @@ public sealed class ReadSemanticsTests : IDisposable
                     }
                     """
             },
-            {
-                // A live read would share the object the other read changes.
-                "a value read of an element that a live read changes later in the method: a copy",
-                """
-                    public class Skjema { public string? A { get; set; } }
-
-                    public class ProcessTaskEnd(IDataClient dataClient, IInstanceClient instanceClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var el = instance.Data[0];
-                            var before = (Skjema)await dataClient.GetFormData(instance, el);
-                            var data = await dataClient.GetFormData(instance, el);
-                            if (data is not Skjema s)
-                                return;
-                            s.A = "changed";
-                            await dataClient.UpdateFormData(instance, s, el);
-                            await instanceClient.UpdateDataValue(instance, "old", before.A);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class Skjema { public string? A { get; set; } }
-
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var el = instance.Data[0];
-                            var before = (Skjema)await dataMutator.GetFormDataCopy(el);
-                            var data = await dataMutator.GetFormData(el);
-                            if (data is not Skjema s)
-                                return {{HandlerResult}}.Success();
-                            s.A = "changed";
-                            dataMutator.SetDataValue("old", before.A);
-                            return {{HandlerResult}}.Success();
-                        }
-                    }
-                    """
-            },
         };
 
     [Theory]
     [MemberData(nameof(Rewrites))]
-    public void TheRead_IsLiveOnlyWhereTheCodeNeverChangesItOrWritesItBackAtOnce(
-        string label,
-        string before,
-        string after
-    )
+    public void TheRead_ReadsTheModelTheTransitionSaves(string label, string before, string after)
     {
         _ = label;
         _app.Write(HookPath, InApp(before));
@@ -408,7 +360,127 @@ public sealed class ReadSemanticsTests : IDisposable
     }
 
     [Fact]
-    public void AReadChangedAndWrittenBackInANestedBlock_IsLive_AndTheWriteBackGoes()
+    public void AChangeTheCodeMayNotWrite_IsReportedAtTheRead()
+    {
+        var source = """
+            public class Model { public string? A { get; set; } }
+
+            public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+            {
+                public async Task End(string taskId, Instance instance)
+                {
+                    var dataElement = instance.Data.First(d => d.DataType == "model");
+                    var dataModel = (Model)await dataClient.GetFormData(instance, dataElement);
+                    dataModel.A = "a";
+                    if (taskId == "Task_1")
+                    {
+                        await dataClient.UpdateFormData(instance, dataModel, dataElement);
+                    }
+                }
+            }
+            """;
+        _app.Write(HookPath, InApp(source));
+
+        var result = Port(AppFolder);
+
+        Assert.Contains(
+            At(
+                source,
+                "var dataModel = (Model)await dataClient.GetFormData(instance, dataElement);",
+                UpgradeMessageStatus.Warning,
+                "IDataClient.GetFormData now reads the form with dataMutator.GetFormData, which returns the model the transition saves: a change to it is saved also where the code does not write it. v8 saved only what the code wrote."
+            ),
+            result.Messages
+        );
+        Assert.Empty(result.Todos);
+        AssertCompilesAgainstV9(AppFolder);
+    }
+
+    [Fact]
+    public void AChangeTheCodeNeverWrites_GetsATodo()
+    {
+        // dat/bemanning-aarligmelding App/logic/ProcessTaskEnd.cs:40-48.
+        var source = """
+            public class Skjema { public int? AntallAnsatte { get; set; } public bool? HarHattAnsatte { get; set; } }
+
+            public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+            {
+                public async Task End(string taskId, Instance instance)
+                {
+                    var element = instance.Data.Find(d => d.DataType == "skjema")!;
+                    var skjemaData = await dataClient.GetFormData(instance, element);
+                    if (skjemaData is Skjema skjema && skjema.AntallAnsatte > 0)
+                    {
+                        skjema.HarHattAnsatte = null;
+                    }
+                }
+            }
+            """;
+        _app.Write(HookPath, InApp(source));
+
+        var result = Port(AppFolder);
+
+        Assert.Contains(
+            "var skjemaData = await dataMutator.GetFormData(element);",
+            _app.Read(HookPath),
+            StringComparison.Ordinal
+        );
+        Assert.Contains(
+            At(
+                source,
+                "var skjemaData = await dataClient.GetFormData(instance, element);",
+                UpgradeMessageStatus.Todo,
+                "IDataClient.GetFormData now reads the form with dataMutator.GetFormData, which returns the model the transition saves. The code changes it and never writes it: v8 dropped those changes, v9 saves them. Remove the changes if they should stay unsaved."
+            ),
+            result.Messages
+        );
+        AssertCompilesAgainstV9(AppFolder);
+    }
+
+    [Fact]
+    public void AValueReadOfAnElementThatAnotherReadChanges_GetsATodo()
+    {
+        var source = """
+            public class Skjema { public string? A { get; set; } }
+
+            public class ProcessTaskEnd(IDataClient dataClient, IInstanceClient instanceClient) : IProcessTaskEnd
+            {
+                public async Task End(string taskId, Instance instance)
+                {
+                    var el = instance.Data[0];
+                    var before = (Skjema)await dataClient.GetFormData(instance, el);
+                    var data = await dataClient.GetFormData(instance, el);
+                    if (data is not Skjema s)
+                        return;
+                    s.A = "changed";
+                    await dataClient.UpdateFormData(instance, s, el);
+                    await instanceClient.UpdateDataValue(instance, "old", before.A);
+                }
+            }
+            """;
+        _app.Write(HookPath, InApp(source));
+
+        var result = Port(AppFolder);
+
+        Assert.Contains(
+            "var before = (Skjema)await dataMutator.GetFormData(el);",
+            _app.Read(HookPath),
+            StringComparison.Ordinal
+        );
+        Assert.Contains(
+            At(
+                source,
+                "var before = (Skjema)await dataClient.GetFormData(instance, el);",
+                UpgradeMessageStatus.Todo,
+                "IDataClient.GetFormData now reads the form with dataMutator.GetFormData, which returns the same object as the other read of this element in this method, so it sees the changes made through that one. v8 read the form as it was stored; read the values this code needs before the form is changed."
+            ),
+            result.Messages
+        );
+        AssertCompilesAgainstV9(AppFolder);
+    }
+
+    [Fact]
+    public void AReadChangedAndWrittenBackInANestedBlock_LosesTheWriteBack()
     {
         // hdir/bevillinger-alkohol-tobakk App/logic/DataProcessing/ProcessEndTask.cs:42-66.
         var source = """
