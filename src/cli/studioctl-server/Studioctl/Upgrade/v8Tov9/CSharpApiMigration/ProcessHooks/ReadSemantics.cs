@@ -213,9 +213,12 @@ internal static class ReadSemantics
             );
 
     /// <summary>The local the read's result goes to, directly or through a cast or <c>as</c>.</summary>
-    private static ILocalSymbol? Variable(StorageClientCall read)
+    private static ILocalSymbol? Variable(StorageClientCall read) => Variable(read.Invocation);
+
+    /// <summary>The local a call's result goes to, directly or through a cast or <c>as</c>.</summary>
+    public static ILocalSymbol? Variable(IInvocationOperation call)
     {
-        var consumer = Consumer(read.Invocation);
+        var consumer = Consumer(call);
         return consumer.Parent switch
         {
             IVariableInitializerOperation { Parent: IVariableDeclaratorOperation declarator } => declarator.Symbol,
@@ -237,7 +240,7 @@ internal static class ReadSemantics
         return current;
     }
 
-    private static IEnumerable<IOperation> Writes(IOperation body, ILocalSymbol local) =>
+    public static IEnumerable<IOperation> Writes(IOperation body, ILocalSymbol local) =>
         body.DescendantsAndSelf()
             .Where(operation =>
                 operation is IVariableDeclaratorOperation declarator
@@ -319,7 +322,7 @@ internal static class ReadSemantics
     private static bool IsNull(IOperation operation) =>
         Unwrapped(operation) is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
 
-    private static IEnumerable<IOperation> References(IOperation body, ILocalSymbol? local) =>
+    public static IEnumerable<IOperation> References(IOperation body, ILocalSymbol? local) =>
         body.DescendantsAndSelf()
             .OfType<ILocalReferenceOperation>()
             .Where(reference =>
@@ -353,7 +356,7 @@ internal static class ReadSemantics
     }
 
     /// <summary>A use that assigns to a member of the model, or increments one.</summary>
-    private static bool IsAssignment(IOperation use)
+    public static bool IsAssignment(IOperation use)
     {
         var top = Top(use);
         return top != use
@@ -415,9 +418,9 @@ internal static class ReadSemantics
         return current;
     }
 
-    private static IOperation? Model(StorageClientCall write) => write.Argument("dataToSerialize", "data")?.Value;
+    public static IOperation? Model(StorageClientCall write) => write.Argument("dataToSerialize", "data")?.Value;
 
-    private static IOperation Unwrapped(IOperation operation)
+    public static IOperation Unwrapped(IOperation operation)
     {
         while (operation is IConversionOperation or IParenthesizedOperation)
         {
