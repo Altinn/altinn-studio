@@ -1,4 +1,4 @@
-package localtest
+package env
 
 // ContainerImage is the image a container was created from: its build, and the reference it
 // came from when that reference still resolves to the same build.
@@ -7,7 +7,7 @@ type ContainerImage struct {
 	ImageID string
 }
 
-// ContainerStatus describes one localtest container.
+// ContainerStatus describes one environment container.
 type ContainerStatus struct {
 	Name string `json:"name"`
 	// Image is the reference the container came from, empty when studioctl cannot name it:
@@ -20,7 +20,7 @@ type ContainerStatus struct {
 	Status  string `json:"status"`
 }
 
-// Status is the localtest-specific runtime status payload.
+// Status is the runtime status payload of `env status`.
 type Status struct {
 	Containers []ContainerStatus `json:"containers"`
 	Running    bool              `json:"running"`

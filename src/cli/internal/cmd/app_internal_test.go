@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -170,12 +170,12 @@ func TestRunEnvFailsWhileLegacyLocaltestIsRunning(t *testing.T) {
 		out:     ui.NewOutput(&out, io.Discard, false),
 		service: appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")}),
 		checkLegacyLocaltest: func(context.Context) error {
-			return envlocaltest.ErrLegacyLocaltestRunning
+			return stack.ErrLegacyLocaltestRunning
 		},
 	}
 
 	err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"})
-	if !errors.Is(err, envlocaltest.ErrLegacyLocaltestRunning) {
+	if !errors.Is(err, stack.ErrLegacyLocaltestRunning) {
 		t.Fatalf("runEnv() error = %v, want ErrLegacyLocaltestRunning", err)
 	}
 	if out.Len() != 0 {
