@@ -32,10 +32,22 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
 {
     public const int MaxItems = 1000;
 
+    // Gitea refuses org names longer than 40 characters, and Designer app names longer than 30.
+    public const int MaxOrgLength = 40;
+    public const int MaxAppLength = 30;
+
+    // The longest tag an image can have, and the longest version a release can be created with.
+    public const int MaxVersionLength = 128;
+
+    // MaxItems items of maximum length take about 250 kB as JSON, so this leaves room for formatting but stops a
+    // client from sending megabytes for the server to parse.
+    public const int MaxRequestBytes = 1_000_000;
+
     /// <summary>
     /// Gets the commit each app version was built from. Versions without a succeeded release are left out.
     /// </summary>
     [HttpPost("lookup")]
+    [RequestSizeLimit(MaxRequestBytes)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ReleaseLookupResponse>> Lookup(
@@ -98,19 +110,56 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             return;
         }
 
-        if (string.IsNullOrEmpty(item.Org) || !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(item.Org))
+        // The lengths are checked first, because the app name's regular expression backtracks on long input.
+        if (
+            string.IsNullOrEmpty(item.Org)
+            || item.Org.Length > MaxOrgLength
+            || !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(item.Org)
+        )
         {
             ModelState.AddModelError($"items[{index}].org", "The org is not a valid organization name.");
         }
 
-        if (string.IsNullOrEmpty(item.App) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(item.App))
+        if (
+            string.IsNullOrEmpty(item.App)
+            || item.App.Length > MaxAppLength
+            || !AltinnRegexes.AltinnAppNameRegex().IsMatch(item.App)
+        )
         {
             ModelState.AddModelError($"items[{index}].app", "The app is not a valid app name.");
         }
 
-        if (string.IsNullOrWhiteSpace(item.Version))
+        if (!IsImageTag(item.Version))
         {
-            ModelState.AddModelError($"items[{index}].version", "The version is empty.");
+            ModelState.AddModelError($"items[{index}].version", "The version is not a valid release version.");
         }
+    }
+
+    /// <summary>
+    /// Checks the version against the grammar of an image tag.
+    /// </summary>
+    /// <remarks>
+    /// A succeeded release pushed an image tagged with its version, so a version that is not an image tag cannot
+    /// match one. The grammar is wider than the rule for creating a release, which also rejects uppercase letters
+    /// and underscores, so the lookup never rejects a version that a release built before that rule could have.
+    /// </remarks>
+    private static bool IsImageTag(string? version)
+    {
+        if (string.IsNullOrEmpty(version) || version.Length > MaxVersionLength)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < version.Length; i++)
+        {
+            char c = version[i];
+            bool isWordCharacter = char.IsAsciiLetterOrDigit(c) || c == '_';
+            if (!isWordCharacter && (i == 0 || (c != '.' && c != '-')))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
