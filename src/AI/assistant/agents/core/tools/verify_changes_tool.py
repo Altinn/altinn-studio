@@ -27,7 +27,6 @@ v8 schema fetches from altinncdn.no.  v9 schemas are read from disk.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import subprocess
 from collections.abc import Callable
@@ -44,8 +43,6 @@ from agents.altinn.resources.validator import ResourceValidator, text_resource_i
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
-
-from .commit_session_branch_tool import track_uncommitted_files
 
 _TEXTS_DIR = "App/config/texts"
 _MAX_LISTED_ERRORS = 10
@@ -94,13 +91,12 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
     is_concurrency_safe = True  # reads only
 
     async def run(self, args: VerifyChangesArgs, ctx: LoopContext) -> ToolResult:
-        _track_uncommitted_files(ctx)
         changed = sorted(ctx.extras.get("changed_files") or [])
         if not changed:
             return ToolResult(
                 content=(
-                    "No changed files: the working tree has no uncommitted changes.  Use `edit_file` "
-                    "or `write_file` to make changes first, then call `verify_changes`."
+                    "No changed files recorded.  Use `edit_file` or `write_file` "
+                    "to make changes first, then call `verify_changes`."
                 ),
                 is_error=True,
             )
@@ -129,18 +125,6 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
             is_error=not passed,
             metadata={"file_count": len(changed), "passed": passed, "old_error_count": len(old_errors)},
         )
-
-
-def _track_uncommitted_files(ctx: LoopContext) -> None:
-    """Add the files that an earlier turn did not commit to the changed files.
-
-    The tools record the edits of one turn only.  Without these files, the
-    tool tells the model that there are no changed files.  Then the model
-    tells the user that its edits are saved.  If git cannot read the working
-    tree, the check uses the recorded files.
-    """
-    with contextlib.suppress(OSError, subprocess.SubprocessError):
-        track_uncommitted_files(ctx)
 
 
 @dataclass(frozen=True)

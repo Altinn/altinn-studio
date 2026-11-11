@@ -77,6 +77,10 @@ class RepoManager:
             existing_path = self.active_repos[session_id]
             if existing_path.exists():
                 log.info(f"Using existing cloned repo for session {session_id}: {existing_path}")
+                # Each turn starts from the saved state. Thus the model cannot
+                # read an edit that the user does not have, and tell the user
+                # that the edit is in the app.
+                git_ops.discard_unsaved(str(existing_path))
                 # If a branch was specified and we're reusing an existing repo, checkout that branch
                 if branch:
                     try:

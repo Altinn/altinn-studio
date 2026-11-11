@@ -10,9 +10,7 @@ Control flow:
     1.  Append user goal.
     2.  Optionally compact the message list for size.
     3.  Send to LLM, append the assistant response.
-    4.  If response has no tool_use blocks → COMPLETED.  But first,
-        `before_completion` can give the model one notice.  Then the
-        loop continues.
+    4.  If response has no tool_use blocks → COMPLETED.
     5.  Otherwise validate + dispatch the tools:
             - concurrency-safe tools run in a parallel batch;
             - the first unsafe tool in the response acts as a barrier
@@ -172,15 +170,6 @@ class LoopResult:
 # ---------------------------------------------------------------------------
 
 
-CompletionCheck = Callable[[], str | None]
-"""A check from the caller.  The loop calls it when the model sends a message without tool calls.
-
-The check returns a notice for the model, or None if the run can end.
-Example: the model writes that the change is done, but git shows a file
-that is not committed.  The check returns a notice with the file name.
-"""
-
-
 EventCallback = Callable[[str, dict[str, Any]], Awaitable[None] | None]
 """Signature `(event_type, payload) -> None|Awaitable[None]`.
 
@@ -219,7 +208,6 @@ async def run_loop(
     is_cancelled: Callable[[], bool] | None = None,
     on_event: EventCallback | None = None,
     history: list[Message] | None = None,
-    before_completion: CompletionCheck | None = None,
 ) -> LoopResult:
     """Drive a conversation to termination.
 
@@ -230,10 +218,6 @@ async def run_loop(
     `history` carries prior conversation turns (alternating user/assistant
     messages from earlier runs in the same session) so follow-up requests
     have context.  It is prepended verbatim before `user_message`.
-
-    If `before_completion` returns a notice, the model gets the notice
-    and continues with the same transcript.  The loop gives a maximum of
-    one notice in a run.  The notice uses one turn of `max_turns`.
     """
     compaction = compaction or CompactionConfig()
     ctx.max_result_chars = compaction.max_result_chars
@@ -248,7 +232,6 @@ async def run_loop(
     # is recoverable (we prompt the model to continue in smaller batches);
     # repeated truncation means the budget genuinely can't fit the task.
     consecutive_truncations = 0
-    completion_notice_given = False
 
     for turn in range(1, max_turns + 1):
         if is_cancelled and is_cancelled():
@@ -372,13 +355,6 @@ async def run_loop(
                 )
                 messages.append(UserMessage(content=_TRUNCATION_RECOVERY_PROMPT))
                 continue
-            if before_completion is not None and not completion_notice_given:
-                notice = _completion_notice(before_completion)
-                if notice:
-                    completion_notice_given = True
-                    log.info("Turn %d: the model gets a notice before the run ends", turn)
-                    messages.append(UserMessage(content=notice))
-                    continue
             final = extract_text(response)
             await _emit(on_event, "terminated", {"reason": "completed", "turn": turn})
             return LoopResult(
@@ -440,15 +416,6 @@ async def run_loop(
         turns=max_turns,
         usage=total_usage,
     )
-
-
-def _completion_notice(check: CompletionCheck) -> str | None:
-    """Run the check.  An exception from the check does not stop the run."""
-    try:
-        return check()
-    except Exception:
-        log.exception("The check before completion raised")
-        return None
 
 
 def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:

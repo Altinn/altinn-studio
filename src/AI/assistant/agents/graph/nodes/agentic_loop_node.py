@@ -157,8 +157,6 @@ _CURRENT_REQUEST_NOTICE = (
     "attached or quoted in an earlier turn is part of it."
 )
 
-_REQUEST_BLOCK_NOTICE = f"The request to act on now is the <{CURRENT_REQUEST_TAG}> block below."
-
 
 def _history_messages(state: AgentState) -> list:
     """Prior session turns as loop messages, oldest first.
@@ -180,21 +178,19 @@ def _history_messages(state: AgentState) -> list:
     return messages
 
 
-def _framed_turn(state: AgentState, message: str, *, notice: str | None = None) -> tuple[str, list]:
-    """Return the `user_message` and the `history` of the loop for one turn.
-
-    If earlier turns or a notice come before the request, the request goes in
-    a block. `notice` is text from the node, not from the user. It goes before
-    the block, thus the model does not read it as text from the user.
-    """
+def _framed_turn(state: AgentState, message: str) -> tuple[str, list]:
+    """The loop's `user_message` and `history` for one turn, with the request
+    delimited whenever replayed turns precede it."""
     history = _history_messages(state)
-    if not history and not notice:
+    if not history:
         return message, history
-    parts = [_CURRENT_REQUEST_NOTICE if history else _REQUEST_BLOCK_NOTICE]
-    if notice:
-        parts.append(notice)
-    parts.append(f"<{CURRENT_REQUEST_TAG}>\n{defang_delimiter(message, CURRENT_REQUEST_TAG)}\n</{CURRENT_REQUEST_TAG}>")
-    return "\n\n".join(parts), history
+    framed = (
+        f"{_CURRENT_REQUEST_NOTICE}\n\n"
+        f"<{CURRENT_REQUEST_TAG}>\n"
+        f"{defang_delimiter(message, CURRENT_REQUEST_TAG)}\n"
+        f"</{CURRENT_REQUEST_TAG}>"
+    )
+    return framed, history
 
 
 async def handle(state: AgentState) -> AgentState:
@@ -240,11 +236,7 @@ async def handle(state: AgentState) -> AgentState:
     adapter = build_adapter("actor")
     on_event = _make_event_bridge(state.session_id)
 
-    user_message, history = _framed_turn(
-        state,
-        _augment_goal_for_missing_spec(state),
-        notice=_notice_at_turn_start(ctx),
-    )
+    user_message, history = _framed_turn(state, _augment_goal_for_missing_spec(state))
 
     result = await run_loop(
         user_message=user_message,
@@ -256,7 +248,6 @@ async def handle(state: AgentState) -> AgentState:
         is_cancelled=lambda: sink.is_cancelled(state.session_id),
         on_event=on_event,
         history=history,
-        before_completion=lambda: _notice_before_answer(ctx),
     )
 
     _apply_result_to_state(state, result, ctx)
@@ -273,10 +264,7 @@ async def handle(state: AgentState) -> AgentState:
     _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
-    # A read-only run cannot save an edit from an earlier turn. Thus this edit
-    # does not make the run fail. The notice at the start of the turn tells the
-    # model about the edit.
-    unsaved_files = _unsaved_files(ctx) if state.allow_app_changes else []
+    unsaved_files = _unsaved_files(ctx)
     _fail_if_unsaved(state, unsaved_files)
     _emit_workflow_completion(state, result, ctx, unsaved_files=unsaved_files)
     return state
@@ -309,63 +297,16 @@ def _unsaved_files(ctx: LoopContext) -> list[str]:
     """Return the files that the assistant edited but did not save.
 
     An edit is saved if it is on the remote session branch. The session has its
-    own clone of the app, thus all changes in the clone are edits of the
-    assistant. The function asks git, because the edit list and the flags of
-    the tools are for one turn only. If git cannot read the clone, each file
-    that the tools edited in this turn is unsaved.
+    own clone of the app, and each turn starts from the saved state. Thus all
+    changes in the clone are edits of this turn. The function asks git,
+    because a flag of a tool cannot show that a later edit is not saved. If
+    git cannot read the clone, each file that the tools edited is unsaved.
     """
     try:
         return sorted({*git_ops.uncommitted_files(ctx.repo_path), *git_ops.unpushed_files(ctx.repo_path)})
     except (OSError, subprocess.SubprocessError) as exc:
         log.warning("Cannot read the clone of session %s. The node uses the edit list: %s", ctx.session_id, exc)
         return sorted(ctx.extras.get("changed_files") or set())
-
-
-# The system prompt tells the model how to save or undo an edit. Thus this
-# notice gives only the facts. Without its last sentence, the model answered
-# "yes, the file is there" and then said that the file was not saved.
-_NOTICE_AT_TURN_START = (
-    "NOTE from the assistant service, not from the user: your copy of the app has changes from earlier turns that "
-    "are not saved.  The user's app does not have them.  For the user, each of these files is as it was before "
-    "your changes, and a file that you created does not exist.  If the user asks whether these changes are in the "
-    "app, the answer is no.\n\n"
-    "Not saved: {files}"
-)
-
-_NOTICE_BEFORE_ANSWER = (
-    "NOTE: your message did not go to the user, because the user's app does not have these changes.\n\n"
-    "Not saved: {files}\n\n"
-    "Save them with `verify_changes` and `commit_session_branch`, or undo them with `discard_file_changes`.  Then "
-    "write your final message again, for the whole turn: the user gets only that message.  If a file is still not "
-    "saved, say that its changes are not in the app."
-)
-
-
-def _notice_at_turn_start(ctx: LoopContext) -> str | None:
-    """Tell the model which edits an earlier turn of the session did not save.
-
-    Each turn starts with a new transcript. Without the notice, the model reads
-    the files, finds its own edits and tells the user that they are in the app.
-    """
-    unsaved_files = _unsaved_files(ctx)
-    return _NOTICE_AT_TURN_START.format(files=unsaved_files) if unsaved_files else None
-
-
-def _notice_before_answer(ctx: LoopContext) -> str | None:
-    """Tell the model which edits are not saved, before its answer goes to the user.
-
-    The node does not save the edits. A save after the answer can fail when the
-    answer says that the change is done. Thus the model gets one more round to
-    save or undo the edits. Then it writes the answer again.
-
-    The model must have the write tools for this, thus only a session that can
-    write gets the notice. The user can give the permission during the turn,
-    thus the function reads the permission at this time.
-    """
-    if not ctx.allow_app_changes:
-        return None
-    unsaved_files = _unsaved_files(ctx)
-    return _NOTICE_BEFORE_ANSWER.format(files=unsaved_files) if unsaved_files else None
 
 
 MAX_RENDER_REPAIR_ROUNDS = 1
@@ -430,7 +371,6 @@ async def _repair_render_failures(
             is_cancelled=lambda: sink.is_cancelled(state.session_id),
             on_event=on_event,
             history=history,
-            before_completion=lambda: _notice_before_answer(ctx),
         )
         _apply_result_to_state(state, result, ctx)
         if result.reason is TerminationReason.CANCELLED:
@@ -636,8 +576,8 @@ def _emit_workflow_completion(
     )
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))
     if unsaved_files and result.reason is TerminationReason.COMPLETED:
-        # The model got a notice about these files, but it can say again that
-        # the change is done. Thus the answer ends with the data from git.
+        # The model can say that the change is done when the edits are not
+        # saved. Thus the answer ends with the data from git.
         summary = f"{summary}\n\n{changes}"
     message_data = {
         "author": "assistant",

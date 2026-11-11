@@ -124,9 +124,9 @@ _OLD_ERRORS_RULE = (
 # starts read-only can get permission to write, thus the two contracts have
 # this rule.
 _SAVED_RULE = (
-    "The user's app gets a change only when `commit_session_branch` has pushed it, and nothing saves a change after "
-    "your final message.  Never write that a change is done or in the app before that.  If a change is not saved "
-    "when you finish, name the file and say so."
+    "The user's app gets a change only when `commit_session_branch` has pushed it.  A change that is not pushed "
+    "when you finish is dropped.  Never write that a change is done or in the app before that.  If a change is not "
+    "saved when you finish, name the file and say so."
 )
 
 
@@ -167,7 +167,7 @@ Specifically:
 - After `verify_changes` returns `passed: true`, the next action is `commit_session_branch` — not another lookup, not another edit.
 - After `commit_session_branch` returns successfully, run `preview_render_check` once.  If a page fails to render, fix it and go back through verify → commit → check.  When it passes — or says it is unavailable in this deployment — you are done.  Send a final assistant message describing what changed.  Do not propose further work the user didn't ask for, except fixing errors that were in the app before this session (see the final response format).
 - If you genuinely cannot finish (ambiguous request, missing context, repeated verification failure), send a final message explaining what's blocking and what you'd need.
-- Before the final message, save every change or undo it with `discard_file_changes`.  {_SAVED_RULE}
+- {_SAVED_RULE}
 
 ## Final response format
 Send a final assistant message with no tool calls.  Format depends on what you did:

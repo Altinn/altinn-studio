@@ -6,7 +6,6 @@ without a real LLM.
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 from pathlib import Path
@@ -15,13 +14,11 @@ from typing import Any
 import pytest
 
 from agents.core import (
-    AssistantMessage,
     CommitSessionBranchTool,
     DiscardFileChangesTool,
     LoopContext,
     LoopResult,
     TerminationReason,
-    TextBlock,
     ToolResult,
     VerifyChangesTool,
 )
@@ -39,7 +36,6 @@ from agents.graph.nodes.agentic_loop_node import (
 from agents.graph.state import AgentState
 from agents.services.git import git_ops
 
-from .conftest import FakeAdapter, tool_use
 from .git_repo import create_committed_repo, git, write_files
 
 
@@ -872,50 +868,15 @@ class TestUnsavedFiles:
 
     async def test_the_model_saves_a_file_with_a_carriage_return_in_its_name(self, monkeypatch, repo):
         """In text mode, the carriage return becomes a line feed. That path does not exist, thus verification fails."""
-        write_files(repo, {"App/ui/a\rb.json": '{"edited": true}'})
         _use_remote(monkeypatch, repo)
         ctx = self._ctx(repo)
+        _edit(ctx, "App/ui/a\rb.json")
         commit = CommitSessionBranchTool()
 
         assert node._unsaved_files(ctx) == ["App/ui/a\rb.json"]
         assert not (await _verify_as_the_model(ctx)).is_error
         assert not (await commit.run(commit.input_schema.model_validate({"message": "feat: x"}), ctx)).is_error
         assert node._unsaved_files(ctx) == []
-
-
-class TestVerifyToolWithALeftEdit:
-    """Each turn has a new context, thus the tools of this turn did not record the edit of an earlier turn."""
-
-    async def test_checks_an_edit_that_an_earlier_turn_left(self, monkeypatch, repo):
-        write_files(repo, {_B: _LEFT})
-        _use_remote(monkeypatch, repo)
-        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
-        commit = CommitSessionBranchTool()
-
-        verified = await _verify_as_the_model(ctx)
-        committed = await commit.run(commit.input_schema.model_validate({"message": "feat: x"}), ctx)
-
-        assert not verified.is_error, verified.content
-        assert f'"{_B}"' in verified.content
-        assert not committed.is_error, committed.content
-        assert _files_on_remote_branch(repo)[_B] == _LEFT
-
-    async def test_refuses_an_edit_that_an_earlier_turn_left_with_an_error(self, repo):
-        write_files(repo, {_B: _INVALID})
-        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
-
-        verified = await _verify_as_the_model(ctx)
-
-        assert verified.is_error
-        assert _B in verified.content
-
-    async def test_a_clean_clone_has_no_changed_files(self, repo):
-        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
-
-        verified = await _verify_as_the_model(ctx)
-
-        assert verified.is_error
-        assert "No changed files" in verified.content
 
 
 class TestCommitToolWithARemote:
@@ -1042,26 +1003,6 @@ class TestSuccessRequiresSavedChanges:
         assert _files_on_remote_branch(repo)[_A] == '{"edited": true}'
         assert state.assistant_response is not None
         assert state.assistant_response["commit"] == _head(repo)
-
-    async def test_an_edit_that_an_earlier_turn_left_causes_a_failure(self, monkeypatch, repo):
-        write_files(repo, {_B: _LEFT})
-
-        state, _, success = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED))
-
-        assert success is False
-        assert state.verify_notes == ["The assistant did not save its edits to these files: App/ui/b.json"]
-        assert _files_on_remote_branch(repo) == {}
-
-    async def test_a_read_only_turn_succeeds_with_an_edit_that_an_earlier_turn_left(self, monkeypatch, repo):
-        """A read-only turn cannot save the edit. The notice at the start of the turn tells the model about it."""
-        write_files(repo, {_B: _LEFT})
-
-        _, content, success = await _finish(
-            monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED), allow_app_changes=False
-        )
-
-        assert success is True
-        assert content == "Ferdig."
 
     async def test_a_page_that_still_fails_to_render_keeps_its_notes(self, monkeypatch, repo):
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
@@ -1272,227 +1213,6 @@ class TestPushedBranchInFinalMessage:
         assert message["pushedBranch"] == _SESSION_BRANCH
 
 
-class TestNoticeAtTurnStart:
-    """Each turn starts with a new transcript. Without the notice, the model
-    finds its own edits in the files and tells the user that they are in the app."""
-
-    async def _user_message(self, monkeypatch, repo, **state: Any) -> str:
-        captured: dict[str, Any] = {}
-
-        async def fake_run_loop(**kwargs):
-            captured.update(kwargs)
-            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1)
-
-        _patch_loop(monkeypatch, fake_run_loop)
-        await handle(_state(repo_path=str(repo), **state))
-        return captured["user_message"]
-
-    async def test_a_clone_without_unsaved_edits_gets_no_notice(self, monkeypatch, repo):
-        assert await self._user_message(monkeypatch, repo) == "add a date field"
-
-    async def test_names_an_edit_that_an_earlier_turn_did_not_commit(self, monkeypatch, repo):
-        write_files(repo, {_B: _LEFT})
-
-        message = await self._user_message(monkeypatch, repo)
-
-        assert f"Not saved: ['{_B}']" in message
-
-    async def test_names_a_commit_that_an_earlier_turn_did_not_push(self, monkeypatch, repo):
-        _use_remote(monkeypatch, repo, False)
-        earlier_turn = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
-        await _run_steps(earlier_turn, edits=(_A,), model_commits=True)
-
-        message = await self._user_message(monkeypatch, repo)
-
-        assert f"Not saved: ['{_A}']" in message
-
-    async def test_the_notice_is_not_in_the_request_of_the_user(self, monkeypatch, repo):
-        write_files(repo, {_B: _LEFT})
-        tag = node.CURRENT_REQUEST_TAG
-
-        message = await self._user_message(monkeypatch, repo)
-
-        assert message.endswith(f"<{tag}>\nadd a date field\n</{tag}>")
-        assert message.index("Not saved") < message.index(f"<{tag}>\n")
-
-    async def test_a_read_only_turn_gets_the_same_notice(self, monkeypatch, repo):
-        write_files(repo, {_B: _LEFT})
-
-        message = await self._user_message(monkeypatch, repo, allow_app_changes=False)
-
-        assert f"Not saved: ['{_B}']" in message
-
-
-class TestNoticeBeforeAnswer:
-    def _ctx(self, repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
-        return LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=allow_app_changes)
-
-    def test_a_clone_without_unsaved_edits_gets_no_notice(self, repo):
-        assert node._notice_before_answer(self._ctx(repo)) is None
-
-    def test_names_an_edit_that_is_not_committed(self, repo):
-        ctx = self._ctx(repo)
-        _edit(ctx, _A)
-
-        notice = node._notice_before_answer(ctx)
-
-        assert notice is not None
-        assert f"Not saved: ['{_A}']" in notice
-        assert "`discard_file_changes`" in notice
-        assert "write your final message again" in notice
-
-    async def test_names_a_commit_that_is_not_pushed(self, monkeypatch, repo):
-        _use_remote(monkeypatch, repo, False)
-        ctx = self._ctx(repo)
-        await _run_steps(ctx, edits=(_A,), model_commits=True)
-
-        notice = node._notice_before_answer(ctx)
-
-        assert notice is not None
-        assert f"Not saved: ['{_A}']" in notice
-
-    def test_a_read_only_session_gets_no_notice(self, repo):
-        """The model must have a write tool to save or undo the edit."""
-        write_files(repo, {_B: _LEFT})
-
-        assert node._notice_before_answer(self._ctx(repo, allow_app_changes=False)) is None
-
-    def test_a_session_that_got_permission_in_the_turn_gets_the_notice(self, repo):
-        ctx = self._ctx(repo, allow_app_changes=False)
-        ctx.allow_app_changes = True
-        _edit(ctx, _A)
-
-        assert node._notice_before_answer(ctx) is not None
-
-
-_REAL_RUN_LOOP = node.run_loop
-
-
-def _scripted_model(*responses: AssistantMessage):
-    """Return the real loop with a model that sends `responses` in sequence, and the model."""
-    adapter = FakeAdapter(responses)
-
-    async def run(**kwargs):
-        return await _REAL_RUN_LOOP(**{**kwargs, "adapter": adapter})
-
-    return run, adapter
-
-
-def _calls(name: str, **tool_input: Any) -> AssistantMessage:
-    return AssistantMessage(content=[tool_use(name, **tool_input)], stop_reason="tool_use")
-
-
-def _says(text: str) -> AssistantMessage:
-    return AssistantMessage(content=[TextBlock(text=text)], stop_reason="end_turn")
-
-
-def _writes(path: str, content: str = '{"edited": true}') -> tuple[AssistantMessage, AssistantMessage]:
-    return _calls("read_file", path=path), _calls("write_file", path=path, content=content)
-
-
-class TestTheModelGetsOneMoreRound:
-    """`handle` with the real loop and the real tools. Only the model is a script."""
-
-    async def test_the_model_saves_the_edit_and_answers_again(self, monkeypatch, repo):
-        run, model = _scripted_model(
-            *_writes(_A),
-            _says("Ferdig, feltet er i appen."),
-            _calls("verify_changes"),
-            _calls("commit_session_branch", message="feat: add the field"),
-            _says("Feltet er lagt til og lagret."),
-        )
-
-        _, message, done = await _handle_events(monkeypatch, repo, run)
-
-        notice = model.calls[3]["messages"][-1].content
-        assert f"Not saved: ['{_A}']" in notice
-        assert message["content"] == "Feltet er lagt til og lagret."
-        assert message["filesChanged"] == [_A]
-        assert message["pushedBranch"] == _SESSION_BRANCH
-        assert done["success"] is True
-        assert json.loads(_files_on_remote_branch(repo)[_A]) == {"edited": True}
-
-    async def test_the_model_undoes_the_edit_and_answers_again(self, monkeypatch, repo):
-        run, _ = _scripted_model(
-            *_writes(_A),
-            _says("Ferdig, feltet er i appen."),
-            _calls("discard_file_changes", path=_A),
-            _says("Jeg fikk det ikke til, så jeg angret endringen."),
-        )
-
-        _, message, done = await _handle_events(monkeypatch, repo, run)
-
-        assert message["content"] == "Jeg fikk det ikke til, så jeg angret endringen."
-        assert message["filesChanged"] == []
-        assert done["success"] is True
-        assert git_ops.uncommitted_files(str(repo)) == []
-
-    async def test_the_model_undoes_a_file_that_it_created(self, monkeypatch, repo):
-        run, _ = _scripted_model(
-            _calls("write_file", path="App/ui/new.json", content="{}"),
-            _says("Ferdig."),
-            _calls("discard_file_changes", path="App/ui/new.json"),
-            _says("Jeg angret endringen."),
-        )
-
-        _, message, done = await _handle_events(monkeypatch, repo, run)
-
-        assert message["content"] == "Jeg angret endringen."
-        assert done["success"] is True
-        assert not (repo / "App/ui/new.json").exists()
-
-    async def test_a_model_that_answers_again_without_a_save_gets_no_second_notice(self, monkeypatch, repo):
-        run, model = _scripted_model(
-            *_writes(_A),
-            _says("Ferdig, feltet er i appen."),
-            _says("Ferdig, feltet er i appen."),
-        )
-
-        _, message, done = await _handle_events(monkeypatch, repo, run)
-
-        assert len(model.calls) == 4
-        assert message["content"] == "Ferdig, feltet er i appen.\n\nEndringene i `App/ui/a.json` er ikke lagret."
-        assert message["filesChanged"] == []
-        assert done["success"] is False
-        assert _files_on_remote_branch(repo) == {}
-
-    async def test_a_model_that_saved_its_edits_answers_one_time(self, monkeypatch, repo):
-        run, model = _scripted_model(
-            *_writes(_A),
-            _calls("verify_changes"),
-            _calls("commit_session_branch", message="feat: add the field"),
-            _says("Feltet er lagt til og lagret."),
-        )
-
-        _, message, done = await _handle_events(monkeypatch, repo, run)
-
-        assert len(model.calls) == 5
-        assert message["content"] == "Feltet er lagt til og lagret."
-        assert done["success"] is True
-
-    async def test_the_next_turn_starts_with_the_edit_that_failed_validation(self, monkeypatch, repo):
-        """The translations of 6 November 2026: the check failed, and the next
-        three answers said that the translations were in the app."""
-        first_turn, _ = _scripted_model(
-            *_writes(_A, _INVALID),
-            _calls("verify_changes"),
-            _says("Tekstene er oversatt."),
-            _says("Tekstene er oversatt."),
-        )
-        next_turn, model = _scripted_model(_says("Nei, oversettelsene er ikke lagret."))
-
-        _, first_message, _ = await _handle_events(monkeypatch, repo, first_turn)
-        _, next_message, done = await _handle_events(monkeypatch, repo, next_turn, allow_app_changes=False)
-
-        assert first_message["content"] == (
-            "Tekstene er oversatt.\n\nEndringene i `App/ui/a.json` er ikke lagret, fordi de ikke besto valideringen."
-        )
-        assert f"Not saved: ['{_A}']" in model.calls[0]["messages"][-1].content
-        assert len(model.calls) == 1
-        assert next_message["content"] == "Nei, oversettelsene er ikke lagret."
-        assert done["success"] is True
-
-
 class TestGraphBuilder:
     def test_build_graph_has_agentic_nodes_only(self):
         from agents.graph.runner import build_graph
@@ -1608,14 +1328,6 @@ class TestEnforcedRenderCheck:
         assert len(reran) == 1
         assert check.calls == 2
 
-    async def test_the_repair_round_gets_the_notice_about_unsaved_edits(self, repo, monkeypatch):
-        self._use_check(monkeypatch, _outcome(is_error=True), _outcome(is_error=False))
-        reran = self._use_loop(monkeypatch, edits=(_A,))
-
-        await _repair(_state(repo_path=str(repo)), _committed_ctx(repo))
-
-        assert f"Not saved: ['{_A}']" in reran[0]["before_completion"]()
-
     async def test_a_repair_that_never_commits_still_runs_the_bounded_check(self, repo, monkeypatch):
         check = self._use_check(monkeypatch, _outcome(is_error=True), _outcome(is_error=True))
         self._use_loop(monkeypatch, edits=(_A,))
@@ -1725,26 +1437,6 @@ class TestCurrentRequestFraming:
 
         assert f"<{tag}>\nadd a date field\n</{tag}>" in message
         assert len(history) == 2
-
-    def test_a_notice_goes_before_the_request_block(self):
-        state = _state(conversation_history=self._prior_turns())
-        tag = node.CURRENT_REQUEST_TAG
-
-        message, _ = node._framed_turn(state, "add a date field", notice="A notice from the node.")
-
-        assert message == (
-            f"{node._CURRENT_REQUEST_NOTICE}\n\nA notice from the node.\n\n<{tag}>\nadd a date field\n</{tag}>"
-        )
-
-    def test_a_notice_on_a_first_turn_also_delimits_the_request(self):
-        tag = node.CURRENT_REQUEST_TAG
-
-        message, history = node._framed_turn(_state(), "add a date field", notice="A notice from the node.")
-
-        assert message == (
-            f"{node._REQUEST_BLOCK_NOTICE}\n\nA notice from the node.\n\n<{tag}>\nadd a date field\n</{tag}>"
-        )
-        assert history == []
 
     def test_an_earlier_turn_cannot_close_the_current_request_block(self):
         from agents.graph.state import ConversationMessage

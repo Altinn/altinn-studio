@@ -6,15 +6,11 @@ Code: `src/AI/assistant/agents/core/loop.py`, `src/AI/assistant/agents/core/comp
 
 `run_loop` is the only place that decides what happens next. Each turn sends the messages to the model. If the response has no tool calls and the model did not stop at the token limit, the loop stops with `COMPLETED`. If it has tool calls, the loop runs the tools and adds the results as a new user message.
 
-The caller can give `run_loop` a check that runs before `COMPLETED`. If the check returns a notice, the model gets the notice and continues with the same transcript. The loop gives a maximum of one notice in a run. The loop node uses the check for edits that are not saved, as [Graph](graph.md) describes.
-
 ```mermaid
 flowchart TD
   A["Compact the history if it is too large"] --> B["Call the model"]
   B --> C{"Tool calls in the response?"}
-  C -- No --> N{"Notice from the caller?"}
-  N -- "Yes, one time" --> A
-  N -- No --> D["COMPLETED"]
+  C -- No --> D["COMPLETED"]
   C -- Yes --> E["Run the tools, add the results"]
   E --> A
 ```

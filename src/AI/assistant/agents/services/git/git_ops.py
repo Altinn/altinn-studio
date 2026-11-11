@@ -86,6 +86,25 @@ def unpushed_files(repo_path: str) -> list[str]:
     return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
 
 
+def discard_unsaved(repo_path: str) -> None:
+    """Make the clone equal to the commits that a remote branch has.
+
+    Remove the local commits that no remote branch has, the changes that are
+    not committed, and the untracked files. Keep the ignored files. Raise
+    `subprocess.CalledProcessError` if `repo_path` is not a git repository.
+    """
+    unpushed = _git(repo_path, "rev-list", "HEAD", "--not", "--remotes").stdout.split()
+    # The commits of a session are in a line, thus the parent of the oldest
+    # unpushed commit is on the remote.
+    saved = f"{unpushed[-1]}^" if unpushed else "HEAD"
+    _git(repo_path, "reset", "--hard", "--quiet", saved)
+    _git(repo_path, "clean", "-fd", "--quiet")
+
+
+def _git(repo_path: str, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["git", *args], cwd=repo_path, capture_output=True, text=True, check=True)
+
+
 def _paths(repo_path: str, *args: str) -> set[str]:
     """Run a git command that prints paths with `-z`, and return the paths.
 

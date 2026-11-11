@@ -84,29 +84,23 @@ This node prepares the loop and handles the result. It finds the app version (v8
 
 Only the model saves edits, with `commit_session_branch`. The node does not save edits for the model. A save after the answer can fail when the answer says that the change is done. A save can also put work in the app that the answer calls not completed.
 
-An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The session has its own clone of the app, thus all changes in the clone are edits of the assistant. The flags of the tools are for one turn only, thus the node asks git which edits are not saved.
+An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The node asks git which edits are not saved. If some edits are not saved, the node adds a sentence with the file names to the answer. It also removes these files from `filesChanged`, and the run is not a success. A run that stopped before the end has only this sentence about its edits.
 
-The node tells the model about edits that are not saved at two times:
-
-- At the start of a turn, if an earlier turn did not save all its edits. Each turn starts with a new transcript. Without the notice, the model finds its own edits in the files and tells the user that they are in the app. A read-only turn also gets this notice.
-- When the model sends its answer and some edits are not saved, if the session can write. The loop gives the model the notice and one more round to save or undo the edits. Then the model writes the answer again. The user gets only the last answer.
-
-If some edits are not saved after that round, the node adds a sentence with the file names to the answer. It also removes these files from `filesChanged`, and the run is not a success. A run that stopped before the end keeps only the edits that the model saved. Its message gives the names of the other files.
+Edits that are not saved do not stay for the next turn. `RepoManager` resets the clone to the saved state when a turn starts, as [Git and repo](git-and-repo.md) describes.
 
 After the loop, a session that can write has one safety step. If all edits are saved and a push in this turn succeeded, the node runs the render check. If a page does not render, the node gives the error to the model for one more loop run.
 
 ```mermaid
 flowchart TD
-  A["Find app version, build prompt and tools"] --> N["Notice about edits that an earlier turn did not save"]
-  N --> B["run_loop"]
-  B --> U{"Are some edits not saved when the model answers?"}
-  U -->|"Yes, first time"| O["Notice, the model continues"]
-  O --> B
-  U -->|"No, or second time"| D["Render check, max 1 repair round"]
-  D --> E["Send assistant_message and done"]
+  A["Find app version, build prompt and tools"] --> B["run_loop"]
+  B --> D["Render check, max 1 repair round"]
+  D --> U{"Are some edits not saved?"}
+  U -->|Yes| S["Add the file names to the answer"]
+  S --> E["Send assistant_message and done"]
+  U -->|No| E
 ```
 
-_The node steps. The notice before the answer and the render check run only when the session can write._
+_The node steps. The render check runs only when the session can write._
 
 An event bridge changes loop events into events for the user. It sends model text at most once each 100 ms. It changes tool calls into Norwegian status lines with a phase: reading, writing, verifying, committing or thinking.
 
