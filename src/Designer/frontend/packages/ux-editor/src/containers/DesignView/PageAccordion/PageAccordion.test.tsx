@@ -157,6 +157,13 @@ describe('PageAccordion', () => {
     expect(headerContainer).toHaveClass('detailsWarning');
   });
 
+  it('marks a page that preview found errors in', async () => {
+    await render({ props: { hasPreviewErrors: true } });
+    const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
+    expect(headerContainer).toHaveClass('detailsWarning');
+    expect(screen.getByTitle(textMock('ux_editor.preview.page_has_errors'))).toBeInTheDocument();
+  });
+
   it('does not render warning class when neither isInvalid nor hasDuplicatedIds is true', async () => {
     await render({ props: { isInvalid: false, hasDuplicatedIds: false } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
