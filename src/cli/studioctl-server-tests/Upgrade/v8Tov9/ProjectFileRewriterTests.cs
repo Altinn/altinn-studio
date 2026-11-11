@@ -237,6 +237,50 @@ public sealed class ProjectFileRewriterTests : IDisposable
     }
 
     [Fact]
+    public async Task ConvertToProjectReferences_ConvertsCodelistsAndFileAnalyzersToo()
+    {
+        var path = _app.Write(
+            "App.csproj",
+            """
+            <Project><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" Version="8.11.3" />
+                <PackageReference Include="Altinn.Codelists" Version="8.0.3" />
+                <PackageReference Include="Altinn.FileAnalyzers" Version="8.0.0" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("../src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj", "<Project />");
+        _app.Write("../src/App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj", "<Project />");
+        _app.Write("../src/App/fileanalyzers/src/Altinn.FileAnalyzers/Altinn.FileAnalyzers.csproj", "<Project />");
+
+        await new ProjectFileRewriter(path, targetFramework: "net11.0").ConvertToProjectReferences(
+            _app.Root,
+            TestContext.Current.CancellationToken
+        );
+
+        var doc = XDocument.Load(path);
+        Assert.Empty(doc.Descendants("PackageReference"));
+        Assert.Equal(
+            [
+                Path.Combine("..", "src", "App", "backend", "src", "Altinn.App.Api", "Altinn.App.Api.csproj"),
+                Path.Combine("..", "src", "App", "codelists", "src", "Altinn.Codelists", "Altinn.Codelists.csproj"),
+                Path.Combine(
+                    "..",
+                    "src",
+                    "App",
+                    "fileanalyzers",
+                    "src",
+                    "Altinn.FileAnalyzers",
+                    "Altinn.FileAnalyzers.csproj"
+                ),
+            ],
+            doc.Descendants("ProjectReference").Select(reference => reference.Attribute("Include")?.Value)
+        );
+    }
+
+    [Fact]
     public async Task ConvertToProjectReferences_MissingSourceProjectPreservesFrameworkAndReferences()
     {
         var path = WriteConvertibleProject();
