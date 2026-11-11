@@ -513,11 +513,12 @@ that `mailbox.open.overdue` alerts on, not a matter for garbage collection.
 
 ### Retention
 
-The maintenance sweep purges a **closed** mailbox past the retention cutoff, with its deliveries and registrations. An
-open mailbox is an exchange in progress whatever its age, and the deadline sweep owes it an answer. Both child tables
-reference `engine.mailboxes` with `ON DELETE RESTRICT`, the schema's only non-cascading foreign keys, so a purge in the
-wrong order fails instead of taking rows with it. The workflow sweep purges receive workflows on its own schedule, so
-a registry row's `workflow_id` can point at nothing, which is why it has no foreign key.
+The maintenance sweep purges a **closed** mailbox past the [retention](#workflow-retention) cutoff, with its
+deliveries and registrations. An open mailbox is an exchange in progress whatever its age, and the deadline sweep owes
+it an answer. Both child tables reference `engine.mailboxes` with `ON DELETE RESTRICT`, the schema's only
+non-cascading foreign keys, so a purge in the wrong order fails instead of taking rows with it. The workflow sweep
+purges receive workflows on its own schedule, so a registry row's `workflow_id` can point at nothing, which is why it
+has no foreign key.
 
 ### The three write paths are batched
 
@@ -618,6 +619,34 @@ will depend on now. A primary workflow leaves the frontier once a later workflow
 
 Do not call the concept visible or invisible, side effect, side chain, non-critical or fire-and-forget. Keep "head"
 for the frontier and the `isHead` directive.
+
+## Workflow retention
+
+The maintenance sweep runs retention once every `Retention.Interval`, in two parts:
+
+- **State.** A workflow that completed keeps its state, the initial state and every step's state out, for
+  `Retention.CompletedStateRetentionPeriod`. Then the sweep clears it and stamps `state_cleared_at`. The workflow,
+  its steps, their statuses and the idempotency key stay.
+- **Workflows.** The sweep deletes a terminal workflow with its steps once `Retention.RetentionPeriod` has passed
+  since it finished, unless an unfinished or recent workflow depends on it or links to it. Its collection drops it
+  from the heads. An idempotency key goes once it is as old and none of its workflows is left.
+
+The state is the caller's. For an Altinn app it is the instance with all its form data, signed but not encrypted, so
+the engine keeps it no longer than something can need it. Nothing needs it once a workflow has completed:
+
+- `Completed` is the one terminal status a workflow never leaves. [Resume](#resume) refuses it, so no step of it runs
+  again.
+- A dependent never reads the state of a workflow it depends on. Every workflow runs from the initial state its
+  enqueue request carried, and the app seals that state while the predecessor is still running.
+
+Every other terminal status can be resumed, and a resumed step runs from the state the step before it left. So a
+failed, canceled, dependency-failed or abandoned workflow keeps its state until it is deleted.
+
+Once the sweep clears a workflow's state, the status reads return `initialState` and `stateOut` as null, as they do
+for `includeState=false`, and the dashboard's state views show none. A view of state changes, such as the one Studio's
+admin panel plans ([#21028](https://github.com/Altinn/altinn-studio/issues/21028)), can show only the runs inside
+the period. That is why the period is days rather than zero. Clearing makes the space reusable inside PostgreSQL, but
+the table's files do not shrink.
 
 ## Telemetry & observability
 
@@ -820,7 +849,8 @@ step is exact, and one from a `Processing` step is indicative.
 `role` is `Primary` or `Auxiliary`, derived from the workflow's `isHead` directive and always present. `isHead` is the
 raw directive, returned only when the enqueue request set one; read `role` instead. `includeState=false` leaves the
 app's state payloads, `initialState` and every step's `stateOut`, out of the response. The default is `true`; a status
-reader with no use for them, such as Studio's admin panel, passes `false`.
+reader with no use for them, such as Studio's admin panel or the app, passes `false`. A completed workflow has no state
+left to return once [retention](#workflow-retention) clears it.
 
 ### List collections
 
@@ -930,6 +960,8 @@ Some settings constrain each other:
 - **Mailbox flush concurrency.** The close buffer flushes one batch at a time, because a close locks mailbox rows and
   their receivers' workflow rows. The delivery buffer's concurrency is low on purpose, since a storm aimed at one
   mailbox queues on that mailbox's row lock anyway.
+- **Retention.** `Retention.CompletedStateRetentionPeriod` only shortens how long a completed workflow keeps its
+  state. At or above `Retention.RetentionPeriod`, the sweep deletes the workflow before its state is due.
 - **Throttling** ships off. The App host turns it on (see
   [its README](../../workflow-engine-app/README.md#namespace-circuit-breaker)).
 

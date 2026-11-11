@@ -620,7 +620,8 @@ checking `_openWfId` before and after the fetch.
 2. **Step N: {operationId}**, one block per step with a non-null `stateOut`, in processing order
 
 Each block shows syntax-highlighted JSON, after `expandJsonStrings()`, with a copy button. With no initial state and
-no step stateOut, the modal shows "No state data available".
+no step stateOut, the modal shows "No state data available". A card draws the button only while its workflow has
+state, so a completed workflow loses it once [retention](technical-guide.md#workflow-retention) clears the state.
 
 **Auto-refresh:** SSE drives it through `notifyWorkflowChanged()`, with a 1 s debounce, longer than the step modal's
 300 ms to reduce noise. **Keyboard:** Escape closes the modal. The `copyPre()` handler, shared with the step modal,

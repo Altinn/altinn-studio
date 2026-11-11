@@ -73,6 +73,7 @@ public class EngineSettingsConfigurationTests
 
         // Retention
         Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(7), settings.Retention.CompletedStateRetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
 
@@ -329,6 +330,7 @@ public class EngineSettingsConfigurationTests
         var settings = Resolve("""{ "EngineSettings": {} }""");
 
         Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(7), settings.Retention.CompletedStateRetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
     }
@@ -342,6 +344,7 @@ public class EngineSettingsConfigurationTests
               "EngineSettings": {
                 "Retention": {
                   "RetentionPeriod": "7.00:00:00",
+                  "CompletedStateRetentionPeriod": "1.00:00:00",
                   "BatchSize": 500,
                   "Interval": "00:30:00"
                 }
@@ -351,6 +354,7 @@ public class EngineSettingsConfigurationTests
         );
 
         Assert.Equal(TimeSpan.FromDays(7), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(1), settings.Retention.CompletedStateRetentionPeriod);
         Assert.Equal(500, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromMinutes(30), settings.Retention.Interval);
     }
@@ -364,6 +368,7 @@ public class EngineSettingsConfigurationTests
               "EngineSettings": {
                 "Retention": {
                   "RetentionPeriod": "00:00:00",
+                  "CompletedStateRetentionPeriod": "00:00:00",
                   "BatchSize": 0,
                   "Interval": "00:00:00"
                 }
@@ -373,6 +378,7 @@ public class EngineSettingsConfigurationTests
         );
 
         Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(7), settings.Retention.CompletedStateRetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
     }
@@ -390,6 +396,7 @@ public class EngineSettingsConfigurationTests
                 opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
                 opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
                 opts.Retention.RetentionPeriod = TimeSpan.FromSeconds(-1);
+                opts.Retention.CompletedStateRetentionPeriod = TimeSpan.FromDays(1);
                 opts.Retention.BatchSize = 100;
                 opts.Retention.Interval = TimeSpan.FromMinutes(1);
             })
@@ -401,6 +408,33 @@ public class EngineSettingsConfigurationTests
         );
 
         Assert.Contains("RetentionPeriod", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsNegativeCompletedStateRetentionPeriod_WhenDefaultsBypassed()
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
+                opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
+                opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.CompletedStateRetentionPeriod = TimeSpan.FromSeconds(-1);
+                opts.Retention.BatchSize = 100;
+                opts.Retention.Interval = TimeSpan.FromMinutes(1);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            sp.GetRequiredService<IOptions<EngineSettings>>().Value
+        );
+
+        Assert.Contains("CompletedStateRetentionPeriod", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -416,6 +450,7 @@ public class EngineSettingsConfigurationTests
                 opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
                 opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
                 opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.CompletedStateRetentionPeriod = TimeSpan.FromDays(1);
                 opts.Retention.BatchSize = 0;
                 opts.Retention.Interval = TimeSpan.FromMinutes(1);
             })
@@ -442,6 +477,7 @@ public class EngineSettingsConfigurationTests
                 opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
                 opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
                 opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.CompletedStateRetentionPeriod = TimeSpan.FromDays(1);
                 opts.Retention.BatchSize = 100;
                 opts.Retention.Interval = TimeSpan.FromSeconds(-1);
             })
@@ -622,6 +658,7 @@ public class EngineSettingsConfigurationTests
                 opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
                 opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
                 opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.CompletedStateRetentionPeriod = TimeSpan.FromDays(1);
                 opts.Retention.BatchSize = 100;
                 opts.Retention.Interval = TimeSpan.FromMinutes(1);
                 opts.Throttling.MinRequeuedWorkflows = 50;

@@ -76,6 +76,7 @@ internal static class Defaults
         Retention = new RetentionSettings
         {
             RetentionPeriod = TimeSpan.FromDays(90),
+            CompletedStateRetentionPeriod = TimeSpan.FromDays(7),
             BatchSize = 1000,
             Interval = TimeSpan.FromHours(2),
         },

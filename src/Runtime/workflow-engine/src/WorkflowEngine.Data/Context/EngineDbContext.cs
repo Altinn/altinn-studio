@@ -110,6 +110,14 @@ internal sealed class EngineDbContext : DbContext
             // keeps it aligned with the terminal-status lists interpolated into that SQL —
             // if the sets diverge, Postgres can no longer use this partial index.
             entity.HasIndex(e => e.UpdatedAt).HasFilter($"status IN ({PersistentItemStatusMap.FinishedSqlList})");
+
+            // Backs the completed state sweep (DbMaintenanceService). A cleared workflow leaves the index, so
+            // the sweep reads only what it still has to clear, not every completed workflow retention keeps.
+            // Same constancy contract as the retention index above. Named, because EF keys an unnamed index
+            // by its property set, which the retention index already holds.
+            entity
+                .HasIndex(e => e.UpdatedAt, "ix_workflows_updated_at_completed_state")
+                .HasFilter($"status IN ({PersistentItemStatusMap.SuccessfulSqlList}) AND state_cleared_at IS NULL");
             entity.HasIndex(e => e.Labels).HasMethod("gin");
             entity
                 .Property(e => e.Labels)
