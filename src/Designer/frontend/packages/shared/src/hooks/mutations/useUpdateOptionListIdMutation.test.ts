@@ -97,4 +97,19 @@ describe('useUpdateOptionListIdMutation', () => {
       queryKey: [QueryKey.OptionList, org, app, optionListId],
     });
   });
+
+  test('Invalidates the option list usage query cache when the update fails', async () => {
+    const queryClient = createQueryClientMock();
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const updateOptionListId = vi.fn().mockRejectedValue(new Error('Conflict'));
+    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+      () => useUpdateOptionListIdMutation(org, app),
+      { queryClient, queries: { updateOptionListId } },
+    ).result;
+    await expect(renderUpdateOptionListMutationResult.current.mutateAsync(args)).rejects.toThrow();
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.OptionListsUsage, org, app],
+    });
+  });
 });
