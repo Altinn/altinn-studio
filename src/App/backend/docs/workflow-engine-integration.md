@@ -51,11 +51,16 @@ and returns the re-signed state.
 | 200                     | The step succeeded. The engine passes the returned state to the next step.                    |
 | 200 with a `defer` part | The step waits. The engine parks the workflow and runs the step again later.                  |
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
-| 404                     | No command has the key.                                                                       |
+| 404                     | No command has the key. The problem details carry the `nonRetryable` marker.                  |
 | 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
 | 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
+- The 404 and 422 answers set `nonRetryable: true` in their problem details. The engine fails the step on a 4xx other
+  than 408, 418 and 429, but retries a 404 without the marker, since that means no route matched: a pod on an app
+  version without callbacks, during a rolling deploy or after a rollback. After a rollback to such a version, deploying
+  one with callbacks within the step's retry budget, a day by default, lets the workflow continue. A wrong callback URL
+  is retried for that budget too, where it used to fail at once.
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
   and retries it as transient.
