@@ -93,7 +93,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _stagedInstancePresentationTexts = new(StringComparer.Ordinal);
 
-    // Metadata changes per data element, existing or staged for creation, merged per property.
     private readonly ConcurrentDictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
@@ -737,8 +736,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     /// <inheritdoc />
     /// <remarks>
-    /// The save derives the keys in <c>dataFields</c> from the cached form data each time, which would
-    /// overwrite an explicit value in the next save, so such keys are refused.
+    /// Every save derives the keys in <c>dataFields</c> from the form data, which would overwrite a value set here.
     /// </remarks>
     public void SetDataValue(string key, string? value)
     {
@@ -794,8 +792,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
 
     /// <summary>
-    /// Whether a save would write something a command or app code staged: the element changes, or a change to
-    /// element metadata, data values, presentation texts or the complete confirmation.
+    /// Whether a save would write anything that a command or app code staged.
     /// </summary>
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0

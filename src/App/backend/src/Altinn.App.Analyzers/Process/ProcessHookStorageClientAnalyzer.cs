@@ -3,20 +3,12 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Altinn.App.Analyzers;
 
 /// <summary>
-/// Reports a call to <c>IDataClient</c>, <c>IInstanceClient</c> or <c>IDataService</c> in a process hook, a service
-/// task or <c>IInstantiationProcessor.DataCreation</c>. These can run while the process is transitioning, when Storage
-/// refuses the clients' writes; the instance data mutator in the hook's context reads and writes the current instance
-/// and saves the changes with the transition.
+/// Reports calls to <c>IDataClient</c>, <c>IInstanceClient</c> and <c>IDataService</c> in process hooks, service tasks
+/// and <c>IInstantiationProcessor.DataCreation</c>, where Storage refuses their writes while the process is transitioning.
 /// </summary>
 /// <remarks>
-/// Only calls in the body of the member that implements the hook, or overrides that member, and in a method that takes
-/// a <c>StageContext</c> (a stage) are reported, lambdas and local functions included. A helper method the hook calls,
-/// a base class method that becomes a hook only in a derived class, a wrapper interface of the app's own, or code in a
-/// referenced package is not seen.
-/// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported; calls that target another
-/// instance on purpose can suppress the warning.
-/// The mutator cannot set a substatus or confirm the instance as complete, so for those calls the message says that
-/// instead of pointing at it.
+/// Only the body of the hook and of methods that take a <c>StageContext</c> is checked, not the methods they call.
+/// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
