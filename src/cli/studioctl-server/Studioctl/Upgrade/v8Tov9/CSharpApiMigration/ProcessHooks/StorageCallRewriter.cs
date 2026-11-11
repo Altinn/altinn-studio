@@ -55,6 +55,9 @@ internal sealed class StorageCallRewriter(
                 && !refused.ContainsKey(call)
             )
             .ToList();
+        var everyWrite = calls
+            .Where(static call => call.Client == StorageClient.Data && _formWrites.Contains(call.Name))
+            .ToList();
         var removed = new HashSet<StorageClientCall>();
         var decisions = new Dictionary<StorageClientCall, ReadDecision>();
         foreach (
@@ -63,21 +66,21 @@ internal sealed class StorageCallRewriter(
         {
             if (targets[call].Kind == TargetKind.Current && AddedElement(rewrite, call) is null)
             {
-                decisions[call] = ReadSemantics.Decide(call, writes, SameElement);
+                decisions[call] = ReadSemantics.Decide(call, writes, everyWrite, SameElement);
             }
         }
 
-        // A value read of the element that a live read changes elsewhere in the method would share the changed object.
+        // A value read of the element that another read changes elsewhere in the method shares the changed model.
         foreach (var (read, decision) in decisions.ToList())
         {
             if (
-                decision is { Live: true, WriteBack: null }
+                decision == ReadDecision.Same
                 && decisions.Any(other =>
-                    other.Key != read && other.Value.WriteBack is not null && SameElement(read, other.Key)
+                    other.Key != read && other.Value != ReadDecision.Same && SameElement(read, other.Key)
                 )
             )
             {
-                decisions[read] = ReadDecision.Copy;
+                decisions[read] = new ReadDecision(ReadDifference.SharesChangedModel, null);
             }
         }
 
@@ -398,7 +401,7 @@ internal sealed class StorageCallRewriter(
             case "GetFormData":
                 if (Read(rewrite, call, target))
                 {
-                    FormRead(rewrite, call, decisions.GetValueOrDefault(call) ?? ReadDecision.Copy, removed);
+                    FormRead(rewrite, call, decisions.GetValueOrDefault(call) ?? ReadDecision.MaySaveMore, removed);
                 }
 
                 return;
@@ -606,7 +609,7 @@ internal sealed class StorageCallRewriter(
         );
     }
 
-    /// <param name="removed">Gets the write back that the live read makes unnecessary.</param>
+    /// <param name="removed">Gets the write back that reading the model the transition saves makes unnecessary.</param>
     private void FormRead(
         MethodRewrite rewrite,
         StorageClientCall call,
@@ -630,10 +633,9 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
-        var name = decision.Live ? "GetFormData" : "GetFormDataCopy";
         var generic = call.Method.IsGenericMethod ? $"<{TypeArgument(call)}>" : "";
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        rewrite.Replace(call.Use.Call, Piece.Expression($"$0.{name}{generic}($1)", mutator, id));
+        rewrite.Replace(call.Use.Call, Piece.Expression($"$0.GetFormData{generic}($1)", mutator, id));
         rewrite.MovedReads.Add(call);
         if (call.Use.Statement is { } statement)
         {
@@ -657,13 +659,38 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
-        rewrite.Moved(
-            call.Syntax,
-            decision.Live
-                ? $"{call.DisplayName} now reads the form with {rewrite.Mutator}.GetFormData."
-                : $"{call.DisplayName} now reads a copy of the form with {rewrite.Mutator}.GetFormDataCopy, as v8 read it; "
-                    + "changes to the copy are saved only where the code writes it back."
-        );
+        var reads = $"{call.DisplayName} now reads the form with {rewrite.Mutator}.GetFormData";
+        switch (decision.Difference)
+        {
+            case ReadDifference.None:
+                rewrite.Moved(call.Syntax, reads + ".");
+                break;
+            case ReadDifference.MaySaveMore:
+                rewrite.Moved(
+                    call.Syntax,
+                    reads
+                        + ", which returns the model the transition saves: a change to it is saved also where the code "
+                        + "does not write it. v8 saved only what the code wrote."
+                );
+                break;
+            case ReadDifference.SavesUnwrittenChanges:
+                rewrite.MovedTodo(
+                    call.Syntax,
+                    reads
+                        + ", which returns the model the transition saves. The code changes it and never writes it: v8 "
+                        + "dropped those changes, v9 saves them. Remove the changes if they should stay unsaved."
+                );
+                break;
+            case ReadDifference.SharesChangedModel:
+                rewrite.MovedTodo(
+                    call.Syntax,
+                    reads
+                        + ", which returns the same object as the other read of this element in this method, so it sees "
+                        + "the changes made through that one. v8 read the form as it was stored; read the values this "
+                        + "code needs before the form is changed."
+                );
+                break;
+        }
     }
 
     private static string TypeArgument(StorageClientCall call) =>

@@ -323,18 +323,12 @@ internal static class StorageCallStubs
                 BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);
                 BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);
                 void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
-                Task<object> GetFormDataCopy(DataElementIdentifier dataElementIdentifier);
                 Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model);
                 void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update);
                 void SetDataValue(string key, string? value);
                 void SetPresentationText(string key, string? value);
                 void SetSubstatus(Substatus substatus);
                 void AddCompleteConfirmation();
-            }
-
-            public static class IInstanceDataMutatorExtensions
-            {
-                public static Task<T> GetFormDataCopy<T>(this IInstanceDataMutator mutator, DataElementIdentifier dataElementIdentifier) where T : class => Task.FromResult(default(T)!);
             }
 
             public interface IInstantiationProcessor

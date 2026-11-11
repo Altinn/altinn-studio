@@ -82,7 +82,11 @@ internal sealed class MethodRewrite(IMethodSymbol method, MemberBody body, IRead
     public void Moved(SyntaxNode node, string text) =>
         RewriteReports.Add(PortReport.Located(File, node, UpgradeMessageStatus.Warning, text));
 
-    /// <summary>The warnings about rewrites, see <see cref="Moved"/>.</summary>
+    /// <summary>A to-do about a rewrite, which goes with it as <see cref="Moved"/> does.</summary>
+    public void MovedTodo(SyntaxNode node, string text) =>
+        RewriteReports.Add(PortReport.Located(File, node, UpgradeMessageStatus.Todo, text));
+
+    /// <summary>The reports about rewrites, see <see cref="Moved"/> and <see cref="MovedTodo"/>.</summary>
     public List<PortReport> RewriteReports { get; } = [];
 
     public void Todo(SyntaxNode node, string text) =>

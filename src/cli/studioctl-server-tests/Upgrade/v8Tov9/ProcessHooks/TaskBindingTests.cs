@@ -81,7 +81,7 @@ public sealed class TaskBindingTests : IDisposable
                 Instance instance = dataMutator.Instance;
                 DataElement modelData = instance.Data.Single(x => x.DataType == "AllocatedCaseNumber");
                 InstanceIdentifier instanceIdentifier = new(instance);
-                var model = (AllocatedCaseNumber)await dataMutator.GetFormDataCopy(modelData);
+                var model = (AllocatedCaseNumber)await dataMutator.GetFormData(modelData);
                 return (model, instanceIdentifier, modelData);
             }
 
@@ -120,7 +120,7 @@ public sealed class TaskBindingTests : IDisposable
                 Instance instance = dataMutator.Instance;
                 DataElement modelData = instance.Data.Single(x => x.DataType == "AllocatedCaseNumber");
                 InstanceIdentifier instanceIdentifier = new(instance);
-                var model = (AllocatedCaseNumber)await dataMutator.GetFormDataCopy(modelData);
+                var model = (AllocatedCaseNumber)await dataMutator.GetFormData(modelData);
                 return (model, instanceIdentifier, modelData);
             }
 
@@ -188,7 +188,7 @@ public sealed class TaskBindingTests : IDisposable
                 Instance instance = dataMutator.Instance;
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 DataElement modelDataElement = instance.Data.FirstOrDefault(d => d.DataType == "model");
-                var model = (model)await dataMutator.GetFormDataCopy(modelDataElement);
+                var model = (model)await dataMutator.GetFormData(modelDataElement);
                 model.Hjelpefelt = null;
 
                 await data.UnlockDataElement(new InstanceIdentifier(instance), new Guid(modelDataElement.Id));
@@ -879,7 +879,7 @@ public sealed class TaskBindingTests : IDisposable
                 var element = instance.Data.First(d => d.Id == instance.DataValues!["formId"]);
                 var identifier = new InstanceIdentifier(instance);
                 await dataClient.UnlockDataElement(identifier, Guid.Parse(element.Id));
-                object form = await dataMutator.GetFormDataCopy(element);
+                object form = await dataMutator.GetFormData(element);
                 await dataClient.UpdateFormData(instance, form, element);
                 await dataClient.LockDataElement(identifier, Guid.Parse(element.Id));
                 return {{HandlerResult}}.Success();

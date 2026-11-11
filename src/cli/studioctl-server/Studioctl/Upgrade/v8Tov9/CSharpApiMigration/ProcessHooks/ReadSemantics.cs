@@ -5,23 +5,50 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 
 /// <summary>
-/// How a ported form read reads: <see cref="Live"/> reads the model the mutator saves, which is exact only when the
-/// code never changes what it read (C-RF1 a) or writes it back to the same element right after changing it (C-RF1 b,
-/// <see cref="WriteBack"/> is then deleted); anything else reads a copy (C-RF2), as v8's reads were.
+/// How a ported form read differs from the v8 read. v8 read an object of its own and saved it only where the code
+/// wrote it; the mutator's <c>GetFormData</c> reads the model the transition saves.
 /// </summary>
-internal sealed record ReadDecision(bool Live, StorageClientCall? WriteBack)
+internal enum ReadDifference
 {
-    public static readonly ReadDecision Copy = new(false, null);
+    /// <summary>
+    /// Nothing: the code never changes what it read (C-RF1 a), or writes it back to the same element right after
+    /// changing it (C-RF1 b).
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// The code changes the model, or hands it to code that may, without writing it back right after: v9 saves the
+    /// changes also where the code does not reach a write (C-RF2).
+    /// </summary>
+    MaySaveMore,
+
+    /// <summary>The code assigns to the model and never writes the element: v8 dropped the changes, v9 saves them.</summary>
+    SavesUnwrittenChanges,
+
+    /// <summary>Another read of the element in the method changes the model, and this read sees those changes.</summary>
+    SharesChangedModel,
 }
 
-/// <summary>C-RF1 and C-RF2: whether a form read may read the live model.</summary>
+/// <summary>
+/// What the port does with a form read: the difference from v8 it reports, and the write back it deletes
+/// (<see cref="WriteBack"/>, C-RF1 b).
+/// </summary>
+internal sealed record ReadDecision(ReadDifference Difference, StorageClientCall? WriteBack)
+{
+    public static readonly ReadDecision Same = new(ReadDifference.None, null);
+    public static readonly ReadDecision MaySaveMore = new(ReadDifference.MaySaveMore, null);
+}
+
+/// <summary>C-RF1 and C-RF2: how the live model a ported form read returns differs from what v8 read.</summary>
 internal static class ReadSemantics
 {
     /// <param name="writes">The form writes in the same method that the rewrite moves to the mutator.</param>
+    /// <param name="everyWrite">Those and the form writes in the method that stay as they are.</param>
     /// <param name="sameElement">Whether two element arguments name the same data element.</param>
     public static ReadDecision Decide(
         StorageClientCall read,
         IReadOnlyList<StorageClientCall> writes,
+        IReadOnlyList<StorageClientCall> everyWrite,
         Func<StorageClientCall, StorageClientCall, bool> sameElement
     )
     {
@@ -30,13 +57,13 @@ internal static class ReadSemantics
         {
             return
                 read.Use.Kind is CallUseKind.Statement or CallUseKind.Discard || IsValueRead(Consumer(read.Invocation))
-                ? new ReadDecision(true, null)
-                : ReadDecision.Copy;
+                ? ReadDecision.Same
+                : ReadDecision.MaySaveMore;
         }
 
         if (Writes(body, variable).Count() != 1)
         {
-            return ReadDecision.Copy;
+            return ReadDecision.MaySaveMore;
         }
 
         var aliases = Aliases(body, variable);
@@ -48,7 +75,7 @@ internal static class ReadSemantics
         var changes = uses.Where(use => !IsValueRead(use) && !IsAliasDeclaration(use, aliases)).ToList();
         if (changes.Count == 0)
         {
-            return new ReadDecision(true, null);
+            return ReadDecision.Same;
         }
 
         foreach (var write in writes)
@@ -70,11 +97,16 @@ internal static class ReadSemantics
                 .ToList();
             if (WritesBack(read, write, writeStatement, rest, writes, sameElement))
             {
-                return new ReadDecision(true, write);
+                return new ReadDecision(ReadDifference.None, write);
             }
         }
 
-        return ReadDecision.Copy;
+        var written = everyWrite.Any(write =>
+            write.Syntax.SpanStart > read.Syntax.Span.End && sameElement(read, write)
+        );
+        return !written && changes.Any(IsAssignment)
+            ? new ReadDecision(ReadDifference.SavesUnwrittenChanges, null)
+            : ReadDecision.MaySaveMore;
     }
 
     /// <summary>
@@ -300,6 +332,40 @@ internal static class ReadSemantics
     /// </summary>
     private static bool IsValueRead(IOperation use)
     {
+        var top = Top(use);
+        if (top == use)
+        {
+            return false;
+        }
+
+        if (top.Type is not { } type || !(type.IsValueType || type.SpecialType == SpecialType.System_String))
+        {
+            return false;
+        }
+
+        return top.Parent switch
+        {
+            IAssignmentOperation assignment => assignment.Target != top,
+            IIncrementOrDecrementOperation => false,
+            IArgumentOperation { Parameter.RefKind: RefKind.Ref or RefKind.Out } => false,
+            _ => true,
+        };
+    }
+
+    /// <summary>A use that assigns to a member of the model, or increments one.</summary>
+    private static bool IsAssignment(IOperation use)
+    {
+        var top = Top(use);
+        return top != use
+            && (
+                top.Parent is IAssignmentOperation assignment && assignment.Target == top
+                || top.Parent is IIncrementOrDecrementOperation
+            );
+    }
+
+    /// <summary>The end of the chain of member accesses that starts at a use of the model.</summary>
+    private static IOperation Top(IOperation use)
+    {
         var top = use;
         while (true)
         {
@@ -334,23 +400,7 @@ internal static class ReadSemantics
             break;
         }
 
-        if (top == use)
-        {
-            return false;
-        }
-
-        if (top.Type is not { } type || !(type.IsValueType || type.SpecialType == SpecialType.System_String))
-        {
-            return false;
-        }
-
-        return top.Parent switch
-        {
-            IAssignmentOperation assignment => assignment.Target != top,
-            IIncrementOrDecrementOperation => false,
-            IArgumentOperation { Parameter.RefKind: RefKind.Ref or RefKind.Out } => false,
-            _ => true,
-        };
+        return top;
     }
 
     /// <summary>The end of a conditional access chain, <c>.B.C</c> in <c>a?.B.C</c>.</summary>
