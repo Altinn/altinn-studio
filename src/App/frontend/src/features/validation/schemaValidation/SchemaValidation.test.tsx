@@ -265,4 +265,91 @@ describe('SchemaValidation', () => {
       });
     });
   });
+
+  describe('custom error message', () => {
+    beforeEach(() => {
+      jest.spyOn(FD, 'useDebounced').mockRestore();
+      jest.spyOn(DataModels, 'useDataModelSchema').mockRestore();
+      jest.spyOn(UseBindingSchema, 'useDataModelType').mockRestore();
+      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
+    });
+
+    const phoneNumber: JSONSchema7 & { errorMessage: string } = {
+      type: 'string',
+      pattern: '^[0-9]{8}$',
+      errorMessage: 'phoneNumber.error',
+    };
+    const address: JSONSchema7 = { properties: { street: { type: 'string' } } };
+    const subSchema: JSONSchema7 & { info: { rootNode: string } } = {
+      info: { rootNode: '#/definitions/Form' },
+      definitions: {
+        Form: { properties: { contact: { $ref: '#/definitions/Contact' } } },
+        Contact: { properties: { phoneNumber, address: { $ref: '#/definitions/Address' } } },
+        Address: address,
+      },
+    };
+
+    const schemas: { name: string; schema: JSONSchema7; rootElementPath: string }[] = [
+      {
+        name: 'a root property',
+        schema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          properties: { contact: { properties: { phoneNumber } } },
+        },
+        rootElementPath: '',
+      },
+      {
+        name: 'a definition without nested $ref',
+        schema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          properties: { contact: { $ref: '#/$defs/Contact' } },
+          $defs: { Contact: { properties: { phoneNumber } } },
+        },
+        rootElementPath: '',
+      },
+      {
+        name: 'a definition with nested $ref',
+        schema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          properties: { contact: { $ref: '#/$defs/Contact' } },
+          $defs: {
+            Contact: { properties: { phoneNumber, address: { $ref: '#/$defs/Address' } } },
+            Address: address,
+          },
+        },
+        rootElementPath: '',
+      },
+      {
+        name: 'a definition with nested $ref, validated against a sub schema',
+        schema: subSchema,
+        rootElementPath: '#/definitions/Form',
+      },
+    ];
+
+    it.each(schemas)('should use errorMessage from the schema for a field in $name', ({ schema, rootElementPath }) => {
+      const formData = { contact: { phoneNumber: '123' } };
+      const validator = createValidator(schema);
+
+      jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
+      jest
+        .spyOn(DataModels, 'useDataModelSchema')
+        .mockReturnValue({ schema, rootElementPath, validator } as DataModelSchemaResult);
+      jest.spyOn(DataModels, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
+      jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
+
+      const updateDataModelValidations = jest.fn();
+      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
+
+      render(<SchemaValidation dataType='mockDataType' />);
+
+      expect(updateDataModelValidations).toHaveBeenCalledWith('schema', defaultMockDataElementId, {
+        'contact.phoneNumber': [
+          expect.objectContaining({
+            field: 'contact.phoneNumber',
+            message: expect.objectContaining({ key: 'phoneNumber.error' }),
+          }),
+        ],
+      });
+    });
+  });
 });
