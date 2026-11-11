@@ -32,7 +32,8 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 - Write the description for the reviewer, as the [pull request template](.github/pull_request_template.md) asks.
   When the pull request changes after review, rewrite the description to describe it as it is now, and say what
   changed in a comment.
-- Pull requests are squash-merged.
+- Pull requests are squash-merged, except test app syncs from `make sync-test-apps`, which need a merge commit to keep
+  the subtree history.
 - List commits that only reformat code in [.git-blame-ignore-revs](.git-blame-ignore-revs), and run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` so that `git blame` skips them.
 
