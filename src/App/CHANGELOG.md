@@ -21,6 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
 - Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation groups configured with `expandedByDefault: true` now start expanded, including inactive groups. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation validation settings now accept `show: ["Invalid"]` at app and task scope without errors. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
