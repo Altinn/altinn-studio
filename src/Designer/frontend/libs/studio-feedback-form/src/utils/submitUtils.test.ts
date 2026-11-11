@@ -1,18 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
-import axios from 'axios';
+import { post } from 'app-shared/utils/networking';
 import { submitFeedback } from './submitUtils';
 
-vi.mock('axios');
-var mockedAxios = axios as Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  post: vi.fn(),
+}));
+const mockedPost = vi.mocked(post);
 
 describe('submitFeedback', () => {
   it('should submit feedback', async () => {
     const answers = { question1: 'answer1' };
     const path = 'path';
-    mockedAxios.post.mockResolvedValueOnce({});
+    mockedPost.mockResolvedValueOnce(null);
     await submitFeedback(answers, path);
-    expect(mockedAxios.post).toHaveBeenCalledWith(path, { answers: { ...answers } }, undefined);
+    expect(mockedPost).toHaveBeenCalledWith(path, { answers: { ...answers } });
   });
 
   it('should throw error if submission fails', async () => {
@@ -20,7 +22,7 @@ describe('submitFeedback', () => {
     const path = 'path';
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const error = new Error('Failed to submit feedback');
-    mockedAxios.post.mockRejectedValueOnce(error);
+    mockedPost.mockRejectedValueOnce(error);
     await expect(submitFeedback(answers, path)).rejects.toThrow(error);
     expect(mockConsoleError).toHaveBeenCalled();
   });

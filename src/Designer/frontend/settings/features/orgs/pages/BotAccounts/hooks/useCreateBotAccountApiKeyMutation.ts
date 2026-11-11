@@ -6,7 +6,7 @@ import type {
   CreateBotAccountApiKeyResponse,
   BotAccount,
 } from 'app-shared/types/BotAccount';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useCreateBotAccountApiKeyMutation = (org: string, botAccountId: string) => {
@@ -14,7 +14,7 @@ export const useCreateBotAccountApiKeyMutation = (org: string, botAccountId: str
   const { createBotAccountApiKey } = useServicesContext();
   return useMutation<
     CreateBotAccountApiKeyResponse,
-    AxiosError<ApiError>,
+    HttpError<ApiError>,
     CreateBotAccountApiKeyRequest
   >({
     mutationFn: (payload) => createBotAccountApiKey(org, botAccountId, payload),

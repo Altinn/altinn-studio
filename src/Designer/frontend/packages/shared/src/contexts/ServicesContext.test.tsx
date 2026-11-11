@@ -57,7 +57,7 @@ describe('ServicesContext', () => {
     });
   });
 
-  it('logs non-Axios errors to the console', async () => {
+  it('logs errors that are not HTTP errors to the console', async () => {
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderHook(
       () =>
@@ -243,9 +243,7 @@ describe('ServicesContext', () => {
   });
 
   it('does not display error toast when request is cancelled', async () => {
-    const cancelledError = new Error('Request cancelled');
-    cancelledError.name = 'CanceledError';
-    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+    const cancelledError = new DOMException('Request cancelled', 'AbortError');
 
     const { result } = renderHook(
       () =>
