@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioLinkButton } from '@studio/components';
-import { ExternalLinkIcon, SidebarRightIcon } from '@studio/icons';
+import { StudioButton, StudioDropdown, StudioLinkButton } from '@studio/components';
+import {
+  ArrowCirclepathIcon,
+  ExternalLinkIcon,
+  MenuElipsisVerticalIcon,
+  SidebarRightIcon,
+} from '@studio/icons';
 import classes from './PreviewActions.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -10,12 +15,15 @@ export type PreviewActionsProps = {
   toggleTitle?: string;
   className: string;
   onCollapseToggle: () => void;
+  /** Starts preview over. Without it, the actions have no menu, as when preview is collapsed or shows no page. */
+  onStartOver?: () => void;
 };
 
 export const PreviewActions = ({
   toggleTitle,
   className,
   onCollapseToggle,
+  onStartOver,
 }: PreviewActionsProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -44,6 +52,27 @@ export const PreviewActions = ({
       >
         <ExternalLinkIcon aria-hidden />
       </StudioLinkButton>
+      {onStartOver && (
+        <div className={classes.menu}>
+          <StudioDropdown
+            icon={<MenuElipsisVerticalIcon />}
+            triggerButtonVariant='tertiary'
+            triggerButtonTitle={t('ux_editor.preview.options')}
+          >
+            <StudioDropdown.List>
+              <StudioDropdown.Item>
+                <StudioDropdown.Button
+                  role='menuitem'
+                  icon={<ArrowCirclepathIcon aria-hidden />}
+                  onClick={onStartOver}
+                >
+                  {t('ux_editor.preview.start_over')}
+                </StudioDropdown.Button>
+              </StudioDropdown.Item>
+            </StudioDropdown.List>
+          </StudioDropdown>
+        </div>
+      )}
     </div>
   );
 };

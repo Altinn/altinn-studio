@@ -18,6 +18,7 @@ import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
 import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useStartPreviewOver } from 'app-shared/hooks/useStartPreviewOver';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
@@ -28,9 +29,12 @@ export type PreviewProps = {
 
 export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutName } = useAppContext();
+  const startPreviewOver = useStartPreviewOver(org, app);
   const noPageSelected =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
+  const showsPreview = !isPreviewDisabled && !noPageSelected;
 
   return collapsed ? (
     <PreviewActions
@@ -44,6 +48,7 @@ export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
         toggleTitle={t('ux_editor.close_preview')}
         className={classes.toolbar}
         onCollapseToggle={onCollapseToggle}
+        onStartOver={showsPreview ? startPreviewOver : undefined}
       />
       <PreviewContent noPageSelected={noPageSelected} />
     </div>
