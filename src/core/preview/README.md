@@ -52,6 +52,26 @@ mock user, the instances and the process are the same as for a v9 app.
   so preview names the version the app references.
 - A code list that the app makes in code is empty, since preview doesn't run the app.
 
+## The Studio bridge
+
+A v9 app's page runs a script of preview's before the app frontend,
+[studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js). It tells Studio's page which components the
+frontend found errors in, and the UI editor shows the errors by the components. The script needs nothing new from
+the frontend, so it works with each published version, and it is never part of a published app.
+
+- It turns on the frontend's validation of the layout, which the frontend otherwise runs only on Studio's and the test
+  environments' hosts. As in a real app, the frontend then leaves out a component with errors, so the editor says why.
+- It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
+  frontend logs each error in a component's configuration with the component's ID.
+- The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
+- It catches its own errors, so preview works without it. The app's own scripts run on the same page and can send the
+  same messages, so Studio checks each message as untrusted input and only shows what it says.
+
+It sends Studio's origin a message when the page starts, so Studio forgets the errors of the page before, and then
+the errors the frontend has logged so far, by component ID. The script defines the messages and limits their size,
+and Studio's [studioBridge.ts](../../Designer/frontend/packages/ux-editor/src/components/Preview/studioBridge.ts)
+checks them.
+
 ## Security rules
 
 - Only Designer reaches the internal port, because it starts a session for whichever developer the caller names.
@@ -84,6 +104,7 @@ WSL. From this directory:
 dotnet csharpier check .
 dotnet build
 dotnet test
+node --test tests/studio-bridge/studio-bridge.test.mjs
 ```
 
 The session lifetime tests run against a real Redis when `PREVIEW_TEST_REDIS` names one, and are skipped otherwise:
