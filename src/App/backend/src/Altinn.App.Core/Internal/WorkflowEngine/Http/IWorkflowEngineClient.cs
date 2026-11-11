@@ -34,7 +34,7 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
-    /// Gets a workflow with its dependencies by database ID.
+    /// Gets a workflow with its dependencies by database ID, without its state.
     /// Returns <see langword="null"/> when the workflow does not exist in the namespace.
     /// </summary>
     Task<WorkflowStatusResponse?> GetWorkflow(
@@ -44,7 +44,7 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
-    /// Lists workflows, optionally filtered by collection key, labels, and statuses.
+    /// Lists workflows, optionally filtered by collection key, labels, and statuses, without their state.
     /// Returns an empty list when no workflows match.
     /// </summary>
     /// <param name="ns">Namespace (URL path segment)</param>
