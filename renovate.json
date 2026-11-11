@@ -319,11 +319,7 @@
       "groupSlug": "studioctl-msbuild"
     },
     {
-      "matchFileNames": [
-        "src/App/codelists/**",
-        "src/App/fileanalyzers/**",
-        "src/Designer/backend/**"
-      ],
+      "matchFileNames": ["src/Designer/backend/**"],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
@@ -340,6 +336,15 @@
         "src/App/codelists/**"
       ],
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Codelists and FileAnalyzers are compiled against the pinned Altinn.App.Core and fail to load with a Core whose interfaces changed. A PR for each Core release builds both against it, so a break shows before their next release",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**"],
+      "matchPackageNames": ["Altinn.App.Core"],
+      "groupName": "Altinn.App.Core in Codelists and FileAnalyzers",
+      "groupSlug": "app-core-in-codelists-fileanalyzers",
+      "dependencyDashboardApproval": false
     },
     {
       "description": "Upgrade React consistently across the entire repository",
