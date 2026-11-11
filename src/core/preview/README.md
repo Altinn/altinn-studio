@@ -29,6 +29,8 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   session's state, which Redis keeps in the same key as the session, so they end together.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
+- Preview makes no PDFs, since it has no PDF service. It answers the developer tools' PDF preview with a message that
+  says so.
 
 ## The Studio bridge
 
@@ -38,8 +40,10 @@ frontend found errors in, and the UI editor shows the errors by the components. 
 the frontend, so it works with each published version, and it is never part of a published app.
 
 - It turns on the frontend's validation of the layout, which the frontend otherwise runs only on hosts it knows as
-  Studio's or a test environment's. Only on those hosts does the frontend show its errors in place of the component,
-  and nothing can turn that on, so preview leaves out a component with errors, and the editor says why.
+  Studio's or a test environment's. The page also says that developers test the app here
+  (`platformFrontendSettings.development`), which turns on the validation, the errors in place of a component and
+  the developer tools in frontend versions that read it (#21860). Older versions leave out a component with errors,
+  and the editor says why.
 - It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
   frontend logs each error in a component's configuration with the component's ID.
 - The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
