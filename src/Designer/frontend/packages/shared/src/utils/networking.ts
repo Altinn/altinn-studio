@@ -70,8 +70,7 @@ export async function del<T = void>(
 
 function isSameOrigin(url: string): boolean {
   // `new URL` throws on a URL it cannot parse. `URL.canParse` would check without throwing, but
-  // Safari before 17 lacks it, and older iOS Safari still has enough users to pass the `>0.2%`
-  // rule in the browserslist in package.json.
+  // Safari before 17 lacks it, and the Vite build targets Safari 16.4.
   try {
     return new URL(url, window.location.href).origin === window.location.origin;
   } catch {
