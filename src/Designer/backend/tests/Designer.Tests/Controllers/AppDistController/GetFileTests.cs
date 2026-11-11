@@ -54,6 +54,24 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
     }
 
     [Fact]
+    public async Task GetFile_AnyOrigin_MayReadTheFile()
+    {
+        _appDistProviderMock
+            .Setup(p => p.GetLayer(Version, AppDistLayer.Schemas, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_contentMock.Object);
+        _contentMock
+            .Setup(c => c.OpenFile(LayoutSchemaPath, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(LayoutSchema)));
+        using var request = new HttpRequestMessage(HttpMethod.Get, FileUrl(Version, LayoutSchemaPath));
+        request.Headers.Add("Origin", "https://preview.test");
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
+    }
+
+    [Fact]
     public async Task GetFile_AnonymousCaller_ServesFile()
     {
         _appDistProviderMock
