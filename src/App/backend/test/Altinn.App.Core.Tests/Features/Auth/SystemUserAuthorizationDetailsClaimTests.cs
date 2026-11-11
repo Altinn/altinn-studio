@@ -146,7 +146,6 @@ public class SystemUserAuthorizationDetailsClaimTests
             getUserProfile: _ => throw new NotImplementedException(),
             lookupUserParty: _ => throw new NotImplementedException(),
             lookupOrgParty: _ => throw new NotImplementedException(),
-            getPartyList: _ => throw new NotImplementedException(),
-            validateSelectedParty: (_, __) => throw new NotImplementedException()
+            getPartyList: () => throw new NotImplementedException()
         );
 }

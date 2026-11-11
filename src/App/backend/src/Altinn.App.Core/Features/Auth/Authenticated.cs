@@ -1057,7 +1057,7 @@ public abstract class Authenticated
         if (string.IsNullOrWhiteSpace(systemUser.SystemId))
             throw new AuthenticationContextException("Missing system ID claim for systemuser token");
         if (systemUser.SystemUserOrg is null)
-            throw new AuthenticationContextException("Missing system user organisation claim for systemuser token");
+            throw new AuthenticationContextException("Missing system user organization claim for systemuser token");
         if (systemUser.SystemUserOrg.Authority != "iso6523-actorid-upis")
             throw new AuthenticationContextException(
                 $"Unsupported organization authority in systemuser token: {systemUser.SystemUserOrg.Authority}"
@@ -1246,7 +1246,7 @@ public abstract class Authenticated
         /// <see cref="SystemUserAuthorizationDetailsClaim.Parse"/>, so a forged token with a malformed consumer claim
         /// is rejected by the authentication middleware without reaching this.
         /// </summary>
-        /// <returns>The organisation, or null when the claim is missing or not a JSON object.</returns>
+        /// <returns>The organization, or null when the claim is missing or not a JSON object.</returns>
         /// <exception cref="AuthenticationContextException">The object does not fit, which only an issuer change can cause.</exception>
         public static OrgClaim? Parse(TokenClaim claim)
         {
