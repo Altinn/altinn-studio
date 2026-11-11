@@ -89,6 +89,8 @@ jobs:
             curl -fsS http://127.0.0.1:8080/health/live >/dev/null 2>&1 && break
             sleep 1
           done
+          # Ready only while it reaches its Redis with the password.
+          curl -fsS http://127.0.0.1:8080/health/ready >/dev/null
           start='{"developer":"developer","org":"ttd","app":"my-app"}'
           test "$(curl -s -o /dev/null -w '%{http_code}' -H 'content-type: application/json' -d "$start" http://127.0.0.1:8080/sessions)" = 404
           url=$(curl -fsS -H 'content-type: application/json' -d "$start" http://127.0.0.1:8081/sessions | jq -r .url)
