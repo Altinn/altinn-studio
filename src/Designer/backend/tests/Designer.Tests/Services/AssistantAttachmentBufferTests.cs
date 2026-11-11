@@ -1,136 +1,103 @@
 using System;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
 public class AssistantAttachmentBufferTests
 {
+    private const string Developer = "testUser";
+
+    private readonly FakeClock _clock = new();
+    private readonly MemoryDistributedCache _cache;
+
+    public AssistantAttachmentBufferTests()
+    {
+        _cache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions { Clock = _clock }));
+    }
+
     private static AssistantAttachmentBuffer.StoredAttachment CreateAttachment(string name = "test.pdf") =>
-        new(name, "application/pdf", 1024, "data:application/pdf;base64,dGVzdA==");
+        new(name, "image/png", 1024, "data:image/png;base64,iVBO+w0K/Gg==");
 
     [Fact]
-    public void Store_ReturnsUniqueId()
+    public async Task Store_ReturnsUniqueId()
     {
-        var buffer = new AssistantAttachmentBuffer();
-        var id1 = buffer.Store(CreateAttachment("a.pdf"));
-        var id2 = buffer.Store(CreateAttachment("b.pdf"));
+        var buffer = new AssistantAttachmentBuffer(_cache);
+
+        string id1 = await buffer.Store(Developer, CreateAttachment("a.pdf"));
+        string id2 = await buffer.Store(Developer, CreateAttachment("b.pdf"));
 
         Assert.NotEqual(id1, id2);
         Assert.False(string.IsNullOrWhiteSpace(id1));
     }
 
     [Fact]
-    public void TryGet_ReturnsStoredAttachment()
+    public async Task Get_ReturnsAttachmentStoredByAnotherReplica()
     {
-        var buffer = new AssistantAttachmentBuffer();
+        var uploadReplica = new AssistantAttachmentBuffer(_cache);
+        var hubReplica = new AssistantAttachmentBuffer(_cache);
         var attachment = CreateAttachment();
-        var id = buffer.Store(attachment);
 
-        var found = buffer.TryGet(id, out var result);
+        string id = await uploadReplica.Store(Developer, attachment);
+        var result = await hubReplica.Get(Developer, id);
 
-        Assert.True(found);
-        Assert.Equal(attachment.Name, result!.Name);
-        Assert.Equal(attachment.MimeType, result.MimeType);
-        Assert.Equal(attachment.Size, result.Size);
+        Assert.Equal(attachment, result);
     }
 
     [Fact]
-    public void TryGet_ReturnsFalse_ForUnknownId()
+    public async Task Get_ReturnsNull_ForUnknownId()
     {
-        var buffer = new AssistantAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer(_cache);
 
-        var found = buffer.TryGet("nonexistent", out var result);
+        var result = await buffer.Get(Developer, "nonexistent");
 
-        Assert.False(found);
         Assert.Null(result);
     }
 
     [Fact]
-    public void PeekAll_ReturnsMatchingAttachments_WithoutRemoving()
+    public async Task Get_ReturnsNull_ForAnotherDevelopersAttachment()
     {
-        var buffer = new AssistantAttachmentBuffer();
-        var id1 = buffer.Store(CreateAttachment("a.pdf"));
-        var id2 = buffer.Store(CreateAttachment("b.pdf"));
-        var id3 = buffer.Store(CreateAttachment("c.pdf"));
+        var buffer = new AssistantAttachmentBuffer(_cache);
+        string id = await buffer.Store(Developer, CreateAttachment());
 
-        var peeked = buffer.PeekAll(new[] { id1, id3 });
+        var result = await buffer.Get("otherUser", id);
 
-        Assert.Equal(2, peeked.Count);
-        Assert.Contains(peeked, a => a.Name == "a.pdf");
-        Assert.Contains(peeked, a => a.Name == "c.pdf");
-
-        // Peeked items should still exist
-        Assert.True(buffer.TryGet(id1, out _));
-        Assert.True(buffer.TryGet(id3, out _));
-        Assert.True(buffer.TryGet(id2, out _));
+        Assert.Null(result);
     }
 
     [Fact]
-    public void PeekAll_IgnoresUnknownIds()
+    public async Task Get_ReturnsNull_AfterLifetime()
     {
-        var buffer = new AssistantAttachmentBuffer();
-        var id = buffer.Store(CreateAttachment());
+        var buffer = new AssistantAttachmentBuffer(_cache);
+        string id = await buffer.Store(Developer, CreateAttachment());
 
-        var peeked = buffer.PeekAll(new[] { id, "unknown-id" });
+        _clock.UtcNow += TimeSpan.FromMinutes(29);
+        Assert.NotNull(await buffer.Get(Developer, id));
 
-        Assert.Single(peeked);
+        _clock.UtcNow += TimeSpan.FromMinutes(2);
+        Assert.Null(await buffer.Get(Developer, id));
     }
 
     [Fact]
-    public void RemoveAll_RemovesSpecifiedEntries()
+    public async Task Remove_RemovesOnlyGivenIds()
     {
-        var buffer = new AssistantAttachmentBuffer();
-        var id1 = buffer.Store(CreateAttachment("a.pdf"));
-        var id2 = buffer.Store(CreateAttachment("b.pdf"));
+        var buffer = new AssistantAttachmentBuffer(_cache);
+        string removedId = await buffer.Store(Developer, CreateAttachment("a.pdf"));
+        string keptId = await buffer.Store(Developer, CreateAttachment("b.pdf"));
 
-        buffer.RemoveAll(new[] { id1 });
+        await buffer.Remove(Developer, [removedId]);
 
-        Assert.False(buffer.TryGet(id1, out _));
-        Assert.True(buffer.TryGet(id2, out _));
+        Assert.Null(await buffer.Get(Developer, removedId));
+        Assert.NotNull(await buffer.Get(Developer, keptId));
     }
 
-    [Fact]
-    public void RemoveAll_AfterPeek_CompletesClaimCycle()
+    private sealed class FakeClock : ISystemClock
     {
-        var buffer = new AssistantAttachmentBuffer();
-        var id = buffer.Store(CreateAttachment());
-
-        var peeked = buffer.PeekAll(new[] { id });
-        Assert.Single(peeked);
-
-        buffer.RemoveAll(new[] { id });
-        Assert.False(buffer.TryGet(id, out _));
-
-        // Second peek returns nothing
-        var secondPeek = buffer.PeekAll(new[] { id });
-        Assert.Empty(secondPeek);
-    }
-
-    [Fact]
-    public void TryGet_ReturnsFalse_ForExpiredEntry()
-    {
-        var buffer = new AssistantAttachmentBuffer(TimeSpan.FromMilliseconds(100));
-        var id = buffer.Store(CreateAttachment());
-
-        Assert.True(buffer.TryGet(id, out _));
-
-        Thread.Sleep(300);
-
-        Assert.False(buffer.TryGet(id, out _));
-    }
-
-    [Fact]
-    public void PeekAll_ExcludesExpiredEntries()
-    {
-        var buffer = new AssistantAttachmentBuffer(TimeSpan.FromMilliseconds(100));
-        var id = buffer.Store(CreateAttachment());
-
-        Thread.Sleep(300);
-
-        var peeked = buffer.PeekAll(new[] { id });
-        Assert.Empty(peeked);
+        public DateTimeOffset UtcNow { get; set; } = DateTimeOffset.UtcNow;
     }
 }

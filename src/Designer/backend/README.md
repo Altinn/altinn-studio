@@ -10,8 +10,8 @@ It uses:
   developer who edits it.
 - PostgreSQL. Designer does not migrate its database itself. The [migrations image](Migrations.Dockerfile) applies
   the Entity Framework migrations.
-- Redis outside Development and Test. Designer's replicas share their cache, SignalR messages and studioctl's auth
-  codes through it.
+- Redis outside Development and Test. Designer's replicas share their cache, SignalR messages, studioctl's auth
+  codes and the assistant's attachments through it.
 - Azure DevOps pipelines and the service owners' GitOps repositories in Gitea to deploy apps, as
   [Environments](../../../docs/infrastructure/environments.md#runtime-clusters) describes.
 - Altinn Platform services and services in the runtime clusters, through the clients in

@@ -28,6 +28,12 @@ namespace Altinn.Studio.Designer.Hubs.Assistant;
 [Authorize]
 public class AssistantProxyHub : Hub<IAssistantClient>
 {
+    /// <summary>
+    /// The error that StartWorkflow throws when an attachment in the request has expired or was never stored.
+    /// The frontend looks for it to tell the developer to attach the files again.
+    /// </summary>
+    public const string AttachmentNotFoundError = "ATTACHMENT_NOT_FOUND";
+
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AssistantProxyHub> _logger;
@@ -193,12 +199,13 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Access denied: Developer does not own current thread.");
         }
 
+        var (enrichedWithAttachments, attachmentIds) = await ResolveAttachments(request, developer);
+
         // The assistant service sends no events on a new connection until it gets a session frame.
         await _webSocketService.RegisterSessionAsync(sessionId, developer);
 
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
-        var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
         var agentResponse = await ForwardRequestToAssistantAsync(
             enrichedWithAttachments,
             editingContext,
@@ -208,12 +215,15 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         );
 
         // Remove attachments from buffer only after successful forwarding
-        _attachmentStore.RemoveAll(attachmentIds);
+        await _attachmentStore.Remove(developer, attachmentIds);
 
         return agentResponse;
     }
 
-    private (JsonElement Request, List<string> AttachmentIds) ResolveAttachments(JsonElement request)
+    private async Task<(JsonElement Request, List<string> AttachmentIds)> ResolveAttachments(
+        JsonElement request,
+        string developer
+    )
     {
         var attachmentIds = new List<string>();
 
@@ -234,10 +244,12 @@ public class AssistantProxyHub : Hub<IAssistantClient>
                 continue;
             }
 
-            if (!_attachmentStore.TryGet(id, out var stored) || stored == null)
+            var stored = await _attachmentStore.Get(developer, id);
+            if (stored == null)
             {
+                // Without the file, the assistant would answer as if the developer had not attached it.
                 _logger.LogWarning("Attachment {AttachmentId} not found in buffer", id);
-                continue;
+                throw new HubException(AttachmentNotFoundError);
             }
 
             attachmentIds.Add(id);

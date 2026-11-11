@@ -1,16 +1,36 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AssistantAttachmentController;
 
 public class UploadTests
 {
-    private static Altinn.Studio.Designer.Controllers.AssistantAttachmentController CreateController() =>
-        new(new AssistantAttachmentBuffer());
+    private const string Developer = "testUser";
+
+    private readonly AssistantAttachmentBuffer _buffer = new(
+        new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
+    );
+
+    private Altinn.Studio.Designer.Controllers.AssistantAttachmentController CreateController()
+    {
+        var identity = new ClaimsIdentity(new List<Claim> { new(ClaimTypes.Name, Developer) }, "TestUserLogin");
+        return new(_buffer)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) },
+            },
+        };
+    }
 
     private static IFormFile CreateFile(string fileName, long length = 4)
     {
@@ -44,6 +64,24 @@ public class UploadTests
                 okResult.Value
             );
         Assert.False(string.IsNullOrWhiteSpace(response.AttachmentId));
+    }
+
+    [Fact]
+    public async Task Upload_StoresAttachmentAsDataUrlForDeveloper()
+    {
+        var controller = CreateController();
+
+        var result = await controller.Upload(CreateFile("document.pdf"));
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var response =
+            Assert.IsType<Altinn.Studio.Designer.Controllers.AssistantAttachmentController.AttachmentUploadResponse>(
+                okResult.Value
+            );
+        var stored = await _buffer.Get(Developer, response.AttachmentId);
+        Assert.NotNull(stored);
+        Assert.Equal("document.pdf", stored.Name);
+        Assert.Equal("data:application/octet-stream;base64,AQIDBA==", stored.DataBase64);
     }
 
     [Theory]

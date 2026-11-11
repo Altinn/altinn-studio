@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -47,7 +49,10 @@ public class AssistantAttachmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(MaxAttachmentBytes)]
-    public async Task<ActionResult<AttachmentUploadResponse>> Upload([FromForm] IFormFile file)
+    public async Task<ActionResult<AttachmentUploadResponse>> Upload(
+        [FromForm] IFormFile file,
+        CancellationToken cancellationToken = default
+    )
     {
         if (file is null || file.Length == 0)
         {
@@ -66,7 +71,7 @@ public class AssistantAttachmentController : ControllerBase
         }
 
         using var memoryStream = new MemoryStream();
-        await file.CopyToAsync(memoryStream);
+        await file.CopyToAsync(memoryStream, cancellationToken);
         var dataBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
 
         var attachment = new AssistantAttachmentBuffer.StoredAttachment(
@@ -76,7 +81,8 @@ public class AssistantAttachmentController : ControllerBase
             DataBase64: dataBase64
         );
 
-        var id = _store.Store(attachment);
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var id = await _store.Store(developer, attachment, cancellationToken);
 
         return Ok(new AttachmentUploadResponse(id));
     }

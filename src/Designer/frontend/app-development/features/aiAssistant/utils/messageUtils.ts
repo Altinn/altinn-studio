@@ -1,5 +1,12 @@
 import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
 
+// AssistantProxyHub.AttachmentNotFoundError. SignalR puts the hub's message at the end of the error message.
+const ATTACHMENT_NOT_FOUND_ERROR = 'ATTACHMENT_NOT_FOUND';
+
+export function isAttachmentNotFoundError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes(ATTACHMENT_NOT_FOUND_ERROR);
+}
+
 export type RejectionTexts = {
   heading: string;
   suggestionsLabel: string;

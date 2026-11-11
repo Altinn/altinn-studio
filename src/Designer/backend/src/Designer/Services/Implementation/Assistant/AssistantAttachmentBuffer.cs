@@ -1,92 +1,78 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
 /// <summary>
-/// Temporary in-memory buffer for attachments uploaded before a workflow is started.
-/// Entries are keyed by an attachment ID and automatically evicted after a TTL.
+/// Keeps the attachments a developer uploads until the workflow that uses them starts.
+/// The attachments are in the distributed cache, because the upload and the SignalR connection that starts the
+/// workflow can reach different replicas.
 /// </summary>
-public sealed class AssistantAttachmentBuffer : IDisposable
+public sealed class AssistantAttachmentBuffer(IDistributedCache cache)
 {
-    private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan EvictionInterval = TimeSpan.FromMinutes(5);
+    private const string CacheKeyPrefix = "assistant-attachment:";
 
+    // The frontend starts the workflow right after the upload. The margin covers a start that waits, such as when
+    // many developers use the assistant at once.
+    private static readonly TimeSpan s_lifetime = TimeSpan.FromMinutes(30);
+
+    // The default encoder writes each '+' in the base64 data as six characters, and the value is never written into
+    // HTML.
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
+    /// <summary>
+    /// An uploaded file, with its content as a data URL.
+    /// </summary>
     public sealed record StoredAttachment(string Name, string MimeType, long Size, string DataBase64);
 
-    private sealed record BufferEntry(StoredAttachment Attachment, DateTimeOffset StoredAt);
-
-    private readonly ConcurrentDictionary<string, BufferEntry> _entries = new();
-    private readonly TimeSpan _ttl;
-    private readonly Timer _evictionTimer;
-
-    public AssistantAttachmentBuffer()
-        : this(DefaultTtl) { }
-
-    public AssistantAttachmentBuffer(TimeSpan ttl)
+    /// <summary>
+    /// Stores an attachment for a developer.
+    /// </summary>
+    /// <returns>The ID that the developer starts a workflow with.</returns>
+    public async Task<string> Store(
+        string developer,
+        StoredAttachment attachment,
+        CancellationToken cancellationToken = default
+    )
     {
-        _ttl = ttl;
-        _evictionTimer = new Timer(_ => EvictExpired(), null, EvictionInterval, EvictionInterval);
-    }
-
-    public string Store(StoredAttachment attachment)
-    {
-        var id = Guid.NewGuid().ToString("N");
-        _entries[id] = new BufferEntry(attachment, DateTimeOffset.UtcNow);
+        string id = Guid.NewGuid().ToString("N");
+        await cache.SetAsync(
+            CacheKey(developer, id),
+            JsonSerializer.SerializeToUtf8Bytes(attachment, s_serializerOptions),
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = s_lifetime },
+            cancellationToken
+        );
         return id;
     }
 
-    public bool TryGet(string id, out StoredAttachment? attachment)
+    /// <summary>
+    /// Gets an attachment that the developer stored.
+    /// </summary>
+    /// <returns>The attachment, or null when it has expired or belongs to another developer.</returns>
+    public async Task<StoredAttachment?> Get(string developer, string id, CancellationToken cancellationToken = default)
     {
-        if (_entries.TryGetValue(id, out var entry) && !IsExpired(entry))
-        {
-            attachment = entry.Attachment;
-            return true;
-        }
-
-        attachment = null;
-        return false;
+        byte[]? value = await cache.GetAsync(CacheKey(developer, id), cancellationToken);
+        return value is null ? null : JsonSerializer.Deserialize<StoredAttachment>(value, s_serializerOptions);
     }
 
-    public IReadOnlyList<StoredAttachment> PeekAll(IEnumerable<string> ids)
+    /// <summary>
+    /// Removes the developer's attachments with the given IDs.
+    /// </summary>
+    public async Task Remove(string developer, IEnumerable<string> ids, CancellationToken cancellationToken = default)
     {
-        var result = new List<StoredAttachment>();
-        foreach (var id in ids)
+        foreach (string id in ids)
         {
-            if (_entries.TryGetValue(id, out var entry) && !IsExpired(entry))
-            {
-                result.Add(entry.Attachment);
-            }
-        }
-
-        return result;
-    }
-
-    public void RemoveAll(IEnumerable<string> ids)
-    {
-        foreach (var id in ids)
-        {
-            _entries.TryRemove(id, out _);
+            await cache.RemoveAsync(CacheKey(developer, id), cancellationToken);
         }
     }
 
-    public void Dispose()
-    {
-        _evictionTimer.Dispose();
-    }
-
-    private bool IsExpired(BufferEntry entry) => DateTimeOffset.UtcNow - entry.StoredAt > _ttl;
-
-    private void EvictExpired()
-    {
-        foreach (var kvp in _entries)
-        {
-            if (IsExpired(kvp.Value))
-            {
-                _entries.TryRemove(kvp.Key, out _);
-            }
-        }
-    }
+    private static string CacheKey(string developer, string id) => $"{CacheKeyPrefix}{developer}:{id}";
 }

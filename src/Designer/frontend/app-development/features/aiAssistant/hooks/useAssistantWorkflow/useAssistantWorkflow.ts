@@ -23,6 +23,7 @@ import {
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
+  isAttachmentNotFoundError,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
 
@@ -54,6 +55,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     }),
     [t],
   );
+  const attachmentNotFoundMessage = t('ai_assistant.attachment_not_found');
   const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
     Record<string, WorkflowStatus>
   >({});
@@ -454,13 +456,23 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         console.error('Workflow request failed:', error);
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
-          content: WORKFLOW_ERROR_MESSAGE,
+          content: isAttachmentNotFoundError(error)
+            ? attachmentNotFoundMessage
+            : WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
         });
       }
     },
-    [createMessage, registerSession, org, app, startAgentWorkflow, rejectionTexts],
+    [
+      createMessage,
+      registerSession,
+      org,
+      app,
+      startAgentWorkflow,
+      rejectionTexts,
+      attachmentNotFoundMessage,
+    ],
   );
 
   const onSubmitMessage = useCallback(

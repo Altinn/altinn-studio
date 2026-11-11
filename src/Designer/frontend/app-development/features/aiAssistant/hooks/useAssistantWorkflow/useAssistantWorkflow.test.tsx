@@ -1067,6 +1067,53 @@ describe('useAssistantWorkflow', () => {
     );
   });
 
+  it('asks the user to attach the files again when the server cannot find an attachment', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow: vi
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "An unexpected error occurred invoking 'StartWorkflow' on the server. HubException: ATTACHMENT_NOT_FOUND",
+          ),
+        ),
+      cancelWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
+      registerSession: vi.fn(),
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    const message: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Lag et skjema fra vedlegget',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+      attachments: [{ name: 'skjema.pdf', mimeType: 'application/pdf', dataBase64: 'dGVzdA==' }],
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(message);
+    });
+
+    expect(threads.createMessage).toHaveBeenLastCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content: textMock('ai_assistant.attachment_not_found'),
+      }),
+    );
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).not.toBe(true);
+    consoleErrorSpy.mockRestore();
+  });
+
   it('does not create a message for cancelled workflows', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 

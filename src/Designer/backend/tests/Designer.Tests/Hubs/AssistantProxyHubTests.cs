@@ -16,6 +16,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -35,6 +37,9 @@ public class AssistantProxyHubTests
     private readonly Mock<IAssistantWebSocketService> _webSocketServiceMock = new();
     private readonly Mock<ICanUseAiAssistantEvaluator> _canUseAiAssistantEvaluatorMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
+
+    // Shared by every buffer in a test, as Redis is shared by the replicas.
+    private readonly MemoryDistributedCache _attachmentCache = new(Options.Create(new MemoryDistributedCacheOptions()));
 
     public AssistantProxyHubTests()
     {
@@ -308,6 +313,77 @@ public class AssistantProxyHubTests
         Assert.Equal($"http://test-repos/{developer}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
+    [Fact]
+    public async Task StartWorkflow_ForwardsAndRemovesAttachmentUploadedThroughAnotherReplica()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupApiKey();
+        var uploadReplica = new AssistantAttachmentBuffer(_attachmentCache);
+        string attachmentId = await uploadReplica.Store(
+            TestDeveloper,
+            new("notes.md", "text/markdown", 4, "data:text/markdown;base64,dGVzdA==")
+        );
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+                attachment_ids = new[] { attachmentId },
+            }
+        );
+
+        await hub.StartWorkflow(request);
+
+        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.False(forwarded.TryGetProperty("attachment_ids", out _));
+        JsonElement attachment = Assert.Single(forwarded.GetProperty("attachments").EnumerateArray());
+        Assert.Equal("notes.md", attachment.GetProperty("name").GetString());
+        Assert.Equal("data:text/markdown;base64,dGVzdA==", attachment.GetProperty("dataBase64").GetString());
+        Assert.Null(await uploadReplica.Get(TestDeveloper, attachmentId));
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ThrowsAttachmentNotFound_WithoutCallingAssistant_WhenAttachmentIsMissing()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupApiKey();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+                attachment_ids = new[] { Guid.NewGuid().ToString("N") },
+            }
+        );
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
+
+        Assert.Equal(AssistantProxyHub.AttachmentNotFoundError, exception.Message);
+        Assert.Empty(_agentHttpHandler.Requests);
+        _apiKeyServiceMock.Verify(
+            a =>
+                a.CreateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<ApiKeyType>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
     private void SetupThreadOwnership(Guid threadId, string org, string app)
     {
         _chatServiceMock
@@ -355,7 +431,7 @@ public class AssistantProxyHubTests
             Options.Create(new ServiceRepositorySettings { RepositoryBaseURL = "http://test-repos" }),
             _webSocketServiceMock.Object,
             _canUseAiAssistantEvaluatorMock.Object,
-            new AssistantAttachmentBuffer(),
+            new AssistantAttachmentBuffer(_attachmentCache),
             _apiKeyServiceMock.Object,
             _chatServiceMock.Object
         );
