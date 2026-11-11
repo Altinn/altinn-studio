@@ -14,6 +14,9 @@ The app's check is directional, since the app consumes the contract rather than 
 models must exist in the engine with the same shape, and the app must model every non-nullable engine field. The app
 may leave out optional fields and responses it does not use.
 
+The check compares the two at one commit, so it cannot see an app version that is already released.
+[Changing the wire contract](../../../README.md#changing-the-wire-contract) says what keeps those working.
+
 When you change an engine model, regenerate the file with
 `UPDATE_WIRE_CONTRACT=1 dotnet test --filter FullyQualifiedName~EngineWireContractTests`, review its diff, and update
 the app's copies in [`Altinn.App.Core`](../../../../../App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/Models)
