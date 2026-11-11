@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -240,6 +241,70 @@ public class LookupTests
         Assert.Equal(LookupController.MaxRequestBytes, Assert.Single(limit).MaxRequestBodySize);
     }
 
+    [Theory]
+    [InlineData("main")]
+    [InlineData("feature/new-layout")]
+    [InlineData("v1.0.0")]
+    [InlineData("1a2b3c4")]
+    [InlineData("123456789012345678901234567890123456789")]
+    [InlineData("12345678901234567890123456789012345678901")]
+    [InlineData("123456789012345678901234567890123456789g")]
+    [InlineData("")]
+    public async Task Lookup_ReleaseNotBuiltFromAFullCommitId_IsLeftOut(string target)
+    {
+        await AddRelease("1.0.0", BuildResult.Succeeded, target);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(await ReadResult(response));
+    }
+
+    [Fact]
+    public async Task Lookup_Sha256CommitId_IsReturned()
+    {
+        string commit = NewCommitId(bytes: 32);
+        await AddRelease("1.0.0", BuildResult.Succeeded, commit);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
+
+        Assert.Equal(commit, Assert.Single(await ReadResult(response)).Commit);
+    }
+
+    [Fact]
+    public async Task Lookup_UppercaseCommitId_IsReturnedInLowercase()
+    {
+        string commit = NewCommitId();
+        await AddRelease("1.0.0", BuildResult.Succeeded, commit.ToUpperInvariant());
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
+
+        Assert.Equal(commit, Assert.Single(await ReadResult(response)).Commit);
+    }
+
+    [Fact]
+    public async Task Lookup_NewestReleaseOfTagNotBuiltFromACommit_IsLeftOutEvenIfAnOlderOneWas()
+    {
+        await AddRelease("1.0.0", BuildResult.Succeeded, NewCommitId(), DateTime.UtcNow.AddDays(-1));
+        await AddRelease("1.0.0", BuildResult.Succeeded, "main", DateTime.UtcNow);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(await ReadResult(response));
+    }
+
+    [Fact]
+    public async Task Lookup_NewestReleaseOfTagBuiltFromACommit_IsReturnedOverAnOlderOneThatWasNot()
+    {
+        await AddRelease("1.0.0", BuildResult.Succeeded, "main", DateTime.UtcNow.AddDays(-1));
+        ReleaseEntity newest = await AddRelease("1.0.0", BuildResult.Succeeded, NewCommitId(), DateTime.UtcNow);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
+
+        Assert.Equal(newest.TargetCommitish, Assert.Single(await ReadResult(response)).Commit);
+    }
+
     [Fact]
     public async Task Lookup_AnonymousCaller_ReturnsUnauthorized()
     {
@@ -290,18 +355,27 @@ public class LookupTests
 
     private static ReleaseLookupRequest Request(params ReleaseLookupItem[] items) => new(items);
 
-    private async Task<ReleaseEntity> AddRelease(string tagName, BuildResult buildResult)
+    private async Task<ReleaseEntity> AddRelease(
+        string tagName,
+        BuildResult buildResult,
+        string target = null,
+        DateTime? created = null
+    )
     {
         ReleaseEntity release = EntityGenerationUtils.Release.GenerateReleaseEntity(
             _org,
             _app,
             tagname: tagName,
-            targetCommitish: Guid.NewGuid().ToString("N"),
+            targetCommitish: target ?? NewCommitId(),
             buildResult: buildResult
         );
+        release.Created = created ?? release.Created;
         await DesignerDbFixture.PrepareEntityInDatabase(release);
         return release;
     }
+
+    private static string NewCommitId(int bytes = 20) =>
+        Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(bytes));
 
     private async Task<IReadOnlyList<ReleaseLookupResult>> ReadResult(HttpResponseMessage response)
     {
