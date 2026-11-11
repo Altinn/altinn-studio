@@ -516,6 +516,18 @@ class TestDiscardInARepository:
         assert not (repo / "App/new.json").exists()
         assert git(repo, "status", "--porcelain") == ""
 
+    async def test_deletes_a_new_file_that_changed_after_a_failed_commit(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        git(repo, "add", "App/new.json")
+        (repo / "App/new.json").write_text('{"edited": true}', encoding="utf-8")
+
+        result = await self._discard(_ctx(repo), "App/new.json")
+
+        assert not result.is_error, result.content
+        assert not (repo / "App/new.json").exists()
+        assert git(repo, "status", "--porcelain") == ""
+
     async def test_a_path_that_does_not_exist_gives_the_error_of_git(self, tmp_path: Path):
         repo = self._repo(tmp_path)
 

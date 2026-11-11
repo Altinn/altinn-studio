@@ -74,8 +74,9 @@ def _discard(repo_path: str, rel_path: str) -> bool:
     if git_ops.exists_in_head(repo_path, rel_path) or not file.is_file():
         _git(repo_path, "checkout", "HEAD", "--", rel_path)
         return False
-    # If a commit stopped after `git add`, the file is in the index.
-    _git(repo_path, "rm", "--cached", "--quiet", "--ignore-unmatch", "--", rel_path)
+    # If a commit stopped after `git add`, the file is in the index. Without
+    # `--force`, git refuses a file that changed again after `git add`.
+    _git(repo_path, "rm", "--cached", "--force", "--quiet", "--ignore-unmatch", "--", rel_path)
     file.unlink()
     return True
 
