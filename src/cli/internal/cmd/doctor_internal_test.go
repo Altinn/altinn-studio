@@ -34,7 +34,7 @@ func renderDoctorDiskUsage(t *testing.T, disk *doctorsvc.Disk) []string {
 
 	var out bytes.Buffer
 	command := &DoctorCommand{cfg: nil, out: ui.NewOutput(&out, io.Discard, false)}
-	table := newDoctorTable(doctorKeyWidth)
+	table := newDoctorTable()
 	command.renderDoctorDiskUsageSection(table, disk)
 	command.out.RenderTable(table)
 
@@ -168,7 +168,7 @@ func renderDoctorDisk(t *testing.T, disk *doctorsvc.Disk, verbose bool) ([]strin
 
 	var out, errOut bytes.Buffer
 	command := &DoctorCommand{cfg: nil, out: ui.NewOutput(&out, &errOut, verbose)}
-	table := newDoctorTable(doctorKeyWidth)
+	table := newDoctorTable()
 	command.renderDoctorDiskSection(table, disk)
 	command.out.RenderTable(table)
 
@@ -253,5 +253,142 @@ func TestFormatBytes(t *testing.T) {
 		if got := formatBytes(tt.in); got != tt.want {
 			t.Errorf("formatBytes(%d) = %q, want %q", tt.in, got, tt.want)
 		}
+	}
+}
+
+// renderDoctorDotnet renders the .NET SDK rows without colors and with the ASCII status marks, and returns them.
+func renderDoctorDotnet(t *testing.T, prerequisites *doctorsvc.Prerequisites) []string {
+	t.Helper()
+	t.Setenv("NO_COLOR", "1")
+	t.Setenv(osutil.DisableTerminalDecorationsEnv, "1")
+
+	var out bytes.Buffer
+	command := &DoctorCommand{cfg: nil, out: ui.NewOutput(&out, io.Discard, false)}
+	table := newDoctorTable()
+	command.renderDoctorDotnetPrerequisite(table, prerequisites)
+	command.out.RenderTable(table)
+
+	return strings.Split(strings.TrimSuffix(out.String(), osutil.LineBreak), osutil.LineBreak)
+}
+
+func v9AppRequirement() *doctorsvc.DotnetRequirement {
+	return &doctorsvc.DotnetRequirement{
+		Project:         "/apps/ttd/app/App/App.csproj",
+		TargetFramework: "net11.0",
+		MinimumSDK:      "11.0",
+	}
+}
+
+func TestRenderDoctorDotnet_OutsideAnApp_NamesTheSDKEachAppVersionNeeds(t *testing.T) {
+	got := renderDoctorDotnet(t, &doctorsvc.Prerequisites{
+		DotnetValue: "10.0.401",
+		Dotnet:      doctorsvc.Check{OK: true},
+	})
+
+	want := []string{
+		"  [ok] .NET SDK        10.0.401",
+		"                       v8 apps need 8.0+, v9 apps need 11.0+",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("rendered lines =\n%q\nwant\n%q", got, want)
+	}
+}
+
+func TestRenderDoctorDotnet_OutsideAnApp_FailsAnSDKOlderThanAnyAppNeeds(t *testing.T) {
+	got := renderDoctorDotnet(t, &doctorsvc.Prerequisites{
+		DotnetValue: "7.0.410",
+		Dotnet:      doctorsvc.Check{Error: "dotnet version too old", OK: false},
+	})
+
+	if len(got) != 2 || got[0] != "  [error] .NET SDK        7.0.410 (8.0+ required)" {
+		t.Errorf("rendered lines = %q, want 7.0.410 failing with 8.0+ required", got)
+	}
+}
+
+func TestRenderDoctorDotnet_InsideAnApp_StatesTheAppsTargetFramework(t *testing.T) {
+	got := renderDoctorDotnet(t, &doctorsvc.Prerequisites{
+		DotnetValue:       "11.0.100",
+		DotnetRequirement: v9AppRequirement(),
+		Dotnet:            doctorsvc.Check{OK: true},
+	})
+
+	want := []string{"  [ok] .NET SDK        11.0.100 (app targets net11.0)"}
+	if !slices.Equal(got, want) {
+		t.Errorf("rendered lines =\n%q\nwant\n%q", got, want)
+	}
+}
+
+func TestRenderDoctorDotnet_InsideAnApp_NamesTheSDKTheAppNeeds(t *testing.T) {
+	tests := []struct {
+		name          string
+		value         string
+		globalVersion string
+		want          string
+	}{
+		{
+			name:  "selected SDK too old",
+			value: "10.0.401",
+			want:  "  [error] .NET SDK        10.0.401 (app targets net11.0, needs 11.0+)",
+		},
+		{
+			name:          "global.json selects an SDK too old",
+			value:         "10.0.401",
+			globalVersion: "10.0.401",
+			want:          "  [error] .NET SDK        10.0.401 from global.json (app targets net11.0, needs 11.0+)",
+		},
+		{
+			name: "dotnet not found",
+			want: "  [error] .NET SDK        not found (app targets net11.0, needs 11.0+)",
+		},
+		{
+			name:          "no SDK matches global.json",
+			globalVersion: "11.0.100",
+			want:          "  [error] .NET SDK        none matches global.json (11.0.100, rollForward latestFeature)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requirement := v9AppRequirement()
+			if tt.globalVersion != "" {
+				requirement.GlobalJSON = "/apps/ttd/app/global.json"
+				requirement.SDKVersion = tt.globalVersion
+				requirement.RollForward = "latestFeature"
+			}
+			got := renderDoctorDotnet(t, &doctorsvc.Prerequisites{
+				DotnetValue:       tt.value,
+				DotnetRequirement: requirement,
+				Dotnet:            doctorsvc.Check{Error: "failed", OK: false},
+			})
+
+			if !slices.Equal(got, []string{tt.want}) {
+				t.Errorf("rendered lines =\n%q\nwant\n%q", got, []string{tt.want})
+			}
+		})
+	}
+}
+
+// doctor --json keeps the dotnet check's shape and adds the requirement only inside an app.
+func TestDoctorPrerequisitesJSON_AddsTheDotnetRequirementOnlyInsideAnApp(t *testing.T) {
+	t.Parallel()
+
+	outside, err := json.Marshal(doctorsvc.Prerequisites{Dotnet: doctorsvc.Check{OK: true}})
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if strings.Contains(string(outside), "dotnetRequirement") ||
+		!strings.Contains(string(outside), `"dotnet":{"ok":true}`) {
+		t.Errorf("payload outside an app = %s", outside)
+	}
+
+	inside, err := json.Marshal(doctorsvc.Prerequisites{
+		DotnetRequirement: v9AppRequirement(),
+		Dotnet:            doctorsvc.Check{OK: true},
+	})
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	want := `"dotnetRequirement":{"project":"/apps/ttd/app/App/App.csproj","targetFramework":"net11.0","minimumSdk":"11.0"}`
+	if !strings.Contains(string(inside), want) {
+		t.Errorf("payload inside an app = %s, want it to contain %s", inside, want)
 	}
 }

@@ -127,7 +127,9 @@ studioctl app ps --json
 ```
 
 For investigating failures, use `studioctl app logs` and `studioctl env logs`.
-`studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities).
+`studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities). Run from
+the app, it checks that the .NET SDK dotnet selects can build the app, by the app's `global.json` or target framework;
+`doctor --json` has the details under `prerequisites.dotnetRequirement`.
 
 If local hostnames do not resolve, inspect `studioctl env hosts status`. `studioctl env hosts add` changes the system
 hosts file, so explain that effect before running it with the host's normal privilege mechanism.

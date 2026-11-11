@@ -110,7 +110,7 @@ func TestCollectPrerequisitesIncludesDockerHost(t *testing.T) {
 
 	t.Setenv("DOCKER_HOST", "unix:///tmp/podman.sock")
 
-	prereqs := svc.collectPrerequisites(t.Context())
+	prereqs := svc.collectPrerequisites(t.Context(), nil)
 	if prereqs.ContainerHost != "unix:///tmp/podman.sock" {
 		t.Fatalf("collectPrerequisites() ContainerHost = %q", prereqs.ContainerHost)
 	}
@@ -228,7 +228,7 @@ func TestCollectPrerequisitesReportsPodmanClientServerMismatch(t *testing.T) {
 		},
 	}
 
-	prereqs := svc.collectPrerequisites(t.Context())
+	prereqs := svc.collectPrerequisites(t.Context(), nil)
 	if prereqs.Container.OK {
 		t.Fatal("collectPrerequisites() Container.OK = true, want false")
 	}
