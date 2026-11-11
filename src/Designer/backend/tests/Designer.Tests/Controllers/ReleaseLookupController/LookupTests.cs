@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
@@ -14,6 +15,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -65,6 +67,23 @@ public class LookupTests
         Assert.Equal("1.0.0", actual.Version);
         Assert.Equal(succeeded.TargetCommitish, actual.Commit);
         Assert.Equal(succeeded.Created, actual.Created, TimeSpan.FromMilliseconds(1));
+    }
+
+    // altinn-fleet tests its client against the same two files, so that the two cannot drift apart.
+    [Fact]
+    public async Task Lookup_ContractRequest_ReturnsContractResponse()
+    {
+        await AddContractRelease("app-one", "1.0.0", "1111111111111111111111111111111111111111", 5);
+        await AddContractRelease("app-two", "2.0.0-rc.1", "2222222222222222222222222222222222222222", 6);
+        string request = TestDataHelper.LoadDataFromEmbeddedResourceAsString(ContractResource("request.json"));
+        string expected = TestDataHelper.LoadDataFromEmbeddedResourceAsString(ContractResource("response.json"));
+
+        using var content = new StringContent(request, Encoding.UTF8, "application/json");
+        using HttpResponseMessage response = await HttpClient.PostAsync(Uri, content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string actual = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(expected), JsonNode.Parse(actual)), actual);
     }
 
     [Fact]
@@ -168,6 +187,20 @@ public class LookupTests
     }
 
     private ReleaseLookupItem Item(string version) => new(_org, _app, version);
+
+    private static string ContractResource(string name) => $"Designer.Tests._TestData.ReleaseLookup.{name}";
+
+    private async Task AddContractRelease(string app, string tagName, string commit, int second)
+    {
+        ReleaseEntity release = EntityGenerationUtils.Release.GenerateReleaseEntity(
+            "fleetcontract",
+            app,
+            tagname: tagName,
+            targetCommitish: commit
+        );
+        release.Created = new DateTime(2026, 1, 2, 3, 4, second, 678, DateTimeKind.Utc);
+        await DesignerDbFixture.PrepareEntityInDatabase(release);
+    }
 
     private static ReleaseLookupRequest Request(params ReleaseLookupItem[] items) => new(items);
 

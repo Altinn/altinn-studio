@@ -1,0 +1,7 @@
+{
+  "items": [
+    { "org": "fleetcontract", "app": "app-one", "version": "1.0.0" },
+    { "org": "fleetcontract", "app": "app-two", "version": "2.0.0-rc.1" },
+    { "org": "fleetcontract", "app": "not-released", "version": "1" }
+  ]
+}
