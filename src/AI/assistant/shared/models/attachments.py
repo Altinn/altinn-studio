@@ -10,6 +10,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 logger = logging.getLogger(__name__)
 
+# A browser that has no type for an extension, such as Markdown on Windows,
+# uploads the file as application/octet-stream.
+_TEXT_SUFFIXES = frozenset({".md", ".markdown", ".txt"})
+_UNKNOWN_MIME_TYPES = frozenset({"", "application/octet-stream"})
+
 
 class AttachmentUpload(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -63,12 +68,51 @@ class AgentAttachment(BaseModel):
             return b64encode(self.path.read_bytes()).decode("ascii")
         return None
 
+    def _is_text(self) -> bool:
+        mime_type = self.mime_type.split(";", 1)[0].strip().lower()
+        if mime_type.startswith("text/"):
+            return True
+        return mime_type in _UNKNOWN_MIME_TYPES and Path(self.name).suffix.lower() in _TEXT_SUFFIXES
+
+    def _read_text(self) -> str | None:
+        """Return the file decoded as UTF-8, or None when no data is available."""
+        if self.data_base64:
+            raw = b64decode(self.data_base64)
+        elif self.path and self.path.exists():
+            raw = self.path.read_bytes()
+        else:
+            return None
+        try:
+            return raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            logger.warning("Attachment %s is not valid UTF-8; replacing the invalid bytes", self.name)
+            return raw.decode("utf-8-sig", errors="replace")
+
+    def _text_blocks(self) -> list[dict] | None:
+        """Send a text file as a text block.
+
+        Azure OpenAI accepts only PDFs as file input. Anthropic also takes a
+        text `document` block, but its content sits in `source.data`, where the
+        caller's spotlighting does not escape a closing tag.
+        """
+        if not self._is_text():
+            return None
+        text = self._read_text()
+        if text is None:
+            return None
+        return [{"type": "text", "text": f"Attachment {self.name}:\n\n{text}"}]
+
     def to_content_blocks(self) -> list[dict]:
         """Convert attachment to LLM content blocks.
 
-        Prefers native file passthrough so the model receives the original
-        document.  Falls back to a text placeholder when no data is available.
+        Sends text files as text and other files natively, so the model
+        receives the original document.  Falls back to a text placeholder
+        when no data is available.
         """
+        text_blocks = self._text_blocks()
+        if text_blocks:
+            return text_blocks
+
         data = self._ensure_base64()
 
         if self.mime_type.startswith("image/") and data:
@@ -109,6 +153,10 @@ class AgentAttachment(BaseModel):
         the model at least learns *that* an attachment was meant to be
         there.
         """
+        text_blocks = self._text_blocks()
+        if text_blocks:
+            return text_blocks
+
         data = self._ensure_base64()
 
         if data and self.mime_type.startswith("image/"):
