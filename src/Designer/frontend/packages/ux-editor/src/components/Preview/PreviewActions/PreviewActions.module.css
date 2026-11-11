@@ -1,3 +1,7 @@
 .previewInNewTabButton {
   padding: var(--ds-size-3);
 }
+
+.menu {
+  margin-inline-start: auto;
+}
