@@ -217,6 +217,30 @@ public class DataRestrictionValidationTests
         errors.Should().BeEmpty();
     }
 
+    // Browsers take the content type from the operating system, and on Windows .7z is often registered as
+    // application/x-compressed.
+    [Theory]
+    [InlineData("application/x-7z-compressed")]
+    [InlineData("application/x-compressed")]
+    public void CompliesWithDataRestrictions_returns_true_for_7z_file_with_known_content_type(string contentType)
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Headers.ContentLength = 1000;
+        httpContext.Request.Headers.ContentDisposition = "attachment; filename=test.7z";
+        httpContext.Request.Headers.ContentType = contentType;
+        var dataType = new DataType()
+        {
+            MaxSize = 1,
+            AllowedContentTypes = new List<string>() { "application/x-7z-compressed", "application/x-compressed" },
+        };
+        (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
+            httpContext.Request,
+            dataType
+        );
+        valid.Should().BeTrue();
+        errors.Should().BeEmpty();
+    }
+
     [Fact]
     public void CompliesWithDataRestrictions_returns_true_when_octetstream_in_allow_list()
     {
