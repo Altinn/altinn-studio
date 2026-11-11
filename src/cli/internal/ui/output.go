@@ -91,6 +91,12 @@ func (o *Output) Print(msg string) {
 	}
 }
 
+// WriteResult writes msg to stdout as it is and returns any write error. Use it for output another program reads,
+// where a lost write must fail the command instead of passing unnoticed.
+func (o *Output) WriteResult(msg string) error {
+	return o.write(o.out, msg, false)
+}
+
 // Println writes a message to stdout with a newline.
 func (o *Output) Println(msg string) {
 	err := o.write(o.out, msg, true)
