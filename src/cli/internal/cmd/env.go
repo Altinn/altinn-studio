@@ -166,7 +166,7 @@ func (c *EnvCommand) Usage() string {
 		"Subcommands:",
 		"  up       Start the environment",
 		"  down     Stop the environment",
-		"  config   Show or change the defaults of env up",
+		"  config   Show or change the settings env up uses for a new environment",
 		"  hosts    Manage localtest hosts-file entries",
 		"  reset    Delete persisted environment data",
 		"  status   Show environment status",

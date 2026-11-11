@@ -39,23 +39,29 @@ type envConfigArgs struct {
 }
 
 func (c *EnvCommand) configUsage() string {
+	bin := osutil.CurrentBin()
+	builtIn := envtopology.DefaultIngressPortString()
 	return joinLines(
-		fmt.Sprintf("Usage: %s env config [subcommand] [options]", osutil.CurrentBin()),
+		fmt.Sprintf("Usage: %s env config <subcommand> [options]", bin),
 		"",
-		"Show or change the defaults of the environment.",
+		"Show or change the settings env up uses for a new environment.",
 		"",
-		"Subcommands:",
-		"  list               Show the settings you have set (the default)",
-		"  get KEY            Print a setting's value",
-		"  set KEY VALUE      Change a setting",
-		"  unset KEY          Go back to the built-in default",
+		"Examples:",
+		fmt.Sprintf("  %s env config set port 8100   Start new environments on port 8100", bin),
+		fmt.Sprintf("  %s env config unset port      Go back to the built-in port (%s)", bin, builtIn),
+		fmt.Sprintf("  %s env config                 List the settings you have set", bin),
 		"",
 		"Settings:",
-		"  port               Host port env up starts a new environment on without --port (built-in: "+
-			envtopology.DefaultIngressPortString()+")",
+		"  port                    Host port for a new environment (built-in: "+builtIn+")",
+		"",
+		"Subcommands:",
+		"  list                    List the settings you have set (the default)",
+		"  get <setting>           Print a setting's value",
+		"  set <setting> <value>   Change a setting",
+		"  unset <setting>         Go back to the setting's built-in value",
 		"",
 		"Options:",
-		"  --json             Output as JSON (list and get)",
+		"  --json                  Output as JSON (list and get)",
 	)
 }
 
@@ -215,11 +221,11 @@ func isFlag(arg string) bool {
 func configUsageLine(subCmd string) string {
 	switch subCmd {
 	case envConfigGet:
-		return envConfigGet + " KEY"
+		return envConfigGet + " <setting>"
 	case envConfigSet:
-		return envConfigSet + " KEY VALUE"
+		return envConfigSet + " <setting> <value>"
 	case envConfigUnset:
-		return envConfigUnset + " KEY"
+		return envConfigUnset + " <setting>"
 	default:
 		return envConfigList
 	}
