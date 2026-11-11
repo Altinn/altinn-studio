@@ -14,13 +14,12 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ReportService(
     IRuntimeGatewayClient runtimeGatewayClient,
-    IAppResourcesService appResourcesService,
+    IAppLibVersionService appLibVersionService,
     INotificationService notificationService,
     TimeProvider timeProvider
 ) : IReportService
 {
     private const int DaysPerWeek = 7;
-    private const int MaxConcurrentAppMetadataRequests = 4;
 
     private const string FailedProcessNextMetric = "failed_process_next_requests";
     private const string FailedInstanceCreationMetric = "failed_instance_creation_requests";
@@ -68,10 +67,10 @@ public class ReportService(
             period.To,
             cancellationToken
         );
-        IReadOnlyDictionary<string, string?> appLibVersions = await GetAppLibVersionsAsync(
+        IReadOnlyDictionary<string, string?> appLibVersions = await appLibVersionService.GetAppLibVersions(
             org,
             environment,
-            reportMetrics.Apps,
+            reportMetrics.Apps.Select(app => new AppImage(app.Name, app.Version)),
             cancellationToken
         );
 
@@ -119,51 +118,6 @@ public class ReportService(
             payload,
             cancellationToken
         );
-    }
-
-    private async Task<IReadOnlyDictionary<string, string?>> GetAppLibVersionsAsync(
-        string org,
-        string environment,
-        IReadOnlyList<ReportApp> apps,
-        CancellationToken cancellationToken
-    )
-    {
-        using var throttler = new SemaphoreSlim(MaxConcurrentAppMetadataRequests);
-        var lookups = apps.Select(async app =>
-        {
-            await throttler.WaitAsync(cancellationToken);
-            try
-            {
-                var applicationMetadata = await appResourcesService.GetApplicationMetadata(
-                    org,
-                    environment,
-                    app.Name,
-                    cancellationToken
-                );
-                return (app.Name, Version: ParseAppLibVersion(applicationMetadata.AltinnNugetVersion));
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                // The report must tolerate individual apps being unreachable.
-                return (app.Name, Version: null);
-            }
-            finally
-            {
-                throttler.Release();
-            }
-        });
-
-        var results = await Task.WhenAll(lookups);
-        return results.ToDictionary(r => r.Name, r => r.Version, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static string? ParseAppLibVersion(string? altinnNugetVersion)
-    {
-        if (string.IsNullOrEmpty(altinnNugetVersion))
-        {
-            return null;
-        }
-        return Version.TryParse(altinnNugetVersion, out var version) ? version.ToString(3) : null;
     }
 
     // A report covers the last complete calendar period in Norwegian time before it is sent: yesterday, last week

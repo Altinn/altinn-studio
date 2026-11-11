@@ -57,6 +57,31 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ListRunning_ReturnsEveryAppByName_WithItsStatus()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var suffix = Guid.NewGuid().ToString("N")[..5];
+        var ready = "list-ready-" + suffix;
+        var failing = "list-failing-" + suffix;
+        await CreateDeploymentAsync(ready, $"registry:5000/{Org}/{ready}:9cf6fc1", ct: ct);
+        await CreateDeploymentAsync(failing, UnpullableImage, replicas: 1, ct: ct);
+        await WaitForStatus(failing, RunningAppStatus.Unavailable, ct);
+
+        using var response = await _httpClient.GetAsync(
+            new Uri("/runtime/gateway/api/v1/deploy/apps/running", UriKind.Relative),
+            ct
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var running = await response.Content.ReadFromJsonAsync<Dictionary<string, RunningAppDeployment>>(ct);
+        Assert.NotNull(running);
+        Assert.Equal(RunningAppStatus.Ready, running[ready].Status);
+        Assert.Equal("9cf6fc1", running[ready].ImageTag);
+        Assert.Equal($"{Org}-{ready}", running[ready].Release);
+        Assert.Equal(RunningAppStatus.Unavailable, running[failing].Status);
+    }
+
+    [Fact]
     public async Task GetRunning_WhenDeploymentExists_ReturnsTheStudioDeploy()
     {
         var ct = TestContext.Current.CancellationToken;

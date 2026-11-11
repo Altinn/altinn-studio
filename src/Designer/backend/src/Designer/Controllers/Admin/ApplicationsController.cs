@@ -33,6 +33,7 @@ public class ApplicationsController : ControllerBase
     private readonly IReleaseRepository _releaseRepository;
     private readonly IAppResourcesService _appResourcesService;
     private readonly IGiteaClient _giteaClient;
+    private readonly IAppLibVersionService _appLibVersionService;
     private readonly ILogger<ApplicationsController> _logger;
 
     public ApplicationsController(
@@ -42,6 +43,7 @@ public class ApplicationsController : ControllerBase
         IReleaseRepository releaseRepository,
         IAppResourcesService appResourcesService,
         IGiteaClient giteaClient,
+        IAppLibVersionService appLibVersionService,
         ILogger<ApplicationsController> logger
     )
     {
@@ -51,6 +53,7 @@ public class ApplicationsController : ControllerBase
         _releaseRepository = releaseRepository;
         _appResourcesService = appResourcesService;
         _giteaClient = giteaClient;
+        _appLibVersionService = appLibVersionService;
         _logger = logger;
     }
 
@@ -128,6 +131,57 @@ public class ApplicationsController : ControllerBase
         {
             _logger.LogError(ex, "Invalid deployment data for org {Org}.", org.WithoutLineBreaks());
             return StatusCode(502);
+        }
+    }
+
+    /// <summary>
+    /// Gets how each app published to the environment runs: its status, as the runtime gateway reports it, and the
+    /// version of the app libraries it runs. A gateway that predates the status list leaves the status out, and the
+    /// versions are then read for the apps published there.
+    /// </summary>
+    [HttpGet("{env}")]
+    public async Task<ActionResult<List<PublishedApplicationStatus>>> GetApplicationStatuses(
+        string org,
+        string env,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var environment = AltinnEnvironment.FromName(env);
+            var running = await _runtimeGatewayClient.GetRunningAppDeployments(org, environment, ct);
+            List<AppImage> apps = running is not null
+                ? [.. running.Select(app => new AppImage(app.Key, app.Value.ImageTag))]
+                :
+                [
+                    .. (await _runtimeGatewayClient.GetAppDeployments(org, environment, ct)).Select(
+                        deployment => new AppImage(deployment.App, deployment.ImageTag)
+                    ),
+                ];
+
+            var appLibVersions = await _appLibVersionService.GetAppLibVersions(org, env, apps, ct);
+
+            return Ok(
+                apps.Select(app => new PublishedApplicationStatus
+                    {
+                        App = app.App,
+                        Status = running?.GetValueOrDefault(app.App)?.Status,
+                        AppLibVersion = appLibVersions.GetValueOrDefault(app.App),
+                    })
+                    .ToList()
+            );
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(502);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
         }
     }
 

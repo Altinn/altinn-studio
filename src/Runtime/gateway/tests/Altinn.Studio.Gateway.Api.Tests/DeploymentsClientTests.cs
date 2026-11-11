@@ -341,6 +341,32 @@ public sealed class DeploymentsClientTests
     private static Task<RunningAppStatus> StatusOf(V1Deployment deployment, Func<Task<IReadOnlyList<V1Pod>>> pods) =>
         DeploymentsClient.StatusOf(deployment, pods, Now);
 
+    [Fact]
+    public void AppDeploymentsOf_KeysTheOrgsAppDeploymentsByTheAppTheirReleaseNames()
+    {
+        var first = Released("ttd-my-app");
+        var duplicate = Released("ttd-my-app");
+        var other = Released("ttd-other-app");
+
+        var apps = DeploymentsClient
+            .AppDeploymentsOf(
+                "ttd",
+                [first, Released("brg-my-app"), Released("ttd-"), Released(null), duplicate, other]
+            )
+            .ToList();
+
+        Assert.Equal([("my-app", "ttd-my-app", first), ("other-app", "ttd-other-app", other)], apps);
+    }
+
+    private static V1Deployment Released(string? release)
+    {
+        var deployment = Deployment();
+        deployment.Metadata.Labels = release is null
+            ? new Dictionary<string, string> { ["app"] = "unrelated" }
+            : new Dictionary<string, string> { ["release"] = release };
+        return deployment;
+    }
+
     private static V1DeploymentStatus Status(int updated, int total, int available, string progress) =>
         new()
         {

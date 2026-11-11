@@ -9,6 +9,7 @@ import {
   StudioError,
   StudioTabs,
   StudioAlert,
+  StudioSkeleton,
 } from '@studio/components';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,14 @@ import { Alert } from 'admin/features/apps/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
+import { usePublishedAppStatusesQuery } from 'admin/features/apps/hooks/queries/usePublishedAppStatusesQuery';
+import type { ErrorMetric } from 'admin/features/apps/types/metrics/ErrorMetric';
+import type { AppStatus } from 'admin/features/apps/components/AppStatusTag/AppStatusTag';
+import {
+  AppStatusHeader,
+  AppStatusTag,
+  needsAttention,
+} from 'admin/features/apps/components/AppStatusTag/AppStatusTag';
 
 export type AppsTableProps = {
   org: string;
@@ -132,6 +141,10 @@ const AppsTableContent = ({
   } = useErrorMetricsQuery(org, environment, range!, {
     hideDefaultError: true,
   });
+  const { data: appStatuses, status: appStatusesStatus } = usePublishedAppStatusesQuery(
+    org,
+    environment,
+  );
 
   const renderErrorsMetricsHeaderCell = () => {
     return (
@@ -169,7 +182,11 @@ const AppsTableContent = ({
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.Cell>{t('admin.apps.name')}</StudioTable.Cell>
-            <StudioTable.Cell>{t('admin.apps.version')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.app.info.app_version')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.app.info.backend_version')}</StudioTable.Cell>
+            <StudioTable.Cell>
+              <AppStatusHeader />
+            </StudioTable.Cell>
             <StudioTable.Cell className={classes.errorMetricsHeaderCell}>
               {renderErrorsMetricsHeaderCell()}
             </StudioTable.Cell>
@@ -180,14 +197,19 @@ const AppsTableContent = ({
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
               const appErrorMetrics = errorMetrics?.filter((metric) => metric.appName === app.app);
+              const appStatus = appStatuses?.get(app.app);
+              const status: AppStatus = appStatus?.status ?? 'unknown';
               return {
                 ...app,
                 metrics: appErrorMetrics,
-                hasMetrics: (appErrorMetrics?.length ?? 0) > 0,
+                appStatus,
+                status,
+                needsAttention: (appErrorMetrics?.length ?? 0) > 0 || needsAttention(status),
               };
             })
             .sort(
-              (a, b) => Number(b.hasMetrics) - Number(a.hasMetrics) || a.app.localeCompare(b.app),
+              (a, b) =>
+                Number(b.needsAttention) - Number(a.needsAttention) || a.app.localeCompare(b.app),
             )
             .map((app) => (
               <StudioTable.Row key={app.app}>
@@ -197,30 +219,98 @@ const AppsTableContent = ({
                   </Link>
                 </StudioTable.Cell>
                 <StudioTable.Cell>{app.version}</StudioTable.Cell>
+                <StudioTable.Cell>
+                  <AppStatusCell
+                    queryStatus={appStatusesStatus}
+                    render={() => app.appStatus?.appLibVersion ?? '-'}
+                  />
+                </StudioTable.Cell>
+                <StudioTable.Cell>
+                  <AppStatusCell
+                    queryStatus={appStatusesStatus}
+                    render={() => <AppStatusTag status={app.status} />}
+                  />
+                </StudioTable.Cell>
                 <StudioTable.Cell className={classes.errorMetricsCell}>
-                  <div className={classes.errorMetricsCellContainer}>
-                    {app.metrics?.map((metric) => {
-                      return (
-                        <Alert
-                          key={metric.name}
-                          color='danger'
-                          title={
-                            <>
-                              <span className={classes.count}>{metric.count.toString()}</span>
-                              {t(`admin.metrics.${metric.name}`)}
-                            </>
-                          }
-                          url={metric.logsUrl}
-                          className={classes.errorMetric}
-                        ></Alert>
-                      );
-                    })}
-                  </div>
+                  <ErrorMetricsCell
+                    isPending={errorMetricsIsPending}
+                    isError={errorMetricsIsError}
+                    metrics={app.metrics}
+                  />
                 </StudioTable.Cell>
               </StudioTable.Row>
             ))}
         </StudioTable.Body>
       </StudioTable>
     </>
+  );
+};
+
+type AppStatusCellProps = {
+  queryStatus: 'pending' | 'error' | 'success';
+  render: () => React.ReactNode;
+};
+
+/** A cell filled from the environment's app statuses: a skeleton until they arrive, a dash if they do not. */
+const AppStatusCell = ({ queryStatus, render }: AppStatusCellProps) => {
+  const { t } = useTranslation();
+  switch (queryStatus) {
+    case 'pending':
+      return (
+        <StudioSkeleton
+          aria-label={t('admin.apps.status.loading')}
+          className={classes.cellSkeleton}
+        />
+      );
+    case 'error':
+      return '-';
+    case 'success':
+      return render();
+  }
+};
+
+type ErrorMetricsCellProps = {
+  isPending: boolean;
+  isError: boolean;
+  metrics: ErrorMetric[] | undefined;
+};
+
+/**
+ * The app's errors in the selected period. An app without errors says so, so that it cannot be
+ * mistaken for one whose errors could not be read, which shows a dash.
+ */
+const ErrorMetricsCell = ({ isPending, isError, metrics }: ErrorMetricsCellProps) => {
+  const { t } = useTranslation();
+
+  if (isPending) {
+    return null;
+  }
+  if (isError) {
+    return <div className={classes.errorMetricsCellContainer}>-</div>;
+  }
+  if (!metrics?.length) {
+    return (
+      <div className={classes.errorMetricsCellContainer}>
+        <span className={classes.noErrors}>{t('admin.apps.no_errors')}</span>
+      </div>
+    );
+  }
+  return (
+    <div className={classes.errorMetricsCellContainer}>
+      {metrics.map((metric) => (
+        <Alert
+          key={metric.name}
+          color='danger'
+          title={
+            <>
+              <span className={classes.count}>{metric.count.toString()}</span>
+              {t(`admin.metrics.${metric.name}`)}
+            </>
+          }
+          url={metric.logsUrl}
+          className={classes.errorMetric}
+        ></Alert>
+      ))}
+    </div>
   );
 };

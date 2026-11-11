@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { AppsTable, type AppsTableProps } from './AppsTable';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -208,6 +208,88 @@ describe('AppsTable', () => {
         const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
         expect(metricElement).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Status and versions', () => {
+    const otherApp = 'other-app';
+
+    const setUpApps = (queryClient = createQueryClientMock()) => {
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        production: [
+          { app, env, org, version: '1' },
+          { app: otherApp, env, org, version: '2' },
+        ],
+      });
+      return queryClient;
+    };
+
+    it("shows each app's backend version and status", () => {
+      const queryClient = setUpApps();
+      queryClient.setQueryData(
+        [QueryKey.PublishedAppStatuses, org, env],
+        [
+          { app, status: 'ready', appLibVersion: '8.7.2' },
+          { app: otherApp, status: null, appLibVersion: null },
+        ],
+      );
+
+      renderAppsTable(queryClient);
+
+      const appRow = screen.getByRole('row', { name: new RegExp(`^${app}\\b`) });
+      expect(within(appRow).getByText('8.7.2')).toBeInTheDocument();
+      expect(within(appRow).getByText(textMock('admin.apps.status.ready'))).toBeInTheDocument();
+      const otherRow = screen.getByRole('row', { name: new RegExp(`^${otherApp}\\b`) });
+      expect(within(otherRow).getByText(textMock('admin.apps.status.unknown'))).toBeInTheDocument();
+    });
+
+    it('lists an app that needs attention first', () => {
+      const queryClient = setUpApps();
+      queryClient.setQueryData(
+        [QueryKey.PublishedAppStatuses, org, env],
+        [
+          { app, status: 'ready', appLibVersion: '8.7.2' },
+          { app: otherApp, status: 'unavailable', appLibVersion: null },
+        ],
+      );
+
+      renderAppsTable(queryClient);
+
+      const [, firstRow, secondRow] = screen.getAllByRole('row');
+      expect(within(firstRow).getByRole('link', { name: otherApp })).toBeInTheDocument();
+      expect(
+        within(firstRow).getByText(textMock('admin.apps.status.unavailable')),
+      ).toBeInTheDocument();
+      expect(within(secondRow).getByRole('link', { name: app })).toBeInTheDocument();
+    });
+
+    it('says an app has no errors only when the errors could be read', async () => {
+      const queryClient = setUpApps();
+      queryClient.setQueryData([QueryKey.ErrorMetrics, org, env, range], []);
+
+      renderAppsTable(queryClient);
+
+      expect(screen.getAllByText(textMock('admin.apps.no_errors'))).toHaveLength(2);
+    });
+
+    it('shows dashes rather than an all-clear when the errors and statuses cannot be read', async () => {
+      (axios.get as Mock).mockRejectedValue(createApiErrorMock(ServerCodes.InternalServerError));
+      const queryClient = setUpApps();
+
+      renderAppsTable(queryClient);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+      await waitFor(() => {
+        expect(screen.queryAllByLabelText(textMock('admin.apps.status.loading'))).toHaveLength(0);
+      });
+      expect(screen.queryByText(textMock('admin.apps.no_errors'))).not.toBeInTheDocument();
+      const appRow = screen.getByRole('row', { name: new RegExp(`^${app}\\b`) });
+      // The backend version, the status and the errors.
+      expect(within(appRow).getAllByText('-')).toHaveLength(3);
     });
   });
 

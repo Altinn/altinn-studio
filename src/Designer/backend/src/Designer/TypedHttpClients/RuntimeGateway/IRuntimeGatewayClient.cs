@@ -25,6 +25,16 @@ public interface IRuntimeGatewayClient
     );
 
     /// <summary>
+    /// Gets how every app runs in the environment's cluster, keyed by app, whichever Studio environment deployed it.
+    /// </summary>
+    /// <returns>The running deployments, or null when the environment's gateway predates the list.</returns>
+    Task<IReadOnlyDictionary<string, RunningAppDeployment>?> GetRunningAppDeployments(
+        string org,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Gets the version of the app that runs in the environment's cluster, whichever Studio environment deployed it.
     /// </summary>
     /// <returns>The running deployment, or null when the app does not run there.</returns>
