@@ -65,7 +65,49 @@ public sealed class DataCreationPortTests : IDisposable
     }
 
     [Fact]
-    public void DataCreation_TakesTheMutator_AndASubstatusSetThereIsWarnedAbout()
+    public void DataCreation_TakesTheMutator_AndSaysSo()
+    {
+        var source = """
+            public class InstantiationProcessor(IInstanceClient instanceClient) : IInstantiationProcessor
+            {
+                public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+                {
+                    await instanceClient.UpdateDataValue(instance, "status", "mottatt");
+                }
+            }
+            """;
+        _app.Write(HookPath, InApp(source));
+
+        var result = Port(AppFolder);
+
+        Assert.Equal(
+            InApp(
+                $$"""
+                public class InstantiationProcessor : IInstantiationProcessor
+                {
+                    public async Task DataCreation({{IInstanceDataMutator}} dataMutator, object data, Dictionary<string, string>? prefill)
+                    {
+                        dataMutator.SetDataValue("status", "mottatt");
+                    }
+                }
+                """
+            ),
+            _app.Read(HookPath)
+        );
+        Assert.Contains(
+            At(
+                source,
+                "public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)",
+                UpgradeMessageStatus.Warning,
+                "InstantiationProcessor.DataCreation now takes IInstanceDataMutator, the overload v9 calls; the data it changes through the mutator is saved with the new data element."
+            ),
+            result.Messages
+        );
+        AssertCompilesAgainstV9(AppFolder);
+    }
+
+    [Fact]
+    public void ASubstatusSetInDataCreation_StaysWithATodo()
     {
         // digdir/regvil-2025-initiell App/logic/instantiation/InstantiationProcessor.cs:59-70.
         var source = """
@@ -82,41 +124,16 @@ public sealed class DataCreationPortTests : IDisposable
 
         var result = Port(AppFolder);
 
-        Assert.Equal(
-            InApp(
-                $$"""
-                public class InstantiationProcessor : IInstantiationProcessor
-                {
-                    public async Task DataCreation({{IInstanceDataMutator}} dataMutator, object data, Dictionary<string, string>? prefill)
-                    {
-                        Instance instance = dataMutator.Instance;
-                        var id = new InstanceIdentifier(instance);
-                        dataMutator.SetSubstatus(new Substatus { Label = "mottatt" });
-                    }
-                }
-                """
-            ),
-            _app.Read(HookPath)
-        );
-        Assert.Contains(
-            At(
-                source,
-                "public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)",
-                UpgradeMessageStatus.Warning,
-                "InstantiationProcessor.DataCreation now takes IInstanceDataMutator, the overload v9 calls; the data it changes through the mutator is saved with the new data element."
-            ),
-            result.Messages
-        );
+        Assert.Contains("await instanceClient.UpdateSubstatus(", _app.Read(HookPath), StringComparison.Ordinal);
         Assert.Contains(
             At(
                 source,
                 "await instanceClient.UpdateSubstatus(id.InstanceOwnerPartyId, id.InstanceGuid, new Substatus { Label = \"mottatt\" }, StorageAuthenticationMethod.ServiceOwner());",
-                UpgradeMessageStatus.Warning,
-                "DataCreation also runs when an instance is created with data or a data element is posted; there the substatus is saved with the caller's token, which Storage accepts only from the app owner, so a user's request fails with 403, as v8's PUT did."
+                UpgradeMessageStatus.Todo,
+                "IInstanceClient.UpdateSubstatus still writes to Storage directly in InstantiationProcessor.DataCreation, which v9 refuses while the process is transitioning: the mutator has no member that sets the substatus."
             ),
             result.Messages
         );
-        AssertCompilesAgainstV9(AppFolder);
     }
 
     public static TheoryData<string, string, string> ServiceOwnerCalls =>

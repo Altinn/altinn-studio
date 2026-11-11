@@ -221,64 +221,6 @@ public sealed class StorageCallRewriterTests : IDisposable
                     """
             },
             {
-                // digdir/regvil-2025-initiell App/logic/instantiation/InstantiationProcessor.cs:59-70, here in a task hook.
-                "UpdateSubstatus",
-                """
-                    public class ProcessTaskEnd(IInstanceClient instanceClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var id = new InstanceIdentifier(instance);
-                            await instanceClient.UpdateSubstatus(id.InstanceOwnerPartyId, id.InstanceGuid, new Substatus { Label = "mottatt", Description = "Mottatt" });
-                        }
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var id = new InstanceIdentifier(instance);
-                            dataMutator.SetSubstatus(new Substatus { Label = "mottatt", Description = "Mottatt" });
-                            return {{HandlerResult}}.Success();
-                        }
-                    }
-                    """
-            },
-            {
-                // buf/fosterhjem-ep-skjema-person-b App/Custom/Hooks/SigningTaskEnd.cs:52-53.
-                "AddCompleteConfirmation with InstanceIdentifier members (W3)",
-                """
-                    public class SigningTaskEnd(IInstanceClient instanceClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var iId = new InstanceIdentifier(instance);
-                            await instanceClient.AddCompleteConfirmation(iId.InstanceOwnerPartyId, iId.InstanceGuid);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class SigningTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var iId = new InstanceIdentifier(instance);
-                            dataMutator.AddCompleteConfirmation();
-                            return {{HandlerResult}}.Success();
-                        }
-                    }
-                    """
-            },
-            {
                 // dibk/et-v4 App/logic/ProcessTaskEnd.cs:42 and mat/mattilsynet-bivirkninger App/logic/TaskProcessors/ProcessTaskEnd.cs:155.
                 "GetBinaryData into a stream, and GetDataBytes as an argument",
                 """
@@ -962,6 +904,38 @@ public sealed class StorageCallRewriterTests : IDisposable
     public static TheoryData<string, string, string, string> Todos =>
         new()
         {
+            {
+                // digdir/regvil-2025-initiell App/logic/instantiation/InstantiationProcessor.cs:59-70, here in a task hook.
+                "UpdateSubstatus, which the mutator has no member for",
+                """
+                    public class ProcessTaskEnd(IInstanceClient instanceClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var id = new InstanceIdentifier(instance);
+                            await instanceClient.UpdateSubstatus(id.InstanceOwnerPartyId, id.InstanceGuid, new Substatus { Label = "mottatt", Description = "Mottatt" });
+                        }
+                    }
+                    """,
+                "await instanceClient.UpdateSubstatus(id.InstanceOwnerPartyId, id.InstanceGuid, new Substatus { Label = \"mottatt\", Description = \"Mottatt\" });",
+                "IInstanceClient.UpdateSubstatus still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: the mutator has no member that sets the substatus."
+            },
+            {
+                // buf/fosterhjem-ep-skjema-person-b App/Custom/Hooks/SigningTaskEnd.cs:52-53.
+                "AddCompleteConfirmation, which the mutator has no member for",
+                """
+                    public class SigningTaskEnd(IInstanceClient instanceClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var iId = new InstanceIdentifier(instance);
+                            await instanceClient.AddCompleteConfirmation(iId.InstanceOwnerPartyId, iId.InstanceGuid);
+                        }
+                    }
+                    """,
+                "await instanceClient.AddCompleteConfirmation(iId.InstanceOwnerPartyId, iId.InstanceGuid);",
+                "IInstanceClient.AddCompleteConfirmation still writes to Storage directly in SigningTaskEnd.End, which v9 refuses while the process is transitioning: the mutator has no member that confirms the instance as complete."
+            },
             {
                 // X-OTHER-INSTANCE.
                 "a write to another instance (C-XO)",

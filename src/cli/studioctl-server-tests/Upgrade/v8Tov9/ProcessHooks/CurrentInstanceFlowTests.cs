@@ -148,7 +148,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                         public async Task End(string taskId, Instance instance)
                         {
                             var iId = new InstanceIdentifier(instance.Id);
-                            await instanceClient.AddCompleteConfirmation(iId.InstanceOwnerPartyId, iId.InstanceGuid);
+                            await instanceClient.UpdateDataValues(iId.InstanceOwnerPartyId, iId.InstanceGuid, new DataValues() { Values = new Dictionary<string, string?> { { "status", "sendt" } } });
                         }
                     }
                     """,
@@ -162,7 +162,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var iId = new InstanceIdentifier(instance.Id);
-                            dataMutator.AddCompleteConfirmation();
+                            dataMutator.SetDataValue("status", "sendt");
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -253,7 +253,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                         public async Task End(string taskId, Instance instance)
                         {
                             (int party, Guid guid) = InstanceHelper.GetInstanceIds(instance);
-                            await instanceClient.UpdateSubstatus(party, guid, new Substatus { Label = "mottatt" });
+                            await instanceClient.UpdateDataValues(party, guid, new DataValues() { Values = new Dictionary<string, string?> { { "status", "sendt" } } });
                         }
                     }
                     """,
@@ -272,7 +272,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             (int party, Guid guid) = InstanceHelper.GetInstanceIds(instance);
-                            dataMutator.SetSubstatus(new Substatus { Label = "mottatt" });
+                            dataMutator.SetDataValue("status", "sendt");
                             return {{HandlerResult}}.Success();
                         }
                     }

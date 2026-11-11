@@ -327,8 +327,6 @@ internal static class StorageCallStubs
                 void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update);
                 void SetDataValue(string key, string? value);
                 void SetPresentationText(string key, string? value);
-                void SetSubstatus(Substatus substatus);
-                void AddCompleteConfirmation();
             }
 
             public interface IInstantiationProcessor
