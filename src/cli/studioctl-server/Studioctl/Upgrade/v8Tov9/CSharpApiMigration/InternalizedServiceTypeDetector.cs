@@ -52,7 +52,6 @@ internal sealed class InternalizedServiceTypeDetector
         ["DataListsFactory"] = new("Altinn.App.Core.Features.DataLists", null),
         ["DataListsService"] = new("Altinn.App.Core.Features.DataLists", "IDataListsService"),
         ["DataProcessTask"] = new("Altinn.App.Core.Internal.Process.ProcessTasks", "IProcessTask"),
-        ["DefaultAppEvents"] = new("Altinn.App.Core.Implementation", "IAppEvents"),
         ["DefaultAppModel"] = new("Altinn.App.Core.Internal.AppModel", "IAppModel"),
         ["DefaultDataElementValidator"] = new("Altinn.App.Core.Features.Validation.Default", "IDataElementValidator"),
         ["DefaultEFormidlingReceivers"] = new("Altinn.App.Core.EFormidling.Implementation", "IEFormidlingReceivers"),

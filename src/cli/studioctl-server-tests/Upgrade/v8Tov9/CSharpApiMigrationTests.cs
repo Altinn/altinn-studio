@@ -152,6 +152,80 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedAppEventsInterfaceDetector -------------------------------------------------------
+
+    [Fact]
+    public void AppEventsDetector_FlagsImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyAppEvents.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+            public class MyAppEvents : IAppEvents
+            {
+                public Task OnStartAppEvent(string startEvent, Instance instance) => Task.CompletedTask;
+                public Task OnEndAppEvent(string endEvent, Instance instance) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IAppEvents, MyAppEvents>();
+            """
+        );
+
+        var result = new RemovedAppEventsInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("IOnProcessEndedHandler"));
+        Assert.Contains(Locations(result), w => w.Contains("MyAppEvents.cs") && w.Contains("MyAppEvents : IAppEvents"));
+        Assert.Contains(Locations(result), w => w.Contains("Program.cs") && w.Contains("IAppEvents"));
+    }
+
+    [Fact]
+    public void AppEventsDetector_FlagsTheRemovedDefaultImplementation()
+    {
+        _app.Write(
+            "logic/MyAppEvents.cs",
+            """
+            using Altinn.App.Core.Implementation;
+            public class MyAppEvents : DefaultAppEvents
+            {
+            }
+            """
+        );
+
+        var result = new RemovedAppEventsInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("MyAppEvents.cs") && w.Contains("MyAppEvents : DefaultAppEvents")
+        );
+    }
+
+    [Fact]
+    public void AppEventsDetector_IgnoresTheV9Handlers()
+    {
+        _app.Write(
+            "logic/MyProcessEnded.cs",
+            """
+            using Altinn.App.Core.Features.Process;
+            public class MyProcessEnded : IOnProcessEndedHandler
+            {
+                public Task<HandlerResult> Execute(OnProcessEndedContext context) => Task.FromResult<HandlerResult>(HandlerResult.Success());
+            }
+            """
+        );
+
+        var result = new RemovedAppEventsInterfaceDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- RemovedPdfFormatterDetector ------------------------------------------------------------
 
     [Fact]
