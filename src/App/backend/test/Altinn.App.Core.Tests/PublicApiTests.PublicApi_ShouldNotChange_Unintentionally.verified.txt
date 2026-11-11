@@ -1543,7 +1543,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task<T> ReplaceFormData<T>(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, T model)
-            where T :  notnull;
+            where T :  class;
         void SetDataValue(string key, string? value);
         void SetPresentationText(string key, string? value);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);

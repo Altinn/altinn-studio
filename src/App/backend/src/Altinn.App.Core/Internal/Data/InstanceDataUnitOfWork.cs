@@ -192,7 +192,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     /// <inheritdoc />
     public async Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
-        where T : notnull
+        where T : class
     {
         ArgumentNullException.ThrowIfNull(model);
         if (
@@ -232,7 +232,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         IFormDataWrapper formData = await GetFormDataWrapper(dataElementIdentifier);
         formData.CopyFrom(model);
         formData.InitializeAltinnRowIds();
-        return (T)formData.BackingData<object>();
+        return formData.BackingData<T>();
     }
 
     /// <inheritdoc />

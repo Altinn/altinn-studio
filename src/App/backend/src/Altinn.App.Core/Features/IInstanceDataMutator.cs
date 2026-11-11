@@ -101,9 +101,8 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// The copy is taken at the call. Make later changes to the returned object.
     /// </remarks>
     /// <returns>The element's form data, the object that <see cref="IInstanceDataAccessor.GetFormData"/> returns</returns>
-    // Not constrained to classes, so that a generic caller can pass a type parameter that is not.
     Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
-        where T : notnull;
+        where T : class;
 
     /// <summary>
     /// Sets tags, metadata, user-defined metadata, refs or the filename of a data element.
