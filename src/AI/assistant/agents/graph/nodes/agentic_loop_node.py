@@ -283,14 +283,19 @@ def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) ->
 
 
 def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
-    """Make the run fail if the assistant did not save all its edits.
+    """Make the run fail if the assistant did not save all its edits, and name the files in the notes.
 
-    The model can say that the task is complete, also if the edits are not saved.
+    The model can say that the task is complete, also if the edits are not saved. A run that already failed also
+    gets the note, so that the trace output shows each run that ends with edits that are not saved.
     """
-    if not unsaved_files or not state.tests_passed:
+    if not unsaved_files:
         return
-    state.tests_passed = False
-    state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
+    note = f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"
+    if state.tests_passed:
+        state.tests_passed = False
+        state.verify_notes = [note]
+    else:
+        state.verify_notes = [*state.verify_notes, note]
 
 
 def _unsaved_files(ctx: LoopContext) -> list[str]:

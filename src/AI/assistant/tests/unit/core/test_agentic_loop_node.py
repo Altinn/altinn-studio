@@ -963,6 +963,15 @@ class TestSuccessRequiresSavedChanges:
         assert state.verify_notes == ["The assistant did not save its edits to these files: App/ui/b.json"]
         assert _files_on_remote_branch(repo)[_B] == _ORIGINAL
 
+    async def test_a_stopped_run_also_names_the_files_that_are_not_saved(self, monkeypatch, repo):
+        """The trace output must show each run that ends with edits that are not saved."""
+        state, _, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, edits=(_A,)))
+
+        assert state.verify_notes == [
+            f"Loop hit max_turns ({node._DEFAULT_MAX_TURNS}) without completing.",
+            "The assistant did not save its edits to these files: App/ui/a.json",
+        ]
+
     async def test_a_failed_push_that_the_model_repeats_succeeds(self, monkeypatch, repo):
         async def fake_run_loop(**kwargs):
             _edit(kwargs["ctx"], _A)
