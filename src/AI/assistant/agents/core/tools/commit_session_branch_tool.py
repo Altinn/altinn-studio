@@ -101,9 +101,10 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
         "FAILURE MODES:\n"
         "  - Nothing to commit: working tree is clean.  Probably you already "
         "committed the changes — check your earlier tool results.\n"
-        "  - Push rejected / push raises: the commit is local-only.  You can "
-        "retry with the same message, which pushes the commit again, or stop "
-        "and let the user resolve."
+        "  - Push rejected / push raises: the commit is local-only, and the "
+        "user does not get it.  Retry with the same message, which pushes the "
+        "commit again.  If the push still fails, say in your final message "
+        "that the change is not saved."
     )
     input_schema = CommitSessionBranchArgs
     is_concurrency_safe = False
