@@ -4,7 +4,7 @@
 # Sandbox needs, and offers the browser, containers and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
 # Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:2ee51d4619a9e13b1d1e6037b48c76fcc6bbed46ef6203aadde1270c1a2fb790 AS minimal
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:3c5af2b6e7b559cabae6a7b3ac3429a4f8c27d5a9acf59d78ec9f4546fea25e6 AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
