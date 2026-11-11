@@ -855,6 +855,14 @@ class TestUnsavedFiles:
 
         assert node._unsaved_files(self._ctx(repo)) == ["App/ui/\ufffd.json"]
 
+    def test_gives_a_new_file_that_git_ignores(self, repo):
+        """A commit leaves out the file, and the reset at the next turn deletes it."""
+        write_files(repo, {".git/info/exclude": "bin/\n"})
+        ctx = self._ctx(repo)
+        _edit(ctx, "bin/notes.txt")
+
+        assert node._unsaved_files(ctx) == ["bin/notes.txt"]
+
     async def test_the_model_saves_a_file_with_a_carriage_return_in_its_name(self, monkeypatch, repo):
         """In text mode, the carriage return becomes a line feed. That path does not exist, thus verification fails."""
         _use_remote(monkeypatch, repo)
@@ -1025,6 +1033,17 @@ class TestCompletedAnswerReportsUnsavedChanges:
         _, message, _ = await _handle_events(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, **steps))
 
         assert message["filesChanged"] == [_A]
+
+    async def test_the_changed_files_leave_out_an_unsaved_file_that_the_model_named_another_way(
+        self, monkeypatch, repo
+    ):
+        async def fake_run_loop(**kwargs):
+            _edit(kwargs["ctx"], f"./{_A}")
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
+
+        _, message, _ = await _handle_events(monkeypatch, repo, fake_run_loop)
+
+        assert message["filesChanged"] == []
 
 
 class TestStoppedRunReportsWhatIsSaved:

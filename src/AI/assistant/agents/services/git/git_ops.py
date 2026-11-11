@@ -75,10 +75,12 @@ def commit(message: str, repo_path: str | None = None, branch_name: str | None =
 def uncommitted_files(repo_path: str) -> list[str]:
     """Return the paths that are different from the last commit, and the untracked paths.
 
+    The untracked paths include the files that git ignores. A commit leaves out
+    such a file, and `discard_unsaved` deletes it, so it is never saved.
     Raise `subprocess.CalledProcessError` if `repo_path` is not a git repository.
     """
     tracked = _paths(repo_path, "diff", "--name-only", "-z", "HEAD")
-    untracked = _paths(repo_path, "ls-files", "--others", "--exclude-standard", "-z")
+    untracked = _paths(repo_path, "ls-files", "--others", "-z")
     return sorted(tracked | untracked)
 
 

@@ -481,6 +481,17 @@ class TestDiscardInARepository:
         assert ctx.extras["changed_files"] == {"App/other.json"}
         assert ctx.extras["read_set"] == {"App/other.json"}
 
+    async def test_resets_a_committed_file_that_the_model_names_with_a_double_slash(self, tmp_path: Path):
+        """Git does not find `App//old.json` in HEAD. Without the normalisation, the tool deletes the committed file."""
+        repo = self._repo(tmp_path)
+        (repo / "App/old.json").write_text('{"old": false}', encoding="utf-8")
+
+        result = await self._discard(_ctx(repo), "App//old.json")
+
+        assert not result.is_error, result.content
+        assert (repo / "App/old.json").read_text(encoding="utf-8") == '{"old": true}'
+        assert git(repo, "status", "--porcelain") == ""
+
     async def test_forgets_the_lines_read_of_the_file(self, tmp_path: Path):
         repo = self._repo(tmp_path)
         ctx = _ctx(repo)

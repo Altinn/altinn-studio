@@ -8,6 +8,7 @@ that HEAD does not have.
 from __future__ import annotations
 
 import asyncio
+import posixpath
 import subprocess
 from pathlib import Path
 
@@ -71,7 +72,8 @@ def _discard(repo_path: str, rel_path: str) -> bool:
     the disk, `git checkout` gives the error message for the model.
     """
     file = Path(repo_path) / rel_path
-    if git_ops.exists_in_head(repo_path, rel_path) or not file.is_file():
+    # Git does not find `App//a.json` in HEAD, and would delete the committed file.
+    if git_ops.exists_in_head(repo_path, posixpath.normpath(rel_path)) or not file.is_file():
         _git(repo_path, "checkout", "HEAD", "--", rel_path)
         return False
     # If a commit stopped after `git add`, the file is in the index. Without

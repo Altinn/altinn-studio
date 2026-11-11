@@ -8,6 +8,7 @@ scan, read, load skills and fetch docs.
 from __future__ import annotations
 
 import os
+import posixpath
 import re
 import subprocess
 import time
@@ -575,7 +576,8 @@ def _emit_workflow_completion(
         "author": "assistant",
         "content": summary,
         # The user reads this list as the files that changed in the app.
-        "filesChanged": [path for path in state.changed_files if path not in unsaved_files],
+        # The tools record the path as the model wrote it, such as `./App/a.json`. Git gives `App/a.json`.
+        "filesChanged": [path for path in state.changed_files if posixpath.normpath(path) not in unsaved_files],
         "sources": ctx.extras.get("sources", []),
     }
     if security_notice:
