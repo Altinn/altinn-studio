@@ -71,6 +71,13 @@ public class WorkflowEngineCallbackController : ControllerBase
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
+        // First, since a newer version may have changed anything after it: the actor, the state, the command. It reads
+        // only the stamp and changes nothing.
+        if (PlannerVersion.IsNewerThan(payload.PlannerVersion, PlannerVersion.Current))
+        {
+            return PlannedByNewerVersion(commandKey, instanceId, payload, activity);
+        }
+
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
         if (
             payload.Actor is not { } actor
@@ -480,6 +487,35 @@ public class WorkflowEngineCallbackController : ControllerBase
             default:
                 throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Refuses a step that a newer app version planned, without the <c>nonRetryable</c> marker, so the engine retries
+    /// it. During a rolling deploy a retry reaches a pod on the new version. After a rollback the step retries until
+    /// the app is rolled forward or its retry strategy runs out.
+    /// </summary>
+    private ObjectResult PlannedByNewerVersion(
+        string commandKey,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        Activity? activity
+    )
+    {
+        _logger.LogWarning(
+            "Workflow step was planned by app library version {PlannerVersion}, newer than this pod's {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod on that version or newer. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+            payload.PlannerVersion,
+            PlannerVersion.Current,
+            commandKey,
+            instanceId,
+            payload.WorkflowId,
+            payload.StepId
+        );
+        activity?.SetStatus(ActivityStatusCode.Error, "Planned by a newer app version");
+        return Problem(
+            title: "Planned By Newer Version",
+            detail: $"This step was planned by app library version {payload.PlannerVersion}, newer than this pod's {PlannerVersion.Current}. It runs once a retry reaches a pod on that version or newer.",
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        );
     }
 
     private string? GetCollectionKey()

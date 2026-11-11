@@ -966,6 +966,9 @@ runs a step by calling back to the app.
 - **Validation**: the engine validates every context field at enqueue, so an invalid request never enters the queue.
 - **Mailbox**: on a receive workflow's first step, the callback carries the block that
   [what the app is handed](#what-the-app-is-handed) describes. It is `null` on every other callback.
+- **Planner version**: the app puts the library version that planned the workflow in the context as `plannerVersion`.
+  The engine echoes it on every callback without reading it, so an app pod on an older version can answer 503 to a step
+  that a newer version planned, and the engine retries the step.
 - **Telemetry**: the command names the app instance on the step's span and the workflow's entry span through
   [`GetTelemetryAttributes`](#domain-attributes-on-spans), so `{span.altinn.instance.guid="<guid>"}` in TraceQL finds
   the engine's work on an instance. Its `AppCommand.Execute` client span carries the command key. These keys are the

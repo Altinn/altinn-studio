@@ -28,4 +28,12 @@ internal sealed record AppWorkflowContext
     /// </summary>
     [JsonPropertyName("callbackToken")]
     public required string CallbackToken { get; init; }
+
+    /// <summary>
+    /// The app library version that planned the workflow. The engine never inspects it. It echoes it as
+    /// <see cref="AppCallbackPayload.PlannerVersion"/> on every callback, so a pod on an older version can refuse a
+    /// step that a newer one planned. Absent from workflows that apps enqueued before they set it.
+    /// </summary>
+    [JsonPropertyName("plannerVersion")]
+    public string? PlannerVersion { get; init; }
 }

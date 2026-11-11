@@ -27,6 +27,14 @@ public sealed record AppCallbackPayload
     public string? Payload { get; init; }
 
     /// <summary>
+    /// The Altinn.App.Core version that planned this workflow, echoed from its context. A pod on an older version
+    /// refuses the step with a status the engine retries. <c>null</c> for a workflow planned before the stamp existed,
+    /// and from an engine that does not echo it yet.
+    /// </summary>
+    [JsonPropertyName("plannerVersion")]
+    public string? PlannerVersion { get; init; }
+
+    /// <summary>
     /// The workflow ID assigned by the engine.
     /// </summary>
     [JsonPropertyName("workflowId")]

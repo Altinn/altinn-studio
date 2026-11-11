@@ -3917,6 +3917,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         public string? Payload { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("plannerVersion")]
+        public string? PlannerVersion { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("retryCount")]
         public int RetryCount { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]

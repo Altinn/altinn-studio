@@ -18,6 +18,12 @@ internal sealed record AppCallbackPayload
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
 
+    /// <summary>
+    /// <see cref="AppWorkflowContext.PlannerVersion"/>, echoed unread.
+    /// </summary>
+    [JsonPropertyName("plannerVersion")]
+    public string? PlannerVersion { get; init; }
+
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
 

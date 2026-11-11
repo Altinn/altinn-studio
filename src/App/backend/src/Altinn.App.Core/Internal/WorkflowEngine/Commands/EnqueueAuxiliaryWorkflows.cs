@@ -83,6 +83,8 @@ internal sealed class EnqueueAuxiliaryWorkflows(
                                 context.Payload.Actor,
                                 auxiliaryWorkflows
                             ),
+                            // The primary workflow's planner assembled these steps, and this pod is not older.
+                            PlannerVersion = context.Payload.PlannerVersion,
                         }
                     ),
                     Workflows = auxiliaryWorkflows,

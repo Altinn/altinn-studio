@@ -178,6 +178,11 @@
         "Nullable": true
       },
       {
+        "Name": "plannerVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
         "Name": "retryCount",
         "Kind": "int",
         "Nullable": false
@@ -266,6 +271,11 @@
         "Name": "org",
         "Kind": "string",
         "Nullable": false
+      },
+      {
+        "Name": "plannerVersion",
+        "Kind": "string",
+        "Nullable": true
       }
     ]
   },

@@ -420,6 +420,118 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
+    [Theory]
+    [InlineData("999.0.0")]
+    [InlineData("not-a-version")]
+    public async Task ExecuteCommand_PlannedByNewerVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
+        string plannerVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion
+        );
+
+        AssertPlannedByNewerVersion(result);
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains(plannerVersion, StringComparison.Ordinal) == true
+                && log.FormattedMessage.Contains(PlannerVersion.Current, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The case the stamp exists for: a newer version planned a command this pod does not have. Without the stamp
+    /// this pod would fail the workflow permanently.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteCommand_CommandThisPodLacks_PlannedByNewerVersion_AnswersRetryable()
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "CommandFromANewerVersion",
+            stepId: Guid.NewGuid(),
+            plannerVersion: "999.0.0"
+        );
+
+        AssertPlannedByNewerVersion(result);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquirePlannedByNewerVersion_AnswersRetryableWithoutClaimingTheInstance()
+    {
+        await using ControllerSetup setup = CreateSetup(_ => { });
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            setup.CreateAcquirePayload(),
+            collectionKey: "acquire-chain",
+            plannerVersion: "999.0.0"
+        );
+
+        AssertPlannedByNewerVersion(result);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+    }
+
+    public static TheoryData<string?> RunnablePlannerVersions => new() { PlannerVersion.Current, "8.12.7", null };
+
+    [Theory]
+    [MemberData(nameof(RunnablePlannerVersions))]
+    public async Task ExecuteCommand_PlannedBySameOrOlderVersionOrUnstamped_RunsTheStep(string? plannerVersion)
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.True(command.Executed);
+    }
+
+    [Theory]
+    [MemberData(nameof(RunnablePlannerVersions))]
+    public async Task ExecuteCommand_CommandThisPodLacks_PlannedBySameOrOlderVersionOrUnstamped_FailsPermanently(
+        string? plannerVersion
+    )
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "RemovedCommand",
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion
+        );
+
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status404NotFound, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+    }
+
+    private static void AssertPlannedByNewerVersion(IActionResult result)
+    {
+        // 503 is retryable for the engine, as long as the nonRetryable marker is absent.
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.Equal("Planned By Newer Version", problem.Title);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+    }
+
     [Fact]
     public async Task ExecuteCommand_RestoresTheDataMutatorInTheActorsLanguage()
     {
@@ -1475,8 +1587,18 @@ public class WorkflowEngineCallbackControllerTests
             Guid stepId,
             string? commandPayload = null,
             string? collectionKey = null,
-            Actor? actor = null
-        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
+            Actor? actor = null,
+            string? plannerVersion = null
+        ) =>
+            Execute(
+                commandKey,
+                stepId,
+                commandPayload,
+                FixtureExecutionReferenceTime,
+                collectionKey,
+                actor,
+                plannerVersion
+            );
 
         public async Task<IActionResult> Execute(
             string commandKey,
@@ -1484,7 +1606,8 @@ public class WorkflowEngineCallbackControllerTests
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
             string? collectionKey = null,
-            Actor? actor = null
+            Actor? actor = null,
+            string? plannerVersion = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1502,6 +1625,7 @@ public class WorkflowEngineCallbackControllerTests
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
+                PlannerVersion = plannerVersion,
             };
             // What the callback scheme would authenticate for a token minted for this actor.
             Controller.HttpContext.User = new ClaimsPrincipal(
