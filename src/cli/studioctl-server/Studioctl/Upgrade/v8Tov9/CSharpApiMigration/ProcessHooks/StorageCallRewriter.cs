@@ -2035,6 +2035,21 @@ internal sealed class StorageCallRewriter(
                         + "move it out of the transition."
                 );
                 return;
+            case "AddCompleteConfirmation" or "UpdateSubstatus":
+                if (target.Kind == TargetKind.Other)
+                {
+                    _ = Write(rewrite, call, target, "");
+                    return;
+                }
+
+                Unported(
+                    rewrite,
+                    call,
+                    call.Name == "UpdateSubstatus"
+                        ? "the mutator has no member that sets the substatus"
+                        : "the mutator has no member that confirms the instance as complete"
+                );
+                return;
             case "DeleteInstance":
                 if (Write(rewrite, call, target, "autoDeleteOnProcessEnd"))
                 {
@@ -2050,8 +2065,6 @@ internal sealed class StorageCallRewriter(
 
         var member = call.Name switch
         {
-            "AddCompleteConfirmation" => "AddCompleteConfirmation",
-            "UpdateSubstatus" => "SetSubstatus",
             "UpdatePresentationTexts" => "SetPresentationText",
             "UpdateDataValues" or "UpdateDataValue" => "SetDataValue",
             _ => null,
@@ -2061,21 +2074,7 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
-        switch (call.Name)
-        {
-            case "AddCompleteConfirmation":
-                Confirmation(rewrite, call);
-                break;
-            case "UpdateSubstatus":
-                Substatus(rewrite, call);
-                break;
-            case "UpdatePresentationTexts":
-                Entries(rewrite, call, presentation: true);
-                break;
-            default:
-                Entries(rewrite, call, presentation: false);
-                break;
-        }
+        Entries(rewrite, call, presentation: call.Name == "UpdatePresentationTexts");
     }
 
     /// <summary>C-RI1 and C-RI2: a re-read of the current instance is the mutator's instance, unless it looks for an element the hook added.</summary>
@@ -2176,75 +2175,6 @@ internal sealed class StorageCallRewriter(
         (call.Use.Statement as ExpressionStatementSyntax)?.Expression is AssignmentExpressionSyntax assignment
             ? call.Invocation.SemanticModel?.GetOperation(assignment.Left)
             : null;
-
-    private static void Confirmation(MethodRewrite rewrite, StorageClientCall call)
-    {
-        var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        if (!Staged(rewrite, call, [Piece.Statement("$0.AddCompleteConfirmation();", mutator)], null, static _ => true))
-        {
-            return;
-        }
-
-        rewrite.MovedWrites.Add(call);
-        rewrite.Moved(
-            call.Syntax,
-            $"{call.DisplayName} now confirms the instance with {rewrite.Mutator}.AddCompleteConfirmation."
-        );
-        if (rewrite.InDataCreation)
-        {
-            rewrite.Moved(
-                call.Syntax,
-                "DataCreation also runs when an instance is created with data or a data element is posted; there the "
-                    + "confirmation is refused before the save, so the request fails."
-            );
-        }
-    }
-
-    private static void Substatus(MethodRewrite rewrite, StorageClientCall call)
-    {
-        var substatus = call.Written("substatus");
-        if (StorageClientCall.Expression(substatus) is not { } expression || EmptyLabel(substatus))
-        {
-            Unported(rewrite, call, "its substatus has no label, which the mutator refuses");
-            return;
-        }
-
-        var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        if (
-            !Staged(
-                rewrite,
-                call,
-                [Piece.Statement("$0.SetSubstatus($1);", mutator, Piece.Of(expression))],
-                null,
-                static _ => true
-            )
-        )
-        {
-            return;
-        }
-
-        rewrite.MovedWrites.Add(call);
-        rewrite.Moved(call.Syntax, $"{call.DisplayName} now sets the substatus with {rewrite.Mutator}.SetSubstatus.");
-        if (rewrite.InDataCreation)
-        {
-            rewrite.Moved(
-                call.Syntax,
-                "DataCreation also runs when an instance is created with data or a data element is posted; there the "
-                    + "substatus is saved with the caller's token, which Storage accepts only from the app owner, so a "
-                    + "user's request fails with 403, as v8's PUT did."
-            );
-        }
-    }
-
-    private static bool EmptyLabel(IArgumentOperation? substatus) =>
-        substatus is not null
-        && Unwrapped(substatus.Value) is IObjectCreationOperation { Initializer: { } initializer }
-        && initializer
-            .Initializers.OfType<ISimpleAssignmentOperation>()
-            .Any(static assignment =>
-                assignment.Target is IPropertyReferenceOperation { Property.Name: "Label" }
-                && assignment.Value.ConstantValue is { HasValue: true, Value: null or "" }
-            );
 
     /// <summary>
     /// C-ID1, C-ID2 and C-IP: one <c>SetDataValue</c> (<c>SetPresentationText</c>) per entry of a literal dictionary,
