@@ -54,12 +54,12 @@ public class LookupTests
 
         using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             Uri,
-            new[] { Item("1.0.0"), Item("2.0.0"), Item("3.0.0") }
+            Request(Item("1.0.0"), Item("2.0.0"), Item("3.0.0"))
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await ReadResult(response);
-        ReleaseLookupResponse actual = Assert.Single(result);
+        ReleaseLookupResult actual = Assert.Single(result);
         Assert.Equal(_org, actual.Org);
         Assert.Equal(_app, actual.App);
         Assert.Equal("1.0.0", actual.Version);
@@ -74,21 +74,32 @@ public class LookupTests
 
         using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             Uri,
-            new[] { Item("1.0.0"), Item("1.0.0") }
+            Request(Item("1.0.0"), Item("1.0.0"))
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        ReleaseLookupResponse actual = Assert.Single(await ReadResult(response));
+        ReleaseLookupResult actual = Assert.Single(await ReadResult(response));
         Assert.Equal(succeeded.TargetCommitish, actual.Commit);
     }
 
     [Fact]
-    public async Task Lookup_EmptyArray_ReturnsEmptyArray()
+    public async Task Lookup_NoItems_ReturnsNoReleases()
     {
-        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Array.Empty<ReleaseLookupRequest>());
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request());
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Empty(await ReadResult(response));
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("""{"items":null}""")]
+    public async Task Lookup_ItemsMissing_ReturnsBadRequest(string body)
+    {
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using HttpResponseMessage response = await HttpClient.PostAsync(Uri, content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -98,9 +109,10 @@ public class LookupTests
             .Range(0, Altinn.Studio.Designer.Controllers.ReleaseLookupController.MaxItems + 1)
             .Select(i => Item($"1.0.{i}"))
             .ToArray();
+        var request = Request(items);
 
         // Sent buffered, because the test server fails to send a streamed body of this size.
-        using var content = new StringContent(JsonSerializer.Serialize(items), Encoding.UTF8, "application/json");
+        using var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
         using HttpResponseMessage response = await HttpClient.PostAsync(Uri, content);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -116,11 +128,11 @@ public class LookupTests
     {
         using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             Uri,
-            new[] { Item("1.0.0"), new ReleaseLookupRequest(org, app, version) }
+            Request(Item("1.0.0"), new ReleaseLookupItem(org, app, version))
         );
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("[1]", await response.Content.ReadAsStringAsync());
+        Assert.Contains("items[1]", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -128,7 +140,7 @@ public class LookupTests
     {
         using HttpClient anonymousClient = CreateTestClientWithAuthHandler<UnauthenticatedTestAuthHandler>();
 
-        using HttpResponseMessage response = await anonymousClient.PostAsJsonAsync(Uri, new[] { Item("1.0.0") });
+        using HttpResponseMessage response = await anonymousClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -139,7 +151,7 @@ public class LookupTests
         ReleaseEntity succeeded = await AddRelease("1.0.0", BuildResult.Succeeded);
         using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
 
-        using HttpResponseMessage response = await apiKeyClient.PostAsJsonAsync(Uri, new[] { Item("1.0.0") });
+        using HttpResponseMessage response = await apiKeyClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(succeeded.TargetCommitish, Assert.Single(await ReadResult(response)).Commit);
@@ -150,12 +162,14 @@ public class LookupTests
     {
         using HttpClient sessionClient = CreateTestClientWithAuthHandler<TestAuthHandler>();
 
-        using HttpResponseMessage response = await sessionClient.PostAsJsonAsync(Uri, new[] { Item("1.0.0") });
+        using HttpResponseMessage response = await sessionClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private ReleaseLookupRequest Item(string version) => new(_org, _app, version);
+    private ReleaseLookupItem Item(string version) => new(_org, _app, version);
+
+    private static ReleaseLookupRequest Request(params ReleaseLookupItem[] items) => new(items);
 
     private async Task<ReleaseEntity> AddRelease(string tagName, BuildResult buildResult)
     {
@@ -170,9 +184,9 @@ public class LookupTests
         return release;
     }
 
-    private async Task<List<ReleaseLookupResponse>> ReadResult(HttpResponseMessage response)
+    private async Task<IReadOnlyList<ReleaseLookupResult>> ReadResult(HttpResponseMessage response)
     {
         string body = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<List<ReleaseLookupResponse>>(body, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<ReleaseLookupResponse>(body, JsonSerializerOptions).Releases;
     }
 }
