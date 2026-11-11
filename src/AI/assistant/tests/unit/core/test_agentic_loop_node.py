@@ -270,9 +270,9 @@ class TestStoppedRunSummary:
 
 
 def test_the_changes_sentence_names_every_changed_file_in_a_norwegian_list():
-    sentence = _changes_sentence(["a.json", "b.json", "c.json"], pushed=False, failed_verification=True)
+    sentence = _changes_sentence(["a.json", "b.json", "c.json"], pushed=False)
 
-    assert sentence == "Endringene i `a.json`, `b.json` og `c.json` er ikke lagret, fordi de ikke besto valideringen."
+    assert sentence == "Endringene i `a.json`, `b.json` og `c.json` er ikke lagret."
 
 
 class TestApplyResultToState:
@@ -1011,11 +1011,6 @@ class TestCompletedAnswerReportsUnsavedChanges:
 
         assert content == "Ferdig.\n\nEndringene i `App/ui/a.json` er ikke lagret."
 
-    async def test_the_answer_says_that_the_changes_failed_validation(self, monkeypatch, repo):
-        _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, invalid_edits=(_A,)))
-
-        assert content == "Ferdig.\n\nEndringene i `App/ui/a.json` er ikke lagret, fordi de ikke besto valideringen."
-
     async def test_an_answer_with_saved_changes_is_the_text_of_the_model(self, monkeypatch, repo):
         _, message, _ = await _handle_events(
             monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=(_A,), model_commits=True)
@@ -1047,27 +1042,8 @@ class TestStoppedRunReportsWhatIsSaved:
         _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, edits=(_A,)))
 
         assert "Endringene i `App/ui/a.json` er ikke lagret." in content
-        assert "valideringen" not in content
 
-    async def test_changes_that_failed_verification_are_blamed_on_validation(self, monkeypatch, repo):
-        _, content, _ = await _finish(
-            monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, invalid_edits=(_B, _A))
-        )
-
-        assert (
-            "Endringene i `App/ui/a.json` og `App/ui/b.json` er ikke lagret, fordi de ikke besto valideringen."
-            in content
-        )
-
-    async def test_an_edit_after_a_failed_verification_is_not_blamed_on_validation(self, monkeypatch, repo):
-        steps = {"invalid_edits": (_A,), "edits_after_commit": (_A,)}
-
-        _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, **steps))
-
-        assert "Endringene i `App/ui/a.json` er ikke lagret." in content
-        assert "valideringen" not in content
-
-    async def test_a_rejected_push_is_not_blamed_on_validation(self, monkeypatch, repo):
+    async def test_a_commit_with_a_rejected_push(self, monkeypatch, repo):
         _, content, _ = await _finish(
             monkeypatch,
             repo,
@@ -1076,7 +1052,6 @@ class TestStoppedRunReportsWhatIsSaved:
         )
 
         assert "Endringene i `App/ui/a.json` er ikke lagret." in content
-        assert "valideringen" not in content
 
     async def test_no_changes(self, monkeypatch, repo):
         _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.ERROR))
@@ -1110,7 +1085,7 @@ class TestStoppedRunReportsWhatIsSaved:
             render_checks=[_outcome(is_error=True), _outcome(is_error=True)],
         )
 
-        assert "Endringene i `App/ui/b.json` er ikke lagret, fordi de ikke besto valideringen." in content
+        assert "Endringene i `App/ui/b.json` er ikke lagret." in content
 
     async def test_a_rejected_push_names_only_the_files_that_the_remote_does_not_have(self, monkeypatch, repo):
         fake_run_loop = _loop_ending(TerminationReason.MAX_TURNS, **_LATER_PUSH_REJECTED)

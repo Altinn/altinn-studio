@@ -565,12 +565,7 @@ def _emit_workflow_completion(
     Without these two events, the frontend shows empty bubbles and does not
     end the run. For example, it does not check out the pushed branch.
     """
-    failed_verification: set[str] = ctx.extras.get("files_that_failed_verification") or set()
-    changes = _changes_sentence(
-        unsaved_files,
-        pushed=bool(ctx.extras.get("session_pushed")),
-        failed_verification=not failed_verification.isdisjoint(unsaved_files),
-    )
+    changes = _changes_sentence(unsaved_files, pushed=bool(ctx.extras.get("session_pushed")))
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))
     if unsaved_files and result.reason is TerminationReason.COMPLETED:
         # The model can say that the change is done when the edits are not
@@ -669,18 +664,17 @@ def _strip_sources_line(text: str) -> str:
     return _SOURCES_LINE_RE.sub("", text)
 
 
-def _changes_sentence(unsaved_files: list[str], *, pushed: bool, failed_verification: bool) -> str:
+def _changes_sentence(unsaved_files: list[str], *, pushed: bool) -> str:
     """Tell the user if the changes are saved.
 
     A run that stopped before the end has no text from the model, thus the
     sentence is the only report. A completed run gets the sentence after the
-    text of the model if edits are not saved. The sentence gives the file
-    names, not the errors from the validator. The errors are for the model.
+    text of the model if edits are not saved. The sentence gives only the
+    file names, which git shows. The model tells the user why, for example
+    that the validation failed.
     """
     if unsaved_files:
         files = _norwegian_list([f"`{path}`" for path in unsaved_files])
-        if failed_verification:
-            return f"Endringene i {files} er ikke lagret, fordi de ikke besto valideringen."
         return f"Endringene i {files} er ikke lagret."
     if pushed:
         return "Endringene jeg rakk å gjøre, er lagret i sesjons-grenen."

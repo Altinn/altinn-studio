@@ -110,8 +110,6 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         if passed:
             verified_set: set[str] = ctx.extras.setdefault("verified_files", set())
             verified_set.update(changed)
-        # The final message tells the user why an edit is not saved.
-        ctx.extras["files_that_failed_verification"] = set() if passed else set(changed)
 
         old_errors = [error for result in results for error in result.old_errors]
         body = {

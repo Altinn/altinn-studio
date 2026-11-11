@@ -91,6 +91,6 @@ def _forget_file(ctx: LoopContext, rel_path: str) -> None:
     Its in-memory state is no longer "the version we modified" nor "the
     version we read", and its prior verification badge no longer applies.
     """
-    for tracking_key in ("changed_files", "verified_files", "files_that_failed_verification"):
+    for tracking_key in ("changed_files", "verified_files"):
         (ctx.extras.get(tracking_key) or set()).discard(rel_path)
     mark_unread(ctx, rel_path)

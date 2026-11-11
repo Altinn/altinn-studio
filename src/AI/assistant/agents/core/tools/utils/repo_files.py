@@ -61,11 +61,10 @@ def mark_unread(ctx: LoopContext, rel_path: str) -> None:
 def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     changed: set[str] = ctx.extras.setdefault("changed_files", set())
     changed.add(rel_path)
-    # A re-edited file needs to be re-verified before commit.  Drop the
-    # prior verification result, so commit_session_branch's gate triggers
-    # again and the final message does not blame validation for this edit.
-    for verification_key in ("verified_files", "files_that_failed_verification"):
-        (ctx.extras.get(verification_key) or set()).discard(rel_path)
+    # A re-edited file needs to be re-verified before commit.  Drop any
+    # prior verification badge so commit_session_branch's gate triggers
+    # again after this write.
+    (ctx.extras.get("verified_files") or set()).discard(rel_path)
 
 
 def is_read(ctx: LoopContext, rel_path: str) -> bool:
