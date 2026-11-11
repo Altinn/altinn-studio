@@ -10,6 +10,7 @@ import { FormLayout } from './FormLayout';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import {
   duplicatedIdsExistsInLayout,
+  layoutHasPreviewErrors,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
@@ -70,6 +71,7 @@ const DesignViewLoadedContent = ({
     setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
+    previewComponentErrors,
   } = useAppContext();
 
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
@@ -145,6 +147,7 @@ const DesignViewLoadedContent = ({
           onClick={() => handleClickAccordion(pageModel.id)}
           isInvalid={isInvalidLayout}
           hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(pageModel.id)}
+          hasPreviewErrors={layoutHasPreviewErrors(layout, previewComponentErrors)}
         >
           {pageModel.id === selectedFormLayoutName && (
             <FormLayout

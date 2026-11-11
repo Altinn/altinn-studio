@@ -17,6 +17,7 @@ import type { FormContainer } from '../types/FormContainer';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
+import type { PreviewComponentErrors } from '../components/Preview/studioBridge';
 
 export const mapComponentToToolbarElement = <T extends ComponentType | ComponentPreset>(
   c: FormItemConfig<T>,
@@ -431,6 +432,16 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
   const idsInLayout = ObjectUtils.flattenObjectValues(layout.order);
   return !ArrayUtils.areItemsUnique(idsInLayout);
 };
+
+/** Whether preview found errors in any of the layout's components. */
+export const layoutHasPreviewErrors = (
+  layout: IInternalLayout,
+  errors: PreviewComponentErrors,
+): boolean =>
+  errors.size > 0 &&
+  [...Object.keys(layout.components || {}), ...Object.keys(layout.containers || {})].some((id) =>
+    errors.has(id),
+  );
 
 /**
  * Checks if there are component with duplicated ids across all layouts in the layoutset.

@@ -1,3 +1,4 @@
+import type { PreviewComponentErrors } from '../../../../../components/Preview/studioBridge';
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
@@ -18,6 +19,26 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 const mockHandleDiscard = vi.fn();
 
 describe('FormItemTitle', () => {
+  it('marks a component that preview found errors in', () => {
+    const component = componentMocks[ComponentType.Input];
+
+    render(component, 'Test label', new Map([[component.id, ['Must be boolean']]]));
+
+    expect(
+      screen.getByTitle(textMock('ux_editor.preview.component_has_errors')),
+    ).toBeInTheDocument();
+  });
+
+  it('does not mark a component that preview found no errors in', () => {
+    const component = componentMocks[ComponentType.Input];
+
+    render(component, 'Test label', new Map([['another-component', ['Must be boolean']]]));
+
+    expect(
+      screen.queryByTitle(textMock('ux_editor.preview.component_has_errors')),
+    ).not.toBeInTheDocument();
+  });
+
   it('Renders children', () => {
     const component = componentMocks[ComponentType.Input];
     const label = 'Test label';
@@ -106,7 +127,11 @@ describe('FormItemTitle', () => {
   });
 });
 
-const render = (formItem: FormComponent | FormContainer, label: string) =>
+const render = (
+  formItem: FormComponent | FormContainer,
+  label: string,
+  previewComponentErrors: PreviewComponentErrors = new Map(),
+) =>
   renderWithProviders(
     <FormItemContext.Provider
       value={{
@@ -117,6 +142,6 @@ const render = (formItem: FormComponent | FormContainer, label: string) =>
       <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
     </FormItemContext.Provider>,
     {
-      appContextProps: {},
+      appContextProps: { previewComponentErrors },
     },
   );

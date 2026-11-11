@@ -22,6 +22,7 @@ import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
+  layoutHasPreviewErrors,
 } from '@altinn/ux-editor/utils/formLayoutUtils';
 import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useDeletePageGroupMutation } from '@altinn/ux-editor/hooks/mutations/useDeletePageGroupMutation';
@@ -56,7 +57,8 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedItem, setSelectedItem, setSelectedFormLayoutName } = useAppContext();
+  const { selectedItem, setSelectedItem, setSelectedFormLayoutName, previewComponentErrors } =
+    useAppContext();
   const { layoutSet } = useUxEditorParams();
 
   const { org, app } = useStudioEnvironmentParams();
@@ -172,6 +174,9 @@ export const PageGroupAccordion = ({
                 onClick={() => onAccordionClick(page.id)}
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
+                hasPreviewErrors={
+                  layout ? layoutHasPreviewErrors(layout, previewComponentErrors) : false
+                }
                 groupIndex={groupIndex}
               >
                 {page.id === selectedFormLayoutName && layout && (

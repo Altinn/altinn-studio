@@ -7,6 +7,7 @@ import {
   createEmptyLayout,
   duplicatedIdsExistsInLayout,
   findParentId,
+  layoutHasPreviewErrors,
   getChildIds,
   getDepth,
   getDuplicatedIds,
@@ -549,6 +550,23 @@ describe('formLayoutUtils', () => {
 
     it('Returns false if the layout does not contain a multi page group', () => {
       expect(hasMultiPageGroup(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('layoutHasPreviewErrors', () => {
+    it('Returns true when preview found errors in a component of the layout', () => {
+      const [componentId] = Object.keys(mockInternal.components);
+      expect(layoutHasPreviewErrors(mockInternal, new Map([[componentId, ['error']]]))).toBe(true);
+    });
+
+    it('Returns true when preview found errors in a container of the layout', () => {
+      const [containerId] = Object.keys(mockInternal.containers);
+      expect(layoutHasPreviewErrors(mockInternal, new Map([[containerId, ['error']]]))).toBe(true);
+    });
+
+    it('Returns false when preview found errors only in components of other layouts', () => {
+      expect(layoutHasPreviewErrors(mockInternal, new Map([['elsewhere', ['error']]]))).toBe(false);
+      expect(layoutHasPreviewErrors(mockInternal, new Map())).toBe(false);
     });
   });
 

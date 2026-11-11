@@ -2,7 +2,7 @@ import type { MouseEvent, ReactNode } from 'react';
 import classes from './PageAccordion.module.css';
 import { NavigationMenu } from './NavigationMenu';
 import { accordionHeaderId, pageAccordionContentId } from '@studio/testing/testids';
-import { FilePdfIcon, TrashIcon } from '@studio/icons';
+import { FilePdfIcon, TrashIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
@@ -23,6 +23,8 @@ export type PageAccordionProps = {
   onClick: () => void;
   isInvalid?: boolean;
   hasDuplicatedIds?: boolean;
+  /** Whether preview found errors in any of the page's components. */
+  hasPreviewErrors?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
   groupIndex?: number;
@@ -48,6 +50,7 @@ export const PageAccordion = ({
   onClick,
   isInvalid,
   hasDuplicatedIds,
+  hasPreviewErrors,
   pageIsPdf,
   showNavigationMenu = true,
   groupIndex,
@@ -89,9 +92,17 @@ export const PageAccordion = ({
         <StudioDetails.Summary
           data-testid={accordionHeaderId(pageId)}
           onClick={handleSummaryClick}
-          className={isInvalid || hasDuplicatedIds ? classes.detailsWarning : undefined}
+          className={
+            isInvalid || hasDuplicatedIds || hasPreviewErrors ? classes.detailsWarning : undefined
+          }
         >
           {pageName || pageId}
+          {hasPreviewErrors && (
+            <XMarkOctagonFillIcon
+              className={classes.previewErrorIcon}
+              title={t('ux_editor.preview.page_has_errors')}
+            />
+          )}
         </StudioDetails.Summary>
         <StudioDetails.Content
           data-testid={pageAccordionContentId(pageId)}

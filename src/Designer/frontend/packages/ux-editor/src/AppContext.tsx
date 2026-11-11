@@ -9,6 +9,10 @@ import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
 import useUxEditorParams from './hooks/useUxEditorParams';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
+import {
+  noPreviewComponentErrors,
+  type PreviewComponentErrors,
+} from './components/Preview/studioBridge';
 
 export type SelectedItem =
   | {
@@ -37,6 +41,9 @@ export interface AppContextProps {
   onLayoutSetNameChange: (layoutSetName: string) => void;
   selectedItem: SelectedItem | null;
   setSelectedItem: (selectedItem: SelectedItem | null) => void;
+  /** The errors that the app frontend in preview found in the components of the layout set it shows. */
+  previewComponentErrors: PreviewComponentErrors;
+  setPreviewComponentErrors: (errors: PreviewComponentErrors) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -68,6 +75,8 @@ export const AppContextProvider = ({
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(
     layout ? { type: ItemType.Page, id: layout } : null,
   );
+  const [previewComponentErrors, setPreviewComponentErrors] =
+    useState<PreviewComponentErrors>(noPreviewComponentErrors);
 
   // Preview runs on a domain of its own, where the editors can't reach the app frontend's queries, so they reload
   // the frame. The frame's session keeps the instance and its form data.
@@ -101,6 +110,8 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
       selectedItem,
       setSelectedItem,
+      previewComponentErrors,
+      setPreviewComponentErrors,
     }),
     [
       selectedFormLayoutName,
@@ -114,6 +125,8 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
       selectedItem,
       setSelectedItem,
+      previewComponentErrors,
+      setPreviewComponentErrors,
     ],
   );
 
