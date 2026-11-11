@@ -49,7 +49,6 @@ internal sealed record StepStatusResponse
     /// The current execution status.
     /// </summary>
     [JsonPropertyName("status")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required PersistentItemStatus Status { get; init; }
 
     /// <summary>
@@ -88,9 +87,8 @@ internal sealed record StepStatusResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StateOut { get; init; }
 
-    [JsonPropertyName("retryStrategy")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public RetryStrategy? RetryStrategy { get; init; }
+    // The engine also returns the step's retry strategy. The app leaves it out because it never reads it, which keeps
+    // BackoffType an enum the app only sends.
 
     /// <summary>
     /// Error entries recorded while attempting to execute this step.

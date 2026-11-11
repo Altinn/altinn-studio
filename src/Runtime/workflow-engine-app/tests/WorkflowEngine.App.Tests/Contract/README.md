@@ -6,6 +6,7 @@ keep the two sets of models from drifting apart without coupling the builds.
 
 [`wire-contract.verified.json`](wire-contract.verified.json) describes the contract's JSON shapes. `WireContract.cs`
 produces the description and ignores what does not change the JSON, such as namespaces and equivalent converters.
+It also leaves out the `Unknown` member that the app gives each enum it reads, since that member is never on the wire.
 `EngineWireContractTests` here checks the engine's types against the file. `AppWireContractTests` in
 `Altinn.App.Core.Tests` compiles in the same describer and checks the app's copies against it.
 

@@ -325,6 +325,7 @@ public class ExecuteServiceTaskReplyTests
     [Theory]
     [InlineData(MailboxDisposedReason.Deadline, MailboxClosedReason.Deadline)]
     [InlineData(MailboxDisposedReason.Request, MailboxClosedReason.Request)]
+    [InlineData(MailboxDisposedReason.Unknown, MailboxClosedReason.Request)]
     public async Task OnClosed_RunsWithTheReasonAndNoMessage(
         MailboxDisposedReason engineReason,
         MailboxClosedReason appReason
