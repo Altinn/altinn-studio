@@ -13,7 +13,7 @@ public class ResourceController_InstanceLayoutProviderTests : ApiTestBase
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private const string LayoutFolder = "Task_1";
-    private static readonly Guid _instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
+    private static readonly Guid _instanceGuid = Guid.Parse("26611c24-d934-4d81-bdcc-baa15c4c1925");
 
     public ResourceController_InstanceLayoutProviderTests(ITestOutputHelper outputHelper)
         : base(outputHelper) { }
