@@ -1,7 +1,6 @@
 import type { ILabelSettings } from '@app/layout-contract/generated/common.generated';
 
-import { getGlobalUiSettings } from 'src/features/form/ui';
-import { useCurrentUiFolderSettingsFromUrl } from 'src/features/form/ui/hooks';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import type { CompExternal } from 'src/layout/layout';
 
 /**
@@ -10,8 +9,7 @@ import type { CompExternal } from 'src/layout/layout';
  * Shown when none is set.
  */
 export function useShowOptionalIndicator(labelSettings: ILabelSettings | undefined): boolean {
-  const hideByDefault =
-    useCurrentUiFolderSettingsFromUrl()?.pages.hideOptionalIndicator ?? getGlobalUiSettings().hideOptionalIndicator;
+  const hideByDefault = usePageSettings().hideOptionalIndicator;
   return labelSettings?.optionalIndicator ?? !hideByDefault;
 }
 
