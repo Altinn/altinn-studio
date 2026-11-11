@@ -55,7 +55,7 @@ jobs:
           - arch: amd64
             runner: ubuntu-latest
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
           - variant: minimal
             repository: ghcr.io/altinn/altinn-studio/agent-minimal
           # The desktop image is one stage on top of minimal, so it warms its build from that image's
@@ -72,39 +72,12 @@ jobs:
             agents
 
       # The desktop image takes about 16 GB of disk while it builds, more than the amd64 runners have
-      # free. The build uses none of these preinstalled toolchains and images. Prune the images before
-      # the next step changes image store, which would hide them from Docker but leave them on disk.
+      # free. The build uses none of these preinstalled toolchains and images.
       - name: Free disk space
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet
           docker image prune --all --force > /dev/null
           df -h /
-
-      # The containerd image store keeps the image the build step pushes, so the smoke test runs it
-      # without a second copy on the runner's disk. The runner's Docker uses it by default from
-      # Docker 29; older runner images get it switched on here.
-      #
-      # This uses the runner's Docker rather than docker/setup-docker-action. The action's static
-      # runc has no AppArmor profile, and on Ubuntu 26.04 runners the kernel then confines build
-      # steps as docker-default//&unconfined, which docker-default does not let signal its own
-      # processes. Ubuntu's runc profile covers the packaged /usr/bin/runc the runner's Docker uses.
-      - name: Use the containerd image store
-        run: |
-          set -eu
-
-          uses_containerd_store() {
-            docker info --format '{{json .DriverStatus}}' | grep -q 'io.containerd.snapshotter.v1'
-          }
-
-          if ! uses_containerd_store; then
-            config=/etc/docker/daemon.json
-            { cat "${config}" 2>/dev/null || echo '{}'; } \
-              | jq '.features["containerd-snapshotter"] = true' > "${RUNNER_TEMP}/daemon.json"
-            sudo install --mode=0644 "${RUNNER_TEMP}/daemon.json" "${config}"
-            sudo systemctl restart docker
-            uses_containerd_store
-          fi
-          docker version --format 'Docker {{.Server.Version}}'
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
