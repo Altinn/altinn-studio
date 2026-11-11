@@ -20,8 +20,6 @@ export default [
       ...tsPlugin.configs.recommended.rules,
       // TypeScript checks that names exist, and knows the browser globals such as fetch.
       'no-undef': 'off',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
 ];

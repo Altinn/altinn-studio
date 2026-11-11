@@ -1,7 +1,7 @@
 import { createHttpClient } from '@studio/http-client';
 import type { RequestInterceptor, RequestOptions, ResponseInterceptor } from '@studio/http-client';
 
-export type { HttpResponse, RequestOptions } from '@studio/http-client';
+export type { RequestOptions } from '@studio/http-client';
 export { HttpError, isHttpError, isRequestCancelled } from '@studio/http-client';
 
 /** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
