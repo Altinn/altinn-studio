@@ -3,6 +3,7 @@ pushed branch."""
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -95,6 +96,23 @@ class TestALaterStartOfTheSession:
         self._later_start(manager)
 
         assert not (repo / "bin").exists()
+
+
+def test_a_clone_that_times_out_does_not_show_the_api_key(manager: RepoManager, monkeypatch):
+    """The route logs the error and returns it to Designer."""
+
+    def time_out(args, api_key, **kwargs):
+        raise subprocess.TimeoutExpired(["git", "-c", f"http.extraHeader=X-Api-Key: {api_key}", *args], 300)
+
+    monkeypatch.setattr(manager, "_run_git", time_out)
+
+    with pytest.raises(Exception, match="no answer after 300 seconds") as raised:
+        manager.clone_repo_for_session(_URL, "session-1", api_key="secret-key")
+
+    assert "secret-key" not in str(raised.value)
+    # A logged traceback leaves out an exception that the chain suppresses.
+    assert raised.value.__suppress_context__
+    assert raised.value.__cause__ is None
 
 
 def test_forgets_the_start_commit_with_the_session(manager: RepoManager):
