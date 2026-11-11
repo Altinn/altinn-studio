@@ -321,6 +321,20 @@ func TestReconciler_WorkflowUsesLongerTimings(t *testing.T) {
 	g.Expect(result.RequeueAfter).To(Equal(baseIssueLifetime - baseRotationLeadTime))
 }
 
+// The workflow engine's CallbackTokenLifetimeInvariantTests take this floor as given: a callback token has at
+// least this much validity left at enqueue. It is the acceptance window, less one rotation interval, less the
+// hour an app waits before it signs with a new code (AppCodeRotation.SigningGracePeriod in the app libraries).
+// Change the policy and that test together.
+func TestWorkflowEngineCallbackPolicy_KeepsTheTokenValidityTheEngineAssumes(t *testing.T) {
+	g := NewWithT(t)
+
+	const appSigningGracePeriod = time.Hour
+	spec := specByPropertyName("WorkflowEngineCallback")
+
+	g.Expect(spec.AcceptLifetime - spec.rotationInterval() - appSigningGracePeriod).
+		To(Equal(341*24*time.Hour - time.Hour))
+}
+
 func TestReconciler_RequeuesForEarliestTypeEvent(t *testing.T) {
 	g := NewWithT(t)
 
