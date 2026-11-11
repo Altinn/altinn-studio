@@ -8,6 +8,7 @@ scan, read, load skills and fetch docs.
 from __future__ import annotations
 
 import os
+import posixpath
 import re
 import subprocess
 import time
@@ -43,7 +44,6 @@ from agents.core import (
     format_skill_listing,
     run_loop,
 )
-from agents.core.tools.commit_session_branch_tool import track_uncommitted_files, unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
@@ -252,15 +252,11 @@ async def handle(state: AgentState) -> AgentState:
     )
 
     _apply_result_to_state(state, result, ctx)
-    # A read-only run cannot change files.
-    saved = True
     if state.allow_app_changes:
-        saved = await _maybe_auto_commit(state, result, ctx)
-        result, saved = await _repair_render_failures(
+        result = await _repair_render_failures(
             state,
             result,
             ctx,
-            saved=saved,
             registry=registry,
             adapter=adapter,
             system_prompt=system_prompt,
@@ -269,16 +265,16 @@ async def handle(state: AgentState) -> AgentState:
     _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
-    unsaved_files = [] if saved else _unsaved_files(ctx)
-    _fail_if_unsaved(state, saved=saved, unsaved_files=unsaved_files)
-    _emit_workflow_completion(state, result, ctx, saved=saved, unsaved_files=unsaved_files)
+    unsaved_files = _unsaved_files(ctx)
+    _fail_if_unsaved(state, unsaved_files)
+    _emit_workflow_completion(state, result, ctx, unsaved_files=unsaved_files)
     return state
 
 
 def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) -> None:
     """Record the response for the trace output.
 
-    Call this function after the auto-commit, because the auto-commit can make the commit.
+    Call this function after the repair round, because the model can commit in that round.
     """
     state.assistant_response = {
         "text": result.final_text,
@@ -287,30 +283,30 @@ def _record_response(state: AgentState, result: LoopResult, ctx: LoopContext) ->
     }
 
 
-def _fail_if_unsaved(state: AgentState, *, saved: bool, unsaved_files: list[str]) -> None:
-    """Make the run fail if the assistant did not save all its edits.
+def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
+    """Make the run fail if the assistant did not save all its edits, and name the files in the notes.
 
-    The model can say that the task is complete, also if the edits are not
-    saved. `saved` sets the result. `unsaved_files` is only for the note,
-    because the list can be empty after a failed save.
+    The model can say that the task is complete, also if the edits are not saved. A run that already failed also
+    gets the note, so that the trace output shows each run that ends with edits that are not saved.
     """
-    if saved or not state.tests_passed:
+    if not unsaved_files:
         return
-    state.tests_passed = False
-    if unsaved_files:
-        state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
+    note = f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"
+    if state.tests_passed:
+        state.tests_passed = False
+        state.verify_notes = [note]
     else:
-        state.verify_notes = ["The assistant did not save its edits."]
+        state.verify_notes = [*state.verify_notes, note]
 
 
 def _unsaved_files(ctx: LoopContext) -> list[str]:
     """Return the files that the assistant edited but did not save.
 
     An edit is saved if it is on the remote session branch. The session has its
-    own clone of the app, thus all changes in the clone are edits of the
-    assistant. The function asks git, because the edit list and the flags of
-    the tools are for one turn only. If git cannot read the clone, each file
-    that the tools edited in this turn is unsaved.
+    own clone of the app, and each turn starts from the saved state. Thus all
+    changes in the clone are edits of this turn. The function asks git,
+    because a flag of a tool cannot show that a later edit is not saved. If
+    git cannot read the clone, each file that the tools edited is unsaved.
     """
     try:
         return sorted({*git_ops.uncommitted_files(ctx.repo_path), *git_ops.unpushed_files(ctx.repo_path)})
@@ -327,34 +323,33 @@ async def _repair_render_failures(
     result: LoopResult,
     ctx: LoopContext,
     *,
-    saved: bool,
     registry,
     adapter,
     system_prompt: str,
     on_event,
-) -> tuple[LoopResult, bool]:
+) -> LoopResult:
     """Do a render check of the pushed app, and send failures to the model.
 
     The prompt tells the model to do the check. But a check that the model did
-    not do looks the same as a check that passed. Return the last loop result,
-    and True if the assistant saved all its edits.
+    not do looks the same as a check that passed. The check renders the remote
+    session branch, thus it runs only if that branch has all edits. Return the
+    last loop result.
     """
-    if result.reason is TerminationReason.CANCELLED or not saved or not ctx.extras.get("session_pushed"):
-        return result, saved
+    if result.reason is TerminationReason.CANCELLED or not ctx.extras.get("session_pushed") or _unsaved_files(ctx):
+        return result
 
     check = PreviewRenderCheckTool()
     args = check.input_schema.model_validate({})
-    uncommitted_repair = False
     for attempt in range(MAX_RENDER_REPAIR_ROUNDS + 1):
         try:
             outcome = await check.run(args, ctx)
         except Exception:
             log.exception("Render check raised for session %s", state.session_id)
-            return result, saved
+            return result
         if outcome.metadata.get("unavailable") or not outcome.is_error:
-            return result, saved
+            return result
         if sink.is_cancelled(state.session_id):
-            return result, saved
+            return result
         if attempt == MAX_RENDER_REPAIR_ROUNDS:
             log.warning(
                 "Render check still failing for session %s after %s repair round(s)",
@@ -363,11 +358,11 @@ async def _repair_render_failures(
             )
             state.tests_passed = False
             state.verify_notes = [f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."]
-            if uncommitted_repair:
+            if _unsaved_files(ctx):
                 state.verify_notes.append(
                     "A repair round was never committed, so the last check ran against the previous commit."
                 )
-            return result, saved
+            return result
 
         log.info("Render check failed for session %s; asking the model to fix", state.session_id)
         repair_message, history = _framed_turn(state, outcome.content)
@@ -384,96 +379,8 @@ async def _repair_render_failures(
         )
         _apply_result_to_state(state, result, ctx)
         if result.reason is TerminationReason.CANCELLED:
-            return result, False
-        saved = await _maybe_auto_commit(state, result, ctx)
-        if not saved:
-            uncommitted_repair = True
-            log.warning(
-                "Repair round %d for session %s did not save all edits. The next render check uses the previous commit.",
-                attempt + 1,
-                state.session_id,
-            )
-    return result, saved
-
-
-async def _maybe_auto_commit(
-    state: AgentState,
-    result: LoopResult,
-    ctx: LoopContext,
-) -> bool:
-    """Commit and push the unsaved edits of the assistant.
-
-    Return True if all edits are then saved, also if there are no edits.
-    """
-    if result.reason is TerminationReason.CANCELLED:
-        return False
-    if not _unsaved_files(ctx):
-        return True
-
-    if not await _verified_for_auto_commit(state, ctx):
-        return False
-
-    commit_tool = CommitSessionBranchTool()
-    msg = _auto_commit_message(state, result)
-    args = commit_tool.input_schema.model_validate({"message": msg})
-    try:
-        outcome = await commit_tool.run(args, ctx)
-    except Exception:
-        log.exception("Auto-commit raised for session %s", state.session_id)
-        return False
-    if outcome.is_error:
-        log.warning(
-            "Auto-commit declined for session %s: %s",
-            state.session_id,
-            outcome.content,
-        )
-        return False
-    log.info(
-        "Auto-committed partial work for session %s (reason=%s)",
-        state.session_id,
-        result.reason.value,
-    )
-    return True
-
-
-async def _verified_for_auto_commit(state: AgentState, ctx: LoopContext) -> bool:
-    """Run `verify_changes` on the edits that the model did not verify.
-
-    The commit takes all files in the working tree, also an edit that an earlier
-    turn did not save. Thus the verification must also examine these files.
-    """
-    try:
-        track_uncommitted_files(ctx)
-    except (OSError, subprocess.SubprocessError) as exc:
-        log.warning("Auto-commit skipped for session %s, git cannot read the working tree: %s", state.session_id, exc)
-        return False
-    if not unverified_changed_files(ctx):
-        return True
-    verify_tool = VerifyChangesTool()
-    try:
-        checked = await verify_tool.run(verify_tool.input_schema.model_validate({}), ctx)
-    except Exception:
-        log.exception("Auto-verify raised for session %s", state.session_id)
-        return False
-    if checked.is_error:
-        log.warning(
-            "Auto-commit skipped for session %s, the changes do not verify: %s",
-            state.session_id,
-            checked.content,
-        )
-        return False
-    return True
-
-
-def _auto_commit_message(state: AgentState, result: LoopResult) -> str:
-    goal = (state.user_goal or "").strip().splitlines()[0][:60] if state.user_goal else "agent changes"
-    prefix = {
-        TerminationReason.COMPLETED: "feat",
-        TerminationReason.MAX_TURNS: "wip",
-        TerminationReason.STUCK: "wip",
-        TerminationReason.ERROR: "wip",
-    }.get(result.reason, "wip")
-    return f"{prefix}: {goal}"
+            return result
+    return result
 
 
 def _augment_goal_for_missing_spec(state: AgentState) -> str:
@@ -652,7 +559,6 @@ def _emit_workflow_completion(
     result: LoopResult,
     ctx: LoopContext,
     *,
-    saved: bool,
     unsaved_files: list[str],
 ) -> None:
     """Send the final `assistant_message` and `done`.
@@ -660,17 +566,18 @@ def _emit_workflow_completion(
     Without these two events, the frontend shows empty bubbles and does not
     end the run. For example, it does not check out the pushed branch.
     """
-    changes = _changes_sentence(
-        unsaved_files,
-        saved=saved,
-        pushed=bool(ctx.extras.get("session_pushed")),
-        failed_verification=bool(unverified_changed_files(ctx)),
-    )
+    changes = _changes_sentence(unsaved_files, pushed=bool(ctx.extras.get("session_pushed")))
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))
+    if unsaved_files and result.reason is TerminationReason.COMPLETED:
+        # The model can say that the change is done when the edits are not
+        # saved. Thus the answer ends with the data from git.
+        summary = f"{summary}\n\n{changes}"
     message_data = {
         "author": "assistant",
         "content": summary,
-        "filesChanged": state.changed_files,
+        # The user reads this list as the files that changed in the app.
+        # The tools record the path as the model wrote it, such as `./App/a.json`. Git gives `App/a.json`.
+        "filesChanged": [path for path in state.changed_files if posixpath.normpath(path) not in unsaved_files],
         "sources": ctx.extras.get("sources", []),
     }
     if security_notice:
@@ -759,19 +666,18 @@ def _strip_sources_line(text: str) -> str:
     return _SOURCES_LINE_RE.sub("", text)
 
 
-def _changes_sentence(unsaved_files: list[str], *, saved: bool, pushed: bool, failed_verification: bool) -> str:
-    """Tell the user if the changes are saved, for a run that stopped before the end.
+def _changes_sentence(unsaved_files: list[str], *, pushed: bool) -> str:
+    """Tell the user if the changes are saved.
 
-    The sentence gives the file names, not the errors from the validator. The
-    errors are for the model.
+    A run that stopped before the end has no text from the model, thus the
+    sentence is the only report. A completed run gets the sentence after the
+    text of the model if edits are not saved. The sentence gives only the
+    file names, which git shows. The model tells the user why, for example
+    that the validation failed.
     """
     if unsaved_files:
         files = _norwegian_list([f"`{path}`" for path in unsaved_files])
-        if failed_verification:
-            return f"Endringene i {files} er ikke lagret, fordi de ikke besto valideringen."
         return f"Endringene i {files} er ikke lagret."
-    if not saved:
-        return "Endringene er ikke lagret."
     if pushed:
         return "Endringene jeg rakk å gjøre, er lagret i sesjons-grenen."
     return "Jeg gjorde ingen endringer."
