@@ -1544,11 +1544,6 @@ namespace Altinn.App.Core.Features
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
     }
-    public interface IInstanceLayoutProvider
-    {
-        System.Threading.Tasks.Task<string?> GetLayoutSettings(Altinn.App.Core.Features.InstanceLayoutContext context);
-        System.Threading.Tasks.Task<string?> GetLayouts(Altinn.App.Core.Features.InstanceLayoutContext context);
-    }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
     {
@@ -1614,13 +1609,6 @@ namespace Altinn.App.Core.Features
     public static class InstanceDataAccessorAuthenticationExtensions
     {
         public static void UseAuthenticationForAllDataTypes(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.App.Core.Features.StorageAuthenticationMethod authenticationMethod) { }
-    }
-    public sealed class InstanceLayoutContext : System.IEquatable<Altinn.App.Core.Features.InstanceLayoutContext>
-    {
-        public InstanceLayoutContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataAccessor InstanceDataAccessor { get; init; }
-        public required string LayoutSetId { get; init; }
     }
     public sealed class StorageAuthenticationMethod : System.IEquatable<Altinn.App.Core.Features.StorageAuthenticationMethod>
     {

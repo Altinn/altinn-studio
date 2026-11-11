@@ -1,7 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Tests.Internal.App;
 
@@ -94,32 +93,5 @@ public class FrontendFeaturesTest
         configuration.Reload();
 
         Assert.True(frontendFeatures.IsEnabled(FeatureFlags.SimpleTableEnabled));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task GetFeatures_enables_instance_layout_requests_when_app_has_instance_layout_provider(
-        bool registerProvider
-    )
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(Configuration());
-        services.AddSingleton<IFrontendFeatures, FrontendFeatures>();
-        if (registerProvider)
-        {
-            services.AddTransient<IInstanceLayoutProvider, InstanceLayoutProvider>();
-        }
-        await using var serviceProvider = services.BuildServiceProvider();
-        var frontendFeatures = serviceProvider.GetRequiredService<IFrontendFeatures>();
-
-        Assert.Equal(registerProvider, frontendFeatures.IsEnabled(FeatureFlags.AddInstanceIdentifierToLayoutRequests));
-    }
-
-    private sealed class InstanceLayoutProvider : IInstanceLayoutProvider
-    {
-        public Task<string?> GetLayouts(InstanceLayoutContext context) => Task.FromResult<string?>(null);
-
-        public Task<string?> GetLayoutSettings(InstanceLayoutContext context) => Task.FromResult<string?>(null);
     }
 }
