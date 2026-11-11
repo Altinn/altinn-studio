@@ -44,7 +44,8 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
     public const int MaxRequestBytes = 1_000_000;
 
     /// <summary>
-    /// Gets the commit each app version was built from. Versions without a succeeded release are left out.
+    /// Gets the commit each app version was built from. Versions without a succeeded release that was built from a
+    /// known commit are left out.
     /// </summary>
     [HttpPost("lookup")]
     [RequestSizeLimit(MaxRequestBytes)]
@@ -86,7 +87,12 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             .Distinct()
             .ToList();
 
-        var releases = await releaseRepository.GetSucceededReleases(keys, cancellationToken);
+        // The newest succeeded release is the one that last pushed the image tag, so it is the only one whose commit
+        // the running version can have. When it was not built from a commit, the commit is unknown, even if an older
+        // build of the same tag had one.
+        var releases = (await releaseRepository.GetSucceededReleases(keys, cancellationToken))
+            .Where(r => IsFullCommitId(r.TargetCommitish))
+            .ToList();
 
         logger.LogInformation(
             "Release lookup by {Username} found {Found} of {Requested} versions.",
@@ -97,7 +103,13 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
 
         return new ReleaseLookupResponse(
             releases
-                .Select(r => new ReleaseLookupResult(r.Org, r.App, r.TagName, r.TargetCommitish, r.Created))
+                .Select(r => new ReleaseLookupResult(
+                    r.Org,
+                    r.App,
+                    r.TagName,
+                    r.TargetCommitish.ToLowerInvariant(),
+                    r.Created
+                ))
                 .ToList()
         );
     }
@@ -134,6 +146,16 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             ModelState.AddModelError($"items[{index}].version", "The version is not a valid release version.");
         }
     }
+
+    /// <summary>
+    /// Checks whether a release's target is a full commit ID rather than a branch, tag or abbreviated ID, which could
+    /// point at another commit than the one the release was built from.
+    /// </summary>
+    /// <remarks>
+    /// A commit ID is 40 hexadecimal digits in a SHA-1 repository and 64 in a SHA-256 one. Gitea can create both.
+    /// </remarks>
+    private static bool IsFullCommitId(string? target) =>
+        target is { Length: 40 or 64 } && target.All(char.IsAsciiHexDigit);
 
     /// <summary>
     /// Checks the version against the grammar of an image tag.
