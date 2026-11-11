@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- The type parameters default to `any`, as in axios, so a caller can read `error.response.data` without naming its type. */
-
 export type RequestOptions = {
   headers?: Record<string, string>;
   signal?: AbortSignal;
@@ -14,7 +12,7 @@ export type HttpRequest = {
   signal?: AbortSignal;
 };
 
-export type HttpResponse<T = any> = {
+export type HttpResponse<T = unknown> = {
   status: number;
   data: T;
 };
@@ -30,11 +28,19 @@ export type HttpClientConfig = {
 };
 
 export type HttpClient = {
-  get<T = any>(url: string, options?: RequestOptions): Promise<HttpResponse<T>>;
-  post<T = any>(url: string, data?: unknown, options?: RequestOptions): Promise<HttpResponse<T>>;
-  put<T = any>(url: string, data?: unknown, options?: RequestOptions): Promise<HttpResponse<T>>;
-  patch<T = any>(url: string, data?: unknown, options?: RequestOptions): Promise<HttpResponse<T>>;
-  delete<T = any>(
+  get<T = unknown>(url: string, options?: RequestOptions): Promise<HttpResponse<T>>;
+  post<T = unknown>(
+    url: string,
+    data?: unknown,
+    options?: RequestOptions,
+  ): Promise<HttpResponse<T>>;
+  put<T = unknown>(url: string, data?: unknown, options?: RequestOptions): Promise<HttpResponse<T>>;
+  patch<T = unknown>(
+    url: string,
+    data?: unknown,
+    options?: RequestOptions,
+  ): Promise<HttpResponse<T>>;
+  delete<T = unknown>(
     url: string,
     options?: RequestOptions & { data?: unknown },
   ): Promise<HttpResponse<T>>;
@@ -44,7 +50,7 @@ export type HttpClient = {
  * Thrown when a request fails. A response with a status outside 2xx is on `response`. When the
  * request never got a response, such as on a network failure, `response` is undefined.
  */
-export class HttpError<T = any> extends Error {
+export class HttpError<T = unknown> extends Error {
   readonly response?: HttpResponse<T>;
 
   constructor(response?: HttpResponse<T>, message?: string, options?: { cause?: unknown }) {
@@ -58,7 +64,7 @@ export class HttpError<T = any> extends Error {
   }
 }
 
-export const isHttpError = <T = any>(error: unknown): error is HttpError<T> =>
+export const isHttpError = <T = unknown>(error: unknown): error is HttpError<T> =>
   error instanceof HttpError;
 
 /** Whether the request was aborted through its `signal`, such as when TanStack Query cancels it. */
