@@ -775,7 +775,7 @@ _STOPPED = [TerminationReason.MAX_TURNS, TerminationReason.STUCK, TerminationRea
 
 class TestOnlyTheModelSaves:
     """The node does not commit for the model. A commit after the answer can
-    fail when the user already reads that the change is done."""
+    fail when the answer says that the change is done."""
 
     @pytest.mark.parametrize("reason", [TerminationReason.COMPLETED, *_STOPPED])
     async def test_an_edit_that_the_model_did_not_commit_stays_in_the_clone(self, monkeypatch, repo, reason):
@@ -898,7 +898,7 @@ class TestUnsavedFiles:
 
 
 class TestVerifyToolWithALeftEdit:
-    """Each turn has a new context, so the tools of this turn did not record the edit of an earlier turn."""
+    """Each turn has a new context, thus the tools of this turn did not record the edit of an earlier turn."""
 
     async def test_checks_an_edit_that_an_earlier_turn_left(self, monkeypatch, repo):
         write_files(repo, {_B: _LEFT})
@@ -1095,7 +1095,7 @@ class TestSuccessRequiresSavedChanges:
 
 class TestCompletedAnswerReportsUnsavedChanges:
     """The model can say that a change is done when the app does not have it.
-    Thus the answer ends with what git shows."""
+    Thus the answer ends with the data from git."""
 
     async def test_the_answer_ends_with_the_files_that_are_not_saved(self, monkeypatch, repo):
         _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.COMPLETED, edits=(_A,)))
@@ -1340,7 +1340,7 @@ class TestNoticeAtTurnStart:
 
         assert f"Not committed: ['{_B}']" in message
         assert "asks the user for permission" in message
-        assert "For each file that is not committed" not in message
+        assert "Save or undo each file that is not committed" not in message
 
 
 class TestNoticeBeforeAnswer:
@@ -1372,10 +1372,10 @@ class TestNoticeBeforeAnswer:
         assert notice is not None
         assert f"Committed, but not pushed: ['{_A}']" in notice
         assert "call `commit_session_branch` again" in notice
-        assert "For each file that is not committed" not in notice
+        assert "Save or undo each file that is not committed" not in notice
 
     def test_a_read_only_session_gets_no_notice(self, repo):
-        """The model needs a write tool to save or undo the edit."""
+        """The model must have a write tool to save or undo the edit."""
         write_files(repo, {_B: _LEFT})
 
         assert node._notice_before_answer(self._ctx(repo, allow_app_changes=False)) is None

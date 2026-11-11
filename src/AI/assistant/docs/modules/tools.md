@@ -44,7 +44,7 @@ flowchart TD
 
 _The commit gate. The commit tool refuses if a changed file is not verified after its last edit._
 
-The tools record the edits of one turn only. Thus `verify_changes` and `commit_session_branch` also take each file that git shows as not committed, which includes an edit that an earlier turn left.
+The tools record the edits of one turn only. Thus `verify_changes` and `commit_session_branch` also take each file that git shows as not committed. This includes an edit that an earlier turn did not commit.
 
 ```mermaid
 flowchart LR

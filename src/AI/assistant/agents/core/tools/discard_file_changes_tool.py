@@ -1,8 +1,8 @@
 """`discard_file_changes` — reset one file to HEAD.
 
 A narrow replacement for the old broad rollback: the model undoes one
-file at a time instead of wiping all progress.  A file that HEAD does
-not have is deleted, because that is its state in HEAD.
+file at a time instead of wiping all progress.  The tool deletes a file
+that HEAD does not have.
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ class DiscardFileChangesTool(WriteTool[DiscardFileChangesArgs]):
         "Reset ONE file in the working tree back to its last committed state "
         "(`git checkout HEAD -- <path>`).  Use when an `edit_file` or "
         "`write_file` introduced something you can't easily fix with another "
-        "edit and you'd rather start that file over.  A file that you "
-        "created, and that the last commit does not have, is deleted.\n\n"
+        "edit and you'd rather start that file over.  Deletes a file that "
+        "the last commit does not have.\n\n"
         "DOES NOT roll back other files you've changed in this session — it "
         "is deliberately surgical.  If you need to start the whole task "
         "over, call this once per touched file.\n\n"
@@ -62,19 +62,19 @@ class DiscardFileChangesTool(WriteTool[DiscardFileChangesArgs]):
 
 
 def _discard(repo_path: str, rel_path: str) -> bool:
-    """Reset the file to HEAD.  Return True if that deleted the file.
+    """Reset the file to HEAD.  Return True if this deleted the file.
 
-    `git checkout HEAD -- <path>` fails for a path that HEAD does not have.
-    Thus a file that the session created is removed from the index and
-    from disk.  A path that is neither in HEAD nor a file on disk goes to
-    `git checkout`, which gives the error for the model.
+    `git checkout HEAD -- <path>` gives an error for a path that HEAD does
+    not have.  Thus the function removes a file that the session made from
+    the index and from the disk.  For a path that is not in HEAD and not on
+    the disk, `git checkout` gives the error message for the model.
     """
     file = Path(repo_path) / rel_path
     in_head = _git(repo_path, "cat-file", "-e", f"HEAD:{rel_path}", check=False).returncode == 0
     if in_head or not file.is_file():
         _git(repo_path, "checkout", "HEAD", "--", rel_path)
         return False
-    # A commit that failed after `git add` leaves the file in the index.
+    # If a commit stopped after `git add`, the file is in the index.
     _git(repo_path, "rm", "--cached", "--quiet", "--ignore-unmatch", "--", rel_path)
     file.unlink()
     return True

@@ -82,22 +82,24 @@ Code: `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`
 
 This node prepares the loop and handles the result. It finds the app version (v8 or v9), builds the system prompt and registers the tools. In chat mode it connects the permission broker, so a write tool can ask the user.
 
-Only the model saves edits, with `commit_session_branch`. An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The session has its own clone of the app, thus all changes in the clone are edits of the assistant. The flags of the tools are for one turn only, thus the node asks git which edits are not saved.
+Only the model saves edits, with `commit_session_branch`. The node does not save edits for the model. A save after the answer can fail when the answer says that the change is done. A save can also put work in the app that the answer calls not completed.
 
-The node does not save edits for the model. A save after the answer can fail when the answer already says that the change is done. It can also save work that the model told the user is not finished. Instead, the node tells the model about unsaved edits at two points:
+An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The session has its own clone of the app, thus all changes in the clone are edits of the assistant. The flags of the tools are for one turn only, thus the node asks git which edits are not saved.
 
-- At the start of a turn, if an earlier turn left unsaved edits. Each turn starts with a new transcript. Without the notice, the model finds its own edits in the files and tells the user that they are in the app. A read-only turn also gets this notice.
-- When the model is about to answer with unsaved edits, if the session can write. The loop gives the model the notice and one more round to save or undo the edits. Then the model writes the answer again. The user gets only the last answer.
+The node tells the model about edits that are not saved at two times:
+
+- At the start of a turn, if an earlier turn did not save all its edits. Each turn starts with a new transcript. Without the notice, the model finds its own edits in the files and tells the user that they are in the app. A read-only turn also gets this notice.
+- When the model sends its answer and some edits are not saved, if the session can write. The loop gives the model the notice and one more round to save or undo the edits. Then the model writes the answer again. The user gets only the last answer.
+
+If some edits are not saved after that round, the node adds a sentence with the file names to the answer. It also removes these files from `filesChanged`, and the run is not a success. A run that stopped before the end keeps only the edits that the model saved. Its message gives the names of the other files.
 
 After the loop, a session that can write has one safety step. If all edits are saved and a push in this turn succeeded, the node runs the render check. If a page does not render, the node gives the error to the model for one more loop run.
 
-The node reports success only if the assistant saved all its edits. If edits are still not saved, the node adds a sentence with the file names to the answer and leaves these files out of `filesChanged`. A run that stopped before the end keeps only the edits that the model saved, and its message names the other files.
-
 ```mermaid
 flowchart TD
-  A["Find app version, build prompt and tools"] --> N["Notice about edits that an earlier turn left"]
+  A["Find app version, build prompt and tools"] --> N["Notice about edits that an earlier turn did not save"]
   N --> B["run_loop"]
-  B --> U{"Unsaved edits when the model answers?"}
+  B --> U{"Are some edits not saved when the model answers?"}
   U -->|"Yes, first time"| O["Notice, the model continues"]
   O --> B
   U -->|"No, or second time"| D["Render check, max 1 repair round"]

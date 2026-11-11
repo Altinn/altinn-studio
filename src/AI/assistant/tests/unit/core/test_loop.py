@@ -328,8 +328,14 @@ def _text(text: str) -> AssistantMessage:
 
 
 class TestCompletionCheck:
-    """The caller knows state that the text of the model cannot show. Its check
-    can give the model one notice before the run ends."""
+    """`before_completion` is a check from the caller. The loop calls it when
+    the model sends its final message.
+
+    Example: the model writes "all done", but git shows a file that is not
+    committed. The check returns a notice with the file name. The loop gives
+    the notice to the model, and the model continues. The loop gives a
+    maximum of one notice in a run.
+    """
 
     async def _run(self, ctx, adapter: FakeAdapter, check, **kwargs):
         registry = ToolRegistry()

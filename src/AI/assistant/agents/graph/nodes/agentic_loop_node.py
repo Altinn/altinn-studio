@@ -182,11 +182,11 @@ def _history_messages(state: AgentState) -> list:
 
 
 def _framed_turn(state: AgentState, message: str, *, notice: str | None = None) -> tuple[str, list]:
-    """The loop's `user_message` and `history` for one turn, with the request
-    delimited whenever replayed turns or a notice precede it.
+    """Return the `user_message` and the `history` of the loop for one turn.
 
-    `notice` is text from the node, not from the user. It goes before the
-    request block, so that the model does not read it as the user's words.
+    If earlier turns or a notice come before the request, the request goes in
+    a block. `notice` is text from the node, not from the user. It goes before
+    the block, thus the model does not read it as text from the user.
     """
     history = _history_messages(state)
     if not history and not notice:
@@ -274,9 +274,9 @@ async def handle(state: AgentState) -> AgentState:
     _record_response(state, result, ctx)
     if result.reason is TerminationReason.CANCELLED:
         return state
-    # A read-only run cannot save an edit that an earlier turn left. Thus such
-    # an edit does not make the run fail. The notice at the start of the turn
-    # tells the model about it.
+    # A read-only run cannot save an edit from an earlier turn. Thus this edit
+    # does not make the run fail. The notice at the start of the turn tells the
+    # model about the edit.
     unsaved_files = _unsaved_files(ctx) if state.allow_app_changes else []
     _fail_if_unsaved(state, unsaved_files)
     _emit_workflow_completion(state, result, ctx, unsaved_files=unsaved_files)
@@ -319,7 +319,7 @@ class _UnsavedChanges:
 
     @property
     def only_unpushed(self) -> list[str]:
-        """The files that need only a push. A file with a later edit needs a commit first."""
+        """The files that are in a commit without a push, and that have no later edit."""
         return sorted(set(self.unpushed) - set(self.uncommitted))
 
 
@@ -346,12 +346,6 @@ def _unsaved_files(ctx: LoopContext) -> list[str]:
     return _unsaved_changes(ctx).files
 
 
-_SAVED_MEANS_PUSHED = (
-    "You read and write your own copy of the app.  The user's app gets a change only when `commit_session_branch` "
-    "has pushed it.  Until then, the change does not exist for the user."
-)
-
-
 def _unsaved_file_lines(unsaved: _UnsavedChanges) -> str:
     lines = []
     if unsaved.uncommitted:
@@ -365,27 +359,26 @@ def _how_to_save_or_undo(unsaved: _UnsavedChanges) -> str:
     lines = []
     if unsaved.uncommitted:
         lines += [
-            "For each file that is not committed, do one of these:",
-            "- Save it: call `verify_changes`, fix what it reports, then call `commit_session_branch`.",
-            "- Undo it: call `discard_file_changes`.",
-            "`commit_session_branch` commits all changes on disk, so undo the files that must not go to the app.",
+            "Save or undo each file that is not committed:",
+            "- Save: `verify_changes`, fix what it reports, then `commit_session_branch`.  It commits all changes "
+            "on disk.",
+            "- Undo: `discard_file_changes`.",
         ]
     if unsaved.only_unpushed:
-        lines.append("For a commit that is not pushed, call `commit_session_branch` again.  It pushes the commit.")
+        lines.append("For a commit that is not pushed, call `commit_session_branch` again.")
     return "\n".join(lines)
 
 
 def _notice_before_answer(ctx: LoopContext) -> str | None:
-    """Tell the model which edits are not saved, when it is about to answer.
+    """Tell the model which edits are not saved, before its answer goes to the user.
 
-    The node does not save the edits itself. A save after the answer can fail
-    when the user already reads that the change is done, and it can save work
-    that the model told the user is not finished. Thus the model gets one more
-    round to save or undo the edits, and then writes the answer again.
+    The node does not save the edits. A save after the answer can fail when the
+    answer says that the change is done. Thus the model gets one more round to
+    save or undo the edits. Then it writes the answer again.
 
-    Only a session that can write gets the notice, because the model needs the
-    write tools. The user can give the permission during the turn, thus the
-    function reads it when the model is about to answer.
+    The model must have the write tools for this, thus only a session that can
+    write gets the notice. The user can give the permission during the turn,
+    thus the function reads the permission at this time.
     """
     if not ctx.allow_app_changes:
         return None
@@ -394,13 +387,11 @@ def _notice_before_answer(ctx: LoopContext) -> str | None:
         return None
     return "\n\n".join(
         (
-            f"NOTE: your message did not go to the user, because the user's app does not have all your changes.  "
-            f"{_SAVED_MEANS_PUSHED}",
+            "NOTE: your message did not go to the user, because the user's app does not have these changes.",
             _unsaved_file_lines(unsaved),
             _how_to_save_or_undo(unsaved),
-            "Then write your final message again.  The user gets only that message, so it must describe the "
-            "whole turn, not only what you did after this note.  If a file is still not saved, the message must "
-            "say that the changes in that file are not in the app.",
+            "Then write your final message again, for the whole turn: the user gets only that message.  If a file "
+            "is still not saved, say that its changes are not in the app.",
         )
     )
 
@@ -415,23 +406,23 @@ def _notice_at_turn_start(unsaved: _UnsavedChanges, *, can_write: bool) -> str |
         return None
     if can_write:
         what_to_do = (
-            "In this turn, save these changes or undo them, or say in your final message that they are not in the "
-            f"app.\n{_how_to_save_or_undo(unsaved)}"
+            "In this turn, save or undo them, or say in your final message that they are not in the app.\n"
+            f"{_how_to_save_or_undo(unsaved)}"
         )
     else:
         what_to_do = (
-            "If the user asks whether these changes are in the app, the answer is no.  To save or undo them you "
-            "need a write tool, and its first use asks the user for permission.  Use one only if the request needs "
-            "these changes.  Otherwise leave the files as they are."
+            "If the user asks whether they are in the app, the answer is no.  To save or undo them you need a "
+            "write tool, which asks the user for permission on its first use.  Use one only if the request needs "
+            "these changes."
         )
     return "\n\n".join(
         (
             "NOTE from the assistant service, not from the user: your copy of the app has changes from earlier "
-            f"turns of this session that the user's app does not have.  {_SAVED_MEANS_PUSHED}",
+            "turns that the user's app does not have.  The user's app gets a change only when "
+            "`commit_session_branch` has pushed it.",
             _unsaved_file_lines(unsaved),
-            "Answer from the user's point of view.  For the user, each of these files is as it was before your "
-            "changes, and a file that you created does not exist.  Do not say that these changes are done or in "
-            f"the app.  {what_to_do}",
+            "For the user, each of these files is as it was before your changes, and a file that you created does "
+            f"not exist.  Do not say that these changes are done or in the app.  {what_to_do}",
         )
     )
 
@@ -704,8 +695,8 @@ def _emit_workflow_completion(
     )
     summary, security_notice = _extract_security_notice(_final_summary_text(result, changes=changes))
     if unsaved_files and result.reason is TerminationReason.COMPLETED:
-        # The model got a notice about these files, and can still say that the
-        # change is done. Thus the answer always ends with what git shows.
+        # The model got a notice about these files, but it can say again that
+        # the change is done. Thus the answer ends with the data from git.
         summary = f"{summary}\n\n{changes}"
     message_data = {
         "author": "assistant",

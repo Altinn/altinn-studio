@@ -10,9 +10,9 @@ Control flow:
     1.  Append user goal.
     2.  Optionally compact the message list for size.
     3.  Send to LLM, append the assistant response.
-    4.  If response has no tool_use blocks → COMPLETED.  Before that,
-        `before_completion` can give the model one notice and one more
-        round.
+    4.  If response has no tool_use blocks → COMPLETED.  But first,
+        `before_completion` can give the model one notice.  Then the
+        loop continues.
     5.  Otherwise validate + dispatch the tools:
             - concurrency-safe tools run in a parallel batch;
             - the first unsafe tool in the response acts as a barrier
@@ -100,10 +100,9 @@ _TRUNCATION_PARTIAL_NOTICE = (
     "missing and re-issue only that work, in smaller batches."
 )
 
-# With this many turns left, inject a wrap-up notice so the model stops
-# exploring and lands what it has.  A max_turns termination throws away
-# the final message and leaves the work unsaved, because only the model
-# commits — far worse than a slightly less polished result.
+# When this many turns remain, the loop tells the model to save its work.
+# A run that stops at max_turns has no final message.  Its edits that are
+# not saved do not go to the app, because only the model commits.
 _WRAPUP_WARNING_TURNS = 4
 
 _WRAPUP_NOTICE = (
@@ -174,11 +173,11 @@ class LoopResult:
 
 
 CompletionCheck = Callable[[], str | None]
-"""Runs when the model sends a message without tool calls.
+"""A check from the caller.  The loop calls it when the model sends a message without tool calls.
 
-Returns a notice for the model, or None if the run can end.  The check
-reads state that the model's text cannot show, such as edits that are not
-saved.
+The check returns a notice for the model, or None if the run can end.
+Example: the model writes that the change is done, but git shows a file
+that is not committed.  The check returns a notice with the file name.
 """
 
 
@@ -232,11 +231,9 @@ async def run_loop(
     messages from earlier runs in the same session) so follow-up requests
     have context.  It is prepended verbatim before `user_message`.
 
-    `before_completion` runs when the model sends its final message.  If
-    it returns a notice, the model gets the notice instead of the run
-    ending, and continues with its transcript intact.  The loop gives at
-    most one notice in a run, so the model's next final message ends the
-    run.  The notice uses a turn of `max_turns`.
+    If `before_completion` returns a notice, the model gets the notice
+    and continues with the same transcript.  The loop gives a maximum of
+    one notice in a run.  The notice uses one turn of `max_turns`.
     """
     compaction = compaction or CompactionConfig()
     ctx.max_result_chars = compaction.max_result_chars
@@ -446,7 +443,7 @@ async def run_loop(
 
 
 def _completion_notice(check: CompletionCheck) -> str | None:
-    """Run the check.  A check that raises does not stop the run."""
+    """Run the check.  An exception from the check does not stop the run."""
     try:
         return check()
     except Exception:

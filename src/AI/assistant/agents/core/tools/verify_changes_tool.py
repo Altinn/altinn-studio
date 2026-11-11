@@ -71,8 +71,7 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
     name = "verify_changes"
     description = (
         "Validate the files you've modified this session against the "
-        "official Altinn schemas, including changes that an earlier turn "
-        "left uncommitted.  Routes each file to the right "
+        "official Altinn schemas.  Routes each file to the right "
         "validator based on its path: layout JSON, text resource JSON, "
         "or basic JSON parse for everything else.  Returns "
         "`{passed, checked_files, notes, old_errors}` where notes list "
@@ -100,8 +99,8 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         if not changed:
             return ToolResult(
                 content=(
-                    "No changed files: the working tree has no changes that are not committed.  Use "
-                    "`edit_file` or `write_file` to make changes first, then call `verify_changes`."
+                    "No changed files: the working tree has no uncommitted changes.  Use `edit_file` "
+                    "or `write_file` to make changes first, then call `verify_changes`."
                 ),
                 is_error=True,
             )
@@ -133,11 +132,12 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
 
 
 def _track_uncommitted_files(ctx: LoopContext) -> None:
-    """Add the files that an earlier turn left uncommitted to the changed files.
+    """Add the files that an earlier turn did not commit to the changed files.
 
-    The tools record the edits of one turn only.  Without this, the model gets
-    "no changed files" for its own unsaved edits and reads that as "saved".  If
-    git cannot read the working tree, the check uses the recorded files.
+    The tools record the edits of one turn only.  Without these files, the
+    tool tells the model that there are no changed files.  Then the model
+    tells the user that its edits are saved.  If git cannot read the working
+    tree, the check uses the recorded files.
     """
     with contextlib.suppress(OSError, subprocess.SubprocessError):
         track_uncommitted_files(ctx)

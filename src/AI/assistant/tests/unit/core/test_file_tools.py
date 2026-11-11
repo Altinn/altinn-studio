@@ -513,8 +513,8 @@ class TestDiscardFileChanges:
 
 
 class TestDiscardInARepository:
-    """`git checkout HEAD -- <path>` fails for a file that HEAD does not have.
-    The model must be able to undo also a file that it created."""
+    """`git checkout HEAD -- <path>` gives an error for a file that HEAD does not have.
+    Thus the tool must also undo a file that the model made."""
 
     def _repo(self, tmp_path: Path) -> Path:
         return create_committed_repo(tmp_path / "app", {"App/old.json": '{"old": true}'})
