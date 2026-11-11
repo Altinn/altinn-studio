@@ -70,7 +70,8 @@ class TestALaterTurnOfTheSession:
         assert git(repo, "rev-parse", "HEAD") == pushed
         assert (repo / "the-sessions-change.txt").exists()
 
-    def test_gets_a_commit_that_the_user_pushed_from_designer(self, manager: RepoManager, origin: Path):
+    def test_starts_on_a_commit_that_the_user_pushed_from_designer(self, manager: RepoManager, origin: Path):
+        """`verify_changes` compares the app with the start commit. An error that the user pushed is then an old error."""
         manager.clone_repo_for_session(_URL, "session-1", api_key="key")
         write_files(origin, {"from-designer.txt": "the user's change"})
         commit_all(origin, "the user's commit")
@@ -78,15 +79,6 @@ class TestALaterTurnOfTheSession:
         repo = self._later_turn(manager)
 
         assert (repo / "from-designer.txt").exists()
-
-    def test_records_the_commit_that_its_clone_starts_on(self, manager: RepoManager, origin: Path):
-        """`verify_changes` compares the app with this commit. An error that the user pushed is then an old error."""
-        manager.clone_repo_for_session(_URL, "session-1", api_key="key")
-        write_files(origin, {"from-designer.txt": "the user's change"})
-        commit_all(origin, "the user's commit")
-
-        self._later_turn(manager)
-
         assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
 
 

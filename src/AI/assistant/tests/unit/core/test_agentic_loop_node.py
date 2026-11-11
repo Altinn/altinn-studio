@@ -567,7 +567,6 @@ def _patch_loop(monkeypatch, fake_run_loop):
 
 
 _ORIGINAL = '{"data": {"layout": []}}'
-_LEFT = '{"left": "by an earlier turn"}'
 _INVALID = '{"edited": '
 
 
@@ -674,13 +673,15 @@ async def _run_steps(
     invalid_edits: tuple[str, ...] = (),
     model_commits: bool = False,
     edits_after_commit: tuple[str, ...] = (),
+    commits_again: bool = False,
     undone: tuple[str, ...] = (),
 ) -> None:
     """Do the steps of the model in one loop run.
 
     The model writes each file in `invalid_edits` with content that
     `verify_changes` refuses, and then calls `verify_changes`. With
-    `model_commits`, the remote decides if the push succeeds.
+    `model_commits` and `commits_again`, the remote decides if each push
+    succeeds.
     """
     for path in edits:
         _edit(ctx, path)
@@ -692,6 +693,8 @@ async def _run_steps(
         await _model_commit(ctx)
     for path in edits_after_commit:
         _edit(ctx, path, '{"edited": "again"}')
+    if commits_again:
+        await _model_commit(ctx)
     for path in undone:
         _edit(ctx, path)
         _edit(ctx, path, _ORIGINAL)
@@ -766,6 +769,8 @@ def _repair_run(*, second_round: dict, second_reason: TerminationReason):
 
 _A = "App/ui/a.json"
 _B = "App/ui/b.json"
+# The model commits `a.json`, edits `b.json` and commits again. Give `pushes=(True, False)`.
+_LATER_PUSH_REJECTED = {"edits": (_A,), "model_commits": True, "edits_after_commit": (_B,), "commits_again": True}
 _STOPPED = [TerminationReason.MAX_TURNS, TerminationReason.STUCK, TerminationReason.ERROR]
 
 
@@ -780,22 +785,6 @@ class TestOnlyTheModelSaves:
         assert success is False
         assert _files_on_remote_branch(repo) == {}
         assert git_ops.uncommitted_files(str(repo)) == [_A]
-
-    async def test_the_commit_of_the_model_is_the_last_commit(self, monkeypatch, repo):
-        model_commit: list[str] = []
-
-        async def fake_run_loop(**kwargs):
-            _edit(kwargs["ctx"], _A)
-            await _commit_as_the_model(kwargs["ctx"])
-            model_commit.append(_head(repo))
-            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="done", turns=4)
-
-        _patch_loop(monkeypatch, fake_run_loop)
-        _use_remote(monkeypatch, repo)
-
-        await handle(_state(repo_path=str(repo)))
-
-        assert model_commit == [_head(repo)]
 
 
 class TestUnsavedFiles:
@@ -871,17 +860,17 @@ class TestUnsavedFiles:
         _use_remote(monkeypatch, repo)
         ctx = self._ctx(repo)
         _edit(ctx, "App/ui/a\rb.json")
-        commit = CommitSessionBranchTool()
 
         assert node._unsaved_files(ctx) == ["App/ui/a\rb.json"]
         assert not (await _verify_as_the_model(ctx)).is_error
-        assert not (await commit.run(commit.input_schema.model_validate({"message": "feat: x"}), ctx)).is_error
+        await _commit_as_the_model(ctx)
         assert node._unsaved_files(ctx) == []
 
 
 class TestCommitToolWithARemote:
-    async def test_refuses_an_unverified_edit_that_an_earlier_turn_left(self, monkeypatch, repo):
-        write_files(repo, {"App/ui/b.json": _LEFT})
+    async def test_refuses_an_unverified_change_that_no_tool_recorded(self, monkeypatch, repo):
+        """A write that fails part of the way can change a file. The commit takes all files."""
+        write_files(repo, {"App/ui/b.json": _INVALID})
         _use_remote(monkeypatch, repo)
         ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
         _edit(ctx, "App/ui/a.json")
@@ -891,25 +880,9 @@ class TestCommitToolWithARemote:
         outcome = await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)
 
         assert outcome.is_error
-        assert "no tool made in this turn: ['App/ui/b.json']" in outcome.content
-        assert "discard_file_changes" in outcome.content
-        assert "have not been verified" not in outcome.content
+        assert "have not been verified since their last edit" in outcome.content
+        assert "['App/ui/b.json']" in outcome.content
         assert _files_on_remote_branch(repo) == {}
-
-    async def test_names_a_left_edit_that_a_tool_then_writes_as_an_edit_of_this_turn(self, monkeypatch, repo):
-        write_files(repo, {"App/ui/b.json": _LEFT})
-        _use_remote(monkeypatch, repo)
-        ctx = LoopContext(session_id="sess-1", repo_path=str(repo), allow_app_changes=True)
-        tool = CommitSessionBranchTool()
-        assert (await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)).is_error
-
-        _edit(ctx, "App/ui/b.json")
-        outcome = await tool.run(tool.input_schema.model_validate({"message": "feat: x"}), ctx)
-
-        assert outcome.is_error
-        assert "have not been verified since their last edit — run `verify_changes` first" in outcome.content
-        assert "App/ui/b.json" in outcome.content
-        assert "no tool made in this turn" not in outcome.content
 
     async def test_a_second_call_pushes_the_commit_again(self, monkeypatch, repo):
         remote = _use_remote(monkeypatch, repo, _UNREACHABLE, True)
@@ -1077,6 +1050,14 @@ class TestStoppedRunReportsWhatIsSaved:
             in content
         )
 
+    async def test_an_edit_after_a_failed_verification_is_not_blamed_on_validation(self, monkeypatch, repo):
+        steps = {"invalid_edits": (_A,), "edits_after_commit": (_A,)}
+
+        _, content, _ = await _finish(monkeypatch, repo, _loop_ending(TerminationReason.MAX_TURNS, **steps))
+
+        assert "Endringene i `App/ui/a.json` er ikke lagret." in content
+        assert "valideringen" not in content
+
     async def test_a_rejected_push_is_not_blamed_on_validation(self, monkeypatch, repo):
         _, content, _ = await _finish(
             monkeypatch,
@@ -1123,12 +1104,7 @@ class TestStoppedRunReportsWhatIsSaved:
         assert "Endringene i `App/ui/b.json` er ikke lagret, fordi de ikke besto valideringen." in content
 
     async def test_a_rejected_push_names_only_the_files_that_the_remote_does_not_have(self, monkeypatch, repo):
-        async def fake_run_loop(**kwargs):
-            _edit(kwargs["ctx"], _A)
-            await _commit_as_the_model(kwargs["ctx"])
-            _edit(kwargs["ctx"], _B)
-            assert (await _model_commit(kwargs["ctx"])).is_error
-            return LoopResult(reason=TerminationReason.MAX_TURNS, messages=[], turns=20)
+        fake_run_loop = _loop_ending(TerminationReason.MAX_TURNS, **_LATER_PUSH_REJECTED)
 
         _, content, _ = await _finish(monkeypatch, repo, fake_run_loop, pushes=(True, False))
 
@@ -1189,12 +1165,7 @@ class TestPushedBranchInFinalMessage:
         assert message["pushedBranch"] == _SESSION_BRANCH
 
     async def test_a_later_rejected_push_keeps_the_branch_that_gitea_has(self, monkeypatch, repo):
-        async def fake_run_loop(**kwargs):
-            _edit(kwargs["ctx"], _A)
-            await _commit_as_the_model(kwargs["ctx"])
-            _edit(kwargs["ctx"], _B)
-            assert (await _model_commit(kwargs["ctx"])).is_error
-            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=4)
+        fake_run_loop = _loop_ending(TerminationReason.COMPLETED, **_LATER_PUSH_REJECTED)
 
         _, message, _ = await _handle_events(monkeypatch, repo, fake_run_loop, pushes=(True, False))
 

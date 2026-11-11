@@ -334,7 +334,6 @@ async def _repair_render_failures(
 
     check = PreviewRenderCheckTool()
     args = check.input_schema.model_validate({})
-    unsaved_repair = False
     for attempt in range(MAX_RENDER_REPAIR_ROUNDS + 1):
         try:
             outcome = await check.run(args, ctx)
@@ -353,7 +352,7 @@ async def _repair_render_failures(
             )
             state.tests_passed = False
             state.verify_notes = [f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."]
-            if unsaved_repair:
+            if _unsaved_files(ctx):
                 state.verify_notes.append(
                     "A repair round was never committed, so the last check ran against the previous commit."
                 )
@@ -375,13 +374,6 @@ async def _repair_render_failures(
         _apply_result_to_state(state, result, ctx)
         if result.reason is TerminationReason.CANCELLED:
             return result
-        if _unsaved_files(ctx):
-            unsaved_repair = True
-            log.warning(
-                "Repair round %d for session %s did not save all edits. The next render check uses the previous commit.",
-                attempt + 1,
-                state.session_id,
-            )
     return result
 
 

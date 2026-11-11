@@ -14,6 +14,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
+from agents.services.git import git_ops
 
 from .utils.repo_files import PathError, mark_unread, resolve_repo_path
 
@@ -70,8 +71,7 @@ def _discard(repo_path: str, rel_path: str) -> bool:
     the disk, `git checkout` gives the error message for the model.
     """
     file = Path(repo_path) / rel_path
-    in_head = _git(repo_path, "cat-file", "-e", f"HEAD:{rel_path}", check=False).returncode == 0
-    if in_head or not file.is_file():
+    if git_ops.exists_in_head(repo_path, rel_path) or not file.is_file():
         _git(repo_path, "checkout", "HEAD", "--", rel_path)
         return False
     # If a commit stopped after `git add`, the file is in the index.
@@ -80,8 +80,8 @@ def _discard(repo_path: str, rel_path: str) -> bool:
     return True
 
 
-def _git(repo_path: str, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", *args], cwd=repo_path, check=check, capture_output=True, text=True)
+def _git(repo_path: str, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=repo_path, check=True, capture_output=True, text=True)
 
 
 def _forget_file(ctx: LoopContext, rel_path: str) -> None:
@@ -90,6 +90,6 @@ def _forget_file(ctx: LoopContext, rel_path: str) -> None:
     Its in-memory state is no longer "the version we modified" nor "the
     version we read", and its prior verification badge no longer applies.
     """
-    for tracking_key in ("changed_files", "verified_files"):
+    for tracking_key in ("changed_files", "verified_files", "files_that_failed_verification"):
         (ctx.extras.get(tracking_key) or set()).discard(rel_path)
     mark_unread(ctx, rel_path)

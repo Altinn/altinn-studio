@@ -15,6 +15,12 @@ def head_commit(repo_path: str) -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def exists_in_head(repo_path: str, file_path: str) -> bool:
+    """Whether the last commit has the file."""
+    result = subprocess.run(["git", "cat-file", "-e", f"HEAD:{file_path}"], cwd=repo_path, capture_output=True)
+    return result.returncode == 0
+
+
 def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash, or None when nothing changed"""
     try:
