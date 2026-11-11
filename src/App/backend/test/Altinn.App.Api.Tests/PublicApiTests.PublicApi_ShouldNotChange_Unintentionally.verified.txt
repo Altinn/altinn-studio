@@ -579,12 +579,23 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class ResourceController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public ResourceController(Altinn.App.Core.Internal.App.IAppResources appResourcesService) { }
+        public ResourceController(Altinn.App.Core.Internal.App.IAppResources appResourcesService, System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/footer")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetFooterLayout(string org, string app) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/layoutsettin" +
+            "gs/{id}")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetInstanceLayoutSettings(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, string id) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/layouts/{id}")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetInstanceLayouts(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsets")]

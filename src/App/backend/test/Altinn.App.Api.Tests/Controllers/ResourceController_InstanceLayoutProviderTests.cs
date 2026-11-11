@@ -2,24 +2,21 @@ using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Features;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ResourceController_InstanceLayoutProviderTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ResourceController_InstanceLayoutProviderTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
+    private const string LayoutFolder = "Task_1";
     private static readonly Guid _instanceGuid = Guid.Parse("cff1cb24-5bc1-4888-8e06-c634753c5144");
 
-    public ResourceController_InstanceLayoutProviderTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public ResourceController_InstanceLayoutProviderTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private sealed class InstanceLayoutProvider(bool returnNull) : IInstanceLayoutProvider
     {
@@ -52,7 +49,7 @@ public class ResourceController_InstanceLayoutProviderTests : ApiTestBase, IClas
     {
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         return await client.GetAsync(
-            $"/{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/{resource}/default"
+            $"/{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/{resource}/{LayoutFolder}"
         );
     }
 
@@ -69,7 +66,10 @@ public class ResourceController_InstanceLayoutProviderTests : ApiTestBase, IClas
         var response = await Get(client, resource, _instanceGuid.ToString());
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"default:{InstanceOwnerPartyId}/{_instanceGuid}", await response.Content.ReadAsStringAsync());
+        Assert.Equal(
+            $"{LayoutFolder}:{InstanceOwnerPartyId}/{_instanceGuid}",
+            await response.Content.ReadAsStringAsync()
+        );
         Assert.Equal(1, provider.Calls);
     }
 
