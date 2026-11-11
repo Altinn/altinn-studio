@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -16,10 +17,12 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using LookupController = Altinn.Studio.Designer.Controllers.ReleaseLookupController;
 
 namespace Designer.Tests.Controllers.ReleaseLookupController;
 
@@ -33,7 +36,7 @@ public class LookupTests
     // The caller is not a member of any org, which the lookup does not require.
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
     private readonly string _org = $"org-{Guid.NewGuid():N}";
-    private readonly string _app = $"app-{Guid.NewGuid():N}";
+    private readonly string _app = $"app-{Guid.NewGuid():N}"[..LookupController.MaxAppLength];
 
     public LookupTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture)
@@ -124,10 +127,7 @@ public class LookupTests
     [Fact]
     public async Task Lookup_MoreItemsThanLimit_ReturnsBadRequest()
     {
-        var items = Enumerable
-            .Range(0, Altinn.Studio.Designer.Controllers.ReleaseLookupController.MaxItems + 1)
-            .Select(i => Item($"1.0.{i}"))
-            .ToArray();
+        var items = Enumerable.Range(0, LookupController.MaxItems + 1).Select(i => Item($"1.0.{i}")).ToArray();
         var request = Request(items);
 
         // Sent buffered, because the test server fails to send a streamed body of this size.
@@ -152,6 +152,92 @@ public class LookupTests
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("items[1]", await response.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData(LookupController.MaxOrgLength + 1, 0, "")]
+    [InlineData(40_000, 0, "!")]
+    [InlineData(0, LookupController.MaxAppLength + 1, "")]
+    [InlineData(0, 40_000, "!")]
+    public async Task Lookup_OverlongOrgOrApp_ReturnsBadRequestQuickly(int orgLength, int appLength, string suffix)
+    {
+        // A long run of letters followed by a character the pattern rejects makes the app name's regular
+        // expression backtrack for seconds per item, unless the length is checked first.
+        string org = orgLength == 0 ? _org : new string('a', orgLength - suffix.Length) + suffix;
+        string app = appLength == 0 ? _app : new string('a', appLength - suffix.Length) + suffix;
+        var items = Enumerable.Range(0, 20).Select(i => new ReleaseLookupItem(org, app, $"1.0.{i}")).ToArray();
+        using var content = new StringContent(
+            JsonSerializer.Serialize(Request(items)),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var stopwatch = Stopwatch.StartNew();
+        using HttpResponseMessage response = await HttpClient.PostAsync(Uri, content);
+        stopwatch.Stop();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("items[19]", await response.Content.ReadAsStringAsync());
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"The request took {stopwatch.Elapsed}.");
+    }
+
+    [Theory]
+    [InlineData("a\u0000b")]
+    [InlineData("1.0.0\n")]
+    [InlineData("1.0\t0")]
+    [InlineData("1.0.0\u007f")]
+    [InlineData("1.0 0")]
+    [InlineData("1.0/0")]
+    [InlineData("1.0.\u00e9")]
+    [InlineData(".1.0")]
+    [InlineData("-1.0")]
+    public async Task Lookup_VersionThatCannotBeAnImageTag_ReturnsBadRequestForTheItem(string jsonVersion)
+    {
+        // The version is written as a JSON string literal, so that control characters reach the server as such.
+        string body = $$"""{"items":[{"org":"{{_org}}","app":"{{_app}}","version":"{{jsonVersion}}"}]}""";
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using HttpResponseMessage response = await HttpClient.PostAsync(Uri, content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("items[0].version", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Lookup_OverlongVersion_ReturnsBadRequest()
+    {
+        string version = new('1', LookupController.MaxVersionLength + 1);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item(version)));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("items[0].version", await response.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData("V1.0.0")]
+    [InlineData("1.0.0_build")]
+    public async Task Lookup_VersionOutsideTheCurrentCreateRuleButAnImageTag_FindsTheRelease(string version)
+    {
+        ReleaseEntity succeeded = await AddRelease(version, BuildResult.Succeeded);
+
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item(version)));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(succeeded.TargetCommitish, Assert.Single(await ReadResult(response)).Commit);
+    }
+
+    // The test server does not enforce request size limits, so this checks that the limit is on the action, for
+    // Kestrel to enforce.
+    [Fact]
+    public void Lookup_HasRequestSizeLimit()
+    {
+        var limit = typeof(LookupController)
+            .GetMethod(nameof(LookupController.Lookup))!
+            .GetCustomAttributes(inherit: true)
+            .OfType<IRequestSizeLimitMetadata>();
+
+        Assert.Equal(LookupController.MaxRequestBytes, Assert.Single(limit).MaxRequestBodySize);
     }
 
     [Fact]
