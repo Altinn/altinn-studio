@@ -1,6 +1,7 @@
 #nullable disable
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -78,6 +79,40 @@ public class ReleaseRepository : IReleaseRepository
 
         IEnumerable<ReleaseEntity> releases = await Get(org, app, tagName, null, buildResultFilter);
         return releases.Single();
+    }
+
+    public async Task<IReadOnlyList<ReleaseEntity>> GetSucceededReleases(
+        IReadOnlyCollection<ReleaseLookupKey> keys,
+        CancellationToken cancellationToken
+    )
+    {
+        if (keys.Count == 0)
+        {
+            return [];
+        }
+
+        string[] orgs = keys.Select(k => k.Org).ToArray();
+        string[] apps = keys.Select(k => k.App).ToArray();
+        string[] tagNames = keys.Select(k => k.TagName).ToArray();
+        string succeeded = BuildResult.Succeeded.ToEnumMemberAttributeValue();
+
+        // The keys are joined as parallel arrays, so a batch costs one query, and idx_releases_org_app narrows each
+        // key to the releases of one app. A tag that was built again has several succeeded rows, and the newest wins.
+        var dbObjects = await _dbContext
+            .Releases.FromSql(
+                $"""
+                SELECT DISTINCT ON (r.org, r.app, r.tagname) r.*
+                FROM designer.releases AS r
+                JOIN unnest({orgs}, {apps}, {tagNames}) AS requested(org, app, tagname)
+                    ON r.org = requested.org AND r.app = requested.app AND r.tagname = requested.tagname
+                WHERE r.buildresult = {succeeded}
+                ORDER BY r.org, r.app, r.tagname, r.created DESC, r.sequenceno DESC
+                """
+            )
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return ReleaseMapper.MapToModels(dbObjects).ToList();
     }
 
     public async Task Update(ReleaseEntity releaseEntity)
