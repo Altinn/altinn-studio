@@ -107,24 +107,17 @@ func (c *AuthCommand) runToken(args []string) error {
 	fs := flag.NewFlagSet("auth token", flag.ContinueOnError)
 	var env string
 	fs.StringVar(&env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging, local)")
+	// The flag package prints usage on any parse error. Help goes to stdout only when it was asked for, so that a
+	// program reading the key gets nothing on stdout when the command fails.
 	fs.SetOutput(io.Discard)
-	fs.Usage = func() {
-		c.out.Print(joinLines(
-			fmt.Sprintf("Usage: %s auth token [options]", osutil.CurrentBin()),
-			"",
-			"Print the API key stored for an environment, for another program to use.",
-			"Studio checks whether the key is still valid when the program calls it.",
-			"",
-			"Options:",
-			fmt.Sprintf("  --env ENV    Environment (prod, dev, staging, local; default: %s)", authstore.DefaultEnv),
-		))
-	}
+	fs.Usage = func() {}
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
+			c.out.Print(authTokenUsage())
 			return nil
 		}
-		return fmt.Errorf("parsing flags: %w", err)
+		return fmt.Errorf("parsing flags: %w (run '%s auth token --help')", err, osutil.CurrentBin())
 	}
 	if fs.NArg() > 0 {
 		return fmt.Errorf("%w: unexpected argument %q", ErrInvalidFlagValue, fs.Arg(0))
@@ -139,11 +132,29 @@ func (c *AuthCommand) runToken(args []string) error {
 	}
 
 	// A bare "\n" on every platform, since shells strip it from a command substitution and some leave a "\r".
-	c.out.Print(token + "\n")
+	if err := c.out.WriteResult(token + "\n"); err != nil {
+		return fmt.Errorf("print API key: %w", err)
+	}
 	return nil
 }
 
+func authTokenUsage() string {
+	return joinLines(
+		fmt.Sprintf("Usage: %s auth token [options]", osutil.CurrentBin()),
+		"",
+		"Print the API key stored for an environment, for another program to use.",
+		"Studio checks whether the key is still valid when the program calls it.",
+		"",
+		"Options:",
+		fmt.Sprintf("  --env ENV    Environment (prod, dev, staging, local; default: %s)", authstore.DefaultEnv),
+	)
+}
+
 func (c *AuthCommand) runGitCredential(args []string) error {
+	return c.gitCredential(args, os.Stdin)
+}
+
+func (c *AuthCommand) gitCredential(args []string, in io.Reader) error {
 	fs := flag.NewFlagSet("auth git-credential", flag.ContinueOnError)
 	var env string
 	fs.StringVar(&env, "env", authstore.DefaultEnv, "Environment name")
@@ -163,7 +174,7 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 		return nil
 	}
 
-	result, err := c.service.GitCredential(os.Stdin, env)
+	result, err := c.service.GitCredential(in, env)
 	if err != nil {
 		return fmt.Errorf("resolve git credentials: %w", err)
 	}
@@ -171,9 +182,11 @@ func (c *AuthCommand) runGitCredential(args []string) error {
 		return nil
 	}
 
-	c.out.Printlnf("username=%s", result.Username)
-	c.out.Printlnf("password=%s", result.Password)
-	c.out.Println("")
+	lb := osutil.LineBreak
+	response := "username=" + result.Username + lb + "password=" + result.Password + lb + lb
+	if err := c.out.WriteResult(response); err != nil {
+		return fmt.Errorf("print git credentials: %w", err)
+	}
 	return nil
 }
 
