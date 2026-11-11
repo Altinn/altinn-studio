@@ -25,7 +25,7 @@ const designsystemetRestriction = {
     '@digdir/designsystemet-css/**',
   ],
   message:
-    'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components.',
+    'Do not import from Designsystemet directly. Import components from @designer/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @designer/components.',
 };
 
 const restrictedImportsAllowingDesignsystemet = (patterns) => [
@@ -120,7 +120,7 @@ export default [
         {
           group: ['**/libs/**'],
           message:
-            'Use the package name, not the relative path, when importing from a @studio library.',
+            'Use the package name, not the relative path, when importing from a @designer library.',
         },
       ]),
     },
@@ -196,12 +196,12 @@ export default [
       'no-restricted-imports': restrictedImports([
         {
           group: ['react'],
-          message: 'The @studio/browser-storage package should not depend on React.',
+          message: 'The @designer/browser-storage package should not depend on React.',
         },
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/browser-storage package should not depend on app-specific packages.',
+            'Files in the @designer/browser-storage package should not depend on app-specific packages.',
         },
       ]),
     },
@@ -222,7 +222,7 @@ export default [
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/components package should not depend on app-specific packages.',
+            'Files in the @designer/components package should not depend on app-specific packages.',
         },
         {
           group: ['i18next', 'react-i18next'],
@@ -281,7 +281,7 @@ export default [
         },
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @studio/hooks package should not depend on app-specific packages.',
+          message: 'Files in the @designer/hooks package should not depend on app-specific packages.',
         },
         {
           group: ['i18next', 'react-i18next'],
@@ -320,7 +320,7 @@ export default [
       'no-restricted-imports': restrictedImports([
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @studio/icons package should not depend on app-specific packages.',
+          message: 'Files in the @designer/icons package should not depend on app-specific packages.',
         },
       ]),
     },
@@ -337,12 +337,12 @@ export default [
       'no-restricted-imports': restrictedImports([
         {
           group: ['react'],
-          message: 'The @studio/pure-functions package should not depend on React.',
+          message: 'The @designer/pure-functions package should not depend on React.',
         },
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/pure-functions package should not depend on app-specific packages.',
+            'Files in the @designer/pure-functions package should not depend on app-specific packages.',
         },
       ]),
     },

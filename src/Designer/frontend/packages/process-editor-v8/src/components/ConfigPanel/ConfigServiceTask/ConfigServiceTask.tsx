@@ -5,7 +5,7 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
-import { StudioDetails, StudioDisplayTile } from '@studio/components';
+import { StudioDetails, StudioDisplayTile } from '@designer/components';
 import { EditActions } from '../ConfigContent/EditActions';
 import { EditPolicy } from '../ConfigContent/EditPolicy';
 

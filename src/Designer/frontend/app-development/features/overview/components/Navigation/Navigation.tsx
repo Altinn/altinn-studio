@@ -2,7 +2,7 @@ import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
-import { studioBetaTagClasses, StudioHeading } from '@studio/components';
+import { studioBetaTagClasses, StudioHeading } from '@designer/components';
 import { useTopBarMenuItems } from 'app-development/hooks/useTopBarMenuItems';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 

@@ -4,7 +4,7 @@ import classes from './SetupTabInputFields.module.css';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { StudioCard, StudioSwitch } from '@studio/components';
+import { StudioCard, StudioSwitch } from '@designer/components';
 import { onEntryShowKey, updateOnEntryShow } from './utils';
 
 export type SetupTabInputFieldsProps = {

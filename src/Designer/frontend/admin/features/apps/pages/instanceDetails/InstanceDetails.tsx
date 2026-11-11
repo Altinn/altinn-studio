@@ -1,4 +1,4 @@
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { InstanceDataView } from './components/InstanceDataView';
 import { InstanceWorkflows } from './components/InstanceWorkflows';
 import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';

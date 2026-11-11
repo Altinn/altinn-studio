@@ -1,6 +1,6 @@
 import classes from './PreviewFileInfo.module.css';
-import { StudioParagraph } from '@studio/components';
-import { FileNameUtils } from '@studio/pure-functions';
+import { StudioParagraph } from '@designer/components';
+import { FileNameUtils } from '@designer/pure-functions';
 
 interface PreviewFileInfoProps {
   existingImageUrl: string;

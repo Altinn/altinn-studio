@@ -2,7 +2,7 @@ import { StudioLanguagePicker } from '../StudioLanguagePicker';
 import type { StudioLanguagePickerProps } from '../StudioLanguagePicker';
 import { useCallback, useState } from 'react';
 import type { ReactElement } from 'react';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export function UncontrolledLanguagePicker({
   languageCodes: initialLanguageCodes,

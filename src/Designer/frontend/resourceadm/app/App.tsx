@@ -5,7 +5,7 @@ import classes from './App.module.css';
 import './App.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-import { StudioCenter, StudioSpinner } from '@studio/components';
+import { StudioCenter, StudioSpinner } from '@designer/components';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { PageLayout } from '../pages/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
@@ -15,7 +15,7 @@ import { RedirectPage } from '../pages/RedirectPage';
 import { ListAdminPage } from '../pages/ListAdminPage';
 import { AccessListPage } from '../pages/AccessListPage';
 import { Altinn2ResourcePoliciesPage } from '../pages/Altinn2ResourcePoliciesPage/Altinn2ResourcePoliciesPage';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 
 export const App = (): React.JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();

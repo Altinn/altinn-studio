@@ -8,9 +8,9 @@ import {
   DivideIcon,
   IntegerIcon,
   PlusIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 
 export interface AddPropertiesMenuProps {
   onItemClick: (kind: ObjectKind, fieldType?: FieldType) => void;

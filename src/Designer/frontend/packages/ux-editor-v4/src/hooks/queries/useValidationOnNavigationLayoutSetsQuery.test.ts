@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useValidationOnNavigationLayoutSetsQuery } from './useValidationOnNavigationLayoutSetsQuery';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('useFrontEndSettingsQuery', () => {
   it('should call getValidationOnNavigationLayoutSets with the correct parameters', () => {

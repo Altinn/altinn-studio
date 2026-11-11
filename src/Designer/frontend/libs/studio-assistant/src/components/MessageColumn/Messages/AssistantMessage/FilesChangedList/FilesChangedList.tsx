@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioTag } from '@studio/components';
+import { StudioTag } from '@designer/components';
 import classes from './FilesChangedList.module.css';
 
 export type FilesChangedListProps = {

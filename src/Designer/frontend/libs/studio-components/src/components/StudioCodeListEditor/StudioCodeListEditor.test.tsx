@@ -10,7 +10,7 @@ import { texts } from './test-data/texts';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
-import { studioTest } from '@studio/ui-test';
+import { studioTest } from '@designer/ui-test';
 
 // Test data:
 const onInvalid = vi.fn();

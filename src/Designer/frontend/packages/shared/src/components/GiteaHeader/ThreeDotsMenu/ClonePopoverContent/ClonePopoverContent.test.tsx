@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../mocks/renderWithProviders';

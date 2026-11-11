@@ -3,7 +3,7 @@ import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
@@ -13,7 +13,7 @@ import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 vi.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: vi.fn(),

@@ -1,4 +1,4 @@
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
+import type { AgentResponse, AssistantMessageData } from '@designer/assistant';
 
 export type RejectionTexts = {
   heading: string;

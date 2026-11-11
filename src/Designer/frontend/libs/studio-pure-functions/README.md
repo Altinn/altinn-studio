@@ -1,4 +1,4 @@
-# @studio/pure-functions
+# @designer/pure-functions
 
 Studio-Pure-Functions is a tool that has pure TypeScript functions to be used internally within Altinn Studio. It's great for developers to have this library for functions to ensure that the pure functions used throughout Altinn Studio's applications work the same way and stay consistent.
 
@@ -18,5 +18,5 @@ export class StringUtils {
 
 ## How to install Studio Pure Functions
 
-Currently, the `@studio/pure-functions` package resides as a local package within the Altinn Studio repository. This enables all packages and apps within the Altinn Studio repository to install `@studio/pure-functions` by adding the following dependency to their package.json: `"@studio/pure-functions": "workspace:^"`, followed by running `yarn install`. The advantage of this setup is that it allows us to easily publish the package to NPM in the future.
+Currently, the `@designer/pure-functions` package resides as a local package within the Altinn Studio repository. This enables all packages and apps within the Altinn Studio repository to install `@designer/pure-functions` by adding the following dependency to their package.json: `"@designer/pure-functions": "workspace:^"`, followed by running `yarn install`. The advantage of this setup is that it allows us to easily publish the package to NPM in the future.
 ````

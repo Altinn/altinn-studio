@@ -10,13 +10,13 @@ import {
   conditionalRenderingDeleteButtonId,
   conditionalRenderingOutputFieldId,
   org,
-} from '@studio/testing/testids';
+} from '@designer/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock, layoutMock } from '../../testing/layoutMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('ConditionalRendering', () => {
   it('should render without crashing', () => {

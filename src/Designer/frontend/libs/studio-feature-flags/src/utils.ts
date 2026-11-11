@@ -1,4 +1,4 @@
-import { ArrayUtils, typedLocalStorage } from '@studio/pure-functions';
+import { ArrayUtils, typedLocalStorage } from '@designer/pure-functions';
 import { FeatureFlag } from './FeatureFlag';
 
 export const FEATURE_FLAGS_KEY = 'featureFlags';

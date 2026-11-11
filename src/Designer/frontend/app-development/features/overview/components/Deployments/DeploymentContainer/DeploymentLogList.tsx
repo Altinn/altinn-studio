@@ -1,8 +1,8 @@
 import classes from './DeploymentLogList.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
-import { StudioHeading } from '@studio/components';
-import { DateUtils } from '@studio/pure-functions';
+import { StudioHeading } from '@designer/components';
+import { DateUtils } from '@designer/pure-functions';
 import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 import { BuildResult } from 'app-shared/types/Build';

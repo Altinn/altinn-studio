@@ -1,4 +1,4 @@
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import {
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,

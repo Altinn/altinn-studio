@@ -5,21 +5,21 @@ import userEvent from '@testing-library/user-event';
 import { DashboardHeader } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext';
 import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { PageName } from '@studio/content-library';
+import { PageName } from '@designer/content-library';
 
 const mockOrgTtd: string = 'ttd';
 const mockNavigate = vi.fn();
@@ -33,7 +33,7 @@ vi.mock('react-router-dom', async () => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   it('should render the user name as the profile button when in self context', () => {

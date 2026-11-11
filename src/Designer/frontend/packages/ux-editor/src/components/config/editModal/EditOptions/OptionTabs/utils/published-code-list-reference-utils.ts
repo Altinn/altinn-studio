@@ -1,4 +1,4 @@
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 import type { PublishedCodeListReferenceValues } from '../types/PublishedCodeListReferenceValues';
 
 export function isPublishedCodeListReferenceString(id: string, orgName: string): boolean {

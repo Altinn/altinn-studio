@@ -3,7 +3,7 @@ import type { MouseEventHandler } from 'react';
 import React from 'react';
 import { StudioTag } from '../StudioTag';
 import classes from './StudioLibraryElement.module.css';
-import { CheckmarkCircleIcon } from '@studio/icons';
+import { CheckmarkCircleIcon } from '@designer/icons';
 import cn from 'classnames';
 
 export type StudioLibraryElementProps = {

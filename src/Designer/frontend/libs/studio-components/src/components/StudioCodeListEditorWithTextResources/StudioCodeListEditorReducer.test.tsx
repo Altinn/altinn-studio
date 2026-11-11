@@ -4,7 +4,7 @@ import { textResources } from './test-data/textResources';
 import type { ReducerAction, ReducerState } from './StudioCodeListEditorReducer';
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 
 // Test data:

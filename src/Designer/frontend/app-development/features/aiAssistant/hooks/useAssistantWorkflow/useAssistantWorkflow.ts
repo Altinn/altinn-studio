@@ -11,8 +11,8 @@ import type {
   AgentResponse,
   UserAttachment,
   PermissionRequest,
-} from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
+} from '@designer/assistant';
+import { MessageAuthor } from '@designer/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';

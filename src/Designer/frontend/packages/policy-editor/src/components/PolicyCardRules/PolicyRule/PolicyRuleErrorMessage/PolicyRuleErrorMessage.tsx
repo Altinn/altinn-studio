@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioValidationMessage } from '@designer/components';
 
 export const PolicyRuleErrorMessage = (): React.ReactElement | null => {
   const { t } = useTranslation();

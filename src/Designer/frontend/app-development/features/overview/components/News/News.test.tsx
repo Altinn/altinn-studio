@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
 import { News } from './News';
 

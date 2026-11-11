@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useComponentPropertyLabel } from '../../../../hooks';
-import { StudioProperty } from '@studio/components';
-import { PlusCircleIcon } from '@studio/icons';
+import { StudioProperty } from '@designer/components';
+import { PlusCircleIcon } from '@designer/icons';
 import type { CatalogConfigProps } from '../types';
 import { ConfigObjectPropertyCard } from './ConfigObjectPropertyCard';
 import { useTranslateKeyValue } from '../useTranslateKeyValue';

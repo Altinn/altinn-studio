@@ -1,4 +1,4 @@
-import type { StringExpression } from '@studio/components';
+import type { StringExpression } from '@designer/components';
 
 export const getDisplayValues = (value: StringExpression) => {
   if (!value) {

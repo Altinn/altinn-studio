@@ -10,7 +10,7 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@designer/components';
 
 export const Elements = () => {
   const { org, app } = useStudioEnvironmentParams();

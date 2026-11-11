@@ -1,11 +1,11 @@
 {
-  "name": "@studio/content-library",
+  "name": "@designer/content-library",
   "packageManager": "yarn@4.18.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
-    "@studio/components": "workspace:^",
-    "@studio/pure-functions": "workspace:^"
+    "@designer/components": "workspace:^",
+    "@designer/pure-functions": "workspace:^"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",

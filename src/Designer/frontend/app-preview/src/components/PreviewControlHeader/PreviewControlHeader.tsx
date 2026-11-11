@@ -3,7 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioSpinner, StudioSelect, StudioToggleGroup } from '@studio/components';
+import { StudioSpinner, StudioSelect, StudioToggleGroup } from '@designer/components';
 
 export type PreviewControlHeaderProps = {
   viewSize: 'desktop' | 'mobile';

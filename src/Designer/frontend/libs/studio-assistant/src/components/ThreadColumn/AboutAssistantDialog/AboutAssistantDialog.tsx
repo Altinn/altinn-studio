@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useEffect, useRef } from 'react';
-import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
-import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
+import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@designer/components';
+import { ExternalLinkIcon, InformationIcon } from '@designer/icons';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
 import classes from './AboutAssistantDialog.module.css';
 

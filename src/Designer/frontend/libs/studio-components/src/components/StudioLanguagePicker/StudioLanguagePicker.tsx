@@ -9,11 +9,11 @@ import type {
   ReactElement,
 } from 'react';
 import classes from './StudioLanguagePicker.module.css';
-import { PlusCircleIcon } from '@studio/icons';
+import { PlusCircleIcon } from '@designer/icons';
 import { StudioTextfield } from '../StudioTextfield';
 import { validateCode } from './validateCode';
-import { ArrayUtils } from '@studio/pure-functions';
-import { useForwardedRef } from '@studio/hooks';
+import { ArrayUtils } from '@designer/pure-functions';
+import { useForwardedRef } from '@designer/hooks';
 
 export interface StudioLanguagePickerProps {
   readonly languageCodes: string[];

@@ -5,9 +5,9 @@ import {
   StudioSwitch,
   StudioRadio,
   useStudioRadioGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
+import { FileIcon, InformationIcon, TasklistIcon } from '@designer/icons';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

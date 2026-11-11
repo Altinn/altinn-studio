@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useConfigurationMode } from './useConfigurationMode';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, layoutSet as layoutSetId, org } from '@studio/testing/testids';
+import { app, layoutSet as layoutSetId, org } from '@designer/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';

@@ -1,14 +1,14 @@
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 import {
   StudioDeleteButton,
   StudioError,
   StudioSpinner,
   StudioTable,
   StudioTag,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './ApiKeysList.module.css';
 
 export type ApiKey = {

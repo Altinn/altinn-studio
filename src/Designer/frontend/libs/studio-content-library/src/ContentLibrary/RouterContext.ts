@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Provider } from 'react';
 import type { ContentLibraryRouter } from '../types/ContentLibraryRouter';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 
 const RouterContext = React.createContext<ContentLibraryRouter | null>(null);
 
