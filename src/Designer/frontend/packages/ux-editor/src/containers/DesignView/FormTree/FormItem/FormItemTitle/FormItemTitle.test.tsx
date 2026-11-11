@@ -1,3 +1,4 @@
+import type { PreviewComponentErrors } from '../../../../../components/Preview/studioBridge';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
@@ -28,6 +29,32 @@ import { appContextMock } from '../../../../../testing/appContextMock';
 const mockHandleDiscard = vi.fn();
 
 describe('FormItemTitle', () => {
+  it('marks a component that preview found errors in', () => {
+    const component = componentMocks[ComponentType.Input];
+
+    render(component, 'Test label', null, {}, new Map([[component.id, ['Must be boolean']]]));
+
+    expect(
+      screen.getByTitle(textMock('ux_editor.preview.component_has_errors')),
+    ).toBeInTheDocument();
+  });
+
+  it('does not mark a component that preview found no errors in', () => {
+    const component = componentMocks[ComponentType.Input];
+
+    render(
+      component,
+      'Test label',
+      null,
+      {},
+      new Map([['another-component', ['Must be boolean']]]),
+    );
+
+    expect(
+      screen.queryByTitle(textMock('ux_editor.preview.component_has_errors')),
+    ).not.toBeInTheDocument();
+  });
+
   it('Renders children', () => {
     const component = componentMocks[ComponentType.Input];
     const label = 'Test label';
@@ -199,9 +226,10 @@ const render = (
   label: string,
   selectedItemId: string = null,
   queries: Partial<ServicesContextProps> = {},
+  previewComponentErrors: PreviewComponentErrors = new Map(),
 ) =>
   renderWithProviders(formItemTitleWithSelection(formItem, label, selectedItemId), {
-    appContextProps: {},
+    appContextProps: { previewComponentErrors },
     queries,
   });
 

@@ -8,6 +8,7 @@ import { Summary2Override } from '../../config/componentSpecificContent/Summary2
 import { EditFormComponent } from '../../config/EditFormComponent';
 import { DataModelBindings } from '../DataModelBindings';
 import { PropertiesHeader } from '../PropertiesHeader';
+import { PreviewComponentErrors } from '../PreviewComponentErrors';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
 import type { ItemType } from '../ItemType';
@@ -55,6 +56,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   return (
     <>
       <ComponentConfigHeader />
+      <PreviewComponentErrors componentId={formItemId} />
       {formItem.type === ComponentType.Summary2 && (
         <StudioDetails
           onToggle={() => toggleOpen('summary2overrides')}
