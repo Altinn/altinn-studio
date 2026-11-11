@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4390](https://github.com/Altinn/app-frontend-react/pull/4390))
 - Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
 - Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))
 - App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
