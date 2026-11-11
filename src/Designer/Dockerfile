@@ -44,6 +44,7 @@ COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/setting
 COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/http-client/package.json ./src/common/ts/http-client/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
 COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 

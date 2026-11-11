@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- The type parameters default to `any`, as in axios, so a caller can read `error.response.data` without naming its type. */
+
 export type RequestOptions = {
   headers?: Record<string, string>;
   signal?: AbortSignal;
@@ -160,8 +162,8 @@ function isBodyInit(data: unknown): data is BodyInit {
 
 /**
  * Parses the body as JSON when it is JSON, whatever the Content-Type says, since some endpoints
- * send JSON as text/plain. The rule config is one, through `Content(ruleConfig)` in
- * `AppDevelopmentController`. Any other body, including an empty one, is returned as text.
+ * send JSON as text/plain, such as the rule config from `AppDevelopmentController` in Designer. Any
+ * other body, including an empty one, is returned as text.
  */
 async function readData(response: Response): Promise<unknown> {
   const text = await response.text();

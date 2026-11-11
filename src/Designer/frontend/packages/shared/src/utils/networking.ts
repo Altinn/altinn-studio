@@ -1,8 +1,8 @@
-import { createHttpClient } from './httpClient';
-import type { RequestInterceptor, RequestOptions, ResponseInterceptor } from './httpClient';
+import { createHttpClient } from '@app/http-client';
+import type { RequestInterceptor, RequestOptions, ResponseInterceptor } from '@app/http-client';
 
-export type { HttpResponse, RequestOptions } from './httpClient';
-export { HttpError, isHttpError, isRequestCancelled } from './httpClient';
+export type { HttpResponse, RequestOptions } from '@app/http-client';
+export { HttpError, isHttpError, isRequestCancelled } from '@app/http-client';
 
 /** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
 const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
