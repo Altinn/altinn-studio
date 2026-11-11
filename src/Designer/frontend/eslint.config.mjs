@@ -281,7 +281,8 @@ export default [
         },
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @designer/hooks package should not depend on app-specific packages.',
+          message:
+            'Files in the @designer/hooks package should not depend on app-specific packages.',
         },
         {
           group: ['i18next', 'react-i18next'],
@@ -320,7 +321,8 @@ export default [
       'no-restricted-imports': restrictedImports([
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @designer/icons package should not depend on app-specific packages.',
+          message:
+            'Files in the @designer/icons package should not depend on app-specific packages.',
         },
       ]),
     },

@@ -1,5 +1,10 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { StudioParagraph, StudioHeading, StudioSelect, StudioTextfield } from '@designer/components';
+import {
+  StudioParagraph,
+  StudioHeading,
+  StudioSelect,
+  StudioTextfield,
+} from '@designer/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

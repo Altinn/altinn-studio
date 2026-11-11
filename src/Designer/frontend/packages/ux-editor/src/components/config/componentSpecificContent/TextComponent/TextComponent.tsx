@@ -1,7 +1,11 @@
 import React, { useState, type JSX } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { type StringExpression, StudioManualExpression, StudioProperty } from '@designer/components';
+import {
+  type StringExpression,
+  StudioManualExpression,
+  StudioProperty,
+} from '@designer/components';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';

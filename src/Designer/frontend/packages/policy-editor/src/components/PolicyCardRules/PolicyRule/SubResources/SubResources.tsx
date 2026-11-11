@@ -1,6 +1,10 @@
 import React from 'react';
 import classes from './SubResources.module.css';
-import { StudioButton, StudioLabelAsParagraph, StudioValidationMessage } from '@designer/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioValidationMessage,
+} from '@designer/components';
 import { PlusIcon } from '@designer/icons';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';
