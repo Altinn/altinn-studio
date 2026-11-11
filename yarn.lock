@@ -225,22 +225,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@app/http-client@workspace:*, @app/http-client@workspace:src/common/ts/http-client":
-  version: 0.0.0-use.local
-  resolution: "@app/http-client@workspace:src/common/ts/http-client"
-  dependencies:
-    "@eslint/js": "npm:^10.0.1"
-    "@typescript-eslint/eslint-plugin": "npm:8.66.0"
-    "@typescript-eslint/parser": "npm:8.66.0"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    prettier: "npm:3.9.8"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
-    vitest: "npm:5.0.1"
-  languageName: unknown
-  linkType: soft
-
 "@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:src/common/ts/language":
   version: 0.0.0-use.local
   resolution: "@app/language@workspace:src/common/ts/language"
@@ -4900,6 +4884,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/http-client@workspace:*, @studio/http-client@workspace:src/common/ts/http-client":
+  version: 0.0.0-use.local
+  resolution: "@studio/http-client@workspace:src/common/ts/http-client"
+  dependencies:
+    "@eslint/js": "npm:^10.0.1"
+    "@typescript-eslint/eslint-plugin": "npm:8.66.0"
+    "@typescript-eslint/parser": "npm:8.66.0"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    prettier: "npm:3.9.8"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+    vite: "npm:8.2.2"
+    vitest: "npm:5.0.1"
+  languageName: unknown
+  linkType: soft
+
 "@studio/icons@workspace:^, @studio/icons@workspace:src/Designer/frontend/libs/studio-icons":
   version: 0.0.0-use.local
   resolution: "@studio/icons@workspace:src/Designer/frontend/libs/studio-icons"
@@ -6721,7 +6721,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
-    "@app/http-client": "workspace:*"
+    "@studio/http-client": "workspace:*"
     "@studio/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     "@types/react": "npm:19.2.18"

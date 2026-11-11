@@ -1,5 +1,5 @@
 {
-  "name": "@app/http-client",
+  "name": "@studio/http-client",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
