@@ -10,7 +10,9 @@ Control flow:
     1.  Append user goal.
     2.  Optionally compact the message list for size.
     3.  Send to LLM, append the assistant response.
-    4.  If response has no tool_use blocks → COMPLETED.
+    4.  If response has no tool_use blocks → COMPLETED.  Before that,
+        `before_completion` can give the model one notice and one more
+        round.
     5.  Otherwise validate + dispatch the tools:
             - concurrency-safe tools run in a parallel batch;
             - the first unsafe tool in the response acts as a barrier
@@ -100,9 +102,8 @@ _TRUNCATION_PARTIAL_NOTICE = (
 
 # With this many turns left, inject a wrap-up notice so the model stops
 # exploring and lands what it has.  A max_turns termination throws away
-# the final message and leaves the work uncommitted (modulo the
-# auto-commit safety net) — far worse than a slightly less polished
-# result.
+# the final message and leaves the work unsaved, because only the model
+# commits — far worse than a slightly less polished result.
 _WRAPUP_WARNING_TURNS = 4
 
 _WRAPUP_NOTICE = (
@@ -172,6 +173,15 @@ class LoopResult:
 # ---------------------------------------------------------------------------
 
 
+CompletionCheck = Callable[[], str | None]
+"""Runs when the model sends a message without tool calls.
+
+Returns a notice for the model, or None if the run can end.  The check
+reads state that the model's text cannot show, such as edits that are not
+saved.
+"""
+
+
 EventCallback = Callable[[str, dict[str, Any]], Awaitable[None] | None]
 """Signature `(event_type, payload) -> None|Awaitable[None]`.
 
@@ -210,6 +220,7 @@ async def run_loop(
     is_cancelled: Callable[[], bool] | None = None,
     on_event: EventCallback | None = None,
     history: list[Message] | None = None,
+    before_completion: CompletionCheck | None = None,
 ) -> LoopResult:
     """Drive a conversation to termination.
 
@@ -220,6 +231,12 @@ async def run_loop(
     `history` carries prior conversation turns (alternating user/assistant
     messages from earlier runs in the same session) so follow-up requests
     have context.  It is prepended verbatim before `user_message`.
+
+    `before_completion` runs when the model sends its final message.  If
+    it returns a notice, the model gets the notice instead of the run
+    ending, and continues with its transcript intact.  The loop gives at
+    most one notice in a run, so the model's next final message ends the
+    run.  The notice uses a turn of `max_turns`.
     """
     compaction = compaction or CompactionConfig()
     ctx.max_result_chars = compaction.max_result_chars
@@ -234,6 +251,7 @@ async def run_loop(
     # is recoverable (we prompt the model to continue in smaller batches);
     # repeated truncation means the budget genuinely can't fit the task.
     consecutive_truncations = 0
+    completion_notice_given = False
 
     for turn in range(1, max_turns + 1):
         if is_cancelled and is_cancelled():
@@ -357,6 +375,13 @@ async def run_loop(
                 )
                 messages.append(UserMessage(content=_TRUNCATION_RECOVERY_PROMPT))
                 continue
+            if before_completion is not None and not completion_notice_given:
+                notice = _completion_notice(before_completion)
+                if notice:
+                    completion_notice_given = True
+                    log.info("Turn %d: the model gets a notice before the run ends", turn)
+                    messages.append(UserMessage(content=notice))
+                    continue
             final = extract_text(response)
             await _emit(on_event, "terminated", {"reason": "completed", "turn": turn})
             return LoopResult(
@@ -370,8 +395,7 @@ async def run_loop(
         # Anti-thrash: if the model has fired the same (name, input)
         # signature several turns in a row, calling the same tools
         # again won't help.  Bail with a clear reason so the agentic
-        # node can surface a useful message + auto-commit any partial
-        # progress.
+        # node can surface a useful message.
         recent_tool_signatures.append([_tool_signature(tu) for tu in tool_uses])
         stuck_sig = _detect_stuck(recent_tool_signatures)
         if stuck_sig is not None:
@@ -419,6 +443,15 @@ async def run_loop(
         turns=max_turns,
         usage=total_usage,
     )
+
+
+def _completion_notice(check: CompletionCheck) -> str | None:
+    """Run the check.  A check that raises does not stop the run."""
+    try:
+        return check()
+    except Exception:
+        log.exception("The check before completion raised")
+        return None
 
 
 def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:

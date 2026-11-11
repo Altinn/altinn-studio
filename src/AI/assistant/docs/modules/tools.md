@@ -10,7 +10,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `read_file`             | Read one file, or one part of a long file        | Yes      | No               |
 | `edit_file`             | Replace one string in one file                   | No       | Yes              |
 | `write_file`            | Make or replace a whole file                     | No       | Yes              |
-| `discard_file_changes`  | Reset one file to HEAD                           | No       | Yes              |
+| `discard_file_changes`  | Reset one file to HEAD, or delete a new file     | No       | Yes              |
 | `verify_changes`        | Validate all changed files                       | Yes      | Yes              |
 | `commit_session_branch` | Commit and push to the session branch            | No       | Yes              |
 | `preview_render_check`  | Render each page in a headless browser           | No       | Yes              |
@@ -43,6 +43,8 @@ flowchart TD
 ```
 
 _The commit gate. The commit tool refuses if a changed file is not verified after its last edit._
+
+The tools record the edits of one turn only. Thus `verify_changes` and `commit_session_branch` also take each file that git shows as not committed, which includes an edit that an earlier turn left.
 
 ```mermaid
 flowchart LR
