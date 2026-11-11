@@ -42,6 +42,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>

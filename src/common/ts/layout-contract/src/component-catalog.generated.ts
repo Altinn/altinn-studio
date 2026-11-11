@@ -231,6 +231,7 @@ const ILabelSettings = {
         en: 'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
         nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
       },
+      default: true,
       required: false,
     },
   },
