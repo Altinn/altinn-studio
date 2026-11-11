@@ -297,7 +297,7 @@ def _unsaved_files(ctx: LoopContext) -> list[str]:
     """Return the files that the assistant edited but did not save.
 
     An edit is saved if it is on the remote session branch. The session has its
-    own clone of the app, and each turn starts with a new clone. Thus all
+    own clone of the app, and each turn starts from the saved state. Thus all
     changes in the clone are edits of this turn. The function asks git,
     because a flag of a tool cannot show that a later edit is not saved. If
     git cannot read the clone, each file that the tools edited is unsaved.

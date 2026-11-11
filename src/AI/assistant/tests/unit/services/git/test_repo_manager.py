@@ -34,52 +34,67 @@ def test_records_the_commit_the_clone_starts_on(manager: RepoManager, origin: Pa
     assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
 
 
-class TestALaterTurnOfTheSession:
-    """Each turn gets a new clone. Thus the model cannot read an edit that the
-    user does not have, and tell the user that it is in the app."""
+def test_keeps_the_start_commit_when_a_later_start_reuses_the_clone(manager: RepoManager, origin: Path):
+    repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+    write_files(repo, {"the-sessions-change.txt": "change"})
+    commit_all(repo, "the session's commit")
 
-    def _later_turn(self, manager: RepoManager, branch: str | None = None) -> Path:
-        return manager.clone_repo_for_session(_URL, "session-1", branch, api_key="key")
+    manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+
+    assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
+
+
+class TestALaterStartOfTheSession:
+    """Each turn starts from the saved state. Thus the model cannot read an
+    edit that the user does not have, and tell the user that it is in the app."""
+
+    def _later_start(self, manager: RepoManager) -> Path:
+        return manager.clone_repo_for_session(_URL, "session-1", api_key="key")
 
     def test_drops_an_edit_that_is_not_committed(self, manager: RepoManager):
         repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
         write_files(repo, {"first.txt": "edited", "new/file.txt": "new"})
 
-        repo = self._later_turn(manager)
+        self._later_start(manager)
 
         assert (repo / "first.txt").read_text(encoding="utf-8") == "first"
         assert not (repo / "new").exists()
+        assert git(repo, "status", "--porcelain") == ""
 
     def test_drops_a_commit_that_is_not_pushed(self, manager: RepoManager):
         repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
         _commit_on_branch(repo, "assistant_session-1")
 
-        repo = self._later_turn(manager)
+        self._later_start(manager)
 
         assert not (repo / "the-sessions-change.txt").exists()
-        assert git(repo, "branch", "--list", "assistant_session-1") == ""
+        assert git(repo, "rev-parse", "HEAD") == manager.get_session_start_commit("session-1")
 
-    def test_keeps_a_commit_that_is_pushed(self, manager: RepoManager):
+    def test_keeps_a_commit_that_is_pushed_and_drops_the_commit_after_it(self, manager: RepoManager):
         repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
         _commit_on_branch(repo, "assistant_session-1")
         manager.push_branch("session-1", "assistant_session-1")
         pushed = git(repo, "rev-parse", "HEAD")
+        write_files(repo, {"second.txt": "not pushed"})
+        commit_all(repo, "a commit with a failed push")
+        write_files(repo, {"third.txt": "not committed"})
 
-        repo = self._later_turn(manager, "assistant_session-1")
+        self._later_start(manager)
 
         assert git(repo, "rev-parse", "HEAD") == pushed
         assert (repo / "the-sessions-change.txt").exists()
+        assert not (repo / "second.txt").exists()
+        assert not (repo / "third.txt").exists()
 
-    def test_starts_on_a_commit_that_the_user_pushed_from_designer(self, manager: RepoManager, origin: Path):
-        """`verify_changes` compares the app with the start commit. An error that the user pushed is then an old error."""
-        manager.clone_repo_for_session(_URL, "session-1", api_key="key")
-        write_files(origin, {"from-designer.txt": "the user's change"})
-        commit_all(origin, "the user's commit")
+    def test_drops_a_file_that_git_ignores(self, manager: RepoManager):
+        """Only the tools of the model write files in the clone. A file that the model wrote to an ignored path is
+        not in the app either."""
+        repo = manager.clone_repo_for_session(_URL, "session-1", api_key="key")
+        write_files(repo, {".git/info/exclude": "bin/\n", "bin/notes.txt": "written by the model"})
 
-        repo = self._later_turn(manager)
+        self._later_start(manager)
 
-        assert (repo / "from-designer.txt").exists()
-        assert manager.get_session_start_commit("session-1") == git(origin, "rev-parse", "HEAD")
+        assert not (repo / "bin").exists()
 
 
 def test_forgets_the_start_commit_with_the_session(manager: RepoManager):

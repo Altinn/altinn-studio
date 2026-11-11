@@ -26,7 +26,7 @@ class RepoManager:
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: dict[str, Path] = {}  # session_id -> repo_path
         self.session_api_keys: dict[str, str] = {}  # session_id -> api key
-        self.start_commits: dict[str, str | None] = {}  # session_id -> the commit that the turn started from
+        self.start_commits: dict[str, str | None] = {}  # session_id -> the commit that the session started from
         self.unreported_pushes: dict[str, str] = {}  # session_id -> the pushed branch that Designer must check out
 
     def _apply_base_url(self, repo_url: str) -> str:
@@ -43,11 +43,7 @@ class RepoManager:
         self, repo_url: str, session_id: str, branch: str | None = None, api_key: str | None = None
     ) -> Path:
         """
-        Clone a repository for one turn of a session.
-
-        Each turn gets a new clone. Thus the model reads the app that Gitea has,
-        and not an edit that an earlier turn did not save. The model then cannot
-        tell the user that such an edit is in the app.
+        Clone a repository for a specific session.
 
         Args:
             repo_url: Git repository URL (e.g., http://altinn-repositories-public/user/repo.git)
@@ -76,7 +72,35 @@ class RepoManager:
 
         repo_path = self.temp_dir / repo_name
 
-        # Remove the clone of the earlier turn
+        # Check if already cloned for this session
+        if session_id in self.active_repos:
+            existing_path = self.active_repos[session_id]
+            if existing_path.exists():
+                log.info(f"Using existing cloned repo for session {session_id}: {existing_path}")
+                # Each turn starts from the saved state. Thus the model cannot
+                # read an edit that the user does not have, and tell the user
+                # that the edit is in the app.
+                git_ops.discard_unsaved(str(existing_path))
+                # If a branch was specified and we're reusing an existing repo, checkout that branch
+                if branch:
+                    try:
+                        checkout_cmd = ["git", "checkout", branch]
+                        subprocess.run(checkout_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
+                        log.info(f"Checked out branch {branch} for existing session {session_id}")
+                    except subprocess.CalledProcessError as e:
+                        log.warning(f"Failed to checkout branch {branch} for existing session: {e.stderr}")
+                        # Try to create and checkout the branch
+                        try:
+                            create_branch_cmd = ["git", "checkout", "-b", branch]
+                            subprocess.run(
+                                create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True
+                            )
+                            log.info(f"Created and checked out new branch {branch} for existing session {session_id}")
+                        except subprocess.CalledProcessError as e2:
+                            log.error(f"Failed to create branch {branch}: {e2.stderr}")
+                return existing_path
+
+        # Remove any existing directory with this name
         if repo_path.exists():
             log.info(f"Removing existing repo directory: {repo_path}")
             shutil.rmtree(repo_path)
@@ -119,7 +143,7 @@ class RepoManager:
             raise Exception(error_msg) from e
 
     def get_session_start_commit(self, session_id: str) -> str | None:
-        """The commit that the clone of the last turn started on."""
+        """The commit that the session started from. A later start that uses the clone again keeps it."""
         return self.start_commits.get(session_id)
 
     def push_branch(self, session_id: str, branch_name: str) -> bool:
