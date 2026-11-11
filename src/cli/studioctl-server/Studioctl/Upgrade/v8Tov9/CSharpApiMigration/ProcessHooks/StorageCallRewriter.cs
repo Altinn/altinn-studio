@@ -1097,8 +1097,9 @@ internal sealed class StorageCallRewriter(
         rewrite.MovedWrites.Add(call);
         rewrite.Moved(
             call.Syntax,
-            $"{call.DisplayName} now replaces the form with {rewrite.Mutator}.ReplaceFormData, which saves "
-                + $"{modelExpression} as it is here, as v8 did."
+            $"{call.DisplayName} now replaces the form with {rewrite.Mutator}.ReplaceFormData, which copies "
+                + $"{modelExpression} as it is here into the element's form, as v8 saved it. If {modelExpression} is the "
+                + $"object {rewrite.Mutator}.GetFormData returned for this element, later changes to it are saved too."
         );
     }
 
@@ -2674,11 +2675,19 @@ internal sealed class StorageCallRewriter(
     }
 
     /// <summary>The data type an element local was looked up by, as in <c>Data.First(d => d.DataType == "x")</c>.</summary>
-    private static string? LookedUpDataType(IOperation element)
+    private static string? LookedUpDataType(IOperation element) =>
+        LookedUpBy(element)
+            .Select(static dataType =>
+                dataType.ConstantValue is { HasValue: true, Value: string constant } ? constant : null
+            )
+            .FirstOrDefault(static dataType => dataType is not null);
+
+    /// <summary>What the lookup of an element local compares <c>DataType</c> with.</summary>
+    public static IEnumerable<IOperation> LookedUpBy(IOperation element)
     {
         if (element is not ILocalReferenceOperation local || Initializers(Root(element), local.Local) is not [var only])
         {
-            return null;
+            return [];
         }
 
         return only.DescendantsAndSelf()
@@ -2692,10 +2701,7 @@ internal sealed class StorageCallRewriter(
                 }
             )
             .Where(static pair => Unwrapped(pair.Item1) is IPropertyReferenceOperation { Property.Name: "DataType" })
-            .Select(static pair =>
-                pair.Item2.ConstantValue is { HasValue: true, Value: string dataType } ? dataType : null
-            )
-            .FirstOrDefault(static dataType => dataType is not null);
+            .Select(static pair => pair.Item2);
     }
 
     /// <summary>The element added earlier in the method that the call's element argument is.</summary>
@@ -2715,7 +2721,7 @@ internal sealed class StorageCallRewriter(
     /// The operation naming the call's element: the <c>DataElement</c> argument, or the element whose id a
     /// <c>Guid.Parse(el.Id)</c> or <c>new Guid(el.Id)</c> argument parses, or the guid itself.
     /// </summary>
-    private static IOperation? Element(StorageClientCall call)
+    public static IOperation? Element(StorageClientCall call)
     {
         if (call.Argument("dataElement")?.Value is { } element)
         {
