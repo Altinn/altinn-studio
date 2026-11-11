@@ -24,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
 - Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))
+- In apps with more than one pod, a process transition no longer fails and leaves the instance in `processing` shortly after the platform rotates the app's callback codes. Notification condition checks and Nets payment webhooks no longer fail then either. ([#21872](https://github.com/Altinn/altinn-studio/issues/21872))
 - App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
 - Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation groups configured with `expandedByDefault: true` now start expanded, including inactive groups. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))

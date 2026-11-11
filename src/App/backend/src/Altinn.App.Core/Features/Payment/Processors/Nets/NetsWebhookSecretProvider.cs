@@ -14,7 +14,8 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets;
 internal interface INetsWebhookSecretProvider
 {
     /// <summary>
-    /// Gets the current webhook secret to send to Nets when registering a webhook.
+    /// Gets the webhook secret to send to Nets when registering a webhook, derived from the code
+    /// <see cref="AppCodeRotation.SelectSigningCode"/> picks, so that every pod knows it before Nets calls back.
     /// </summary>
     string GetSigningSecret();
 
@@ -26,11 +27,22 @@ internal interface INetsWebhookSecretProvider
 }
 
 /// <inheritdoc />
-internal sealed class NetsWebhookSecretProvider(IOptionsMonitor<AppCodesSettings> options) : INetsWebhookSecretProvider
+internal sealed class NetsWebhookSecretProvider(
+    IOptionsMonitor<AppCodesSettings> options,
+    TimeProvider? timeProvider = null
+) : INetsWebhookSecretProvider
 {
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+
     public string GetSigningSecret()
     {
-        return DeriveWebhookSecret(GetCodes()[0]);
+        AppCode code =
+            AppCodeRotation.SelectSigningCode(GetCodes(), _timeProvider.GetUtcNow())
+            ?? throw new PaymentException(
+                "AppCodes:PaymentsCallback contains only expired codes. At least one non-expired code is required "
+                    + "to register a Nets webhook."
+            );
+        return DeriveWebhookSecret(code);
     }
 
     public bool IsValidIncomingSecret(string? providedSecret)

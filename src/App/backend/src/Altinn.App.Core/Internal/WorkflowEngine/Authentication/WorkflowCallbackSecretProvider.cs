@@ -9,8 +9,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 internal interface IWorkflowCallbackSecretProvider
 {
     /// <summary>
-    /// Gets the secret used for signing JWT tokens for workflow engine callbacks
-    /// (the first non-expired code, in configuration order).
+    /// Gets the secret used for signing JWT tokens and callback state for workflow engine callbacks: the code
+    /// <see cref="AppCodeRotation.SelectSigningCode"/> picks, so that every pod knows it before any pod signs with it.
     /// </summary>
     AppCode GetSigningSecret();
 
@@ -21,11 +21,15 @@ internal interface IWorkflowCallbackSecretProvider
 }
 
 /// <inheritdoc />
-internal sealed class WorkflowCallbackSecretProvider(IOptionsMonitor<AppCodesSettings> options)
-    : IWorkflowCallbackSecretProvider
+internal sealed class WorkflowCallbackSecretProvider(
+    IOptionsMonitor<AppCodesSettings> options,
+    TimeProvider? timeProvider = null
+) : IWorkflowCallbackSecretProvider
 {
     private const string NotConfiguredMessage =
         "AppCodes:WorkflowEngineCallback is not configured. Ensure the app-codes secret is mounted.";
+
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     /// <inheritdoc />
     public AppCode GetSigningSecret()
@@ -35,9 +39,7 @@ internal sealed class WorkflowCallbackSecretProvider(IOptionsMonitor<AppCodesSet
             throw new WorkflowCallbackSecretNotFoundException(NotConfiguredMessage);
 
         // A code may expire while the host is running; never sign with an expired code.
-        var now = DateTimeOffset.UtcNow;
-        AppCode? code = codes.Find(c => c.ExpiresAt > now);
-        return code
+        return AppCodeRotation.SelectSigningCode(codes, _timeProvider.GetUtcNow())
             ?? throw new WorkflowCallbackSecretNotFoundException(
                 "AppCodes:WorkflowEngineCallback contains only expired codes. At least one non-expired code is "
                     + "required to sign callback tokens."
