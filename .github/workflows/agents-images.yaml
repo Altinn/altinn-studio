@@ -71,14 +71,6 @@ jobs:
           sparse-checkout: |
             agents
 
-      # The desktop image takes about 16 GB of disk while it builds, more than the amd64 runners have
-      # free. The build uses none of these preinstalled toolchains and images.
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/local/lib/android /usr/share/dotnet
-          docker image prune --all --force > /dev/null
-          df -h /
-
       - name: Login to GHCR
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
