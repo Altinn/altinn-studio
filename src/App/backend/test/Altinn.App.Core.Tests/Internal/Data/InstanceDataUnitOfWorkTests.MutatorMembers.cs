@@ -12,40 +12,6 @@ namespace Altinn.App.Core.Tests.Internal.Data;
 public sealed partial class InstanceDataUnitOfWorkTests
 {
     [Fact]
-    public async Task GetFormDataCopy_IncludesChangesMadeInMemory()
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
-        DataElement formDataElement = AddPersistedPaymentForm(
-            setup,
-            new PaymentForm { Status = "created" },
-            BlobVersion(1)
-        );
-        var form = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(formDataElement));
-        form.Status = "paid";
-
-        PaymentForm copy = await setup.DataMutator.GetFormDataCopy<PaymentForm>(formDataElement);
-
-        Assert.Equal("paid", copy.Status);
-    }
-
-    [Fact]
-    public async Task GetFormDataCopy_ChangesToTheCopy_AreNotSaved()
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
-        DataElement formDataElement = AddPersistedPaymentForm(
-            setup,
-            new PaymentForm { Status = "created" },
-            BlobVersion(1)
-        );
-
-        PaymentForm copy = await setup.DataMutator.GetFormDataCopy<PaymentForm>(formDataElement);
-        copy.Status = "changed";
-
-        Assert.Empty(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false).AllChanges);
-        Assert.Equal("created", (await setup.DataMutator.GetFormData<PaymentForm>(formDataElement)).Status);
-    }
-
-    [Fact]
     public async Task ReplaceFormData_SavesTheReplacement_AndGetFormDataReturnsIt()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));

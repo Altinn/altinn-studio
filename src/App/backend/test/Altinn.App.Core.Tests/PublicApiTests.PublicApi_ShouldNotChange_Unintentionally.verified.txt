@@ -1527,8 +1527,6 @@ namespace Altinn.App.Core.Features
             where T :  class { }
         public static System.Threading.Tasks.Task<T?> GetFormData<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.Platform.Storage.Interface.Models.DataType dataType)
             where T :  class { }
-        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
-            where T :  class { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper?> GetFormDataWrapper(this Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.ModelBinding modelBinding, Altinn.App.Core.Models.DataElementIdentifier? defaultDataElementIdentifier) { }
     }
     public interface IInstanceDataListProvider
