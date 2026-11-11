@@ -149,6 +149,11 @@ internal sealed class StorageCallPort
 
         foreach (var rewrite in rewrites.Values)
         {
+            OtherElementWrites.Plan(rewrite, rewrites);
+        }
+
+        foreach (var rewrite in rewrites.Values)
+        {
             WindowReports.AfterThreading(rewrite);
             reports.AddRange(rewrite.Reports);
             reports.AddRange(rewrite.RewriteReports);
