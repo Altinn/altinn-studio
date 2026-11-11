@@ -442,6 +442,9 @@ public static class Diagnostics
             "taskId next to taskIds is ignored",
             "'taskId' on dataType '{0}' is no longer supported by this version of the app backend and is ignored, so the data type is bound only to the tasks in its taskIds. Remove the taskId '{1}', and list every task the data belongs to in taskIds."
         );
+
+        // ALTINNAPP0605 is taken: Altinn.App.Api.targets reports it for a version 8 release of Altinn.Codelists or
+        // Altinn.FileAnalyzers, since only the build sees which package versions an app resolves.
     }
 
     private const string DocsRoot =

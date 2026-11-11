@@ -28,4 +28,21 @@
     <Content Include="models/**/*.xsd" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Remove="models/**/*.xsd" />
   </ItemGroup>
+
+  <!--
+    Altinn.Codelists and Altinn.FileAnalyzers implement Altinn.App.Core interfaces, so a release built for version 8
+    of the app libraries stops the app at startup with a TypeLoadException. Restore lets it through, since those
+    releases accept any Altinn.App.Core from 8.0.0 up. The check reads the resolved packages, so it also catches a
+    release the app gets through another project or through central package management.
+   -->
+  <Target Name="AltinnCheckCodelistsAndFileAnalyzersVersions" AfterTargets="ResolvePackageAssets" Condition="'$(IsAltinnApp)' == 'true'">
+    <ItemGroup>
+      <_AltinnV8OnlyPackage Include="%(ResolvedCompileFileDefinitions.NuGetPackageId)"
+                            Version="%(ResolvedCompileFileDefinitions.NuGetPackageVersion)"
+                            Condition="('%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Altinn.Codelists' or '%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Altinn.FileAnalyzers') and $([MSBuild]::VersionLessThan('%(ResolvedCompileFileDefinitions.NuGetPackageVersion)', '9.0'))" />
+    </ItemGroup>
+    <Error Condition="'@(_AltinnV8OnlyPackage)' != ''"
+           Code="ALTINNAPP0605"
+           Text="%(_AltinnV8OnlyPackage.Identity) %(_AltinnV8OnlyPackage.Version) is built for version 8 of the Altinn app libraries, and the app fails at startup with version 9. Use the latest 9.x release of %(_AltinnV8OnlyPackage.Identity). studioctl app upgrade v9 makes this change." />
+  </Target>
 </Project>
