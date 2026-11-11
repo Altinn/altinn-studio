@@ -14,6 +14,7 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const defaultProps: DeployDropdownProps = {
   appDeployedVersion: '',
+  envName: 'tt02',
   disabled: false,
   setSelectedImageTag: vi.fn(),
   selectedImageTag: 'test1',

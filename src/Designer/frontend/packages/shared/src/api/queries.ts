@@ -16,6 +16,7 @@ import {
   dataModelsJsonPath,
   dataModelsXsdPath,
   deployPermissionsPath,
+  deployWarningsPath,
   deploymentsPath,
   envConfigPath,
   formLayoutsPath,
@@ -149,6 +150,7 @@ import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
+import type { DeployWarnings } from 'app-shared/types/api/DeployWarnings';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -172,6 +174,7 @@ export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMet
 export const getDataType = (org: string, app: string, dataModelName: string) => get<DataType>(dataTypePath(org, app, dataModelName));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
+export const getDeployWarnings = (owner: string, app: string, tagName: string, envName: string) => get<DeployWarnings>(deployWarningsPath(owner, app, tagName, envName));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
