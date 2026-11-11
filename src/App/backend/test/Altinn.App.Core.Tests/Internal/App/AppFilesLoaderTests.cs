@@ -129,12 +129,13 @@ public sealed class AppFilesLoaderTests : IDisposable
     {
         WriteStandardApp();
         WriteFile("ui/a/layouts/page1.json", """{ "data": { "layout": [ } }""");
-        WriteFile("config/texts/resource.en.json", "not json");
+        WriteFile("config/texts/resource.en.json", "{\n// accepted comment\n\"language\": invalid\n}");
         WriteFile("models/model.xsd", "<not-json-so-not-validated");
 
         var exception = Assert.Throws<ApplicationConfigException>(() => Load());
 
         Assert.Contains("config/texts/resource.en.json", exception.Message);
+        Assert.Contains("LineNumber: 2", exception.Message);
         Assert.Contains("ui/a/layouts/page1.json", exception.Message);
         Assert.DoesNotContain("model.xsd", exception.Message);
         Assert.DoesNotContain("page2.json", exception.Message);

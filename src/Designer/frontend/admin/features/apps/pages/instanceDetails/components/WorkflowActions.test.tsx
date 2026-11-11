@@ -3,8 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import type { AxiosResponse, AxiosStatic } from 'axios';
+import { post } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,10 +16,10 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { WorkflowActions } from './WorkflowActions';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, post: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  post: vi.fn(),
+}));
 
 const env = 'at23';
 const collectionKey = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
@@ -68,7 +68,7 @@ const confirmButton = (key: string) => screen.getByRole('button', { name: textMo
 
 describe('WorkflowActions', () => {
   beforeEach(() => {
-    vi.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
+    vi.mocked(post).mockResolvedValue({});
   });
 
   it.each<PersistentItemStatus>(['Failed', 'Canceled', 'DependencyFailed', 'Abandoned'])(
@@ -106,8 +106,8 @@ describe('WorkflowActions', () => {
     await user.click(nudgeButton());
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(axios.post).mock.calls[0][0]).toBe(
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(post).mock.calls[0][0]).toBe(
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/nudge`,
     );
     rerenderWith(workflow('Processing'));
@@ -118,7 +118,7 @@ describe('WorkflowActions', () => {
 
   it('keeps the other verb out of reach while one is running', async () => {
     const user = userEvent.setup();
-    vi.mocked(axios.post).mockReturnValue(new Promise(() => {}));
+    vi.mocked(post).mockReturnValue(new Promise(() => {}));
     renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
@@ -128,7 +128,7 @@ describe('WorkflowActions', () => {
       await screen.findByRole('img', { name: textMock('general.loading') }),
     ).toBeInTheDocument();
     expect(failButton()).toBeDisabled();
-    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledTimes(1);
   });
 
   it('gives up on a parked workflow only once confirmed, sending no reason of its own', async () => {
@@ -139,12 +139,12 @@ describe('WorkflowActions', () => {
     expect(
       screen.getByText(textMock('admin.workflows.actions.fail.description')),
     ).toBeInTheDocument();
-    expect(axios.post).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
 
     await user.click(confirmButton('admin.workflows.actions.fail.confirm'));
 
-    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(axios.post).mock.calls[0]).toEqual([
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(post).mock.calls[0]).toEqual([
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/fail`,
     ]);
   });
@@ -178,12 +178,12 @@ describe('WorkflowActions', () => {
     expect(
       screen.getByText(textMock('admin.workflows.actions.retry.description')),
     ).toBeInTheDocument();
-    expect(axios.post).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
 
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
 
-    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(axios.post).mock.calls[0][0]).toBe(
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(post).mock.calls[0][0]).toBe(
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/resume?cascade=true`,
     );
   });
@@ -222,7 +222,7 @@ describe('WorkflowActions', () => {
 
   it('surfaces a failed verb without a global toast', async () => {
     const user = userEvent.setup();
-    vi.mocked(axios.post).mockRejectedValue(new Error('boom'));
+    vi.mocked(post).mockRejectedValue(new Error('boom'));
     renderWorkflowActions(workflow('Failed'));
 
     await user.click(retryButton());
@@ -259,10 +259,11 @@ describe('WorkflowActions', () => {
 
   it('says how many dependents the cascade resumed along with the workflow', async () => {
     const user = userEvent.setup();
-    vi.mocked(axios.post).mockResolvedValue({
-      status: 202,
-      data: { workflowId, resumedAt: '2026-08-02T10:10:00Z', cascadeResumed: ['dep-1', 'dep-2'] },
-    } as AxiosResponse);
+    vi.mocked(post).mockResolvedValue({
+      workflowId,
+      resumedAt: '2026-08-02T10:10:00Z',
+      cascadeResumed: ['dep-1', 'dep-2'],
+    });
     const { rerenderWith } = renderWorkflowActions(workflow('Failed'));
 
     await user.click(retryButton());
@@ -295,7 +296,7 @@ describe('WorkflowActions', () => {
 
     await user.click(retryButton());
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
-    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
 
     // Resuming enqueues the workflow, and the invalidated drill-down comes back with it in the
     // status the verb produced — so the verbs are gone by the time the outcome is known.

@@ -22,14 +22,14 @@ harnesses and the desktop.
 
 ## Getting started
 
-1. Install `agentctl` 0.1.0-preview.13 or later and run `agentctl claude login`. If your `agentctl` was installed from
+1. Install `agentctl` 0.1.0-preview.14 or later and run `agentctl claude login`. If your `agentctl` was installed from
    an altinn-studio release, install it again from digdir-agents to keep receiving updates.
-2. Copy the chosen Agent's `.env.sample` to `.env` and fill it in (see [Credentials](#credentials)).
+2. Sign in to GitHub and store the keys you have, as [Credentials](#credentials) describes.
 3. Run `agentctl tui` from this checkout and press `c` to create an Agent. The footer lists the other keys.
 
-The `worktree` variants mount this checkout into the Agent, and `agentctl` rejects a checkout that contains a `.env`
-file. Keep that variant's env file outside the checkout, for example `~/.agent/altinn-worktree.env`, and select it in
-the create form.
+If you used these Agents with a `.env` file before, run `agentctl update` in this checkout once: it stores the file's
+values as below and deletes it. Then apply your Agents again, which changes them in place. They get a newer image
+only when created again.
 
 ## External harnesses
 
@@ -47,15 +47,28 @@ copies it.
 
 ## Credentials
 
-All tokens and keys stay on the host. The Agent sees placeholders, and they are substituted only in requests to
-their own hosts. `GIT_USER_NAME` and `GIT_USER_EMAIL` enter the Agent in plaintext.
+All tokens and keys stay on the host, stored with `agentctl`. The Agent sees placeholders, and they are substituted only
+in requests to their own hosts. Only the GitHub login is required.
 
-- `GITHUB_TOKEN`: a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) with
-  `Contents` and `Pull requests` read and write. Add `Actions: Read` for CI, `Workflows: Read and write` to change
-  workflow files and `Gists: Read and write` for gists.
-- `AZURE_DEVOPS_PAT`: a [personal access token](https://dev.azure.com/brreg/_usersSettings/tokens) in the `brreg`
+```sh
+agentctl github login default
+agentctl secret set azure-devops-pat --hosts dev.azure.com
+agentctl secret set studio-prod-api-key --hosts altinn.studio
+agentctl secret set studio-staging-api-key --hosts staging.altinn.studio
+agentctl secret set studio-dev-api-key --hosts dev.altinn.studio
+agentctl secret set aivar-api-key --hosts api.aivar.no
+```
+
+- `default` GitHub login: the account the Agent works and commits as. Signing in through the browser works, or give
+  a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) with `Contents` and
+  `Pull requests` read and write. Add `Actions: Read` for CI, `Workflows: Read and write` to change workflow files and
+  `Gists: Read and write` for gists.
+- `azure-devops-pat`: a [personal access token](https://dev.azure.com/brreg/_usersSettings/tokens) in the `brreg`
   organization with `Code: Read`, or `Code: Read & write` to push.
-- `STUDIO_PROD_API_KEY`, `STUDIO_STAGING_API_KEY`, `STUDIO_DEV_API_KEY`: Designer API keys. The Agent logs `studioctl`
+- `studio-prod-api-key`, `studio-staging-api-key`, `studio-dev-api-key`: Designer API keys. The Agent logs `studioctl`
   in to each configured environment at boot; check with `studioctl auth status`.
-- `AIVAR_API_KEY`: a key for the aivar gateway (`api.aivar.no`). Pi, which both Agents offer beside Claude Code and
+- `aivar-api-key`: a key for the aivar gateway (`api.aivar.no`). Pi, which both Agents offer beside Claude Code and
   Codex, needs it to answer.
+
+`agentctl secret list` and `agentctl github list` show what is stored, and name what the Agents ask for that is
+missing.

@@ -2,7 +2,7 @@ import type { ReactNode, ReactElement } from 'react';
 import { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import axios from 'axios';
+import { get } from 'app-shared/utils/networking';
 import { envFilePath } from 'app-shared/api/paths';
 
 type EnvironmentConfigContextValue = {
@@ -51,8 +51,7 @@ export const useEnvironmentConfig = (): EnvironmentConfigContextValue => {
 
 async function fetchEnvironmentConfig(): Promise<AltinnStudioEnvironment | null> {
   try {
-    const response = await axios.get(envFilePath());
-    return response?.data ? (response.data as AltinnStudioEnvironment) : null;
+    return await get<AltinnStudioEnvironment>(envFilePath());
   } catch (error) {
     console.warn(
       'Could not load environment file. This is expected for local dev environments.',

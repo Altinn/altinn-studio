@@ -1,4 +1,5 @@
 {
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/validation/validation.schema.v1.json",
   "validations": {
     "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value": [
@@ -8,8 +9,8 @@
         "condition": [
           "and",
           ["equals", ["dataModel", "useBothRepGroups"], true],
-          ["equals", ["dataModel", ["argv", 0]], 88889]
-        ]
+          ["equals", ["dataModel", ["argv", 0]], 88889],
+        ],
       }
     ],
     "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value": [
@@ -24,5 +25,5 @@
       }
     ]
   },
-  "definitions": {}
+  "definitions": {},
 }

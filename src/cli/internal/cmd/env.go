@@ -35,11 +35,13 @@ type EnvCommand struct {
 }
 
 type envUpOutput struct {
-	Runtime        string `json:"runtime"`
-	Running        bool   `json:"running"`
-	Started        bool   `json:"started"`
-	AlreadyRunning bool   `json:"alreadyRunning"`
-	JSONOutput     bool   `json:"-"`
+	Runtime string `json:"runtime"`
+	// Warnings are what the environment warned about on stderr, such as an unusable STUDIO_CA_BUNDLE.
+	Warnings       []string `json:"warnings,omitempty"`
+	Running        bool     `json:"running"`
+	Started        bool     `json:"started"`
+	AlreadyRunning bool     `json:"alreadyRunning"`
+	JSONOutput     bool     `json:"-"`
 }
 
 func (o envUpOutput) Print(out *ui.Output) error {
@@ -337,7 +339,12 @@ func (c *EnvCommand) runLocaltestUp(
 	client container.ContainerClient,
 	flags envUpFlags,
 ) error {
-	env := envlocaltest.NewEnv(c.cfg, commandOutput(c.out, flags.jsonOutput), client)
+	// With --json, the environment's warnings go to stderr and into the JSON, as env hosts does.
+	envOut := c.out
+	if flags.jsonOutput {
+		envOut = c.out.ForJSON()
+	}
+	env := envlocaltest.NewEnv(c.cfg, envOut, client)
 
 	upOpts := envtypes.UpOptions{
 		Detach:            flags.detach,
@@ -359,6 +366,7 @@ func (c *EnvCommand) runLocaltestUp(
 	if status.Running && !flags.devWorkflowEngine {
 		return envUpOutput{
 			Runtime:        runtimeLocaltest,
+			Warnings:       envOut.Warnings(),
 			Running:        true,
 			Started:        false,
 			AlreadyRunning: true,
@@ -371,6 +379,7 @@ func (c *EnvCommand) runLocaltestUp(
 	}
 	return envUpOutput{
 		Runtime:        runtimeLocaltest,
+		Warnings:       envOut.Warnings(),
 		Running:        true,
 		Started:        true,
 		AlreadyRunning: false,

@@ -7,8 +7,8 @@ import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
-import { isAxiosError, isCancel } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
+import { isHttpError, isRequestCancelled } from 'app-shared/utils/networking';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -29,16 +29,16 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
-  error: AxiosError<ApiError>,
+  error: HttpError<ApiError>,
   t: (key: string) => string,
   i18n: i18n,
   meta: QueryMeta | MutationMeta,
 ): void => {
-  if (isCancel(error)) {
+  if (isRequestCancelled(error)) {
     return;
   }
 
-  if (!isAxiosError(error)) {
+  if (!isHttpError(error)) {
     console.error(error);
   }
 
@@ -119,11 +119,11 @@ export const ServicesContextProvider = ({
       new QueryClient({
         ...clientConfig,
         queryCache: new QueryCache({
-          onError: (error: AxiosError<ApiError>, query) =>
+          onError: (error: HttpError<ApiError>, query) =>
             handleError(error, t, i18n, query.options?.meta),
         }),
         mutationCache: new MutationCache({
-          onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
+          onError: (error: HttpError<ApiError>, variables, context, mutation) =>
             handleError(error, t, i18n, mutation.options?.meta),
         }),
       }),

@@ -13,15 +13,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+- System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
 - Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 - Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 
 ### Changed
 
-- Breaking: In v9, NavigationButtons and NavigationBar validation settings take precedence over inherited navigation validation. Review and test conflicting settings: remove forward settings to retain inherited validation, or backward settings to leave backward navigation unvalidated. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845))
+- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
+- The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 
 ### Fixed
 
+- Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
+- Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))
+- App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
 - Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation groups configured with `expandedByDefault: true` now start expanded, including inactive groups. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation validation settings now accept `show: ["Invalid"]` at app and task scope without errors. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))

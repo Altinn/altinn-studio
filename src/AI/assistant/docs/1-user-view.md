@@ -7,7 +7,7 @@ The user does not see the assistant service directly. The user opens the assista
 The page has three columns:
 
 - **Threads** ("Tråder"). Each thread is one conversation. The thread id is also the session id in the assistant service.
-- **Messages**. The user writes a request here. The user can attach PDF files or images, for example a paper form.
+- **Messages**. The user writes a request here. The user can attach PDF, Markdown or text files, or images, for example a paper form.
 - **Tool column**. It shows a preview of the app, or a file browser.
 
 ```mermaid

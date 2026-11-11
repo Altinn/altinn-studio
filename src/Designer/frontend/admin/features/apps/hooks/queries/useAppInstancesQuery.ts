@@ -1,7 +1,8 @@
 import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import axios, { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 import type {
   InstancesResponse,
   SimpleInstance,
@@ -37,24 +38,22 @@ export const useAppInstancesQuery = (
       createdBefore,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
-      (
-        await axios.get<InstancesResponse>(
-          instancesListPath(
-            org,
-            env,
-            app,
-            pageParam,
-            currentTask,
-            isArchived,
-            archiveReference,
-            confirmed,
-            isSoftDeleted,
-            isHardDeleted,
-            createdBefore,
-          ),
-          { signal },
-        )
-      ).data,
+      await getAdminResource<InstancesResponse>(
+        instancesListPath(
+          org,
+          env,
+          app,
+          pageParam,
+          currentTask,
+          isArchived,
+          archiveReference,
+          confirmed,
+          isSoftDeleted,
+          isHardDeleted,
+          createdBefore,
+        ),
+        { signal },
+      ),
     getNextPageParam: (lastPage) => lastPage.continuationToken,
     // New instances come from the app, not from this page, so the list reads again every so
     // often and when the operator comes back to the tab. Every loaded page is read again.
@@ -66,7 +65,7 @@ export const useAppInstancesQuery = (
     select: (data) => data.pages.map((page) => page.instances),
     meta: {
       hideDefaultError: (error: any) =>
-        isAxiosError(error) &&
+        isHttpError(error) &&
         ([403, 404] as (number | undefined)[]).includes(error.response?.status),
     },
   });
