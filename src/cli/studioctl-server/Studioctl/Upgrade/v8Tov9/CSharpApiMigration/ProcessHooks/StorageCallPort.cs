@@ -20,6 +20,7 @@ internal sealed class StorageCallPort
 
     private readonly IReadOnlyList<(IMethodSymbol Member, Threading Threading)> _interfaceEdits;
     private IReadOnlyList<UnusedClient> _unused = [];
+    private Dictionary<IMethodSymbol, HashSet<int>> _classConstrained = new(SymbolEqualityComparer.Default);
     private readonly IReadOnlyList<ScannedCSharpFile> _files;
 
     private StorageCallPort(
@@ -205,7 +206,11 @@ internal sealed class StorageCallPort
             WindowReports.NotMoved(files, reach, reached.Keys.ToHashSet<IMethodSymbol>(SymbolEqualityComparer.Default))
         );
         reports.AddRange(DataCreationReports(rewrites, entries));
-        return new StorageCallPort(rewrites, threaded, reports, interfaceEdits, files) { _unused = unused };
+        return new StorageCallPort(rewrites, threaded, reports, interfaceEdits, files)
+        {
+            _unused = unused,
+            _classConstrained = ClassConstrained(rewrites.Values, reach),
+        };
     }
 
     /// <summary>
@@ -265,6 +270,11 @@ internal sealed class StorageCallPort
             var instance = ordinal is { } position ? rewrite.Method.Parameters[position] : null;
             var keepsInstance = ordinal is { } kept && MutatorThreading.StillUsed(rewrite, kept);
             var rewritten = rewrite.Edits.Apply(declaration, rewrite.LineEnding);
+            if (_classConstrained.TryGetValue(rewrite.Method, out var constrained))
+            {
+                rewritten = ClassConstraints.Apply(rewritten, constrained);
+            }
+
             if (instance is not null && keepsInstance)
             {
                 rewritten = SyntaxEditing.WithStatementsFirst(
@@ -345,8 +355,53 @@ internal sealed class StorageCallPort
                         declaration.ParameterList,
                         MutatorThreading.Parameters(declaration.ParameterList, threading, "dataMutator")
                     );
+                if (_classConstrained.TryGetValue(member, out var constrained))
+                {
+                    edits
+                        .For(file)
+                        .Replace(
+                            declaration,
+                            current =>
+                                current is MethodDeclarationSyntax method
+                                    ? ClassConstraints.Apply(method, constrained)
+                                    : current
+                        );
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// The type parameters that get a class constraint, by method: an implementation of an app interface member has
+    /// the constraints of that member, so the member and its other implementations get them too.
+    /// </summary>
+    private static Dictionary<IMethodSymbol, HashSet<int>> ClassConstrained(
+        IEnumerable<MethodRewrite> rewrites,
+        WindowReach reach
+    )
+    {
+        var constrained = new Dictionary<IMethodSymbol, HashSet<int>>(SymbolEqualityComparer.Default);
+        foreach (var rewrite in rewrites)
+        {
+            var positions = ClassConstraints.Needed(rewrite);
+            if (positions.Count == 0)
+            {
+                continue;
+            }
+
+            var family = MutatorThreading.Family(rewrite.Method, reach);
+            foreach (var method in family.Implementations.Concat(family.InterfaceMembers))
+            {
+                if (!constrained.TryGetValue(method, out var known))
+                {
+                    constrained[method] = known = [];
+                }
+
+                known.UnionWith(positions);
+            }
+        }
+
+        return constrained;
     }
 
     private static TypeDeclarationSyntax WithoutParameterList(
