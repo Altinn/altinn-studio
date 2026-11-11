@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -85,5 +86,69 @@ func TestAuthLoginWithTokenReadsFromInput(t *testing.T) {
 	}
 	if envCreds.ApiKey != authTestBotToken || envCreds.Username != authTestBotUser {
 		t.Fatalf("credentials = %+v, want bot token for bot-user", envCreds)
+	}
+}
+
+func TestAuthTokenPrintsStoredAPIKeyOnly(t *testing.T) {
+	home := t.TempDir()
+	creds := &authstore.Credentials{}
+	creds.Set(
+		"dev",
+		authstore.EnvCredentials{Host: "dev.altinn.studio", ApiKey: authTestBotToken, Username: authTestBotUser},
+	)
+	if err := authstore.SaveCredentials(home, creds); err != nil {
+		t.Fatalf("save credentials: %v", err)
+	}
+	var stdout, stderr strings.Builder
+	cmd := NewAuthCommand(&config.Config{Home: home}, ui.NewOutput(&stdout, &stderr, true))
+
+	if err := cmd.Run(context.Background(), []string{"token", "--env", "dev"}); err != nil {
+		t.Fatalf("auth token error = %v", err)
+	}
+	if stdout.String() != authTestBotToken+"\n" {
+		t.Fatalf("stdout = %q, want the API key and a newline", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want nothing", stderr.String())
+	}
+}
+
+func TestAuthTokenNotLoggedInNamesEnvAndLoginCommand(t *testing.T) {
+	var stdout strings.Builder
+	cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(&stdout, io.Discard, false))
+
+	err := cmd.Run(context.Background(), []string{"token", "--env", "staging"})
+	if !errors.Is(err, ErrNotLoggedIn) {
+		t.Fatalf("auth token error = %v, want ErrNotLoggedIn", err)
+	}
+	if !strings.Contains(err.Error(), "staging") || !strings.Contains(err.Error(), "auth login --env staging") {
+		t.Fatalf("auth token error = %q, want the env and the login command", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q, want nothing", stdout.String())
+	}
+}
+
+func TestAuthTokenRejectsArguments(t *testing.T) {
+	cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(io.Discard, io.Discard, false))
+
+	err := cmd.Run(context.Background(), []string{"token", "prod"})
+	if !errors.Is(err, ErrInvalidFlagValue) {
+		t.Fatalf("auth token error = %v, want ErrInvalidFlagValue", err)
+	}
+}
+
+func TestAuthSkipsUpdateCheckForMachineReadableSubcommands(t *testing.T) {
+	cmd := &AuthCommand{}
+
+	for _, args := range [][]string{{"token"}, {"token", "--env", "dev"}, {"git-credential", "get"}} {
+		if !cmd.SkipsUpdateCheck(args) {
+			t.Errorf("SkipsUpdateCheck(%q) = false, want true", args)
+		}
+	}
+	for _, args := range [][]string{nil, {"status"}, {"login"}} {
+		if cmd.SkipsUpdateCheck(args) {
+			t.Errorf("SkipsUpdateCheck(%q) = true, want false", args)
+		}
 	}
 }

@@ -22,7 +22,11 @@ type authStatusFlags struct {
 	jsonOutput bool
 }
 
-const authStatusSubcommand = "status"
+const (
+	authStatusSubcommand        = "status"
+	authTokenSubcommand         = "token"
+	authGitCredentialSubcommand = "git-credential" //nolint:gosec // G101: a subcommand name, not a credential.
+)
 
 // AuthCommand implements the 'auth' subcommand.
 type AuthCommand struct {
@@ -55,6 +59,7 @@ func (c *AuthCommand) Usage() string {
 		"  login     Authenticate with Altinn Studio",
 		"  status    Show authentication status",
 		"  logout    Clear stored credentials",
+		"  token     Print the stored API key",
 		"",
 		fmt.Sprintf("Run '%s auth <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -77,7 +82,9 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 		return c.runStatus(ctx, subArgs)
 	case "logout":
 		return c.runLogout(ctx, subArgs)
-	case "git-credential":
+	case authTokenSubcommand:
+		return c.runToken(subArgs)
+	case authGitCredentialSubcommand:
 		return c.runGitCredential(subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
@@ -85,6 +92,55 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 	default:
 		return fmt.Errorf("%w: %s", ErrUnknownSubcommand, subCmd)
 	}
+}
+
+// SkipsUpdateCheck reports whether a subcommand writes only its result, for another program to read. Such a
+// subcommand must not reach the network or add an update notice.
+func (c *AuthCommand) SkipsUpdateCheck(args []string) bool {
+	if len(args) == 0 {
+		return false
+	}
+	return args[0] == authTokenSubcommand || args[0] == authGitCredentialSubcommand
+}
+
+func (c *AuthCommand) runToken(args []string) error {
+	fs := flag.NewFlagSet("auth token", flag.ContinueOnError)
+	var env string
+	fs.StringVar(&env, "env", authstore.DefaultEnv, "Environment name (prod, dev, staging, local)")
+	fs.SetOutput(io.Discard)
+	fs.Usage = func() {
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s auth token [options]", osutil.CurrentBin()),
+			"",
+			"Print the API key stored for an environment, for another program to use.",
+			"Studio checks whether the key is still valid when the program calls it.",
+			"",
+			"Options:",
+			fmt.Sprintf("  --env ENV    Environment (prod, dev, staging, local; default: %s)", authstore.DefaultEnv),
+		))
+	}
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+	if fs.NArg() > 0 {
+		return fmt.Errorf("%w: unexpected argument %q", ErrInvalidFlagValue, fs.Arg(0))
+	}
+
+	token, err := c.service.Token(env)
+	if err != nil {
+		if errors.Is(err, authsvc.ErrNotLoggedIn) {
+			return fmt.Errorf("%w: %s (run '%s auth login --env %s')", ErrNotLoggedIn, env, osutil.CurrentBin(), env)
+		}
+		return fmt.Errorf("read stored API key: %w", err)
+	}
+
+	// A bare "\n" on every platform, since shells strip it from a command substitution and some leave a "\r".
+	c.out.Print(token + "\n")
+	return nil
 }
 
 func (c *AuthCommand) runGitCredential(args []string) error {
