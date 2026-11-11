@@ -15,8 +15,14 @@ into it, so read a repository's own README and recent history before you change 
 | [altinn-cdn](https://github.com/Altinn/altinn-cdn)                                            | Files on the Altinn CDN, such as the [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json)                                                                                                       |
 | [app-lib-dotnet](https://github.com/Altinn/app-lib-dotnet)                                    | The app backend libraries for v8 apps                                                                                                                                                                                                       |
 | [app-frontend-react](https://github.com/Altinn/app-frontend-react)                            | The app frontend for v8 apps                                                                                                                                                                                                                |
-| [app-localtest](https://github.com/Altinn/app-localtest)                                      | The old home of [localtest](../src/Runtime/localtest/README.md), soon archived                                                                                                                                                              |
+| [app-localtest](https://github.com/Altinn/app-localtest)                                      | The old home of [localtest](../src/Runtime/localtest/README.md)                                                                                                                                                                             |
+| [fileanalyzers-lib-dotnet](https://github.com/Altinn/fileanalyzers-lib-dotnet)                | The old home of [fileanalyzers](../src/App/fileanalyzers/README.md)                                                                                                                                                                         |
+| [codelists-lib-dotnet](https://github.com/Altinn/codelists-lib-dotnet)                        | The old home of [codelists](../src/App/codelists/README.md)                                                                                                                                                                                 |
 | [digdir-agents](https://github.com/digdir/digdir-agents)                                      | `agentctl` and the base image that the [Agents](../agents/README.md) build on                                                                                                                                                               |
+
+app-lib-dotnet, app-frontend-react, app-localtest, fileanalyzers-lib-dotnet and codelists-lib-dotnet are no longer
+synced into this repository, and will be archived eventually. Changes for v9 apps go here, and a fix that both v8 and
+v9 need is made in both places.
 
 ## Platform
 
