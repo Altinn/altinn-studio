@@ -34,7 +34,7 @@ ARG TARGETARCH
 # major: rollForward latestFeature never crosses a major, so an SDK 10 cannot build a project pinned
 # to SDK 8 or 11. App v8 and its template are on 8, Designer and the Runtime services on 10, and App
 # v9 with its libraries and test apps on 11. Move a version together with its global.json pins.
-ARG DOTNET_SDK_VERSIONS="8.0.426 10.0.402 11.0.100-rc.2.26504.105"
+ARG DOTNET_SDK_VERSIONS="8.0.426 10.0.402 11.0.100"
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
 ARG GO_VERSION=1.27.3
