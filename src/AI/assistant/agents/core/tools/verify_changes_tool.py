@@ -13,9 +13,9 @@ so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
-Only the errors that the session caused stop the commit.  A check that
+Only the errors that the turn caused stop the commit.  A check that
 returns findings goes through `_compare_with_start`, which does the check
-on disk and at the start commit of the session.  An error that the start
+on disk and at the start commit of the turn.  An error that the start
 commit also has is old: the result shows it in `old_errors` and does not
 fail.  Only the text resource check and the text key check return
 findings.  The other checks fail for each error.
@@ -152,14 +152,14 @@ def _verify_files(ctx: LoopContext, changed: list[str]) -> list[_Result]:
 
 
 # ---------------------------------------------------------------------------
-# Errors the session caused, and errors the app already had
+# Errors the turn caused, and errors the app already had
 # ---------------------------------------------------------------------------
 
 
 def _compare_with_start(
     ctx: LoopContext, check: Callable[[AppFiles], list[Finding]], file_path: str | None = None
 ) -> _Result:
-    """Do the check on the app on disk, and on the app at the start commit of the session.
+    """Do the check on the app on disk, and on the app at the start commit of the turn.
 
     A finding that the start commit also has is old.  All other findings are
     new, and only new findings make the check fail.  If the start commit is
@@ -530,7 +530,7 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> _Re
         except json.JSONDecodeError as exc:
             # A file that is not JSON always fails, also when the syntax error
             # is old.  The parser stops at the syntax error, so the check cannot
-            # find the errors that the session caused.
+            # find the errors that the turn caused.
             span.update(output={"result": {"valid": False}})
             return _Result(False, [f"{file_path}: invalid JSON — {exc}"])
         try:

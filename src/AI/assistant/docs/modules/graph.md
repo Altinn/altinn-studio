@@ -86,7 +86,7 @@ Only the model saves edits, with `commit_session_branch`. The node does not save
 
 An edit is saved if it is on the remote session branch, because the user cannot see edits that stay in the container. The node asks git which edits are not saved. If some edits are not saved, the node adds a sentence with the file names to the answer. It also removes these files from `filesChanged`, and the run is not a success. A run that stopped before the end has only this sentence about its edits.
 
-Edits that are not saved do not stay for the next turn. `RepoManager` resets the clone to the saved state when a turn starts, as [Git and repo](git-and-repo.md) describes.
+Edits that are not saved do not stay for the next turn. `RepoManager` makes a new clone when a turn starts, as [Git and repo](git-and-repo.md) describes.
 
 After the loop, a session that can write has one safety step. If all edits are saved and a push in this turn succeeded, the node runs the render check. If a page does not render, the node gives the error to the model for one more loop run.
 
