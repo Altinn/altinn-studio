@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -211,6 +211,119 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsUnique();
 
                     b.ToTable("app_activity", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppDailyMetricsDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<DateTimeOffset>("ComputedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("computed_at");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("environment");
+
+                    b.Property<int>("InstancesCompleted")
+                        .HasColumnType("integer")
+                        .HasColumnName("instances_completed");
+
+                    b.Property<int>("InstancesCreated")
+                        .HasColumnType("integer")
+                        .HasColumnName("instances_created");
+
+                    b.Property<DateOnly>("MetricDate")
+                        .HasColumnType("date")
+                        .HasColumnName("metric_date");
+
+                    b.Property<int?>("OpenInstances")
+                        .HasColumnType("integer")
+                        .HasColumnName("open_instances");
+
+                    b.Property<int?>("OpenOver90Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("open_over_90_days");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<int?>("SecondsToCompleteP50")
+                        .HasColumnType("integer")
+                        .HasColumnName("seconds_to_complete_p50");
+
+                    b.Property<int?>("UnconfirmedOver90Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("unconfirmed_over_90_days");
+
+                    b.HasKey("Id")
+                        .HasName("app_daily_metrics_pkey");
+
+                    b.HasIndex(new[] { "MetricDate", "Org", "Environment", "App" }, "idx_app_daily_metrics_date_org_environment_app")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "Org", "Environment", "MetricDate" }, "idx_app_daily_metrics_org_environment_date");
+
+                    b.ToTable("app_daily_metrics", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppDailyTaskMetricsDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("environment");
+
+                    b.Property<DateOnly>("MetricDate")
+                        .HasColumnType("date")
+                        .HasColumnName("metric_date");
+
+                    b.Property<int>("OpenInstances")
+                        .HasColumnType("integer")
+                        .HasColumnName("open_instances");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("TaskId")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("task_id");
+
+                    b.HasKey("Id")
+                        .HasName("app_daily_task_metrics_pkey");
+
+                    b.HasIndex(new[] { "MetricDate", "Org", "Environment", "App", "TaskId" }, "idx_app_daily_task_metrics_date_org_environment_app_task")
+                        .IsUnique();
+
+                    b.ToTable("app_daily_task_metrics", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel", b =>
@@ -544,6 +657,12 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 
+                    b.Property<int>("ReportFrequency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("report_frequency");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
@@ -551,12 +670,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<Guid?>("UpdatedByUserAccountId")
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by_user_account_id");
-
-                    b.Property<int>("ReportFrequency")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("report_frequency");
 
                     b.HasKey("Id")
                         .HasName("contact_points_pkey");

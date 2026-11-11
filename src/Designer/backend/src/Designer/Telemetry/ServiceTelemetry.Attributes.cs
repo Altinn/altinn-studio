@@ -71,6 +71,31 @@ internal static partial class ServiceTelemetry
             public const string WindowDays = Prefix + "window_days";
         }
 
+        public static class AppDailyMetrics
+        {
+            private const string Prefix = "altinn.designer.app_daily_metrics.";
+
+            public const string AppCount = Prefix + "app_count";
+            public const string CollectionSkipReason = Prefix + "collection_skip_reason";
+            public const string EnvironmentCollectedCount = Prefix + "environment_collected_count";
+            public const string EnvironmentFailedCount = Prefix + "environment_failed_count";
+            public const string EnvironmentSkippedCount = Prefix + "environment_skipped_count";
+
+            /// <summary>
+            /// Whether the run stored the open and unconfirmed instance counts, which it does only for yesterday.
+            /// </summary>
+            public const string IncludesSnapshot = Prefix + "includes_snapshot";
+
+            /// <summary>
+            /// The UTC day the run collected, as yyyy-MM-dd.
+            /// </summary>
+            public const string MetricDate = Prefix + "metric_date";
+            public const string ServiceOwnerCount = Prefix + "service_owner_count";
+            public const string ServiceOwnerFailedCount = Prefix + "service_owner_failed_count";
+            public const string TimedOut = Prefix + "timed_out";
+            public const string TimeoutSeconds = Prefix + "timeout_seconds";
+        }
+
         public static class AppDeploy
         {
             private const string Prefix = "altinn.designer.app_deploy.";

@@ -78,6 +78,10 @@ public static class TypedHttpClientRegistration
             IAltinnStorageInstancesClient,
             AltinnStorageInstancesClient
         >();
+        services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+            IAltinnStorageMetricsClient,
+            AltinnStorageMetricsClient
+        >();
         services.AddAltinnNotificationsClient(config, env);
         services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
         services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();

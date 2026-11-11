@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -148,6 +149,73 @@ public class InternalsController(
 
         await TriggerAppActivityCollection(new JobDataMap(), cancellationToken);
         return Accepted();
+    }
+
+    /// <summary>
+    /// Collects the daily instance metrics of an org from Storage now, for yesterday or the given UTC day.
+    /// </summary>
+    [HttpGet("app-daily-metrics/collect")]
+    public async Task<IActionResult> CollectAppDailyMetrics(
+        string org,
+        [FromQuery] DateOnly? date,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (!await HasInternalDeveloperAccess())
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            Guard.AssertValidateOrganization(org);
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest($"Invalid org value '{org}'.");
+        }
+
+        var jobData = new JobDataMap { [AppDailyMetricsCollectionJobConstants.JobDataOrgKey] = org };
+        AddMetricDate(jobData, date);
+        await TriggerAppDailyMetricsCollection(jobData, cancellationToken);
+        return Accepted();
+    }
+
+    /// <summary>
+    /// Collects the daily instance metrics of all orgs from Storage now, for yesterday or the given UTC day.
+    /// </summary>
+    [HttpGet("app-daily-metrics/collect-all")]
+    public async Task<IActionResult> CollectAppDailyMetricsForAllOrgs(
+        [FromQuery] DateOnly? date,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (!await HasInternalDeveloperAccess())
+        {
+            return Forbid();
+        }
+
+        var jobData = new JobDataMap();
+        AddMetricDate(jobData, date);
+        await TriggerAppDailyMetricsCollection(jobData, cancellationToken);
+        return Accepted();
+    }
+
+    private static void AddMetricDate(JobDataMap jobData, DateOnly? date)
+    {
+        if (date is not null)
+        {
+            jobData[AppDailyMetricsCollectionJobConstants.JobDataDateKey] = date.Value.ToString(
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture
+            );
+        }
+    }
+
+    private async Task TriggerAppDailyMetricsCollection(JobDataMap jobData, CancellationToken cancellationToken)
+    {
+        var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+        await scheduler.TriggerJob(AppDailyMetricsCollectionJobConstants.JobKey, jobData, cancellationToken);
     }
 
     private async Task TriggerAppActivityCollection(JobDataMap jobData, CancellationToken cancellationToken)
