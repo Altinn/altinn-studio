@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
-const isFileTooLarge = (error: HttpError) => error.response.status === ServerCodes.TooLargeContent;
+const isFileTooLarge = (error: HttpError) => error.response?.status === ServerCodes.TooLargeContent;
 
 export const useAddImageMutation = (org: string, app: string) => {
   const { addImage } = useServicesContext();

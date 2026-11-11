@@ -57,7 +57,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const evaluateErrorKind = (error: HttpError): ErrorKind | null => {
-    if (error.response.status === ServerCodes.Conflict) {
+    if (error.response?.status === ServerCodes.Conflict) {
       return ErrorKind.AppNameAlreadyExists;
     } else if (
       error.response?.status === ServerCodes.BadRequest &&

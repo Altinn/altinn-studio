@@ -55,7 +55,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             navigateToEditorOverview(newOrg, newRepoName);
           },
           onError: (error: HttpError): void => {
-            const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+            const appNameAlreadyExists = error.response?.status === ServerCodes.Conflict;
             if (appNameAlreadyExists) {
               setFormError((prevErrors): CreateServiceFormError => ({
                 ...prevErrors,
