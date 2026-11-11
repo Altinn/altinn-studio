@@ -129,6 +129,9 @@ studioctl app ps --json
 `run` reports the app ready once Localtest routes to it. When Localtest cannot be reached, it stops the app and fails
 with "localtest is not reachable": run `studioctl env up`, then `run` again.
 
+A v9 app started with `dotnet run` or from an IDE runs `studioctl app env --json` for its local configuration. When
+that fails, the app does not start, and its startup error ends with studioctl's own error.
+
 For investigating failures, use `studioctl app logs` and `studioctl env logs`.
 `studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities). Run from
 the app, it checks that the .NET SDK dotnet selects can build the app, by the app's `global.json` or target framework;

@@ -26,4 +26,22 @@ internal static class StudioctlAppEnvironment
     /// there is nothing to import.
     /// </summary>
     internal const string AppRunKey = "STUDIOCTL_APP_RUN";
+
+    /// <summary>
+    /// Set by <c>StudioctlLocalConfiguration</c>, in the app's configuration only, when an app started in
+    /// Development could not import the environment from studioctl: why, in studioctl's own words where it gave
+    /// any. A startup check that finds a value studioctl supplies missing names this reason, because "install
+    /// studioctl" is the wrong advice when studioctl is installed and failed.
+    /// </summary>
+    internal const string ImportFailureKey = "Studioctl:ImportFailure";
+
+    /// <summary>
+    /// Why the app has none of the values studioctl supplies, if it tried to import them and failed.
+    /// </summary>
+    /// <param name="configuration">The app's own configuration.</param>
+    internal static string? ImportFailure(IConfiguration configuration)
+    {
+        string? failure = configuration[ImportFailureKey];
+        return string.IsNullOrWhiteSpace(failure) ? null : failure;
+    }
 }

@@ -32,6 +32,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 - In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
+- An app started with `dotnet run` or from an IDE that cannot get its local configuration from studioctl now fails with studioctl's own error, instead of only "'RUNTIME_APP_SECRETS_DIR' is not set" and the advice to put studioctl on PATH. A slow studioctl gets up to 10 seconds instead of 3. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
 
 ## [9.0.0-preview.10] - 2026-11-09
 
