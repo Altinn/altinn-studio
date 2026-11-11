@@ -34,11 +34,11 @@ _The LangGraph graph. Each node first checks if the user cancelled the session._
 
 **Intake** runs only in workflow mode. One call to the planner model writes a short plan from the goal and the last 6 messages. Intake sends only the names of the attachments, not the content. The plan goes to the user as a `plan_proposed` event. No later step reads the plan.
 
-**Spec** runs when the request has attachments. One call to the planner model reads the PDF or image and returns a `FormSpec`. This call can take 20 to 90 seconds. If spec fails, the run continues. The loop then gets an instruction to ask the user for the field list.
+**Spec** runs when the request has attachments. One call to the planner model reads the PDF, image or text file and returns a `FormSpec`. Text files go to the model as text, since Azure OpenAI takes only PDFs as files. This call can take 20 to 90 seconds. If spec fails, the run continues. The loop then gets an instruction to ask the user for the field list.
 
 ```mermaid
 flowchart TD
-  A["PDF or image attachments"] --> S["Spec pipeline, planner model"]
+  A["PDF, image or text attachments"] --> S["Spec pipeline, planner model"]
   S --> F["FormSpec"]
   F --> W["Wrapped in form_spec tags"]
   W --> P["Loop system prompt"]
