@@ -64,6 +64,15 @@ jobs:
         env:
           PREVIEW_TEST_REDIS: localhost:6379
 
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+
+      # The script preview adds to its pages, which runs in the browser.
+      - name: Test the Studio bridge
+        run: node --test tests/studio-bridge/studio-bridge.test.mjs
+
       # The tests run the service in process. Start the image as it runs in the cluster, with the working copies
       # mounted read-only, and check that each port serves only its own endpoints.
       - name: Build the image
