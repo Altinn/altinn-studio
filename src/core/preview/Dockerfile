@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-resolute@sha256:667f3cee6f24afb202d3e32c7941e3800bbac57dd70bb68f89e52a6245aff88f AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute@sha256:65f3c7c6a25a239ab3e6719f2896147e7b68242ff2d8818dd70498bde6ef8bea AS build
 
 WORKDIR /build
 
@@ -23,7 +23,7 @@ RUN dotnet publish core/preview/src/Altinn.Studio.Preview/Altinn.Studio.Preview.
     --no-restore \
     /p:InformationalVersion=$BUILD_VERSION
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled@sha256:6018ff839e76c1bc9aa58d60c2ba8e596061363c88d8f4f7e45d1c19b6205eaf AS final
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled@sha256:fc0ee12f9ea79bde6cda88c7a34e5467fe383dbb62276be0ec13e5e9cc1654ac AS final
 WORKDIR /app
 
 # 8080 is the public port and 8081 the internal one; see src/Altinn.Studio.Preview/Hosting/PreviewPorts.cs.
