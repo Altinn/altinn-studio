@@ -354,6 +354,7 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                 // The resolved command's own key, as in the deferral branch above.
                 _logger.LogError(
+                    failed.Exception,
                     "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
                     command.GetKey(),
                     instanceId,

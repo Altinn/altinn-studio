@@ -24,6 +24,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -39,6 +40,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Moq;
 using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
@@ -1170,6 +1172,32 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
+    [Fact]
+    public async Task ExecuteCommand_WhenAppCodeThrows_LogsTheExceptionWithTheFailure()
+    {
+        var thrown = new InvalidOperationException("Bug in the app's hook");
+        var logger = new FakeLogger<WorkflowEngineCallbackController>();
+        await using ControllerSetup setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<ILogger<WorkflowEngineCallbackController>>(logger);
+            services.Services.AddSingleton<IOnTaskStartingHandler>(new ThrowingTaskStartingHandler(thrown));
+            services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new OnTaskStartingHook(
+                serviceProvider
+            ));
+        });
+
+        IActionResult result = await setup.Execute(OnTaskStartingHook.Key, Guid.NewGuid());
+
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status500InternalServerError, error.StatusCode);
+        FakeLogRecord failure = Assert.Single(logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Error);
+        Assert.Same(thrown, failure.Exception);
+        Assert.StartsWith("Callback handler failed.", failure.Message, StringComparison.Ordinal);
+        Assert.Equal(OnTaskStartingHook.Key, failure.GetStructuredStateValue("CommandKey"));
+        Assert.Equal(thrown.Message, failure.GetStructuredStateValue("ErrorMessage"));
+        Assert.Equal(nameof(InvalidOperationException), failure.GetStructuredStateValue("ExceptionType"));
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
 
@@ -1392,6 +1420,13 @@ public class WorkflowEngineCallbackControllerTests
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
+    }
+
+    private sealed class ThrowingTaskStartingHandler(Exception exception) : IOnTaskStartingHandler
+    {
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HandlerResult> Execute(OnTaskStartingContext context) => throw exception;
     }
 
     private sealed class StageEndedProcessCommand(DateTime ended) : IWorkflowEngineCommand

@@ -82,12 +82,21 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
     /// <summary>
     /// Creates a non-retryable failure (validation error, business rule violation, etc.).
     /// The workflow engine will stop retrying and mark the step as permanently failed.
+    /// Pass the caught <paramref name="exception"/>, if there is one, so the callback log shows its stack trace.
     /// </summary>
     public static FailedWorkflowEngineCommandResult Permanent(
         string errorMessage,
         string? exceptionType = null,
-        MailboxContinuation? mailboxContinuation = null
-    ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation: mailboxContinuation);
+        MailboxContinuation? mailboxContinuation = null,
+        Exception? exception = null
+    ) =>
+        new(
+            errorMessage,
+            exceptionType,
+            nonRetryable: true,
+            exception: exception,
+            mailboxContinuation: mailboxContinuation
+        );
 
     private FailedWorkflowEngineCommandResult(
         string errorMessage,

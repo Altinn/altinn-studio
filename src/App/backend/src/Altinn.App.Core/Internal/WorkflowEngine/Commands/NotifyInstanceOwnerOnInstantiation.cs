@@ -69,7 +69,7 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
         }
         catch (Exception ex) when (ex is InvalidOperationException or ServiceException)
         {
-            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
+            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name, exception: ex);
         }
         catch (Exception ex)
         {

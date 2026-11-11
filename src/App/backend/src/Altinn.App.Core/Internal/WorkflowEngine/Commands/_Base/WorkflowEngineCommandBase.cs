@@ -24,17 +24,15 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
     Task<WorkflowEngineCommandResult> IWorkflowEngineCommand.Execute(WorkflowEngineCommandContext context)
     {
         TRequestPayload? payload;
+        Exception? payloadException = null;
         try
         {
             payload = ResolvePayload(context);
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             payload = null;
-        }
-        catch (NotSupportedException)
-        {
-            payload = null;
+            payloadException = ex;
         }
 
         if (payload is null)
@@ -43,7 +41,8 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
             return Task.FromResult<WorkflowEngineCommandResult>(
                 FailedWorkflowEngineCommandResult.Permanent(
                     $"{commandKey} payload is missing or invalid",
-                    "InvalidPayloadException"
+                    "InvalidPayloadException",
+                    exception: payloadException
                 )
             );
         }

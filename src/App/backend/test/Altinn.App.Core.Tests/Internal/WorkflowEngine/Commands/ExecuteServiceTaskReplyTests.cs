@@ -484,6 +484,7 @@ public class ExecuteServiceTaskReplyTests
         FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
+        Assert.IsType<MailboxDeliveryEnvelopeException>(failed.Exception);
         Assert.Null(task.MessageContext);
     }
 
@@ -520,6 +521,7 @@ public class ExecuteServiceTaskReplyTests
         FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
+        Assert.IsType<MailboxDeliveryEnvelopeException>(failed.Exception);
         Assert.Null(task.MessageContext);
     }
 
