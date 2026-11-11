@@ -95,19 +95,22 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
-    /// Makes the state of <paramref name="model"/> at this call the element's form data; it is saved with the other changes.
+    /// Copies the state of <paramref name="model"/> at this call into the element's form data; it is saved with the other changes.
     /// </summary>
     /// <remarks>
-    /// Later changes to <paramref name="model"/> are not saved, also when it is the object that
-    /// <see cref="IInstanceDataAccessor.GetFormData"/> returned. Afterwards <see cref="IInstanceDataAccessor.GetFormData"/>
-    /// returns the replaced data as an object of its own. To change a form added in this unit of work, change the object
-    /// passed to <see cref="AddFormDataElement(string, object)"/>.
+    /// The element keeps the object that <see cref="IInstanceDataAccessor.GetFormData"/> returns, so references to it stay
+    /// valid; references to objects inside it do not. Later changes to <paramref name="model"/> are not saved, unless it
+    /// is that object. To change a form added in this unit of work, change the object passed to
+    /// <see cref="AddFormDataElement(string, object)"/>.
     /// </remarks>
+    /// <returns>The element's form data, the object that <see cref="IInstanceDataAccessor.GetFormData"/> returns</returns>
     /// <exception cref="ArgumentNullException">when <paramref name="model"/> is null</exception>
     /// <exception cref="InvalidOperationException">
     /// when the element is not on the instance, is marked for deletion, or its data type's classRef is not the type of <paramref name="model"/>
     /// </exception>
-    Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model);
+    // Not constrained to classes: v8's UpdateData<T> was not, and helpers ported from it pass a type parameter of their own.
+    Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
+        where T : notnull;
 
     /// <summary>
     /// Sets tags, metadata, user-defined metadata, refs or the filename of a data element.

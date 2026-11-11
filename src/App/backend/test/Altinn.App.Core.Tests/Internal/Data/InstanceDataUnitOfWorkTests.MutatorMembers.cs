@@ -53,7 +53,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task ReplaceFormData_WithTheCachedObject_SavesItsStateAtTheCall()
+    public async Task ReplaceFormData_KeepsTheObjectGetFormDataReturned_AndReturnsIt()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
         DataElement formDataElement = AddPersistedPaymentForm(
@@ -62,21 +62,43 @@ public sealed partial class InstanceDataUnitOfWorkTests
             BlobVersion(1)
         );
         PaymentForm form = await setup.DataMutator.GetFormData<PaymentForm>(formDataElement);
-        form.Status = "at the call";
 
-        await setup.DataMutator.ReplaceFormData(formDataElement, form);
-        form.Status = "after the call";
-        PaymentForm current = await setup.DataMutator.GetFormData<PaymentForm>(formDataElement);
-        current.CustomerName = "Changed through the new object";
+        PaymentForm returned = await setup.DataMutator.ReplaceFormData(
+            formDataElement,
+            new PaymentForm { Status = "replaced" }
+        );
+        form.CustomerName = "Changed through the first object";
         await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
 
-        Assert.NotSame(form, current);
+        Assert.Same(form, returned);
+        Assert.Same(form, await setup.DataMutator.GetFormData<PaymentForm>(formDataElement));
         Assert.Equal(
             SerializePaymentForm(
                 setup,
                 formDataElement,
-                new PaymentForm { Status = "at the call", CustomerName = "Changed through the new object" }
+                new PaymentForm { Status = "replaced", CustomerName = "Changed through the first object" }
             ),
+            GetStoredData(setup, formDataElement)
+        );
+    }
+
+    [Fact]
+    public async Task ReplaceFormData_WithTheCachedObject_KeepsItAsTheFormData()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = "created" },
+            BlobVersion(1)
+        );
+        PaymentForm form = await setup.DataMutator.GetFormData<PaymentForm>(formDataElement);
+
+        await setup.DataMutator.ReplaceFormData(formDataElement, form);
+        form.Status = "after the call";
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Equal(
+            SerializePaymentForm(setup, formDataElement, new PaymentForm { Status = "after the call" }),
             GetStoredData(setup, formDataElement)
         );
     }

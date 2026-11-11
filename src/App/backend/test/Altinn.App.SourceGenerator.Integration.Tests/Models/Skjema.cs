@@ -16,6 +16,9 @@ public class Skjema
     public static readonly string FormDataTypeStatic = FormDataType;
     public string FormDataTypeId => FormDataType;
 
+    [JsonIgnore]
+    public string? NotInDataModel { get; set; }
+
     [JsonPropertyName("skjemanummer")]
     public string? Skjemanummer { get; set; }
 

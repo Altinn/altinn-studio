@@ -192,7 +192,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <inheritdoc />
-    public async Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model)
+    public async Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
+        where T : notnull
     {
         ArgumentNullException.ThrowIfNull(model);
         if (
@@ -229,11 +230,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        IFormDataWrapper replacement = FormDataWrapperFactory.Create(model, dataType, dataElement).Copy();
-        // The save compares the replacement with the persisted bytes, which loading the element caches.
-        await GetFormDataWrapper(dataElementIdentifier);
-        replacement.InitializeAltinnRowIds();
-        SetFormData(dataElementIdentifier, replacement);
+        IFormDataWrapper formData = await GetFormDataWrapper(dataElementIdentifier);
+        formData.CopyFrom(model);
+        formData.InitializeAltinnRowIds();
+        return (T)formData.BackingData<object>();
     }
 
     /// <inheritdoc />

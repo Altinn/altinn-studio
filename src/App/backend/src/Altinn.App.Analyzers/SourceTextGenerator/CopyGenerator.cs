@@ -22,8 +22,47 @@ internal static class CopyGenerator
             """
         );
 
+        GenerateCopyFrom(builder, rootNode);
         GenerateCopyRecursive(builder, rootNode, []);
     }
+
+    private static void GenerateCopyFrom(StringBuilder builder, ModelPathNode rootNode)
+    {
+        builder.Append(
+            $$"""
+
+                /// <inheritdoc />
+                public void CopyFrom(object dataModel)
+                {
+                    if (dataModel is not {{rootNode.TypeName}} source)
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Data model must be of type {{rootNode.FullName}}, (was {dataModel?.GetType().FullName ?? "null"})"
+                        );
+                    }
+
+                    if (ReferenceEquals(source, _dataModel))
+                    {
+                        return;
+                    }
+
+            """
+        );
+        if (rootNode.Properties.Count > 0)
+        {
+            builder.Append('\n');
+        }
+        foreach (var property in rootNode.Properties)
+        {
+            builder.Append($"        _dataModel.{property.CSharpName} = {CopyExpression(property, "source")};\n");
+        }
+        builder.Append("    }\n");
+    }
+
+    private static string CopyExpression(ModelPathNode property, string owner) =>
+        property is { ListType: null, Properties.Count: 0 }
+            ? $"{owner}.{property.CSharpName}"
+            : $"CopyRecursive({owner}.{property.CSharpName})";
 
     private static void GenerateCopyRecursive(StringBuilder builder, ModelPathNode node, HashSet<string> classNames)
     {
@@ -75,15 +114,7 @@ internal static class CopyGenerator
             );
             foreach (var property in node.Properties)
             {
-                builder.Append(
-                    property switch
-                    {
-                        { ListType: not null } =>
-                            $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\n",
-                        { Properties.Count: 0 } => $"            {property.CSharpName} = data.{property.CSharpName},\n",
-                        _ => $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\n",
-                    }
-                );
+                builder.Append($"            {property.CSharpName} = {CopyExpression(property, "data")},\n");
             }
 
             builder.Append("        };\n    }\n");
