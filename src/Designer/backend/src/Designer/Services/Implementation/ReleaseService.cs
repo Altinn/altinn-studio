@@ -241,7 +241,7 @@ public class ReleaseService : IReleaseService
             appCsproj = await _giteaClient.GetFileAsync(
                 release.Org,
                 release.App,
-                "App/App.csproj",
+                PackageVersionHelper.AppCsprojPath,
                 release.TargetCommitish,
                 cancellationToken
             );
@@ -267,11 +267,10 @@ public class ReleaseService : IReleaseService
         try
         {
             byte[] csprojContent = Convert.FromBase64String(appCsproj.Content);
-            string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
             return PackageVersionHelper.TryGetPackageVersionFromCsprojContent(
                     csprojContent,
-                    packageNames,
+                    PackageVersionHelper.AppLibPackageNames,
                     out SemanticVersion version
                 )
                 && version.Major >= 9;
