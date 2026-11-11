@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_DataAndSigning_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="DataAndSigning" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start_task1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_start_task1</bpmn:incoming>
+      <bpmn:outgoing>Flow_task1_task2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Signering">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_task1_task2</bpmn:incoming>
+      <bpmn:outgoing>Flow_task2_end</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_task2_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_start_task1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_task1_task2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_task2_end" sourceRef="Task_2" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>
