@@ -38,23 +38,30 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
     [HttpPost("lookup")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<ReleaseLookupResponse>>> Lookup(
-        [FromBody] List<ReleaseLookupRequest?> request,
+    public async Task<ActionResult<ReleaseLookupResponse>> Lookup(
+        [FromBody] ReleaseLookupRequest request,
         CancellationToken cancellationToken
     )
     {
-        if (request.Count > MaxItems)
+        IReadOnlyList<ReleaseLookupItem?>? items = request.Items;
+        if (items is null)
+        {
+            ModelState.AddModelError("items", "The items are missing.");
+            return ValidationProblem(ModelState);
+        }
+
+        if (items.Count > MaxItems)
         {
             return Problem(
                 title: "Too many items",
-                detail: $"The request has {request.Count} items. The limit is {MaxItems}.",
+                detail: $"The request has {items.Count} items. The limit is {MaxItems}.",
                 statusCode: StatusCodes.Status400BadRequest
             );
         }
 
-        for (int i = 0; i < request.Count; i++)
+        for (int i = 0; i < items.Count; i++)
         {
-            ValidateItem(request[i], i);
+            ValidateItem(items[i], i);
         }
 
         if (!ModelState.IsValid)
@@ -62,7 +69,7 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             return ValidationProblem(ModelState);
         }
 
-        List<ReleaseLookupKey> keys = request
+        List<ReleaseLookupKey> keys = items
             .Select(item => new ReleaseLookupKey(item!.Org, item.App, item.Version))
             .Distinct()
             .ToList();
@@ -76,32 +83,34 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             keys.Count
         );
 
-        return releases
-            .Select(r => new ReleaseLookupResponse(r.Org, r.App, r.TagName, r.TargetCommitish, r.Created))
-            .ToList();
+        return new ReleaseLookupResponse(
+            releases
+                .Select(r => new ReleaseLookupResult(r.Org, r.App, r.TagName, r.TargetCommitish, r.Created))
+                .ToList()
+        );
     }
 
-    private void ValidateItem(ReleaseLookupRequest? item, int index)
+    private void ValidateItem(ReleaseLookupItem? item, int index)
     {
         if (item is null)
         {
-            ModelState.AddModelError($"[{index}]", "The item is empty.");
+            ModelState.AddModelError($"items[{index}]", "The item is empty.");
             return;
         }
 
         if (string.IsNullOrEmpty(item.Org) || !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(item.Org))
         {
-            ModelState.AddModelError($"[{index}].org", "The org is not a valid organization name.");
+            ModelState.AddModelError($"items[{index}].org", "The org is not a valid organization name.");
         }
 
         if (string.IsNullOrEmpty(item.App) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(item.App))
         {
-            ModelState.AddModelError($"[{index}].app", "The app is not a valid app name.");
+            ModelState.AddModelError($"items[{index}].app", "The app is not a valid app name.");
         }
 
         if (string.IsNullOrWhiteSpace(item.Version))
         {
-            ModelState.AddModelError($"[{index}].version", "The version is empty.");
+            ModelState.AddModelError($"items[{index}].version", "The version is empty.");
         }
     }
 }
