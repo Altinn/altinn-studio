@@ -17,6 +17,18 @@ public static class AppDailyMetricsCollectionJobConstants
     /// </summary>
     public const string JobDataDateKey = "date";
 
+    /// <summary>
+    /// The environments whose metrics the admin pages show. The test environments are left out: nobody follows
+    /// KPIs for them, and each would cost one Storage call per org per night.
+    /// </summary>
+    public static readonly string[] TargetEnvironments = ["production", "prod", "tt02"];
+
+    public static bool IsTargetEnvironment(string environment) =>
+        Array.Exists(
+            TargetEnvironments,
+            target => string.Equals(target, environment, StringComparison.OrdinalIgnoreCase)
+        );
+
     public static readonly JobKey JobKey = new(JobName);
     public static readonly TimeSpan JobTimeout = TimeSpan.FromHours(3);
 }

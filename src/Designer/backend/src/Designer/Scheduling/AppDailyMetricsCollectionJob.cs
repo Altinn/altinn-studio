@@ -20,7 +20,8 @@ namespace Altinn.Studio.Designer.Scheduling;
 
 /// <summary>
 /// Collects the per-app instance metrics of one UTC day from Storage, for all orgs or the org in the job data,
-/// in every environment of the org, and stores them in the daily metrics table. Read-only towards Storage.
+/// in the org's production and TT02 environments, and stores them in the daily metrics table. Read-only towards
+/// Storage.
 /// </summary>
 [DisallowConcurrentExecution]
 public class AppDailyMetricsCollectionJob : IJob
@@ -98,6 +99,7 @@ public class AppDailyMetricsCollectionJob : IJob
                 {
                     environments = (await _environmentsService.GetOrganizationEnvironments(orgName, cancellationToken))
                         .Select(environment => environment.Name)
+                        .Where(AppDailyMetricsCollectionJobConstants.IsTargetEnvironment)
                         .Order(StringComparer.Ordinal)
                         .ToList();
                 }

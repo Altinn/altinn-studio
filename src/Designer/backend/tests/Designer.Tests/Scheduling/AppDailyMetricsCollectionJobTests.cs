@@ -121,24 +121,27 @@ public class AppDailyMetricsCollectionJobTests
     }
 
     [Fact]
-    public async Task Execute_ShouldCollectEveryEnvironmentOfTheOrgInOrder()
+    public async Task Execute_ShouldCollectProductionAndTt02InOrderAndSkipTestEnvironments()
     {
-        SetupEnvironments(OrgName, "tt02", "production", "at22");
-        SetupMetrics("at22", s_yesterday);
+        SetupEnvironments(OrgName, "tt02", "production", "at22", "yt01");
         SetupMetrics("production", s_yesterday);
         SetupMetrics("tt02", s_yesterday);
 
         await CreateJob().Execute(CreateContext(OrgName));
 
-        Assert.Equal(["at22", "production", "tt02"], _upsertedBatches.Select(b => b.Environment));
+        Assert.Equal(["production", "tt02"], _upsertedBatches.Select(b => b.Environment));
+        _storageMetricsClient.Verify(
+            c => c.GetDailyMetrics(OrgName, "at22", It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     [Fact]
     public async Task Execute_WhenStorageHasNoMetricsEndpoint_ShouldSkipEnvironmentAndContinue()
     {
-        SetupEnvironments(OrgName, "at22", "tt02");
+        SetupEnvironments(OrgName, "production", "tt02");
         _storageMetricsClient
-            .Setup(c => c.GetDailyMetrics(OrgName, "at22", s_yesterday, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetDailyMetrics(OrgName, "production", s_yesterday, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestWithStatusException("Not Found") { StatusCode = HttpStatusCode.NotFound });
         SetupMetrics("tt02", s_yesterday);
 
@@ -150,7 +153,7 @@ public class AppDailyMetricsCollectionJobTests
         Assert.Equal(0, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.EnvironmentFailedCount));
         var skipped = Assert.Single(
             spans,
-            span => Equals(span.GetTagItem(ServiceTelemetry.Attributes.Environment), "at22")
+            span => Equals(span.GetTagItem(ServiceTelemetry.Attributes.Environment), "prod")
         );
         Assert.Equal(
             "metrics_endpoint_not_found",
@@ -161,9 +164,9 @@ public class AppDailyMetricsCollectionJobTests
     [Fact]
     public async Task Execute_WhenStorageFails_ShouldRecordFailureAndContinueWithNextEnvironment()
     {
-        SetupEnvironments(OrgName, "at22", "tt02");
+        SetupEnvironments(OrgName, "production", "tt02");
         _storageMetricsClient
-            .Setup(c => c.GetDailyMetrics(OrgName, "at22", s_yesterday, It.IsAny<CancellationToken>()))
+            .Setup(c => c.GetDailyMetrics(OrgName, "production", s_yesterday, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestWithStatusException("Boom") { StatusCode = HttpStatusCode.BadGateway });
         SetupMetrics("tt02", s_yesterday);
 
@@ -173,7 +176,7 @@ public class AppDailyMetricsCollectionJobTests
         Assert.Equal(1, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.EnvironmentFailedCount));
         var failed = Assert.Single(
             spans,
-            span => Equals(span.GetTagItem(ServiceTelemetry.Attributes.Environment), "at22")
+            span => Equals(span.GetTagItem(ServiceTelemetry.Attributes.Environment), "prod")
         );
         Assert.Equal(ActivityStatusCode.Error, failed.Status);
         Assert.Equal(
