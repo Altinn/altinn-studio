@@ -7,14 +7,12 @@ import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useSubformUiFolders } from 'src/core/queries/pdfPreview';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { isStudioPreview } from 'src/utils/isDev';
 import type { PdfPreviewTarget } from 'src/utils/urls/appUrlHelper';
 
 export const PDFGeneratorPreviewSection = () => (
   <Fieldset>
     <Fieldset.Legend>Forhåndsvis PDF</Fieldset.Legend>
-    {/* PDF generator is not available in altinn studio preview */}
-    {!isStudioPreview() && <PDFGeneratorPreviewWithTarget />}
+    <PDFGeneratorPreviewWithTarget />
   </Fieldset>
 );
 

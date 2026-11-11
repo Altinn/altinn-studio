@@ -398,6 +398,11 @@ export interface IPlatformFrontendSettings {
   accessManagementUrl?: string;
   rolesAndRightsHelpUrl?: string;
   arbeidsflatePartiesUrl?: string;
+  /**
+   * Whether the app runs where its developers test it. The frontend then checks the app's layout and shows its
+   * developers the errors and the developer tools. Undefined leaves it to the host name.
+   */
+  development?: boolean;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

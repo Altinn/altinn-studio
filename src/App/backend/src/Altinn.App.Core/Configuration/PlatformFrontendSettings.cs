@@ -90,4 +90,13 @@ internal class PlatformFrontendSettings
     /// URL of the arbeidsflate profile settings for parties. Null shows the link to it as not configured.
     /// </summary>
     public string? ArbeidsflatePartiesUrl { get; set; }
+
+    /// <summary>
+    /// Whether the app runs where its developers test it, such as TT02, LocalTest or Altinn Studio's preview. The app
+    /// frontend then checks the app's layout and shows its developers the errors and the developer tools.
+    /// </summary>
+    /// <remarks>
+    /// When null, the frontend decides from the host name, which it knows for TT02 and LocalTest.
+    /// </remarks>
+    public bool? Development { get; set; }
 }
