@@ -43,6 +43,7 @@ public sealed class V9AppTests : IDisposable
         );
         Assert.Contains("\"onEntry\":{\"show\":\"new-instance\"}", page, StringComparison.Ordinal);
         Assert.Contains("\"orgName\":{\"nb\":\"ttd\",\"nn\":\"ttd\",\"en\":\"ttd\"}", page, StringComparison.Ordinal);
+        Assert.Contains("\"development\":true", page, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -179,6 +180,25 @@ public sealed class V9AppTests : IDisposable
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         JsonObject form = await Send(HttpMethod.Get, new Uri(instanceUrl, "bootstrap-form/Task_1"));
         Assert.Null(form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
+    public async Task PdfPreview_SaysPreviewCannotMakePdfs()
+    {
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        using HttpResponseMessage response = await Get(
+            new Uri(appRoot, $"instances/{instance["id"]}/pdf/preview?language=nb")
+        );
+
+        Assert.Equal(HttpStatusCode.NotImplemented, response.StatusCode);
+        Assert.Equal("text/plain", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(
+            "kan ikke lage PDF",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]

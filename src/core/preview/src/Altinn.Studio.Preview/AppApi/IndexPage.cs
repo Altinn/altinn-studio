@@ -119,6 +119,10 @@ internal static class IndexPage
                 ["altinnLogoUrl"] = "https://altinncdn.no/img/Altinn-logo-blue.svg",
                 ["helpCircleIllustrationUrl"] = "https://altinncdn.no/img/illustration-help-circle.svg",
                 ["postalCodesUrl"] = "https://altinncdn.no/postcodes/registry.json",
+                // Developers test the app here, so the frontend checks the layout and shows the errors and its
+                // developer tools. Versions that don't read this decide from the host name, and the Studio bridge
+                // turns on their layout check.
+                ["development"] = true,
             },
             ["availableLanguages"] = new JsonArray([
                 .. languages.Select(available => (JsonNode)new JsonObject { ["language"] = available }),
