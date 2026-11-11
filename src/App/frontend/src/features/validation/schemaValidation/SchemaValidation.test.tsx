@@ -267,13 +267,6 @@ describe('SchemaValidation', () => {
   });
 
   describe('custom error message', () => {
-    beforeEach(() => {
-      jest.spyOn(FD, 'useDebounced').mockRestore();
-      jest.spyOn(DataModels, 'useDataModelSchema').mockRestore();
-      jest.spyOn(UseBindingSchema, 'useDataModelType').mockRestore();
-      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
-    });
-
     const phoneNumber: JSONSchema7 & { errorMessage: string } = {
       type: 'string',
       pattern: '^[0-9]{8}$',
@@ -328,21 +321,11 @@ describe('SchemaValidation', () => {
 
     it.each(schemas)('should use errorMessage from the schema for a field in $name', ({ schema, rootElementPath }) => {
       const formData = { contact: { phoneNumber: '123' } };
-      const validator = createValidator(schema);
+      const schemaResult = { schema, rootElementPath, validator: createValidator(schema) } as DataModelSchemaResult;
 
-      jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
-      jest
-        .spyOn(DataModels, 'useDataModelSchema')
-        .mockReturnValue({ schema, rootElementPath, validator } as DataModelSchemaResult);
-      jest.spyOn(DataModels, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
-      jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
+      const validations = deriveSchemaValidations({ formData, schemaResult, dataElementId: defaultMockDataElementId });
 
-      const updateDataModelValidations = jest.fn();
-      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
-
-      render(<SchemaValidation dataType='mockDataType' />);
-
-      expect(updateDataModelValidations).toHaveBeenCalledWith('schema', defaultMockDataElementId, {
+      expect(validations).toEqual({
         'contact.phoneNumber': [
           expect.objectContaining({
             field: 'contact.phoneNumber',
