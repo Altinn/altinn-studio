@@ -127,6 +127,11 @@ studioctl app ps --json
 ```
 
 For investigating failures, use `studioctl app logs` and `studioctl env logs`.
+
+In v9, process hooks and service tasks run as workflow engine steps. When one throws, the app logs the error on each
+attempt, and the local engine fails the workflow about a minute after the first failure. After fixing the code and
+restarting the app, run the workflow again with Retry on the failed step in the engine dashboard at
+`http://workflow-engine.local.altinn.cloud:8000`, or with a `POST` to the instance's `process/resume` endpoint.
 `studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities).
 
 If local hostnames do not resolve, inspect `studioctl env hosts status`. `studioctl env hosts add` changes the system

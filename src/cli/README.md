@@ -23,6 +23,25 @@ studioctl supplies the configuration of the containers it starts, so a change to
 with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has
 the rule.
 
+## How the workflow engine runs steps
+
+In v9, an app's process hooks and service tasks run as steps of the workflow engine. `studioctl env up` gives the
+engine the settings it has in Altinn's environments, except two that
+[workflow_engine.go](internal/cmd/env/localtest/components/workflow_engine.go) changes for development:
+
+- A step that keeps failing fails its workflow about a minute after the first failure. In Altinn's environments the
+  engine retries it for a day.
+- A step can run for 30 minutes before the engine cancels it, so a developer can stop in a debugger. The engine's
+  default is 100 seconds.
+
+Options the app sets on a step still win, such as the 10-minute timeout of a service task. Only failures count
+against the retries, so a step that waits for something, such as an eFormidling delivery, still waits as long as its
+own budget allows. After fixing the app, the developer runs a failed workflow again with Retry in the engine dashboard
+or with the instance's `process/resume` endpoint, and the step gets its retries again.
+
+`env up --dev-workflow-engine` does not apply these settings, since studioctl does not start the engine on the host.
+Its launch profile keeps the retries and the timeout of Altinn's environments.
+
 ## Development
 
 `make user-install` installs studioctl, `studioctl-server` and the localtest resources from source, the same way the

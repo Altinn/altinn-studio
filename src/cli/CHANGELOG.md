@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl env up` sets up the workflow engine for development: a failing step, such as a process hook that throws, fails its workflow after about a minute instead of a day of retries, and a step can run for 30 minutes, long enough for a debugger. ([#21879](https://github.com/Altinn/altinn-studio/issues/21879))
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 - `studioctl app upgrade v9` now requires the stable .NET SDK 11.0.100 or newer. Release candidates of .NET 11 are no longer accepted. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 

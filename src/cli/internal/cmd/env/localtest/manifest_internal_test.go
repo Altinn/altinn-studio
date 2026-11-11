@@ -265,6 +265,42 @@ func TestWorkflowEngineContainer_DashboardTraceLinksFollowMonitoring(t *testing.
 	}
 }
 
+// The local engine fails a step that keeps failing within about a minute, and gives a step long enough for a
+// debugger, whether or not monitoring runs.
+func TestWorkflowEngineContainer_StepRetriesAndTimeoutSuitDevelopment(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	// The engine rejects a default step timeout above its MaxStepCommandTimeout.
+	const engineMaxStepCommandTimeout = 2 * time.Hour
+
+	for name, includeMonitoring := range map[string]bool{
+		"without monitoring": false,
+		"with monitoring":    true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			resources := localtestResources(t, t.TempDir(), includeMonitoring)
+			env := mustContainerSpec(t, resources, components.ContainerWorkflowEngine).Environment
+
+			assertEnvValue(t, env, "EngineSettings__DefaultStepRetryStrategy__MaxRetries", "6")
+			assertEnvValue(t, env, "EngineSettings__DefaultStepCommandTimeout", "00:30:00")
+			timeout := parseTimeSpan(t, env["EngineSettings__DefaultStepCommandTimeout"])
+			if timeout > engineMaxStepCommandTimeout {
+				t.Fatalf("default step timeout %v, want at most %v", timeout, engineMaxStepCommandTimeout)
+			}
+		})
+	}
+}
+
+// parseTimeSpan reads a .NET TimeSpan written as hh:mm:ss.
+func parseTimeSpan(t *testing.T, value string) time.Duration {
+	t.Helper()
+	parsed, err := time.Parse(time.TimeOnly, value)
+	if err != nil {
+		t.Fatalf("parse TimeSpan %q: %v", value, err)
+	}
+	return parsed.Sub(time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 0, 0, 0, 0, parsed.Location()))
+}
+
 // An endpoint reaches the collector when it names one of the collector's aliases on the environment
 // network, on a port the collector receives OTLP on. It is the one apps are given.
 func assertEndpointReachesCollector(t *testing.T, endpoint string, collector components.ContainerSpec) {
