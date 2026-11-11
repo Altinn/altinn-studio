@@ -192,7 +192,7 @@ class TestGateGoal:
         sent = _delivered(event_sink)
         assert [event.type for event in sent] == ["assistant_message", "status"]
         assert sent[0].data["content"] == decline
-        assert sent[0].data["no_branch_operations"] is True
+        assert "pushedBranch" not in sent[0].data
         assert sent[1].data["done"] is True
         assert sent[1].data["success"] is True
         history = event_sink.get_conversation_history("sess-1")

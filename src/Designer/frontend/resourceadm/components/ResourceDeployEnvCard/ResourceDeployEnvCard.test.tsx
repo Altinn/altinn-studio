@@ -5,17 +5,14 @@ import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
-import type { Environment } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
-const mockTestEnv: Environment = {
-  envType: 'test',
-  id: 'tt02',
-  label: 'tt02_label',
-};
+const mockTestEnv: EnvId = 'tt02';
+const mockTestEnvLabel: string = 'resourceadm.deploy_test_env';
 const mockCurrentEnvVersion: string = '1';
 const mockNewEnvVersion: string = '2';
 
@@ -31,7 +28,7 @@ describe('ResourceDeployEnvCard', () => {
     const user = userEvent.setup();
     renderResourceDeployEnvCard();
     const deployButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnvLabel) }),
     });
 
     await user.click(deployButton);
@@ -39,7 +36,7 @@ describe('ResourceDeployEnvCard', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.resource_published_success', {
-            envName: textMock(mockTestEnv.label),
+            envName: textMock(mockTestEnvLabel),
           }),
         ),
       ).toBeInTheDocument();
@@ -48,7 +45,7 @@ describe('ResourceDeployEnvCard', () => {
 
   it('renders the environment name', () => {
     renderResourceDeployEnvCard();
-    const envName = screen.getByText(textMock(mockTestEnv.label));
+    const envName = screen.getByText(textMock(mockTestEnvLabel));
     expect(envName).toBeInTheDocument();
   });
 
@@ -62,7 +59,7 @@ describe('ResourceDeployEnvCard', () => {
     renderResourceDeployEnvCard();
     const newVersion = screen.getByText(mockNewEnvVersion);
     const arrowIcon = screen.getByTitle(
-      textMock('resourceadm.deploy_card_arrow_icon', { env: textMock(mockTestEnv.label) }),
+      textMock('resourceadm.deploy_card_arrow_icon', { env: textMock(mockTestEnvLabel) }),
     );
 
     expect(newVersion).toBeInTheDocument();
@@ -72,7 +69,7 @@ describe('ResourceDeployEnvCard', () => {
   it('disables the button when deploy is not possible', () => {
     renderResourceDeployEnvCard({ isDeployPossible: false });
     const deployButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnvLabel) }),
     });
     expect(deployButton).toBeDisabled();
   });
@@ -82,7 +79,7 @@ describe('ResourceDeployEnvCard', () => {
     renderResourceDeployEnvCard();
 
     const deployButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnvLabel) }),
     });
 
     expect(deployButton).not.toBeDisabled();
@@ -103,7 +100,7 @@ describe('ResourceDeployEnvCard', () => {
     );
 
     const deployButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnvLabel) }),
     });
 
     await user.click(deployButton);
@@ -112,7 +109,7 @@ describe('ResourceDeployEnvCard', () => {
       expect(
         screen.getByText(
           textMock('resourceadm.resource_publish_no_access', {
-            envName: textMock(mockTestEnv.label),
+            envName: textMock(mockTestEnvLabel),
           }),
         ),
       ).toBeInTheDocument();
@@ -131,7 +128,7 @@ describe('ResourceDeployEnvCard', () => {
     expect(
       await screen.findByText(
         textMock('resourceadm.resource_publish_conflict', {
-          envName: textMock(mockTestEnv.label),
+          envName: textMock(mockTestEnvLabel),
         }),
       ),
     ).toBeInTheDocument();
@@ -192,7 +189,7 @@ describe('ResourceDeployEnvCard', () => {
       .mockResolvedValueOnce(undefined);
     renderResourceDeployEnvCard({}, { publishResource });
     const noAccessText = textMock('resourceadm.resource_publish_no_access', {
-      envName: textMock(mockTestEnv.label),
+      envName: textMock(mockTestEnvLabel),
     });
 
     await user.click(getDeployButton());
@@ -208,7 +205,7 @@ describe('ResourceDeployEnvCard', () => {
 
 const getDeployButton = (): HTMLButtonElement =>
   screen.getByRole('button', {
-    name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+    name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnvLabel) }),
   });
 
 const renderResourceDeployEnvCard = (
