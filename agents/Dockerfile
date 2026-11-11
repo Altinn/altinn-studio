@@ -3,8 +3,9 @@
 # Neovim, shellcheck, actionlint and the common build and archive tools, and the boot settings a
 # Sandbox needs, and offers the browser, containers and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
-# Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:3c5af2b6e7b559cabae6a7b3ac3429a4f8c27d5a9acf59d78ec9f4546fea25e6 AS minimal
+# The tag names the agentctl release the Agents are written for; Renovate moves it to later releases,
+# and with it the harness versions. Bring the manifests along, as the release notes say.
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04-v0.1.0-preview.14@sha256:4de3acc36600c2fba8e7e73c0de0ca812cbd32ae2286f1d7750f5394d5e90e72 AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
@@ -411,7 +412,7 @@ RUN case "${TARGETARCH}" in \
 
 # agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
 # nested-build variants build their images with. Renovate moves it to new agentctl releases.
-COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4544f0bf2e6d0912cd274b878515224cd05896a286b28f \
+COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.14@sha256:8f2334590d1363c1ae2041cf1e7983a2c81aa57f0d4956f2a27e97a0a3536a7d \
     /agentctl /agentd /usr/local/bin/
 
 # devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
