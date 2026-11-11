@@ -345,7 +345,7 @@ internal static class StorageCallStubs
                 BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);
                 BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);
                 void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
-                Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model) where T : notnull;
+                Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model) where T : class;
             }
 
             public interface IInstantiationProcessor
