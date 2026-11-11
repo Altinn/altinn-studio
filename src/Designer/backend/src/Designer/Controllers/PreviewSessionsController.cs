@@ -45,4 +45,35 @@ public class PreviewSessionsController(IPreviewServiceClient previewServiceClien
         Uri? url = await previewServiceClient.StartSession(developer, org, app, cancellationToken);
         return url is null ? NotFound() : Ok(new PreviewSessionResponse(url));
     }
+
+    /// <summary>
+    /// Creates an instance at a task in one of the developer's preview sessions, so the editor can show the task the
+    /// developer works on.
+    /// </summary>
+    /// <param name="org">The app's service owner.</param>
+    /// <param name="app">The app.</param>
+    /// <param name="request">The session and the task.</param>
+    /// <param name="cancellationToken">A token to cancel the request.</param>
+    /// <returns>The instance's ID.</returns>
+    [HttpPost("instances")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PreviewInstanceResponse>> CreateInstance(
+        string org,
+        string app,
+        [FromBody] CreatePreviewInstanceRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string? instanceId = await previewServiceClient.CreateInstance(
+            developer,
+            org,
+            app,
+            request.SessionUrl,
+            request.TaskId,
+            cancellationToken
+        );
+        return instanceId is null ? NotFound() : Ok(new PreviewInstanceResponse(instanceId));
+    }
 }

@@ -6,8 +6,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
-import { previewPage, previewPageV9 } from 'app-shared/api/paths';
-import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
+import { previewSessionPage } from 'app-shared/api/paths';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
@@ -26,11 +25,11 @@ describe('Preview', () => {
 
   it('Informs that preview is temporarily disabled instead of loading it', () => {
     previewAvailability.isPreviewDisabled = true;
-    const createPreviewInstance = vi.fn();
-    render({ queries: { createPreviewInstance } });
+    const startPreviewSession = vi.fn();
+    render({ queries: { startPreviewSession } });
     expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
     expect(screen.queryByTitle(textMock('ux_editor.preview'))).not.toBeInTheDocument();
-    expect(createPreviewInstance).not.toHaveBeenCalled();
+    expect(startPreviewSession).not.toHaveBeenCalled();
   });
 
   it('Renders an iframe with the ref from AppContext', async () => {
@@ -96,7 +95,7 @@ describe('Preview', () => {
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 
-  it('shows a spinner when preview instance is loading', () => {
+  it('shows a spinner while the preview session starts', () => {
     render();
     expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
   });
@@ -107,15 +106,12 @@ describe('Preview', () => {
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
-      'http://localhost' +
-        previewPage(
-          org,
-          app,
-          layoutSet,
-          TASKID_FOR_STATELESS_APPS,
-          appContextMock.selectedFormLayoutName,
-          mockInstanceId,
-        ),
+      previewSessionPage(
+        mockSessionUrl,
+        mockInstanceId,
+        layoutSet,
+        appContextMock.selectedFormLayoutName,
+      ),
     );
 
     const newSelectedFormLayoutName = 'test';
@@ -126,15 +122,7 @@ describe('Preview', () => {
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef.current.src).toBe(
-      'http://localhost' +
-        previewPage(
-          org,
-          app,
-          layoutSet,
-          TASKID_FOR_STATELESS_APPS,
-          newSelectedFormLayoutName,
-          mockInstanceId,
-        ),
+      previewSessionPage(mockSessionUrl, mockInstanceId, layoutSet, newSelectedFormLayoutName),
     );
   });
 
@@ -144,9 +132,6 @@ describe('Preview', () => {
         getLayoutSets: vi
           .fn()
           .mockImplementation(() => Promise.resolve([{ id: layoutSet, type: 'subform' }])),
-        createPreviewInstance: vi
-          .fn()
-          .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
       },
       queryClient: createQueryClientMock(),
     });
@@ -157,10 +142,10 @@ describe('Preview', () => {
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
   });
 
-  it('should show error message when preview instance creation fails', async () => {
+  it('shows an error when the preview session does not start', async () => {
     render({
       queries: {
-        createPreviewInstance: vi.fn().mockImplementation(() => Promise.reject('Error')),
+        startPreviewSession: vi.fn().mockImplementation(() => Promise.reject('Error')),
       },
     });
     await waitForElementToBeRemoved(() =>
@@ -170,47 +155,50 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 
-  it('points the iframe at the browser-router url for current apps', async () => {
+  it('should show error message when preview instance creation fails', async () => {
     render({
       queries: {
-        getAppVersion: vi
-          .fn()
-          .mockImplementation(() =>
-            Promise.resolve({ backendVersion: '9.0.0', frontendVersion: '4.0.0' }),
-          ),
+        createPreviewSessionInstance: vi.fn().mockImplementation(() => Promise.reject('Error')),
       },
-      queryClient: createQueryClientMock(),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
-    expect(appContextMock.previewIframeRef.current.src).toBe(
-      'http://localhost' +
-        previewPageV9(
-          org,
-          app,
-          layoutSet,
-          layoutSet,
-          appContextMock.selectedFormLayoutName,
-          mockInstanceId,
-        ),
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
+  });
+
+  it("points the iframe at the layout set's task in the preview session", async () => {
+    const createPreviewSessionInstance = vi
+      .fn()
+      .mockImplementation(() => Promise.resolve({ instanceId: mockInstanceId }));
+    render({ queries: { createPreviewSessionInstance } });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
-    expect(appContextMock.previewIframeRef.current.src).not.toContain('app-specific-preview');
+
+    expect(createPreviewSessionInstance).toHaveBeenCalledWith(org, app, mockSessionUrl, layoutSet);
+    expect(appContextMock.previewIframeRef.current.src).toBe(
+      `${mockSessionUrl}instance/${mockInstanceId}/${layoutSet}/${appContextMock.selectedFormLayoutName}`,
+    );
   });
 });
 
 const collapseToggle = vi.fn();
-const mockInstanceId = '1';
+const mockSessionUrl = 'https://preview.test/0123456789abcdef0123456789abcdef/ttd/app/';
+const mockInstanceId = '51001/7b1b0d6c-1d4e-4c1f-9d0a-2b9b8e1f2a3c';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
   const defaultQueries = {
-    createPreviewInstance: vi
+    startPreviewSession: vi.fn().mockImplementation(() => Promise.resolve({ url: mockSessionUrl })),
+    createPreviewSessionInstance: vi
       .fn()
-      .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      .mockImplementation(() => Promise.resolve({ instanceId: mockInstanceId })),
   };
 
+  // A client of its own, since the session and the instance are queries that would otherwise carry over.
   options = {
+    queryClient: createQueryClientMock(),
     ...options,
     queries: {
       ...defaultQueries,

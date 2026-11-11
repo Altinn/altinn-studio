@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { AppContextProps, SelectedItem, WindowWithQueryClient } from './AppContext';
+import type { AppContextProps, SelectedItem } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -10,11 +10,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
-import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
-import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { AppRouter } from './testing/mocks';
 import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
@@ -29,20 +27,11 @@ const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
 
 const TestComponent = ({
-  queryClient,
   children,
 }: {
-  queryClient: QueryClient;
   children: (appContext: Partial<AppContextProps>) => React.ReactNode;
 }) => {
   const appContext = useAppContext();
-  useEffect(() => {
-    if (appContext.previewIframeRef) {
-      const contentWindow: WindowWithQueryClient =
-        appContext.previewIframeRef?.current?.contentWindow;
-      contentWindow.queryClient = queryClient;
-    }
-  }, [appContext.previewIframeRef, queryClient]);
   return (
     <>
       {children(appContext)}
@@ -93,8 +82,6 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     previewHasLoaded: vi.fn(),
   };
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = vi.fn();
-  queryClient.resetQueries = vi.fn();
   queryClient.setQueryData(
     [QueryKey.LayoutSets, org, app],
     [
@@ -121,9 +108,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
               previewHasLoaded={vi.fn()}
               onLayoutSetNameChange={vi.fn()}
             >
-              <TestComponent queryClient={queryClient}>
-                {(appContext: AppContextProps) => children(appContext)}
-              </TestComponent>
+              <TestComponent>{(appContext: AppContextProps) => children(appContext)}</TestComponent>
             </AppContextProvider>
           </PreviewContext.Provider>
         </ServicesContextProvider>
@@ -201,38 +186,22 @@ describe('AppContext', () => {
     );
   });
 
-  it('invalidates the form bootstrap query in the preview when layouts change', async () => {
-    const { queryClient } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
+  it('reloads the preview when layouts change', async () => {
+    const { doReloadPreview } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
       <Button onClick={() => updateLayoutsForPreview(layoutSet)} />
     ));
     await clickButton();
-    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: [AppsQueryKey.AppFormBootstrap],
-    });
+    await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
   });
 
-  it('resets the form bootstrap query in the preview when layouts change', async () => {
-    const { queryClient } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
-      <Button onClick={() => updateLayoutsForPreview(layoutSet, true)} />
-    ));
-    await clickButton();
-    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    expect(queryClient.resetQueries).toHaveBeenCalledWith({
-      queryKey: [AppsQueryKey.AppFormBootstrap],
-    });
-  });
-
-  it('does not touch the preview query cache when layout sets change', async () => {
-    const { queryClient, doReloadPreview } = renderAppContext(
+  it('reloads the preview when layout sets change', async () => {
+    const { doReloadPreview } = renderAppContext(
       ({ updateLayoutSetsForPreview }: AppContextProps) => (
         <Button onClick={() => updateLayoutSetsForPreview()} />
       ),
     );
     await clickButton();
     await waitFor(() => expect(doReloadPreview).toHaveBeenCalledTimes(1));
-    expect(queryClient.invalidateQueries).not.toHaveBeenCalled();
-    expect(queryClient.resetQueries).not.toHaveBeenCalled();
   });
 
   it('reloads the preview when layout settings change', async () => {
