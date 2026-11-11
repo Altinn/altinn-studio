@@ -25,6 +25,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
     - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window
 - `studioctl doctor` no longer passes a .NET SDK the app cannot build with. In an app, it checks the SDK the app's `global.json` or target framework needs and names that version, also in `--json` under `prerequisites.dotnetRequirement`. Elsewhere, it states that v8 apps need SDK 8.0 and v9 apps SDK 11.0. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
+- `studioctl run` no longer prints "App ready" when the local environment is not running. It stops the app and fails with "localtest is not reachable: run 'studioctl env up'", after waiting up to 10 seconds for a Localtest that is starting. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
 
 ## [0.1.0-preview.33] - 2026-11-09
 

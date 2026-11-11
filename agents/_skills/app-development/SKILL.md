@@ -126,6 +126,9 @@ studioctl run --detach --json
 studioctl app ps --json
 ```
 
+`run` reports the app ready once Localtest routes to it. When Localtest cannot be reached, it stops the app and fails
+with "localtest is not reachable": run `studioctl env up`, then `run` again.
+
 For investigating failures, use `studioctl app logs` and `studioctl env logs`.
 `studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities). Run from
 the app, it checks that the .NET SDK dotnet selects can build the app, by the app's `global.json` or target framework;

@@ -130,6 +130,9 @@ var (
 	errStudioctlServerForceStopTimeout = errors.New("studioctl-server did not stop after kill")
 	// ErrAppEndpointNotFound is returned when studioctl-server cannot find a matching app endpoint.
 	ErrAppEndpointNotFound = errors.New("matching app endpoint not found")
+	// ErrLocaltestUnavailable is returned when an app started but studioctl-server could not reach Localtest to
+	// confirm that it routes to the app.
+	ErrLocaltestUnavailable = errors.New("localtest is not reachable")
 )
 
 // Client talks to the local studioctl-server control plane.
@@ -395,7 +398,7 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
-		Transport: transportForConfig(c.cfg),
+		Transport: c.http.Transport,
 		Timeout:   appRegistrationTimeout(registration),
 	}
 	resp, err := client.Do(req)
@@ -404,8 +407,11 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 	}
 	defer closeResponseBody(resp)
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return "", ErrAppEndpointNotFound
+	case http.StatusServiceUnavailable:
+		return "", ErrLocaltestUnavailable
 	}
 	if resp.StatusCode != http.StatusAccepted {
 		return "", fmt.Errorf("%w: %s", errUnexpectedRegisterStatus, resp.Status)

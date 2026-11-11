@@ -2,6 +2,7 @@ using Altinn.Studio.StudioctlServer.Discovery.Container;
 using Altinn.Studio.StudioctlServer.Discovery.Process;
 using Altinn.Studio.StudioctlServer.Platform;
 using Altinn.Studio.StudioctlServer.Platform.PortListeners;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Altinn.Studio.StudioctlServer.Discovery;
 
@@ -34,6 +35,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<PortListeners>();
         services.AddSingleton<AppMetadataProbe>();
         services.AddSingleton<LocaltestStorageProbe>();
+        services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IAppDiscovery, ProcessDiscovery>();
         services.AddSingleton<IAppDiscovery, ContainerDiscovery>();
         services.AddSingleton<AppRegistry>();

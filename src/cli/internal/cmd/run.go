@@ -96,6 +96,9 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"Builds and runs the Altinn app. The app is auto-detected from the",
 		"current directory, or can be specified with -p.",
 		"",
+		"The app is ready once Localtest routes to it. Start Localtest first with",
+		fmt.Sprintf("'%s env up': without it, run stops the app and fails.", osutil.CurrentBin()),
+		"",
 		"Arguments after -- are passed directly to the app.",
 		"",
 		"Options:",
@@ -1035,6 +1038,12 @@ func resolveAppRegistrationResult(
 ) (string, error) {
 	if result.err == nil {
 		return result.baseURL, nil
+	}
+	if errors.Is(result.err, studioctlserver.ErrLocaltestUnavailable) {
+		if ctx.Err() != nil {
+			return "", errAppRunStopped
+		}
+		return "", fmt.Errorf("%w: run '%s env up'", studioctlserver.ErrLocaltestUnavailable, osutil.CurrentBin())
 	}
 	if errors.Is(result.err, studioctlserver.ErrAppEndpointNotFound) ||
 		errors.Is(result.err, context.DeadlineExceeded) ||
