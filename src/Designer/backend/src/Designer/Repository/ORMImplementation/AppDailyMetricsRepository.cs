@@ -13,8 +13,8 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 public class AppDailyMetricsRepository : IAppDailyMetricsRepository
 {
     // Upserts the whole org/environment/day batch in one round trip. The day's flow numbers are always
-    // replaced. The snapshot columns are replaced only when the batch carries a snapshot, so a day that is
-    // filled in later keeps the snapshot an earlier run stored, or stays null.
+    // replaced. The snapshot columns, and computed_at with them, are replaced only when the batch carries a
+    // snapshot, so a day that is filled in later keeps the snapshot an earlier run stored, or stays null.
     private const string UpsertMetricsSql = """
         WITH incoming AS (
             SELECT *
@@ -61,7 +61,7 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
             open_instances = CASE WHEN @includes_snapshot THEN EXCLUDED.open_instances ELSE existing.open_instances END,
             open_over_90_days = CASE WHEN @includes_snapshot THEN EXCLUDED.open_over_90_days ELSE existing.open_over_90_days END,
             unconfirmed_over_90_days = CASE WHEN @includes_snapshot THEN EXCLUDED.unconfirmed_over_90_days ELSE existing.unconfirmed_over_90_days END,
-            computed_at = EXCLUDED.computed_at
+            computed_at = CASE WHEN @includes_snapshot THEN EXCLUDED.computed_at ELSE existing.computed_at END
         """;
 
     private const string DeleteTaskMetricsSql = """

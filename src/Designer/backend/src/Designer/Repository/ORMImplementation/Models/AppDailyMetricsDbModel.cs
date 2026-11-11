@@ -20,5 +20,10 @@ public class AppDailyMetricsDbModel
     public int? OpenInstances { get; set; }
     public int? OpenOver90Days { get; set; }
     public int? UnconfirmedOver90Days { get; set; }
+
+    /// <summary>
+    /// When Storage computed the snapshot the row holds. For a row without a snapshot, when Storage computed
+    /// the flow numbers.
+    /// </summary>
     public DateTimeOffset ComputedAt { get; set; }
 }

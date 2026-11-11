@@ -190,7 +190,7 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(5, row.OpenInstances);
         Assert.Equal(1, row.OpenOver90Days);
         Assert.Equal(4, row.UnconfirmedOver90Days);
-        Assert.Equal(s_secondRun, row.ComputedAt);
+        Assert.Equal(s_firstRun, row.ComputedAt);
         Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 5 }, await GetTaskRows("kpi-a"));
     }
 
