@@ -152,10 +152,12 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
     /// point at another commit than the one the release was built from.
     /// </summary>
     /// <remarks>
-    /// A commit ID is 40 hexadecimal digits in a SHA-1 repository and 64 in a SHA-256 one. Gitea can create both.
+    /// Git and Gitea resolve 40 hexadecimal digits as an object ID before any ref of that name, so such a target
+    /// cannot stand for a branch. App repositories are SHA-1, since Designer creates them without an object format and
+    /// Gitea then uses SHA-1. A SHA-256 commit ID of 64 digits is not accepted yet: in a SHA-1 repository those 64
+    /// digits are only a ref name, which Git resolves as a branch.
     /// </remarks>
-    private static bool IsFullCommitId(string? target) =>
-        target is { Length: 40 or 64 } && target.All(char.IsAsciiHexDigit);
+    private static bool IsFullCommitId(string? target) => target is { Length: 40 } && target.All(char.IsAsciiHexDigit);
 
     /// <summary>
     /// Checks the version against the grammar of an image tag.

@@ -249,6 +249,7 @@ public class LookupTests
     [InlineData("123456789012345678901234567890123456789")]
     [InlineData("12345678901234567890123456789012345678901")]
     [InlineData("123456789012345678901234567890123456789g")]
+    [InlineData("1234567890123456789012345678901234567890123456789012345678901234")]
     [InlineData("")]
     public async Task Lookup_ReleaseNotBuiltFromAFullCommitId_IsLeftOut(string target)
     {
@@ -258,17 +259,6 @@ public class LookupTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Empty(await ReadResult(response));
-    }
-
-    [Fact]
-    public async Task Lookup_Sha256CommitId_IsReturned()
-    {
-        string commit = NewCommitId(bytes: 32);
-        await AddRelease("1.0.0", BuildResult.Succeeded, commit);
-
-        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item("1.0.0")));
-
-        Assert.Equal(commit, Assert.Single(await ReadResult(response)).Commit);
     }
 
     [Fact]
@@ -374,8 +364,7 @@ public class LookupTests
         return release;
     }
 
-    private static string NewCommitId(int bytes = 20) =>
-        Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(bytes));
+    private static string NewCommitId() => Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(20));
 
     private async Task<IReadOnlyList<ReleaseLookupResult>> ReadResult(HttpResponseMessage response)
     {
