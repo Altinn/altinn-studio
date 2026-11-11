@@ -32,6 +32,10 @@
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="AppApi/studio-bridge.js" LogicalName="studio-bridge.js" />
+  </ItemGroup>
+
   <!-- Only AppFolder opens files. BannedSymbols.txt says why. -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">

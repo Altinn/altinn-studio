@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
@@ -23,9 +23,10 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
-  const { updateLayoutsForPreview } = useAppContext();
+  const { updateLayoutsForPreview, previewComponentErrors } = useAppContext();
   const { layoutSet } = useUxEditorParams();
   const { handleDiscard } = useFormItemContext();
+  const hasPreviewErrors = previewComponentErrors.has(formItem.id);
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -46,10 +47,17 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     <div
       className={classNames(classes.root, {
         [classes.duplicateComponentIds]: duplicateComponents?.includes(formItem.id),
+        [classes.previewErrors]: hasPreviewErrors,
         [classes.deprecatedComponent]: isComponentDeprecated(formItem.type),
       })}
     >
       <div className={classes.label}>{children}</div>
+      {hasPreviewErrors && (
+        <XMarkOctagonFillIcon
+          className={classes.previewErrorIcon}
+          title={t('ux_editor.preview.component_has_errors')}
+        />
+      )}
       <StudioButton
         className={classes.deleteButton}
         icon={<TrashIcon />}

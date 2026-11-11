@@ -1,0 +1,9 @@
+.alert {
+  margin: var(--ds-size-3);
+}
+
+.errors {
+  margin-block: var(--ds-size-2);
+  padding-inline-start: var(--ds-size-5);
+  overflow-wrap: anywhere;
+}

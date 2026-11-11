@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
+using Altinn.Studio.Preview.AppApi;
 using Altinn.Studio.Preview.Sessions;
 
 namespace Altinn.Studio.Preview.Tests.AppApi;
@@ -42,6 +43,26 @@ public sealed class V9AppTests : IDisposable
         );
         Assert.Contains("\"onEntry\":{\"show\":\"new-instance\"}", page, StringComparison.Ordinal);
         Assert.Contains("\"orgName\":{\"nb\":\"ttd\",\"nn\":\"ttd\",\"en\":\"ttd\"}", page, StringComparison.Ordinal);
+        Assert.Contains("\"development\":true", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Page_RunsTheStudioBridgeBeforeTheFrontend()
+    {
+        Uri appRoot = await StartSession();
+
+        using HttpResponseMessage response = await Get(appRoot);
+
+        string page = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        int bridge = page.IndexOf(
+            $"<script data-studio-origin=\"{PreviewApplicationFactory.StudioOrigin}\">",
+            StringComparison.Ordinal
+        );
+        int frontend = page.IndexOf("altinn-app-frontend.js\"></script>", StringComparison.Ordinal);
+        Assert.True(bridge >= 0, "The page has no Studio bridge.");
+        Assert.True(bridge < frontend, "The Studio bridge must run before the frontend.");
+        Assert.Contains("window.logErrorOnce = logFunction(true);", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("</script", StudioBridge.Script, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -159,6 +180,25 @@ public sealed class V9AppTests : IDisposable
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         JsonObject form = await Send(HttpMethod.Get, new Uri(instanceUrl, "bootstrap-form/Task_1"));
         Assert.Null(form["dataModels"]?["model"]?["initialData"]?["name"]);
+    }
+
+    [Fact]
+    public async Task PdfPreview_SaysPreviewCannotMakePdfs()
+    {
+        Uri appRoot = await StartSession();
+        JsonObject instance = await Send(HttpMethod.Post, new Uri(appRoot, "instances?instanceOwnerPartyId=51001"));
+
+        using HttpResponseMessage response = await Get(
+            new Uri(appRoot, $"instances/{instance["id"]}/pdf/preview?language=nb")
+        );
+
+        Assert.Equal(HttpStatusCode.NotImplemented, response.StatusCode);
+        Assert.Equal("text/plain", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(
+            "kan ikke lage PDF",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]

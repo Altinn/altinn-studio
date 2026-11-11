@@ -20,4 +20,6 @@ export const appContextMock: AppContextProps = {
   onLayoutSetNameChange: vi.fn(),
   selectedItem: null,
   setSelectedItem: vi.fn(),
+  previewComponentErrors: new Map(),
+  setPreviewComponentErrors: vi.fn(),
 };

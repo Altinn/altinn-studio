@@ -29,6 +29,33 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   session's state, which Redis keeps in the same key as the session, so they end together.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
+- Preview makes no PDFs, since it has no PDF service. It answers the developer tools' PDF preview with a message that
+  says so.
+
+## The Studio bridge
+
+A v9 app's page runs a script of preview's before the app frontend,
+[studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js). It tells Studio's page which components the
+frontend found errors in, and the UI editor shows the errors by the components. The script needs nothing new from
+the frontend, so it works with each published version, and it is never part of a published app.
+
+- It turns on the frontend's validation of the layout, which the frontend otherwise runs only on hosts it knows as
+  Studio's or a test environment's. The page also says that developers test the app here
+  (`platformFrontendSettings.development`), which turns on the validation, the errors in place of a component and
+  the developer tools in frontend versions that read it (#21860). Older versions leave out a component with errors,
+  and the editor says why.
+- It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
+  frontend logs each error in a component's configuration with the component's ID.
+- The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
+- It catches its own errors, so preview works without it. The app's own scripts run on the same page and can send the
+  same messages, so Studio checks each message as untrusted input and only shows what it says.
+
+It sends these messages to Studio's origin, with `source: 'altinn-studio-preview'` and `version: 1`:
+
+| `type`            | When                                              | Content                                                                                                     |
+| ----------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `ready`           | The page starts.                                  | Nothing. Studio forgets the errors of the page before.                                                      |
+| `componentErrors` | The frontend logged errors, at most every 250 ms. | `errors`: each error so far, by component ID. At most 200 components, 20 errors each, 1000 characters each. |
 
 ## Security rules
 
@@ -62,6 +89,7 @@ WSL. From this directory:
 dotnet csharpier check .
 dotnet build
 dotnet test
+node --test tests/studio-bridge/studio-bridge.test.mjs
 ```
 
 The session lifetime tests run against a real Redis when `PREVIEW_TEST_REDIS` names one, and are skipped otherwise:

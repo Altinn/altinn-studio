@@ -19,6 +19,9 @@ internal static class AppApiEndpoints
 {
     private const string Instance = "/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}";
 
+    private const string NoPdfs =
+        "Forhåndsvisningen i Altinn Studio kan ikke lage PDF. Du kan teste PDF-en når du har publisert appen til TT02.";
+
     public static RouteGroupBuilder MapAppApi(this RouteGroupBuilder app)
     {
         // The frontend keeps the platform session alive, which preview doesn't have.
@@ -34,6 +37,12 @@ internal static class AppApiEndpoints
         app.MapGet(Instance + "/bootstrap-form/{uiFolder}", GetFormBootstrap);
         app.MapPatch(Instance + "/data", PatchFormData);
         app.MapPut(Instance + "/process/next", MoveProcessNext);
+        // The developer tools' PDF preview asks the app for a PDF, which needs the PDF service that preview doesn't
+        // have. The tools show the developer this answer.
+        app.MapGet(
+            Instance + "/pdf/preview",
+            () => Results.Text(NoPdfs, statusCode: StatusCodes.Status501NotImplemented)
+        );
         return app;
     }
 

@@ -95,6 +95,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
         }
 
         MarkResponseImmutable();
+        AllowAnyOrigin();
         return Ok(matches);
     }
 
@@ -118,6 +119,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
             ? knownContentType
             : MediaTypeNames.Application.Octet;
         MarkResponseImmutable();
+        AllowAnyOrigin();
         return File(fileStream, contentType);
     }
 
@@ -126,6 +128,12 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// indefinitely. Error responses are left uncached since a later publish or fix may change them.
     /// </summary>
     private void MarkResponseImmutable() => Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
+
+    /// <summary>
+    /// Preview's pages, on a domain of their own, read files such as the layout schema with CORS requests. The
+    /// distributions are public and the responses don't depend on the caller, so any origin may read them.
+    /// </summary>
+    private void AllowAnyOrigin() => Response.Headers.AccessControlAllowOrigin = "*";
 
     private static AppDistLayer LayerFor(string path) =>
         path.StartsWith(SchemasLayerPathPrefix, StringComparison.Ordinal) ? AppDistLayer.Schemas : AppDistLayer.Content;
