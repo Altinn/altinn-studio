@@ -3,7 +3,8 @@ discard_file_changes.
 
 These tools operate on a real filesystem (tmp_path) — that's the point.
 Each test gets its own tmp_path so they don't interfere.  External git
-calls in discard_file_changes are exercised via subprocess monkeypatch.
+calls in discard_file_changes are exercised via subprocess monkeypatch,
+and in a real repository where the result depends on git.
 """
 
 from __future__ import annotations
@@ -22,6 +23,8 @@ from agents.core import (
     ReadFileTool,
     WriteFileTool,
 )
+
+from .git_repo import create_committed_repo, git
 
 
 def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
@@ -505,6 +508,63 @@ class TestDiscardFileChanges:
             tool.input_schema.model_validate({"path": "App/nope.json"}),
             _ctx(tmp_path),
         )
+        assert result.is_error
+        assert "did not match" in result.content
+
+
+class TestDiscardInARepository:
+    """`git checkout HEAD -- <path>` gives an error for a file that HEAD does not have.
+    Thus the tool must also undo a file that the model made."""
+
+    def _repo(self, tmp_path: Path) -> Path:
+        return create_committed_repo(tmp_path / "app", {"App/old.json": '{"old": true}'})
+
+    async def _discard(self, ctx: LoopContext, path: str):
+        tool = DiscardFileChangesTool()
+        return await tool.run(tool.input_schema.model_validate({"path": path}), ctx)
+
+    async def test_resets_a_file_that_the_last_commit_has(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/old.json").write_text('{"old": false}', encoding="utf-8")
+        ctx = _ctx(repo)
+        ctx.extras["changed_files"] = {"App/old.json"}
+
+        result = await self._discard(ctx, "App/old.json")
+
+        assert result.content == "Reset App/old.json to HEAD."
+        assert (repo / "App/old.json").read_text(encoding="utf-8") == '{"old": true}'
+        assert ctx.extras["changed_files"] == set()
+
+    async def test_deletes_a_file_that_the_session_created(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        ctx = _ctx(repo)
+        ctx.extras["changed_files"] = {"App/new.json"}
+
+        result = await self._discard(ctx, "App/new.json")
+
+        assert not result.is_error, result.content
+        assert "Deleted App/new.json" in result.content
+        assert not (repo / "App/new.json").exists()
+        assert ctx.extras["changed_files"] == set()
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_deletes_a_new_file_that_a_failed_commit_left_in_the_index(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        git(repo, "add", "App/new.json")
+
+        result = await self._discard(_ctx(repo), "App/new.json")
+
+        assert not result.is_error, result.content
+        assert not (repo / "App/new.json").exists()
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_a_path_that_does_not_exist_gives_the_error_of_git(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+
+        result = await self._discard(_ctx(repo), "App/nope.json")
+
         assert result.is_error
         assert "did not match" in result.content
 
