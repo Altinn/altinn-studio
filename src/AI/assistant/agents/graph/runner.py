@@ -194,7 +194,6 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
         "content": decline_text,
         "filesChanged": [],
         "sources": [],
-        "no_branch_operations": True,
     }
     # Same event identity as a real answer: lets the frontend dedupe
     # redelivered events and submit feedback on the decline.

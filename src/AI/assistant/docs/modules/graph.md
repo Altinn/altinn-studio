@@ -112,4 +112,7 @@ flowchart LR
 
 _The event bridge. A `tool_use_id` lets the frontend replace a placeholder line in place._
 
-The final message also gets two flags. `no_branch_operations` tells Designer not to check out a branch in chat mode. `attachmentInstructionFlagged` tells Designer to show the injection warning.
+The final message can also have these fields:
+
+- `pushedBranch` is the session branch, if the assistant pushed a commit after the previous final message. A cancelled turn sends no final message, thus the next final message has its push. Designer resets the repo and checks out this branch, so that the preview shows the change. Without the field, Designer does not change the repo or the branch of the user.
+- `attachmentInstructionFlagged` tells Designer to show the injection warning.

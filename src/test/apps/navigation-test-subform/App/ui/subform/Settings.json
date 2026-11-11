@@ -1,6 +1,9 @@
 ﻿{
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
+    "navigationTitle": "Skjemasider for kjøretøy",
+    "hideAppNameInPdf": false,
+    "validationOnNavigation": { "page": "current", "show": ["Required", "Invalid"] },
     "showLanguageSelector": true,
     "showExpandWidthButton": true,
     "groups": [
@@ -11,6 +14,7 @@
       {
         "name": "subgroup.data",
         "markWhenCompleted": true,
+        "expandedByDefault": true,
         "order": ["brand", "year"]
       }
     ]

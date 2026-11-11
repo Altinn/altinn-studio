@@ -5,7 +5,6 @@ import { toast } from 'react-toastify';
 import { CustomButton } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { isAxiosError } from 'axios';
-import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
 import { useServerActionMutation } from 'src/core/queries/actions';
@@ -187,17 +186,12 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
     performProcess(async () => {
       for (const action of config.actions) {
         const isBackwardNavigation = isClientAction(action) && action.id === 'previousPage';
-        const shouldSkipValidation = isBackwardNavigation && getPageValidation();
-        let validation: PageValidation | undefined;
-        if (!shouldSkipValidation && (action.validation || getPageValidation())) {
+        const validation = action.validation ?? (isBackwardNavigation ? undefined : getPageValidation());
+        if (validation) {
           const prevScrollPosition = getScrollPosition();
           const page = layoutLookups.componentToPage[baseComponentId];
           if (!page) {
             throw new Error('Could not find page for component');
-          }
-          validation = getPageValidation() ?? action.validation;
-          if (!validation) {
-            return;
           }
           const hasErrors = await onPageNavigationValidation(page, validation);
           if (hasErrors) {
