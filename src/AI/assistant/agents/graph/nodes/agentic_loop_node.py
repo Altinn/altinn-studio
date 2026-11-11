@@ -11,7 +11,6 @@ import os
 import re
 import subprocess
 import time
-from dataclasses import dataclass
 from typing import Any
 
 from agents.altinn.app_version import detect_app_version_profile
@@ -244,7 +243,7 @@ async def handle(state: AgentState) -> AgentState:
     user_message, history = _framed_turn(
         state,
         _augment_goal_for_missing_spec(state),
-        notice=_notice_at_turn_start(_unsaved_changes(ctx), can_write=ctx.allow_app_changes),
+        notice=_notice_at_turn_start(ctx),
     )
 
     result = await run_loop(
@@ -306,25 +305,8 @@ def _fail_if_unsaved(state: AgentState, unsaved_files: list[str]) -> None:
     state.verify_notes = [f"The assistant did not save its edits to these files: {', '.join(unsaved_files)}"]
 
 
-@dataclass(frozen=True)
-class _UnsavedChanges:
-    """The edits of the assistant that the remote session branch does not have."""
-
-    uncommitted: list[str]
-    unpushed: list[str]
-
-    @property
-    def files(self) -> list[str]:
-        return sorted({*self.uncommitted, *self.unpushed})
-
-    @property
-    def only_unpushed(self) -> list[str]:
-        """The files that are in a commit without a push, and that have no later edit."""
-        return sorted(set(self.unpushed) - set(self.uncommitted))
-
-
-def _unsaved_changes(ctx: LoopContext) -> _UnsavedChanges:
-    """Return the edits of the assistant that are not saved.
+def _unsaved_files(ctx: LoopContext) -> list[str]:
+    """Return the files that the assistant edited but did not save.
 
     An edit is saved if it is on the remote session branch. The session has its
     own clone of the app, thus all changes in the clone are edits of the
@@ -333,40 +315,40 @@ def _unsaved_changes(ctx: LoopContext) -> _UnsavedChanges:
     that the tools edited in this turn is unsaved.
     """
     try:
-        return _UnsavedChanges(
-            uncommitted=git_ops.uncommitted_files(ctx.repo_path),
-            unpushed=git_ops.unpushed_files(ctx.repo_path),
-        )
+        return sorted({*git_ops.uncommitted_files(ctx.repo_path), *git_ops.unpushed_files(ctx.repo_path)})
     except (OSError, subprocess.SubprocessError) as exc:
         log.warning("Cannot read the clone of session %s. The node uses the edit list: %s", ctx.session_id, exc)
-        return _UnsavedChanges(uncommitted=sorted(ctx.extras.get("changed_files") or set()), unpushed=[])
+        return sorted(ctx.extras.get("changed_files") or set())
 
 
-def _unsaved_files(ctx: LoopContext) -> list[str]:
-    return _unsaved_changes(ctx).files
+# The system prompt tells the model how to save or undo an edit. Thus this
+# notice gives only the facts. Without its last sentence, the model answered
+# "yes, the file is there" and then said that the file was not saved.
+_NOTICE_AT_TURN_START = (
+    "NOTE from the assistant service, not from the user: your copy of the app has changes from earlier turns that "
+    "are not saved.  The user's app does not have them.  For the user, each of these files is as it was before "
+    "your changes, and a file that you created does not exist.  If the user asks whether these changes are in the "
+    "app, the answer is no.\n\n"
+    "Not saved: {files}"
+)
+
+_NOTICE_BEFORE_ANSWER = (
+    "NOTE: your message did not go to the user, because the user's app does not have these changes.\n\n"
+    "Not saved: {files}\n\n"
+    "Save them with `verify_changes` and `commit_session_branch`, or undo them with `discard_file_changes`.  Then "
+    "write your final message again, for the whole turn: the user gets only that message.  If a file is still not "
+    "saved, say that its changes are not in the app."
+)
 
 
-def _unsaved_file_lines(unsaved: _UnsavedChanges) -> str:
-    lines = []
-    if unsaved.uncommitted:
-        lines.append(f"Not committed: {unsaved.uncommitted}")
-    if unsaved.only_unpushed:
-        lines.append(f"Committed, but not pushed: {unsaved.only_unpushed}")
-    return "\n".join(lines)
+def _notice_at_turn_start(ctx: LoopContext) -> str | None:
+    """Tell the model which edits an earlier turn of the session did not save.
 
-
-def _how_to_save_or_undo(unsaved: _UnsavedChanges) -> str:
-    lines = []
-    if unsaved.uncommitted:
-        lines += [
-            "Save or undo each file that is not committed:",
-            "- Save: `verify_changes`, fix what it reports, then `commit_session_branch`.  It commits all changes "
-            "on disk.",
-            "- Undo: `discard_file_changes`.",
-        ]
-    if unsaved.only_unpushed:
-        lines.append("For a commit that is not pushed, call `commit_session_branch` again.")
-    return "\n".join(lines)
+    Each turn starts with a new transcript. Without the notice, the model reads
+    the files, finds its own edits and tells the user that they are in the app.
+    """
+    unsaved_files = _unsaved_files(ctx)
+    return _NOTICE_AT_TURN_START.format(files=unsaved_files) if unsaved_files else None
 
 
 def _notice_before_answer(ctx: LoopContext) -> str | None:
@@ -382,49 +364,8 @@ def _notice_before_answer(ctx: LoopContext) -> str | None:
     """
     if not ctx.allow_app_changes:
         return None
-    unsaved = _unsaved_changes(ctx)
-    if not unsaved.files:
-        return None
-    return "\n\n".join(
-        (
-            "NOTE: your message did not go to the user, because the user's app does not have these changes.",
-            _unsaved_file_lines(unsaved),
-            _how_to_save_or_undo(unsaved),
-            "Then write your final message again, for the whole turn: the user gets only that message.  If a file "
-            "is still not saved, say that its changes are not in the app.",
-        )
-    )
-
-
-def _notice_at_turn_start(unsaved: _UnsavedChanges, *, can_write: bool) -> str | None:
-    """Tell the model which edits an earlier turn of the session did not save.
-
-    Each turn starts with a new transcript. Without the notice, the model reads
-    the files, finds its own edits and tells the user that they are in the app.
-    """
-    if not unsaved.files:
-        return None
-    if can_write:
-        what_to_do = (
-            "In this turn, save or undo them, or say in your final message that they are not in the app.\n"
-            f"{_how_to_save_or_undo(unsaved)}"
-        )
-    else:
-        what_to_do = (
-            "If the user asks whether they are in the app, the answer is no.  To save or undo them you need a "
-            "write tool, which asks the user for permission on its first use.  Use one only if the request needs "
-            "these changes."
-        )
-    return "\n\n".join(
-        (
-            "NOTE from the assistant service, not from the user: your copy of the app has changes from earlier "
-            "turns that the user's app does not have.  The user's app gets a change only when "
-            "`commit_session_branch` has pushed it.",
-            _unsaved_file_lines(unsaved),
-            "For the user, each of these files is as it was before your changes, and a file that you created does "
-            f"not exist.  Do not say that these changes are done or in the app.  {what_to_do}",
-        )
-    )
+    unsaved_files = _unsaved_files(ctx)
+    return _NOTICE_BEFORE_ANSWER.format(files=unsaved_files) if unsaved_files else None
 
 
 MAX_RENDER_REPAIR_ROUNDS = 1

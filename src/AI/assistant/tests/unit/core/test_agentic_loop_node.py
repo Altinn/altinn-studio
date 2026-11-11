@@ -807,44 +807,30 @@ class TestUnsavedFiles:
         return LoopContext(session_id="sess-1", repo_path=str(repo_path), allow_app_changes=True)
 
     @pytest.mark.parametrize(
-        ("steps", "pushed", "uncommitted", "unpushed"),
+        ("steps", "pushed", "unsaved"),
         [
-            pytest.param({}, True, [], [], id="nothing changed"),
-            pytest.param({"edits": (_A,), "model_commits": True}, True, [], [], id="model saved"),
-            pytest.param({"edits": (_A,)}, True, [_A], [], id="not committed"),
-            pytest.param({"invalid_edits": (_A,)}, True, [_A], [], id="verification failed"),
-            pytest.param({"edits": (_A,), "model_commits": True}, False, [], [_A], id="push rejected"),
+            pytest.param({}, True, [], id="nothing changed"),
+            pytest.param({"edits": (_A,), "model_commits": True}, True, [], id="model saved"),
+            pytest.param({"edits": (_A,)}, True, [_A], id="not committed"),
+            pytest.param({"invalid_edits": (_A,)}, True, [_A], id="verification failed"),
+            pytest.param({"edits": (_A,), "model_commits": True}, False, [_A], id="push rejected"),
             pytest.param(
                 {"edits": (_A,), "model_commits": True, "edits_after_commit": (_B,)},
                 True,
                 [_B],
-                [],
                 id="edit after the model commit",
             ),
-            pytest.param({"undone": (_A,)}, True, [], [], id="edit undone"),
+            pytest.param({"undone": (_A,)}, True, [], id="edit undone"),
         ],
     )
     async def test_gives_the_edits_that_the_remote_branch_does_not_have(
-        self, monkeypatch, repo, steps, pushed, uncommitted, unpushed
+        self, monkeypatch, repo, steps, pushed, unsaved
     ):
         _use_remote(monkeypatch, repo, pushed)
         ctx = self._ctx(repo)
         await _run_steps(ctx, **steps)
 
-        unsaved = node._unsaved_changes(ctx)
-
-        assert (unsaved.uncommitted, unsaved.unpushed) == (uncommitted, unpushed)
-        assert unsaved.files == sorted({*uncommitted, *unpushed})
-
-    async def test_a_file_with_an_edit_after_a_rejected_push_needs_a_commit_first(self, monkeypatch, repo):
-        _use_remote(monkeypatch, repo, False)
-        ctx = self._ctx(repo)
-        await _run_steps(ctx, edits=(_A, _B), model_commits=True, edits_after_commit=(_B,))
-
-        unsaved = node._unsaved_changes(ctx)
-
-        assert unsaved.uncommitted == [_B]
-        assert unsaved.only_unpushed == [_A]
+        assert node._unsaved_files(ctx) == unsaved
 
     async def test_a_file_on_the_remote_is_saved_after_a_later_rejected_push(self, monkeypatch, repo):
         _use_remote(monkeypatch, repo, True, False)
@@ -1309,9 +1295,7 @@ class TestNoticeAtTurnStart:
 
         message = await self._user_message(monkeypatch, repo)
 
-        assert f"Not committed: ['{_B}']" in message
-        assert "Do not say that these changes are done or in the app." in message
-        assert "`discard_file_changes`" in message
+        assert f"Not saved: ['{_B}']" in message
 
     async def test_names_a_commit_that_an_earlier_turn_did_not_push(self, monkeypatch, repo):
         _use_remote(monkeypatch, repo, False)
@@ -1320,9 +1304,7 @@ class TestNoticeAtTurnStart:
 
         message = await self._user_message(monkeypatch, repo)
 
-        assert f"Committed, but not pushed: ['{_A}']" in message
-        assert "call `commit_session_branch` again" in message
-        assert "Not committed" not in message
+        assert f"Not saved: ['{_A}']" in message
 
     async def test_the_notice_is_not_in_the_request_of_the_user(self, monkeypatch, repo):
         write_files(repo, {_B: _LEFT})
@@ -1331,16 +1313,14 @@ class TestNoticeAtTurnStart:
         message = await self._user_message(monkeypatch, repo)
 
         assert message.endswith(f"<{tag}>\nadd a date field\n</{tag}>")
-        assert message.index("Not committed") < message.index(f"<{tag}>\n")
+        assert message.index("Not saved") < message.index(f"<{tag}>\n")
 
-    async def test_a_read_only_turn_gets_the_notice_without_the_steps_to_save(self, monkeypatch, repo):
+    async def test_a_read_only_turn_gets_the_same_notice(self, monkeypatch, repo):
         write_files(repo, {_B: _LEFT})
 
         message = await self._user_message(monkeypatch, repo, allow_app_changes=False)
 
-        assert f"Not committed: ['{_B}']" in message
-        assert "asks the user for permission" in message
-        assert "Save or undo each file that is not committed" not in message
+        assert f"Not saved: ['{_B}']" in message
 
 
 class TestNoticeBeforeAnswer:
@@ -1357,10 +1337,9 @@ class TestNoticeBeforeAnswer:
         notice = node._notice_before_answer(ctx)
 
         assert notice is not None
-        assert f"Not committed: ['{_A}']" in notice
+        assert f"Not saved: ['{_A}']" in notice
         assert "`discard_file_changes`" in notice
         assert "write your final message again" in notice
-        assert "not pushed" not in notice
 
     async def test_names_a_commit_that_is_not_pushed(self, monkeypatch, repo):
         _use_remote(monkeypatch, repo, False)
@@ -1370,9 +1349,7 @@ class TestNoticeBeforeAnswer:
         notice = node._notice_before_answer(ctx)
 
         assert notice is not None
-        assert f"Committed, but not pushed: ['{_A}']" in notice
-        assert "call `commit_session_branch` again" in notice
-        assert "Save or undo each file that is not committed" not in notice
+        assert f"Not saved: ['{_A}']" in notice
 
     def test_a_read_only_session_gets_no_notice(self, repo):
         """The model must have a write tool to save or undo the edit."""
@@ -1428,7 +1405,7 @@ class TestTheModelGetsOneMoreRound:
         _, message, done = await _handle_events(monkeypatch, repo, run)
 
         notice = model.calls[3]["messages"][-1].content
-        assert f"Not committed: ['{_A}']" in notice
+        assert f"Not saved: ['{_A}']" in notice
         assert message["content"] == "Feltet er lagt til og lagret."
         assert message["filesChanged"] == [_A]
         assert message["pushedBranch"] == _SESSION_BRANCH
@@ -1510,7 +1487,7 @@ class TestTheModelGetsOneMoreRound:
         assert first_message["content"] == (
             "Tekstene er oversatt.\n\nEndringene i `App/ui/a.json` er ikke lagret, fordi de ikke besto valideringen."
         )
-        assert f"Not committed: ['{_A}']" in model.calls[0]["messages"][-1].content
+        assert f"Not saved: ['{_A}']" in model.calls[0]["messages"][-1].content
         assert len(model.calls) == 1
         assert next_message["content"] == "Nei, oversettelsene er ikke lagret."
         assert done["success"] is True
@@ -1637,7 +1614,7 @@ class TestEnforcedRenderCheck:
 
         await _repair(_state(repo_path=str(repo)), _committed_ctx(repo))
 
-        assert f"Not committed: ['{_A}']" in reran[0]["before_completion"]()
+        assert f"Not saved: ['{_A}']" in reran[0]["before_completion"]()
 
     async def test_a_repair_that_never_commits_still_runs_the_bounded_check(self, repo, monkeypatch):
         check = self._use_check(monkeypatch, _outcome(is_error=True), _outcome(is_error=True))
