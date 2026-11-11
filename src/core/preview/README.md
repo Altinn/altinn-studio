@@ -37,8 +37,9 @@ A v9 app's page runs a script of preview's before the app frontend,
 frontend found errors in, and the UI editor shows the errors by the components. The script needs nothing new from
 the frontend, so it works with each published version, and it is never part of a published app.
 
-- It turns on the frontend's validation of the layout, which the frontend otherwise runs only on Studio's and the test
-  environments' hosts. As in a real app, the frontend then leaves out a component with errors, so the editor says why.
+- It turns on the frontend's validation of the layout, which the frontend otherwise runs only on hosts it knows as
+  Studio's or a test environment's. Only on those hosts does the frontend show its errors in place of the component,
+  and nothing can turn that on, so preview leaves out a component with errors, and the editor says why.
 - It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
   frontend logs each error in a component's configuration with the component's ID.
 - The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
