@@ -11,7 +11,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Altinn.Codelists now targets .NET 11, like the version 9 Altinn app libraries. Move your app to `net11.0` before taking this version.
+- Altinn.Codelists now targets .NET 11 and requires `Altinn.App.Core` 9.0.0-preview.10 or later. Move your app to `net11.0` and upgrade `Altinn.App.Core` before taking this version.
+
+### Fixed
+
+- Apps on `Altinn.App.Core` 9.0.0-preview.10 no longer fail at startup with a `TypeLoadException` for `GetAppOptions` when they call `AddAltinnCodelists()`.
 
 ## [9.0.0-preview.1] - 2026-09-09
 
