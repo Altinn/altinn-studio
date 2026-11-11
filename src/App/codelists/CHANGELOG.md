@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.2] - 2026-11-11
+
 ### Changed
 
 - Altinn.Codelists now targets .NET 11 and requires `Altinn.App.Core` 9.0.0-preview.10 or later. Move your app to `net11.0` and upgrade `Altinn.App.Core` before taking this version.
