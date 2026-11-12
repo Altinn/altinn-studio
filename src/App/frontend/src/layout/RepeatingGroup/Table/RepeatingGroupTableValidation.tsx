@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Table } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -61,11 +62,13 @@ export function RepeatingGroupTableMessages({
   tableIds,
   columnSpan,
   index,
+  className,
 }: {
   validations: NodeRefValidation[];
   tableIds: string[];
   columnSpan: number;
   index: number;
+  className?: string;
 }) {
   const fields = tableIds.filter((id) => validations.some((validation) => validation.baseComponentId === id));
   if (fields.length === 0) {
@@ -74,7 +77,7 @@ export function RepeatingGroupTableMessages({
 
   return (
     <Table.Row
-      className={classes.messageRow}
+      className={cn(classes.messageRow, className)}
       data-for-row={index}
       data-testid='table-row-validation-messages'
     >

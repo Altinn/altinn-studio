@@ -281,6 +281,7 @@ export function RepeatingGroupTableRow({
           tableIds={tableIds}
           columnSpan={tableItems.length + columnCount}
           index={index}
+          className={isEditingRow ? classes.editingRow : undefined}
         />
       )}
     </>
