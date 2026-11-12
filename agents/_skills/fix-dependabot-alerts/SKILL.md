@@ -41,9 +41,9 @@ Fix open Dependabot alerts and report back to the user with a table of fixed and
    Do not add an override or a resolution. If one already sets the vulnerable version, change it to the patched
    version. If these steps do not fix the alert, skip it.
 
-   When a direct dependency is at the patched version and a version range of another package resolves to a later
-   version, the lockfile can have both versions. Change the direct dependency to the later version, so that the
-   lockfile has one copy.
+   When a direct dependency is at the patched version and a version range of another package allows that version but
+   resolves to a later one, the lockfile can have both versions. Change the direct dependency to the later version, so
+   that the lockfile has one copy.
 
 4. Make sure that the lockfile has each package at the patched version or a later version.
 5. Run the tests of the workspace that owns the manifest. For a build-tool dependency, also run a production build.
