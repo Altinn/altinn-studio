@@ -1,8 +1,8 @@
 import { useCallback, useId, useRef } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioHeading } from '@studio/components';
+import { StudioButton, StudioHeading } from '@designer/components';
 import classes from './ThreadColumn.module.css';
-import { PlusIcon, SidebarLeftIcon } from '@studio/icons';
+import { PlusIcon, SidebarLeftIcon } from '@designer/icons';
 import { AboutAssistantDialog } from './AboutAssistantDialog';
 import { ThreadSelector } from './ThreadSelector';
 import type { ChatThread } from '../../types/ChatThread';

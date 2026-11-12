@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { TableSortStorageKey } from '../../../studio-components/src/types/TableSortStorageKey';
 
 type SortDirection = 'asc' | 'desc';

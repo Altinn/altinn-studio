@@ -1,4 +1,4 @@
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@designer/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { ValidateAllTasksConfig } from './TargetVariants/ValidateAllTasksConfig';

@@ -14,8 +14,8 @@ import {
   NumberRestrictionsReducerActionType,
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
-import { ValidationUtils } from '@studio/pure-functions';
-import { StudioSwitch, StudioTextfield } from '@studio/components';
+import { ValidationUtils } from '@designer/pure-functions';
+import { StudioSwitch, StudioTextfield } from '@designer/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {

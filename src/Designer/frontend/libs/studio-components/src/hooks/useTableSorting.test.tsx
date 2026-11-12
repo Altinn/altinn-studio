@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { useTableSorting } from './useTableSorting';
 import { act, renderHook } from '@testing-library/react';
 import type { Rows } from '../../../studio-components/src/components';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { TableSortStorageKey } from '../../../studio-components/src/types/TableSortStorageKey';
 
 describe('useTableSorting', () => {

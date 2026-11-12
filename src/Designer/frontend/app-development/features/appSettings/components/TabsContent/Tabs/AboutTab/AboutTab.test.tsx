@@ -5,7 +5,7 @@ import { AboutTab } from './AboutTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';

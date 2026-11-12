@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ContentLibrary.module.css';
 import { LibraryHeader } from './LibraryHeader';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { LibraryBody } from './LibraryBody';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 import { getPage } from '../pages';

@@ -10,9 +10,9 @@ import {
   StudioLabelWrapper,
   StudioParagraph,
   StudioProperty,
-} from '@studio/components';
-import { PlusIcon, XMarkIcon } from '@studio/icons';
-import { ArrayUtils } from '@studio/pure-functions';
+} from '@designer/components';
+import { PlusIcon, XMarkIcon } from '@designer/icons';
+import { ArrayUtils } from '@designer/pure-functions';
 import classes from './EnvironmentConfigField.module.css';
 import type { AltinnEnvironment } from '../altinnEnvironments';
 import { altinnEnvironments } from '../altinnEnvironments';

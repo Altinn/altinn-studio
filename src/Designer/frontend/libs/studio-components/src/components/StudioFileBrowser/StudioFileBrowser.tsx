@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useId, useRef } from 'react';
 import type { HTMLAttributes, ReactElement, Ref } from 'react';
 import cn from 'classnames';
-import { useForwardedRef } from '@studio/hooks';
-import { ChevronRightIcon, FileTextIcon, FolderIcon } from '@studio/icons';
+import { useForwardedRef } from '@designer/hooks';
+import { ChevronRightIcon, FileTextIcon, FolderIcon } from '@designer/icons';
 import { StudioAlert } from '../StudioAlert';
 import { StudioBreadcrumbs } from '../StudioBreadcrumbs';
 import { StudioButton } from '../StudioButton';

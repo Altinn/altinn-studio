@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CodeListMapError } from './types/CodeListMapError';
-import { StudioErrorSummary } from '@studio/components';
+import { StudioErrorSummary } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type ErrorsProps = {

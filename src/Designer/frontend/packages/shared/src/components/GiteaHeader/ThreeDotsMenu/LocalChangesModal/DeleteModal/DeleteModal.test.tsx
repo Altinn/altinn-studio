@@ -4,14 +4,14 @@ import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';
 import { DeleteModal } from './DeleteModal';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { renderWithProviders } from 'app-shared/components/GiteaHeader/mocks/renderWithProviders';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const defaultProps: DeleteModalProps = {
   app: app,

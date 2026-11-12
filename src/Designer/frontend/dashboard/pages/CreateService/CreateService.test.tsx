@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { CreateService, type CreateServiceProps } from './CreateService';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
@@ -13,7 +13,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const orgMock: Organization = {

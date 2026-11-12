@@ -4,7 +4,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointsTable } from './ContactPointsTable';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 
 const mockContactPoints = [

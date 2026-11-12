@@ -1,4 +1,4 @@
-# @studio/icons
+# @designer/icons
 
 Studio-Icons is a tool that wraps around `@navikt/aksel-icons`, giving you access to Aksel's icons and adding Altinn's custom icons. It's great for developers and designers because they can use `@navikt/aksel-icons` for common tasks and seamlessly switch to Altinn's unique icons when required. This blend of resources ensures your user interfaces look great, stay consistent, and remain flexible in terms of icon choices.
 
@@ -13,4 +13,4 @@ All icons must stick to the same rules for their colors and sizes. We've set up 
 
 ## How to install Altinn Icons
 
-Currently, the `@studio/icons` package resides as a local package within the Altinn Studio repository. This enables all packages and apps within the Altinn Studio repository to install `@studio/icons` by adding the following dependency to their package.json: `"@studio/icons": "workspace:^"`, followed by running `yarn install`. The advantage of this setup is that it allows us to easily publish the package to NPM in the future.
+Currently, the `@designer/icons` package resides as a local package within the Altinn Studio repository. This enables all packages and apps within the Altinn Studio repository to install `@designer/icons` by adding the following dependency to their package.json: `"@designer/icons": "workspace:^"`, followed by running `yarn install`. The advantage of this setup is that it allows us to easily publish the package to NPM in the future.

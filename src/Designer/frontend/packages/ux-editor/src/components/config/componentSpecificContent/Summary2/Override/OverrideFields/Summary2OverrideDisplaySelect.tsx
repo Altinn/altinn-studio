@@ -2,7 +2,7 @@ import type {
   OverrideDisplay,
   Summary2OverrideConfig,
 } from '@altinn/ux-editor/types/Summary2Config';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type Summary2OverrideDisplaySelectProps = {

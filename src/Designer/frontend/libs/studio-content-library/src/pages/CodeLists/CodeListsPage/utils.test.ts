@@ -17,7 +17,7 @@ import type {
 } from '../../../types/CodeListFile';
 import type { CodeList } from '../../../types/CodeList';
 import type { CodeListFileMap } from './types/CodeListFileMap';
-import { ObjectUtils, ReadonlyMapUtils } from '@studio/pure-functions';
+import { ObjectUtils, ReadonlyMapUtils } from '@designer/pure-functions';
 
 describe('CodeListsPage utils', () => {
   describe('createCodeListMap', () => {

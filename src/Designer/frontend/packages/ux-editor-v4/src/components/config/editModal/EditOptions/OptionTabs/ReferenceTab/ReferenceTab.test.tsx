@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

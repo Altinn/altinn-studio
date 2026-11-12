@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import type { AppContextProps } from '../../AppContext';
 import { AppContext } from '../../AppContext';

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { StudioSpinner, StudioFileUploader, type StudioButtonProps } from '@studio/components';
-import type { FileNameErrorResult } from '@studio/pure-functions';
-import { FileNameUtils } from '@studio/pure-functions';
+import { StudioSpinner, StudioFileUploader, type StudioButtonProps } from '@designer/components';
+import type { FileNameErrorResult } from '@designer/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
 import type { HttpError } from 'app-shared/utils/networking';

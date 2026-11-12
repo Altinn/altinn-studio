@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioCard, StudioParagraph } from '@studio/components';
-import { PaperclipIcon } from '@studio/icons';
+import { StudioCard, StudioParagraph } from '@designer/components';
+import { PaperclipIcon } from '@designer/icons';
 import type { User } from '../../../../types/User';
 import type { UserAttachment, UserMessage } from '../../../../types/ChatThread';
 import { MessageRow } from '../MessageRow';

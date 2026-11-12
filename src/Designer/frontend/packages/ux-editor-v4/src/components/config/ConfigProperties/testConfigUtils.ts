@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { type UserEvent } from '@testing-library/user-event';
 
 export const getPropertyByRole = (role: string, property: string): HTMLElement | null => {

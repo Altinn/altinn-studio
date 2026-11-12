@@ -12,7 +12,7 @@ import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;

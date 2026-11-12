@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement, RefCallback } from 'react';
 import cn from 'classnames';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton } from '@designer/components';
 import type { ChatThread } from '../../../types/ChatThread';
 import type { ThreadSelectorTexts } from '../../../types/AssistantTexts';
 import { findNearestRemainingThreadId } from '../../../utils/threadUtils';

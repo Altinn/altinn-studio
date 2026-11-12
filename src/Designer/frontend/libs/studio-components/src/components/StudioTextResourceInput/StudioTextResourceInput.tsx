@@ -3,15 +3,15 @@ import React, { forwardRef, useCallback, useMemo, useState } from 'react';
 import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
 import { StudioCodeFragment } from '../StudioCodeFragment';
 import { ToggleGroup } from '@digdir/designsystemet-react';
-import { PencilIcon, MagnifyingGlassIcon } from '@studio/icons';
+import { PencilIcon, MagnifyingGlassIcon } from '@designer/icons';
 import classes from './StudioTextResourceInput.module.css';
 import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
 import { editTextResourceValue, createNewTextResource } from './utils';
-import { usePropState } from '@studio/hooks';
+import { usePropState } from '@designer/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import cn from 'classnames';
 import { Mode } from './types/Mode';
-import { TextResourceUtils } from '@studio/pure-functions';
+import { TextResourceUtils } from '@designer/pure-functions';
 import type { RequiredSelection } from '../../types/RequiredSelection';
 import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
 

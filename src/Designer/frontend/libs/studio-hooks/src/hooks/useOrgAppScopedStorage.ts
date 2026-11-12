@@ -4,7 +4,7 @@ import {
   type ScopedStorage,
   type ScopedStorageResult,
   ScopedStorageImpl,
-} from '@studio/pure-functions';
+} from '@designer/pure-functions';
 
 type OrgAppParams = {
   org: string;

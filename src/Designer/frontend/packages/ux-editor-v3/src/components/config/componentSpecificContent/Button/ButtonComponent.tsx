@@ -1,4 +1,4 @@
-import { StudioFieldset } from '@studio/components';
+import { StudioFieldset } from '@designer/components';
 import classes from './ButtonComponent.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditSettings } from '../../componentConfig';

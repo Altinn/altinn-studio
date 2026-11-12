@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioHelpText, StudioSwitch, StudioTextfield } from '@studio/components';
-import { usePropState } from '@studio/hooks';
+import { StudioHelpText, StudioSwitch, StudioTextfield } from '@designer/components';
+import { usePropState } from '@designer/hooks';
 import {
   BpmnActionModeler,
   ActionType,

@@ -37,7 +37,7 @@ import {
   TitleIcon,
   VideoIcon,
   WalletIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { ComponentConfig } from '../types/ComponentConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';

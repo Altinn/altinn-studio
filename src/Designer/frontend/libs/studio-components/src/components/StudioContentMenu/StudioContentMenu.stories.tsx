@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@studio/icons';
+import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@designer/icons';
 import type { StudioContentMenuStoryExampleProps } from './StudioContentMenuStoryExample';
 import { StudioContentMenuStoryExample } from './StudioContentMenuStoryExample';
 

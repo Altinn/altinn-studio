@@ -18,7 +18,7 @@ import {
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 
 import type { JSX } from 'react';
 

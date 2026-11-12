@@ -9,8 +9,8 @@ import {
   QuestionmarkIcon,
   ReferenceIcon,
   StringIcon,
-} from '@studio/icons';
-import type { IconProps } from '@studio/icons';
+} from '@designer/icons';
+import type { IconProps } from '@designer/icons';
 import classes from './NodeIcon.module.css';
 import cn from 'classnames';
 

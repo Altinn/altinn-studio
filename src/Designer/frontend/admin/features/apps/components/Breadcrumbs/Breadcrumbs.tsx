@@ -1,4 +1,4 @@
-import { StudioBreadcrumbs } from '@studio/components';
+import { StudioBreadcrumbs } from '@designer/components';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createSearchParams } from 'admin/constants/constants';

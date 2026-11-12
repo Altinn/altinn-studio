@@ -11,7 +11,7 @@
     "react-router-dom": "7.18.2"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
+    "@designer/ui-test": "workspace:^",
     "@types/bpmn-moddle": "9.0.1",
     "@types/react": "19.2.18",
     "@typescript/native": "npm:typescript@7.0.2",

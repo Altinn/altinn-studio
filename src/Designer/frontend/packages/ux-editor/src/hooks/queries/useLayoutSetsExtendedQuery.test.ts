@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useLayoutSetsExtendedQuery } from './useLayoutSetsExtendedQuery';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryKey as TanstackQueryKey } from '@tanstack/react-query';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';

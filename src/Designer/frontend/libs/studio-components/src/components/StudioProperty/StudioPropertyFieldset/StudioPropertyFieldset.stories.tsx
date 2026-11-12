@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioProperty } from '../index';
 import { StudioButton } from '../../StudioButton';
-import { TrashIcon, FloppydiskIcon, XMarkIcon } from '@studio/icons';
+import { TrashIcon, FloppydiskIcon, XMarkIcon } from '@designer/icons';
 import { FieldsetContent } from './test-data/FieldsetContent';
 
 const meta = {

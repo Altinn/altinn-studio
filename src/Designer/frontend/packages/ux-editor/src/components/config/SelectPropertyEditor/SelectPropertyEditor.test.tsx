@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { SelectPropertyEditor, type SelectPropertyEditorProps } from './SelectPropertyEditor';
 
 const children = <div>Test children</div>;

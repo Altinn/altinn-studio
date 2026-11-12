@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioHeading, StudioList, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioList, StudioParagraph } from '@designer/components';
 import type { CriticalFileAlertTexts } from '../../../../../types/AssistantTexts';
 import classes from './CriticalFileAlert.module.css';
 

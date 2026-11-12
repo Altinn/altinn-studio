@@ -2,7 +2,7 @@ import React from 'react';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import type { ErrorProps, InternalCrop } from '../ImageUploadTypes';
 import { isRectangleShape, SizeOptions } from '../ImageUploadUtils';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type ImageUploadSizeProps = {

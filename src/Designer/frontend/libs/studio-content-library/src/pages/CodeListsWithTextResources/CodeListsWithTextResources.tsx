@@ -3,7 +3,7 @@ import { Page } from '../Page';
 import type { PagePropsMap } from '../../types/PagesProps';
 import React from 'react';
 import { CodeListsWithTextResourcesPage } from './CodeListsWithTextResourcesPage';
-import { CodeListsIcon } from '@studio/icons';
+import { CodeListsIcon } from '@designer/icons';
 
 export class CodeListsWithTextResources extends Page<PageName.CodeListsWithTextResources> {
   readonly name: PageName.CodeListsWithTextResources = PageName.CodeListsWithTextResources;

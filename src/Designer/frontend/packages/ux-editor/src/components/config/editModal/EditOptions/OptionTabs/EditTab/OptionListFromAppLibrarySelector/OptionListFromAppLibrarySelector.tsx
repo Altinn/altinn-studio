@@ -9,8 +9,8 @@ import {
   StudioHeading,
   StudioSpinner,
   StudioValidationMessage,
-} from '@studio/components';
-import { BookIcon } from '@studio/icons';
+} from '@designer/components';
+import { BookIcon } from '@designer/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 import classes from './OptionListFromAppLibrarySelector.module.css';

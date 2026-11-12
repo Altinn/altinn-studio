@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { FileNameErrorResult } from '@studio/pure-functions';
+import { FileNameErrorResult } from '@designer/pure-functions';
 import { useInputCodeListNameErrorMessage } from './useInputCodeListNameErrorMessage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('useInputCodeListNameErrorMessage', () => {
   it('returns correct errorMessage for empty uploaded file name', () => {

@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentBanner } from './ConsentBanner';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import * as consentHooks from '../../utils/consent';
 
 vi.mock('../../utils/consent', () => ({

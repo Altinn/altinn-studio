@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
 

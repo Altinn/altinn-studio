@@ -6,7 +6,7 @@ import { FeatureFlagsProvider } from './FeatureFlagsProvider';
 import type { FeatureFlagsContextValue } from './FeatureFlagsContext';
 import { useFeatureFlagsContext } from './FeatureFlagsContext';
 import { FEATURE_FLAGS_KEY } from './utils';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import type { FeatureFlagMutationContextValue } from './FeatureFlagMutationContext';
 import { useFeatureFlagMutationContext } from './FeatureFlagMutationContext';
 

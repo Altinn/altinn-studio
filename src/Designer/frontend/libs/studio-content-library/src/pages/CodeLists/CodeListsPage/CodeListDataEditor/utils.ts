@@ -2,8 +2,8 @@ import type { CodeListData } from '../../../../types/CodeListData';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListFile, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
 import { isCodeListValid } from './validators/isCodelistValid';
-import { FileNameUtils } from '@studio/pure-functions';
-import { Guard } from '@studio/guard';
+import { FileNameUtils } from '@designer/pure-functions';
+import { Guard } from '@designer/guard';
 import type { CodeListParseErrorCode } from '../../../../types/CodeListParseErrorCode';
 
 export const updateName = <FileInfo extends { name: string } = CodeListFile>(

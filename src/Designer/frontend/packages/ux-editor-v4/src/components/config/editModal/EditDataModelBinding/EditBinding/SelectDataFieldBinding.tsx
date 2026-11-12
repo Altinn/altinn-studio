@@ -5,7 +5,7 @@ import {
 } from '@altinn/ux-editor-v4/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import { useValidDataModels } from '@altinn/ux-editor-v4/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';

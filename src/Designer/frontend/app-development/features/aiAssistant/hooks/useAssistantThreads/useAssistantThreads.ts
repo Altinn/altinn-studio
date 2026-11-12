@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
+import type { ChatThread, UserMessage, AssistantMessage, Message } from '@designer/assistant';
+import { MessageAuthor } from '@designer/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

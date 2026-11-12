@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
+    "@designer/ui-test": "workspace:^",
     "vite": "8.2.2"
   },
   "scripts": {

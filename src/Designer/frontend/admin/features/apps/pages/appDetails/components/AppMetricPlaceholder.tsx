@@ -5,7 +5,7 @@ import { Bar } from 'react-chartjs-2';
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
 import { getChartOptions } from 'admin/features/apps/utils/charts';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioAlert, StudioLink } from '@studio/components';
+import { StudioAlert, StudioLink } from '@designer/components';
 import classes from './AppMetricPlaceholder.module.css';
 
 type AppMetricPlaceholderProps = {

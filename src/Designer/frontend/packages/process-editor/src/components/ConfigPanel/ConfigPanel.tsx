@@ -8,7 +8,7 @@ import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { ConfigGateway } from './ConfigGateway';
-import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@designer/components';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (

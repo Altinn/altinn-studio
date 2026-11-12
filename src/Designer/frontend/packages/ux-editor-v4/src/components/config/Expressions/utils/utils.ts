@@ -1,7 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
-import type { BooleanExpression, Expression } from '@studio/components';
-import { ObjectUtils } from '@studio/pure-functions';
+import type { BooleanExpression, Expression } from '@designer/components';
+import { ObjectUtils } from '@designer/pure-functions';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
 
 export const expressionPropertiesOnFormItem = <T extends ComponentType>(

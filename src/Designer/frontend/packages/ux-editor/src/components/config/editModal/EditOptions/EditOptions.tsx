@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
-import { StudioHeading, StudioSpinner, StudioValidationMessage } from '@studio/components';
+import { StudioHeading, StudioSpinner, StudioValidationMessage } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { OptionTabs } from './OptionTabs';

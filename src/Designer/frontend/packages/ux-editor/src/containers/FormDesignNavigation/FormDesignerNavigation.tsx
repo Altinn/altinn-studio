@@ -1,4 +1,4 @@
-import { StudioLink } from '@studio/components';
+import { StudioLink } from '@designer/components';
 import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useCallback, useState } from 'react';
-import { StudioResizableLayout } from '@studio/components';
+import { StudioResizableLayout } from '@designer/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';

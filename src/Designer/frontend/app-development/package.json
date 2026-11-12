@@ -9,14 +9,14 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@designer/assistant": "workspace:^",
+    "@designer/browser-storage": "workspace:^",
+    "@designer/content-library": "workspace:^",
+    "@designer/feedback-form": "workspace:^",
+    "@designer/hooks": "workspace:^",
+    "@designer/icons": "workspace:^",
+    "@designer/pure-functions": "workspace:^",
     "@posthog/react": "1.10.3",
-    "@studio/assistant": "workspace:^",
-    "@studio/browser-storage": "workspace:^",
-    "@studio/content-library": "workspace:^",
-    "@studio/feedback-form": "workspace:^",
-    "@studio/hooks": "workspace:^",
-    "@studio/icons": "workspace:^",
-    "@studio/pure-functions": "workspace:^",
     "classnames": "2.5.1",
     "i18next": "25.10.10",
     "posthog-js": "1.414.0",
@@ -26,7 +26,7 @@
     "react-router-dom": "7.18.2"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
+    "@designer/ui-test": "workspace:^",
     "@typescript/native": "npm:typescript@7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.2"

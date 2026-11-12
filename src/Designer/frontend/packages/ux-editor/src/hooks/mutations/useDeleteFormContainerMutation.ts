@@ -2,7 +2,7 @@ import type { IInternalLayout } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import type { ComponentIdsChange } from 'app-shared/types/api/FormLayout';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
