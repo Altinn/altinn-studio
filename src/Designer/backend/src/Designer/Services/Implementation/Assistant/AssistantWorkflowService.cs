@@ -149,7 +149,7 @@ internal sealed class AssistantWorkflowService(
             return SessionAccess.Refused(AssistantWorkflowStatus.NotFound);
         }
 
-        await webSocketService.RegisterSessionAsync(threadId.ToString(), editingContext.Developer);
+        await webSocketService.RegisterSessionAsync(threadId.ToString(), editingContext.Developer, cancellationToken);
         return SessionAccess.Granted(costOrg);
     }
 

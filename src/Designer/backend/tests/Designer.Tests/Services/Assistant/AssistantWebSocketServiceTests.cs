@@ -203,7 +203,7 @@ public class AssistantWebSocketServiceTests
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
-        await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+        await service.RegisterSessionAsync(s_threadId.ToString(), Developer, CancellationToken.None);
 
         JsonNode frame = await firstFrame.Task.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("session", frame["type"]!.GetValue<string>());
@@ -221,13 +221,33 @@ public class AssistantWebSocketServiceTests
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
-        Task registration = service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+        Task registration = service.RegisterSessionAsync(s_threadId.ToString(), Developer, CancellationToken.None);
         await frameReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
         await Task.Delay(200);
         Assert.False(registration.IsCompleted);
 
         confirm.SetResult();
         await registration.WaitAsync(TimeSpan.FromSeconds(4));
+    }
+
+    [Fact]
+    public async Task RegisterSession_StopsWaitingForTheAnswerWhenTheRequestIsCancelled()
+    {
+        var frameReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var confirm = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            ConfirmSessionsAsync(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
+        );
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+        using var request = new CancellationTokenSource();
+
+        Task registration = service.RegisterSessionAsync(s_threadId.ToString(), Developer, request.Token);
+        await frameReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await request.CancelAsync();
+
+        // Faster than the wait for an answer.
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => registration.WaitAsync(TimeSpan.FromSeconds(4)));
+        confirm.SetResult();
     }
 
     [Fact]
@@ -252,10 +272,12 @@ public class AssistantWebSocketServiceTests
             );
         });
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
-        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer);
+        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer, CancellationToken.None);
 
         // Faster than the wait for an answer, so the new connection did not wait for that.
-        await service.RegisterSessionAsync(s_threadId.ToString(), Developer).WaitAsync(TimeSpan.FromSeconds(4));
+        await service
+            .RegisterSessionAsync(s_threadId.ToString(), Developer, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(4));
 
         Assert.Equal(2, Volatile.Read(ref connections));
     }
@@ -268,12 +290,16 @@ public class AssistantWebSocketServiceTests
             ConfirmSessionsAsync(webSocket, _ => Interlocked.Increment(ref framesReceived))
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
-        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer);
+        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer, CancellationToken.None);
 
         await Task.WhenAll(
             Enumerable
                 .Range(0, 20)
-                .Select(_ => Task.Run(() => service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer)))
+                .Select(_ =>
+                    Task.Run(() =>
+                        service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer, CancellationToken.None)
+                    )
+                )
         );
 
         Assert.Equal(21, Volatile.Read(ref framesReceived));
@@ -334,7 +360,7 @@ public class AssistantWebSocketServiceTests
         // The listener is started from a short-lived span, such as a command's request.
         using (Activity caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start())
         {
-            await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+            await service.RegisterSessionAsync(s_threadId.ToString(), Developer, CancellationToken.None);
         }
 
         Activity forwarded = await ForwardedMessageSpanAsync(spans, Developer);

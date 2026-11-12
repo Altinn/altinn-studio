@@ -48,6 +48,9 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     // The command continues without the acknowledgement after this time.
     private static readonly TimeSpan s_registrationTimeout = TimeSpan.FromSeconds(5);
 
+    // The command fails when the assistant service does not accept the connection in this time.
+    private static readonly TimeSpan s_connectTimeout = TimeSpan.FromSeconds(10);
+
     private static readonly JsonSerializerOptions s_persistSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -74,15 +77,15 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         _scopeFactory = scopeFactory;
     }
 
-    public async Task RegisterSessionAsync(string sessionId, string developer)
+    public async Task RegisterSessionAsync(string sessionId, string developer, CancellationToken cancellationToken)
     {
         // The assistant service closes the connection when it restarts, or when another replica registers a
         // session for the developer. A frame sent just before this replica sees the close gets no answer, so the
         // second attempt uses a new connection.
         for (int attempt = 1; ; attempt++)
         {
-            DeveloperConnection connection = await GetOrConnectAsync(developer);
-            if (await TrySendSessionFrameAsync(connection, sessionId, developer))
+            DeveloperConnection connection = await GetOrConnectAsync(developer, cancellationToken);
+            if (await TrySendSessionFrameAsync(connection, sessionId, developer, cancellationToken))
             {
                 _logger.LogInformation(
                     "Registered session {SessionId} for developer {Developer}",
@@ -112,7 +115,8 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     private async Task<bool> TrySendSessionFrameAsync(
         DeveloperConnection connection,
         string sessionId,
-        string developer
+        string developer,
+        CancellationToken cancellationToken
     )
     {
         var frame = JsonSerializer.SerializeToUtf8Bytes(
@@ -126,9 +130,14 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         Task registered = connection.ExpectRegistration(sessionId);
         try
         {
-            await connection.SendAsync(frame);
-            await registered.WaitAsync(s_registrationTimeout);
+            await connection.SendAsync(frame, cancellationToken);
+            await registered.WaitAsync(s_registrationTimeout, cancellationToken);
             return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            connection.ForgetRegistration(sessionId);
+            throw;
         }
         catch (Exception ex)
             when (ex is TimeoutException
@@ -147,7 +156,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
     }
 
-    private async Task<DeveloperConnection> GetOrConnectAsync(string developer)
+    private async Task<DeveloperConnection> GetOrConnectAsync(string developer, CancellationToken cancellationToken)
     {
         if (_connections.TryGetValue(developer, out var existing) && existing.IsAlive)
         {
@@ -156,7 +165,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
 
         var sem = _connectLocks.GetOrAdd(developer, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
+        await sem.WaitAsync(cancellationToken);
         try
         {
             if (_connections.TryGetValue(developer, out var existing2) && existing2.IsAlive)
@@ -170,7 +179,25 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
             var wsUri = BuildWebSocketUri(_settings.AgentUrl);
             var webSocket = new ClientWebSocket();
-            await webSocket.ConnectAsync(wsUri, CancellationToken.None);
+            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            connectCts.CancelAfter(s_connectTimeout);
+            try
+            {
+                await webSocket.ConnectAsync(wsUri, connectCts.Token);
+            }
+            catch (Exception ex)
+            {
+                webSocket.Dispose();
+                if (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                {
+                    throw new TimeoutException(
+                        $"The assistant service did not accept the WebSocket in {s_connectTimeout.TotalSeconds} seconds.",
+                        ex
+                    );
+                }
+
+                throw;
+            }
 
             _logger.LogInformation("Opened new agents WebSocket for developer {Developer}", developer);
 
@@ -544,9 +571,11 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
         public void Cancel() => _cts.Cancel();
 
-        public async Task SendAsync(byte[] frame)
+        // Only the wait for the lock can be cancelled. A cancelled send aborts the WebSocket, which carries the
+        // events of all the developer's sessions.
+        public async Task SendAsync(byte[] frame, CancellationToken cancellationToken)
         {
-            await _sendLock.WaitAsync();
+            await _sendLock.WaitAsync(cancellationToken);
             try
             {
                 await WebSocket.SendAsync(frame, WebSocketMessageType.Text, endOfMessage: true, CancellationToken.None);

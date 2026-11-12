@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
@@ -14,8 +15,9 @@ public interface IAssistantWebSocketService
     /// Sends a session frame on the developer's connection, so that the assistant service
     /// sends the developer's events on that connection. Opens the connection first if it is closed.
     /// Returns when the assistant service confirms the session, or after a few seconds without an answer.
+    /// Throws a <see cref="System.TimeoutException"/> when the connection cannot be opened in time.
     /// </summary>
-    Task RegisterSessionAsync(string sessionId, string developer);
+    Task RegisterSessionAsync(string sessionId, string developer, CancellationToken cancellationToken);
 
     /// <summary>
     /// Closes the agents WebSocket for this developer.

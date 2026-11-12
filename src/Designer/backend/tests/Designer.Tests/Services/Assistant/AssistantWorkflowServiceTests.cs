@@ -48,7 +48,7 @@ public class AssistantWorkflowServiceTests
         SetupCostOrg(Org, resolvedCostOrg: Org);
         SetupThreadOwnership(Org, App, Developer);
         _webSocketServiceMock
-            .Setup(ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Callback(() => _calls.Add("register"))
             .Returns(Task.CompletedTask);
         _apiKeyServiceMock
@@ -171,7 +171,10 @@ public class AssistantWorkflowServiceTests
             Times.Once
         );
         // This replica must get the event of the cancellation.
-        _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer), Times.Once);
+        _webSocketServiceMock.Verify(
+            ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -193,7 +196,10 @@ public class AssistantWorkflowServiceTests
             Times.Once
         );
         // The run continues after the answer, so this replica must get the events of the run.
-        _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer), Times.Once);
+        _webSocketServiceMock.Verify(
+            ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 
     [Theory]
