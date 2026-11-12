@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Api.Telemetry;
@@ -11,6 +13,12 @@ public sealed class AzureMonitorFailedRequestsTests
 {
     private const string InstanceCreation = "failed_instance_creation_requests";
     private const string ProcessNext = "failed_process_next_requests";
+    private const string WorkflowCallback = "failed_workflow_callback_requests";
+
+    private const string ClassicCallbackOperation =
+        "POST WorkflowEngineCallback/ExecuteCommand [app/commandKey/instanceGuid/instanceOwnerPartyId/org]";
+    private const string OpenTelemetryCallbackOperation =
+        "POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey}";
 
     private static readonly DateTimeOffset _laterBucket = new(2026, 6, 30, 4, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset _earlierBucket = _laterBucket.AddHours(-14);
@@ -88,6 +96,139 @@ public sealed class AzureMonitorFailedRequestsTests
         );
         Assert.Equal([2, 1], result[("app-b", InstanceCreation)].Counts);
     }
+
+    [Fact]
+    public async Task GetAppFailedRequests_CountsWorkflowCallbacksFrom400AndOtherRequestsFrom500()
+    {
+        var logsQueryClient = new StubLogsQueryClient(
+            _columns,
+            _ =>
+                [
+                    Row("app-a", ClassicCallbackOperation, _laterBucket, 5),
+                    Row("app-a", OpenTelemetryCallbackOperation, _laterBucket, 2),
+                ]
+        );
+        var metricsClient = CreateAzureMonitorClient(logsQueryClient);
+
+        var result = (
+            await metricsClient.GetAppFailedRequests("app-a", 10080, TestContext.Current.CancellationToken)
+        ).ToDictionary(request => request.Name);
+
+        string query = Assert.Single(logsQueryClient.Queries);
+        Assert.Contains(
+            $"(toint(ResultCode) >= 400 and OperationName in ('{ClassicCallbackOperation}', '{OpenTelemetryCallbackOperation}'))",
+            query,
+            StringComparison.Ordinal
+        );
+        Assert.Contains(
+            "(toint(ResultCode) >= 500 and OperationName in ('PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]',",
+            query,
+            StringComparison.Ordinal
+        );
+        Assert.Equal([ProcessNext, InstanceCreation, WorkflowCallback], result.Keys);
+        Assert.Equal([7], result[WorkflowCallback].Counts);
+    }
+
+    [Theory]
+    [InlineData(ProcessNext, 500)]
+    [InlineData(InstanceCreation, 500)]
+    [InlineData(WorkflowCallback, 400)]
+    public void GetLogsUrl_ShowsFailuresFromTheLowestFailedStatusOfTheRule(string ruleId, int lowestFailedStatus)
+    {
+        var metricsClient = CreateAzureMonitorClient(new StubLogsQueryClient(_columns, _ => []));
+
+        var logsQuery = LogsQueryOf(
+            metricsClient.GetLogsUrl(
+                Guid.Empty.ToString(),
+                "ttd",
+                "tt02",
+                ["app-a"],
+                ruleId,
+                _earlierBucket,
+                _laterBucket
+            )
+        );
+
+        Assert.Contains(
+            $"| where toint(resultCode) >= {lowestFailedStatus} |",
+            FilterWhereClauseOf(logsQuery),
+            StringComparison.Ordinal
+        );
+        string[] resultCodes = ResultCodeFilterOf(logsQuery);
+        Assert.Equal(lowestFailedStatus.ToString(CultureInfo.InvariantCulture), resultCodes[0]);
+        Assert.Equal("511", resultCodes[^1]);
+    }
+
+    [Fact]
+    public void GetLogsUrl_KeepsTheResponseCodeFilterForServerErrors()
+    {
+        var metricsClient = CreateAzureMonitorClient(new StubLogsQueryClient(_columns, _ => []));
+
+        var logsQuery = LogsQueryOf(
+            metricsClient.GetLogsUrl(
+                Guid.Empty.ToString(),
+                "ttd",
+                "tt02",
+                ["app-a"],
+                ProcessNext,
+                _earlierBucket,
+                _laterBucket
+            )
+        );
+
+        Assert.Equal(
+            ["500", "501", "502", "503", "504", "505", "506", "507", "508", "510", "511"],
+            ResultCodeFilterOf(logsQuery)
+        );
+    }
+
+    [Fact]
+    public void GetLogsUrl_ForWorkflowCallbacks_ShowsTheCallbackRoute()
+    {
+        var metricsClient = CreateAzureMonitorClient(new StubLogsQueryClient(_columns, _ => []));
+
+        var logsQuery = LogsQueryOf(
+            metricsClient.GetLogsUrl(
+                Guid.Empty.ToString(),
+                "ttd",
+                "tt02",
+                ["app-a"],
+                WorkflowCallback,
+                _earlierBucket,
+                _laterBucket
+            )
+        );
+
+        Assert.Contains(
+            $"| where operation_Name in ('{ClassicCallbackOperation}', '{OpenTelemetryCallbackOperation}') |",
+            FilterWhereClauseOf(logsQuery),
+            StringComparison.Ordinal
+        );
+        Assert.Contains("422", ResultCodeFilterOf(logsQuery));
+    }
+
+    private static JsonElement LogsQueryOf(Uri logsUrl)
+    {
+        const string marker = "/BladeInputs/";
+        string url = logsUrl.OriginalString;
+        string encoded = url[(url.IndexOf(marker, StringComparison.Ordinal) + marker.Length)..];
+        using var document = JsonDocument.Parse(Uri.UnescapeDataString(encoded));
+        return document.RootElement.Clone();
+    }
+
+    private static string FilterWhereClauseOf(JsonElement logsQuery) =>
+        logsQuery.GetProperty("filterWhereClause").GetString() ?? string.Empty;
+
+    private static string[] ResultCodeFilterOf(JsonElement logsQuery) =>
+        logsQuery
+            .GetProperty("originalParams")
+            .GetProperty("filter")
+            .EnumerateArray()
+            .Single(filter => filter.GetProperty("dimension").GetProperty("name").ValueEquals("request/resultCode"))
+            .GetProperty("values")
+            .EnumerateArray()
+            .Select(value => value.GetString() ?? string.Empty)
+            .ToArray();
 
     private static LogsTableRow Row(string app, string operationName, DateTimeOffset bucket, long count) =>
         LogsQueryModelFactory.LogsTableRow(_columns, [app, operationName, bucket.ToString("O"), count]);

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
@@ -27,31 +28,75 @@ internal sealed class AzureMonitorClient(
     internal static readonly TimeSpan MaxReportPeriod = TimeSpan.FromDays(31) + TimeSpan.FromHours(1);
     private const int MaxActivityWindowDays = 30;
 
-    private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
+    /// <summary>
+    /// The requests whose failures the gateway counts, and that Grafana's alert rules for apps fire on. Each key is
+    /// both a metric name and an alert rule's <c>ruleId</c>, so a new rule in <c>infra/runtime/grafana-manifests</c>
+    /// needs a kind here. Each kind lists the operation names that the Application Insights SDK, which apps use by
+    /// default, and OpenTelemetry report for the request.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, FailedRequestKind> _failedRequestKinds = new Dictionary<
+        string,
+        FailedRequestKind
+    >
     {
         {
             "failed_process_next_requests",
-            [
-                "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
-                "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
-            ]
+            new FailedRequestKind(
+                [
+                    "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
+                    "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
+                ],
+                LowestFailedStatusCode: 500
+            )
         },
         {
             "failed_instance_creation_requests",
-            [
-                "POST Instances/Post [app/org]",
-                "POST Instances/PostSimplified [app/org]",
-                "POST {org}/{app}/instances",
-                "POST {org}/{app}/instances/create",
-            ]
+            new FailedRequestKind(
+                [
+                    "POST Instances/Post [app/org]",
+                    "POST Instances/PostSimplified [app/org]",
+                    "POST {org}/{app}/instances",
+                    "POST {org}/{app}/instances/create",
+                ],
+                LowestFailedStatusCode: 500
+            )
+        },
+        {
+            // The workflow engine's callbacks to a v9 app. The engine fails a step at once on most 4xx answers, so
+            // these count from 400.
+            "failed_workflow_callback_requests",
+            new FailedRequestKind(
+                [
+                    "POST WorkflowEngineCallback/ExecuteCommand [app/commandKey/instanceGuid/instanceOwnerPartyId/org]",
+                    "POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey}",
+                ],
+                LowestFailedStatusCode: 400
+            )
         },
     };
 
-    private static readonly IReadOnlyDictionary<string, string> _operationNameReverseMap = _operationNames
-        .SelectMany(kvp => kvp.Value.Select(v => (Key: kvp.Key, Value: v)))
+    private static readonly IReadOnlyDictionary<string, string> _operationNameReverseMap = _failedRequestKinds
+        .SelectMany(kvp => kvp.Value.OperationNames.Select(v => (Key: kvp.Key, Value: v)))
         .ToDictionary(t => t.Value, t => t.Key);
 
-    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
+    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _failedRequestKinds.Keys.ToArray();
+
+    /// <summary>
+    /// The KQL condition that matches the failed requests of every kind, on the workspace's <c>AppRequests</c> table.
+    /// Both the Application Insights SDK and the OpenTelemetry exporter mark a response from 400 up as unsuccessful,
+    /// so a kind's lowest failed status code is the only difference between them.
+    /// </summary>
+    private static readonly string _failedRequestCondition = string.Join(
+        " or ",
+        _failedRequestKinds
+            .Values.GroupBy(kind => kind.LowestFailedStatusCode)
+            .Select(group =>
+                $"(toint(ResultCode) >= {group.Key} and OperationName in ({KqlStrings(group.SelectMany(kind => kind.OperationNames))}))"
+            )
+    );
+
+    private static string KqlStrings(IEnumerable<string> values) =>
+        string.Join(", ", values.Select(value => $"'{value.Replace("'", "''")}'"));
 
     internal static IReadOnlyCollection<string> MetricNames { get; } =
     ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
@@ -142,8 +187,7 @@ internal sealed class AzureMonitorClient(
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
+                | where {_failedRequestCondition}
                 | summarize Count = count() by AppRoleName, OperationName;";
 
         Response<LogsQueryResult> response = await Query(
@@ -160,7 +204,7 @@ internal sealed class AzureMonitorClient(
                 return new
                 {
                     AppName = row.GetString("AppRoleName"),
-                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
+                    Name = _operationNameReverseMap[row.GetString("OperationName")],
                     Count = row.GetDouble("Count") ?? 0,
                 };
             })
@@ -340,9 +384,8 @@ internal sealed class AzureMonitorClient(
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
+                | where {_failedRequestCondition}
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
@@ -367,7 +410,7 @@ internal sealed class AzureMonitorClient(
                 };
             });
 
-        return _operationNames.Select(name =>
+        return _failedRequestKinds.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name.Key)
             ?? new AppFailedRequest
             {
@@ -437,8 +480,7 @@ internal sealed class AzureMonitorClient(
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
+                | where {_failedRequestCondition}
                 | summarize Count = count() by AppRoleName, OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
@@ -541,7 +583,7 @@ internal sealed class AzureMonitorClient(
         DateTimeOffset to
     )
     {
-        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        if (!_failedRequestKinds.TryGetValue(metricName, out var kind))
             throw new ArgumentException(
                 $"Unknown metricName '{metricName}'. Valid values: {string.Join(", ", OperationNameKeys)}",
                 nameof(metricName)
@@ -557,9 +599,11 @@ internal sealed class AzureMonitorClient(
             .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
             .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
             .Replace("{app_Names}", string.Join(", ", apps.Select(n => $"'{n.Replace("'", "''")}'")))
-            .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace("{lowest_Failed_Status_Code}", kind.LowestFailedStatusCode.ToString(CultureInfo.InvariantCulture))
+            .Replace("{operation_Names}", KqlStrings(kind.OperationNames))
             .Replace("\"{appNames}\"", string.Join(", ", apps.Select(name => $"\"{JsonEncodedText.Encode(name)}\"")))
-            .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
+            .Replace("\"{operationNames}\"", string.Join(",", kind.OperationNames.Select(n => $"\"{n}\"")))
+            .Replace("\"{resultCodes}\"", string.Join(",", kind.FailedStatusCodes.Select(code => $"\"{code}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 
         string encodedLogsQuery = Uri.EscapeDataString(minifiedJson);
@@ -571,5 +615,21 @@ internal sealed class AzureMonitorClient(
             $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
 
         return new Uri(url);
+    }
+
+    /// <param name="OperationNames">The names apps report for the request in Application Insights.</param>
+    /// <param name="LowestFailedStatusCode">The lowest response status that counts as a failure.</param>
+    private sealed record FailedRequestKind(string[] OperationNames, int LowestFailedStatusCode)
+    {
+        /// <summary>
+        /// The status codes from <see cref="LowestFailedStatusCode"/> up, for the response code filter that the
+        /// Application Insights search shows.
+        /// </summary>
+        public IEnumerable<int> FailedStatusCodes =>
+            Enum.GetValues<HttpStatusCode>()
+                .Select(code => (int)code)
+                .Where(code => code >= LowestFailedStatusCode)
+                .Distinct()
+                .Order();
     }
 }
