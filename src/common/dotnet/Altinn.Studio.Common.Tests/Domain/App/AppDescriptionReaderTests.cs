@@ -514,6 +514,7 @@ public sealed class AppDescriptionReaderTests
     [Theory]
     [InlineData("<PropertyGroup><A>{0}</A>{1}</PropertyGroup>", 4_000, "<P>$(A)</P>", 400)]
     [InlineData("<ItemGroup>{1}</ItemGroup>", 0, "<ProjectReference Include=\"..\\Other\\Other.csproj\" />", 60_000)]
+    [InlineData("<ItemGroup><PackageReference Include=\"{1}\" /></ItemGroup>", 0, "P;", 600_000)]
     public void Build_DoesNotReadAProjectThatTakesMoreWorkThanTheLimit(
         string group,
         int text,
@@ -642,6 +643,8 @@ public sealed class AppDescriptionReaderTests
     [InlineData("")]
     [InlineData("<ProjectReference Include=\"../Shared/Shared.csproj\" Condition=\"'$(OS)' == 'Windows_NT'\" />")]
     [InlineData("<ProjectReference Include=\"$(SharedProject)\" />")]
+    [InlineData("<ProjectReference Include=\"../$(Group)/../Shared/Shared.csproj\" />")]
+    [InlineData("<ProjectReference Include=\"../Shared/*.csproj\" />")]
     [InlineData("<ProjectReference Update=\"../Shared/Shared.csproj\" />")]
     public void Build_DoesNotTakeTheContractFromAProjectTheAppProjectDoesNotReference(string references)
     {

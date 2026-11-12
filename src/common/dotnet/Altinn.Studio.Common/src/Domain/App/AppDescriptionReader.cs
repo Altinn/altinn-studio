@@ -28,8 +28,8 @@ public sealed class AppDescriptionReader : IAppSourceReader
     private const int LastV8Major = 8;
 
     // What describing one app may cost: an element applied to a project costs one, and so does each character of a
-    // property's value. The project files of an app need a few hundred. Projects past the limit are not read, so
-    // that a repository made to cost more does not.
+    // property's value and of the names an item lists. The project files of an app need a few thousand. Projects
+    // past the limit are not read, so that a repository made to cost more does not.
     private const int MaxWork = 1_000_000;
 
     private readonly Dictionary<AppFilePath, ProjectFile> _projects = [];
@@ -242,19 +242,12 @@ public sealed class AppDescriptionReader : IAppSourceReader
                 continue;
             }
 
-            if (!budget.Spend(file.PackageVersions.Count + file.PackageReferences.Count))
+            if (
+                !packageVersions.Apply(file.PackageVersions, budget)
+                || !packageReferences.Apply(file.PackageReferences, budget)
+            )
             {
                 return new ProjectDescription.NotRead(path);
-            }
-
-            foreach (ProjectFile.Item item in file.PackageVersions)
-            {
-                packageVersions.Apply(item);
-            }
-
-            foreach (ProjectFile.Item item in file.PackageReferences)
-            {
-                packageReferences.Apply(item);
             }
         }
 
@@ -294,8 +287,8 @@ public sealed class AppDescriptionReader : IAppSourceReader
     }
 
     // The projects in the repository that a project references, or null when the budget does not cover them. A
-    // reference that a condition decides is left out, and so is one whose path a property is part of, since where
-    // it leads is not known here.
+    // reference that a condition decides is left out, and so is one whose path has a property or a pattern in it,
+    // since where it leads is not known here.
     private static List<AppFilePath>? ProjectReferences(
         AppFilePath path,
         ProjectFile project,
@@ -319,8 +312,10 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
             foreach (string part in item.Name.Split(';'))
             {
+                // A path is resolved only when it is written out, since .. would otherwise take a property away.
                 if (
-                    Resolve(path.Directory, part.Trim()) is { } resolved
+                    !IsExpression(part)
+                    && Resolve(path.Directory, part.Trim()) is { } resolved
                     && projectsByPath.TryGetValue(resolved, out AppFilePath? referenced)
                     && seen.Add(referenced)
                 )
@@ -389,6 +384,9 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
     private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
+    // Whether MSBuild expands the text, as a property, an item list, metadata or a pattern over files.
+    private static bool IsExpression(string value) => value.AsSpan().IndexOfAny("*?@$%".AsSpan()) >= 0;
+
     // The items of one kind that the files include, in the order they are first included. The version of an item is
     // known only when one element names it, an Include without a condition. What an Update, a Remove, a second
     // Include or a condition leaves is for MSBuild and NuGet to say, so it is unknown here.
@@ -409,11 +407,28 @@ public sealed class AppDescriptionReader : IAppSourceReader
                 ? NullIfEmpty(entry.Version)
                 : null;
 
-        public void Apply(ProjectFile.Item item)
+        // Applies the elements in order, or returns false when the budget does not cover them. An element lists
+        // up to as many names as it has characters, so those are what it costs.
+        public bool Apply(IReadOnlyList<ProjectFile.Item> items, WorkBudget budget)
+        {
+            foreach (ProjectFile.Item item in items)
+            {
+                if (!budget.Spend(1 + item.Name.Length))
+                {
+                    return false;
+                }
+
+                Apply(item);
+            }
+
+            return true;
+        }
+
+        private void Apply(ProjectFile.Item item)
         {
             // An element names one package, several with ; between them, or a pattern such as @(PackageReference).
             // What a pattern matches is not known here, so it leaves the version of every item so far unknown.
-            if (item.Name.AsSpan().IndexOfAny("*?@$%".AsSpan()) >= 0)
+            if (IsExpression(item.Name))
             {
                 if (item.Operation != ProjectFile.Operation.Include)
                 {
