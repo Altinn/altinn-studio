@@ -31,6 +31,9 @@ reason is bigger than the code.
 ## .NET
 
 - Make types `internal` and classes `sealed` unless there is a reason not to.
+- Make a type a struct when it is immutable, compares by value and takes at most 16 bytes, and a
+  `readonly record struct` when it would otherwise be a record. A struct has a default value that no code created, so a
+  type whose values come from parsing refuses to give the value of its default.
 - Do not add the `Async` suffix to method names.
 - Write an XML doc comment on every public type and member. Test classes and test methods need none: they are public
   only because the test framework requires it, and their names say what they check.
