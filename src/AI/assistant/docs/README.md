@@ -25,6 +25,4 @@ Each module page starts with the code paths it describes, so update the page whe
 - [Traces and usage](modules/observability.md)
 - [Benchmarks](modules/benchmarks.md)
 
-[Assistant skills](skills.md) says which skills the assistant loads and how to add one.
-
 [AGENTS.md](AGENTS.md) has the rules for writing these pages.
