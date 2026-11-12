@@ -35,10 +35,16 @@
 
 .selectAll {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: var(--ds-size-4);
+  gap: var(--ds-size-2) var(--ds-size-4);
   background: var(--ds-color-neutral-background-tinted);
+}
+
+.selectAll > :first-child {
+  flex: 1 1 16rem;
+  min-width: 0;
 }
 
 .subtle {
