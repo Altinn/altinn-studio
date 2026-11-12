@@ -431,8 +431,7 @@ def _internal_tools(skills: list, *, preview_check: bool) -> list[Tool]:
         VerifyChangesTool(),
         CommitSessionBranchTool(),
     ]
-    # The check works only with the local Designer stack.  A model that sees
-    # the tool where it cannot run tells the user about it.
+    # Works only with the local Designer stack.
     if preview_check:
         tools.append(PreviewRenderCheckTool())
     tools += [

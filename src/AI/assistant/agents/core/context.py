@@ -111,9 +111,7 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 - A file went wrong → `discard_file_changes(path)`; other files stay."""
 
 
-# Only in the prompt when the deployment registers `preview_render_check`.
-# A model that is told about a check that cannot run reports the check to the
-# user, who cannot act on it.
+# Only when `PREVIEW_CHECK_ENABLED` is on.
 _PREVIEW_CHECK = """\
 ## Render check before you finish
 In this deployment, the good ending has one more step: after `commit_session_branch` succeeds, run `preview_render_check` once before the final assistant message.  It renders the pushed branch page by page and catches runtime errors the validators can't.
