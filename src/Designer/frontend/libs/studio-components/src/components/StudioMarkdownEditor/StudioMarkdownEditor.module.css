@@ -1,0 +1,42 @@
+.markdownEditor {
+  --studio-markdown-editor-min-height: 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
+.editorFrame {
+  overflow: hidden;
+  border: 1px solid var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+}
+
+.editorFrame:focus-within {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: 0;
+}
+
+.source {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--studio-markdown-editor-min-height);
+  padding: var(--ds-size-2) var(--ds-size-3);
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ds-color-neutral-text-default);
+  background-color: transparent;
+}
