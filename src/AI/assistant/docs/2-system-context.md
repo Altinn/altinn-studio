@@ -119,7 +119,7 @@ sequenceDiagram
   A-->>B: error event with status=cancelled
 ```
 
-_Two user actions during a run. Designer checks that the developer owns the thread, and the assistant service checks that the caller owns the session._
+_Two user actions during a run. Designer checks that the developer may use the assistant and owns the thread, and the assistant service checks that the caller owns the session._
 
 ## Deploy
 
