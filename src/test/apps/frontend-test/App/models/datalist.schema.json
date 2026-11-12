@@ -22,11 +22,30 @@
         },
         "UseCustomConfirm": {
           "type": "boolean"
+        },
+        "SelectedPeople": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SelectedPerson"
+          }
         }
       },
       "required": [
         "SelectedItem"
       ]
+    },
+    "SelectedPerson": {
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Age": {
+          "type": "integer"
+        },
+        "Profession": {
+          "type": "string"
+        }
+      }
     }
   }
 }

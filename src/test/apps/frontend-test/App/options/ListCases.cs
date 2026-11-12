@@ -20,7 +20,8 @@ namespace Altinn.App.Options
                 search = keyValuePairs["search"];
             }
 
-            if (keyValuePairs.ContainsKey("size") && keyValuePairs.ContainsKey("page"))
+            // Lists without pagination ask for size 0, which means all rows
+            if (keyValuePairs.ContainsKey("size") && keyValuePairs.ContainsKey("page") && int.Parse(keyValuePairs["size"]) > 0)
             {
                 string size = keyValuePairs["size"];
                 string page = keyValuePairs["page"];

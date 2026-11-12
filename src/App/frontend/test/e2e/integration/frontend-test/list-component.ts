@@ -92,8 +92,77 @@ describe('List component', () => {
 
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').find('input').should('be.checked');
 
+    // Covers radio, paginated, checkbox and read-only lists, each on desktop, tablet and mobile
     cy.visualTesting('list-component');
+  });
+
+  it('Should take a snapshot of Summary2 for every list', () => {
+    cy.goto('datalist');
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kari').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).find('input:checked').should('have.length', 2);
+
+    // The other tasks are skipped by cy.goto(), so their summaries can't render
+    cy.changeLayout((component) => {
+      if (component.type === 'Summary2' && component.id !== 'summary2-task5') {
+        component.hidden = true;
+      }
+    });
+    cy.findAllByRole('button', { name: 'Neste' }).last().click();
+    cy.findByRole('heading', { name: 'Oppsummering' }).should('be.visible');
+    cy.findAllByRole('button', { name: 'Neste' }).last().click();
+    cy.findByRole('table', { name: /Hvem skal få kopi av saken/ }).should('contain.text', 'Kari');
+    cy.findByRole('table', { name: /Personer i registeret/ }).should('contain.text', 'Mette');
+
+    cy.visualTesting('list-component-summary2');
+  });
+
+  it('Should stack the columns of every list on mobile', () => {
+    cy.viewport('samsung-s10');
+    cy.goto('datalist');
+    cy.get('html.viewport-is-mobile').should('be.visible');
+
+    // Single selection: one stacked cell per row next to the radio, and the row selects. Only the sortable column
+    // keeps its header, so the list can still be sorted.
+    cy.get(dataListPage.listComponent).find('th').should('have.length', 2);
+    cy.get(dataListPage.tableBody).find('input[type=radio]').first().should('have.attr', 'required');
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Alder: 28');
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').find('input').should('be.checked');
+
+    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Hans');
+    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Petter');
+    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
+
+    // Pagination still works
+    cy.get(dataListPage.listComponent).findByRole('button', { name: 'Side 2' }).click();
+    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Hans');
+
+    // Multiple selection
+    cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kari').closest('tr').find('input').check();
+    cy.get(dataListPage.checkboxesTableBody).find('input:checked').should('have.length', 2);
+
+    // Read-only, with tableHeadersMobile showing only some of the columns
+    cy.get('#form-content-listReadOnly').find('th').should('not.exist');
+    cy.get(dataListPage.readOnlyTableBody).find('input').should('not.exist');
+    cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
+    cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('contain.text', 'Yrke: Utvikler');
+    cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('not.contain.text', 'Alder');
+
+    // Nothing should be wider than the screen
+    cy.document().should((doc) => {
+      expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
+    });
   });
 
   it('Search should work as expected', () => {
