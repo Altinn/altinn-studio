@@ -32,10 +32,16 @@ namespace Altinn.Studio.Designer.Controllers;
 public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogger<ReleaseLookupController> logger)
     : ControllerBase
 {
+    /// <summary>
+    /// The most items a request can have.
+    /// </summary>
     public const int MaxItems = 1000;
 
-    // MaxItems items with the longest names and versions take about 250 kB as JSON, so this leaves room for
-    // formatting but stops a client from sending megabytes for the server to parse.
+    /// <summary>
+    /// The largest request body, in bytes. <see cref="MaxItems"/> items with the longest names and versions take about
+    /// 250 kB as JSON, so this leaves room for formatting but stops a client from sending megabytes for the server to
+    /// parse.
+    /// </summary>
     public const int MaxRequestBytes = 1_000_000;
 
     /// <summary>
