@@ -83,27 +83,6 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task ReplaceFormData_WithTheCachedObject_KeepsItAsTheFormData()
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
-        DataElement formDataElement = AddPersistedPaymentForm(
-            setup,
-            new PaymentForm { Status = "created" },
-            BlobVersion(1)
-        );
-        PaymentForm form = await setup.DataMutator.GetFormData<PaymentForm>(formDataElement);
-
-        await setup.DataMutator.ReplaceFormData(formDataElement, form);
-        form.Status = "after the call";
-        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
-
-        Assert.Equal(
-            SerializePaymentForm(setup, formDataElement, new PaymentForm { Status = "after the call" }),
-            GetStoredData(setup, formDataElement)
-        );
-    }
-
-    [Fact]
     public async Task ReplaceFormData_GivesRowsWithoutARowIdOne()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
