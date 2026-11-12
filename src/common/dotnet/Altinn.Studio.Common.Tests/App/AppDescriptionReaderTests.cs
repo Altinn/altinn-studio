@@ -1,0 +1,466 @@
+using System;
+using System.Linq;
+using System.Text;
+using Altinn.Studio.Common.App;
+using Altinn.Studio.Common.App.V8;
+using Altinn.Studio.Common.App.V9;
+using Xunit;
+
+namespace Altinn.Studio.Common.Tests.App;
+
+// Altinn.Studio.Common has an Assert of its own, which the enclosing namespace would find first.
+using Assert = Xunit.Assert;
+
+public sealed class AppDescriptionReaderTests
+{
+    private const string AppProject = """
+        <Project Sdk="Microsoft.NET.Sdk.Web">
+          <PropertyGroup>
+            <TargetFramework>net8.0</TargetFramework>
+          </PropertyGroup>
+          <ItemGroup>
+            <PackageReference Include="Altinn.App.Core" Version="8.1.0" />
+            <PackageReference Include="Altinn.App.Api" Version="8.1.0">
+              <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+            </PackageReference>
+            <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
+          </ItemGroup>
+        </Project>
+        """;
+
+    [Fact]
+    public void Build_DescribesATypicalV8App()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", AppProject);
+        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
+        Read(reader, "App/ui/form/Settings.json", "{}");
+
+        var description = Assert.IsType<AppDescription.V8OrEarlier>(reader.Build());
+
+        ProjectDescription.WellFormed project = WellFormed(Assert.Single(description.Projects));
+        Assert.Same(project, description.AppProject);
+        Assert.Equal("App/App.csproj", project.Path.Value);
+        Assert.Equal(["net8.0"], project.TargetFrameworks);
+        Assert.Equal("net8.0", description.TargetFramework);
+        Assert.Equal(
+            [
+                new PackageReference("Altinn.App.Core", "8.1.0"),
+                new PackageReference("Altinn.App.Api", "8.1.0"),
+                new PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets", "1.19.6"),
+            ],
+            project.PackageReferences
+        );
+        Assert.Equal(("Altinn.App.Api", "8.1.0", 8), Package(description));
+        Assert.Equal("4", description.V8.FrontendVersion?.Value);
+    }
+
+    [Fact]
+    public void Build_DescribesATypicalV9AppWithItsUiFolders()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
+        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
+        Read(reader, "App/ui/Task_2/Settings.json", "{}");
+        Read(reader, "App/ui/Task_1/Settings.json", "{}");
+        Assert.False(reader.Accepts(TestAppSource.Path("App/ui/Task_1/layouts/Side1.json")));
+        Assert.False(reader.Accepts(TestAppSource.Path("App/ui/Settings.json")));
+        Assert.False(reader.Accepts(TestAppSource.Path("App/ui/a/b/Settings.json")));
+
+        var description = Assert.IsType<AppDescription.V9OrLater>(reader.Build());
+
+        Assert.Equal(("Altinn.App.Api", "9.0.0", 9), Package(description.AltinnApp));
+        Assert.Equal(["Task_1", "Task_2"], description.V9.UiFolders);
+    }
+
+    [Theory]
+    [InlineData("[8.0.0]", "8.0.0", 8)]
+    [InlineData(" [ 7.4.1 ] ", "7.4.1", 7)]
+    [InlineData("8.*", "8.*", 8)]
+    [InlineData("9.0.0-preview.10", "9.0.0-preview.10", 9)]
+    [InlineData("10.0.0+meta", "10.0.0+meta", 10)]
+    [InlineData("8", "8", 8)]
+    public void Build_ReadsTheMajorOfPinnedAndFloatingVersions(string declared, string version, int major)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", declared));
+
+        Assert.Equal(("Altinn.App.Api", version, major), Package(reader.Build()));
+    }
+
+    [Theory]
+    [InlineData("[8.0.0,9.0.0)")]
+    [InlineData("[]")]
+    [InlineData("latest")]
+    [InlineData("v8.0.0")]
+    [InlineData("1234567.0")]
+    public void Build_TakesAVersionWithoutAMajorForV8(string declared)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", declared));
+        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
+
+        var description = Assert.IsType<AppDescription.V8OrEarlier>(reader.Build());
+
+        var unknown = Assert.IsType<AltinnAppDependency.Unknown.NoMajorVersion>(description.AltinnApp);
+        Assert.Equal(new PackageReference("Altinn.App.Api", declared.Trim()), unknown.Reference);
+        Assert.Contains("names no major version", unknown.Reason, StringComparison.Ordinal);
+        Assert.Equal("4", description.V8.FrontendVersion?.Value);
+    }
+
+    [Fact]
+    public void Build_TakesAVersionThatCannotBeResolvedForV8()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "$(Unresolved)"));
+
+        var description = Assert.IsType<AppDescription.V8OrEarlier>(reader.Build());
+
+        var unknown = Assert.IsType<AltinnAppDependency.Unknown.VersionNotResolved>(description.AltinnApp);
+        Assert.Equal(new PackageReference("Altinn.App.Api", null), unknown.Reference);
+        Assert.Equal("the version of Altinn.App.Api cannot be resolved", unknown.Reason);
+    }
+
+    // The cases Designer decides for, in AltinnAppGitRepository.GetSchemaUrl, ReleaseService and AppVersionService:
+    // only a version the project files name makes an app v9, and everything else is on the v8 contract.
+    [Fact]
+    public void Build_DecidesTheContractAsDesignerDoes()
+    {
+        var wrapped = new AppDescriptionReader();
+        Read(wrapped, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.7.5"));
+        Read(wrapped, "App/views/Home/Index.cshtml", Index("4"));
+        Read(wrapped, "App/ui/form/Settings.json", "{}");
+
+        var custom = new AppDescriptionReader();
+        Read(custom, "App/App.csproj", Project("Swashbuckle.AspNetCore", "10.1.7"));
+
+        var provenV9 = new AppDescriptionReader();
+        Read(provenV9, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
+        Read(provenV9, "App/views/Home/Index.cshtml", Index("4"));
+        Read(provenV9, "App/ui/Task_1/Settings.json", "{}");
+
+        var wrappedApp = Assert.IsType<AppDescription.V8OrEarlier>(wrapped.Build());
+        Assert.IsType<AltinnAppDependency.Unknown.NotReferenced>(wrappedApp.AltinnApp);
+        Assert.Equal("4", wrappedApp.V8.FrontendVersion?.Value);
+
+        var customApp = Assert.IsType<AppDescription.V8OrEarlier>(custom.Build());
+        Assert.Equal(
+            "no project references an Altinn.App package",
+            Assert.IsType<AltinnAppDependency.Unknown.NotReferenced>(customApp.AltinnApp).Reason
+        );
+        Assert.Null(customApp.V8.FrontendVersion);
+
+        var v9App = Assert.IsType<AppDescription.V9OrLater>(provenV9.Build());
+        Assert.Equal(["Task_1"], v9App.V9.UiFolders);
+    }
+
+    [Fact]
+    public void Build_ResolvesPropertiesFromTheProjectAndDirectoryBuildProps()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Build.props",
+            "<Project><PropertyGroup><AltinnVersion>8.2.$(Patch)</AltinnVersion><Patch>3</Patch></PropertyGroup></Project>"
+        );
+        Read(
+            reader,
+            "App/App.csproj",
+            """
+            <Project>
+              <PropertyGroup><Tfm>net8.0</Tfm><TargetFramework>$(Tfm)</TargetFramework></PropertyGroup>
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api.Experimental"><Version>$(AltinnVersion)</Version></PackageReference>
+                <PackageReference Include="Unknown" Version="$(NotSet)" />
+                <PackageReference Include="Function" Version="$([System.String]::Copy('1.0.0'))" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal(("Altinn.App.Api.Experimental", "8.2.3", 8), Package(description));
+        Assert.Equal("net8.0", description.TargetFramework);
+        Assert.Equal(
+            [
+                new PackageReference("Altinn.App.Api.Experimental", "8.2.3"),
+                new PackageReference("Unknown", null),
+                new PackageReference("Function", null),
+            ],
+            WellFormed(description.Projects[0]).PackageReferences
+        );
+    }
+
+    [Fact]
+    public void Build_UsesCentralPackageVersionsAndOverrides()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Packages.props",
+            """
+            <Project>
+              <ItemGroup>
+                <PackageVersion Include="Altinn.App.Api" Version="8.5.0" />
+                <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        Read(
+            reader,
+            "App/App.csproj",
+            """
+            <Project>
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" />
+                <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal(
+            [new PackageReference("Altinn.App.Api", "8.5.0"), new PackageReference("Newtonsoft.Json", "13.0.1")],
+            WellFormed(description.Projects[0]).PackageReferences
+        );
+    }
+
+    [Fact]
+    public void Build_TakesTheAltinnPackageOfTheAppProjectBeforeAnotherProjects()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App.IntegrationTests/App.IntegrationTests.csproj",
+            "<Project><PropertyGroup><TargetFrameworks>net8.0;net9.0</TargetFrameworks></PropertyGroup>"
+                + "<ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"7.0.0\" /></ItemGroup></Project>"
+        );
+        Read(reader, "App/App.csproj", Project("Altinn.App.Core", "8.0.0"));
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal(
+            ["App.IntegrationTests/App.IntegrationTests.csproj", "App/App.csproj"],
+            description.Projects.Select(p => p.Path.Value)
+        );
+        Assert.Equal("App/App.csproj", description.AppProject?.Path.Value);
+        Assert.Equal(("Altinn.App.Core", "8.0.0", 8), Package(description));
+        Assert.Equal(["net8.0", "net9.0"], WellFormed(description.Projects[0]).TargetFrameworks);
+        Assert.Null(description.TargetFramework);
+    }
+
+    [Fact]
+    public void Build_TakesTheAltinnPackageOfAnotherProjectWhenTheAppProjectHasNone()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.0.0"));
+        Read(reader, "Shared/Shared.csproj", Project("Altinn.App.Core", "8.0.0"));
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal("App/App.csproj", description.AppProject?.Path.Value);
+        Assert.Equal(("Altinn.App.Core", "8.0.0", 8), Package(description));
+    }
+
+    // The layouts are those of apps deployed to production and tt02.
+    [Theory]
+    [InlineData("App/App.csproj", "App/App.csproj")]
+    [InlineData("App/App.csproj;Tests/Tests.csproj", "App/App.csproj")]
+    [InlineData("App.Tests/App.Tests.csproj;App/App.csproj", "App/App.csproj")]
+    [InlineData("App/App.csproj;App/SSB.Utils.csproj", "App/App.csproj")]
+    [InlineData("app/app.csproj", "app/app.csproj")]
+    [InlineData("App/AltinnOkonomiRegelverk.csproj", "App/AltinnOkonomiRegelverk.csproj")]
+    [InlineData(
+        "App/Innsending.Planforslag.Web.csproj;Innsending.Planforslag.Web.Tests/Innsending.Planforslag.Web.Tests.csproj;"
+            + "Innsending.Planforslag.XmlSchemaValidator/Innsending.Planforslag.XmlSchemaValidator.csproj",
+        "App/Innsending.Planforslag.Web.csproj"
+    )]
+    [InlineData("Some.Api/Some.Api.csproj", "Some.Api/Some.Api.csproj")]
+    [InlineData("App/One.csproj;App/Two.csproj", null)]
+    [InlineData("Api/Api.csproj;Tests/Tests.csproj", null)]
+    [InlineData("", null)]
+    public void Build_FindsTheProjectTheAppIsBuiltFrom(string paths, string? expected)
+    {
+        var reader = new AppDescriptionReader();
+        foreach (string path in paths.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            Read(
+                reader,
+                path,
+                "<Project><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>"
+            );
+        }
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal(expected, description.AppProject?.Path.Value);
+        Assert.Equal(expected is null ? null : "net8.0", description.TargetFramework);
+        Assert.Equal(paths.Split(';', StringSplitOptions.RemoveEmptyEntries).Length, description.Projects.Count);
+    }
+
+    [Theory]
+    [InlineData("Altinn.App.Api", "8.5.0", "Altinn.App.Api", 8)]
+    [InlineData("altinn.app.core", "9.0.0-preview.3", "Altinn.App.Core", 9)]
+    [InlineData("Altinn.App.Core.Experimental", "8.*", "Altinn.App.Core.Experimental", 8)]
+    [InlineData("Newtonsoft.Json", "13.0.1", null, 0)]
+    [InlineData("Altinn.App.Models", "8.0.0", null, 0)]
+    [InlineData("Dibk.Ftpb.Common.AltinnApps", "8.0.0", null, 0)]
+    [InlineData("Altinn.App.Api", null, null, 0)]
+    [InlineData("Altinn.App.Api", "[8.0.0,9.0.0)", null, 0)]
+    public void AltinnAppPackage_IsOnlyAReferenceToAnAltinnAppPackageWithAMajorVersion(
+        string name,
+        string? version,
+        string? expectedName,
+        int expectedMajor
+    )
+    {
+        bool parsed = AltinnAppPackage.TryParse(new PackageReference(name, version), out AltinnAppPackage? package);
+
+        Assert.Equal(expectedName is not null, parsed);
+        Assert.Equal(expectedName, package?.Name);
+        Assert.Equal(expectedName is null ? null : expectedMajor, package?.Major);
+    }
+
+    [Theory]
+    [InlineData("8.5.0", true)]
+    [InlineData("8.10.0-pr.4153.instance-contextual-layout-fetching.bffb1113", true)]
+    [InlineData("9.0.0-preview.10", true)]
+    [InlineData("8.*", false)]
+    [InlineData("8.5", false)]
+    public void AltinnAppPackage_HasASemanticVersionWhenItNamesOneVersion(string version, bool expected)
+    {
+        Assert.True(AltinnAppPackage.TryParse(new PackageReference("Altinn.App.Api", version), out var package));
+
+        Assert.Equal(expected ? version : null, package.SemanticVersion?.Value);
+        Assert.Equal(8 + (version.StartsWith('9') ? 1 : 0), package.Major);
+    }
+
+    [Fact]
+    public void Build_ReadsOldStyleProjectsWithTheMsBuildNamespace()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <PropertyGroup><TargetFramework>netcoreapp3.1</TargetFramework></PropertyGroup>
+              <ItemGroup><PackageReference Include="Altinn.App.Api" Version="3.1.4" /></ItemGroup>
+            </Project>
+            """
+        );
+
+        AppDescription description = reader.Build();
+
+        Assert.Equal(("Altinn.App.Api", "3.1.4", 3), Package(description));
+        Assert.Equal("netcoreapp3.1", description.TargetFramework);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not xml")]
+    [InlineData("<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\"></ItemGroup>")]
+    [InlineData("<Project><!DOCTYPE x [<!ENTITY a \"b\">]></Project>")]
+    [InlineData("<?xml version=\"1.0\"?><!DOCTYPE Project SYSTEM \"http://example.com/x.dtd\"><Project>&a;</Project>")]
+    public void Build_TreatsMalformedProjectsAsMalformed(string content)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", content);
+
+        AppDescription description = reader.Build();
+
+        Assert.IsType<ProjectDescription.Malformed>(Assert.Single(description.Projects));
+        Assert.IsType<ProjectDescription.Malformed>(description.AppProject);
+        Assert.Null(description.TargetFramework);
+        var v8 = Assert.IsType<AppDescription.V8OrEarlier>(description);
+        Assert.IsType<AltinnAppDependency.Unknown.NotReferenced>(v8.AltinnApp);
+    }
+
+    [Fact]
+    public void Read_GivesTheSameDescriptionFromTextAsFromBytes()
+    {
+        var fromBytes = new AppDescriptionReader();
+        var fromText = new AppDescriptionReader();
+        string bom = "﻿";
+        (string Path, string Content)[] files =
+        [
+            ("App/App.csproj", bom + "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + AppProject),
+            ("App/views/Home/Index.cshtml", Index("4.11.2")),
+            ("Directory.Build.props", "<Project><PropertyGroup><X>1</X></PropertyGroup></Project>"),
+        ];
+
+        foreach ((string path, string content) in files)
+        {
+            Read(fromBytes, path, content);
+            var parsed = TestAppSource.Path(path);
+            Assert.True(fromText.Accepts(parsed));
+            fromText.Read(parsed, content);
+        }
+
+        var bytes = Assert.IsType<AppDescription.V8OrEarlier>(fromBytes.Build());
+        var text = Assert.IsType<AppDescription.V8OrEarlier>(fromText.Build());
+        Assert.Equal(bytes.AltinnApp, text.AltinnApp);
+        Assert.Equal(bytes.V8, text.V8);
+        Assert.Equal(WellFormed(bytes.Projects[0]).PackageReferences, WellFormed(text.Projects[0]).PackageReferences);
+    }
+
+    [Fact]
+    public void Build_WithoutFilesDescribesNothing()
+    {
+        var description = Assert.IsType<AppDescription.V8OrEarlier>(new AppDescriptionReader().Build());
+
+        Assert.Empty(description.Projects);
+        Assert.Null(description.AppProject);
+        Assert.IsType<AltinnAppDependency.Unknown.NotReferenced>(description.AltinnApp);
+        Assert.Null(description.V8.FrontendVersion);
+        Assert.Null(description.TargetFramework);
+    }
+
+    [Theory]
+    [InlineData("App/App.csproj", true)]
+    [InlineData("src/Other.CSPROJ", true)]
+    [InlineData("Directory.Build.props", true)]
+    [InlineData("App/directory.packages.props", true)]
+    [InlineData("App/views/Home/Index.cshtml", true)]
+    [InlineData("App/ui/Task_1/Settings.json", true)]
+    [InlineData("App/views/Home/Other.cshtml", false)]
+    [InlineData("App/Directory.Build.targets", false)]
+    [InlineData("App/App.csproj.user", false)]
+    [InlineData("App/config/applicationmetadata.json", false)]
+    public void Accepts_OnlyTheFilesItReads(string path, bool expected)
+    {
+        Assert.Equal(expected, new AppDescriptionReader().Accepts(TestAppSource.Path(path)));
+    }
+
+    private static (string, string, int) Package(AppDescription description) =>
+        description switch
+        {
+            AppDescription.V8OrEarlier { AltinnApp: AltinnAppDependency.Known known } => Package(known.Package),
+            AppDescription.V9OrLater v9 => Package(v9.AltinnApp),
+            _ => throw new InvalidOperationException($"The version is unknown: {description}"),
+        };
+
+    private static (string, string, int) Package(AltinnAppPackage package) =>
+        (package.Name, package.Version, package.Major);
+
+    private static ProjectDescription.WellFormed WellFormed(ProjectDescription project) =>
+        Assert.IsType<ProjectDescription.WellFormed>(project);
+
+    private static string Project(string package, string version) =>
+        $"<Project><ItemGroup><PackageReference Include=\"{package}\" Version=\"{version}\" /></ItemGroup></Project>";
+
+    private static string Index(string version) =>
+        $"<html><body><script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/{version}/altinn-app-frontend.js\"></script></body></html>";
+
+    private static void Read(AppDescriptionReader reader, string path, string content)
+    {
+        var parsed = TestAppSource.Path(path);
+        Assert.True(reader.Accepts(parsed));
+        reader.Read(parsed, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(content)));
+    }
+}
