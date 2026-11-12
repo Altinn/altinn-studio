@@ -360,26 +360,13 @@ public class AppResourcesSITests
     [InlineData("null-field")]
     [InlineData("empty-field")]
     [InlineData("missing-expression")]
+    [InlineData("null-expression")]
     public void Loading_app_throws_with_file_name_on_invalid_calculation_values(string dataTypeId)
     {
         // The app files loader rejects the file before the app starts, so GetCalculationConfig never sees it
         var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation(dataTypeId));
 
         Assert.Contains($"models/{dataTypeId}.calculation.json: ", exception.Message);
-    }
-
-    [Fact]
-    public void GetCalculationConfig_accepts_null_expression()
-    {
-        // A null expression evaluates to null, which clears the field, so it is a valid expression
-        IAppResources appResources = GetAppResourcesForCalculation("null-expression");
-
-        CalculationConfig? actual = appResources.GetCalculationConfig("null-expression");
-
-        Assert.NotNull(actual);
-        var calculation = Assert.Single(actual.Calculations);
-        Assert.Equal("skjema.name", calculation.Field);
-        Assert.Equal("null", JsonSerializer.Serialize(calculation.Expression));
     }
 
     /// <summary>

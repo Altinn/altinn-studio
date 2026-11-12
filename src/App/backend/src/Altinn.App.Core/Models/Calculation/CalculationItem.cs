@@ -34,5 +34,9 @@ public class CalculationItem : IJsonOnDeserialized
         {
             throw new JsonException("\"field\" must be a non-empty string");
         }
+        if (Expression is { IsLiteralValue: true, ValueUnion.ValueKind: JsonValueKind.Null })
+        {
+            throw new JsonException("\"expression\" must not be null");
+        }
     }
 }
