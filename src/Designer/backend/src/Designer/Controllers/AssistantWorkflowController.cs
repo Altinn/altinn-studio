@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -46,12 +45,10 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
     /// <summary>
     /// Sends the developer's message and its attachments to the assistant, which starts a workflow in the thread.
     /// </summary>
-    /// <returns>The answer from the assistant service.</returns>
     [HttpPost]
-    [UseSystemTextJson]
     [RequestSizeLimit(MaxRequestBytes)]
     [RequestFormLimits(MultipartBodyLengthLimit = MaxRequestBytes)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -69,13 +66,13 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
             return BadRequest(attachmentError);
         }
 
-        AssistantWorkflowStartResult result = await workflowService.StartWorkflow(
+        AssistantWorkflowStatus status = await workflowService.StartWorkflow(
             GetEditingContext(org, app),
             threadId,
             request,
             cancellationToken
         );
-        return ToActionResult(result.Status, Ok(result.Response));
+        return ToActionResult(status);
     }
 
     /// <summary>
@@ -97,7 +94,7 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
             threadId,
             cancellationToken
         );
-        return ToActionResult(status, NoContent());
+        return ToActionResult(status);
     }
 
     /// <summary>
@@ -122,7 +119,7 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
             request.Granted,
             cancellationToken
         );
-        return ToActionResult(status, NoContent());
+        return ToActionResult(status);
     }
 
     private static string? ValidateAttachments(IReadOnlyList<IFormFile> files)
@@ -149,10 +146,10 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
         return null;
     }
 
-    private IActionResult ToActionResult(AssistantWorkflowStatus status, IActionResult success) =>
+    private IActionResult ToActionResult(AssistantWorkflowStatus status) =>
         status switch
         {
-            AssistantWorkflowStatus.Success => success,
+            AssistantWorkflowStatus.Success => NoContent(),
             AssistantWorkflowStatus.Forbidden => StatusCode(StatusCodes.Status403Forbidden),
             AssistantWorkflowStatus.NotFound => NotFound(),
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),

@@ -103,17 +103,3 @@ export type WorkflowEvent =
   | DoneEvent
   | ErrorEvent
   | PermissionRequestEvent;
-
-export interface ParsedIntent {
-  suggestions?: string[];
-  [key: string]: unknown;
-}
-
-export interface AgentResponse {
-  accepted: boolean;
-  session_id: string;
-  message: string;
-  mode?: 'chat' | 'edit';
-  app_name?: string;
-  parsed_intent?: ParsedIntent;
-}

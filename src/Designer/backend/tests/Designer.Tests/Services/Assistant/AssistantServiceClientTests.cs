@@ -52,8 +52,7 @@ public class AssistantServiceClientTests
             {
                 capturedRequest = request;
                 capturedBody = JsonSerializer.Deserialize<JsonElement>(request.Content!.ReadAsStringAsync().Result);
-            },
-            responseBody: """{"accepted": true, "session_id": "session-1"}"""
+            }
         );
         var request = new AssistantWorkflowStartRequest(
             SessionId: "session-1",
@@ -73,9 +72,8 @@ public class AssistantServiceClientTests
             ]
         );
 
-        JsonElement response = await client.StartWorkflow(request, "testUser", "api-key", CancellationToken.None);
+        await client.StartWorkflow(request, "testUser", "api-key", CancellationToken.None);
 
-        Assert.True(response.GetProperty("accepted").GetBoolean());
         Assert.Equal(HttpMethod.Post, capturedRequest.Method);
         Assert.Equal($"{AgentUrl}/api/agent/start", capturedRequest.RequestUri!.ToString());
         Assert.Equal("api-key", capturedRequest.Headers.GetValues("X-Api-Key").Single());
@@ -138,8 +136,7 @@ public class AssistantServiceClientTests
 
     private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
-        Action<HttpRequestMessage> onRequest = null,
-        string responseBody = "{}"
+        Action<HttpRequestMessage> onRequest = null
     )
     {
         Mock<HttpMessageHandler> mockHandler = new(MockBehavior.Strict);
@@ -151,9 +148,7 @@ public class AssistantServiceClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Callback<HttpRequestMessage, CancellationToken>((request, _) => onRequest?.Invoke(request))
-            .ReturnsAsync(
-                new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(responseBody) }
-            );
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent("") });
 
         HttpClient httpClient = new(mockHandler.Object);
         IOptions<AssistantSettings> settings = Options.Create(new AssistantSettings { AgentUrl = AgentUrl });

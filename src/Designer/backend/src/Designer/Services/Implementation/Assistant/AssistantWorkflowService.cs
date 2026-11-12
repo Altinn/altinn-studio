@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -33,7 +32,7 @@ internal sealed class AssistantWorkflowService(
 {
     private static readonly TimeSpan s_apiKeyLifetime = TimeSpan.FromMinutes(20);
 
-    public async Task<AssistantWorkflowStartResult> StartWorkflow(
+    public async Task<AssistantWorkflowStatus> StartWorkflow(
         AltinnRepoEditingContext editingContext,
         Guid threadId,
         StartAssistantWorkflowRequest request,
@@ -43,7 +42,7 @@ internal sealed class AssistantWorkflowService(
         SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
         if (access is not { Status: AssistantWorkflowStatus.Success, CostOrg: { } costOrg })
         {
-            return new AssistantWorkflowStartResult(access.Status);
+            return access.Status;
         }
 
         IReadOnlyList<AssistantWorkflowAttachment> attachments = await ReadAttachments(
@@ -57,7 +56,7 @@ internal sealed class AssistantWorkflowService(
             editingContext.Developer,
             threadId
         );
-        JsonElement response = await assistantClient.StartWorkflow(
+        await assistantClient.StartWorkflow(
             new AssistantWorkflowStartRequest(
                 SessionId: threadId.ToString(),
                 Goal: request.Goal,
@@ -71,7 +70,7 @@ internal sealed class AssistantWorkflowService(
             apiKey,
             cancellationToken
         );
-        return new AssistantWorkflowStartResult(AssistantWorkflowStatus.Success, response);
+        return AssistantWorkflowStatus.Success;
     }
 
     public async Task<AssistantWorkflowStatus> CancelWorkflow(

@@ -70,7 +70,7 @@ sequenceDiagram
   D->>A: POST /api/agent/start with X-Api-Key and X-Developer
   A->>G: git clone with the X-Api-Key header
   A-->>D: accepted, mode is chat or workflow
-  D-->>B: Response
+  D-->>B: 204 No Content
   Note over A: The run continues as a background task
 ```
 

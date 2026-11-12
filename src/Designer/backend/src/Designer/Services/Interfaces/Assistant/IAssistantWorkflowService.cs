@@ -16,7 +16,7 @@ public interface IAssistantWorkflowService
     /// <summary>
     /// Sends the developer's message and its attachments to the assistant, which starts a workflow in the thread.
     /// </summary>
-    Task<AssistantWorkflowStartResult> StartWorkflow(
+    Task<AssistantWorkflowStatus> StartWorkflow(
         AltinnRepoEditingContext editingContext,
         Guid threadId,
         StartAssistantWorkflowRequest request,

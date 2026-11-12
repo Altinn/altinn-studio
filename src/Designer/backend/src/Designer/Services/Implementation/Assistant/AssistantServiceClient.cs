@@ -91,7 +91,7 @@ public class AssistantServiceClient : IAssistantServiceClient
         }
     }
 
-    public async Task<JsonElement> StartWorkflow(
+    public async Task StartWorkflow(
         AssistantWorkflowStartRequest request,
         string developer,
         string apiKey,
@@ -106,7 +106,7 @@ public class AssistantServiceClient : IAssistantServiceClient
         httpRequest.Headers.Add(DeveloperHeader, developer);
         httpRequest.Headers.Add(SessionIdHeader, request.SessionId);
 
-        return await SendAgentRequest(httpRequest, cancellationToken);
+        await SendAgentRequest(httpRequest, cancellationToken);
     }
 
     public async Task CancelWorkflow(string developer, string sessionId, CancellationToken cancellationToken)
@@ -137,20 +137,15 @@ public class AssistantServiceClient : IAssistantServiceClient
 
     private Uri AgentUri(string path) => new($"{_assistantSettings.AgentUrl}{AgentPath}/{path}");
 
-    private async Task<JsonElement> SendAgentRequest(
-        HttpRequestMessage httpRequest,
-        CancellationToken cancellationToken
-    )
+    private async Task SendAgentRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
     {
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new HttpRequestException(
                 $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}: {responseContent}"
             );
         }
-
-        return JsonSerializer.Deserialize<JsonElement>(responseContent);
     }
 }

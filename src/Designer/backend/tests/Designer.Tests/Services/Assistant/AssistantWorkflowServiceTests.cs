@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -80,7 +79,7 @@ public class AssistantWorkflowServiceTests
                     _calls.Add("start");
                 }
             )
-            .ReturnsAsync(JsonSerializer.SerializeToElement(new { accepted = true }));
+            .Returns(Task.CompletedTask);
     }
 
     [Fact]
@@ -88,10 +87,9 @@ public class AssistantWorkflowServiceTests
     {
         var request = CreateStartRequest(CreateFile("krav.pdf", [1, 2, 3, 4], "application/pdf"));
 
-        var result = await CreateService().StartWorkflow(EditingContext(), _threadId, request, CancellationToken.None);
+        var status = await CreateService().StartWorkflow(EditingContext(), _threadId, request, CancellationToken.None);
 
-        Assert.Equal(AssistantWorkflowStatus.Success, result.Status);
-        Assert.True(result.Response?.GetProperty("accepted").GetBoolean());
+        Assert.Equal(AssistantWorkflowStatus.Success, status);
         Assert.NotNull(_sentStartRequest);
         Assert.Equal(_threadId.ToString(), _sentStartRequest.SessionId);
         Assert.Equal("Lag et skjema fra vedlegget", _sentStartRequest.Goal);
@@ -211,9 +209,12 @@ public class AssistantWorkflowServiceTests
         AssistantWorkflowService service = CreateService();
         return command switch
         {
-            StartCommand => (
-                await service.StartWorkflow(editingContext, _threadId, CreateStartRequest(), CancellationToken.None)
-            ).Status,
+            StartCommand => await service.StartWorkflow(
+                editingContext,
+                _threadId,
+                CreateStartRequest(),
+                CancellationToken.None
+            ),
             CancelCommand => await service.CancelWorkflow(editingContext, _threadId, CancellationToken.None),
             PermissionCommand => await service.RespondToPermission(
                 editingContext,

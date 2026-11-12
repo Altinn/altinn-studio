@@ -3,8 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -26,7 +24,6 @@ public class AssistantWorkflowControllerTests
     private const string Org = "ttd";
     private const string App = "test-app";
     private const string Developer = "testUser";
-    private const string AcceptedAnswer = """{"accepted":true,"session_id":"session-1","suggestions":["Try again"]}""";
 
     private readonly Guid _threadId = Guid.NewGuid();
     private readonly Mock<IAssistantWorkflowService> _workflowServiceMock = new();
@@ -53,12 +50,7 @@ public class AssistantWorkflowControllerTests
                     _receivedStartRequest = request;
                 }
             )
-            .ReturnsAsync(
-                new AssistantWorkflowStartResult(
-                    AssistantWorkflowStatus.Success,
-                    JsonDocument.Parse(AcceptedAnswer).RootElement
-                )
-            );
+            .ReturnsAsync(AssistantWorkflowStatus.Success);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -68,15 +60,13 @@ public class AssistantWorkflowControllerTests
     }
 
     [Fact]
-    public async Task StartWorkflow_SendsTheMessageAndReturnsTheAssistantsAnswerUnchanged()
+    public async Task StartWorkflow_SendsTheMessageToTheService()
     {
         using var form = CreateStartForm(("krav.pdf", "application/pdf", 4));
 
         using var response = await HttpClient.PostAsync(WorkflowUrl(), form);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        string body = await response.Content.ReadAsStringAsync();
-        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(AcceptedAnswer), JsonNode.Parse(body)), body);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal(AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, App, Developer), _receivedContext);
         Assert.Equal("Lag et skjema fra vedlegget", _receivedStartRequest.Goal);
         Assert.Equal("master", _receivedStartRequest.Branch);
@@ -118,7 +108,7 @@ public class AssistantWorkflowControllerTests
 
         using var response = await HttpClient.PostAsync(WorkflowUrl(), form);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Theory]
@@ -138,7 +128,7 @@ public class AssistantWorkflowControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new AssistantWorkflowStartResult(status));
+            .ReturnsAsync(status);
         using var form = CreateStartForm();
 
         using var response = await HttpClient.PostAsync(WorkflowUrl(), form);

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Assistant;
@@ -38,8 +37,7 @@ public interface IAssistantServiceClient
     /// <param name="developer">The developer that the workflow runs for.</param>
     /// <param name="apiKey">The key that the assistant clones and pushes the repository with.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <returns>The answer from the assistant service.</returns>
-    Task<JsonElement> StartWorkflow(
+    Task StartWorkflow(
         AssistantWorkflowStartRequest request,
         string developer,
         string apiKey,

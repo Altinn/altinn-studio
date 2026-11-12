@@ -418,7 +418,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result, rerender } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
     });
 
     const userMessage: UserMessage = {
@@ -464,7 +464,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result, rerender } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
     });
 
     const userMessage: UserMessage = {
@@ -512,7 +512,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
     });
 
     const userMessage: UserMessage = {
@@ -564,7 +564,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
     });
 
     await act(async () => {
@@ -590,11 +590,7 @@ describe('useAssistantWorkflow', () => {
 
   it('creates thread and starts workflow for new session', async () => {
     const threads = createThreadState();
-    const startWorkflow = vi.fn().mockResolvedValue({
-      accepted: false,
-      session_id: 'backend-session',
-      message: 'Rejected',
-    });
+    const startWorkflow = vi.fn().mockResolvedValue(undefined);
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
@@ -757,7 +753,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 
@@ -837,7 +833,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 
@@ -887,7 +883,7 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 

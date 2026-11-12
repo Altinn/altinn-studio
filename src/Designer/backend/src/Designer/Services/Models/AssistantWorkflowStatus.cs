@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace Altinn.Studio.Designer.Services.Models;
 
 /// <summary>
@@ -22,10 +20,3 @@ public enum AssistantWorkflowStatus
     /// </summary>
     NotFound,
 }
-
-/// <summary>
-/// How a start of the assistant's workflow ended.
-/// </summary>
-/// <param name="Status">How the start ended.</param>
-/// <param name="Response">The answer from the assistant service.</param>
-public sealed record AssistantWorkflowStartResult(AssistantWorkflowStatus Status, JsonElement? Response = null);

@@ -8,7 +8,6 @@ import type {
   TrailStep,
   ConnectionStatus,
   AssistantMessageData,
-  AgentResponse,
   UserAttachment,
   PermissionRequest,
 } from '@designer/assistant';
@@ -22,11 +21,7 @@ import { useCancelAssistantWorkflowMutation } from 'app-shared/hooks/mutations/u
 import { useRespondToAssistantPermissionMutation } from 'app-shared/hooks/mutations/useRespondToAssistantPermissionMutation';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
-import {
-  formatRejectedEventMessage,
-  formatRejectionMessage,
-  getAssistantMessageTimestamp,
-} from '../../utils/messageUtils';
+import { formatRejectedEventMessage, getAssistantMessageTimestamp } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
 import { createWorkflowFormData } from '../../utils/workflowFormData';
 
@@ -383,7 +378,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       goal: string,
       allowAppChanges: boolean,
       attachments?: UserAttachment[],
-    ): Promise<AgentResponse> => {
+    ): Promise<void> => {
       if (!currentBranch)
         throw new Error('Current branch is unknown — branch query has not loaded');
       delete terminatedAtMsByThreadRef.current[threadId];
@@ -403,7 +398,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         steps: [initialStep],
       });
       try {
-        const result = await startWorkflow({
+        await startWorkflow({
           threadId,
           payload: createWorkflowFormData({
             goal,
@@ -412,8 +407,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
             attachments,
           }),
         });
-        if (!result.accepted) setWorkflowStatus(threadId, { isActive: false });
-        return result;
       } catch (error) {
         setWorkflowStatus(threadId, { isActive: false });
         throw error;
@@ -426,20 +419,12 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       try {
         await createMessage(threadId, userMessage);
-        const result = await startAgentWorkflow(
+        await startAgentWorkflow(
           threadId,
           userMessage.content,
           userMessage.allowAppChanges,
           userMessage.attachments,
         );
-        if (!result.accepted) {
-          createMessage(threadId, {
-            role: MessageAuthor.Assistant,
-            content: formatRejectionMessage(result, rejectionTexts),
-            createdAt: new Date().toISOString(),
-            filesChanged: [],
-          });
-        }
       } catch (error) {
         console.error('Workflow request failed:', error);
         createMessage(threadId, {
@@ -450,7 +435,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         });
       }
     },
-    [createMessage, startAgentWorkflow, rejectionTexts],
+    [createMessage, startAgentWorkflow],
   );
 
   const onSubmitMessage = useCallback(
