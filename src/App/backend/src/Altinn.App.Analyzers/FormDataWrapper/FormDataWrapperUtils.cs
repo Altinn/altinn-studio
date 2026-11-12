@@ -134,7 +134,13 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols)
+            GetNodeProperties(
+                rootSymbol,
+                compilation,
+                diagnostics,
+                collectionTypeSymbols,
+                new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
+            )
         );
     }
 
@@ -142,7 +148,8 @@ public static class FormDataWrapperUtils
         ITypeSymbol typeSymbol,
         Compilation compilation,
         List<Diagnostic> diagnostics,
-        SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols
+        SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols,
+        HashSet<ITypeSymbol> typesOnPath
     )
     {
         if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
@@ -154,6 +161,14 @@ public static class FormDataWrapperUtils
         if (IsJsonValueType(namedTypeSymbol.ContainingNamespace?.ToDisplayString(), namedTypeSymbol.Name))
         {
             return null;
+        }
+
+        // Reading a type that contains itself would not end, and the stack overflow takes the compiler down with it
+        if (!typesOnPath.Add(namedTypeSymbol))
+        {
+            throw new NotSupportedException(
+                $"Types that contain themselves are not supported. Type: {SourceReaderUtils.TypeSymbolToString(namedTypeSymbol)}"
+            );
         }
 
         var nodeProperties = new List<ModelPathNode>();
@@ -173,7 +188,8 @@ public static class FormDataWrapperUtils
                 propertyTypeInfo.PropertyType,
                 compilation,
                 diagnostics,
-                collectionTypeSymbols
+                collectionTypeSymbols,
+                typesOnPath
             );
 
             nodeProperties.Add(
@@ -189,6 +205,8 @@ public static class FormDataWrapperUtils
                 )
             );
         }
+
+        typesOnPath.Remove(namedTypeSymbol);
         return nodeProperties.ToArray();
     }
 
