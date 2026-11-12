@@ -1,4 +1,4 @@
-# Rules for the architecture guide
+# Rules for the assistant docs
 
 - Put each fact on the level whose question in [README.md](README.md) it answers. Level 1 uses the words of the UI
   and names no code. Level 2 shows the assistant service as one box. Level 3 names folders, and level 4 names classes
