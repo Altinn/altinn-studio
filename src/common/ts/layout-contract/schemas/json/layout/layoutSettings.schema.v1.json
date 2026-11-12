@@ -56,6 +56,12 @@
           "default": false,
           "type": "boolean"
         },
+        "hideOptionalIndicator": {
+          "title": "Hide optional indicator",
+          "description": "Hides the marking that says a field is optional. Defaults to false, which we recommend because the marking makes it explicit which fields are optional. A component's own labelSettings.optionalIndicator overrides it.",
+          "default": false,
+          "type": "boolean"
+        },
         "autoSaveBehavior": {
           "title": "Auto save behavior",
           "description": "An attribute specifying when the application will save form data. onChangeFormData saves on every interaction with form elements. onChangePage saves on every page change.",
@@ -232,6 +238,7 @@
             "showExpandWidthButton": true,
             "expandedWidth": true,
             "showProgress": true,
+            "hideOptionalIndicator": true,
             "autoSaveBehavior": true,
             "navigationTitle": true,
             "taskNavigation": true,
@@ -281,6 +288,7 @@
             "showExpandWidthButton": true,
             "expandedWidth": true,
             "showProgress": true,
+            "hideOptionalIndicator": true,
             "autoSaveBehavior": true,
             "navigationTitle": true,
             "taskNavigation": true,

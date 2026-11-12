@@ -8,7 +8,7 @@ Designer code:
 - `src/Designer/backend/src/Designer/Hubs/Assistant/`
 - `src/Designer/backend/src/Designer/Services/Implementation/Assistant/`
 - `src/Designer/frontend/app-development/features/aiAssistant/`
-- `src/Designer/frontend/libs/studio-assistant/`
+- `src/Designer/frontend/libs/designer-assistant/`
 
 The browser never calls the assistant service. The Designer backend is between them. Both hops use HTTP for commands and a WebSocket for events. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
 

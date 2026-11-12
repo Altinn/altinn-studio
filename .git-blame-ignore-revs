@@ -12,3 +12,6 @@ a1b54f0a8caa3fbc07674b4caef50a66ca0414e1
 
 # Designer - rename the @studio packages to @designer (#21882)
 17e69d3658e4c9539a821e1384bf06ee8f56aebf
+
+# Designer - rename the libs folders from studio-* to designer-* (#21921)
+07215ad24de22e89b0e74dfe9adc3ac9486ef2f5
