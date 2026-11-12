@@ -23,7 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Required validation no longer reports a filled-in field as missing when its data model property is inherited from a base class. Expressions and validators now get the values of inherited properties too. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
-- Building an app no longer crashes the compiler when a data model class contains itself, such as a `Person` with a `Person` property. The build warns with `CS8785` instead. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` instead. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))
 - Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
 - Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))

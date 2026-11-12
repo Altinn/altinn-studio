@@ -67,6 +67,8 @@ public class InheritedPropertyTests
                 public string ProtectedSet { get; protected set; }
 
                 public string PrivateGet { private get; set; }
+
+                public string PrivateInit { get; private init; }
             }
 
             public class TestClass : Parent
@@ -76,6 +78,27 @@ public class InheritedPropertyTests
             """;
 
         Assert.Equal(["Kept: string"], DescribeProperties(source));
+    }
+
+    [Theory]
+    [InlineData("public string Code { get; init; }")]
+    [InlineData("[JsonInclude] public string Code { get; private set; }")]
+    public void CreateRootSymbolNode_ThrowsForAPropertyWithFormDataTheGeneratedCodeCannotAssign(string property)
+    {
+        var source = $$"""
+            using System.Text.Json.Serialization;
+
+            public class Parent
+            {
+                {{property}}
+            }
+
+            public class TestClass : Parent { }
+            """;
+
+        var exception = Assert.Throws<NotSupportedException>(() => DescribeProperties(source));
+
+        Assert.EndsWith("Property: Parent.Code", exception.Message);
     }
 
     [Fact]

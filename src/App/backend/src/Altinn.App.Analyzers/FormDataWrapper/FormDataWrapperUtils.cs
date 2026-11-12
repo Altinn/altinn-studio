@@ -177,6 +177,14 @@ public static class FormDataWrapperUtils
                 // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
                 continue;
             }
+
+            // The generated Get, Set and RemoveField read and assign the property outside an object initializer
+            if (property.SetMethod is { IsInitOnly: true } || HasInaccessibleAccessor(property, compilation))
+            {
+                throw new NotSupportedException(
+                    $"Properties with an init or non-public accessor are not supported. Property: {property.ToDisplayString()}"
+                );
+            }
             var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type, collectionTypeSymbols);
 
             var cSharpName = property.Name;
@@ -282,6 +290,10 @@ public static class FormDataWrapperUtils
             _ => false,
         };
 
+    private static bool HasInaccessibleAccessor(IPropertySymbol property, Compilation compilation) =>
+        (property.GetMethod is { } getter && !compilation.IsSymbolAccessibleWithin(getter, compilation.Assembly))
+        || (property.SetMethod is { } setter && !compilation.IsSymbolAccessibleWithin(setter, compilation.Assembly));
+
     private static bool PropertyShouldBeSkipped(IPropertySymbol property, Compilation compilation)
     {
         // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
@@ -300,11 +312,9 @@ public static class FormDataWrapperUtils
             return true;
         }
 
-        // Skip properties with an accessor the generated code cannot call, such as a private setter
-        if (
-            (property.GetMethod is { } getter && !compilation.IsSymbolAccessibleWithin(getter, compilation.Assembly))
-            || (property.SetMethod is { } setter && !compilation.IsSymbolAccessibleWithin(setter, compilation.Assembly))
-        )
+        // Skip properties with an accessor the generated code cannot call, such as a private setter.
+        // System.Text.Json uses such an accessor only with [JsonInclude], so without it the property holds no form data.
+        if (HasInaccessibleAccessor(property, compilation) && !SourceReaderUtils.HasJsonIncludeAttribute(property))
         {
             return true;
         }
