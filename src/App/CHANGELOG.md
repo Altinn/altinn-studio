@@ -20,7 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
-- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. Forms with the old object format do not load. `studioctl app upgrade v9` converts your files. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. An app with a file in the old object format does not start; the message says to run `studioctl app upgrade v9`. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 
 ### Fixed
 
