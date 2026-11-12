@@ -10,15 +10,16 @@ namespace Altinn.Studio.Common.App;
 
 /// <summary>
 /// The properties, package references and central package versions of an MSBuild file, such as a <c>.csproj</c> or
-/// <c>Directory.Packages.props</c>.
+/// <c>Directory.Packages.props</c>, as written and in the order they are written.
 /// </summary>
 /// <remarks>
-/// It reads the file as written rather than evaluating it as MSBuild does: it ignores conditions, imports and targets,
-/// and the last definition of a property wins.
+/// It does not evaluate the file as MSBuild does. It ignores imports and targets, and only notes that a condition
+/// applies to a property or an item, so that whoever resolves the values can take such a one for unknown.
 /// </remarks>
-public sealed class ProjectFile
+internal sealed class ProjectFile
 {
-    private const int MaxExpansionDepth = 8;
+    // No version or target framework is longer, and a limit keeps properties that repeat each other from growing.
+    private const int MaxValueLength = 4096;
 
     private static readonly XmlReaderSettings s_settings = new()
     {
@@ -29,31 +30,54 @@ public sealed class ProjectFile
         CloseInput = false,
     };
 
-    private ProjectFile(
-        Dictionary<string, string> properties,
-        List<Item> packageReferences,
-        Dictionary<string, string> packageVersions
-    )
+    private ProjectFile(List<Property> properties, List<Item> packageReferences, List<Item> packageVersions)
     {
         Properties = properties;
         PackageReferences = packageReferences;
         PackageVersions = packageVersions;
     }
 
-    /// <summary>The properties the file sets, by name, ignoring case as MSBuild does.</summary>
-    public IReadOnlyDictionary<string, string> Properties { get; }
+    /// <summary>What an item element does to the items of its kind.</summary>
+    public enum Operation
+    {
+        /// <summary><c>Include</c> adds an item.</summary>
+        Include,
 
-    /// <summary>The <c>PackageReference</c> items the file includes, in order, as written.</summary>
+        /// <summary><c>Update</c> changes an item that an earlier element included.</summary>
+        Update,
+
+        /// <summary><c>Remove</c> takes an item away.</summary>
+        Remove,
+    }
+
+    /// <summary>The properties the file sets, in order. A later one of the same name replaces an earlier one.</summary>
+    public IReadOnlyList<Property> Properties { get; }
+
+    /// <summary>The <c>PackageReference</c> elements of the file, in order.</summary>
     public IReadOnlyList<Item> PackageReferences { get; }
 
-    /// <summary>The <c>PackageVersion</c> items of central package management, by package, as written.</summary>
-    public IReadOnlyDictionary<string, string> PackageVersions { get; }
+    /// <summary>The <c>PackageVersion</c> elements of central package management, in order.</summary>
+    public IReadOnlyList<Item> PackageVersions { get; }
+
+    /// <summary>A property as written in the file, before the properties it refers to are resolved.</summary>
+    /// <param name="Name">The name of the element.</param>
+    /// <param name="Value">The text of the element.</param>
+    /// <param name="Conditional">Whether a condition decides if it is set.</param>
+    public sealed record Property(string Name, string Value, bool Conditional);
 
     /// <summary>A package item as written in the file, before properties are resolved.</summary>
-    /// <param name="Name">The package ID from <c>Include</c>.</param>
+    /// <param name="Operation">What the element does.</param>
+    /// <param name="Name">The package ID from <c>Include</c>, <c>Update</c> or <c>Remove</c>.</param>
     /// <param name="Version">The <c>Version</c> attribute or element.</param>
     /// <param name="VersionOverride">The <c>VersionOverride</c> attribute or element.</param>
-    public sealed record Item(string Name, string? Version, string? VersionOverride);
+    /// <param name="Conditional">Whether a condition decides if the element applies.</param>
+    public sealed record Item(
+        Operation Operation,
+        string Name,
+        string? Version,
+        string? VersionOverride,
+        bool Conditional
+    );
 
     /// <summary>Parses a file's bytes, or returns <c>false</c> when it is not well-formed XML.</summary>
     public static bool TryParse(ReadOnlyMemory<byte> content, [NotNullWhen(true)] out ProjectFile? file)
@@ -100,10 +124,11 @@ public sealed class ProjectFile
 
     private static ProjectFile Parse(XmlReader reader)
     {
-        var properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var properties = new List<Property>();
         var packageReferences = new List<Item>();
-        var packageVersions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var packageVersions = new List<Item>();
         string? group = null;
+        bool groupIsConditional = false;
         while (reader.Read())
         {
             if (reader.NodeType != XmlNodeType.Element)
@@ -114,15 +139,17 @@ public sealed class ProjectFile
             if (reader.Depth == 1)
             {
                 group = reader.LocalName;
+                groupIsConditional = HasCondition(reader);
             }
             else if (reader.Depth == 2 && Is(group, "PropertyGroup"))
             {
                 string name = reader.LocalName;
-                properties[name] = ReadText(reader);
+                bool conditional = groupIsConditional || HasCondition(reader);
+                properties.Add(new Property(name, ReadText(reader), conditional));
             }
             else if (reader.Depth == 2 && Is(group, "ItemGroup"))
             {
-                ReadItem(reader, packageReferences, packageVersions);
+                ReadItem(reader, groupIsConditional, packageReferences, packageVersions);
             }
         }
 
@@ -130,15 +157,26 @@ public sealed class ProjectFile
     }
 
     /// <summary>
-    /// Replaces each <c>$(Name)</c> in a value with the property's value, recursively. Returns <c>null</c> when a
-    /// property is not set or the value calls a property function, since the result would then be unknown.
+    /// Sets the file's properties in a set of resolved ones, in order, as MSBuild does: a property gets the values
+    /// that the properties it refers to have where it is set, not the ones they get later. A value is <c>null</c>
+    /// when the property is set but to something unknown, which is so for one that a condition decides.
     /// </summary>
-    public static string? ExpandProperties(string? value, IReadOnlyDictionary<string, string> properties) =>
-        Expand(value, properties, depth: 0);
-
-    private static string? Expand(string? value, IReadOnlyDictionary<string, string> properties, int depth)
+    public void SetProperties(Dictionary<string, string?> resolved)
     {
-        if (value is null || depth > MaxExpansionDepth)
+        foreach (Property property in Properties)
+        {
+            resolved[property.Name] = property.Conditional ? null : Expand(property.Value, resolved);
+        }
+    }
+
+    /// <summary>
+    /// Replaces each <c>$(Name)</c> in a value with the property's resolved value. Returns <c>null</c> when a
+    /// property is not set or not known, when the value calls a property function, or when the result is longer
+    /// than any value this model reads, since the result would then be unknown.
+    /// </summary>
+    public static string? Expand(string? value, IReadOnlyDictionary<string, string?> resolved)
+    {
+        if (value is null || value.Length > MaxValueLength)
         {
             return null;
         }
@@ -160,18 +198,17 @@ public sealed class ProjectFile
             }
 
             string name = value.Substring(start + 2, end - start - 2);
-            if (!IsPropertyName(name) || !properties.TryGetValue(name, out string? propertyValue))
+            if (
+                !IsPropertyName(name)
+                || !resolved.TryGetValue(name, out string? propertyValue)
+                || propertyValue is null
+                || result.Length + propertyValue.Length > MaxValueLength
+            )
             {
                 return null;
             }
 
-            string? expanded = Expand(propertyValue, properties, depth + 1);
-            if (expanded is null)
-            {
-                return null;
-            }
-
-            result.Append(value, position, start - position).Append(expanded);
+            result.Append(value, position, start - position).Append(propertyValue);
             position = end + 1;
             start = value.IndexOf("$(", position, StringComparison.Ordinal);
         }
@@ -199,8 +236,9 @@ public sealed class ProjectFile
 
     private static void ReadItem(
         XmlReader reader,
+        bool groupIsConditional,
         List<Item> packageReferences,
-        Dictionary<string, string> packageVersions
+        List<Item> packageVersions
     )
     {
         bool isReference = Is(reader.LocalName, "PackageReference");
@@ -209,14 +247,28 @@ public sealed class ProjectFile
             return;
         }
 
-        string? include = null;
+        string? name = null;
+        var operation = Operation.Include;
+        bool conditional = groupIsConditional;
         string? version = null;
         string? versionOverride = null;
         while (reader.MoveToNextAttribute())
         {
             if (Is(reader.LocalName, "Include"))
             {
-                include = reader.Value.Trim();
+                (name, operation) = (reader.Value.Trim(), Operation.Include);
+            }
+            else if (Is(reader.LocalName, "Update"))
+            {
+                (name, operation) = (reader.Value.Trim(), Operation.Update);
+            }
+            else if (Is(reader.LocalName, "Remove"))
+            {
+                (name, operation) = (reader.Value.Trim(), Operation.Remove);
+            }
+            else if (Is(reader.LocalName, "Condition"))
+            {
+                conditional = true;
             }
             else if (Is(reader.LocalName, "Version"))
             {
@@ -253,19 +305,25 @@ public sealed class ProjectFile
             }
         }
 
-        if (string.IsNullOrEmpty(include))
+        if (name is not null && name.Length > 0)
         {
-            return;
+            (isReference ? packageReferences : packageVersions).Add(
+                new Item(operation, name, NullIfEmpty(version), NullIfEmpty(versionOverride), conditional)
+            );
+        }
+    }
+
+    // Leaves the reader on the element.
+    private static bool HasCondition(XmlReader reader)
+    {
+        bool has = false;
+        while (reader.MoveToNextAttribute())
+        {
+            has |= Is(reader.LocalName, "Condition");
         }
 
-        if (isReference)
-        {
-            packageReferences.Add(new Item(include, NullIfEmpty(version), NullIfEmpty(versionOverride)));
-        }
-        else if (!string.IsNullOrEmpty(version))
-        {
-            packageVersions[include] = version;
-        }
+        reader.MoveToElement();
+        return has;
     }
 
     // Reads an element's text and leaves the reader on its end, or on the element itself when it is empty.

@@ -30,8 +30,10 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
     private readonly Dictionary<AppFilePath, ProjectFile> _projects = [];
     private readonly HashSet<AppFilePath> _malformedProjects = [];
-    private readonly Dictionary<string, ProjectFile> _buildProps = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, ProjectFile> _packagesProps = new(StringComparer.Ordinal);
+
+    // By directory. A malformed file is null: MSBuild takes the nearest file, and could not have imported it.
+    private readonly Dictionary<string, ProjectFile?> _buildProps = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ProjectFile?> _packagesProps = new(StringComparer.Ordinal);
     private readonly V8DescriptionReader _v8 = new();
     private readonly V9DescriptionReader _v9 = new();
 
@@ -123,18 +125,11 @@ public sealed class AppDescriptionReader : IAppSourceReader
             : FileKind.Other;
     }
 
-    // A malformed props file is as good as none, since MSBuild could not have imported it either. A file that is
-    // read again replaces what the earlier read gave.
+    // A file that is read again replaces what the earlier read gave.
     private void Add(AppFilePath path, ProjectFile? file)
     {
         switch (Kind(path), file)
         {
-            case (FileKind.BuildProps, null):
-                _buildProps.Remove(path.Directory);
-                break;
-            case (FileKind.PackagesProps, null):
-                _packagesProps.Remove(path.Directory);
-                break;
             case (FileKind.Project, null):
                 _projects.Remove(path);
                 _malformedProjects.Add(path);
@@ -143,92 +138,81 @@ public sealed class AppDescriptionReader : IAppSourceReader
                 _malformedProjects.Remove(path);
                 _projects[path] = project;
                 break;
-            case (FileKind.BuildProps, { } props):
-                _buildProps[path.Directory] = props;
+            case (FileKind.BuildProps, _):
+                _buildProps[path.Directory] = file;
                 break;
-            case (FileKind.PackagesProps, { } props):
-                _packagesProps[path.Directory] = props;
+            case (FileKind.PackagesProps, _):
+                _packagesProps[path.Directory] = file;
                 break;
         }
     }
 
     private ProjectDescription.WellFormed Describe(AppFilePath path, ProjectFile project)
     {
-        ProjectFile? buildProps = Nearest(_buildProps, path.Directory);
-        ProjectFile? packagesProps = Nearest(_packagesProps, path.Directory);
-
-        // MSBuild imports Directory.Build.props, then Directory.Packages.props, then the project.
-        var properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var packageVersions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (ProjectFile? file in new[] { buildProps, packagesProps, project })
+        // MSBuild imports Directory.Build.props, then Directory.Packages.props, then the project. It sets every
+        // property before it reads an item, so an item gets the values the properties have in the end.
+        ProjectFile?[] files = [Nearest(_buildProps, path.Directory), Nearest(_packagesProps, path.Directory), project];
+        var properties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var packageVersions = new PackageItems();
+        var packageReferences = new PackageItems();
+        foreach (ProjectFile? file in files)
         {
-            if (file is null)
-            {
-                continue;
-            }
-
-            foreach (KeyValuePair<string, string> property in file.Properties)
-            {
-                properties[property.Key] = property.Value;
-            }
-
-            foreach (KeyValuePair<string, string> version in file.PackageVersions)
-            {
-                packageVersions[version.Key] = version.Value;
-            }
+            file?.SetProperties(properties);
         }
 
-        var references = new List<PackageReference>();
-        var indexByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (ProjectFile? file in new[] { buildProps, project })
+        foreach (ProjectFile? file in files)
         {
             if (file is null)
             {
                 continue;
+            }
+
+            foreach (ProjectFile.Item item in file.PackageVersions)
+            {
+                packageVersions.Apply(item);
             }
 
             foreach (ProjectFile.Item item in file.PackageReferences)
             {
-                string? declared = item.VersionOverride ?? item.Version;
-                if (declared is null && packageVersions.TryGetValue(item.Name, out string? central))
-                {
-                    declared = central;
-                }
-
-                var reference = new PackageReference(
-                    item.Name,
-                    NormalizeVersion(ProjectFile.ExpandProperties(declared, properties))
-                );
-                if (indexByName.TryGetValue(item.Name, out int index))
-                {
-                    references[index] = reference;
-                }
-                else
-                {
-                    indexByName[item.Name] = references.Count;
-                    references.Add(reference);
-                }
+                packageReferences.Apply(item);
             }
+        }
+
+        // Without central package management, NuGet ignores the central versions and VersionOverride.
+        bool central =
+            properties.TryGetValue("ManagePackageVersionsCentrally", out string? manage)
+            && string.Equals(manage?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
+        var references = new List<PackageReference>();
+        foreach (PackageItems.Entry reference in packageReferences.Entries)
+        {
+            string? declared = reference.Version;
+            if (central)
+            {
+                declared = reference.VersionOverride ?? declared ?? packageVersions.Find(reference.Name)?.Version;
+            }
+
+            references.Add(
+                new PackageReference(reference.Name, NormalizeVersion(ProjectFile.Expand(declared, properties)))
+            );
         }
 
         return new ProjectDescription.WellFormed(path, TargetFrameworks(properties), references);
     }
 
-    private static List<string> TargetFrameworks(Dictionary<string, string> properties)
+    private static List<string> TargetFrameworks(Dictionary<string, string?> properties)
     {
         var frameworks = new List<string>();
-        if (!properties.TryGetValue("TargetFrameworks", out string? value) || value.Trim().Length == 0)
+        if (!properties.TryGetValue("TargetFrameworks", out string? value) || value?.Trim().Length == 0)
         {
             properties.TryGetValue("TargetFramework", out value);
         }
 
-        string? expanded = ProjectFile.ExpandProperties(value, properties);
-        if (expanded is null)
+        if (value is null)
         {
             return frameworks;
         }
 
-        foreach (string framework in expanded.Split(';'))
+        foreach (string framework in value.Split(';'))
         {
             if (framework.Trim().Length > 0)
             {
@@ -237,6 +221,110 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
 
         return frameworks;
+    }
+
+    // The items of one kind, as the elements of the files leave them, in the order they were first included.
+    private sealed class PackageItems
+    {
+        private readonly Dictionary<string, Entry> _byName = new(StringComparer.OrdinalIgnoreCase);
+
+        public List<Entry> Entries { get; } = [];
+
+        public Entry? Find(string name) => _byName.TryGetValue(name, out Entry? entry) ? entry : null;
+
+        public void Apply(ProjectFile.Item item)
+        {
+            // An element names one package, several with ; between them, or a pattern such as @(PackageReference).
+            // What a pattern matches is not known here, so it leaves the version of every item unknown.
+            if (item.Name.AsSpan().IndexOfAny("*?@$%".AsSpan()) >= 0)
+            {
+                if (item.Operation != ProjectFile.Operation.Include)
+                {
+                    Entries.ForEach(entry => entry.Forget());
+                }
+
+                return;
+            }
+
+            foreach (string part in item.Name.Split(';'))
+            {
+                string name = part.Trim();
+                if (name.Length > 0)
+                {
+                    Apply(item, name);
+                }
+            }
+        }
+
+        private void Apply(ProjectFile.Item item, string name)
+        {
+            Entry? entry = Find(name);
+            if (entry is null)
+            {
+                if (item.Operation == ProjectFile.Operation.Include)
+                {
+                    entry = new Entry(name);
+                    _byName[name] = entry;
+                    Entries.Add(entry);
+                    Set(entry, item);
+                }
+
+                return;
+            }
+
+            // Whether a condition holds is not known here, so neither is what a conditional element leaves.
+            if (item.Conditional)
+            {
+                entry.Forget();
+            }
+            else if (item.Operation == ProjectFile.Operation.Remove)
+            {
+                _byName.Remove(name);
+                Entries.Remove(entry);
+            }
+            else if (item.Operation == ProjectFile.Operation.Include)
+            {
+                Set(entry, item);
+            }
+            else
+            {
+                entry.Version = item.Version ?? entry.Version;
+                entry.VersionOverride = item.VersionOverride ?? entry.VersionOverride;
+            }
+        }
+
+        private static void Set(Entry entry, ProjectFile.Item item)
+        {
+            entry.Version = item.Version;
+            entry.VersionOverride = item.VersionOverride;
+            if (item.Conditional)
+            {
+                entry.Forget();
+            }
+        }
+
+        public sealed class Entry(string name)
+        {
+            private bool _unknown;
+            private string? _version;
+            private string? _versionOverride;
+
+            public string Name { get; } = name;
+
+            public string? Version
+            {
+                get => _unknown ? null : _version;
+                set => _version = value;
+            }
+
+            public string? VersionOverride
+            {
+                get => _unknown ? null : _versionOverride;
+                set => _versionOverride = value;
+            }
+
+            public void Forget() => _unknown = true;
+        }
     }
 
     // App/App.csproj is what the app template creates and its Dockerfile publishes. An app that has renamed it has one
@@ -332,7 +420,8 @@ public sealed class AppDescriptionReader : IAppSourceReader
         return trimmed;
     }
 
-    private static ProjectFile? Nearest(Dictionary<string, ProjectFile> files, string directory)
+    // The file of the nearest directory that has one, which is null when that file is malformed.
+    private static ProjectFile? Nearest(Dictionary<string, ProjectFile?> files, string directory)
     {
         while (true)
         {

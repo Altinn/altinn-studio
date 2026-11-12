@@ -11,7 +11,7 @@ namespace Altinn.Studio.Common.App.V8;
 /// A <c>meta</c> tag with <c>data-altinn-app-frontend-version</c> wins. Otherwise the version is the path segment of
 /// the first <c>altinn-app-frontend.js</c> script whose source is on altinncdn.no. Either must be an
 /// <see cref="AppFrontendVersion"/>, or the page names none. Old pages hold malformed markup and Razor, so it scans
-/// tags leniently, skipping HTML and Razor comments and the content of scripts and styles.
+/// tags leniently, skipping HTML and Razor comments and the content of elements that hold text, such as scripts.
 /// </remarks>
 public static class AppFrontendVersionReader
 {
@@ -22,6 +22,9 @@ public static class AppFrontendVersionReader
     private const string ScriptPrefix = "https://altinncdn.no/toolkits/altinn-app-frontend/";
     private const string ScriptFile = "altinn-app-frontend.js";
     private const string ScriptSuffix = "/" + ScriptFile;
+
+    // The elements whose content is text, so that a tag written in it is not a tag of the page.
+    private static readonly string[] s_textElements = ["script", "style", "textarea", "title"];
 
     /// <summary>Reads the version from the page's UTF-8 bytes, or returns <c>null</c> when it names none.</summary>
     public static AppFrontendVersion? Read(ReadOnlyMemory<byte> content)
@@ -38,7 +41,7 @@ public static class AppFrontendVersionReader
     {
         string? metaVersion = null;
         string? scriptSource = null;
-        var tags = new TagScanner(content);
+        var tags = new TagScanner(WithoutRazorComments(content));
         while (metaVersion is null && tags.Next())
         {
             if (tags.NameIs("meta"))
@@ -76,11 +79,41 @@ public static class AppFrontendVersionReader
             return null;
         }
 
-        // The suffix starts inside the prefix when the source has no segment between them.
+        // The suffix starts inside the prefix when the source has no segment between them. The file name ends the
+        // path, so only a query or a fragment can follow it.
         int suffix = source.IndexOf(ScriptSuffix, StringComparison.Ordinal);
-        return suffix < ScriptPrefix.Length
+        int end = suffix + ScriptSuffix.Length;
+        return suffix < ScriptPrefix.Length || (end < source.Length && source[end] is not ('?' or '#'))
             ? null
             : source.Substring(ScriptPrefix.Length, suffix - ScriptPrefix.Length);
+    }
+
+    // Razor leaves a comment, @* to *@, out of the page it renders, wherever in the page it is. @@ is an @ as text.
+    private static string WithoutRazorComments(string page)
+    {
+        int open = page.IndexOf("@*", StringComparison.Ordinal);
+        if (open < 0)
+        {
+            return page;
+        }
+
+        var result = new StringBuilder(page.Length);
+        int position = 0;
+        while (open >= 0)
+        {
+            if (open > position && page[open - 1] == '@')
+            {
+                open = page.IndexOf("@*", open + 1, StringComparison.Ordinal);
+                continue;
+            }
+
+            result.Append(page, position, open - position);
+            int close = page.IndexOf("*@", open + 2, StringComparison.Ordinal);
+            position = close < 0 ? page.Length : close + 2;
+            open = page.IndexOf("@*", position, StringComparison.Ordinal);
+        }
+
+        return result.Append(page, position, page.Length - position).ToString();
     }
 
     // Finds start tags in HTML, one at a time, and reads their attributes on request.
@@ -92,13 +125,9 @@ public static class AppFrontendVersionReader
         private int _nameEnd;
         private int _tagEnd;
 
-        // Where the next Razor comment starts, or -1 when the rest of the page has none.
-        private int _razorComment;
-
         public TagScanner(string html)
         {
             _html = html;
-            _razorComment = html.IndexOf("@*", StringComparison.Ordinal);
         }
 
         public readonly bool NameIs(string name) => TextEquals(_nameStart, _nameEnd, name);
@@ -114,19 +143,6 @@ public static class AppFrontendVersionReader
                 }
 
                 int open = _html.IndexOf('<', _position);
-                if (_razorComment >= 0 && _razorComment < _position)
-                {
-                    _razorComment = _html.IndexOf("@*", _position, StringComparison.Ordinal);
-                }
-
-                // Razor leaves a comment, @* to *@, out of the page it renders.
-                if (_razorComment >= 0 && (open < 0 || _razorComment < open))
-                {
-                    int close = _html.IndexOf("*@", _razorComment + 2, StringComparison.Ordinal);
-                    _position = close < 0 ? _html.Length : close + 2;
-                    continue;
-                }
-
                 if (open < 0 || open + 1 >= _html.Length)
                 {
                     _position = _html.Length;
@@ -156,6 +172,13 @@ public static class AppFrontendVersionReader
 
                 _nameEnd = _position;
                 _tagEnd = FindTagEnd(_position);
+                if (_tagEnd < 0)
+                {
+                    // A tag that the page ends in the middle of is no tag, as a browser has it.
+                    _position = _tagEnd = _html.Length;
+                    return false;
+                }
+
                 return true;
             }
         }
@@ -234,7 +257,8 @@ public static class AppFrontendVersionReader
             return (_html.Substring(start, position - start), position);
         }
 
-        // The index just after the '>' that ends the tag, skipping '>' inside quoted attribute values.
+        // The index just after the '>' that ends the tag, skipping '>' inside quoted attribute values, or -1 when
+        // the page ends before the tag does.
         private readonly int FindTagEnd(int position)
         {
             char quote = '\0';
@@ -267,25 +291,50 @@ public static class AppFrontendVersionReader
                 }
             }
 
-            return _html.Length;
+            return -1;
         }
 
         private readonly bool TextEquals(int start, int end, string name) =>
             end - start == name.Length
             && string.Compare(_html, start, name, 0, name.Length, StringComparison.OrdinalIgnoreCase) == 0;
 
-        // Moves past the content of a script or style element, which is text rather than markup.
+        // Moves past the content of an element that holds text rather than markup, to its end tag.
         private void SkipRawText()
         {
-            bool isScript = NameIs("script");
-            if ((!isScript && !NameIs("style")) || _html[_tagEnd - 1] != '>' || _html[_tagEnd - 2] == '/')
+            string? name = null;
+            foreach (string candidate in s_textElements)
+            {
+                name = NameIs(candidate) ? candidate : name;
+            }
+
+            if (name is null || _html[_tagEnd - 2] == '/')
             {
                 return;
             }
 
-            string closing = isScript ? "</script" : "</style";
-            int close = _html.IndexOf(closing, _position, StringComparison.OrdinalIgnoreCase);
-            _position = close < 0 ? _html.Length : close;
+            // The end tag is the name and then a space, a / or a >, so </scripted> does not end a script.
+            int search = _position;
+            while (true)
+            {
+                int close = _html.IndexOf("</", search, StringComparison.Ordinal);
+                int after = close + 2 + name.Length;
+                if (close < 0 || after >= _html.Length)
+                {
+                    _position = _html.Length;
+                    return;
+                }
+
+                if (
+                    string.Compare(_html, close + 2, name, 0, name.Length, StringComparison.OrdinalIgnoreCase) == 0
+                    && (char.IsWhiteSpace(_html[after]) || _html[after] is '/' or '>')
+                )
+                {
+                    _position = close;
+                    return;
+                }
+
+                search = close + 2;
+            }
         }
     }
 }

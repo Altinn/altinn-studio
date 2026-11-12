@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Altinn.Studio.Common.App;
@@ -153,7 +154,7 @@ public sealed class AppDescriptionReaderTests
         Read(
             reader,
             "Directory.Build.props",
-            "<Project><PropertyGroup><AltinnVersion>8.2.$(Patch)</AltinnVersion><Patch>3</Patch></PropertyGroup></Project>"
+            "<Project><PropertyGroup><Patch>3</Patch><AltinnVersion>8.2.$(Patch)</AltinnVersion></PropertyGroup></Project>"
         );
         Read(
             reader,
@@ -193,6 +194,7 @@ public sealed class AppDescriptionReaderTests
             "Directory.Packages.props",
             """
             <Project>
+              <PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>
               <ItemGroup>
                 <PackageVersion Include="Altinn.App.Api" Version="8.5.0" />
                 <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
@@ -219,6 +221,160 @@ public sealed class AppDescriptionReaderTests
             [new PackageReference("Altinn.App.Api", "8.5.0"), new PackageReference("Newtonsoft.Json", "13.0.1")],
             WellFormed(description.Projects[0]).PackageReferences
         );
+    }
+
+    // Central package management is off until a property turns it on, and NuGet then ignores the central versions.
+    [Theory]
+    [InlineData("")]
+    [InlineData(
+        "<PropertyGroup><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup>"
+    )]
+    public void Build_IgnoresCentralVersionsWhenTheyAreNotTurnedOn(string properties)
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Packages.props",
+            "<Project><ItemGroup><PackageVersion Include=\"Altinn.App.Api\" Version=\"9.0.0\" /></ItemGroup></Project>"
+        );
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project>{properties}<ItemGroup><PackageReference Include=\"Altinn.App.Api\" VersionOverride=\"9.1.0\" /></ItemGroup></Project>"
+        );
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
+    }
+
+    // MSBuild sets properties in order, so a property has the values that others had where it was set. It reads the
+    // items after every property, so an item has the values the properties have in the end.
+    [Theory]
+    [InlineData("<A>8.0.0</A><B>$(A)</B><A>9.0.0</A>", "$(B)", "8.0.0")]
+    [InlineData("<A>8.0.0</A><B>$(A)</B><A>9.0.0</A>", "$(A)", "9.0.0")]
+    [InlineData("<B>$(A)</B><A>8.0.0</A>", "$(B)", null)]
+    [InlineData("<A>$(A)</A>", "$(A)", null)]
+    [InlineData("<A>8</A><B>$(A).$(A)</B><A>$(B).0</A>", "$(A)", "8.8.0")]
+    public void Build_ResolvesAPropertyWhereItIsSet(string properties, string declared, string? version)
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"{declared}\" /></ItemGroup>"
+                + $"<PropertyGroup>{properties}</PropertyGroup></Project>"
+        );
+
+        Assert.Equal(
+            [new PackageReference("Altinn.App.Api", version)],
+            WellFormed(reader.Build().Projects[0]).PackageReferences
+        );
+    }
+
+    [Fact]
+    public void Build_GivesUpOnPropertiesThatGrowByRepeatingEachOther()
+    {
+        var properties = new StringBuilder("<P0>8</P0>");
+        for (int i = 1; i <= 40; i++)
+        {
+            properties.Append(CultureInfo.InvariantCulture, $"<P{i}>$(P{i - 1})$(P{i - 1})</P{i}>");
+        }
+
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><PropertyGroup>{properties}</PropertyGroup>"
+                + "<ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"$(P40)\" /></ItemGroup></Project>"
+        );
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
+    }
+
+    [Theory]
+    [InlineData("<PackageReference Update=\"altinn.app.api\" Version=\"9.0.0\" />", "9.0.0")]
+    [InlineData(
+        "<PackageReference Update=\"Other;Altinn.App.Api\"><Version>9.0.0</Version></PackageReference>",
+        "9.0.0"
+    )]
+    [InlineData("<PackageReference Update=\"Altinn.App.Api\" PrivateAssets=\"all\" />", "8.0.0")]
+    [InlineData("<PackageReference Update=\"Other\" Version=\"9.0.0\" />", "8.0.0")]
+    [InlineData("<PackageReference Update=\"@(PackageReference)\" Version=\"9.0.0\" />", null)]
+    [InlineData("<PackageReference Update=\"Altinn.*\" Version=\"9.0.0\" />", null)]
+    [InlineData("<PackageReference Update=\"Altinn.App.Api\" Version=\"9.0.0\" Condition=\"'$(X)' == ''\" />", null)]
+    public void Build_AppliesAnUpdateToAReferenceOfDirectoryBuildProps(string update, string? version)
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Build.props",
+            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
+        );
+        Read(reader, "App/App.csproj", $"<Project><ItemGroup>{update}</ItemGroup></Project>");
+
+        Assert.Equal(
+            [new PackageReference("Altinn.App.Api", version)],
+            WellFormed(reader.Build().Projects[0]).PackageReferences
+        );
+    }
+
+    [Fact]
+    public void Build_AppliesARemove()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" />"
+                + "<PackageReference Include=\"Other\" Version=\"1.0.0\" />"
+                + "<PackageReference Remove=\"Altinn.App.Api\" /></ItemGroup></Project>"
+        );
+
+        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
+        Assert.Equal([new PackageReference("Other", "1.0.0")], WellFormed(description.Projects[0]).PackageReferences);
+    }
+
+    // Whether a condition holds is not known without evaluating the project, so what it decides is not known either.
+    [Theory]
+    [InlineData(
+        "<PropertyGroup><V>8.0.0</V><V Condition=\"'1' == '2'\">9.0.0</V></PropertyGroup>",
+        "<PackageReference Include=\"Altinn.App.Api\" Version=\"$(V)\" />"
+    )]
+    [InlineData(
+        "<PropertyGroup><V>8.0.0</V></PropertyGroup><PropertyGroup Condition=\"'1' == '2'\"><V>9.0.0</V></PropertyGroup>",
+        "<PackageReference Include=\"Altinn.App.Api\" Version=\"$(V)\" />"
+    )]
+    [InlineData("", "<PackageReference Include=\"Altinn.App.Api\" Version=\"9.0.0\" Condition=\"'1' == '2'\" />")]
+    [InlineData(
+        "",
+        "<PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup><ItemGroup Condition=\"'1' == '2'\">"
+            + "<PackageReference Include=\"Altinn.App.Api\" Version=\"9.0.0\" />"
+    )]
+    public void Build_TakesWhatAConditionDecidesForUnknown(string properties, string items)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", $"<Project>{properties}<ItemGroup>{items}</ItemGroup></Project>");
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
+    }
+
+    // MSBuild imports the nearest Directory.Build.props and stops there, so one that is malformed hides the ones above.
+    [Fact]
+    public void Build_StopsAtTheNearestPropsAlsoWhenItIsMalformed()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "Directory.Build.props", "<Project><PropertyGroup><V>9.0.0</V></PropertyGroup></Project>");
+        Read(reader, "App/Directory.Build.props", "not xml");
+        Read(
+            reader,
+            "App/App.csproj",
+            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"$(V)\" /></ItemGroup></Project>"
+        );
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
     }
 
     [Fact]
@@ -303,6 +459,28 @@ public sealed class AppDescriptionReaderTests
     [InlineData("Dibk.Ftpb.Common.AltinnApps", "8.0.0", null, 0)]
     [InlineData("Altinn.App.Api", null, null, 0)]
     [InlineData("Altinn.App.Api", "[8.0.0,9.0.0)", null, 0)]
+    // NuGet's versions of one to four numbers, and its floating versions.
+    [InlineData("Altinn.App.Api", "8", "Altinn.App.Api", 8)]
+    [InlineData("Altinn.App.Api", "8.5", "Altinn.App.Api", 8)]
+    [InlineData("Altinn.App.Api", "8.5.0.1", "Altinn.App.Api", 8)]
+    [InlineData("Altinn.App.Api", "8.5.*", "Altinn.App.Api", 8)]
+    [InlineData("Altinn.App.Api", "9.0.0-*", "Altinn.App.Api", 9)]
+    [InlineData("Altinn.App.Api", "9.0.0-preview.*", "Altinn.App.Api", 9)]
+    [InlineData("Altinn.App.Api", "9.0.0-preview*", "Altinn.App.Api", 9)]
+    [InlineData("Altinn.App.Api", "9.*-*", "Altinn.App.Api", 9)]
+    [InlineData("Altinn.App.Api", "8.5+build", "Altinn.App.Api", 8)]
+    // What only starts like a version names no major version.
+    [InlineData("Altinn.App.Api", "9.broken", null, 0)]
+    [InlineData("Altinn.App.Api", "9.", null, 0)]
+    [InlineData("Altinn.App.Api", "9..0", null, 0)]
+    [InlineData("Altinn.App.Api", "9+", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.0-", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.0-.*", null, 0)]
+    [InlineData("Altinn.App.Api", "9.*.0", null, 0)]
+    [InlineData("Altinn.App.Api", "*", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.0.0.0", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.0+build*", null, 0)]
+    [InlineData("Altinn.App.Api", "1234567.0", null, 0)]
     public void AltinnAppPackage_IsOnlyAReferenceToAnAltinnAppPackageWithAMajorVersion(
         string name,
         string? version,
@@ -356,7 +534,8 @@ public sealed class AppDescriptionReaderTests
     [Theory]
     [InlineData(
         "Directory.Packages.props",
-        "<Project><ItemGroup><PackageVersion Include=\"Altinn.App.Api\" Version=\"9.0.0\" /></ItemGroup></Project>",
+        "<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>"
+            + "<ItemGroup><PackageVersion Include=\"Altinn.App.Api\" Version=\"9.0.0\" /></ItemGroup></Project>",
         "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" /></ItemGroup></Project>"
     )]
     [InlineData(

@@ -215,27 +215,75 @@ public sealed record AltinnAppPackage
         return null;
     }
 
-    // The major of a version that is not a semantic version but still names one, such as 8.* or 8.5.
+    // The major of a version that is not a semantic version but still names one: a NuGet version of one to four
+    // numbers, such as 8 or 8.5, or a floating one, such as 8.* or 8.5.0-*.
     private static int? ReadMajor(string version)
     {
-        int end = 0;
-        int major = 0;
-        while (end < version.Length && AsciiText.IsDigit(version[end]))
+        int plus = version.AsSpan().IndexOf('+');
+        string withoutBuild = plus < 0 ? version : version.Substring(0, plus);
+        int hyphen = withoutBuild.AsSpan().IndexOf('-');
+        string[] numbers = (hyphen < 0 ? withoutBuild : withoutBuild.Substring(0, hyphen)).Split('.');
+        bool valid =
+            numbers.Length <= 4
+            && (plus < 0 || AreIdentifiers(version.Substring(plus + 1), floating: false))
+            && (hyphen < 0 || AreIdentifiers(withoutBuild.Substring(hyphen + 1), floating: true));
+        for (int i = 0; valid && i < numbers.Length; i++)
         {
-            if (end >= 6)
+            bool floats = i > 0 && i == numbers.Length - 1 && numbers[i] == "*";
+            valid = floats || IsNumber(numbers[i]);
+        }
+
+        return valid ? int.Parse(numbers[0], System.Globalization.CultureInfo.InvariantCulture) : null;
+    }
+
+    // At most six digits, which is more than any version has.
+    private static bool IsNumber(string text)
+    {
+        foreach (char c in text)
+        {
+            if (!AsciiText.IsDigit(c))
             {
-                return null;
+                return false;
+            }
+        }
+
+        return text.Length is > 0 and <= 6;
+    }
+
+    // Identifiers of letters, digits and hyphens with dots between them. A floating version can end with *, alone
+    // or after identifiers, as in -*, -rc.* and -rc*.
+    private static bool AreIdentifiers(string identifiers, bool floating)
+    {
+        if (floating && identifiers.Length > 0 && identifiers[identifiers.Length - 1] == '*')
+        {
+            identifiers = identifiers.Substring(0, identifiers.Length - 1);
+            if (identifiers.Length == 0)
+            {
+                return true;
             }
 
-            major = (major * 10) + (version[end] - '0');
-            end++;
+            if (identifiers[identifiers.Length - 1] == '.')
+            {
+                identifiers = identifiers.Substring(0, identifiers.Length - 1);
+            }
         }
 
-        if (end == 0 || (end < version.Length && version[end] is not ('.' or '-' or '+')))
+        foreach (string identifier in identifiers.Split('.'))
         {
-            return null;
+            if (identifier.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (char c in identifier)
+            {
+                if (!AsciiText.IsLetterOrDigit(c) && c != '-')
+                {
+                    return false;
+                }
+            }
         }
 
-        return major;
+        return true;
     }
 }

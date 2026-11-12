@@ -85,6 +85,67 @@ public sealed partial class AppFrontendVersionTests
         Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
     }
 
+    // Razor leaves a comment out wherever it is, also in a tag, and @@ is an @ as text and starts none.
+    [Theory]
+    [InlineData("<meta @* data-altinn-app-frontend-version='1' *@>")]
+    [InlineData(
+        "<script @* src='https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js' *@></script>"
+    )]
+    [InlineData("@* @* <meta data-altinn-app-frontend-version='1'> *@")]
+    public void Read_IgnoresRazorCommentsInsideTags(string commented)
+    {
+        string html = Page($"{commented}<p>a@@*b</p><script src=\"{Script("4")}\"></script>");
+
+        Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
+    }
+
+    [Fact]
+    public void Read_ReadsAPageOfRazorCommentsInLinearTime()
+    {
+        string html = string.Concat(System.Linq.Enumerable.Repeat("@* *@", 400_000)) + Page("");
+
+        Assert.Null(AppFrontendVersionReader.Read(html));
+    }
+
+    // The content of these elements is text, up to an end tag of the same name.
+    [Theory]
+    [InlineData("<script>var x='</scripted><meta data-altinn-app-frontend-version=1>';</script>")]
+    [InlineData("<script>var x='</script';</script >")]
+    [InlineData("<textarea><meta data-altinn-app-frontend-version=1></textarea>")]
+    [InlineData("<title><meta data-altinn-app-frontend-version=1></title>")]
+    [InlineData("<STYLE>a{content:'<meta data-altinn-app-frontend-version=1>'}</STYLE>")]
+    public void Read_IgnoresTagsWrittenInText(string text)
+    {
+        string html = Page($"{text}<script src=\"{Script("4")}\"></script>");
+
+        Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
+    }
+
+    [Theory]
+    [InlineData("", "4")]
+    [InlineData("?v=1", "4")]
+    [InlineData("#x", "4")]
+    [InlineData(".evil", null)]
+    [InlineData("/more", null)]
+    [InlineData("x", null)]
+    public void Read_TakesAScriptWhoseFileNameEndsThePath(string after, string? expected)
+    {
+        string html = Page($"<script src=\"{Script("4")}{after}\"></script>");
+
+        Assert.Equal(expected, AppFrontendVersionReader.Read(html)?.Value);
+    }
+
+    // A browser drops a tag that the page ends in the middle of.
+    [Theory]
+    [InlineData("<meta data-altinn-app-frontend-version='4'")]
+    [InlineData("<meta data-altinn-app-frontend-version='4")]
+    [InlineData("<meta data-altinn-app-frontend-version=4")]
+    [InlineData("<script src='https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js'")]
+    public void Read_IgnoresATagThatThePageEndsIn(string html)
+    {
+        Assert.Null(AppFrontendVersionReader.Read(html));
+    }
+
     [Theory]
     [InlineData(
         "https://example.org/loader.js?from=https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js"

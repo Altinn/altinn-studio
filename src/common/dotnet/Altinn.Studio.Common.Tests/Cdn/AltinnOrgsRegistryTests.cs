@@ -98,6 +98,33 @@ public sealed class AltinnOrgsRegistryTests
         Assert.Empty(registry.Skipped);
     }
 
+    [Fact]
+    public void Environments_CannotBeChanged()
+    {
+        ServiceOwner odd = Find(Parse(Document), "odd");
+
+        Assert.IsNotType<System.Collections.Generic.HashSet<RuntimeEnvironment>>(odd.Environments, exactMatch: false);
+        Assert.True(
+            Assert
+                .IsType<System.Collections.Generic.ICollection<RuntimeEnvironment>>(odd.Environments, exactMatch: false)
+                .IsReadOnly
+        );
+    }
+
+    [Fact]
+    public void Registered_RefusesADefaultValue()
+    {
+        Assert.Throws<InvalidOperationException>(() => TestRegistry.Create(default, []));
+        Assert.Throws<InvalidOperationException>(() => TestRegistry.Create(ServiceOwnerCode.Parse("ttd"), [default]));
+        Assert.Equal("ttd", TestRegistry.Create(ServiceOwnerCode.Parse("ttd"), [RuntimeEnvironment.TT02]).ToString());
+    }
+
+    private abstract class TestRegistry : ServiceOwnerRegistry
+    {
+        public static ServiceOwner Create(ServiceOwnerCode code, RuntimeEnvironment[] environments) =>
+            Registered(code, environments);
+    }
+
     private static ServiceOwner Find(AltinnOrgsRegistry registry, string name)
     {
         Assert.True(registry.TryFind(ServiceOwnerCode.Parse(name), out ServiceOwner? serviceOwner));
