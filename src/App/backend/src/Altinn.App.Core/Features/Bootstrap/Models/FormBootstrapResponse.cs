@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -92,7 +93,7 @@ public sealed class DataModelInfo
     /// </summary>
     [JsonPropertyName("calculationConfig")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public object? CalculationConfig { get; init; }
+    public CalculationConfig? CalculationConfig { get; init; }
 
     /// <summary>
     /// Initial validation issues scoped to this data model/data element.

@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Models.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -21,11 +22,33 @@ internal static class SwaggerFilterExtensions
             c.SupportNonNullableReferenceTypes();
             // JsonPatchOperation has a custom converter, so describe its wire format instead of its properties.
             c.MapType<JsonPatchOperation>(JsonPatchOperation.OpenApiSchema);
+            // Expression has a custom converter too: a literal or an array, never the properties of the class.
+            c.MapType<Expression>(ExpressionOpenApiSchema);
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();
         });
     }
+
+    private static OpenApiSchema ExpressionOpenApiSchema() =>
+        new()
+        {
+            Title = "Expression",
+            Description =
+                "A literal (string, number, boolean or null), or an array with a function name followed by its "
+                + "arguments, which are expressions, such as [\"dataModel\", \"skjema.price\"]",
+            OneOf =
+            [
+                new OpenApiSchema { Type = JsonSchemaType.String },
+                new OpenApiSchema { Type = JsonSchemaType.Number },
+                new OpenApiSchema { Type = JsonSchemaType.Boolean },
+                new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Array,
+                    Items = new OpenApiSchema { Description = "The function name, then one expression per argument" },
+                },
+            ],
+        };
 }
 
 internal sealed class ExplicitProblemDetailsResponseOperationFilter : IOperationFilter
