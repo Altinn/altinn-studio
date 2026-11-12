@@ -25,7 +25,6 @@ export type UserInputProps = {
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
-  // False while the browser cannot receive the events of a run, such as when its connection is down.
   canSubmit?: boolean;
   enableCompactInterface: boolean;
 };

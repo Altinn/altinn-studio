@@ -48,7 +48,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     // The command continues without the acknowledgement after this time.
     private static readonly TimeSpan s_registrationTimeout = TimeSpan.FromSeconds(5);
 
-    // The command fails when the assistant service does not accept the connection in this time.
     private static readonly TimeSpan s_connectTimeout = TimeSpan.FromSeconds(10);
 
     private static readonly JsonSerializerOptions s_persistSerializerOptions = new()
@@ -458,10 +457,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
     }
 
-    /// <summary>
-    /// Recognizes the frames that the assistant service sends about the connection itself. When the frame
-    /// confirms a session, <paramref name="registeredSessionId"/> is the id of that session.
-    /// </summary>
     private static bool IsInternalHandshakeMessage(string json, out string? registeredSessionId)
     {
         registeredSessionId = null;
@@ -506,7 +501,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         try
         {
             connection.Cancel();
-            // A frame on a closed connection gets no answer.
             connection.AbandonRegistrations();
 
             if (connection.WebSocket.State == WebSocketState.Open)

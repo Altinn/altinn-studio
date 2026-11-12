@@ -7,7 +7,6 @@ type WorkflowStart = {
   attachments?: UserAttachment[];
 };
 
-// The form contains the bytes of each attachment, not base64 text.
 export function createWorkflowFormData({
   goal,
   branch,

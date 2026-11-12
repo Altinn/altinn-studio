@@ -73,7 +73,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
   // Threads whose messages are already fetched for the current run.
   const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
-  // The start requests that have not answered yet, by thread.
   const pendingStartsByThreadRef = useRef<Record<string, Promise<void>>>({});
 
   const {
@@ -412,7 +411,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       try {
         await start;
       } catch (error) {
-        // No run started, so this tab must adopt a run that another tab starts in the thread.
         runMessagesRefreshedThreadsRef.current.delete(threadId);
         delete workflowStartedAtMsByThreadRef.current[threadId];
         setWorkflowStatus(threadId, { isActive: false });
@@ -505,7 +503,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     }
 
     // The assistant service cannot cancel a run that has not started yet, and the start request
-    // answers when the run has started. If the start fails, there is no run to cancel.
+    // answers when the run has started.
     const pendingStart = pendingStartsByThreadRef.current[threadId];
     if (pendingStart) {
       const started = await pendingStart.then(

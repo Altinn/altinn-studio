@@ -12,8 +12,7 @@ export const useCreateChatThreadMutation = () => {
     mutationFn: (payload: CreateChatThreadPayload) => createChatThread(org, app, payload),
     onSuccess: (createdThread) => {
       const queryKey = [QueryKey.ChatThreads, org, app];
-      // The events of the first run in the thread can come before the list is fetched again, and the
-      // assistant ignores events for threads that are not in the list.
+      // The assistant ignores events for threads that are not in the list.
       if (createdThread) {
         queryClient.setQueryData<ChatThread[]>(queryKey, (threads = []) =>
           threads.some((thread) => thread.id === createdThread.id)

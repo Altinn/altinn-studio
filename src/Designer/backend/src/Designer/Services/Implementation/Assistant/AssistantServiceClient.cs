@@ -126,9 +126,7 @@ public class AssistantServiceClient : IAssistantServiceClient
         string message =
             $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}: {responseContent}";
 
-        // The assistant service answers with a client error in expected cases, such as a permission request
-        // that has timed out, a session that it no longer has, or its rate limit. The browser gets the same
-        // status. A 401 means that Designer's own request was wrong, so the browser gets a server error for it.
+        // A 401 means that Designer's own request was wrong.
         if (
             response.StatusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
             && response.StatusCode != HttpStatusCode.Unauthorized

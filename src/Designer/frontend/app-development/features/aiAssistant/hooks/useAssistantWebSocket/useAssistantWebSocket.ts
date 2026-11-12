@@ -9,7 +9,6 @@ enum AssistantClientsName {
   ReceiveAgentMessage = 'ReceiveAgentMessage',
 }
 
-// The hub only pushes the assistant's events. The browser sends its commands over HTTP.
 export interface UseAssistantWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
