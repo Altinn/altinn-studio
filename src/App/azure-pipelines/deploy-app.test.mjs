@@ -188,10 +188,11 @@ for (const [environment, files, replicas] of [
     { 'values.tt02.yaml': { autoscaling: { replicas: { min: 3, max: 4 } } } },
     { min: 3, max: 4 },
   ],
+  ['tt02', { 'values.yaml': { autoscaling: { replicas: { max: 1 } } } }, { min: 1, max: 1 }],
   ['production', {}, undefined],
   ['yt01', {}, undefined],
 ]) {
-  test(`${environment} with ${Object.keys(files).join(', ') || 'no values files'} gets replicas ${JSON.stringify(replicas)}`, (t) => {
+  test(`${environment} with ${Object.keys(files).join(', ') || 'no values files'} gets ${replicas ? `replicas ${JSON.stringify(replicas)}` : 'no replicas default'}`, (t) => {
     assert.deepEqual(successful(deploy(t, files, environment)).autoscaling?.replicas, replicas);
   });
 }

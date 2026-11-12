@@ -743,7 +743,7 @@ steps:
           exit 1
         fi
 
-        # A form in tt02 is normally tested by one person at a time, so one replica is enough there.
+        # One replica is usually enough in tt02. An app's own values still win.
         if [[ "${APP_ENVIRONMENT}" == "tt02" ]]; then
           echo '{"autoscaling": {"replicas": {"min": 1}}}' > "${PLATFORM_DEFAULTS}"
         else
