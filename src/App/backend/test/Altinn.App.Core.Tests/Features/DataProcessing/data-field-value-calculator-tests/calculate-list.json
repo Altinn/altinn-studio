@@ -1,11 +1,11 @@
 {
-    "name": "Should set multiple values when resolving keys in a datamodel array",
+    "name": "Should merge a list result into the rows of every data element, keeping the properties the result leaves out",
     "expects": [
         {
             "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
             "field": "form.children[0]",
             "result": {
-                "price": 200,
+                "price": 100222,
                 "quantity": 1,
                 "total": 200
             }
@@ -14,7 +14,7 @@
             "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
             "field": "form.children[1]",
             "result": {
-                "price": 200,
+                "price": 5333,
                 "quantity": 2,
                 "total": 400
             }
@@ -23,7 +23,7 @@
             "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
             "field": "form.children[0]",
             "result": {
-                "price": 200,
+                "price": 503,
                 "quantity": 1,
                 "total": 200
             }
@@ -32,7 +32,7 @@
             "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
             "field": "form.children[1]",
             "result": {
-                "price": 200,
+                "price": 13330,
                 "quantity": 2,
                 "total": 400
             }
@@ -47,8 +47,6 @@
                     "list",
                     [
                         "object",
-                        "price",
-                        200,
                         "quantity",
                         1,
                         "total",
@@ -56,8 +54,6 @@
                     ],
                     [
                         "object",
-                        "price",
-                        200,
                         "quantity",
                         2,
                         "total",
@@ -69,7 +65,7 @@
     },
     "dataModels": [
         {
-            "dataElement":{
+            "dataElement": {
                 "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
                 "dataType": "element"
             },
@@ -91,7 +87,7 @@
             }
         },
         {
-            "dataElement":{
+            "dataElement": {
                 "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
                 "dataType": "element"
             },

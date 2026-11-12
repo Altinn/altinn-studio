@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -13,6 +15,13 @@ namespace Altinn.App.Core.Features.DataProcessing;
 
 internal sealed class DataModelFieldCalculator
 {
+    /// <summary>
+    /// The row id is owned by the data model, so a result never writes it. Rows keep their id by position.
+    /// </summary>
+    private const string AltinnRowIdJsonName = "altinnRowId";
+
+    private static readonly ExpressionValue _emptyObject = ExpressionValue.FromJsonString("{}");
+
     private readonly ILogger<DataModelFieldCalculator> _logger;
     private readonly IAppResources _appResourceService;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
@@ -105,14 +114,13 @@ internal sealed class DataModelFieldCalculator
                 context,
                 positionalArguments
             );
-            if (!formDataWrapper.Set(resolvedField.Field, calculationResult))
+            if (calculationResult.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
             {
-                _logger.LogWarning(
-                    "Could not set calculated value for field {Field} in data element {DataElementId}. "
-                        + "This is because the type conversion failed.",
-                    resolvedField.Field,
-                    resolvedField.DataElementIdentifier.Id
-                );
+                SetResult(formDataWrapper, resolvedField, resolvedField.Field, calculationResult.JsonElement);
+            }
+            else
+            {
+                SetLeaf(formDataWrapper, resolvedField, resolvedField.Field, calculationResult);
             }
         }
         catch (Exception e)
@@ -120,5 +128,104 @@ internal sealed class DataModelFieldCalculator
             _logger.LogError(e, "Error while evaluating calculation for field {Field}", resolvedField.Field);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Writes a result the same way the frontend does: an object sets the properties it contains and leaves the
+    /// others alone, and a list of objects is merged row by row, so existing rows keep their row id and the
+    /// properties the result leaves out. Other values replace the field.
+    /// </summary>
+    private void SetResult(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement result)
+    {
+        switch (result.ValueKind)
+        {
+            case JsonValueKind.Object:
+                MergeObject(formDataWrapper, field, path, result);
+                break;
+            case JsonValueKind.Array when IsListOfObjects(result):
+                MergeRows(formDataWrapper, field, path, result);
+                break;
+            default:
+                SetLeaf(formDataWrapper, field, path, result);
+                break;
+        }
+    }
+
+    private void MergeObject(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement result)
+    {
+        foreach (var property in result.EnumerateObject())
+        {
+            if (property.Name == AltinnRowIdJsonName)
+            {
+                continue;
+            }
+
+            SetResult(formDataWrapper, field, $"{path}.{property.Name}", property.Value);
+        }
+    }
+
+    private void MergeRows(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement rows)
+    {
+        var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;
+        var rowCount = 0;
+        foreach (var row in rows.EnumerateArray())
+        {
+            var rowPath = $"{path}[{rowCount}]";
+            rowCount++;
+            // A new row is added as an empty object, and a null row replaced by one, before the properties are set.
+            // Row ids are initialized when the changes are collected, after all data processing.
+            var rowExists =
+                rowCount > currentRowCount
+                    ? formDataWrapper.AddRow(path, _emptyObject)
+                    : formDataWrapper.Get(rowPath) is not null || formDataWrapper.Set(rowPath, _emptyObject);
+            if (!rowExists)
+            {
+                LogSetFailed(field, rowPath);
+                continue;
+            }
+
+            MergeObject(formDataWrapper, field, rowPath, row);
+        }
+
+        for (var index = currentRowCount - 1; index >= rowCount; index--)
+        {
+            formDataWrapper.RemoveField($"{path}[{index}]", RowRemovalOption.DeleteRow);
+        }
+    }
+
+    private void SetLeaf(IFormDataWrapper formDataWrapper, DataReference field, string path, ExpressionValue value)
+    {
+        if (!formDataWrapper.Set(path, value))
+        {
+            LogSetFailed(field, path);
+        }
+    }
+
+    private void LogSetFailed(DataReference field, string path)
+    {
+        _logger.LogWarning(
+            "Could not set calculated value for field {Field} in data element {DataElementId}. "
+                + "The field does not exist in the data model, or the value could not be converted to its type.",
+            path,
+            field.DataElementIdentifier.Id
+        );
+    }
+
+    private static bool IsListOfObjects(JsonElement list)
+    {
+        if (list.GetArrayLength() == 0)
+        {
+            return false;
+        }
+
+        foreach (var item in list.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -1,5 +1,5 @@
 {
-    "name": "Should set multiple values when resolving keys in a datamodel array",
+    "name": "Should set the properties of an object result on every row of a datamodel array",
     "expects": [
         {
             "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -70,7 +70,7 @@
     },
     "dataModels": [
         {
-            "dataElement":{
+            "dataElement": {
                 "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
                 "dataType": "element"
             },
@@ -92,7 +92,7 @@
             }
         },
         {
-            "dataElement":{
+            "dataElement": {
                 "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
                 "dataType": "element"
             },

@@ -1,16 +1,22 @@
 {
-    "name": "Should set an object result into a nested object field of a single data model",
+    "name": "Should set the properties an object result contains, keep the others, and clear a property set to null",
     "expects": [
         {
             "field": "form.address",
             "result": {
                 "street": "Main street 1234",
-                "zip": 1234
+                "zip": 1234,
+                "country": "NO",
+                "note": null
             }
         },
         {
             "field": "form.address.street",
             "result": "Main street 1234"
+        },
+        {
+            "field": "form.address.note",
+            "result": null
         }
     ],
     "calculationConfig": {
@@ -20,8 +26,26 @@
                 "field": "form.address",
                 "expression": [
                     "object",
-                    "street", ["concat", ["dataModel", "form.streetName"], " ", ["dataModel", "form.streetNumber"]],
-                    "zip", ["dataModel", "form.streetNumber"]
+                    "street",
+                    [
+                        "concat",
+                        [
+                            "dataModel",
+                            "form.streetName"
+                        ],
+                        " ",
+                        [
+                            "dataModel",
+                            "form.streetNumber"
+                        ]
+                    ],
+                    "zip",
+                    [
+                        "dataModel",
+                        "form.streetNumber"
+                    ],
+                    "note",
+                    null
                 ]
             }
         ]
@@ -32,7 +56,9 @@
             "streetNumber": 1234,
             "address": {
                 "street": "old",
-                "zip": 0
+                "zip": 0,
+                "country": "NO",
+                "note": "remove me"
             }
         }
     },

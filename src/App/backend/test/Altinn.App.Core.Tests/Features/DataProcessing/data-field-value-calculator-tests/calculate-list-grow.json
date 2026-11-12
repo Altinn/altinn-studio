@@ -1,0 +1,72 @@
+{
+    "name": "Should merge into the existing rows and append the rows a longer list result has",
+    "expects": [
+        {
+            "field": "form.children",
+            "result": [
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 10
+                },
+                {
+                    "altinnRowId": null,
+                    "price": 2,
+                    "quantity": 20
+                },
+                {
+                    "altinnRowId": null,
+                    "price": null,
+                    "quantity": 30
+                }
+            ]
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": [
+            {
+                "field": "form.children",
+                "expression": [
+                    "list",
+                    [
+                        "object",
+                        "quantity",
+                        10
+                    ],
+                    [
+                        "object",
+                        "price",
+                        2,
+                        "quantity",
+                        20
+                    ],
+                    [
+                        "object",
+                        "quantity",
+                        30
+                    ]
+                ]
+            }
+        ]
+    },
+    "formData": {
+        "form": {
+            "children": [
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 0
+                }
+            ]
+        }
+    },
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": []
+            }
+        }
+    }
+}

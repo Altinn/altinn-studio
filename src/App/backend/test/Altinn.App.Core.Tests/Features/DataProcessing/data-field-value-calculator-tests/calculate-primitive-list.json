@@ -1,14 +1,22 @@
 {
-    "name": "Should replace a list of primitives and a list of objects in a single data model",
+    "name": "Should replace a list of primitives, and remove the rows a shorter list of objects does not have",
     "expects": [
         {
             "field": "form.tags",
-            "result": ["a", "b", "c"]
+            "result": [
+                "a",
+                "b",
+                "c"
+            ]
         },
         {
             "field": "form.children",
             "result": [
-                { "price": 10, "quantity": 1 }
+                {
+                    "altinnRowId": "row-1",
+                    "price": 10,
+                    "quantity": 1
+                }
             ]
         },
         {
@@ -21,22 +29,54 @@
         "calculations": [
             {
                 "field": "form.tags",
-                "expression": ["list", "a", "b", ["dataModel", "form.extraTag"]]
+                "expression": [
+                    "list",
+                    "a",
+                    "b",
+                    [
+                        "dataModel",
+                        "form.extraTag"
+                    ]
+                ]
             },
             {
                 "field": "form.children",
-                "expression": ["list", ["object", "price", 10, "quantity", 1]]
+                "expression": [
+                    "list",
+                    [
+                        "object",
+                        "price",
+                        10,
+                        "quantity",
+                        1
+                    ]
+                ]
             }
         ]
     },
     "formData": {
         "form": {
             "extraTag": "c",
-            "tags": ["x", "y"],
+            "tags": [
+                "x",
+                "y"
+            ],
             "children": [
-                { "price": 1, "quantity": 2 },
-                { "price": 3, "quantity": 4 },
-                { "price": 5, "quantity": 6 }
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 2
+                },
+                {
+                    "altinnRowId": "row-2",
+                    "price": 3,
+                    "quantity": 4
+                },
+                {
+                    "altinnRowId": "row-3",
+                    "price": 5,
+                    "quantity": 6
+                }
             ]
         }
     },

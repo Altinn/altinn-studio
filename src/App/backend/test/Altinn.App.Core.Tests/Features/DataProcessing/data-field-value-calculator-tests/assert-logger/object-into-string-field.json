@@ -2,7 +2,7 @@
     "name": "Should log warning when an object result is calculated into a string field",
     "expects": [
         {
-            "logMessage": "Could not set calculated value for field form.name in data element 30844cc0-81af-4429-9f9e-035d78f1f9da. This is because the type conversion failed."
+            "logMessage": "Could not set calculated value for field form.name.first in data element 30844cc0-81af-4429-9f9e-035d78f1f9da. The field does not exist in the data model, or the value could not be converted to its type."
         }
     ],
     "calculationConfig": {
@@ -10,7 +10,13 @@
         "calculations": [
             {
                 "field": "form.name",
-                "expression": ["object", "first", "Ola", "last", "Nordmann"]
+                "expression": [
+                    "object",
+                    "first",
+                    "Ola",
+                    "last",
+                    "Nordmann"
+                ]
             }
         ]
     },

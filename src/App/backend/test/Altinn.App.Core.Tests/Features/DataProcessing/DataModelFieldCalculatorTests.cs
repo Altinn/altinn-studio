@@ -143,11 +143,11 @@ public sealed class DataModelFieldCalculatorTests
         foreach (var expected in testCase.Expects)
         {
             var dataElementIdentifier = expected.DataElementIdentifier ?? _defaultSingleDataElement;
-            if (expected.Result.HasValue)
+            if (expected.Result.ValueKind is not JsonValueKind.Undefined)
             {
                 var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElementIdentifier);
                 var value = formDataWrapper.Get(expected.Field);
-                Assert.Equal(JsonSerializer.Serialize(expected.Result.Value), JsonSerializer.Serialize(value));
+                Assert.Equal(JsonSerializer.Serialize(expected.Result), JsonSerializer.Serialize(value));
                 Assert.Empty(_logger.Collector.GetSnapshot());
             }
             else
@@ -155,6 +155,137 @@ public sealed class DataModelFieldCalculatorTests
                 Assert.Fail($"Expected result for field {expected.Field} not found");
             }
         }
+    }
+
+    [Fact]
+    public async Task ListOfObjectsKeepsRowIdsByPositionAndCopiedRowsGetTheirOwn()
+    {
+        var existingRowId = Guid.NewGuid();
+        var existingCopyId = Guid.NewGuid();
+        var model = new ListModel
+        {
+            Rows =
+            [
+                new RowModel
+                {
+                    AltinnRowId = existingRowId,
+                    Price = 5,
+                    Quantity = 1,
+                },
+            ],
+            Copies =
+            [
+                new RowModel
+                {
+                    AltinnRowId = existingCopyId,
+                    Price = 0,
+                    Quantity = 0,
+                },
+            ],
+        };
+        var calculationConfig = JsonSerializer.Deserialize<CalculationConfig>(
+            """
+            {
+                "calculations": [
+                    { "field": "rows", "expression": ["list", ["object", "quantity", 10], ["object", "quantity", 20]] },
+                    { "field": "copies", "expression": ["dataModel", "rows"] },
+                    { "field": "created", "expression": ["dataModel", "rows"] },
+                    { "field": "address", "expression": ["object", "street", "Main street"] }
+                ]
+            }
+            """,
+            _jsonSerializerOptions
+        );
+        _appResources.Setup(ar => ar.GetCalculationConfig("default")).Returns(calculationConfig);
+        _appResources.Setup(ar => ar.GetTexts("org", "app", "nb")).ReturnsAsync((TextResource?)null);
+        var dataAccessor = new InstanceDataAccessorFake(
+            new Instance()
+            {
+                Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+                AppId = "org/app",
+                Process = new() { CurrentTask = new() { ElementId = TaskId } },
+            },
+            applicationMetadata: null,
+            translationService: new TranslationService(
+                new AppIdentifier("org", "app"),
+                _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_output)
+            ),
+            layout: null,
+            frontEndSettings: _frontendSettings.Value,
+            gatewayAction: null,
+            language: null
+        )
+        {
+            { _defaultSingleDataElement, model },
+        };
+
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
+
+        Assert.Empty(_logger.Collector.GetSnapshot());
+        var rows = Assert.IsType<List<RowModel>>(model.Rows);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(existingRowId, rows[0].AltinnRowId);
+        Assert.Equal(5, rows[0].Price);
+        Assert.Equal(10, rows[0].Quantity);
+        // The new row gets its id when the changes are collected after data processing
+        Assert.Equal(Guid.Empty, rows[1].AltinnRowId);
+        Assert.Equal(20, rows[1].Quantity);
+
+        // Copied rows keep the id of the row they are merged into, never the id of the row they are copied from
+        var copies = Assert.IsType<List<RowModel>>(model.Copies);
+        Assert.Equal(2, copies.Count);
+        Assert.Equal(existingCopyId, copies[0].AltinnRowId);
+        Assert.Equal(Guid.Empty, copies[1].AltinnRowId);
+        Assert.Equal([5, 0], copies.Select(copy => copy.Price));
+        Assert.Equal([10, 20], copies.Select(copy => copy.Quantity));
+
+        // A list of objects creates the list it is calculated into, and an object result the object
+        var created = Assert.IsType<List<RowModel>>(model.Created);
+        Assert.Equal([10, 20], created.Select(row => row.Quantity));
+        Assert.Equal("Main street", model.Address?.Street);
+
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(_defaultSingleDataElement);
+        formDataWrapper.InitializeAltinnRowIds();
+        Assert.Equal(existingRowId, rows[0].AltinnRowId);
+        Assert.Equal(existingCopyId, copies[0].AltinnRowId);
+        var ids = rows.Concat(copies).Concat(created).Select(row => row.AltinnRowId).ToList();
+        Assert.DoesNotContain(Guid.Empty, ids);
+        Assert.Equal(ids.Count, ids.Distinct().Count());
+    }
+
+    private sealed class ListModel
+    {
+        [JsonPropertyName("rows")]
+        public List<RowModel>? Rows { get; set; }
+
+        [JsonPropertyName("copies")]
+        public List<RowModel>? Copies { get; set; }
+
+        [JsonPropertyName("created")]
+        public List<RowModel>? Created { get; set; }
+
+        [JsonPropertyName("address")]
+        public AddressModel? Address { get; set; }
+    }
+
+    private sealed class AddressModel
+    {
+        [JsonPropertyName("street")]
+        public string? Street { get; set; }
+    }
+
+    private sealed class RowModel
+    {
+        [JsonPropertyName("altinnRowId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public Guid AltinnRowId { get; set; }
+
+        [JsonPropertyName("price")]
+        public decimal Price { get; set; }
+
+        [JsonPropertyName("quantity")]
+        public int Quantity { get; set; }
     }
 
     private IInstanceDataAccessor Setup(DataModelFieldCalculatorTestModel testCase)
@@ -261,7 +392,8 @@ public sealed class DataModelFieldCalculatorTests
 
         public string? Field { get; set; }
 
-        public ExpressionValue? Result { get; set; }
+        // Undefined when the fixture has no "result", null when it expects null
+        public JsonElement Result { get; set; }
 
         public string? LogMessage { get; set; }
     }
