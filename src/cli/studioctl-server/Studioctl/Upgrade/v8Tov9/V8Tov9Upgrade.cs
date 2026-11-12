@@ -258,6 +258,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
 
+        // Normalize existing v8 calculations before merging generated rules into the v9 list.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
+
         var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
         returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
 
@@ -326,9 +330,6 @@ internal static class V8Tov9Upgrade
         // After the PDF service task migration, so the PDF service tasks it adds are included.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
