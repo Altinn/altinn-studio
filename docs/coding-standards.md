@@ -29,7 +29,8 @@ reason is bigger than the code.
 
 - Make types `internal` and classes `sealed` unless there is a reason not to.
 - Do not add the `Async` suffix to method names.
-- Write an XML doc comment on every public type and member.
+- Write an XML doc comment on every public type and member. Test classes and test methods need none: they are public
+  only because the test framework requires it, and their names say what they check.
 - Warnings fail the build locally as they do in CI. To build past one while you work, pass
   `-p:TreatWarningsAsErrors=false`. A later build does not recompile code that has not changed since, so it does not
   report those warnings again. Build with `--no-incremental` before you push.
