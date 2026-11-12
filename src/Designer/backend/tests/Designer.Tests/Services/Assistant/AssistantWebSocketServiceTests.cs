@@ -199,7 +199,7 @@ public class AssistantWebSocketServiceTests
     {
         var firstFrame = new TaskCompletionSource<JsonNode>(TaskCreationOptions.RunContinuationsAsynchronously);
         await using WebApplication agent = await StartAgentAsync(webSocket =>
-            ConfirmSessionsAsync(webSocket, frame => firstFrame.TrySetResult(frame))
+            ConfirmSessions(webSocket, frame => firstFrame.TrySetResult(frame))
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
@@ -217,7 +217,7 @@ public class AssistantWebSocketServiceTests
         var frameReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var confirm = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using WebApplication agent = await StartAgentAsync(webSocket =>
-            ConfirmSessionsAsync(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
+            ConfirmSessions(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
@@ -236,7 +236,7 @@ public class AssistantWebSocketServiceTests
         var frameReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var confirm = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using WebApplication agent = await StartAgentAsync(webSocket =>
-            ConfirmSessionsAsync(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
+            ConfirmSessions(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
         using var request = new CancellationTokenSource();
@@ -258,11 +258,11 @@ public class AssistantWebSocketServiceTests
         {
             if (Interlocked.Increment(ref connections) > 1)
             {
-                await ConfirmSessionsAsync(webSocket, _ => { });
+                await ConfirmSessions(webSocket, _ => { });
                 return;
             }
 
-            await ConfirmSessionAsync(webSocket);
+            await ConfirmSession(webSocket);
             // Another replica takes over the developer's events before this frame is read.
             await webSocket.ReceiveAsync(new byte[1024], CancellationToken.None);
             await webSocket.CloseOutputAsync(
@@ -287,7 +287,7 @@ public class AssistantWebSocketServiceTests
     {
         int framesReceived = 0;
         await using WebApplication agent = await StartAgentAsync(webSocket =>
-            ConfirmSessionsAsync(webSocket, _ => Interlocked.Increment(ref framesReceived))
+            ConfirmSessions(webSocket, _ => Interlocked.Increment(ref framesReceived))
         );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
         await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer, CancellationToken.None);
@@ -326,7 +326,7 @@ public class AssistantWebSocketServiceTests
     {
         await using WebApplication agent = await StartAgentAsync(async webSocket =>
         {
-            await ConfirmSessionAsync(webSocket);
+            await ConfirmSession(webSocket);
             await webSocket.SendAsync(
                 Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}"""),
                 WebSocketMessageType.Text,
@@ -392,12 +392,12 @@ public class AssistantWebSocketServiceTests
     /// <summary>
     /// Confirms each session frame as the assistant service does, until the client closes the WebSocket.
     /// </summary>
-    private static async Task ConfirmSessionsAsync(WebSocket webSocket, Action<JsonNode> onFrame, Task confirm = null)
+    private static async Task ConfirmSessions(WebSocket webSocket, Action<JsonNode> onFrame, Task confirm = null)
     {
-        while (await ConfirmSessionAsync(webSocket, onFrame, confirm)) { }
+        while (await ConfirmSession(webSocket, onFrame, confirm)) { }
     }
 
-    private static async Task<bool> ConfirmSessionAsync(
+    private static async Task<bool> ConfirmSession(
         WebSocket webSocket,
         Action<JsonNode> onFrame = null,
         Task confirm = null

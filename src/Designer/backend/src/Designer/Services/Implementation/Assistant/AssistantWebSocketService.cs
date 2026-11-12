@@ -84,7 +84,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         for (int attempt = 1; ; attempt++)
         {
             DeveloperConnection connection = await GetOrConnectAsync(developer, cancellationToken);
-            if (await TrySendSessionFrameAsync(connection, sessionId, developer, cancellationToken))
+            if (await TrySendSessionFrame(connection, sessionId, developer, cancellationToken))
             {
                 _logger.LogInformation(
                     "Registered session {SessionId} for developer {Developer}",
@@ -111,7 +111,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     /// send events on a new connection when it has read the frame, so without the wait, the event of a command
     /// sent right after the frame could come before that.
     /// </summary>
-    private async Task<bool> TrySendSessionFrameAsync(
+    private async Task<bool> TrySendSessionFrame(
         DeveloperConnection connection,
         string sessionId,
         string developer,
@@ -129,7 +129,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         Task registered = connection.ExpectRegistration(sessionId);
         try
         {
-            await connection.SendAsync(frame, cancellationToken);
+            await connection.Send(frame, cancellationToken);
             await registered.WaitAsync(s_registrationTimeout, cancellationToken);
             return true;
         }
@@ -567,7 +567,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
         // Only the wait for the lock can be cancelled. A cancelled send aborts the WebSocket, which carries the
         // events of all the developer's sessions.
-        public async Task SendAsync(byte[] frame, CancellationToken cancellationToken)
+        public async Task Send(byte[] frame, CancellationToken cancellationToken)
         {
             await _sendLock.WaitAsync(cancellationToken);
             try
