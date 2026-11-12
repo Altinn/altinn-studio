@@ -130,6 +130,30 @@ internal static class SetterGenerator
             }
             else
             {
+                if (modelPathNode.IsIndexableList)
+                {
+                    // The path ends at the element, so replace the whole object
+                    var condition = TryDeserializeCondition(
+                        modelPathNode.TypeNameWithNullable,
+                        modelPathNode.IsNullable,
+                        "result"
+                    );
+                    builder.Append(
+                        $$"""
+                                if (offset == -1)
+                                {
+                                    // csharpier-ignore
+                                    if ({{condition}})
+                                    {
+                                        model[literalIndex] = result;
+                                        return true;
+                                    }
+                                    return false;
+                                }
+
+                        """
+                    );
+                }
                 var itemAccessor = CollectionAccessorGenerator.GenerateAccessor(modelPathNode, "model", "literalIndex");
                 builder.Append(
                     $$"""
@@ -176,7 +200,8 @@ internal static class SetterGenerator
         {
             if (child.ListType != null)
             {
-                // List property - need to ensure list is created and has elements
+                // List property - replace the whole list, or ensure list is created and has elements
+                AppendSetWholeValue(builder, child, child.ListTypeWithNullable, child.IsNullableList);
                 builder.Append(
                     $$"""
                                 case "{{child.JsonName}}":
@@ -210,7 +235,8 @@ internal static class SetterGenerator
             }
             else
             {
-                // Complex object property - need to ensure object is created
+                // Complex object property - replace the whole object, or ensure object is created
+                AppendSetWholeValue(builder, child, child.TypeNameWithNullable, child.IsNullable);
                 builder.Append(
                     $$"""
                                 case "{{child.JsonName}}" when literalIndex is -1:
@@ -298,4 +324,42 @@ internal static class SetterGenerator
             GenerateRecursive(builder, child, generatedTypes);
         }
     }
+
+    /// <summary>
+    /// A case for a path that ends at a list or object property, which deserializes the value into the whole property.
+    /// </summary>
+    private static void AppendSetWholeValue(
+        StringBuilder builder,
+        ModelPathNode child,
+        string? typeName,
+        bool isNullable
+    )
+    {
+        var resultName = $"result_{child.CSharpName}";
+        var condition = TryDeserializeCondition(typeName, isNullable, resultName);
+        // The block lets csharpier-ignore apply, as type names can be longer than the line width
+        builder.Append(
+            $$"""
+                        case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
+                        {
+                            // csharpier-ignore
+                            if ({{condition}})
+                            {
+                                model.{{child.CSharpName}} = {{resultName}};
+                                return true;
+                            }
+                            return false;
+                        }
+
+            """
+        );
+    }
+
+    /// <summary>
+    /// Deserializes the value into resultName, and rejects null unless the type is nullable.
+    /// </summary>
+    private static string TryDeserializeCondition(string? typeName, bool isNullable, string resultName) =>
+        isNullable
+            ? $"value.TryDeserialize<{typeName}>(out var {resultName})"
+            : $"value.TryDeserialize<{typeName}>(out var {resultName}) && {resultName} is not null";
 }

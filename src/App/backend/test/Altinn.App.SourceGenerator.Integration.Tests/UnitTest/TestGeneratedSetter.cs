@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -89,6 +91,27 @@ public class TestGeneratedSetter
         // Verify the value was actually set correctly
         Assert.Equal(value, generatedActual);
         Assert.Equal(value, reflectionActual);
+    }
+
+    [Theory]
+    [InlineData("eierAdresse", """{"gate":"new-street","postnummer":1234,"poststed":null}""")]
+    [InlineData("skjemainnhold[1].adresse", """{"gate":"new-street","postnummer":1234,"poststed":"by"}""")]
+    [InlineData("skjemainnhold[1].tidligere-adresse", """[{"gate":"a","postnummer":1,"poststed":null}]""")]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1]", """{"gate":"b","postnummer":2,"poststed":null}""")]
+    [InlineData("skjemainnhold[1].withListOfInt", "[1,2,3]")]
+    public void TestSet_WholeListsAndObjects_BothImplementations(string path, string json)
+    {
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.True(generatedWrapper.Set(path, JsonNode.Parse(json)!), $"Source-generated Set failed for path: {path}");
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.True(reflectionWrapper.Set(path, JsonNode.Parse(json)!), $"Reflection Set failed for path: {path}");
+
+        Assert.Equal(json, JsonSerializer.Serialize(generatedWrapper.Get(path)));
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
     }
 
     [Theory]

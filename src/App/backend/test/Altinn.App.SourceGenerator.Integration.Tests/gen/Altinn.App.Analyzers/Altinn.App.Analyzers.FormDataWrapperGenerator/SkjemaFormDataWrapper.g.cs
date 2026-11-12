@@ -290,6 +290,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     return true;
                 }
                 return false;
+            case "skjemainnhold" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold?>?>(out var result_Skjemainnhold))
+                {
+                    model.Skjemainnhold = result_Skjemainnhold;
+                    return true;
+                }
+                return false;
+            }
             case "skjemainnhold":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_Skjemainnhold(
                     model,
@@ -298,6 +308,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "eierAdresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse?>(out var result_EierAdresse))
+                {
+                    model.EierAdresse = result_EierAdresse;
+                    return true;
+                }
+                return false;
+            }
             case "eierAdresse" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Skjema_EierAdresse(
                     model,
@@ -349,6 +369,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
         {
             return false;
         }
+        if (offset == -1)
+        {
+            // csharpier-ignore
+            if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold?>(out var result))
+            {
+                model[literalIndex] = result;
+                return true;
+            }
+            return false;
+        }
         var item = model[literalIndex];
         return SetRecursive(item, path, offset, value);
     }
@@ -395,6 +425,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     return true;
                 }
                 return false;
+            case "adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse?>(out var result_Adresse))
+                {
+                    model.Adresse = result_Adresse;
+                    return true;
+                }
+                return false;
+            }
             case "adresse" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_Adresse(
                     model,
@@ -402,6 +442,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "tidligere-adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>?>(out var result_TidligereAdresse))
+                {
+                    model.TidligereAdresse = result_TidligereAdresse;
+                    return true;
+                }
+                return false;
+            }
             case "tidligere-adresse":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_TidligereAdresse(
                     model,
@@ -410,6 +460,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "oldXmlValue" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.OldXmlValue?>(out var result_OldXmlValue))
+                {
+                    model.OldXmlValue = result_OldXmlValue;
+                    return true;
+                }
+                return false;
+            }
             case "oldXmlValue" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_OldXmlValue(
                     model,
@@ -417,6 +477,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "withListOfString" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<string>>(out var result_WithListOfString) && result_WithListOfString is not null)
+                {
+                    model.WithListOfString = result_WithListOfString;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfString":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_WithListOfString(
                     model,
@@ -425,6 +495,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "withListOfInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<int>>(out var result_WithListOfInt) && result_WithListOfInt is not null)
+                {
+                    model.WithListOfInt = result_WithListOfInt;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfInt":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_WithListOfInt(
                     model,
@@ -433,6 +513,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     nextOffset,
                     value
                 );
+            case "withListOfNullableInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<int?>>(out var result_ListNullableInt) && result_ListNullableInt is not null)
+                {
+                    model.ListNullableInt = result_ListNullableInt;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfNullableInt":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaInnhold_ListNullableInt(
                     model,
@@ -558,6 +648,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     return true;
                 }
                 return false;
+            case "tags" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<string>?>(out var result_Tags))
+                {
+                    model.Tags = result_Tags;
+                    return true;
+                }
+                return false;
+            }
             case "tags":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Adresse_Tags(
                     model,
@@ -621,6 +721,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
         }
         if (model.Count <= literalIndex)
         {
+            return false;
+        }
+        if (offset == -1)
+        {
+            // csharpier-ignore
+            if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Adresse>(out var result) && result is not null)
+            {
+                model[literalIndex] = result;
+                return true;
+            }
             return false;
         }
         var item = model[literalIndex];
