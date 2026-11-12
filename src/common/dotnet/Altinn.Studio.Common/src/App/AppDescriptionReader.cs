@@ -86,14 +86,15 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
 
         ProjectDescription? appProject = FindAppProject(projects);
+        ValueList<ProjectDescription> all = [.. projects];
         return FindAltinnAppReference(appProject, projects) switch
         {
-            null => new AppDescription.Unrecognized(appProject, projects),
+            null => new AppDescription.Unrecognized(appProject, all),
             { } reference when AltinnAppPackage.TryParse(reference, out AltinnAppPackage? package) => package.Major
             > LastV8Major
-                ? new AppDescription.FormApp.V9OrLater(appProject, projects, package, _v9.Build())
-                : new AppDescription.FormApp.V8OrEarlier(appProject, projects, package, _v8.Build()),
-            { } reference => new AppDescription.FormApp.UnknownVersion(appProject, projects, reference),
+                ? new AppDescription.FormApp.V9OrLater(appProject, all, package, _v9.Build())
+                : new AppDescription.FormApp.V8OrEarlier(appProject, all, package, _v8.Build()),
+            { } reference => new AppDescription.FormApp.UnknownVersion(appProject, all, reference),
         };
     }
 
@@ -207,7 +208,7 @@ public sealed class AppDescriptionReader : IAppSourceReader
             );
         }
 
-        return new ProjectDescription.WellFormed(path, TargetFrameworks(properties), references);
+        return new ProjectDescription.WellFormed(path, [.. TargetFrameworks(properties)], [.. references]);
     }
 
     private static List<string> TargetFrameworks(Dictionary<string, string?> properties)

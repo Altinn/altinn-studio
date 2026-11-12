@@ -12,7 +12,7 @@ namespace Altinn.Studio.Common.App;
 /// </summary>
 public abstract record AppDescription
 {
-    private AppDescription(ProjectDescription? appProject, IReadOnlyList<ProjectDescription> projects)
+    private AppDescription(ProjectDescription? appProject, ValueList<ProjectDescription> projects)
     {
         AppProject = appProject;
         Projects = projects;
@@ -34,7 +34,7 @@ public abstract record AppDescription
     /// Every project file in the repository, in the order of their paths. They include <see cref="AppProject"/>, and
     /// test and library projects.
     /// </summary>
-    public IReadOnlyList<ProjectDescription> Projects { get; }
+    public ValueList<ProjectDescription> Projects { get; }
 
     /// <summary>The first target framework of <see cref="AppProject"/>, such as <c>net8.0</c>.</summary>
     public string? TargetFramework =>
@@ -48,7 +48,7 @@ public abstract record AppDescription
     /// </summary>
     public abstract record FormApp : AppDescription
     {
-        private FormApp(ProjectDescription? appProject, IReadOnlyList<ProjectDescription> projects)
+        private FormApp(ProjectDescription? appProject, ValueList<ProjectDescription> projects)
             : base(appProject, projects) { }
 
         /// <summary>A form app on the contract of Altinn.App v8 and earlier.</summary>
@@ -58,7 +58,7 @@ public abstract record AppDescription
         /// <param name="V8">What only this contract has.</param>
         public sealed record V8OrEarlier(
             ProjectDescription? AppProject,
-            IReadOnlyList<ProjectDescription> Projects,
+            ValueList<ProjectDescription> Projects,
             AltinnAppPackage AltinnApp,
             V8Description V8
         ) : FormApp(AppProject, Projects);
@@ -70,7 +70,7 @@ public abstract record AppDescription
         /// <param name="V9">What only this contract has.</param>
         public sealed record V9OrLater(
             ProjectDescription? AppProject,
-            IReadOnlyList<ProjectDescription> Projects,
+            ValueList<ProjectDescription> Projects,
             AltinnAppPackage AltinnApp,
             V9Description V9
         ) : FormApp(AppProject, Projects);
@@ -87,7 +87,7 @@ public abstract record AppDescription
         /// </param>
         public sealed record UnknownVersion(
             ProjectDescription? AppProject,
-            IReadOnlyList<ProjectDescription> Projects,
+            ValueList<ProjectDescription> Projects,
             PackageReference Reference
         ) : FormApp(AppProject, Projects)
         {
@@ -105,7 +105,7 @@ public abstract record AppDescription
     /// </summary>
     /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
     /// <param name="Projects">Every project file in the repository.</param>
-    public sealed record Unrecognized(ProjectDescription? AppProject, IReadOnlyList<ProjectDescription> Projects)
+    public sealed record Unrecognized(ProjectDescription? AppProject, ValueList<ProjectDescription> Projects)
         : AppDescription(AppProject, Projects);
 }
 
@@ -126,8 +126,8 @@ public abstract record ProjectDescription
     /// <param name="PackageReferences">The packages the project references, in the order they are declared.</param>
     public sealed record WellFormed(
         AppFilePath Path,
-        IReadOnlyList<string> TargetFrameworks,
-        IReadOnlyList<PackageReference> PackageReferences
+        ValueList<string> TargetFrameworks,
+        ValueList<PackageReference> PackageReferences
     ) : ProjectDescription(Path);
 
     /// <summary>A project file that is not well-formed XML, so nothing can be read from it.</summary>

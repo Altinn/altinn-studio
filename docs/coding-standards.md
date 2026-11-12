@@ -34,6 +34,8 @@ reason is bigger than the code.
 - Make a type a struct when it is immutable, compares by value and takes at most 16 bytes, and a
   `readonly record struct` when it would otherwise be a record. A struct has a default value that no code created, so a
   type whose values come from parsing refuses to give the value of its default.
+- A record compares a list it holds by reference, so two records with the same content differ. A record of the domain
+  model holds a list as `ValueList<T>`, which compares its items.
 - Do not add the `Async` suffix to method names.
 - Write an XML doc comment on every public type and member. Test classes and test methods need none: they are public
   only because the test framework requires it, and their names say what they check.

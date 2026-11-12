@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Altinn.Studio.Common.App.V9;
 
 /// <summary>
@@ -8,4 +6,4 @@ namespace Altinn.Studio.Common.App.V9;
 /// serves the frontend itself rather than from <c>App/views/Home/Index.cshtml</c>.
 /// </summary>
 /// <param name="UiFolders">The folders under <c>App/ui</c> with a <c>Settings.json</c>, in ordinal order.</param>
-public sealed record V9Description(IReadOnlyList<string> UiFolders);
+public sealed record V9Description(ValueList<string> UiFolders);

@@ -711,10 +711,36 @@ public sealed class AppDescriptionReaderTests
         }
 
         var bytes = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(fromBytes.Build());
-        var text = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(fromText.Build());
-        Assert.Equal(bytes.AltinnApp, text.AltinnApp);
-        Assert.Equal(bytes.V8, text.V8);
-        Assert.Equal(WellFormed(bytes.Projects[0]).PackageReferences, WellFormed(text.Projects[0]).PackageReferences);
+        Assert.Equal<AppDescription>(bytes, fromText.Build());
+    }
+
+    // A record compares a list it holds by reference, so the descriptions hold theirs as ValueList.
+    [Fact]
+    public void Build_GivesEqualDescriptionsOfTheSameFiles()
+    {
+        AppDescription Describe(string version, params string[] uiFolders)
+        {
+            var reader = new AppDescriptionReader();
+            Read(reader, "App/App.csproj", Project("Altinn.App.Api", version));
+            Read(reader, "App.Tests/App.Tests.csproj", AppProject);
+            foreach (string folder in uiFolders)
+            {
+                Read(reader, $"App/ui/{folder}/Settings.json", "{}");
+            }
+
+            Assert.Equal(reader.Build(), reader.Build());
+            return reader.Build();
+        }
+
+        Assert.Equal(Describe("9.0.0", "Task_1", "Task_2"), Describe("9.0.0", "Task_2", "Task_1"));
+        Assert.Equal(
+            Describe("9.0.0", "Task_1", "Task_2").GetHashCode(),
+            Describe("9.0.0", "Task_2", "Task_1").GetHashCode()
+        );
+        Assert.NotEqual(Describe("9.0.0", "Task_1", "Task_2"), Describe("9.0.0", "Task_1"));
+        Assert.NotEqual(Describe("9.0.0", "Task_1"), Describe("9.0.1", "Task_1"));
+        Assert.Equal(Describe("8.0.0"), Describe("8.0.0"));
+        Assert.Equal(Describe("latest"), Describe("latest"));
     }
 
     [Fact]
