@@ -14,13 +14,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports navigation validation settings that may behave differently or need review, including CustomButton actions configured in layouts. TODOs identify what to review and test. Your settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 
+- `studioctl app upgrade v9` migrates calculations: ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+  - converts `calculations` in `models/*.calculation.json` to the v9 list format, keeping comments and formatting, and leaves a TODO in files it cannot convert
+  - reports app code that calls the removed `IAppResources.GetCalculationConfiguration`
+
 ### Changed
 
+- `studioctl app upgrade v9` converts supported legacy JavaScript calculations to expressions, so calculated values update in the browser before saving. ([#21291](https://github.com/Altinn/altinn-studio/pull/21291))
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 - `studioctl app upgrade v9` now requires the stable .NET SDK 11.0.100 or newer. Release candidates of .NET 11 are no longer accepted. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 
 ### Fixed
 
+- `studioctl app upgrade v9` preserves legacy calculation and visibility results when inputs are missing, empty or zero. ([#21291](https://github.com/Altinn/altinn-studio/pull/21291))
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH

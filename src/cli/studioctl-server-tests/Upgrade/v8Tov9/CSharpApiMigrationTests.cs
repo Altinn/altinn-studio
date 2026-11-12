@@ -2124,6 +2124,28 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void AppResourcesDetector_FlagsGetCalculationConfigurationCall()
+    {
+        _app.Write(
+            "logic/Calculations.cs",
+            """
+            public class Calculations
+            {
+                public string? Read(IAppResources resources) => resources.GetCalculationConfiguration("model");
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Contains(result.Todos, t => t.Contains("GetCalculationSchema"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Calculations.cs") && w.Contains("GetCalculationConfiguration")
+        );
+    }
+
+    [Fact]
     public void AppResourcesDetector_SyntaxOnly_DoesNotFlagAmbiguousXacmlOrBpmnNames()
     {
         // Without a semantic model these share their exact name and arity with the still-current

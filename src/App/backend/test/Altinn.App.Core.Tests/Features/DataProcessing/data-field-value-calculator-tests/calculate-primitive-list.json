@@ -1,0 +1,51 @@
+{
+    "name": "Should replace a list of primitives and a list of objects in a single data model",
+    "expects": [
+        {
+            "field": "form.tags",
+            "result": ["a", "b", "c"]
+        },
+        {
+            "field": "form.children",
+            "result": [
+                { "price": 10, "quantity": 1 }
+            ]
+        },
+        {
+            "field": "form.children[0].price",
+            "result": 10
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": [
+            {
+                "field": "form.tags",
+                "expression": ["list", "a", "b", ["dataModel", "form.extraTag"]]
+            },
+            {
+                "field": "form.children",
+                "expression": ["list", ["object", "price", 10, "quantity", 1]]
+            }
+        ]
+    },
+    "formData": {
+        "form": {
+            "extraTag": "c",
+            "tags": ["x", "y"],
+            "children": [
+                { "price": 1, "quantity": 2 },
+                { "price": 3, "quantity": 4 },
+                { "price": 5, "quantity": 6 }
+            ]
+        }
+    },
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": []
+            }
+        }
+    }
+}

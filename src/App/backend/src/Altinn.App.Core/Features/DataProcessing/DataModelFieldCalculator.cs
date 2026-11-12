@@ -1,8 +1,9 @@
-using System.Text.Json;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -12,10 +13,6 @@ namespace Altinn.App.Core.Features.DataProcessing;
 
 internal sealed class DataModelFieldCalculator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-    );
-
     private readonly ILogger<DataModelFieldCalculator> _logger;
     private readonly IAppResources _appResourceService;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
@@ -44,27 +41,26 @@ internal sealed class DataModelFieldCalculator
                 continue;
             }
 
-            var calculationConfig = _appResourceService.GetCalculationConfiguration(dataType.Id);
-            if (!string.IsNullOrEmpty(calculationConfig))
+            var calculationSchema = _appResourceService.GetCalculationSchema(dataType.Id);
+            if (calculationSchema is not null)
             {
-                await CalculateFormData(dataAccessor, dataElement, calculationConfig);
+                await CalculateFormData(dataAccessor, dataElement, calculationSchema);
             }
         }
     }
 
-    internal async Task CalculateFormData(
+    private async Task CalculateFormData(
         IInstanceDataAccessor dataAccessor,
         DataElement dataElement,
-        string rawCalculationConfig
+        CalculationSchema calculationSchema
     )
     {
         DataElementIdentifier dataElementIdentifier = dataElement;
-        var dataModelFieldCalculations = ParseDataModelFieldCalculationConfig(rawCalculationConfig);
         var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElement);
 
-        foreach (var (baseField, calculation) in dataModelFieldCalculations)
+        foreach (var calculation in calculationSchema.Calculations)
         {
-            var resolvedFields = formDataWrapper.GetResolvedKeys(baseField);
+            var resolvedFields = formDataWrapper.GetResolvedKeys(calculation.Field);
             foreach (var resolvedField in resolvedFields)
             {
                 var resolvedFieldReference = new DataReference()
@@ -86,7 +82,7 @@ internal sealed class DataModelFieldCalculator
                     formDataWrapper,
                     resolvedFieldReference,
                     positionalArguments,
-                    calculation
+                    calculation.Expression
                 );
             }
         }
@@ -98,14 +94,14 @@ internal sealed class DataModelFieldCalculator
         IFormDataWrapper formDataWrapper,
         DataReference resolvedField,
         ExpressionValue[] positionalArguments,
-        DataModelFieldCalculation calculation
+        Expression calculation
     )
     {
         try
         {
             var calculationResult = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
                 dataAccessor,
-                calculation.Expression,
+                calculation,
                 context,
                 positionalArguments
             );
@@ -124,70 +120,5 @@ internal sealed class DataModelFieldCalculator
             _logger.LogError(e, "Error while evaluating calculation for field {Field}", resolvedField.Field);
             throw;
         }
-    }
-
-    private Dictionary<string, DataModelFieldCalculation> ParseDataModelFieldCalculationConfig(
-        string rawCalculationConfig
-    )
-    {
-        JsonDocument calculationConfigDocument;
-        try
-        {
-            calculationConfigDocument = JsonDocument.Parse(rawCalculationConfig, AppFileJson.DocumentOptions);
-        }
-        catch (JsonException e)
-        {
-            _logger.LogError(e, "Failed to parse calculation configuration JSON");
-            return new Dictionary<string, DataModelFieldCalculation>();
-        }
-        using (calculationConfigDocument)
-        {
-            var dataModelFieldCalculations = new Dictionary<string, DataModelFieldCalculation>();
-            var hasCalculations = calculationConfigDocument.RootElement.TryGetProperty(
-                "calculations",
-                out JsonElement calculationsObject
-            );
-            if (hasCalculations)
-            {
-                foreach (var calculationArray in calculationsObject.EnumerateObject())
-                {
-                    var field = calculationArray.Name;
-                    var calculation = calculationArray.Value;
-                    var resolvedDataModelFieldCalculation = ResolveDataModelFieldCalculation(field, calculation);
-                    if (resolvedDataModelFieldCalculation == null)
-                    {
-                        _logger.LogError("Calculation for field {Field} could not be resolved", field);
-                        continue;
-                    }
-                    dataModelFieldCalculations[field] = resolvedDataModelFieldCalculation;
-                }
-            }
-            return dataModelFieldCalculations;
-        }
-    }
-
-    private DataModelFieldCalculation? ResolveDataModelFieldCalculation(string field, JsonElement definition)
-    {
-        var dataModelFieldCalculationDefinition = definition.Deserialize<RawDataModelFieldCalculation>(
-            _jsonSerializerOptions
-        );
-        if (dataModelFieldCalculationDefinition == null)
-        {
-            _logger.LogError("Calculation for field {Field} could not be parsed", field);
-            return null;
-        }
-
-        if (dataModelFieldCalculationDefinition.Expression == null)
-        {
-            _logger.LogError("Calculation for field {Field} is missing expression", field);
-            return null;
-        }
-
-        var dataModelFieldCalculation = new DataModelFieldCalculation
-        {
-            Expression = dataModelFieldCalculationDefinition.Expression.Value,
-        };
-
-        return dataModelFieldCalculation;
     }
 }

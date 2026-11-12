@@ -1,7 +1,8 @@
 {
   // App files support comments and trailing commas together.
-  "calculations": {
-    "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange": {
+  "calculations": [
+    {
+      "field": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange",
       "expression": [
         "minus",
         [
@@ -40,7 +41,8 @@
         ],
       ],
     },
-    "sumAll": {
+    {
+      "field": "sumAll",
       "expression": [
         "sum",
         [
@@ -53,7 +55,8 @@
         ]
       ]
     },
-    "sumAboveLimit": {
+    {
+      "field": "sumAboveLimit",
       "expression": [
         "sum",
         [
@@ -78,7 +81,8 @@
         ]
       ]
     },
-    "numAboveLimit": {
+    {
+      "field": "numAboveLimit",
       "expression": [
         "count",
         [
@@ -103,5 +107,5 @@
         ]
       ]
     }
-  },
+  ],
 }

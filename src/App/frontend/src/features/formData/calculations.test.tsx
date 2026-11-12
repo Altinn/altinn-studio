@@ -111,7 +111,7 @@ describe('calculations in the form store', () => {
   it('preserves stored values when a PDF previews another task with calculations', async () => {
     const initialData = { quantity: 4, total: 3 };
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['multiply', ['dataModel', 'quantity'], 2] } } },
+      { calculations: [{ field: 'total', expression: ['multiply', ['dataModel', 'quantity'], 2] }] },
       initialData,
       false,
       true,
@@ -126,11 +126,11 @@ describe('calculations in the form store', () => {
   it('calculates initial data, converts scalar types, and runs dependent expressions in order', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['multiply', ['dataModel', 'quantity'], 2] },
-          label: { expression: ['dataModel', 'total'] },
-          enabled: { expression: ['greaterThan', ['dataModel', 'total'], 0] },
-        },
+        calculations: [
+          { field: 'total', expression: ['multiply', ['dataModel', 'quantity'], 2] },
+          { field: 'label', expression: ['dataModel', 'total'] },
+          { field: 'enabled', expression: ['greaterThan', ['dataModel', 'total'], 0] },
+        ],
       },
       { quantity: 4 },
     );
@@ -153,9 +153,7 @@ describe('calculations in the form store', () => {
   it('reads cross-model changes and recalculates when the backend changes an input', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['multiply', ['dataModel', 'quantity', 'other'], 2] },
-        },
+        calculations: [{ field: 'total', expression: ['multiply', ['dataModel', 'quantity', 'other'], 2] }],
       },
       {},
       true,
@@ -179,11 +177,14 @@ describe('calculations in the form store', () => {
   it('calculates relative to each nested row, supplies the target path, and updates totals after deleting rows', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          'rows.total': { expression: ['multiply', ['dataModel', 'rows.price'], ['dataModel', 'rows.quantity']] },
-          'rows.children.label': { expression: ['argv', 0] },
-          total: { expression: ['sum', ['jmespath', ['dataModel', 'rows'], '[].total']] },
-        },
+        calculations: [
+          {
+            field: 'rows.total',
+            expression: ['multiply', ['dataModel', 'rows.price'], ['dataModel', 'rows.quantity']],
+          },
+          { field: 'rows.children.label', expression: ['argv', 0] },
+          { field: 'total', expression: ['sum', ['jmespath', ['dataModel', 'rows'], '[].total']] },
+        ],
       },
       {
         rows: [
@@ -212,7 +213,7 @@ describe('calculations in the form store', () => {
 
   it.each(['index', 'value'] as const)('recalculates immediately after removing a list item by %s', async (method) => {
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['sum', ['dataModel', 'numbers']] } } },
+      { calculations: [{ field: 'total', expression: ['sum', ['dataModel', 'numbers']] }] },
       { numbers: [2, 3] },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ numbers: [2, 3], total: 5 });
@@ -233,9 +234,7 @@ describe('calculations in the form store', () => {
   it('clears a previous value when an expression returns null', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          label: { expression: ['if', ['dataModel', 'enabled'], 'yes', 'else', null] },
-        },
+        calculations: [{ field: 'label', expression: ['if', ['dataModel', 'enabled'], 'yes', 'else', null] }],
       },
       { enabled: true },
     );
@@ -250,7 +249,7 @@ describe('calculations in the form store', () => {
 
   it('does not write in read-only forms', async () => {
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['dataModel', 'quantity'] } } },
+      { calculations: [{ field: 'total', expression: ['dataModel', 'quantity'] }] },
       { quantity: 2 },
     );
     act(() => store.setState({ readOnly: true }));
@@ -266,10 +265,10 @@ describe('calculations in the form store', () => {
   it('clears nullable numeric and boolean targets without losing schema nullability', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          nullableNumber: { expression: ['if', ['dataModel', 'enabled'], 3, 'else', null] },
-          nullableBoolean: { expression: ['if', ['dataModel', 'enabled'], true, 'else', null] },
-        },
+        calculations: [
+          { field: 'nullableNumber', expression: ['if', ['dataModel', 'enabled'], 3, 'else', null] },
+          { field: 'nullableBoolean', expression: ['if', ['dataModel', 'enabled'], true, 'else', null] },
+        ],
       },
       { enabled: true },
     );
@@ -292,11 +291,11 @@ describe('calculations in the form store', () => {
     const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['divide', 1, 0] },
-          enabled: { expression: 'not a boolean' },
-          label: { expression: 'still calculated' },
-        },
+        calculations: [
+          { field: 'total', expression: ['divide', 1, 0] },
+          { field: 'enabled', expression: 'not a boolean' },
+          { field: 'label', expression: 'still calculated' },
+        ],
       },
       { total: 42, enabled: true },
     );
@@ -313,11 +312,11 @@ describe('calculations in the form store', () => {
     vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
     const { store } = await renderCalculations(
       {
-        calculations: {
-          numbers: { expression: ['dataModel', 'strings'] },
-          total: { expression: null },
-          label: { expression: ['sum', ['dataModel', 'numbers']] },
-        },
+        calculations: [
+          { field: 'numbers', expression: ['dataModel', 'strings'] },
+          { field: 'total', expression: null },
+          { field: 'label', expression: ['sum', ['dataModel', 'numbers']] },
+        ],
       },
       { strings: ['2', '3'], total: 42 },
     );
@@ -331,9 +330,7 @@ describe('calculations in the form store', () => {
   it('runs once per data change rather than again immediately before saving', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['plus', ['dataModel', 'total'], 1] },
-        },
+        calculations: [{ field: 'total', expression: ['plus', ['dataModel', 'total'], 1] }],
       },
       { total: 2 },
     );
@@ -344,9 +341,17 @@ describe('calculations in the form store', () => {
 
   it('skips malformed definitions without losing valid calculations', () => {
     vi.spyOn(window, 'logWarn').mockImplementation(() => undefined);
-    expect(resolveCalculationConfig({ calculations: { total: {}, enabled: { expression: false } } })).toEqual({
-      calculations: { enabled: { expression: false } },
+    expect(
+      resolveCalculationConfig({
+        calculations: [{ field: 'total' }, { expression: true }, null, { field: 'enabled', expression: false }],
+      }),
+    ).toEqual({
+      calculations: [{ field: 'enabled', expression: false }],
     });
     expect(resolveCalculationConfig(null)).toBeNull();
+  });
+
+  it('ignores the old format where calculations were keyed by field', () => {
+    expect(resolveCalculationConfig({ calculations: { total: { expression: false } } })).toBeNull();
   });
 });

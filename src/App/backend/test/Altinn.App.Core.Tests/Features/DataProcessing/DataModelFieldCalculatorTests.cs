@@ -7,11 +7,12 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -22,6 +23,7 @@ namespace Altinn.App.Core.Tests.Features.DataProcessing;
 
 public sealed class DataModelFieldCalculatorTests
 {
+    const string TaskId = "Task_1";
     private readonly ITestOutputHelper _output;
     private readonly DataModelFieldCalculator _dataModelFieldCalculator;
     private readonly FakeLogger<DataModelFieldCalculator> _logger = new();
@@ -35,8 +37,11 @@ public sealed class DataModelFieldCalculatorTests
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    private DataElement _dataElement = null!;
-    private IInstanceDataAccessor _instanceDataAccessor = null!;
+    private readonly DataElement _defaultSingleDataElement = new DataElement
+    {
+        Id = "30844cc0-81af-4429-9f9e-035d78f1f9da",
+        DataType = "default",
+    };
 
     public DataModelFieldCalculatorTests(ITestOutputHelper output)
     {
@@ -74,11 +79,12 @@ public sealed class DataModelFieldCalculatorTests
                   ],
                   "calculationConfig": {
                       "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
-                      "calculations": {
-                          "form.formDataWrapperThrows": {
+                      "calculations": [
+                          {
+                            "field": "form.formDataWrapperThrows",
                             "expression": ["noneExistingExpression"]
                           }
-                      }
+                      ]
                   },
                   "formData": {
                       "form": {
@@ -94,14 +100,10 @@ public sealed class DataModelFieldCalculatorTests
             _jsonSerializerOptions
         )!;
 
-        Setup(testCase);
+        var dataAccessor = Setup(testCase);
 
         var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
-            _dataModelFieldCalculator.CalculateFormData(
-                _instanceDataAccessor,
-                _dataElement,
-                JsonSerializer.Serialize(testCase.CalculationConfig)
-            )
+            _dataModelFieldCalculator.Calculate(dataAccessor, TaskId)
         );
 
         Assert.Contains(testCase.Expects.First().LogMessage, _logger.Collector.GetSnapshot().Select(x => x.Message));
@@ -115,7 +117,11 @@ public sealed class DataModelFieldCalculatorTests
     [FileNamesInFolderData(["Features", "DataProcessing", "data-field-value-calculator-tests", "assert-logger"])]
     public async Task RunDataModelFieldCalculationTestsThatAssertLogger(string fileName, string folder)
     {
-        var (_, testCase) = await RunDataModelFieldCalculatorTest(fileName, folder);
+        var testCase = await LoadData(fileName, folder);
+
+        var dataAccessor = Setup(testCase);
+
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
 
         foreach (var expected in testCase.Expects)
         {
@@ -127,13 +133,21 @@ public sealed class DataModelFieldCalculatorTests
     [FileNamesInFolderData(["Features", "DataProcessing", "data-field-value-calculator-tests"])]
     public async Task RunDataModelFieldCalculationTests(string fileName, string folder)
     {
-        var (result, testCase) = await RunDataModelFieldCalculatorTest(fileName, folder);
+        var testCase = await LoadData(fileName, folder);
+
+        var dataAccessor = Setup(testCase);
+
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
+        Assert.Empty(_logger.Collector.GetSnapshot());
 
         foreach (var expected in testCase.Expects)
         {
+            var dataElementIdentifier = expected.DataElementIdentifier ?? _defaultSingleDataElement;
             if (expected.Result.HasValue)
             {
-                Assert.Equal(expected.Result.Value.ToObject(), result.Get(expected.Field));
+                var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElementIdentifier);
+                var value = formDataWrapper.Get(expected.Field);
+                Assert.Equal(JsonSerializer.Serialize(expected.Result.Value), JsonSerializer.Serialize(value));
                 Assert.Empty(_logger.Collector.GetSnapshot());
             }
             else
@@ -143,48 +157,18 @@ public sealed class DataModelFieldCalculatorTests
         }
     }
 
-    private async Task<(IFormDataWrapper, DataModelFieldCalculatorTestModel)> RunDataModelFieldCalculatorTest(
-        string fileName,
-        string folder
-    )
+    private IInstanceDataAccessor Setup(DataModelFieldCalculatorTestModel testCase)
     {
-        var testCase = await LoadData(fileName, folder);
-
-        Setup(testCase);
-
-        await _dataModelFieldCalculator.CalculateFormData(
-            _instanceDataAccessor,
-            _dataElement,
-            JsonSerializer.Serialize(testCase.CalculationConfig)
-        );
-
-        var formDataWrapper = await _instanceDataAccessor.GetFormDataWrapper(_dataElement);
-
-        return (formDataWrapper, testCase);
-    }
-
-    private void Setup(DataModelFieldCalculatorTestModel testCase)
-    {
-        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app" };
-        var dataType = new DataType() { Id = "default" };
-
-        _dataElement = new DataElement { Id = "30844cc0-81af-4429-9f9e-035d78f1f9da", DataType = "default" };
-        var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
-        var componentModel = new LayoutModel([layout], null);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "org/app",
+            Process = new() { CurrentTask = new() { ElementId = TaskId } },
+        };
         var translationService = new TranslationService(
             new AppIdentifier("org", "app"),
             _appResources.Object,
             FakeLoggerXunit.Get<TranslationService>(_output)
-        );
-        _instanceDataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-            instance,
-            translationService,
-            componentModel,
-            new FrontEndSettings(),
-            testCase.FormData,
-            gatewayAction: null,
-            language: null,
-            _dataElement
         );
 
         _appResources
@@ -194,6 +178,54 @@ public sealed class DataModelFieldCalculatorTests
                     ? null
                     : new TextResource { Language = "nb", Resources = testCase.TextResources }
             );
+        _appResources.Setup(ar => ar.GetCalculationSchema(It.IsAny<string>())).Returns(testCase.CalculationConfig);
+
+        if (testCase.DataModels is not null)
+        {
+            Assert.Null(testCase.FormData);
+            Assert.All(testCase.Expects, e => Assert.NotNull(e.DataElementIdentifier));
+            Assert.All(testCase.DataModels, d => Assert.NotNull(d.DataElement.DataType));
+            var dataTypes = testCase
+                .DataModels.Select(d => d.DataElement.DataType)
+                .Distinct()
+                .Select(dataTypeId => new DataType()
+                {
+                    Id = dataTypeId,
+                    MaxCount = 1,
+                    AppLogic = new() { },
+                    TaskId = TaskId,
+                })
+                .ToList();
+
+            var layout = new UiFolderComponent(testCase.Layouts, "layout", dataTypes[0]);
+            var componentModel = new LayoutModel([layout], null);
+
+            return DynamicClassBuilder.DataAccessorFromJsonDocument(
+                instance,
+                translationService,
+                componentModel,
+                _frontendSettings.Value,
+                testCase.DataModels,
+                gatewayAction: null,
+                language: null
+            );
+        }
+        else
+        {
+            var dataType = new DataType() { Id = "default", TaskId = TaskId };
+            var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
+            var componentModel = new LayoutModel([layout], null);
+            return DynamicClassBuilder.DataAccessorFromJsonDocument(
+                instance,
+                translationService,
+                componentModel,
+                _frontendSettings.Value,
+                testCase.FormData ?? throw new InvalidOperationException("Either formData or dataModels must be set"),
+                gatewayAction: null,
+                language: null,
+                _defaultSingleDataElement
+            );
+        }
     }
 
     private record DataModelFieldCalculatorTestModel
@@ -205,10 +237,16 @@ public sealed class DataModelFieldCalculatorTests
         public required Expected[] Expects { get; set; }
 
         [JsonPropertyName("calculationConfig")]
-        public required JsonElement CalculationConfig { get; set; }
+        public required CalculationSchema CalculationConfig { get; set; }
 
+        // A single data element. Either this or <see cref="DataModels"/> must be set.
         [JsonPropertyName("formData")]
-        public required JsonElement FormData { get; set; }
+        public JsonElement? FormData { get; set; }
+
+        // Multiple data elements. The calculation runs against every element whose data type has a calculation config,
+        // and expressions may reference the other data models. Either this or <see cref="FormData"/> must be set.
+        [JsonPropertyName("dataModels")]
+        public List<DataModelAndElement>? DataModels { get; set; }
 
         [JsonPropertyName("layouts")]
         public required IReadOnlyDictionary<string, JsonElement> Layouts { get; set; }
@@ -219,6 +257,8 @@ public sealed class DataModelFieldCalculatorTests
 
     private record Expected
     {
+        public DataElementIdentifier? DataElementIdentifier { get; set; }
+
         public string? Field { get; set; }
 
         public ExpressionValue? Result { get; set; }

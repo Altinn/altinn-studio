@@ -14,28 +14,31 @@ import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDValue } from 'src/features/formData/FormDataWrite';
 
 export interface CalculationConfig {
-  calculations: Record<string, { expression: ExprValToActualOrExpr<ExprVal.Any> }>;
+  calculations: { field: string; expression: ExprValToActualOrExpr<ExprVal.Any> }[];
 }
 
 export function resolveCalculationConfig(config: unknown): CalculationConfig | null {
   if (!config || typeof config !== 'object' || !('calculations' in config)) {
     return null;
   }
-  if (!config.calculations || typeof config.calculations !== 'object' || Array.isArray(config.calculations)) {
+  if (!Array.isArray(config.calculations)) {
     return null;
   }
-  const calculations: CalculationConfig['calculations'] = {};
-  for (const [field, definition] of Object.entries(config.calculations)) {
+  const calculations: CalculationConfig['calculations'] = [];
+  for (const [index, definition] of (config.calculations as unknown[]).entries()) {
+    const isObject = !!definition && typeof definition === 'object';
+    const field = isObject && 'field' in definition ? definition.field : undefined;
+    const expression = isObject && 'expression' in definition ? definition.expression : undefined;
+    const name = typeof field === 'string' ? field : `calculations[${index}]`;
     if (
-      definition &&
-      typeof definition === 'object' &&
-      'expression' in definition &&
-      definition.expression !== undefined &&
-      ExprValidation.isValidOrScalar(definition.expression, ExprVal.Any, `Invalid calculation for ${field}`)
+      typeof field === 'string' &&
+      field.trim() !== '' &&
+      expression !== undefined &&
+      ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)
     ) {
-      calculations[field] = { expression: definition.expression };
+      calculations.push({ field, expression });
     } else {
-      window.logWarn(`Skipping invalid calculation for ${field}`);
+      window.logWarn(`Skipping invalid calculation for ${name}`);
     }
   }
   return { calculations };
@@ -152,8 +155,12 @@ export function runCalculations(
     if (!bootstrap.calculationConfig || !isWritable(model.dataElementId)) {
       continue;
     }
-    for (const [field, calculation] of Object.entries(bootstrap.calculationConfig.calculations)) {
-      for (const target of resolveCalculationTargets(field, model.currentData, bootstrap.schemaResult.lookupTool)) {
+    for (const calculation of bootstrap.calculationConfig.calculations) {
+      for (const target of resolveCalculationTargets(
+        calculation.field,
+        model.currentData,
+        bootstrap.schemaResult.lookupTool,
+      )) {
         const reference: IDataModelReference = { dataType, field: target };
         const runtime: ExpressionDataSources = {
           ...dataSources,

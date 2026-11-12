@@ -1,0 +1,133 @@
+{
+    "name": "Should set multiple values when resolving keys in a datamodel array",
+    "expects": [
+        {
+            "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "field": "form.children[0]",
+            "result": {
+                "price": 200,
+                "quantity": 1,
+                "total": 200
+            }
+        },
+        {
+            "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "field": "form.children[1]",
+            "result": {
+                "price": 200,
+                "quantity": 2,
+                "total": 400
+            }
+        },
+        {
+            "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
+            "field": "form.children[0]",
+            "result": {
+                "price": 200,
+                "quantity": 1,
+                "total": 200
+            }
+        },
+        {
+            "dataElementIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
+            "field": "form.children[1]",
+            "result": {
+                "price": 200,
+                "quantity": 2,
+                "total": 400
+            }
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": [
+            {
+                "field": "form.children",
+                "expression": [
+                    "list",
+                    [
+                        "object",
+                        "price",
+                        200,
+                        "quantity",
+                        1,
+                        "total",
+                        200
+                    ],
+                    [
+                        "object",
+                        "price",
+                        200,
+                        "quantity",
+                        2,
+                        "total",
+                        400
+                    ]
+                ]
+            }
+        ]
+    },
+    "dataModels": [
+        {
+            "dataElement":{
+                "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                "dataType": "element"
+            },
+            "data": {
+                "form": {
+                    "children": [
+                        {
+                            "price": 100222,
+                            "quantity": 233,
+                            "total": 0
+                        },
+                        {
+                            "price": 5333,
+                            "quantity": 4433,
+                            "total": 0
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "dataElement":{
+                "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeef",
+                "dataType": "element"
+            },
+            "data": {
+                "form": {
+                    "children": [
+                        {
+                            "price": 503,
+                            "quantity": 33,
+                            "total": 330
+                        },
+                        {
+                            "price": 13330,
+                            "quantity": 45,
+                            "total": 0
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": [
+                    {
+                        "id": "name-input",
+                        "type": "Input",
+                        "dataModelBindings": {
+                            "simpleBinding": "form.name"
+                        },
+                        "hidden": true
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -15,11 +15,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 - System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
+- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 
 ### Changed
 
 - Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
+- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. Forms with the old object format do not load. `studioctl app upgrade v9` converts your files. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 
 ### Fixed
 
@@ -36,6 +38,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 - In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
+
+### Removed
+
+- Breaking: `IAppResources.GetCalculationConfiguration` is removed. Use `IAppResources.GetCalculationSchema`, which returns the parsed calculations, or null when the data type has none. `studioctl app upgrade v9` reports calls to it. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
 
 ## [9.0.0-preview.10] - 2026-11-09
 
