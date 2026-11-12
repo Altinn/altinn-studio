@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useImperativeHandle } from 'react';
 import type { InputHTMLAttributes, ReactElement, Ref, RefObject, FormEvent } from 'react';
-import { UploadIcon } from '@studio/icons';
+import { UploadIcon } from '@designer/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioFileUploader.module.css';

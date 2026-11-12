@@ -3,7 +3,7 @@ import { getCodeListIdsFromExternalResources } from './utils';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { externalResources } from '../../../../../test-data/externalResources';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 describe('getCodeListIdsFromExternalResources', () => {
   it('returns only code list resource ids', () => {

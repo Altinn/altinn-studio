@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import classes from './ImagesPage.module.css';
-import { StudioHeading, StudioAlert } from '@studio/components';
+import { StudioHeading, StudioAlert } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { InfoBox } from '../../../components/InfoBox';
 import { PageName } from '../../../types/PageName';

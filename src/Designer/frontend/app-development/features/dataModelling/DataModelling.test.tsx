@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DataModeling } from './DataModeling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -14,9 +14,9 @@ import {
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { user as userMock } from 'app-shared/mocks/mocks';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

@@ -3,9 +3,9 @@ import React, { useCallback, forwardRef } from 'react';
 import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
-import { PadlockLockedFillIcon, PlusCircleIcon, PencilIcon } from '@studio/icons';
+import { PadlockLockedFillIcon, PlusCircleIcon, PencilIcon } from '@designer/icons';
 import cn from 'classnames';
-import { ValidationUtils } from '@studio/pure-functions';
+import { ValidationUtils } from '@designer/pure-functions';
 
 export type StudioPropertyButtonProps = {
   property: string;

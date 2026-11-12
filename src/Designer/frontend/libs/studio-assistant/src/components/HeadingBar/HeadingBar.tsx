@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { StudioHeading, StudioToggleGroup, StudioTag } from '@studio/components';
+import { StudioHeading, StudioToggleGroup, StudioTag } from '@designer/components';
 import classes from './HeadingBar.module.css';
-import { CodeIcon, PlayFillIcon } from '@studio/icons';
+import { CodeIcon, PlayFillIcon } from '@designer/icons';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { ConnectionStatus } from '../../types/ConnectionStatus';

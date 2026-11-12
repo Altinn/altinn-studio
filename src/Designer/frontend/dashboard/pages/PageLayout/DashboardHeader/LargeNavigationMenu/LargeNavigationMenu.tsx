@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioLink, StudioPageHeader } from '@studio/components';
+import { StudioLink, StudioPageHeader } from '@designer/components';
 import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';

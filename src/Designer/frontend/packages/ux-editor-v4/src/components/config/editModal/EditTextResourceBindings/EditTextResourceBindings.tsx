@@ -1,7 +1,7 @@
 import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResourceBinding';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import classes from './EditTextResourceBindings.module.css';
 
 export interface EditTextResourceBindingBase {

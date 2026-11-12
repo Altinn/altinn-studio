@@ -6,7 +6,7 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';

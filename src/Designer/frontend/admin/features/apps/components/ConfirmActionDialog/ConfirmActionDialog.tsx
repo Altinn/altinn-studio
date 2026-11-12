@@ -6,7 +6,7 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 import classes from './ConfirmActionDialog.module.css';

@@ -5,11 +5,11 @@ import {
   NEXT_V9_VERSION,
 } from 'app-shared/constants';
 import { useVersionStatus } from './useVersionStatus';
-import { type FeatureFlag } from '@studio/feature-flags';
+import { type FeatureFlag } from '@designer/feature-flags';
 
 const mockUseFeatureFlag = vi.fn();
-vi.mock('@studio/feature-flags', async () => ({
-  ...(await vi.importActual('@studio/feature-flags')),
+vi.mock('@designer/feature-flags', async () => ({
+  ...(await vi.importActual('@designer/feature-flags')),
   useFeatureFlag: (flag: FeatureFlag) => mockUseFeatureFlag(flag),
 }));
 

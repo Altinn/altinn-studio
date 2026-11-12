@@ -6,7 +6,7 @@ import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioFieldset, StudioSpinner, StudioSwitch, StudioHeading } from '@studio/components';
+import { StudioFieldset, StudioSpinner, StudioSwitch, StudioHeading } from '@designer/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';

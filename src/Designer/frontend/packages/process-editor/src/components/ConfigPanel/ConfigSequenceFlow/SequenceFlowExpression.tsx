@@ -8,8 +8,8 @@ import {
   KeyLookupFuncName,
   PredefinedGatewayAction,
   type BooleanExpression,
-} from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+} from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';

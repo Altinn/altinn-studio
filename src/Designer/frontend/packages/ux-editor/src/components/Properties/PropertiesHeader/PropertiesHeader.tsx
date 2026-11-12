@@ -14,7 +14,7 @@ import { ComponentMainConfig } from './ComponentMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { getComponentDefinition } from '../../../data/componentCatalog';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';

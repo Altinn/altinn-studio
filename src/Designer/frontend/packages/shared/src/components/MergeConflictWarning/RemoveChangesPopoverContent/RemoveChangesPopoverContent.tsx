@@ -6,7 +6,7 @@ import {
   StudioHeading,
   StudioSpinner,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 

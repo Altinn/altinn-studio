@@ -29,7 +29,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
@@ -41,7 +41,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor-v8@workspace:src/Designer/frontend/packages/process-editor-v8"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
@@ -56,7 +56,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
@@ -71,7 +71,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   peerDependencies:
     classnames: 2.5.1
     react: 18.3.1
@@ -103,9 +103,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/ux-editor-v3@workspace:src/Designer/frontend/packages/ux-editor-v3"
   dependencies:
+    "@designer/icons": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@reduxjs/toolkit": "npm:1.9.7"
-    "@studio/icons": "workspace:^"
-    "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     react: "npm:19.2.8"
@@ -122,8 +122,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/ux-editor-v4@workspace:src/Designer/frontend/packages/ux-editor-v4"
   dependencies:
-    "@studio/icons": "workspace:^"
-    "@studio/ui-test": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     react: "npm:19.2.8"
@@ -1859,6 +1859,165 @@ __metadata:
   checksum: 10/062097590005cce3da4c7d9880f9c77d386cff5b4dd58fa3dde3c346a8b2e4f4a8025a613306351a7cad8eb71178a0f67b4840d5884f73aa4c759085fac92063
   languageName: node
   linkType: hard
+
+"@designer/assistant@workspace:^, @designer/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
+  version: 0.0.0-use.local
+  resolution: "@designer/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
+  dependencies:
+    "@designer/components": "workspace:^"
+    dompurify: "npm:^3.4.17"
+    marked: "npm:^17.0.6"
+  languageName: unknown
+  linkType: soft
+
+"@designer/browser-storage@workspace:^, @designer/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
+  version: 0.0.0-use.local
+  resolution: "@designer/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/components@workspace:^, @designer/components@workspace:src/Designer/frontend/libs/studio-components":
+  version: 0.0.0-use.local
+  resolution: "@designer/components@workspace:src/Designer/frontend/libs/studio-components"
+  dependencies:
+    "@app/layout-contract": "workspace:*"
+    "@chromatic-com/storybook": "npm:^5.0.1"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@designer/ui-test": "workspace:^"
+    "@digdir/designsystemet-css": "npm:1.23.0"
+    "@digdir/designsystemet-react": "npm:1.23.0"
+    "@storybook/addon-docs": "npm:10.5.7"
+    "@storybook/addon-links": "npm:10.5.7"
+    "@storybook/builder-vite": "npm:10.5.7"
+    "@storybook/react-vite": "npm:10.5.7"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    eslint-plugin-storybook: "npm:10.5.7"
+    highlight.js: "npm:11.12.0"
+    react-dnd: "npm:16.0.1"
+    react-dnd-html5-backend: "npm:16.0.1"
+    storybook: "npm:10.6.2"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: 18.2.0 || 19.0.0 || 19.1 || 19.2
+    react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
+  languageName: unknown
+  linkType: soft
+
+"@designer/content-library@workspace:^, @designer/content-library@workspace:src/Designer/frontend/libs/studio-content-library":
+  version: 0.0.0-use.local
+  resolution: "@designer/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
+  dependencies:
+    "@designer/components": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
+  version: 0.0.0-use.local
+  resolution: "@designer/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
+  dependencies:
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
+"@designer/feedback-form@workspace:^, @designer/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
+  version: 0.0.0-use.local
+  resolution: "@designer/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
+  dependencies:
+    "@designer/components": "workspace:^"
+    "@designer/icons": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@designer/guard@workspace:src/Designer/frontend/libs/studio-guard":
+  version: 0.0.0-use.local
+  resolution: "@designer/guard@workspace:src/Designer/frontend/libs/studio-guard"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/hooks@workspace:^, @designer/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
+  version: 0.0.0-use.local
+  resolution: "@designer/hooks@workspace:src/Designer/frontend/libs/studio-hooks"
+  dependencies:
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+    uuid: "npm:13.0.2"
+  peerDependencies:
+    react-router-dom: ">=6.0.0"
+  languageName: unknown
+  linkType: soft
+
+"@designer/icons@workspace:^, @designer/icons@workspace:src/Designer/frontend/libs/studio-icons":
+  version: 0.0.0-use.local
+  resolution: "@designer/icons@workspace:src/Designer/frontend/libs/studio-icons"
+  dependencies:
+    "@navikt/aksel-icons": "npm:^7.0.0"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/pure-functions@workspace:^, @designer/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions":
+  version: 0.0.0-use.local
+  resolution: "@designer/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/ui-test@workspace:^, @designer/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
+  version: 0.0.0-use.local
+  resolution: "@designer/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test"
+  dependencies:
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@testing-library/user-event": "npm:14.6.3"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
 
 "@digdir/designsystemet-css@npm:1.23.0":
   version: 1.23.0
@@ -4755,26 +4914,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/assistant@workspace:^, @studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
-  version: 0.0.0-use.local
-  resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
-  dependencies:
-    "@studio/components": "workspace:^"
-    dompurify: "npm:^3.4.17"
-    marked: "npm:^17.0.6"
-  languageName: unknown
-  linkType: soft
-
-"@studio/browser-storage@workspace:^, @studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
-  version: 0.0.0-use.local
-  resolution: "@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
 "@studio/common-typescript@workspace:src/common/ts":
   version: 0.0.0-use.local
   resolution: "@studio/common-typescript@workspace:src/common/ts"
@@ -4782,145 +4921,6 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     vite: "npm:8.2.2"
     vitest: "npm:5.0.1"
-  languageName: unknown
-  linkType: soft
-
-"@studio/components@workspace:^, @studio/components@workspace:src/Designer/frontend/libs/studio-components":
-  version: 0.0.0-use.local
-  resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
-  dependencies:
-    "@app/layout-contract": "workspace:*"
-    "@chromatic-com/storybook": "npm:^5.0.1"
-    "@digdir/designsystemet-css": "npm:1.23.0"
-    "@digdir/designsystemet-react": "npm:1.23.0"
-    "@storybook/addon-docs": "npm:10.5.7"
-    "@storybook/addon-links": "npm:10.5.7"
-    "@storybook/builder-vite": "npm:10.5.7"
-    "@storybook/react-vite": "npm:10.5.7"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@studio/ui-test": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    eslint-plugin-storybook: "npm:10.5.7"
-    highlight.js: "npm:11.12.0"
-    react-dnd: "npm:16.0.1"
-    react-dnd-html5-backend: "npm:16.0.1"
-    storybook: "npm:10.6.2"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: 18.2.0 || 19.0.0 || 19.1 || 19.2
-    react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
-  languageName: unknown
-  linkType: soft
-
-"@studio/content-library@workspace:^, @studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library":
-  version: 0.0.0-use.local
-  resolution: "@studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
-  dependencies:
-    "@studio/components": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
-  version: 0.0.0-use.local
-  resolution: "@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
-  dependencies:
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
-  languageName: unknown
-  linkType: soft
-
-"@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
-  version: 0.0.0-use.local
-  resolution: "@studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
-  dependencies:
-    "@studio/components": "workspace:^"
-    "@studio/icons": "workspace:^"
-  languageName: unknown
-  linkType: soft
-
-"@studio/guard@workspace:src/Designer/frontend/libs/studio-guard":
-  version: 0.0.0-use.local
-  resolution: "@studio/guard@workspace:src/Designer/frontend/libs/studio-guard"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/hooks@workspace:^, @studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
-  version: 0.0.0-use.local
-  resolution: "@studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks"
-  dependencies:
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    react: "npm:19.2.8"
-    react-dom: "npm:19.2.8"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-    uuid: "npm:13.0.2"
-  peerDependencies:
-    react-router-dom: ">=6.0.0"
-  languageName: unknown
-  linkType: soft
-
-"@studio/icons@workspace:^, @studio/icons@workspace:src/Designer/frontend/libs/studio-icons":
-  version: 0.0.0-use.local
-  resolution: "@studio/icons@workspace:src/Designer/frontend/libs/studio-icons"
-  dependencies:
-    "@navikt/aksel-icons": "npm:^7.0.0"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    react: "npm:19.2.8"
-    react-dom: "npm:19.2.8"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions":
-  version: 0.0.0-use.local
-  resolution: "@studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/ui-test@workspace:^, @studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
-  version: 0.0.0-use.local
-  resolution: "@studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test"
-  dependencies:
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.3"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -6320,12 +6320,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "admin@workspace:src/Designer/frontend/admin"
   dependencies:
+    "@designer/content-library": "workspace:^"
+    "@designer/feedback-form": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
     "@posthog/react": "npm:1.10.3"
-    "@studio/content-library": "workspace:^"
-    "@studio/feedback-form": "workspace:^"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
@@ -6540,15 +6540,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@designer/assistant": "workspace:^"
+    "@designer/browser-storage": "workspace:^"
+    "@designer/content-library": "workspace:^"
+    "@designer/feedback-form": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@posthog/react": "npm:1.10.3"
-    "@studio/assistant": "workspace:^"
-    "@studio/browser-storage": "workspace:^"
-    "@studio/content-library": "workspace:^"
-    "@studio/feedback-form": "workspace:^"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
@@ -6682,7 +6682,7 @@ __metadata:
     uuid: "npm:14.0.2"
     vite: "npm:8.2.2"
     vitest: "npm:5.0.1"
-    zod: "npm:4.4.3"
+    zod: "npm:4.6.6"
     zustand: "npm:5.0.15"
   languageName: unknown
   linkType: soft
@@ -6691,7 +6691,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
-    "@studio/hooks": "workspace:^"
+    "@designer/hooks": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
@@ -6705,7 +6705,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     "@types/react": "npm:19.2.18"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -8442,8 +8442,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
-    "@studio/hooks": "workspace:^"
-    "@studio/ui-test": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
@@ -16247,7 +16247,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "settings@workspace:src/Designer/frontend/settings"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     vite: "npm:8.2.2"
   languageName: unknown
   linkType: soft
@@ -16936,7 +16936,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "studio-root@workspace:src/Designer/frontend/studio-root"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     vite: "npm:8.2.2"
   languageName: unknown
   linkType: soft
@@ -18720,10 +18720,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:4.4.3, zod@npm:^3.25.0 || ^4.0.0":
-  version: 4.4.3
-  resolution: "zod@npm:4.4.3"
-  checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
+"zod@npm:4.6.6, zod@npm:^3.25.0 || ^4.0.0":
+  version: 4.6.6
+  resolution: "zod@npm:4.6.6"
+  checksum: 10/ce628fb33400b531f48b63ad1bd9b5ab95ec3ac60d4e8025892d90af9ca5d03b168aaaf74071928345ad1b1bcd735a7d5cf33230ece7de885240bb0f2b7bb492
   languageName: node
   linkType: hard
 

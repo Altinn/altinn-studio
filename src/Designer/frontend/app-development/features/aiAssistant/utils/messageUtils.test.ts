@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
+import type { AgentResponse, AssistantMessageData } from '@designer/assistant';
 import {
   formatRejectedEventMessage,
   formatRejectionMessage,

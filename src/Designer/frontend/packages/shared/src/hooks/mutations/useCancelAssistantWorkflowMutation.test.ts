@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useCancelAssistantWorkflowMutation } from './useCancelAssistantWorkflowMutation';
 
 describe('useCancelAssistantWorkflowMutation', () => {

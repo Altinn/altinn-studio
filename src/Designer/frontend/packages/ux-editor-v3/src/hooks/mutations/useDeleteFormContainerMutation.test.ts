@@ -11,7 +11,7 @@ import {
 } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

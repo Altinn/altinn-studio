@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen } from '@studio/ui-test';
+import { screen } from '@designer/ui-test';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
 

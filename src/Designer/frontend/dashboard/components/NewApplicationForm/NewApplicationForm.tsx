@@ -5,7 +5,7 @@ import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import { AppTemplateSelector } from '../AppTemplateSelector/AppTemplateSelector';
 import { useAppTemplatesQuery } from '../../hooks/queries/useAppTemplatesQuery';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -17,7 +17,7 @@ import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 import type { CreateServiceFormError } from 'dashboard/pages/CreateService/CreateService';
 
 type CancelButton = {

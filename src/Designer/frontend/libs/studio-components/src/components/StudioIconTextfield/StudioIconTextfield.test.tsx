@@ -3,7 +3,7 @@ import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
-import { KeyVerticalIcon } from '@studio/icons';
+import { KeyVerticalIcon } from '@designer/icons';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioIconTextfield', () => {

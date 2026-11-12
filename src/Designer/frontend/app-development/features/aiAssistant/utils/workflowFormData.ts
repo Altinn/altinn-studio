@@ -1,4 +1,4 @@
-import type { UserAttachment } from '@studio/assistant';
+import type { UserAttachment } from '@designer/assistant';
 
 type WorkflowStart = {
   goal: string;

@@ -18,7 +18,7 @@ import {
   label4Resource,
   textResources,
 } from './test-data/textResources';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';
 import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { codeListWithMultipleTypes } from './test-data/codeListWithMultipleTypes';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StudioConfigCard, StudioParagraph } from '@studio/components';
+import { StudioConfigCard, StudioParagraph } from '@designer/components';
 import type { ErrorProps, ExternalCrop, InternalCrop } from '../ImageUploadTypes';
 import {
   getCropToBeSaved,

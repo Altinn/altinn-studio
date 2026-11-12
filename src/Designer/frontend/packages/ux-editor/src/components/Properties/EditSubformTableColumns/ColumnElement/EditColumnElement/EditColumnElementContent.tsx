@@ -1,4 +1,4 @@
-import { StudioCodeFragment } from '@studio/components';
+import { StudioCodeFragment } from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { TextResource } from '../../../../TextResource/TextResource';
 import { getTableColumnCellValue, type TableColumn } from '../../types/TableColumn';

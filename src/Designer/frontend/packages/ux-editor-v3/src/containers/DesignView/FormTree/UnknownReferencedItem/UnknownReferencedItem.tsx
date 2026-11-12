@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioHelpText } from '@studio/components';
-import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
+import { StudioButton, StudioHelpText } from '@designer/components';
+import { QuestionmarkDiamondIcon, TrashIcon } from '@designer/icons';
 import type { IInternalLayout } from '../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
 import classes from './UnknownReferencedItem.module.css';

@@ -5,7 +5,7 @@ import {
   StudioFieldset,
   StudioFormActions,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
 import { ContactPointField } from 'app-shared/types/AppConfig';
 import { useTranslation } from 'react-i18next';

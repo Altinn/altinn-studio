@@ -10,7 +10,7 @@
     "test": "yarn workspace studio-designer-frontend vitest run packages/policy-editor/"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   },
   "peerDependencies": {
     "react": "18.3.1",

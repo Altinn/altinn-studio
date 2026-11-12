@@ -20,18 +20,18 @@ import {
   StudioCodeListEditorContextProvider,
   useStudioCodeListEditorContext,
 } from './StudioCodeListEditorContext';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
-import { usePropState } from '@studio/hooks';
+import { usePropState } from '@designer/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import classes from './StudioCodeListEditor.module.css';
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import cn from 'classnames';
 import type { StudioLanguagePickerTexts } from '../StudioLanguagePicker';
 import { StudioLanguagePicker } from '../StudioLanguagePicker';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export type StudioCodeListEditorProps = Readonly<{
   className?: string;

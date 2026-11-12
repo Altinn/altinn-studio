@@ -6,15 +6,15 @@ import {
   StudioHeading,
   StudioButton,
   StudioTextfield,
-} from '@studio/components';
-import type { CodeListWithTextResources, CodeListEditorTexts } from '@studio/components';
-import type { TextResource } from '@studio/pure-functions';
+} from '@designer/components';
+import type { CodeListWithTextResources, CodeListEditorTexts } from '@designer/components';
+import type { TextResource } from '@designer/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@designer/icons';
 import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 
 export type CreateNewCodeListDialogProps = {

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioBlobDownloader } from './StudioBlobDownloader';
 import type { StudioBlobDownloaderProps } from './StudioBlobDownloader';
-import { BlobDownloader } from '@studio/pure-functions';
+import { BlobDownloader } from '@designer/pure-functions';
 
 describe('StudioBlobDownloader', () => {
   type ExampleData = {

@@ -3,8 +3,8 @@ import type {
   CodeListReference,
   CodeListWithMetadata,
   TextResourceWithLanguage,
-} from '@studio/content-library';
-import { ContentLibrary } from '@studio/content-library';
+} from '@designer/content-library';
+import { ContentLibrary } from '@designer/content-library';
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import {
@@ -14,7 +14,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageError, StudioPageSpinner } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';

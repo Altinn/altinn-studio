@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { useTextResourcesForLanguage } from './useTextResourcesForLanguage';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { TextResource } from '@studio/pure-functions';
-import type { TextResources } from '@studio/content-library';
+import type { TextResource } from '@designer/pure-functions';
+import type { TextResources } from '@designer/content-library';
 
 // Test data:
 const language = 'nb';

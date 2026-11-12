@@ -4,7 +4,7 @@ import {
   StudioButton,
   StudioSpinner,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';

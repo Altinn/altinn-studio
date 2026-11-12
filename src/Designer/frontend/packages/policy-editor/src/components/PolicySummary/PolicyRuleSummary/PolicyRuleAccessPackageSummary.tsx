@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { StudioTable, StudioTag } from '@studio/components';
+import { StudioTable, StudioTag } from '@designer/components';
 import {
   getAccessPackageDisplayName,
   mapActionsForRoleOrAccessPackage,
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import { groupAccessPackagesByArea } from '../../PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
 
 export type PolicyRuleAccessPackageSummaryProps = {

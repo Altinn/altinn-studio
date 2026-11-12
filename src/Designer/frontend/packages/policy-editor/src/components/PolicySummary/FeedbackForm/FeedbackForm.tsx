@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { type FeedbackFormConfig, FeedbackFormImpl } from '@studio/feedback-form';
+import { type FeedbackFormConfig, FeedbackFormImpl } from '@designer/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 
 /**
  * This is a feedback form to gather feedback on the new policy summary.
- * It uses the FeedbackForm component from the @studio/feedback-form package.
+ * It uses the FeedbackForm component from the @designer/feedback-form package.
  * The form is temporary, and will be removed when we have gathered sufficient feedback.
  * As such, all texts are hardcoded in Norwegian, to avoid adding unnecessary translations.
  * @returns The FeedbackForm component.

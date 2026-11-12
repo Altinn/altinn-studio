@@ -1,13 +1,13 @@
 import type { ChangeEvent, JSX } from 'react';
 import React from 'react';
-import { PlusIcon, XMarkIcon } from '@studio/icons';
+import { PlusIcon, XMarkIcon } from '@designer/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioProperty, StudioButton, StudioTextfield } from '@studio/components';
+import { StudioProperty, StudioButton, StudioTextfield } from '@designer/components';
 
 export const MapComponent = ({
   component,

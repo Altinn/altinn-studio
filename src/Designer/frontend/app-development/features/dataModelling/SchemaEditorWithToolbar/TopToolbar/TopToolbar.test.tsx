@@ -13,8 +13,8 @@ import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithProviders } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();

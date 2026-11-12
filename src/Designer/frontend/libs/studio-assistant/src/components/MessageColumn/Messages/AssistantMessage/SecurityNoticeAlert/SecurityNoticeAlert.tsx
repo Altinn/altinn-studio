@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioParagraph } from '@designer/components';
 import type { SecurityNoticeAlertTexts } from '../../../../../types/AssistantTexts';
 import classes from './SecurityNoticeAlert.module.css';
 

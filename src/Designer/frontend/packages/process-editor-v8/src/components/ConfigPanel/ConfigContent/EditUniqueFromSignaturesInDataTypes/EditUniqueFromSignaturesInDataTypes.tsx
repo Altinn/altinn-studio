@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { PersonPencilIcon } from '@studio/icons';
+import { PersonPencilIcon } from '@designer/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';

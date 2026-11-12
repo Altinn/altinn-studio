@@ -1,7 +1,7 @@
 import { forwardRef, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } from 'react';
 import cn from 'classnames';
-import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@designer/icons';
 import classes from './StudioCodeViewer.module.css';
 import type { StudioCodeViewerLanguage } from './registerHighlighter';
 import { useHighlightedLines } from './useHighlightedLines';

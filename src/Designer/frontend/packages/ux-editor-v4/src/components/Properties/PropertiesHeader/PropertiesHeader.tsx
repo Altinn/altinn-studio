@@ -12,7 +12,7 @@ import { isComponentDeprecated } from '@altinn/ux-editor-v4/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor-v4/hooks/queries/useComponentSchemaQuery';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
 

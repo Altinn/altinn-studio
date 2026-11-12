@@ -8,7 +8,7 @@ import {
   StudioHeading,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import {
   addCodeListToMap,
   createCodeListMap,
@@ -20,7 +20,7 @@ import {
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListData } from '../../../types/CodeListData';
 import classes from './CodeListsPage.module.css';
-import { FloppydiskIcon, PlusIcon } from '@studio/icons';
+import { FloppydiskIcon, PlusIcon } from '@designer/icons';
 import type { CodeListMapError } from './types/CodeListMapError';
 import { Errors } from './Errors';
 import type { CodeListFile } from '../../../types/CodeListFile';

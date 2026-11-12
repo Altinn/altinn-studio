@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import classes from './DeployPopover.module.css';
-import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { usePostHog } from '@posthog/react';
 

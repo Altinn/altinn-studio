@@ -4,7 +4,7 @@ import {
   StudioLabelAsParagraph,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';

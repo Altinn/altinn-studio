@@ -14,7 +14,7 @@ import {
 } from '../utils/domUtils';
 import { StudioAnimateHeight } from '../../StudioAnimateHeight';
 import { StudioTreeViewItemContext } from './StudioTreeViewItemContext';
-import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@designer/icons';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioTreeViewItem.module.css';
 import cn from 'classnames';

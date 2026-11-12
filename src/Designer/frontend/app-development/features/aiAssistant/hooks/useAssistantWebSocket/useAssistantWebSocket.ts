@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { assistantWebSocketHub } from 'app-shared/api/paths';
-import type { WorkflowEvent, ConnectionStatus } from '@studio/assistant';
+import type { WorkflowEvent, ConnectionStatus } from '@designer/assistant';
 
 const ASSISTANT_CONNECTION_INDEX = 0; // WSConnector uses single connection for assistant hub
 

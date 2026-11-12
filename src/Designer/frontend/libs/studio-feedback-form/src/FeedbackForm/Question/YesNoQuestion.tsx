@@ -1,5 +1,5 @@
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
-import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
+import { StudioButton, StudioLabelAsParagraph } from '@designer/components';
+import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@designer/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import classes from './YesNoQuestion.module.css';
 

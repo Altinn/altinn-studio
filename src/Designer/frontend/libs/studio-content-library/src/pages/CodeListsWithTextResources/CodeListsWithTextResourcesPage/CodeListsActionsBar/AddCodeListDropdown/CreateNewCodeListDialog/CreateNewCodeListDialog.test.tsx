@@ -7,7 +7,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
 import type { CreateNewCodeListDialogProps } from './CreateNewCodeListDialog';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { textResourcesNb } from '../../../../../../test-data/textResources';
 
 const onCreateCodeList = vi.fn();

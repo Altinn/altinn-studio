@@ -7,7 +7,7 @@ import {
   StudioPageSpinner,
   StudioParagraph,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
@@ -22,7 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }

@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@studio/hooks';
+import { useLocalStorage } from '@designer/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 

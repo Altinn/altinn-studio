@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../../../../../test-utils/renderWithProv
 import type { AddCodeListDropdownProps } from './AddCodeListDropdown';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { externalResources } from '../../../../../test-data/externalResources';
 

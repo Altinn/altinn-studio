@@ -113,7 +113,7 @@ def _provenance_from(metadata: dict) -> Provenance:
 def _comments(api: LangfuseApi, trace_id: str) -> dict[str, str]:
     """The comment each evaluator wrote, which only the scores endpoint returns."""
     try:
-        page = api._get("/api/public/v2/scores", traceId=trace_id, limit=PAGE_SIZE)
+        page = api._get("/api/public/v3/scores", traceId=trace_id, limit=PAGE_SIZE, fields="details")
     except Exception:
         return {}
     said: dict[str, str] = {}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useAssistantTexts } from './useAssistantTexts';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('useAssistantTexts', () => {
   it('maps translation keys into the assistant texts structure', () => {
