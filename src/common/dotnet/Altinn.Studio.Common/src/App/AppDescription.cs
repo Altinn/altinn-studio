@@ -171,10 +171,15 @@ public abstract record ProjectDescription
     /// <param name="Path">The project file.</param>
     /// <param name="TargetFrameworks">From <c>TargetFramework</c> or <c>TargetFrameworks</c>.</param>
     /// <param name="PackageReferences">The packages the project references, in the order they are declared.</param>
+    /// <param name="ProjectReferences">
+    /// The projects in the repository that the project references without a condition, in the order they are
+    /// declared.
+    /// </param>
     public sealed record WellFormed(
         AppFilePath Path,
         ValueList<string> TargetFrameworks,
-        ValueList<PackageReference> PackageReferences
+        ValueList<PackageReference> PackageReferences,
+        ValueList<AppFilePath> ProjectReferences
     ) : ProjectDescription(Path);
 
     /// <summary>A project file that is not well-formed XML, so nothing can be read from it.</summary>

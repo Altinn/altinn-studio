@@ -18,8 +18,9 @@ namespace Altinn.Studio.Common.App;
 /// A project gets the properties and package references of the nearest <c>Directory.Build.props</c> and the
 /// central package versions of the nearest <c>Directory.Packages.props</c>, as MSBuild imports them. The app's
 /// Altinn.App package is the first of <see cref="AltinnAppPackage.PackageNames"/> that
-/// <see cref="AppDescription.AppProject"/> references, or else the first that another project references, since the
-/// app's project may get it through a library project of its own.
+/// <see cref="AppDescription.AppProject"/> references, or else the first that a project it references does, since
+/// the app's project may get it through a library project of its own. A project that the app's project does not
+/// reference, such as its tests, says nothing about the app.
 /// </remarks>
 public sealed class AppDescriptionReader : IAppSourceReader
 {
@@ -76,12 +77,19 @@ public sealed class AppDescriptionReader : IAppSourceReader
         paths.AddRange(_malformedProjects);
         paths.Sort((x, y) => string.CompareOrdinal(x.Value, y.Value));
 
+        // Paths differ in case between apps written on Windows and the references to them.
+        var byPath = new Dictionary<string, AppFilePath>(StringComparer.OrdinalIgnoreCase);
+        foreach (AppFilePath path in paths)
+        {
+            byPath[path.Value] = path;
+        }
+
         var projects = new List<ProjectDescription>(paths.Count);
         foreach (AppFilePath path in paths)
         {
             projects.Add(
                 _projects.TryGetValue(path, out ProjectFile? file)
-                    ? Describe(path, file)
+                    ? Describe(path, file, byPath)
                     : new ProjectDescription.Malformed(path)
             );
         }
@@ -173,7 +181,11 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
     }
 
-    private ProjectDescription.WellFormed Describe(AppFilePath path, ProjectFile project)
+    private ProjectDescription.WellFormed Describe(
+        AppFilePath path,
+        ProjectFile project,
+        Dictionary<string, AppFilePath> projectsByPath
+    )
     {
         // MSBuild imports Directory.Build.props, then Directory.Packages.props, then the project. It sets every
         // property before it reads an item, so an item gets the values the properties have in the end.
@@ -233,7 +245,74 @@ public sealed class AppDescriptionReader : IAppSourceReader
             );
         }
 
-        return new ProjectDescription.WellFormed(path, [.. TargetFrameworks(properties)], [.. references]);
+        return new ProjectDescription.WellFormed(
+            path,
+            [.. TargetFrameworks(properties)],
+            [.. references],
+            [.. ProjectReferences(path, project, projectsByPath)]
+        );
+    }
+
+    // The projects in the repository that a project references. A reference that a condition decides is left out,
+    // and so is one whose path a property is part of, since where it leads is not known here.
+    private static List<AppFilePath> ProjectReferences(
+        AppFilePath path,
+        ProjectFile project,
+        Dictionary<string, AppFilePath> projectsByPath
+    )
+    {
+        var references = new List<AppFilePath>();
+        foreach (ProjectFile.Item item in project.ProjectReferences)
+        {
+            if (item.Conditional || item.Operation != ProjectFile.Operation.Include)
+            {
+                continue;
+            }
+
+            foreach (string part in item.Name.Split(';'))
+            {
+                if (
+                    Resolve(path.Directory, part.Trim()) is { } resolved
+                    && projectsByPath.TryGetValue(resolved, out AppFilePath? referenced)
+                    && !references.Contains(referenced)
+                )
+                {
+                    references.Add(referenced);
+                }
+            }
+        }
+
+        return references;
+    }
+
+    // The path that a project reference leads to, relative to the app's root, or null when it leads out of the app.
+    // Projects written on Windows separate the segments with \.
+    private static string? Resolve(string directory, string reference)
+    {
+        var segments = new List<string>();
+        if (directory.Length > 0)
+        {
+            segments.AddRange(directory.Split('/'));
+        }
+
+        foreach (string segment in reference.Split('/', '\\'))
+        {
+            if (segment == "..")
+            {
+                if (segments.Count == 0)
+                {
+                    return null;
+                }
+
+                segments.RemoveAt(segments.Count - 1);
+            }
+            else if (segment.Length > 0 && segment != ".")
+            {
+                segments.Add(segment);
+            }
+        }
+
+        return string.Join("/", segments);
     }
 
     private static List<string> TargetFrameworks(Dictionary<string, string?> properties)
@@ -396,21 +475,47 @@ public sealed class AppDescriptionReader : IAppSourceReader
         return inAppFolder == 0 && projects.Count == 1 ? projects[0] : null;
     }
 
+    // The Altinn.App reference of the app's project, or else of the nearest project it references, also through
+    // other projects. A project that the app's project does not reference, such as its tests, says nothing about
+    // the app.
     private static PackageReference? FindAltinnAppReference(
         ProjectDescription? appProject,
         List<ProjectDescription> projects
     )
     {
-        if (appProject is not null && FindAltinnAppReference(appProject) is { } ofAppProject)
+        if (appProject is null)
         {
-            return ofAppProject;
+            return null;
         }
 
+        var byPath = new Dictionary<AppFilePath, ProjectDescription>(projects.Count);
         foreach (ProjectDescription project in projects)
         {
-            if (!ReferenceEquals(project, appProject) && FindAltinnAppReference(project) is { } reference)
+            byPath[project.Path] = project;
+        }
+
+        var seen = new HashSet<AppFilePath> { appProject.Path };
+        var queue = new Queue<ProjectDescription>();
+        queue.Enqueue(appProject);
+        while (queue.Count > 0)
+        {
+            ProjectDescription project = queue.Dequeue();
+            if (FindAltinnAppReference(project) is { } reference)
             {
                 return reference;
+            }
+
+            if (project is not ProjectDescription.WellFormed wellFormed)
+            {
+                continue;
+            }
+
+            foreach (AppFilePath path in wellFormed.ProjectReferences)
+            {
+                if (seen.Add(path) && byPath.TryGetValue(path, out ProjectDescription? referenced))
+                {
+                    queue.Enqueue(referenced);
+                }
             }
         }
 

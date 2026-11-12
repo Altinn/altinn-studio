@@ -30,11 +30,17 @@ internal sealed class ProjectFile
         CloseInput = false,
     };
 
-    private ProjectFile(List<Property> properties, List<Item> packageReferences, List<Item> packageVersions)
+    private ProjectFile(
+        List<Property> properties,
+        List<Item> packageReferences,
+        List<Item> packageVersions,
+        List<Item> projectReferences
+    )
     {
         Properties = properties;
         PackageReferences = packageReferences;
         PackageVersions = packageVersions;
+        ProjectReferences = projectReferences;
     }
 
     /// <summary>What an item element does to the items of its kind.</summary>
@@ -59,15 +65,20 @@ internal sealed class ProjectFile
     /// <summary>The <c>PackageVersion</c> elements of central package management, in order.</summary>
     public IReadOnlyList<Item> PackageVersions { get; }
 
+    /// <summary>The <c>ProjectReference</c> elements of the file, in order, whose name is the path of a project.</summary>
+    public IReadOnlyList<Item> ProjectReferences { get; }
+
     /// <summary>A property as written in the file, before the properties it refers to are resolved.</summary>
     /// <param name="Name">The name of the element.</param>
     /// <param name="Value">The text of the element.</param>
     /// <param name="Conditional">Whether a condition decides if it is set.</param>
     public sealed record Property(string Name, string Value, bool Conditional);
 
-    /// <summary>A package item as written in the file, before properties are resolved.</summary>
+    /// <summary>A package or project item as written in the file, before properties are resolved.</summary>
     /// <param name="Operation">What the element does.</param>
-    /// <param name="Name">The package ID from <c>Include</c>, <c>Update</c> or <c>Remove</c>.</param>
+    /// <param name="Name">
+    /// What <c>Include</c>, <c>Update</c> or <c>Remove</c> names: a package ID, or the path of a project.
+    /// </param>
     /// <param name="Version">
     /// The <c>Version</c> attribute or element, which is empty when the file sets it to nothing and <c>null</c> when
     /// the file does not set it. An update with an empty value clears the version, and one without leaves it.
@@ -132,6 +143,7 @@ internal sealed class ProjectFile
         var properties = new List<Property>();
         var packageReferences = new List<Item>();
         var packageVersions = new List<Item>();
+        var projectReferences = new List<Item>();
         string? group = null;
         bool groupIsConditional = false;
         while (reader.Read())
@@ -154,11 +166,21 @@ internal sealed class ProjectFile
             }
             else if (reader.Depth == 2 && Is(group, "ItemGroup"))
             {
-                ReadItem(reader, groupIsConditional, packageReferences, packageVersions);
+                List<Item>? items = reader.LocalName switch
+                {
+                    var name when Is(name, "PackageReference") => packageReferences,
+                    var name when Is(name, "PackageVersion") => packageVersions,
+                    var name when Is(name, "ProjectReference") => projectReferences,
+                    _ => null,
+                };
+                if (items is not null)
+                {
+                    ReadItem(reader, groupIsConditional, items);
+                }
             }
         }
 
-        return new ProjectFile(properties, packageReferences, packageVersions);
+        return new ProjectFile(properties, packageReferences, packageVersions, projectReferences);
     }
 
     /// <summary>
@@ -218,7 +240,9 @@ internal sealed class ProjectFile
             start = value.IndexOf("$(", position, StringComparison.Ordinal);
         }
 
-        return result.Append(value, position, value.Length - position).ToString();
+        // The text between the references counts too.
+        result.Append(value, position, value.Length - position);
+        return result.Length > MaxValueLength ? null : result.ToString();
     }
 
     private static bool IsPropertyName(string name)
@@ -239,19 +263,8 @@ internal sealed class ProjectFile
         return true;
     }
 
-    private static void ReadItem(
-        XmlReader reader,
-        bool groupIsConditional,
-        List<Item> packageReferences,
-        List<Item> packageVersions
-    )
+    private static void ReadItem(XmlReader reader, bool groupIsConditional, List<Item> items)
     {
-        bool isReference = Is(reader.LocalName, "PackageReference");
-        if (!isReference && !Is(reader.LocalName, "PackageVersion"))
-        {
-            return;
-        }
-
         string? name = null;
         var operation = Operation.Include;
         bool conditional = groupIsConditional;
@@ -314,9 +327,7 @@ internal sealed class ProjectFile
 
         if (name is not null && name.Length > 0)
         {
-            (isReference ? packageReferences : packageVersions).Add(
-                new Item(operation, name, version, versionOverride, conditional)
-            );
+            items.Add(new Item(operation, name, version, versionOverride, conditional));
         }
     }
 

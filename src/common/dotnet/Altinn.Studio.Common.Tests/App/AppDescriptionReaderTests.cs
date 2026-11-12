@@ -351,6 +351,27 @@ public sealed class AppDescriptionReaderTests
         );
     }
 
+    // The limit is on the whole value, with the text between the references to properties.
+    [Theory]
+    [InlineData(4086, true)]
+    [InlineData(4087, false)]
+    public void Build_CountsTheTextAroundAPropertyTowardTheLimitOnAValue(int textLength, bool known)
+    {
+        string text = new('8', textLength);
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><PropertyGroup><V>0123456789</V><W>{text}$(V)</W></PropertyGroup>"
+                + "<ItemGroup><PackageReference Include=\"Other\" Version=\"$(W)\" /></ItemGroup></Project>"
+        );
+
+        Assert.Equal(
+            [new PackageReference("Other", known ? text + "0123456789" : null)],
+            WellFormed(reader.Build().Projects[0]).PackageReferences
+        );
+    }
+
     [Fact]
     public void Build_GivesUpOnPropertiesThatGrowByRepeatingEachOther()
     {
@@ -591,16 +612,65 @@ public sealed class AppDescriptionReaderTests
     }
 
     [Fact]
-    public void Build_TakesTheAltinnPackageOfAnotherProjectWhenTheAppProjectHasNone()
+    public void Build_TakesTheAltinnPackageOfAProjectTheAppProjectReferences()
     {
         var reader = new AppDescriptionReader();
-        Read(reader, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.0.0"));
-        Read(reader, "Shared/Shared.csproj", Project("Altinn.App.Core", "8.0.0"));
+        Read(
+            reader,
+            "App/App.csproj",
+            "<Project><ItemGroup><ProjectReference Include=\"..\\Shared\\Shared.csproj\" />"
+                + "<ProjectReference Include=\"..\\..\\outside\\Outside.csproj\" /></ItemGroup></Project>"
+        );
+        Read(
+            reader,
+            "Shared/Shared.csproj",
+            "<Project><ItemGroup><ProjectReference Include=\"./../shared/core/Core.csproj;../App/App.csproj\" /></ItemGroup></Project>"
+        );
+        Read(reader, "Shared/Core/Core.csproj", Project("Altinn.App.Core", "8.0.0"));
+        Read(reader, "App.Tests/App.Tests.csproj", Project("Altinn.App.Api", "9.0.0"));
 
         AppDescription description = reader.Build();
 
         Assert.Equal("App/App.csproj", description.AppProject?.Path.Value);
         Assert.Equal(("Altinn.App.Core", "8.0.0", 8), Package(description));
+        Assert.Equal(
+            ["Shared/Shared.csproj"],
+            WellFormed(description.AppProject!).ProjectReferences.Select(p => p.Value)
+        );
+        Assert.Equal(
+            ["Shared/Core/Core.csproj", "App/App.csproj"],
+            WellFormed(description.Projects[3]).ProjectReferences.Select(p => p.Value)
+        );
+    }
+
+    // A project that the app's project does not reference says nothing about the app, and neither does one that it
+    // references only when a condition holds.
+    [Theory]
+    [InlineData("")]
+    [InlineData("<ProjectReference Include=\"../Shared/Shared.csproj\" Condition=\"'$(OS)' == 'Windows_NT'\" />")]
+    [InlineData("<ProjectReference Include=\"$(SharedProject)\" />")]
+    [InlineData("<ProjectReference Update=\"../Shared/Shared.csproj\" />")]
+    public void Build_DoesNotTakeTheAltinnPackageOfAProjectTheAppProjectDoesNotReference(string references)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", $"<Project><ItemGroup>{references}</ItemGroup></Project>");
+        Read(reader, "Shared/Shared.csproj", Project("Altinn.App.Core", "8.0.0"));
+        Read(reader, "App.Tests/App.Tests.csproj", Project("Altinn.App.Api", "9.0.0"));
+
+        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
+        Assert.Empty(WellFormed(description.AppProject!).ProjectReferences);
+    }
+
+    // Nothing says which project the app is built from, so no project's package says which contract it is on.
+    [Fact]
+    public void Build_TakesNoAltinnPackageWhenTheAppProjectIsNotKnown()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/One.csproj", Project("Altinn.App.Api", "8.0.0"));
+        Read(reader, "App/Two.csproj", Project("Altinn.App.Api", "9.0.0"));
+
+        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
+        Assert.Null(description.AppProject);
     }
 
     // The layouts are those of apps deployed to production and tt02.

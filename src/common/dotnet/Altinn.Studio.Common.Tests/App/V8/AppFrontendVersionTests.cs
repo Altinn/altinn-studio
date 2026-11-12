@@ -164,6 +164,19 @@ public sealed partial class AppFrontendVersionTests
         Assert.Null(AppFrontendVersionReader.Read(Page($"<script src=\"{source}\"></script>")));
     }
 
+    // A script that is not the app frontend's does not keep a later one from being read.
+    [Theory]
+    [InlineData("https://altinncdn.no/toolkits/altinn-app-frontend/loader.js?name=altinn-app-frontend.js")]
+    [InlineData("https://altinncdn.no/toolkits/altinn-app-frontend/loader.js?name=/altinn-app-frontend.js")]
+    [InlineData("https://altinncdn.no/toolkits/altinn-app-frontend/a/b/altinn-app-frontend.js")]
+    [InlineData("https://altinncdn.no/toolkits/altinn-app-frontend/altinn-app-frontend.js")]
+    public void Read_PassesOverAScriptThatIsNotTheAppFrontend(string other)
+    {
+        string html = Page($"<script src=\"{other}\"></script><script src=\"{Script("4")}\"></script>");
+
+        Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
+    }
+
     [Fact]
     public void Read_TakesTheFirstScriptFromTheCdn()
     {

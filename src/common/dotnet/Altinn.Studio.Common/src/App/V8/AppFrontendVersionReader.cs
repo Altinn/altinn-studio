@@ -40,7 +40,7 @@ public static class AppFrontendVersionReader
     public static AppFrontendVersion? Read(string content)
     {
         string? metaVersion = null;
-        string? scriptSource = null;
+        string? scriptSegment = null;
         var tags = new TagScanner(WithoutRazorComments(content));
         while (metaVersion is null && tags.Next())
         {
@@ -52,29 +52,21 @@ public static class AppFrontendVersionReader
                     metaVersion = value.Trim();
                 }
             }
-            else if (tags.NameIs("script") && scriptSource is null)
+            else if (tags.NameIs("script"))
             {
-                // The page loads what the source starts with, so the address must not only be somewhere in it.
-                string? source = tags.Attribute("src")?.Trim();
-                if (
-                    source is not null
-                    && source.StartsWith(ScriptPrefix, StringComparison.Ordinal)
-                    && source.AsSpan().IndexOf(ScriptFile.AsSpan(), StringComparison.Ordinal) >= 0
-                )
-                {
-                    scriptSource = source;
-                }
+                scriptSegment ??= SegmentOfScriptSource(tags.Attribute("src")?.Trim());
             }
         }
 
-        return AppFrontendVersion.TryParse(metaVersion ?? SegmentOfScriptSource(scriptSource), out var version)
-            ? version
-            : null;
+        return AppFrontendVersion.TryParse(metaVersion ?? scriptSegment, out var version) ? version : null;
     }
 
+    // The segment between the CDN address and the file name of the script, which is the version when the page
+    // loads the app frontend from there. The page loads what the source starts with, so the address must not only
+    // be somewhere in it.
     private static string? SegmentOfScriptSource(string? source)
     {
-        if (source is null)
+        if (source is null || !source.StartsWith(ScriptPrefix, StringComparison.Ordinal))
         {
             return null;
         }
@@ -83,9 +75,14 @@ public static class AppFrontendVersionReader
         // path, so only a query or a fragment can follow it.
         int suffix = source.IndexOf(ScriptSuffix, StringComparison.Ordinal);
         int end = suffix + ScriptSuffix.Length;
-        return suffix < ScriptPrefix.Length || (end < source.Length && source[end] is not ('?' or '#'))
-            ? null
-            : source.Substring(ScriptPrefix.Length, suffix - ScriptPrefix.Length);
+        if (suffix < ScriptPrefix.Length || (end < source.Length && source[end] is not ('?' or '#')))
+        {
+            return null;
+        }
+
+        // One segment of the path, so not a file name that is only named in the query of another script.
+        string segment = source.Substring(ScriptPrefix.Length, suffix - ScriptPrefix.Length);
+        return segment.AsSpan().IndexOfAny('/', '?', '#') < 0 ? segment : null;
     }
 
     // Razor leaves a comment, @* to *@, out of the page it renders, wherever in the page it is. @@ is an @ as text,
