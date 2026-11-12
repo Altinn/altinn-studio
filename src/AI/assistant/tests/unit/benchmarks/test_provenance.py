@@ -98,9 +98,7 @@ class TestDigestsCoverEveryAppVersion:
 
         before = provenance._hash_tools()
         all_tools = agentic_loop_node._internal_tools
-        monkeypatch.setattr(
-            agentic_loop_node, "_internal_tools", lambda skills, **kwargs: all_tools(skills, **kwargs)[1:]
-        )
+        monkeypatch.setattr(agentic_loop_node, "_internal_tools", lambda skills: all_tools(skills)[1:])
 
         assert provenance._hash_tools() != before
 

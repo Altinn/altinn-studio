@@ -18,7 +18,9 @@ from agents.core import (
     DiscardFileChangesTool,
     LoopContext,
     LoopResult,
+    PreviewRenderCheckTool,
     TerminationReason,
+    ToolRegistry,
     ToolResult,
     VerifyChangesTool,
 )
@@ -85,10 +87,6 @@ class TestBuildRegistry:
 
         monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
         assert "preview_render_check" in _build_registry()
-
-    def test_render_check_override(self, monkeypatch):
-        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
-        assert "preview_render_check" in _build_registry(preview_check=True)
 
 
 class TestEventBridge:
@@ -745,13 +743,13 @@ async def _handle_events(
         _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
     if render_checks is not None:
         monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
-    checks = list(render_checks or [_outcome(is_error=True, unavailable=True)])
+        checks = list(render_checks)
 
-    # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
-    async def render_check(_self, _args, _ctx):
-        return checks.pop(0)
+        # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
+        async def render_check(_self, _args, _ctx):
+            return checks.pop(0)
 
-    monkeypatch.setattr(node.PreviewRenderCheckTool, "run", render_check)
+        monkeypatch.setattr(node.PreviewRenderCheckTool, "run", render_check)
 
     state = await handle(_state(allow_app_changes=allow_app_changes, repo_path=str(repo)))
 
@@ -1249,9 +1247,24 @@ def _loop_result():
     return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
 
 
-async def _repair(state: AgentState, ctx: LoopContext, result: LoopResult | None = None) -> LoopResult:
+def _registry_with_check() -> ToolRegistry:
+    """`_repair_render_failures` runs the check only if the loop offered it to the model."""
+    registry = ToolRegistry()
+    registry.register(PreviewRenderCheckTool())
+    return registry
+
+
+async def _repair(
+    state: AgentState, ctx: LoopContext, result: LoopResult | None = None, registry: ToolRegistry | None = None
+) -> LoopResult:
     return await node._repair_render_failures(
-        state, result or _loop_result(), ctx, registry=None, adapter=None, system_prompt="", on_event=None
+        state,
+        result or _loop_result(),
+        ctx,
+        registry=_registry_with_check() if registry is None else registry,
+        adapter=None,
+        system_prompt="",
+        on_event=None,
     )
 
 
@@ -1260,15 +1273,13 @@ class TestEnforcedRenderCheck:
         check = _CheckStub(outcomes)
         monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
-        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
         return check
 
-    async def test_a_disabled_check_does_not_run(self, tmp_path, monkeypatch):
+    async def test_a_check_the_loop_did_not_offer_does_not_run(self, tmp_path, monkeypatch):
         check = self._use_check(monkeypatch, _outcome(is_error=True))
-        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
         reran = self._use_loop(monkeypatch)
 
-        await _repair(_state(), _committed_ctx(tmp_path))
+        await _repair(_state(), _committed_ctx(tmp_path), registry=ToolRegistry())
 
         assert check.calls == 0
         assert reran == []

@@ -249,13 +249,17 @@ ITEM_EVALUATORS: list[ItemEvaluator] = [
 
 def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
     """The real tool catalog the loop offers, optionally narrowed."""
-    from agents.graph.nodes.agentic_loop_node import _build_registry
+    from agents.core import ToolRegistry
+    from agents.graph.nodes.agentic_loop_node import _build_registry, _internal_tools
 
     if names is None:
         return _build_registry().to_schema()
-    # An item names the tools of the session it was recorded from.  A session
-    # with the render check turned on had `preview_render_check`.
-    by_name = {schema["name"]: schema for schema in _build_registry(preview_check=True).to_schema()}
+    # An item names the tools of the session it was recorded from, which can
+    # include a tool this deployment does not register.
+    every_tool = ToolRegistry()
+    for tool in _internal_tools([]):
+        every_tool.register(tool)
+    by_name = {schema["name"]: schema for schema in every_tool.to_schema()}
     missing = [name for name in names if name not in by_name]
     if missing:
         raise ValueError(f"unknown tool(s) {missing}; the registry has {sorted(by_name)}")

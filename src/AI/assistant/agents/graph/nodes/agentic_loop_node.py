@@ -336,7 +336,7 @@ async def _repair_render_failures(
     session branch, thus it runs only if that branch has all edits. Return the
     last loop result.
     """
-    if not get_config().PREVIEW_CHECK_ENABLED:
+    if _PREVIEW_CHECK_TOOL not in registry:
         return result
     if result.reason is TerminationReason.CANCELLED or not ctx.extras.get("session_pushed") or _unsaved_files(ctx):
         return result
@@ -408,21 +408,23 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
-def _build_registry(skills: list | None = None, *, preview_check: bool | None = None) -> ToolRegistry:
-    """Register every tool available in workflow mode, all in-process.
+_PREVIEW_CHECK_TOOL = "preview_render_check"
 
-    `preview_check` overrides `PREVIEW_CHECK_ENABLED`.
-    """
-    if preview_check is None:
-        preview_check = get_config().PREVIEW_CHECK_ENABLED
+
+def _build_registry(skills: list | None = None) -> ToolRegistry:
+    """Register every tool available in workflow mode, all in-process."""
+    # The render check works only with the local Designer stack.
+    preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or [], preview_check=preview_check):
-        registry.register(tool)
+    for tool in _internal_tools(skills or []):
+        if tool.name != _PREVIEW_CHECK_TOOL or preview_check:
+            registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list, *, preview_check: bool) -> list[Tool]:
-    tools: list[Tool] = [
+def _internal_tools(skills: list) -> list[Tool]:
+    """Every tool that exists.  `_build_registry` decides which ones the model gets."""
+    return [
         ScanRepoTool(),
         ReadFileTool(),
         EditFileTool(),
@@ -430,17 +432,12 @@ def _internal_tools(skills: list, *, preview_check: bool) -> list[Tool]:
         DiscardFileChangesTool(),
         VerifyChangesTool(),
         CommitSessionBranchTool(),
-    ]
-    # Works only with the local Designer stack.
-    if preview_check:
-        tools.append(PreviewRenderCheckTool())
-    tools += [
+        PreviewRenderCheckTool(),
         SkillTool(skills),
         LayoutPropsTool(),
         DatamodelSyncTool(),
         WebFetchTool(),
     ]
-    return tools
 
 
 def _make_event_bridge(session_id: str) -> EventCallback:
