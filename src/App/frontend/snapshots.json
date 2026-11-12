@@ -369,7 +369,8 @@
       "SelectedItem": "Caroline",
       "SelectedItemProfession": "Utvikler",
       "Search": null,
-      "UseCustomConfirm": false
+      "UseCustomConfirm": false,
+      "SelectedPeople": []
     }
   }
 }
