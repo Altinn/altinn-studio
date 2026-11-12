@@ -30,11 +30,9 @@
 !src/cli/.editorconfig
 !src/cli/Directory.Build.props
 !src/cli/Directory.Packages.props
-!src/cli/common/dotnet/.editorconfig
 !src/cli/common/dotnet/Altinn.Studio.AppDist
 !src/cli/common/dotnet/Altinn.Studio.AppDist/**
 !src/cli/common/dotnet/Directory.Build.props
-!src/common/dotnet/.editorconfig
 !src/common/dotnet/Altinn.Studio.Common
 !src/common/dotnet/Altinn.Studio.Common.Telemetry
 !src/common/dotnet/Altinn.Studio.Common.Telemetry/**
