@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "32bcee5d3c09",
-    "code": "faee743 clean",
+    "actor_prompt": "d3684044618e",
+    "code": "6ad9d06 clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "3633d27c3dc2"
+    "tools": "ffc193b2c371"
   },
-  "check_id": "20261111T140032Z-21862-no-unsaved-edits-between-messages-faee743e7d-9d4e",
-  "label": "21862 no unsaved edits between messages faee743e7d",
-  "recorded_at": "2026-11-11T14:07:19+00:00",
-  "why": "#21862 keeps no unsaved edits between messages. It adds a rule about saved changes to the final-answer contracts, and discard_file_changes now deletes a file that the last commit does not have. This moves the actor_prompt and tools digests. Full check with e2e: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview is turned off on main, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
+  "check_id": "20261112T105633Z-21905-hide-the-preview-check-when-it-is-off-6ad9d0656c-23fd",
+  "label": "21905 hide the preview check when it is off 6ad9d0656c",
+  "recorded_at": "2026-11-12T11:02:54+00:00",
+  "why": "#21905 hides the preview check when PREVIEW_CHECK_ENABLED is off. The agent then neither registers preview_render_check nor mentions it in the system prompt. This moves the actor_prompt and tools digests. Full check with e2e, with the flag off as in production: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
 }

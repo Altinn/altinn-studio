@@ -1,4 +1,4 @@
-name: Altinity-agent
+name: Assistant - Build and test
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     paths:
       - 'src/AI/assistant/**'
       - 'src/common/ts/layout-contract/schemas/**'
-      - '.github/workflows/altinity-build-test.yaml'
+      - '.github/workflows/assistant-build-test.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'
       - '!**/readme.md'
@@ -60,11 +60,11 @@ jobs:
       working-directory: src/AI/assistant
       run: pyright
 
-    - name: Run Altinity unit tests
+    - name: Run unit tests
       working-directory: src/AI/assistant
       run: python -m pytest
 
-    - name: Start Altinity server
+    - name: Start server
       working-directory: src/AI/assistant
       run: |
         uvicorn api.main:app --host 0.0.0.0 --port 8071 > server.log 2>&1 &

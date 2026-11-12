@@ -1,4 +1,4 @@
-name: Deploy AI agents
+name: Deploy Studio Assistant
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     paths:
       - src/AI/assistant/**
       - src/common/ts/layout-contract/schemas/**
-      - .github/workflows/deploy-studio-ai-agents.yaml
+      - .github/workflows/deploy-studio-assistant.yaml
   workflow_dispatch:
     inputs:
       environments:
@@ -27,7 +27,7 @@ jobs:
       inputs: ${{ toJSON(github.event.inputs) }}
 
   push-artifact:
-    name: Push AI agents as OCI artifact
+    name: Push Studio Assistant as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
     env:

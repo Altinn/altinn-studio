@@ -7,10 +7,11 @@ Designer code:
 - `src/Designer/backend/src/Designer/Controllers/AssistantWorkflowController.cs`
 - `src/Designer/backend/src/Designer/Hubs/Assistant/`
 - `src/Designer/backend/src/Designer/Services/Implementation/Assistant/`
+- `src/Designer/backend/src/Designer/Evaluators/CanUseAiAssistantEvaluator.cs`
 - `src/Designer/frontend/app-development/features/aiAssistant/`
 - `src/Designer/frontend/libs/designer-assistant/`
 
-The browser never calls the assistant service. The Designer backend is between them. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
+The browser never calls the assistant service. The Designer backend is between them. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service over HTTP and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
 
 ```mermaid
 flowchart LR
@@ -35,9 +36,7 @@ _Support services. Langfuse is optional. Without it, the service records no trac
 
 ## Connect
 
-Each Designer replica opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.
-
-The assistant service sends events on a socket only after the socket gets a session frame. For each command from the browser, the replica that handles the command sends a session frame on its socket.
+Each Designer replica opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload. The assistant service sends events on a socket only after the socket gets a session frame. For each command from the browser, the replica that handles the command sends a session frame on its socket.
 
 ```mermaid
 sequenceDiagram
@@ -55,7 +54,9 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. It also uses the key to let the Designer API generate data model files. The service has no Gitea token of its own.
 
-The browser sends the message and its attachments in one multipart request. Designer accepts eight file types, up to 20 MB for each file. The load balancer limits the whole request to 50 MB. Designer sends the files as base64 in the start request. It keeps no data between requests, so any replica can handle the request.
+Designer also selects the organization that the model usage of the run is recorded on, and sends it as `cost_org`. In a repository of an organization, it is that organization. In the developer's own repository, it is the one organization with access to the assistant that the developer is a member of. If the developer is a member of more than one, it is `unattributed`.
+
+The browser sends the message and its attachments in one multipart request. Designer accepts PDF, Markdown, text and image files up to 20 MB each. The load balancer limits the full request to 50 MB. Designer sends the files as base64 in the start request. Designer keeps no data between requests, so any replica can handle a request.
 
 ```mermaid
 sequenceDiagram
@@ -123,9 +124,9 @@ _Two user actions during a run. Designer checks that the developer can use the a
 
 ## Deploy
 
-A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-ai-agents.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
+A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-assistant.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
 
-The pod gets five secrets from Key Vault: the Azure key and four Langfuse values. The model names are not in the manifest, so they come from the defaults in code.
+The pod gets the Azure key and the Langfuse settings from Key Vault. The model names are not in the manifest, so they come from the defaults in code.
 
 ```mermaid
 flowchart LR
@@ -171,14 +172,4 @@ sequenceDiagram
 
 _One end to end eval. The items run one at a time, because each run pushes to the same test repository._
 
-GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and needs secrets. For these reasons, the bench is a local command.
-
-```mermaid
-flowchart LR
-  P["Pull request in src/AI/assistant"] --> J["Impact job"]
-  J --> B["BASELINE.json"]
-  J --> D["Digests of actor prompt and tools"]
-  J --> V{"Baseline still valid?"}
-```
-
-_The CI gate. It fails when a change moves what the bench measures and the pull request has no new `BASELINE.json`._
+GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and needs secrets. For these reasons, the bench is a local command. [Benchmarks](modules/benchmarks.md) describes the CI gate.
