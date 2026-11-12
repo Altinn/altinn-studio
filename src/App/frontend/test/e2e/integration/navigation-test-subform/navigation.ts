@@ -587,19 +587,27 @@ describe('navigation', () => {
     cy.get('#lastname-validations').should('be.visible');
     back().click();
 
-    // A visibility change outside extra -> summary keeps the shortcut.
+    // Both hiding and revealing pages before the edited page keep the shortcut.
     edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
     back().click();
-    // Hiding an intervening page resets it permanently, even after undoing the answer.
     edit('extra');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    back().click();
+    // Hiding an intervening page keeps the shortcut. Revealing it again removes it.
+    edit('extra');
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('be.visible');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
-    back().should('not.exist');
-    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
     back().should('not.exist');
-    // Starting a new edit while the page is hidden also resets when that page reappears.
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    // Undoing the reveal cannot bring the shortcut back.
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    back().should('not.exist');
+    // Starting a new edit while the page is hidden also resets when that page reappears.
     summary();
     edit('extra');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
@@ -607,7 +615,19 @@ describe('navigation', () => {
     summary();
     // The same reset applies to a link return without moving focus away from the edited field.
     cy.findByRole('link', { name: 'Rediger sidevalg via lenke' }).clickAndGone();
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('be.visible');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
+    cy.url().should('include', 'backToPage=summary2');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
     back().should('not.exist');
     cy.url().should('not.include', 'backToPage=');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
