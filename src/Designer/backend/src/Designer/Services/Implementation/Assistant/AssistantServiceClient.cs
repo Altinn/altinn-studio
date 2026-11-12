@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,13 @@ public class AssistantServiceClient : IAssistantServiceClient
     private const string DeveloperHeader = "X-Developer";
     private const string ApiKeyHeader = "X-Api-Key";
     private const string SessionIdHeader = "X-Session-Id";
+
+    // The default encoder writes each plus sign in base64 text as +, and it reserves a very large buffer for
+    // that. The request goes only to the assistant service, so it needs no HTML escaping.
+    private static readonly JsonSerializerOptions s_startRequestJsonOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private readonly HttpClient _httpClient;
     private readonly AssistantSettings _assistantSettings;
@@ -92,7 +100,7 @@ public class AssistantServiceClient : IAssistantServiceClient
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, AgentUri("start"))
         {
-            Content = JsonContent.Create(request),
+            Content = JsonContent.Create(request, options: s_startRequestJsonOptions),
         };
         httpRequest.Headers.Add(ApiKeyHeader, apiKey);
         httpRequest.Headers.Add(DeveloperHeader, developer);
@@ -134,11 +142,8 @@ public class AssistantServiceClient : IAssistantServiceClient
         CancellationToken cancellationToken
     )
     {
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds));
-
-        using var response = await _httpClient.SendAsync(httpRequest, timeout.Token);
-        string responseContent = await response.Content.ReadAsStringAsync(timeout.Token);
+        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException(

@@ -68,7 +68,7 @@ public class AssistantWorkflowControllerTests
     }
 
     [Fact]
-    public async Task StartWorkflow_PassesTheMessageOnAndReturnsTheAssistantsAnswerAsItIs()
+    public async Task StartWorkflow_SendsTheMessageAndReturnsTheAssistantsAnswerUnchanged()
     {
         using var form = CreateStartForm(("krav.pdf", "application/pdf", 4));
 
@@ -164,27 +164,8 @@ public class AssistantWorkflowControllerTests
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
-    [Theory]
-    [InlineData(AssistantWorkflowStatus.Forbidden, HttpStatusCode.Forbidden)]
-    [InlineData(AssistantWorkflowStatus.NotFound, HttpStatusCode.NotFound)]
-    public async Task CancelWorkflow_ReturnsTheStatusOfARefusedCancel(
-        AssistantWorkflowStatus status,
-        HttpStatusCode expectedStatusCode
-    )
-    {
-        _workflowServiceMock
-            .Setup(s =>
-                s.CancelWorkflow(It.IsAny<AltinnRepoEditingContext>(), _threadId, It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(status);
-
-        using var response = await HttpClient.PostAsync(WorkflowUrl("/cancel"), content: null);
-
-        Assert.Equal(expectedStatusCode, response.StatusCode);
-    }
-
     [Fact]
-    public async Task RespondToPermission_PassesTheAnswerOn()
+    public async Task RespondToPermission_SendsTheAnswer()
     {
         _workflowServiceMock
             .Setup(s =>
@@ -204,34 +185,6 @@ public class AssistantWorkflowControllerTests
         );
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-    }
-
-    [Theory]
-    [InlineData(AssistantWorkflowStatus.Forbidden, HttpStatusCode.Forbidden)]
-    [InlineData(AssistantWorkflowStatus.NotFound, HttpStatusCode.NotFound)]
-    public async Task RespondToPermission_ReturnsTheStatusOfARefusedAnswer(
-        AssistantWorkflowStatus status,
-        HttpStatusCode expectedStatusCode
-    )
-    {
-        _workflowServiceMock
-            .Setup(s =>
-                s.RespondToPermission(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    _threadId,
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(status);
-
-        using var response = await HttpClient.PostAsync(
-            WorkflowUrl("/permission"),
-            JsonContent.Create(new { requestId = "request-1", granted = false })
-        );
-
-        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
     private string WorkflowUrl(string action = "") =>

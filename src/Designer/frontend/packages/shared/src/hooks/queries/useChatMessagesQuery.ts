@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type QueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -15,6 +15,19 @@ export const useChatMessagesQuery = (threadId: string | null) => {
     enabled: !!threadId,
   });
 };
+
+// invalidateQueries does not restart the first fetch of a query. That fetch can read the thread before
+// the latest change to its messages.
+export async function refreshChatMessages(
+  queryClient: QueryClient,
+  org: string,
+  app: string,
+  threadId: string,
+): Promise<void> {
+  const queryKey = [QueryKey.ChatMessages, org, app, threadId];
+  await queryClient.cancelQueries({ queryKey });
+  await queryClient.invalidateQueries({ queryKey });
+}
 
 export function mapChatMessageToFrontend(message: ChatMessage) {
   const base = {

@@ -7,7 +7,7 @@ type WorkflowStart = {
   attachments?: UserAttachment[];
 };
 
-// Sends the attachments as files, so that the request carries their bytes rather than base64 text.
+// The request sends the bytes of each attachment, not base64 text.
 export function createWorkflowFormData({
   goal,
   branch,
@@ -28,6 +28,7 @@ export function createWorkflowFormData({
 function toBlob({ dataBase64 = '', mimeType }: UserAttachment): Blob {
   const base64 = dataBase64.includes(',') ? dataBase64.split(',')[1] : dataBase64;
   const binary = atob(base64);
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
   return new Blob([bytes], { type: mimeType });
 }

@@ -632,7 +632,7 @@ describe('useAssistantWorkflow', () => {
     expect(payload.get('allowAppChanges')).toBe('false');
   });
 
-  it('keeps the message and saves the generic failure text after it when starting the workflow fails', async () => {
+  it('keeps the message and saves the generic failure text after it when the workflow start fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let finishSavingUserMessage: () => void = () => {};
     const createMessage = vi

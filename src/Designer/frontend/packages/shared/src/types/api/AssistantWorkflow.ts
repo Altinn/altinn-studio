@@ -1,4 +1,4 @@
-// The assistant service's answer to a start request. An answer that it did not accept explains why.
+// The answer from the assistant service to a start request.
 export type AssistantWorkflowResponse = {
   accepted: boolean;
   session_id: string;

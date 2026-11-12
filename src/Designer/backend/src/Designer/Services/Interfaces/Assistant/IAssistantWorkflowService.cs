@@ -8,8 +8,8 @@ using Altinn.Studio.Designer.Services.Models;
 namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 
 /// <summary>
-/// Starts, cancels and answers the assistant's workflow in a developer's chat thread. Each command requires that the
-/// developer may use the assistant for the repository and owns the thread.
+/// Starts, cancels and answers the assistant workflow in a chat thread.
+/// Each command first makes sure that the developer can use the assistant in the repository and owns the thread.
 /// </summary>
 public interface IAssistantWorkflowService
 {

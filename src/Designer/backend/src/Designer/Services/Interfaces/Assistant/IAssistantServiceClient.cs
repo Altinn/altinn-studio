@@ -38,7 +38,7 @@ public interface IAssistantServiceClient
     /// <param name="developer">The developer that the workflow runs for.</param>
     /// <param name="apiKey">The key that the assistant clones and pushes the repository with.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <returns>The assistant service's answer, which says whether it accepted the request.</returns>
+    /// <returns>The answer from the assistant service.</returns>
     Task<JsonElement> StartWorkflow(
         AssistantWorkflowStartRequest request,
         string developer,
@@ -52,8 +52,8 @@ public interface IAssistantServiceClient
     Task CancelWorkflow(string developer, string sessionId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Delivers the developer's answer to a permission request from a running workflow.
-    /// The assistant pauses a read-only session when the model tries to change the app, and waits for the answer.
+    /// Sends the developer's answer to a permission request.
+    /// When the model tries to change the app in a read-only session, the assistant waits for this answer.
     /// </summary>
     Task RespondToPermission(
         string developer,

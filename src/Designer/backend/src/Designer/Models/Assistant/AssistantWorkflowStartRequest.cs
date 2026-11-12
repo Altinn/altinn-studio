@@ -6,12 +6,12 @@ namespace Altinn.Studio.Designer.Models.Assistant;
 /// <summary>
 /// The request that starts a workflow in the assistant service.
 /// </summary>
-/// <param name="SessionId">The chat thread that the workflow answers in.</param>
+/// <param name="SessionId">The ID of the chat thread.</param>
 /// <param name="Goal">What the developer asks the assistant to do.</param>
 /// <param name="RepoUrl">The app repository that the assistant clones.</param>
 /// <param name="Branch">The branch that the assistant works on.</param>
 /// <param name="AllowAppChanges">Whether the assistant may change the app, or only answer.</param>
-/// <param name="CostOrg">The organization that the LLM usage of the workflow is recorded on.</param>
+/// <param name="CostOrg">The assistant service records the LLM usage of the workflow on this organization.</param>
 /// <param name="Attachments">The files attached to the message.</param>
 public sealed record AssistantWorkflowStartRequest(
     [property: JsonPropertyName("session_id")] string SessionId,

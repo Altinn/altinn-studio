@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Evaluators;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Models.Assistant;
@@ -123,9 +124,8 @@ internal sealed class AssistantWorkflowService(
         return AssistantWorkflowStatus.Success;
     }
 
-    // Checks that the developer may use the assistant and owns the thread, and then sends a session frame on this
-    // replica's connection. The assistant service sends events only on a connection that has received one, and this
-    // connection may have none, such as when it opened after the replica or the assistant service restarted.
+    // The assistant service sends events only on a connection that has received a session frame. This replica's
+    // connection can have none, for example after the replica or the assistant service restarts.
     private async Task<SessionAccess> OpenSession(
         AltinnRepoEditingContext editingContext,
         Guid threadId,
@@ -160,9 +160,13 @@ internal sealed class AssistantWorkflowService(
         var attachments = new List<AssistantWorkflowAttachment>(files.Count);
         foreach (IFormFile file in files)
         {
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream, cancellationToken);
-            string dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
+            byte[] content = new byte[file.Length];
+            await using (Stream stream = file.OpenReadStream())
+            {
+                await stream.ReadExactlyAsync(content, cancellationToken);
+            }
+
+            string dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(content)}";
             attachments.Add(new AssistantWorkflowAttachment(file.FileName, file.ContentType, file.Length, dataUrl));
         }
 
@@ -182,7 +186,9 @@ internal sealed class AssistantWorkflowService(
     }
 
     private string GetRepoUrl(AltinnRepoEditingContext editingContext) =>
-        $"{serviceRepositorySettings.Value.RepositoryBaseURL}/{editingContext.Org}/{editingContext.Repo}.git";
+        new Uri(serviceRepositorySettings.Value.RepositoryBaseURL)
+            .Append(editingContext.Org, $"{editingContext.Repo}.git")
+            .ToString();
 
     // CostOrg is set when Status is Success.
     private sealed record SessionAccess(AssistantWorkflowStatus Status, string? CostOrg = null);

@@ -27,5 +27,5 @@ public enum AssistantWorkflowStatus
 /// How a start of the assistant's workflow ended.
 /// </summary>
 /// <param name="Status">How the start ended.</param>
-/// <param name="Response">The assistant service's answer, which says whether it accepted the start.</param>
+/// <param name="Response">The answer from the assistant service.</param>
 public sealed record AssistantWorkflowStartResult(AssistantWorkflowStatus Status, JsonElement? Response = null);

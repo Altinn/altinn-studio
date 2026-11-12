@@ -17,7 +17,6 @@ export interface UseAssistantWebSocketResult {
 
 export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const wsInstanceRef = useRef<any>(null);
   const messageCallbackRef = useRef<((message: WorkflowEvent) => void) | null>(null);
 
   useEffect(() => {
@@ -26,7 +25,6 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
       [assistantWebSocketHub()],
       [AssistantClientsName.ReceiveAgentMessage],
     );
-    wsInstanceRef.current = wsInstance;
 
     const connection = getAssistantSignalRConnection(wsInstance);
     if (!connection) return undefined;

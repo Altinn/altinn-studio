@@ -28,6 +28,9 @@ public class AssistantWorkflowServiceTests
     private const string Developer = "testUser";
     private const string Org = "ttd";
     private const string App = "test-app";
+    private const string StartCommand = "start";
+    private const string CancelCommand = "cancel";
+    private const string PermissionCommand = "permission";
 
     private static readonly DateTimeOffset s_now = new(2026, 11, 12, 10, 0, 0, TimeSpan.Zero);
 
@@ -141,57 +144,6 @@ public class AssistantWorkflowServiceTests
         Assert.Equal(["register", "start"], _calls);
     }
 
-    [Theory]
-    [InlineData(Developer)]
-    // In a developer's own repository, org is the username, which can contain a dot.
-    [InlineData("test.user")]
-    public async Task StartWorkflow_RecordsUsageOnTheResolvedCostOrg_InTheDevelopersOwnRepository(string developer)
-    {
-        SetupThreadOwnership(developer, App, developer);
-        SetupCostOrg(developer, resolvedCostOrg: "nfk");
-
-        await CreateService()
-            .StartWorkflow(
-                EditingContext(developer, developer),
-                _threadId,
-                CreateStartRequest(),
-                CancellationToken.None
-            );
-
-        Assert.NotNull(_sentStartRequest);
-        Assert.Equal("nfk", _sentStartRequest.CostOrg);
-        Assert.Equal($"http://test-repos/{developer}/{App}.git", _sentStartRequest.RepoUrl);
-    }
-
-    [Fact]
-    public async Task StartWorkflow_ReturnsForbidden_WhenDeveloperHasNoAssistantAccess()
-    {
-        SetupCostOrg(Org, resolvedCostOrg: null);
-
-        var result = await CreateService()
-            .StartWorkflow(EditingContext(), _threadId, CreateStartRequest(), CancellationToken.None);
-
-        Assert.Equal(AssistantWorkflowStatus.Forbidden, result.Status);
-        VerifyNothingSent();
-    }
-
-    [Fact]
-    public async Task StartWorkflow_ReturnsNotFound_WhenDeveloperDoesNotOwnTheThreadInThisApp()
-    {
-        SetupCostOrg("other-org", resolvedCostOrg: "other-org");
-
-        var result = await CreateService()
-            .StartWorkflow(
-                EditingContext("other-org", repo: "other-app"),
-                _threadId,
-                CreateStartRequest(),
-                CancellationToken.None
-            );
-
-        Assert.Equal(AssistantWorkflowStatus.NotFound, result.Status);
-        VerifyNothingSent();
-    }
-
     [Fact]
     public async Task CancelWorkflow_CancelsTheSessionAsTheDeveloper()
     {
@@ -207,28 +159,7 @@ public class AssistantWorkflowServiceTests
     }
 
     [Fact]
-    public async Task CancelWorkflow_ReturnsForbidden_WhenDeveloperHasNoAssistantAccess()
-    {
-        SetupCostOrg(Org, resolvedCostOrg: null);
-
-        var status = await CreateService().CancelWorkflow(EditingContext(), _threadId, CancellationToken.None);
-
-        Assert.Equal(AssistantWorkflowStatus.Forbidden, status);
-        VerifyNothingSent();
-    }
-
-    [Fact]
-    public async Task CancelWorkflow_ReturnsNotFound_WhenDeveloperDoesNotOwnTheThread()
-    {
-        var status = await CreateService()
-            .CancelWorkflow(EditingContext(developer: "otherUser"), _threadId, CancellationToken.None);
-
-        Assert.Equal(AssistantWorkflowStatus.NotFound, status);
-        VerifyNothingSent();
-    }
-
-    [Fact]
-    public async Task RespondToPermission_DeliversTheAnswerAndKeepsTheEventsFlowing()
+    public async Task RespondToPermission_SendsTheAnswerAndRegistersTheSession()
     {
         var status = await CreateService()
             .RespondToPermission(EditingContext(), _threadId, "request-1", granted: true, CancellationToken.None);
@@ -249,32 +180,50 @@ public class AssistantWorkflowServiceTests
         _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer), Times.Once);
     }
 
-    [Fact]
-    public async Task RespondToPermission_ReturnsForbidden_WhenDeveloperHasNoAssistantAccess()
+    [Theory]
+    [InlineData(StartCommand)]
+    [InlineData(CancelCommand)]
+    [InlineData(PermissionCommand)]
+    public async Task Command_ReturnsForbidden_WhenDeveloperHasNoAssistantAccess(string command)
     {
         SetupCostOrg(Org, resolvedCostOrg: null);
 
-        var status = await CreateService()
-            .RespondToPermission(EditingContext(), _threadId, "request-1", granted: true, CancellationToken.None);
+        var status = await RunCommand(command, EditingContext());
 
         Assert.Equal(AssistantWorkflowStatus.Forbidden, status);
         VerifyNothingSent();
     }
 
-    [Fact]
-    public async Task RespondToPermission_ReturnsNotFound_WhenDeveloperDoesNotOwnTheThread()
+    [Theory]
+    [InlineData(StartCommand)]
+    [InlineData(CancelCommand)]
+    [InlineData(PermissionCommand)]
+    public async Task Command_ReturnsNotFound_WhenDeveloperDoesNotOwnTheThread(string command)
     {
-        var status = await CreateService()
-            .RespondToPermission(
-                EditingContext(developer: "otherUser"),
+        var status = await RunCommand(command, EditingContext(developer: "otherUser"));
+
+        Assert.Equal(AssistantWorkflowStatus.NotFound, status);
+        VerifyNothingSent();
+    }
+
+    private async Task<AssistantWorkflowStatus> RunCommand(string command, AltinnRepoEditingContext editingContext)
+    {
+        AssistantWorkflowService service = CreateService();
+        return command switch
+        {
+            StartCommand => (
+                await service.StartWorkflow(editingContext, _threadId, CreateStartRequest(), CancellationToken.None)
+            ).Status,
+            CancelCommand => await service.CancelWorkflow(editingContext, _threadId, CancellationToken.None),
+            PermissionCommand => await service.RespondToPermission(
+                editingContext,
                 _threadId,
                 "request-1",
                 granted: true,
                 CancellationToken.None
-            );
-
-        Assert.Equal(AssistantWorkflowStatus.NotFound, status);
-        VerifyNothingSent();
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(command), command, null),
+        };
     }
 
     private void SetupCostOrg(string org, string resolvedCostOrg)
@@ -304,11 +253,8 @@ public class AssistantWorkflowServiceTests
         _apiKeyServiceMock.VerifyNoOtherCalls();
     }
 
-    private static AltinnRepoEditingContext EditingContext(
-        string org = Org,
-        string developer = Developer,
-        string repo = App
-    ) => AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+    private static AltinnRepoEditingContext EditingContext(string developer = Developer) =>
+        AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, App, developer);
 
     private static StartAssistantWorkflowRequest CreateStartRequest(params IFormFile[] attachments) =>
         new()

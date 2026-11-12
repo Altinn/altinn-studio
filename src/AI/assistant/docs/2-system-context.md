@@ -37,7 +37,7 @@ _Support services. Langfuse is optional. Without it, the service records no trac
 
 Each Designer replica opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.
 
-The assistant service sends events on a socket only after the socket gets a session frame. Each command from the browser therefore sends a session frame on the socket of the replica that handles the command.
+The assistant service sends events on a socket only after the socket gets a session frame. For each command from the browser, the replica that handles the command sends a session frame on its socket.
 
 ```mermaid
 sequenceDiagram
@@ -55,7 +55,7 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. It also uses the key to let the Designer API generate data model files. The service has no Gitea token of its own.
 
-The browser sends the message and its attachments in one multipart request. Designer accepts eight file types up to 20 MB each, and 50 MB for the whole request, which is the limit of the load balancer. It sends the files as base64 in the start request. Designer stores nothing between requests, so any replica can take the request.
+The browser sends the message and its attachments in one multipart request. Designer accepts eight file types, up to 20 MB for each file. The load balancer limits the whole request to 50 MB. Designer sends the files as base64 in the start request. It keeps no data between requests, so any replica can handle the request.
 
 ```mermaid
 sequenceDiagram
@@ -119,7 +119,7 @@ sequenceDiagram
   A-->>B: error event with status=cancelled
 ```
 
-_Two user actions during a run. Designer checks that the developer may use the assistant and owns the thread, and the assistant service checks that the caller owns the session._
+_Two user actions during a run. Designer checks that the developer can use the assistant and owns the thread. The assistant service checks that the caller owns the session._
 
 ## Deploy
 

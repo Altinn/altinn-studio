@@ -16,8 +16,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Starts, cancels and answers the assistant's workflow in a developer's chat thread.
-/// The workflow's events reach the browser through the assistant's SignalR hub.
+/// The browser sends its commands for the assistant workflow to this controller.
+/// It receives the workflow events through <see cref="Hubs.Assistant.AssistantProxyHub"/>.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -46,7 +46,7 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
     /// <summary>
     /// Sends the developer's message and its attachments to the assistant, which starts a workflow in the thread.
     /// </summary>
-    /// <returns>The assistant service's answer, which says whether it accepted the request.</returns>
+    /// <returns>The answer from the assistant service.</returns>
     [HttpPost]
     [UseSystemTextJson]
     [RequestSizeLimit(MaxRequestBytes)]

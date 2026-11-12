@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Hubs.Assistant;
 
 /// <summary>
 /// SignalR hub that pushes the assistant's events to the developer's browser tabs.
-/// The browser starts, cancels and answers workflows over HTTP, through the AssistantWorkflowController.
+/// The browser sends its commands to <see cref="Controllers.AssistantWorkflowController"/>.
 /// </summary>
 [Authorize]
 public class AssistantProxyHub : Hub<IAssistantClient>

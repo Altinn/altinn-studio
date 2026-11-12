@@ -10,7 +10,10 @@ import { useAssistantThreads } from './useAssistantThreads';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
-import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQuery';
+import {
+  refreshChatMessages,
+  useChatMessagesQuery,
+} from 'app-shared/hooks/queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
 import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
@@ -59,18 +62,15 @@ describe('useAssistantThreads', () => {
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: vi.fn() } as any);
   });
 
-  it('invalidates the thread messages query on refreshMessages', () => {
+  it('refreshes the thread messages on refreshMessages', () => {
     const queryClient = new QueryClient();
-    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUseAssistantThreads(queryClient);
 
     act(() => {
       result.current.refreshMessages(threadId);
     });
 
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['ChatMessages', 'testOrg', 'testApp', threadId],
-    });
+    expect(refreshChatMessages).toHaveBeenCalledWith(queryClient, 'testOrg', 'testApp', threadId);
   });
 
   it('updates current session when selecting a thread', () => {

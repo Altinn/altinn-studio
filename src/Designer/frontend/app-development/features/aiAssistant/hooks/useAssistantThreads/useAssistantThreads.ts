@@ -3,12 +3,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@designer/assistant';
 import { MessageAuthor } from '@designer/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
-import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQuery';
+import {
+  refreshChatMessages,
+  useChatMessagesQuery,
+} from 'app-shared/hooks/queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
 import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
@@ -91,7 +93,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
   // Gets the thread's messages again, so that the cache has the answers that Designer saved.
   const refreshMessages = useCallback(
     (threadId: string): void => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });
+      refreshChatMessages(queryClient, org, app, threadId);
     },
     [queryClient, org, app],
   );
