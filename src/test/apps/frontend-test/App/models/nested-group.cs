@@ -121,6 +121,29 @@ namespace Altinn.App.Models
     [JsonProperty("ChangeSummary")]
     [JsonPropertyName("ChangeSummary")]
     public ChangeSummary? ChangeSummary { get; set; }
+
+    [XmlElement("ChangeRows")]
+    [JsonProperty("ChangeRows")]
+    [JsonPropertyName("ChangeRows")]
+    public List<ChangeRow>? ChangeRows { get; set; }
+  }
+
+  public class ChangeRow
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
+    [XmlElement("Change")]
+    [JsonProperty("Change")]
+    [JsonPropertyName("Change")]
+    public decimal Change { get; set; }
   }
 
   public class ChangeSummary

@@ -194,6 +194,15 @@
             "Rows": { "type": "integer" }
           }
         },
+        "ChangeRows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Change": { "type": "number" }
+            }
+          }
+        },
         "PetsUseOptionComponent": {
           "type": "boolean"
         }

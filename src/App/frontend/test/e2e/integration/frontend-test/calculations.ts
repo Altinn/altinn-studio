@@ -12,7 +12,7 @@ function assertChanges(row: string, total: string = row) {
 }
 
 const rows = '/Endringsmelding-grp-9786/OversiktOverEndringene-grp-9788';
-const calculatedPointers = [`${rows}/0/CalculatedChange`, '/sumAll', '/ChangeList', '/ChangeSummary'];
+const calculatedPointers = [`${rows}/0/CalculatedChange`, '/sumAll', '/ChangeList', '/ChangeSummary', '/ChangeRows'];
 
 /**
  * Removes every change to the calculated fields from a patch, and returns the pointers it removed. Changes are either
@@ -120,16 +120,20 @@ describe('Calculations into lists and objects', () => {
     cy.get(appFrontend.group.row(0).newValue).numberFormatReplace('40');
     assertChanges('NOK 30');
 
-    // The frontend has calculated the list and the object, and nothing is saved yet.
+    // The frontend has calculated the list, the object and the rows, and nothing is saved yet.
     cy.window().should((win) => {
       const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
       expect(formData?.ChangeList).to.deep.equal([30]);
       expect(formData?.ChangeSummary).to.deep.equal({ Total: 30, Rows: 1 });
+      expect(formData?.ChangeRows).to.have.length(1);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].Change', 30);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
     });
 
     // Send the save without the calculated values, so only a backend calculation can put them in the response.
     const removed = new Set<string>();
     let saved: Record<string, unknown> | undefined;
+    cy.intercept({ method: 'PATCH', url: '**/data?*' }).as('save');
     cy.intercept({ method: 'PATCH', url: '**/data?*', times: 1 }, (req) => {
       const body = req.body as IDataModelMultiPatchRequest;
       for (const item of body.patches) {
@@ -154,6 +158,21 @@ describe('Calculations into lists and objects', () => {
       expect(saved?.sumAll, 'sum calculated by the backend').to.equal(30);
       expect(saved?.ChangeList, 'list calculated by the backend').to.deep.equal([30]);
       expect(saved?.ChangeSummary, 'object calculated by the backend').to.deep.equal({ Total: 30, Rows: 1 });
+      expect(saved?.ChangeRows, 'rows calculated by the backend').to.have.length(1);
+      expect(saved?.ChangeRows).to.have.nested.property('[0].Change', 30);
+      expect(saved?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
+    });
+
+    // The response has the row ids the backend gave the rows, which the frontend keeps when it calculates again,
+    // so nothing is left to save: the next page changes do not save again.
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);
+    cy.gotoNavPage('Kjæledyr');
+    cy.get(appFrontend.pets.decisionPanel.manualButton).should('be.visible');
+    cy.get('@save.all').should('have.length', 1);
+    cy.window().should((win) => {
+      const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
+      expect(formData?.ChangeRows).to.deep.equal(saved?.ChangeRows);
     });
   });
 });
