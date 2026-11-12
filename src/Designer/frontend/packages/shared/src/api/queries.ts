@@ -88,6 +88,7 @@ import {
   userApiKeysPath,
   studioctlAuthRequestPath,
   contactPointsPath,
+  orgInactivityUndeploySettingsPath,
   botAccountsPath,
   botAccountApiKeysPath,
   layoutSetsExtendedPath,
@@ -148,6 +149,7 @@ import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
+import type { OrgInactivityUndeploySettings } from 'app-shared/types/OrgInactivityUndeploySettings';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -267,6 +269,9 @@ export const getStudioctlAuthRequest = (id: string) => get<StudioctlAuthRequest>
 
 // Org settings - Contact points
 export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPointsPath(org));
+
+// Org settings - Inactivity undeploy
+export const getOrgInactivityUndeploySettings = (org: string) => get<OrgInactivityUndeploySettings>(orgInactivityUndeploySettingsPath(org));
 
 // Org settings - Bot accounts
 export const getBotAccounts = (org: string) => get<BotAccount[]>(botAccountsPath(org));

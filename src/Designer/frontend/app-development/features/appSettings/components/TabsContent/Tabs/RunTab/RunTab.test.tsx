@@ -10,6 +10,13 @@ import type { AppSettings } from 'app-shared/types/AppSettings';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 
+const appSettings: AppSettings = {
+  undeployOnInactivity: null,
+  inactivityPeriodDays: null,
+  orgUndeployOnInactivity: true,
+  orgInactivityPeriodDays: 30,
+};
+
 describe('RunTab', () => {
   it('initially displays spinner when loading data', () => {
     renderRunTab();
@@ -17,11 +24,7 @@ describe('RunTab', () => {
   });
 
   it('fetches app settings on mount', async () => {
-    const getAppSettings = vi.fn().mockImplementation(() =>
-      Promise.resolve<AppSettings>({
-        undeployOnInactivity: false,
-      }),
-    );
+    const getAppSettings = vi.fn().mockImplementation(() => Promise.resolve(appSettings));
 
     renderRunTab({ getAppSettings });
 
@@ -40,59 +43,53 @@ describe('RunTab', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('renders undeploy setting with setting-specific info text when settings are fetched', async () => {
+  it('renders the inactivity undeploy settings when they are fetched', async () => {
     await resolveAndWaitForSpinnerToDisappear({
-      getAppSettings: () => Promise.resolve({ undeployOnInactivity: true }),
+      getAppSettings: () => Promise.resolve(appSettings),
     });
 
-    const infoText = textMock('app_settings.run_tab_info');
-    const checkbox = screen.getByLabelText(
-      textMock('app_settings.run_tab_switch_undeploy_on_inactivity'),
-    );
-
-    expect(screen.getByText(infoText)).toBeInTheDocument();
-    expect(checkbox).toBeChecked();
+    expect(getInheritOnRadio()).toBeChecked();
   });
 
-  it('persists the switch value when toggled', async () => {
+  it('saves the settings through the app settings mutation', async () => {
     const user = userEvent.setup();
     const updateAppSettings = vi.fn().mockImplementation(() => Promise.resolve());
 
     await resolveAndWaitForSpinnerToDisappear({
-      getAppSettings: () => Promise.resolve({ undeployOnInactivity: false }),
+      getAppSettings: () => Promise.resolve(appSettings),
       getDeployPermissions: () => Promise.resolve(['at23']),
       updateAppSettings,
     });
 
-    const checkbox = screen.getByLabelText(
-      textMock('app_settings.run_tab_switch_undeploy_on_inactivity'),
-    );
-    await waitFor(() => expect(checkbox).toBeEnabled());
-    await user.click(checkbox);
+    const offRadio = screen.getByRole('radio', {
+      name: textMock('app_settings.run_tab_undeploy_off'),
+    });
+    await waitFor(() => expect(offRadio).toBeEnabled());
+    await user.click(offRadio);
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
 
     expect(updateAppSettings).toHaveBeenCalledTimes(1);
-    expect(updateAppSettings).toHaveBeenCalledWith(org, app, { undeployOnInactivity: true });
+    expect(updateAppSettings).toHaveBeenCalledWith(org, app, {
+      undeployOnInactivity: false,
+      inactivityPeriodDays: null,
+    });
   });
 
-  it('disables the switch when user lacks deploy permission', async () => {
-    const user = userEvent.setup();
-    const updateAppSettings = vi.fn().mockImplementation(() => Promise.resolve());
-
+  it('disables editing when the user lacks deploy permission', async () => {
+    const getDeployPermissions = vi.fn().mockImplementation(() => Promise.resolve([]));
     await resolveAndWaitForSpinnerToDisappear({
-      getAppSettings: () => Promise.resolve({ undeployOnInactivity: false }),
-      getDeployPermissions: () => Promise.resolve([]),
-      updateAppSettings,
+      getAppSettings: () => Promise.resolve(appSettings),
+      getDeployPermissions,
     });
 
-    const checkbox = screen.getByLabelText(
-      textMock('app_settings.run_tab_switch_undeploy_on_inactivity'),
-    );
-
-    expect(checkbox).toBeDisabled();
-    await user.click(checkbox);
-    expect(updateAppSettings).toHaveBeenCalledTimes(0);
+    await waitFor(() => expect(getDeployPermissions).toHaveBeenCalledTimes(1));
+    expect(getInheritOnRadio()).toBeDisabled();
+    expect(screen.getByRole('button', { name: textMock('general.save') })).toBeDisabled();
   });
 });
+
+const getInheritOnRadio = () =>
+  screen.getByRole('radio', { name: textMock('app_settings.run_tab_undeploy_inherit_on') });
 
 const renderRunTab = (queries: Partial<ServicesContextProps> = {}) => {
   const queryClient = createQueryClientMock();

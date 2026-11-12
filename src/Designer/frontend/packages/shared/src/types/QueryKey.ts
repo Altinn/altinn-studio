@@ -123,4 +123,5 @@ export enum QueryKey {
   ContactPoints = 'ContactPoints',
   BotAccounts = 'BotAccounts',
   BotAccountApiKeys = 'BotAccountApiKeys',
+  OrgInactivityUndeploySettings = 'OrgInactivityUndeploySettings',
 }
