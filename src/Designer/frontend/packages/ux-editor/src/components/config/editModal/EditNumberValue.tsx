@@ -11,7 +11,7 @@ import {
   useComponentPropertyHelpText,
 } from '../../../hooks';
 import { useTranslation } from 'react-i18next';
-import { StudioDecimalInput, StudioSelect } from '@studio/components';
+import { StudioDecimalInput, StudioSelect } from '@designer/components';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface EditNumberValueProps<T extends ComponentType> extends IGenericEditComponent<T> {

@@ -1,12 +1,12 @@
 import classes from './DesignViewNavigation.module.css';
-import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
+import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
 import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGroups';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { StudioSpinner, StudioSectionHeader, StudioDropdown } from '@studio/components';
+import { StudioSpinner, StudioSectionHeader, StudioDropdown } from '@designer/components';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const DesignViewNavigation = () => {

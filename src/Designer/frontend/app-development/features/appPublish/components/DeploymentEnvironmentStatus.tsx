@@ -6,15 +6,15 @@ import {
   StudioSpinner,
   StudioHeading,
   StudioAlert,
-} from '@studio/components';
+} from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   runningAppProblems,
   wasRestartedAfterPublish,
   type RunningApp,
 } from 'app-shared/types/api/RunningApp';
-import { DateUtils } from '@studio/pure-functions';
-import { ExternalLinkIcon } from '@studio/icons';
+import { DateUtils } from '@designer/pure-functions';
+import { ExternalLinkIcon } from '@designer/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
 
 export interface DeploymentEnvironmentStatusProps {

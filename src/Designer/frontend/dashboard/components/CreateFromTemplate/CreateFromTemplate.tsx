@@ -5,7 +5,7 @@ import { TemplateSelector } from './TemplateSelector';
 import type { Organization } from 'app-shared/types/Organization';
 import { TemplateDetails } from './TemplateDetails';
 import { getOrgNameByUsername } from '../../utils/userUtils';
-import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type CreateFromTemplateProps = {

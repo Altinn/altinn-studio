@@ -1,5 +1,5 @@
 import classes from './DeploymentEnvironmentLogList.module.css';
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
@@ -11,8 +11,8 @@ import {
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
-} from '@studio/icons';
-import { StudioLink, StudioSpinner, StudioTable } from '@studio/components';
+} from '@designer/icons';
+import { StudioLink, StudioSpinner, StudioTable } from '@designer/components';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';

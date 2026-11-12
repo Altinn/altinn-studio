@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
-import { BlobDownloader } from '@studio/pure-functions';
+import { BlobDownloader } from '@designer/pure-functions';
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
-import { DownloadIcon } from '@studio/icons';
+import { DownloadIcon } from '@designer/icons';
 
 export type StudioBlobDownloaderProps = {
   getData: () => string;

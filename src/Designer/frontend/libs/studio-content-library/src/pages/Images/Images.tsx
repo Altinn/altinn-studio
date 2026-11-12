@@ -3,7 +3,7 @@ import { Page } from '../Page';
 import type { PagePropsMap } from '../../types/PagesProps';
 import React from 'react';
 import { ImagesPage } from './ImagesPage';
-import { ImageIcon } from '@studio/icons';
+import { ImageIcon } from '@designer/icons';
 
 export class Images extends Page<PageName.Images> {
   readonly name: PageName.Images = PageName.Images;

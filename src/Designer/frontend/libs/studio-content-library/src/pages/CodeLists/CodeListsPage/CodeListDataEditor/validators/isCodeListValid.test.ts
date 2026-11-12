@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CodeList } from '@studio/components';
+import type { CodeList } from '@designer/components';
 import { isCodeListValid } from './isCodelistValid';
 
 describe('isCodeListValid', () => {

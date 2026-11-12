@@ -8,8 +8,8 @@ import {
   StudioButton,
   StudioCheckbox,
   StudioHeading,
-} from '@studio/components';
-import { PencilWritingIcon, PlusIcon } from '@studio/icons';
+} from '@designer/components';
+import { PencilWritingIcon, PlusIcon } from '@designer/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';

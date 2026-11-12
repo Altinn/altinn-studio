@@ -10,7 +10,7 @@ and the method for handling submitted data.
 ## Installation
 
 Since this package is part of a monorepo, you can include it in your project using Yarn:
-`yarn add "@studio/feedback-form@workspace:^"`
+`yarn add "@designer/feedback-form@workspace:^"`
 
 ## Usage
 

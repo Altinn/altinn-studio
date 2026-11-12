@@ -1,7 +1,7 @@
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
 import type { KnownSerializedComponent } from './SerializedComponent';
-import type { StringExpression } from '@studio/components';
+import type { StringExpression } from '@designer/components';
 import type { Summary2OverrideConfig, Summary2TargetConfig } from './Summary2Config';
 
 type EditorOwnedProperty =

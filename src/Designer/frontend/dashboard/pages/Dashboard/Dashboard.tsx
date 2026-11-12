@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { StudioLink, StudioSearch } from '@studio/components';
-import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
-import { useDebounce } from '@studio/hooks';
+import { StudioLink, StudioSearch } from '@designer/components';
+import { PlusCircleIcon, PlusCircleFillIcon } from '@designer/icons';
+import { useDebounce } from '@designer/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';

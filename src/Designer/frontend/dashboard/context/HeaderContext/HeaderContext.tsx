@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
-import { useFeatureFlagsContext } from '@studio/feature-flags';
+import { useFeatureFlagsContext } from '@designer/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';

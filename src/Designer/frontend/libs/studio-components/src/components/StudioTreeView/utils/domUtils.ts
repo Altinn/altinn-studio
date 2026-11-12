@@ -1,4 +1,4 @@
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 export const makeDomTreeItemId = (rootId: string, id: string): string => `${rootId}-${id}-treeitem`;
 

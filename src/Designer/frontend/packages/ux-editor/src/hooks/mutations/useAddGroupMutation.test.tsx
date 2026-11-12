@@ -3,11 +3,11 @@ import type { Mock } from 'vitest';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAddGroupMutation } from './useAddGroupMutation';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { pagesModelMock } from '../../testing/layoutMock';
 
 // Test data

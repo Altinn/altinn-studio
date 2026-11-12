@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
 import { expect } from '@playwright/test';
-import { typeItemId } from '@studio/testing/testids';
+import { typeItemId } from '@designer/testing/testids';
 import { DataTestId } from '../enum/DataTestId';
 
 export class DataModelPage extends BasePage {

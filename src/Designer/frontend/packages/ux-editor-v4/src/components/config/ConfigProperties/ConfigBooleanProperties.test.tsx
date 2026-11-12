@@ -8,7 +8,7 @@ import { componentMocks } from '../../../testing/componentMocks';
 import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { getPropertyByRole } from './testConfigUtils';

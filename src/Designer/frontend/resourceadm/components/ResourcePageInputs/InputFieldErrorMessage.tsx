@@ -1,4 +1,4 @@
-import { StudioValidationMessage } from '@studio/components';
+import { StudioValidationMessage } from '@designer/components';
 import classes from './ResourcePageInputs.module.css';
 import React from 'react';
 

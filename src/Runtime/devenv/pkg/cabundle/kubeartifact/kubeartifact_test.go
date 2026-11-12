@@ -1,10 +1,12 @@
-package cabundle
+package kubeartifact
 
 import (
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"altinn.studio/devenv/pkg/cabundle"
 )
 
 func TestPatchCABundleArtifactFile(t *testing.T) {
@@ -34,7 +36,7 @@ metadata:
 		t.Fatalf("write test manifest: %v", err)
 	}
 
-	patched, err := patchCABundleArtifactFile(path, &Bundle{Digest: "digest123"}, []KubernetesWorkload{
+	patched, err := patchCABundleArtifactFile(path, &cabundle.Bundle{Digest: "digest123"}, []KubernetesWorkload{
 		{Deployment: "gateway", Container: "gateway"},
 	})
 	if err != nil {
@@ -51,10 +53,10 @@ metadata:
 	output := string(data)
 	for _, want := range []string{
 		"name: EXISTING",
-		"name: " + EnvStudioCABundle,
-		"value: " + ContainerPath,
-		"name: " + KubernetesVolumeName,
-		"mountPath: " + ContainerPath,
+		"name: " + cabundle.EnvStudioCABundle,
+		"value: " + cabundle.ContainerPath,
+		"name: " + cabundle.KubernetesVolumeName,
+		"mountPath: " + cabundle.ContainerPath,
 		caBundleDigestAnnotation + ": digest123",
 	} {
 		if !strings.Contains(output, want) {
@@ -79,7 +81,7 @@ spec:
 		t.Fatalf("write test manifest: %v", err)
 	}
 
-	patched, err := patchCABundleArtifactFile(path, &Bundle{Digest: "digest123"}, []KubernetesWorkload{
+	patched, err := patchCABundleArtifactFile(path, &cabundle.Bundle{Digest: "digest123"}, []KubernetesWorkload{
 		{Deployment: "gateway", Container: "gateway"},
 	})
 	if err != nil {
@@ -97,7 +99,7 @@ func TestPatchCABundleArtifactFilesSkipsKustomizationConfig(t *testing.T) {
 		t.Fatalf("write kustomization: %v", err)
 	}
 
-	patched, err := patchCABundleArtifactFiles(root, &Bundle{Digest: "digest123"}, []KubernetesWorkload{
+	patched, err := patchCABundleArtifactFiles(root, &cabundle.Bundle{Digest: "digest123"}, []KubernetesWorkload{
 		{Deployment: "gateway", Container: "gateway"},
 	})
 	if err != nil {

@@ -5,8 +5,8 @@ import {
   StudioDialog,
   StudioHeading,
   StudioAlert,
-} from '@studio/components';
-import type { CodeListEditorTexts } from '@studio/components';
+} from '@designer/components';
+import type { CodeListEditorTexts } from '@designer/components';
 
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';

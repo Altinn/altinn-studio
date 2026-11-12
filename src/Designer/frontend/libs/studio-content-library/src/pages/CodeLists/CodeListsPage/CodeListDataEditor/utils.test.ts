@@ -3,7 +3,7 @@ import { fileState, updateCodes, updateName } from './utils';
 import type { FileState } from './utils';
 import { colorsFile, fruitsFile } from '../test-data/codeLists';
 import type { CodeList } from '../../../../types/CodeList';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import type { CodeListFileWithProblem } from '../../../../types/CodeListFile';
 
 describe('CodeListDataEditor utils', () => {

@@ -1,9 +1,31 @@
-language: "en-GB"
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
 reviews:
   auto_review:
     enabled: true
     base_branches:
       - ".*"
+  path_instructions:
+    - path: "src/App/backend/test/**/PublicApiTests.*.verified.txt"
+      instructions: >-
+        This snapshot is the public API of the app backend, which apps depend on.
+        Flag every removed or changed member as a breaking change, and ask whether
+        it is intentional, marked with `!` in the title and noted in src/App/CHANGELOG.md.
   pre_merge_checks:
     docstrings:
       mode: off
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - files: "docs/coding-standards.md"
+        applyTo: "src/**"
+      - files: "docs/documentation.md"
+        applyTo: "**/*.md"
+      - files: "docs/observability.md"
+        applyTo: "src/**"
+      - files: "src/App/backend/docs/coding-standards.md"
+        applyTo: "src/App/backend/**"
+      - files: "src/Designer/backend/docs/coding-standards.md"
+        applyTo: "src/Designer/backend/**"
+      - files: "src/Designer/frontend/docs/coding-standards.md"
+        applyTo: "src/Designer/frontend/**"

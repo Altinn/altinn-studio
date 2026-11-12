@@ -1,9 +1,9 @@
 import { useState, type JSX } from 'react';
 import type { FieldNode } from '@altinn/schema-model';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { ObjectUtils, ArrayUtils } from '@designer/pure-functions';
 import { EnumField } from './EnumField';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import {
@@ -11,7 +11,7 @@ import {
   StudioDivider,
   StudioFieldset,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 
 export type EnumListProps = {
   schemaNode: FieldNode;

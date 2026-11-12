@@ -3,7 +3,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import type { TextResourceOptionProps } from './TextResource';
 import { TextResourceOption } from './TextResource';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data:
 const id = 'testid';

@@ -4,12 +4,12 @@ import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { FileNameUtils, ArrayUtils, ObjectUtils } from '@studio/pure-functions';
+import { FileNameUtils, ArrayUtils, ObjectUtils } from '@designer/pure-functions';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListFileWithProblem, OrdinaryCodeListFile } from '../../../../types/CodeListFile';
-import { screen } from '@studio/ui-test';
+import { screen } from '@designer/ui-test';
 import { RouterContextProvider } from '../../../../ContentLibrary/RouterContext';
 import { PageName } from '../../../../types/PageName';
 

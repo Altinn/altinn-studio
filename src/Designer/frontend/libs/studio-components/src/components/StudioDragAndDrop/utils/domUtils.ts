@@ -1,4 +1,4 @@
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 export const domListId = (baseId: string, id: string): string => `${baseId}-${id}-list`;
 export const domItemId = (baseId: string, id: string): string => `${baseId}-${id}-listitem`;

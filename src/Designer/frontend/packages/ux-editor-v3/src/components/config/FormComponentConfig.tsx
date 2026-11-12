@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { StudioHeading, StudioParagraph, StudioAlert } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioAlert } from '@designer/components';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';

@@ -9,7 +9,7 @@ import {
 } from '../../types';
 import { getCombinationKind, getObjectKind, isField } from '../utils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export const isCompoundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;

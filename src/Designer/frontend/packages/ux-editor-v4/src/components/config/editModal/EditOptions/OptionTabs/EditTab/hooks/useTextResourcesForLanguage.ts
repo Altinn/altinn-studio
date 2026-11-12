@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getTextResourcesForLanguage } from '../utils';
-import type { TextResources } from '@studio/content-library';
+import type { TextResources } from '@designer/content-library';
 
 export function useTextResourcesForLanguage(language: string, textResources: TextResources) {
   return useMemo(

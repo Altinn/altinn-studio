@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useState } from 'react';
 import type { Ref, ReactElement } from 'react';
 import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
 import { StudioProperty } from '../StudioProperty';
-import { KeyHorizontalIcon } from '@studio/icons';
+import { KeyHorizontalIcon } from '@designer/icons';
 import classes from './StudioToggleableTextfield.module.css';
 import type { Override } from '../../types/Override';
 

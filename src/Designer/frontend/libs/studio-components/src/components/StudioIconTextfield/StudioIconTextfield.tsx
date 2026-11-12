@@ -1,7 +1,7 @@
 import React, { forwardRef, useId } from 'react';
 import classes from './StudioIconTextfield.module.css';
 import type { Override } from '../../types/Override';
-import { PadlockLockedFillIcon } from '@studio/icons';
+import { PadlockLockedFillIcon } from '@designer/icons';
 import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import cn from 'classnames';

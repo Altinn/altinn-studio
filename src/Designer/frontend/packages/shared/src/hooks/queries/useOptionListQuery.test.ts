@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { useOptionListQuery } from 'app-shared/hooks/queries/useOptionListQuery';
 import { waitFor } from '@testing-library/react';

@@ -11,7 +11,7 @@ management is both standardized and adaptable.
 ## Installation
 
 Since this package is part of a monorepo, you can include it in your project using Yarn:
-`yarn add "@studio/content-resource-library@workspace:^"`
+`yarn add "@designer/content-resource-library@workspace:^"`
 
 ## Usage
 

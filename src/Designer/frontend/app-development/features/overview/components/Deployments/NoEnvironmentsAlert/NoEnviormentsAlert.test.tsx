@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 it('should render no environments information', () => {
   render(<NoEnvironmentsAlert />);

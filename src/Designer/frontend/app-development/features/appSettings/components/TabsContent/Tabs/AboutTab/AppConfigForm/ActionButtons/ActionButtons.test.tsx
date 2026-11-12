@@ -4,7 +4,7 @@ import type { RenderResult } from '@testing-library/react';
 import { ActionButtons } from './ActionButtons';
 import type { ActionButtonsProps } from './ActionButtons';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('ActionButtons', () => {
   it('renders both buttons with correct labels and icons', () => {

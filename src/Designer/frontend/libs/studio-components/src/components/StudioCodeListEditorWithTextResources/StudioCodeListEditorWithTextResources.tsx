@@ -19,13 +19,13 @@ import {
   StudioCodeListEditorContext,
   useStudioCodeListEditorContext,
 } from './StudioCodeListEditorContext';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioValidationMessage } from '../StudioValidationMessage';
-import type { TextResource } from '@studio/pure-functions';
-import { usePropState } from '@studio/hooks';
+import type { TextResource } from '@designer/pure-functions';
+import { usePropState } from '@designer/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';

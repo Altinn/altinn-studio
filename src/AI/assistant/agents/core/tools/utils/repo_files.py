@@ -7,7 +7,6 @@ modify" rhythm to prevent blind retries.
 
 from __future__ import annotations
 
-import posixpath
 from pathlib import Path
 
 from agents.core.tool import LoopContext
@@ -65,13 +64,7 @@ def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     # A re-edited file needs to be re-verified before commit.  Drop any
     # prior verification badge so commit_session_branch's gate triggers
     # again after this write.
-    verified = ctx.extras.get("verified_files")
-    if verified is not None:
-        verified.discard(rel_path)
-    # A tool that writes the file makes the change in this turn.
-    not_from_tools = ctx.extras.get("edits_not_from_tools")
-    if not_from_tools is not None:
-        not_from_tools.discard(posixpath.normpath(rel_path))
+    (ctx.extras.get("verified_files") or set()).discard(rel_path)
 
 
 def is_read(ctx: LoopContext, rel_path: str) -> bool:

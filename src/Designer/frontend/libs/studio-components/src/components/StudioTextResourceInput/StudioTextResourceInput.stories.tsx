@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import { FixedWidthDecorator } from '../../storybook-utils/decorators/FixedWidthDecorator';
 
 const meta = {

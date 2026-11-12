@@ -1,5 +1,5 @@
-import type { CodeListWithTextResources, CodeListEditorTexts } from '@studio/components';
-import type { TextResource } from '@studio/pure-functions';
+import type { CodeListWithTextResources, CodeListEditorTexts } from '@designer/components';
+import type { TextResource } from '@designer/pure-functions';
 import {
   StudioCodeListEditorWithTextResources,
   StudioDeleteButton,
@@ -7,14 +7,14 @@ import {
   StudioDialog,
   StudioHeading,
   StudioToggleableTextfield,
-} from '@studio/components';
+} from '@designer/components';
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
-import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { EyeIcon, KeyVerticalIcon } from '@designer/icons';
+import { ArrayUtils, FileNameUtils } from '@designer/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';

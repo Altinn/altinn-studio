@@ -5,7 +5,7 @@ import { PlaceholderMessage } from './PlaceholderMessage';
 import type { UserFeedback } from '../../types/UserFeedback';
 import { UserInput } from './UserInput/UserInput';
 import classes from './MessageColumn.module.css';
-import { StudioResizableLayout } from '@studio/components';
+import { StudioResizableLayout } from '@designer/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';

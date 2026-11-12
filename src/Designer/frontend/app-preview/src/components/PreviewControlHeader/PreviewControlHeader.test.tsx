@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';

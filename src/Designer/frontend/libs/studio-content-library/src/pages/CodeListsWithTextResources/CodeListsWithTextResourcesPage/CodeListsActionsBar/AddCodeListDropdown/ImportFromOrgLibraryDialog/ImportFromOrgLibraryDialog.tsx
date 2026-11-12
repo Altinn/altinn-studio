@@ -2,8 +2,8 @@ import { forwardRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, RefObject } from 'react';
 import classes from './ImportFromOrgLibraryDialog.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDialog, StudioHeading, StudioSelect } from '@studio/components';
-import { BookIcon, FileImportIcon } from '@studio/icons';
+import { StudioButton, StudioDialog, StudioHeading, StudioSelect } from '@designer/components';
+import { BookIcon, FileImportIcon } from '@designer/icons';
 
 export type ImportFromOrgLibraryDialogProps = {
   codeListIds: string[];

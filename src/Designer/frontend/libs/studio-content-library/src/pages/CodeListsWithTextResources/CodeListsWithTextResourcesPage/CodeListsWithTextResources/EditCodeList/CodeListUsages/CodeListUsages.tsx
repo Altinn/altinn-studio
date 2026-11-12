@@ -1,9 +1,9 @@
 import React from 'react';
 import type { CodeListIdSource } from '../../../types/CodeListReference';
-import { StudioTable } from '@studio/components';
+import { StudioTable } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@designer/pure-functions';
 import { getUsageTaskTypeTextKey } from '../../../utils';
 
 export type CodeListUsagesProps = {

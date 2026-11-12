@@ -9,7 +9,7 @@ import {
 } from './';
 import { createAccessListSubject, type EnvId } from './resourceUtils';
 import type { Resource, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   emptyPolicyRule,
   organizationSubject,

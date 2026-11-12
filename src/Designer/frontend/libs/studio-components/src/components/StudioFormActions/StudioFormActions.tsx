@@ -2,7 +2,7 @@ import type { Ref } from 'react';
 import React, { forwardRef } from 'react';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioFormActions.module.css';
-import { StudioCancelIcon, StudioSaveIcon } from '@studio/icons';
+import { StudioCancelIcon, StudioSaveIcon } from '@designer/icons';
 import cn from 'classnames';
 
 type actionProps = {

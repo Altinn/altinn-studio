@@ -6,9 +6,9 @@ import {
   TimerStartIcon,
   MaskinportenIcon,
   PlayFillIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useTranslation } from 'react-i18next';
-import type { StudioContentMenuButtonTabProps } from '@studio/components';
+import type { StudioContentMenuButtonTabProps } from '@designer/components';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

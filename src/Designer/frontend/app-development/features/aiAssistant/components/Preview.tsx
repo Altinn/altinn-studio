@@ -7,7 +7,7 @@ import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/use
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { StudioAlert, StudioCenter, StudioSpinner } from '@studio/components';
+import { StudioAlert, StudioCenter, StudioSpinner } from '@designer/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 

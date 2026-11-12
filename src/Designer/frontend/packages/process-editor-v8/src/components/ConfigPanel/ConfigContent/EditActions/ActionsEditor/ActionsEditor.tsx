@@ -7,8 +7,8 @@ import {
   StudioParagraph,
   StudioProperty,
   StudioTabs,
-} from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+} from '@designer/components';
+import { XMarkIcon } from '@designer/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ContactPage.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { EnvelopeClosedIcon, SlackIcon, GitHubIcon, PersonHeadsetIcon } from '@studio/icons';
+import { EnvelopeClosedIcon, SlackIcon, GitHubIcon, PersonHeadsetIcon } from '@designer/icons';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,
@@ -12,7 +12,7 @@ import {
   StudioParagraph,
   StudioHeading,
   StudioPageImageBackgroundContainer,
-} from '@studio/components';
+} from '@designer/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';

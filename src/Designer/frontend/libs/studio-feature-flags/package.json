@@ -1,5 +1,5 @@
 {
-  "name": "@studio/feature-flags",
+  "name": "@designer/feature-flags",
   "packageManager": "yarn@4.18.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@studio/pure-functions": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

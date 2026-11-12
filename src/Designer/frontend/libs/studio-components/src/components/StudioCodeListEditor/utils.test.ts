@@ -13,7 +13,7 @@ import {
   initializeLanguageOptions,
 } from './utils';
 import type { UpdateCodeTextArgs } from './utils';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import type { MultiLanguageCodeListItem } from './types/CodeListItem';

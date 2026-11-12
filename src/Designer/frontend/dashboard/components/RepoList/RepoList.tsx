@@ -7,8 +7,8 @@ import {
   StudioTableLocalPagination,
   StudioTableRemotePagination,
   StudioParagraph,
-} from '@studio/components';
-import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
+} from '@designer/components';
+import type { Columns, PaginationTexts, RemotePaginationProps } from '@designer/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
