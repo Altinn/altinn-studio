@@ -1,69 +1,58 @@
 .container,
 .intro,
-.featureSection {
+.cards,
+.featureList {
   display: flex;
   flex-direction: column;
 }
 
 .container {
-  gap: var(--ds-size-8);
-  max-width: 860px;
+  gap: var(--ds-size-6);
+  max-width: 616px;
 }
 
 .intro {
-  gap: var(--ds-size-3);
-}
-
-.modeCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--ds-size-3);
-}
-
-.modeCard {
-  padding: var(--ds-size-4);
-  margin: 1px;
-  border: 1px solid var(--ds-color-neutral-border-default);
-  border-radius: var(--ds-border-radius-lg);
-  background: var(--ds-color-neutral-background-default);
-}
-
-.modeCard:has(input:checked) {
-  margin: 0;
-  border: 2px solid var(--ds-color-accent-border-strong);
-  background: var(--ds-color-accent-surface-tinted);
-}
-
-.featureSection {
   gap: var(--ds-size-2);
 }
 
-.featureListHeader {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--ds-size-4);
-}
-
-.subtle {
-  color: var(--ds-color-neutral-text-subtle);
+.cards,
+.featureList {
+  gap: var(--ds-size-3);
 }
 
 .featureList {
-  margin: var(--ds-size-2) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
-.featureItem {
-  padding: var(--ds-size-5) 0;
-  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+.card {
+  padding: var(--ds-size-3);
+  border: 1px solid var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-md);
+  background: var(--ds-color-neutral-background-default);
+}
+
+.selectAll {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ds-size-4);
+  background: var(--ds-color-neutral-background-tinted);
+}
+
+.subtle {
+  flex-shrink: 0;
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .featureLabel {
   display: inline-flex;
   align-items: center;
   gap: var(--ds-size-2);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.selectAllLabel {
+  font-weight: var(--ds-font-weight-semibold);
 }

@@ -17,14 +17,9 @@ const getSwitch = (flag: FeatureFlag) =>
     name: textMock(`settings.user.experimental_features.${flag}.label`),
   });
 
-const getAllRadio = () =>
-  screen.getByRole('radio', {
-    name: textMock('settings.user.experimental_features.mode.all.label'),
-  });
-
-const getCustomRadio = () =>
-  screen.getByRole('radio', {
-    name: textMock('settings.user.experimental_features.mode.custom.label'),
+const getSelectAllSwitch = () =>
+  screen.getByRole('switch', {
+    name: textMock('settings.user.experimental_features.select_all.label'),
   });
 
 const getStoredFlags = (): string[] =>
@@ -45,7 +40,7 @@ describe('ExperimentalFeatures', () => {
     renderExperimentalFeatures();
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.user.experimental_features.heading'),
+        name: textMock('settings.user.experimental_features.page_heading'),
       }),
     ).toBeInTheDocument();
   });
@@ -62,9 +57,10 @@ describe('ExperimentalFeatures', () => {
     expect(getSwitch(flag)).toBeInTheDocument();
   });
 
-  it('renders a switch only for each experimental feature', () => {
+  it('renders a switch to select all, and one for each experimental feature', () => {
     renderExperimentalFeatures();
-    expect(screen.getAllByRole('switch')).toHaveLength(experimentalFeatureFlags.length);
+    expect(getSelectAllSwitch()).toBeInTheDocument();
+    expect(screen.getAllByRole('switch')).toHaveLength(experimentalFeatureFlags.length + 1);
   });
 
   it('does not show flags that are only for developers', () => {
@@ -78,10 +74,9 @@ describe('ExperimentalFeatures', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('chooses the custom mode when nothing is stored', () => {
+  it('does not select all when nothing is stored', () => {
     renderExperimentalFeatures();
-    expect(getCustomRadio()).toBeChecked();
-    expect(getAllRadio()).not.toBeChecked();
+    expect(getSelectAllSwitch()).not.toBeChecked();
   });
 
   it('shows how many features are on', () => {
@@ -98,7 +93,7 @@ describe('ExperimentalFeatures', () => {
     ).toBeInTheDocument();
   });
 
-  describe('in the custom mode', () => {
+  describe('when not all are selected', () => {
     it('shows a feature as on when it is stored in the browser', () => {
       const [flag] = experimentalFeatureFlags;
       storeFlags([flag]);
@@ -124,50 +119,36 @@ describe('ExperimentalFeatures', () => {
       expect(getSwitch(flag)).not.toBeChecked();
       expect(getStoredFlags()).toEqual([]);
     });
-
-    it('does not show the hint about the all mode', () => {
-      renderExperimentalFeatures();
-      expect(
-        screen.queryByText(textMock('settings.user.experimental_features.all_mode_hint')),
-      ).not.toBeInTheDocument();
-    });
   });
 
-  describe('in the all mode', () => {
-    it('turns every feature on when the all mode is chosen', async () => {
+  describe('when all are selected', () => {
+    it('turns every feature on when all are selected', async () => {
       const user = userEvent.setup();
       renderExperimentalFeatures();
-      await user.click(getAllRadio());
+      await user.click(getSelectAllSwitch());
       expect(getStoredMode()).toBe('all');
+      expect(getSelectAllSwitch()).toBeChecked();
       experimentalFeatureFlags.forEach((flag) => expect(getSwitch(flag)).toBeChecked());
     });
 
-    it('shows the hint about the all mode', () => {
-      storeMode('all');
-      renderExperimentalFeatures();
-      expect(
-        screen.getByText(textMock('settings.user.experimental_features.all_mode_hint')),
-      ).toBeInTheDocument();
-    });
-
-    it('changes to the custom mode with the other features still on when a feature is turned off', async () => {
+    it('stops selecting all, with the other features still on, when a feature is turned off', async () => {
       const user = userEvent.setup();
       const [flagToTurnOff, ...otherFlags] = experimentalFeatureFlags;
       storeMode('all');
       renderExperimentalFeatures();
       await user.click(getSwitch(flagToTurnOff));
-      expect(getCustomRadio()).toBeChecked();
+      expect(getSelectAllSwitch()).not.toBeChecked();
       expect(getSwitch(flagToTurnOff)).not.toBeChecked();
       otherFlags.forEach((flag) => expect(getSwitch(flag)).toBeChecked());
     });
 
-    it('restores the earlier custom choices when the custom mode is chosen again', async () => {
+    it('restores the earlier choices when select all is turned off', async () => {
       const user = userEvent.setup();
       const [storedFlag, ...otherFlags] = experimentalFeatureFlags;
       storeFlags([storedFlag]);
       storeMode('all');
       renderExperimentalFeatures();
-      await user.click(getCustomRadio());
+      await user.click(getSelectAllSwitch());
       expect(getSwitch(storedFlag)).toBeChecked();
       otherFlags.forEach((flag) => expect(getSwitch(flag)).not.toBeChecked());
     });

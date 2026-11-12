@@ -3,14 +3,12 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAlert,
-  StudioFieldset,
   StudioHeading,
   StudioParagraph,
-  StudioRadio,
   StudioSwitch,
   StudioTag,
 } from '@studio/components';
-import type { ExperimentalFeaturesMode, FeatureFlag } from '@studio/feature-flags';
+import type { FeatureFlag } from '@studio/feature-flags';
 import {
   experimentalFeatureFlags,
   featureFlagConfig,
@@ -26,89 +24,63 @@ export function ExperimentalFeatures(): ReactElement {
   return (
     <div className={classes.container}>
       <div className={classes.intro}>
-        <StudioHeading level={2} data-size='md'>
-          {t('settings.user.experimental_features.heading')}
+        <StudioHeading level={2} data-size='sm'>
+          {t('settings.user.experimental_features.page_heading')}
         </StudioHeading>
-        <StudioParagraph>{t('settings.user.experimental_features.description')}</StudioParagraph>
+        <StudioParagraph>
+          {t('settings.user.experimental_features.description')}
+          <br />
+          {t('settings.user.experimental_features.choose_description')}
+        </StudioParagraph>
       </div>
       <StudioAlert data-color='warning'>
         <StudioParagraph>{t('settings.user.experimental_features.warning')}</StudioParagraph>
       </StudioAlert>
-      <ModeChoice />
-      <FeatureList />
+      <div className={classes.cards}>
+        <SelectAll />
+        <ul className={classes.featureList}>
+          {experimentalFeatureFlags.map((flag) => (
+            <li key={flag} className={classes.card}>
+              <ExperimentalFeature flag={flag} />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
-function ModeChoice(): ReactElement {
+function SelectAll(): ReactElement {
   const { t } = useTranslation();
   const { mode, setMode } = useExperimentalFeaturesMode();
+  const { flags } = useFeatureFlagsContext();
+  const enabledCount = experimentalFeatureFlags.filter((flag) => flags.includes(flag)).length;
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (event) => setMode(event.target.value as ExperimentalFeaturesMode),
+    (event) => setMode(event.target.checked ? 'all' : 'custom'),
     [setMode],
   );
 
   return (
-    <StudioFieldset legend={t('settings.user.experimental_features.mode.legend')}>
-      <div className={classes.modeCards}>
-        <div className={classes.modeCard}>
-          <StudioRadio
-            name='experimentalFeaturesMode'
-            value='all'
-            checked={mode === 'all'}
-            onChange={handleChange}
-            label={t('settings.user.experimental_features.mode.all.label')}
-            description={t('settings.user.experimental_features.mode.all.description')}
-          />
-        </div>
-        <div className={classes.modeCard}>
-          <StudioRadio
-            name='experimentalFeaturesMode'
-            value='custom'
-            checked={mode === 'custom'}
-            onChange={handleChange}
-            label={t('settings.user.experimental_features.mode.custom.label')}
-            description={t('settings.user.experimental_features.mode.custom.description')}
-          />
-        </div>
-      </div>
-    </StudioFieldset>
-  );
-}
-
-function FeatureList(): ReactElement {
-  const { t } = useTranslation();
-  const { mode } = useExperimentalFeaturesMode();
-  const { flags } = useFeatureFlagsContext();
-  const enabledCount = experimentalFeatureFlags.filter((flag) => flags.includes(flag)).length;
-
-  return (
-    <section className={classes.featureSection}>
-      <div className={classes.featureListHeader}>
-        <StudioHeading level={3} data-size='2xs'>
-          {t('settings.user.experimental_features.features_heading')}
-        </StudioHeading>
-        <StudioParagraph data-size='sm' className={classes.subtle}>
-          {t('settings.user.experimental_features.enabled_count', {
-            enabled: enabledCount,
-            total: experimentalFeatureFlags.length,
-          })}
-        </StudioParagraph>
-      </div>
-      {mode === 'all' && (
-        <StudioParagraph data-size='sm' className={classes.subtle}>
-          {t('settings.user.experimental_features.all_mode_hint')}
-        </StudioParagraph>
-      )}
-      <ul className={classes.featureList}>
-        {experimentalFeatureFlags.map((flag) => (
-          <li key={flag} className={classes.featureItem}>
-            <ExperimentalFeature flag={flag} />
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className={`${classes.card} ${classes.selectAll}`}>
+      <StudioSwitch
+        data-size='sm'
+        checked={mode === 'all'}
+        onChange={handleChange}
+        label={
+          <span className={classes.selectAllLabel}>
+            {t('settings.user.experimental_features.select_all.label')}
+          </span>
+        }
+        description={t('settings.user.experimental_features.select_all.description')}
+      />
+      <StudioParagraph data-size='sm' className={classes.subtle}>
+        {t('settings.user.experimental_features.enabled_count', {
+          enabled: enabledCount,
+          total: experimentalFeatureFlags.length,
+        })}
+      </StudioParagraph>
+    </div>
   );
 }
 
@@ -138,6 +110,7 @@ function ExperimentalFeature({ flag }: ExperimentalFeatureProps): ReactElement {
 
   return (
     <StudioSwitch
+      data-size='sm'
       checked={isEnabled}
       onChange={handleChange}
       label={label}
