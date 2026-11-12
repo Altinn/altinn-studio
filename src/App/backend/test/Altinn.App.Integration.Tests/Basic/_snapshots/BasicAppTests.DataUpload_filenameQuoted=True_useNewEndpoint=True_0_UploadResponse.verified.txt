@@ -112,14 +112,14 @@
             Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
-          Size: 146,
+          Size: 210,
           BlobVersionId: <blobVersionId[0]>,
           Locked: false,
-          IsRead: false,
+          IsRead: true,
           Created: DateTime_4,
           CreatedBy: 991825827,
-          LastChanged: DateTime_4,
-          LastChangedBy: 991825827
+          LastChanged: DateTime_5,
+          LastChangedBy: 1337
         },
         {
           Id: <dataElementId[1]>,
@@ -146,6 +146,19 @@
       CreatedBy: 1337,
       LastChanged: DateTime_5,
       LastChangedBy: 1337
-    }
+    },
+    NewDataModels: [
+      {
+        DataElementId: Guid_2,
+        Data: {
+          property1: null,
+          property2: null,
+          property3: null,
+          price: 200,
+          quantity: 1,
+          total: 200
+        }
+      }
+    ]
   }
 }

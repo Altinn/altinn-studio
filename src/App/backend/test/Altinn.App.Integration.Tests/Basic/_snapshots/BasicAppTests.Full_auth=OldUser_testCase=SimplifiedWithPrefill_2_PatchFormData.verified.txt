@@ -81,7 +81,12 @@
       {
         DataElementId: Guid_1,
         Data: {
-          ValueKind: Object
+          property1: 2,
+          property2: 2,
+          property3: null,
+          price: 200,
+          quantity: 1,
+          total: 200
         }
       }
     ],
@@ -126,7 +131,7 @@
           SelfLinks: {
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
-          Size: 200,
+          Size: 258,
           BlobVersionId: <blobVersionId[0]>,
           Locked: false,
           IsRead: true,
