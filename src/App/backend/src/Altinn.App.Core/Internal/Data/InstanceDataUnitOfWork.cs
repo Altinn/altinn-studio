@@ -195,10 +195,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         where T : class
     {
         ArgumentNullException.ThrowIfNull(model);
-        if (
-            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
-            && _changesForCreation.Any(change => change.DataElementIdentifier == dataElementIdentifier)
-        )
+        if (GetUnsavedCreation(dataElementIdentifier) is not null)
         {
             throw new InvalidOperationException(
                 $"Data element {dataElementIdentifier.Id} is added in this unit of work and cannot be replaced; change the object passed to AddFormDataElement instead"
@@ -573,28 +570,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             update.Filename ?? previous?.Filename
         );
 
-    private DataElement GetDataElementOrStagedCreation(DataElementIdentifier dataElementIdentifier)
-    {
-        if (
-            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
-            && _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier)
-                is { DataElement: { } stagedDataElement }
-        )
-        {
-            return stagedDataElement;
-        }
+    private DataElement GetDataElementOrStagedCreation(DataElementIdentifier dataElementIdentifier) =>
+        GetUnsavedCreation(dataElementIdentifier)?.DataElement ?? GetDataElement(dataElementIdentifier);
 
-        return GetDataElement(dataElementIdentifier);
-    }
+    // A user save leaves its creations tracked, with the saved element on the instance.
+    private DataElementChange? GetUnsavedCreation(DataElementIdentifier dataElementIdentifier) =>
+        Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
+            ? null
+            : _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier);
 
     private void ValidateMetadataUpdate(DataElementMetadataUpdate update)
     {
         foreach (Guid reference in update.Refs ?? [])
         {
-            if (
-                !Instance.Data.Exists(dataElement => dataElement.Id == reference.ToString())
-                && _changesForCreation.Any(change => change.DataElementIdentifier.Guid == reference)
-            )
+            if (GetUnsavedCreation(new DataElementIdentifier(reference)) is not null)
             {
                 throw new InvalidOperationException(
                     $"Data element {reference} is added in this unit of work and cannot be referred to: its id is assigned when the instance is saved"

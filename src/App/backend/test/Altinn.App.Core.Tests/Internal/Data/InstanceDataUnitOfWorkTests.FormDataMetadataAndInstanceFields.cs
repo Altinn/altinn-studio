@@ -162,6 +162,24 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task ReplaceFormData_ForAnAddedElementAfterTheSave_ReplacesIt()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = "created" },
+            BlobVersion(1)
+        );
+        FormDataChange added = setup.DataMutator.AddFormDataElement(formDataElement.DataType, new PaymentForm());
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        await setup.DataMutator.ReplaceFormData(added.DataElementIdentifier, new PaymentForm { Status = "replaced" });
+
+        PaymentForm current = await setup.DataMutator.GetFormData<PaymentForm>(added.DataElementIdentifier);
+        Assert.Equal("replaced", current.Status);
+    }
+
+    [Fact]
     public async Task ReplaceFormData_ForARemovedElement_Throws()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("{}"u8.ToArray(), blobVersionId: BlobVersion(1));
