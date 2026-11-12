@@ -121,7 +121,7 @@ _Two user actions during a run. The assistant service checks that the caller own
 
 ## Deploy
 
-A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-ai-agents.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
+A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-assistant.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
 
 The pod gets five secrets from Key Vault: the Azure key and four Langfuse values. The model names are not in the manifest, so they come from the defaults in code.
 
