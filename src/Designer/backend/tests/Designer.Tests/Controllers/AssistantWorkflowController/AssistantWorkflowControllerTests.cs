@@ -76,8 +76,9 @@ public class AssistantWorkflowControllerTests
 
         var result = await controller.StartWorkflow(Org, App, _threadId, request, CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.True(((JsonElement)okResult.Value!).GetProperty("accepted").GetBoolean());
+        var content = Assert.IsType<ContentResult>(result);
+        Assert.Equal("application/json", content.ContentType);
+        Assert.True(JsonDocument.Parse(content.Content!).RootElement.GetProperty("accepted").GetBoolean());
         Assert.NotNull(_sentStartRequest);
         Assert.Equal(_threadId.ToString(), _sentStartRequest.SessionId);
         Assert.Equal("Lag et skjema fra vedlegget", _sentStartRequest.Goal);
@@ -154,7 +155,7 @@ public class AssistantWorkflowControllerTests
 
         var result = await controller.StartWorkflow(Org, App, _threadId, CreateStartRequest(), CancellationToken.None);
 
-        var statusResult = Assert.IsType<StatusCodeResult>(result.Result);
+        var statusResult = Assert.IsType<StatusCodeResult>(result);
         Assert.Equal(StatusCodes.Status403Forbidden, statusResult.StatusCode);
         VerifyAssistantNotStarted();
     }
@@ -173,7 +174,7 @@ public class AssistantWorkflowControllerTests
             CancellationToken.None
         );
 
-        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.IsType<NotFoundResult>(result);
         VerifyAssistantNotStarted();
     }
 
@@ -199,7 +200,7 @@ public class AssistantWorkflowControllerTests
             CancellationToken.None
         );
 
-        Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.IsType<BadRequestObjectResult>(result);
         VerifyAssistantNotStarted();
     }
 
@@ -225,7 +226,7 @@ public class AssistantWorkflowControllerTests
             CancellationToken.None
         );
 
-        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.IsType<ContentResult>(result);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +71,7 @@ public class AssistantWorkflowController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<JsonElement>> StartWorkflow(
+    public async Task<IActionResult> StartWorkflow(
         string org,
         string app,
         Guid threadId,
@@ -128,7 +129,8 @@ public class AssistantWorkflowController(
             apiKey,
             cancellationToken
         );
-        return Ok(response);
+        // Newtonsoft.Json, which formats this controller's results, cannot write a JsonElement.
+        return Content(response.GetRawText(), MediaTypeNames.Application.Json);
     }
 
     /// <summary>
