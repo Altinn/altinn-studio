@@ -10,6 +10,9 @@ How we write code in this repository, beyond what the formatters and linters enf
 - Give hard-coded numbers and strings a constant with a descriptive name, unless their type already says what they
   mean, such as `mode === 'edit'` when `mode` is `'edit' | 'read'`.
 - Make invalid states unrepresentable at the outer layer, so the code past it does not check them again.
+- Model a concept of the Altinn Studio domain once, in the domain model in [src/common](../src/common/README.md), and
+  use it in every component that needs the concept. A component that models it for itself gets a rule of its own, and
+  the rules drift apart. Name its types with the terms in the [glossary](../GLOSSARY.md).
 - Remove obsolete code paths instead of keeping them for compatibility, unless something outside the repository
   depends on them, as apps depend on the app backend.
 
