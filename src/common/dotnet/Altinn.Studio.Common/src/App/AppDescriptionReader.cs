@@ -11,9 +11,10 @@ namespace Altinn.Studio.Common.App;
 /// </summary>
 /// <remarks>
 /// Files arrive before the kind of app and its version are known, so it reads what every version's part may need,
-/// and <see cref="Build"/> picks the case. It guesses nothing: an app is a form app only when a project references
-/// an Altinn.App package, and on a version's contract only when that reference names the major version. Designer
-/// takes every app it cannot prove to be on v9 for one on v8, which is a decision for a caller to make.
+/// and <see cref="Build"/> picks the case. It guesses nothing. An app is a form app when a project references an
+/// Altinn.App package or the index page loads the app frontend. It is on a version's contract when that reference
+/// names the major version, or else when the page loads an app frontend that goes with v8. Designer takes every
+/// app it cannot prove to be on v9 for one on v8, which is a decision for a caller to make.
 /// A project gets the properties and package references of the nearest <c>Directory.Build.props</c> and the
 /// central package versions of the nearest <c>Directory.Packages.props</c>, as MSBuild imports them. The app's
 /// Altinn.App package is the first of <see cref="AltinnAppPackage.PackageNames"/> that
@@ -87,14 +88,38 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
         ProjectDescription? appProject = FindAppProject(projects);
         ValueList<ProjectDescription> all = [.. projects];
-        return FindAltinnAppReference(appProject, projects) switch
+        PackageReference? reference = FindAltinnAppReference(appProject, projects);
+        AltinnAppPackage? package = null;
+        _ = reference is not null && AltinnAppPackage.TryParse(reference, out package);
+        V8Description v8 = _v8.Build();
+        AppFrontendVersion? frontend = v8.FrontendVersion;
+        bool frontendOfV8 = frontend is { Major: <= AppDescription.FormApp.LastV8FrontendMajor };
+
+        // The package says which contract the app is on. The index page says so when the package does not, and can
+        // contradict a package of v9, which loads no app frontend of v8.
+        return (package, frontend) switch
         {
-            null => new AppDescription.Unrecognized(appProject, all),
-            { } reference when AltinnAppPackage.TryParse(reference, out AltinnAppPackage? package) => package.Major
-            > LastV8Major
-                ? new AppDescription.FormApp.V9OrLater(appProject, all, package, _v9.Build())
-                : new AppDescription.FormApp.V8OrEarlier(appProject, all, package, _v8.Build()),
-            { } reference => new AppDescription.FormApp.UnknownVersion(appProject, all, reference),
+            ({ Major: > LastV8Major }, { }) when frontendOfV8 => new AppDescription.FormApp.Inconsistent(
+                appProject,
+                all,
+                package,
+                frontend
+            ),
+            ({ Major: > LastV8Major }, _) => new AppDescription.FormApp.V9OrLater(
+                appProject,
+                all,
+                package,
+                _v9.Build()
+            ),
+            ({ }, _) => new AppDescription.FormApp.V8OrEarlier(appProject, all, package, v8),
+            (null, _) when frontendOfV8 => new AppDescription.FormApp.V8OrEarlier(appProject, all, null, v8),
+            (null, _) when reference is not null || frontend is not null => new AppDescription.FormApp.UnknownVersion(
+                appProject,
+                all,
+                reference,
+                frontend
+            ),
+            _ => new AppDescription.Unrecognized(appProject, all),
         };
     }
 

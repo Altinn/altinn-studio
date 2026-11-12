@@ -61,7 +61,6 @@ public sealed class AppDescriptionReaderTests
     {
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
-        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
         Read(reader, "App/ui/Task_2/Settings.json", "{}");
         Read(reader, "App/ui/Task_1/Settings.json", "{}");
         Assert.False(reader.Accepts(TestAppSource.Path("App/ui/Task_1/layouts/Side1.json")));
@@ -99,11 +98,11 @@ public sealed class AppDescriptionReaderTests
     {
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", Project("Altinn.App.Api", declared));
-        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
 
         Assert.Equal(new PackageReference("Altinn.App.Api", declared.Trim()), unknown.Reference);
+        Assert.Null(unknown.FrontendVersion);
         Assert.Contains("names no major version", unknown.Reason, StringComparison.Ordinal);
         Assert.Equal("App/App.csproj", unknown.AppProject?.Path.Value);
     }
@@ -120,31 +119,112 @@ public sealed class AppDescriptionReaderTests
         Assert.Equal("the version of Altinn.App.Api cannot be resolved", unknown.Reason);
     }
 
-    // Designer takes the first two for apps on v8, in AltinnAppGitRepository.GetSchemaUrl, ReleaseService and
-    // AppVersionService. Here they are of no known kind, and a caller decides what to take them for.
-    [Fact]
-    public void Build_RecognizesAFormAppOnlyByItsAltinnAppPackage()
+    // The index page is the proof when the package is not: an app frontend of version 4 or lower goes with v8. Eleven
+    // production apps get Altinn.App through a package of their own, and their page loads app frontend 4.37.0.
+    [Theory]
+    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "4.37.0")]
+    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "4")]
+    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "3")]
+    [InlineData("Altinn.App.Api", "[8.0.0,9.0.0)", "4")]
+    [InlineData("Altinn.App.Api", "$(Unresolved)", "4")]
+    public void Build_TakesAnAppFrontendOfV8ForProofWhenThePackageIsNone(
+        string package,
+        string version,
+        string frontend
+    )
     {
-        var wrapped = new AppDescriptionReader();
-        Read(wrapped, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.7.5"));
-        Read(wrapped, "App/views/Home/Index.cshtml", Index("4"));
-        Read(wrapped, "App/ui/form/Settings.json", "{}");
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project(package, version));
+        Read(reader, "App/views/Home/Index.cshtml", Index(frontend));
 
-        var custom = new AppDescriptionReader();
-        Read(custom, "App/App.csproj", Project("Swashbuckle.AspNetCore", "10.1.7"));
+        var description = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(reader.Build());
 
-        var provenV9 = new AppDescriptionReader();
-        Read(provenV9, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
-        Read(provenV9, "App/views/Home/Index.cshtml", Index("4"));
-        Read(provenV9, "App/ui/Task_1/Settings.json", "{}");
+        Assert.Null(description.AltinnApp);
+        Assert.Equal(frontend, description.V8.FrontendVersion?.Value);
+    }
 
-        var wrappedApp = Assert.IsType<AppDescription.Unrecognized>(wrapped.Build());
-        Assert.Equal("App/App.csproj", wrappedApp.AppProject?.Path.Value);
+    [Fact]
+    public void Build_TakesThePackageBeforeThePage()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "7.0.0"));
+        Read(reader, "App/views/Home/Index.cshtml", Index("5"));
 
-        Assert.IsType<AppDescription.Unrecognized>(custom.Build());
+        var description = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(reader.Build());
 
-        var v9App = Assert.IsType<AppDescription.FormApp.V9OrLater>(provenV9.Build());
-        Assert.Equal(["Task_1"], v9App.V9.UiFolders);
+        Assert.Equal(7, description.AltinnApp?.Major);
+        Assert.Equal("5", description.V8.FrontendVersion?.Value);
+    }
+
+    // An upgrade to v9 that keeps a customized index page leaves an app like this, which is on neither contract.
+    [Theory]
+    [InlineData(
+        "<script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js\"></script>",
+        "4"
+    )]
+    [InlineData(
+        "<script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js\"></script>",
+        "3"
+    )]
+    [InlineData("<meta data-altinn-app-frontend-version=\"4.5.0-local\" />", "4.5.0-local")]
+    public void Build_SaysThatAPackageOfV9AndAnAppFrontendOfV8AreInconsistent(string page, string frontend)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
+        Read(reader, "App/views/Home/Index.cshtml", page);
+        Read(reader, "App/ui/Task_1/Settings.json", "{}");
+
+        var description = Assert.IsType<AppDescription.FormApp.Inconsistent>(reader.Build());
+
+        Assert.Equal(9, description.AltinnApp.Major);
+        Assert.Equal(frontend, description.FrontendVersion.Value);
+        Assert.Equal($"Altinn.App.Api 9.0.0 does not go with app frontend {frontend}", description.Reason);
+    }
+
+    // A page that names no version, or one later than those that go with v8, contradicts nothing.
+    [Theory]
+    [InlineData("<html><body>custom</body></html>")]
+    [InlineData("<script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/5/altinn-app-frontend.js\"></script>")]
+    public void Build_KeepsAnAppOnV9ThatHasAPageWithoutAnAppFrontendOfV8(string page)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "9.0.0"));
+        Read(reader, "App/views/Home/Index.cshtml", page);
+
+        Assert.IsType<AppDescription.FormApp.V9OrLater>(reader.Build());
+    }
+
+    [Fact]
+    public void Build_KnowsAFormAppByItsPageAlsoWhenThePageProvesNoContract()
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.7.5"));
+        Read(reader, "App/views/Home/Index.cshtml", Index("5"));
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+
+        Assert.Null(unknown.Reference);
+        Assert.Equal("5", unknown.FrontendVersion?.Value);
+        Assert.Equal("no project references an Altinn.App package", unknown.Reason);
+    }
+
+    // Designer takes these for apps on v8, in AltinnAppGitRepository.GetSchemaUrl, ReleaseService and
+    // AppVersionService. Here they are of no known kind, and a caller decides what to take them for.
+    [Theory]
+    [InlineData("")]
+    [InlineData("<html><body>custom</body></html>")]
+    public void Build_DoesNotRecognizeAnAppWithoutAnAltinnAppPackageOrAnAppFrontend(string page)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Swashbuckle.AspNetCore", "10.1.7"));
+        Read(reader, "App/ui/form/Settings.json", "{}");
+        if (page.Length > 0)
+        {
+            Read(reader, "App/views/Home/Index.cshtml", page);
+        }
+
+        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
+        Assert.Equal("App/App.csproj", description.AppProject?.Path.Value);
     }
 
     [Fact]
@@ -244,7 +324,7 @@ public sealed class AppDescriptionReaderTests
         );
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     // MSBuild sets properties in order, so a property has the values that others had where it was set. It reads the
@@ -289,7 +369,7 @@ public sealed class AppDescriptionReaderTests
         );
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     [Theory]
@@ -398,7 +478,7 @@ public sealed class AppDescriptionReaderTests
         );
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     // Each element is applied in constant time. Walking the items for each one took minutes for a file like this.
@@ -466,7 +546,7 @@ public sealed class AppDescriptionReaderTests
         Read(reader, "App/App.csproj", $"<Project>{properties}<ItemGroup>{items}</ItemGroup></Project>");
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     // MSBuild imports the nearest Directory.Build.props and stops there, so one that is malformed hides the ones above.
@@ -483,7 +563,7 @@ public sealed class AppDescriptionReaderTests
         );
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     [Fact]
@@ -667,7 +747,7 @@ public sealed class AppDescriptionReaderTests
         Read(reader, propsPath, "not xml");
 
         var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference.Version);
+        Assert.Null(unknown.Reference?.Version);
     }
 
     [Theory]
@@ -772,7 +852,7 @@ public sealed class AppDescriptionReaderTests
     private static (string, string, int) Package(AppDescription description) =>
         description switch
         {
-            AppDescription.FormApp.V8OrEarlier v8 => Package(v8.AltinnApp),
+            AppDescription.FormApp.V8OrEarlier { AltinnApp: { } package } => Package(package),
             AppDescription.FormApp.V9OrLater v9 => Package(v9.AltinnApp),
             _ => throw new InvalidOperationException($"The version is unknown: {description}"),
         };
