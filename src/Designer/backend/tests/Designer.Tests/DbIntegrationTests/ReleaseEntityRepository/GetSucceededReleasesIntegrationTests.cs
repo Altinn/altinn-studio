@@ -30,6 +30,8 @@ public class GetSucceededReleasesIntegrationTests : ReleaseEntityIntegrationTest
             Release(org, app, "2.0.0", BuildResult.Failed),
             // Same tag as a requested key, but in an app that was requested with another tag.
             Release(org, otherApp, "1.0.0", BuildResult.Succeeded),
+            // Same app and tag as a requested key, but in an org that was not requested.
+            Release(UniqueName("org"), app, "1.0.0", BuildResult.Succeeded),
         ]);
         var repository = new ReleaseRepository(DbFixture.DbContext);
 
