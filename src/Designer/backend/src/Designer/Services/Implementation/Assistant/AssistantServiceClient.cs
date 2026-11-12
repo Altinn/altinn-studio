@@ -25,6 +25,7 @@ public class AssistantServiceClient : IAssistantServiceClient
     {
         _httpClient = httpClient;
         _assistantSettings = assistantSettings.Value;
+        _httpClient.Timeout = TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds);
     }
 
     public async Task SendFeedbackAsync(

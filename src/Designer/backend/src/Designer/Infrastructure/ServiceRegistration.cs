@@ -1,5 +1,4 @@
 #nullable disable
-using System;
 using System.Net.Http;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.AppDist;
@@ -157,14 +156,7 @@ public static class ServiceRegistration
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
-        services
-            .AddHttpClient<IAssistantServiceClient, AssistantServiceClient>()
-            .ConfigureHttpClient(
-                (serviceProvider, client) =>
-                    client.Timeout = TimeSpan.FromSeconds(
-                        serviceProvider.GetRequiredService<IOptions<AssistantSettings>>().Value.TimeoutSeconds
-                    )
-            );
+        services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
         services.AddTransient<IAssistantWorkflowService, AssistantWorkflowService>();
         services.RegisterDatamodeling(configuration);
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();

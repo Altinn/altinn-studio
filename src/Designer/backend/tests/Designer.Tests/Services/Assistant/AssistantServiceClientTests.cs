@@ -126,6 +126,19 @@ public class AssistantServiceClientTests
         );
     }
 
+    [Fact]
+    public void Constructor_SetsTheTimeoutFromTheSettings()
+    {
+        using HttpClient httpClient = new();
+        IOptions<AssistantSettings> settings = Options.Create(
+            new AssistantSettings { AgentUrl = AgentUrl, TimeoutSeconds = 300 }
+        );
+
+        _ = new AssistantServiceClient(httpClient, settings);
+
+        Assert.Equal(TimeSpan.FromSeconds(300), httpClient.Timeout);
+    }
+
     private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
         Action<HttpRequestMessage> onRequest = null
