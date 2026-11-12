@@ -22,11 +22,5 @@ public static class GracefulShutdownExtensions
         IHostEnvironment environment,
         TimeSpan endpointDrainDelay,
         TimeSpan applicationShutdownTimeout
-    ) =>
-        GracefulShutdown.AddGracefulShutdown(
-            services,
-            environment,
-            endpointDrainDelay,
-            applicationShutdownTimeout
-        );
+    ) => GracefulShutdown.AddGracefulShutdown(services, environment, endpointDrainDelay, applicationShutdownTimeout);
 }
