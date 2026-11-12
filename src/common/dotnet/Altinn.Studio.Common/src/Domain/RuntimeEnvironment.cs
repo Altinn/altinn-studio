@@ -7,7 +7,8 @@ namespace Altinn.Studio.Common.Domain;
 /// Production has two names. The runtime calls it <c>prod</c>: the gateway, the operator and the service owners'
 /// clusters and resource groups. The registries on Altinn's CDN call it <c>production</c>: the service owner registry
 /// <c>altinn-orgs.json</c> and <c>environments.json</c>, and Designer stores that name. <see cref="TryParse"/>
-/// accepts both, and <see cref="Name"/> is always the runtime's <c>prod</c>, since this type is about where apps run.
+/// accepts both. <see cref="Name"/> is the runtime's <c>prod</c>, since this type is about where apps run, and
+/// <see cref="RegistryName"/> is <c>production</c>, for code that looks an environment up where that name is used.
 /// It is a struct, so <c>default</c> is an instance that no parsing produced. Reading its name throws.
 /// </remarks>
 public readonly record struct RuntimeEnvironment
@@ -15,7 +16,7 @@ public readonly record struct RuntimeEnvironment
     // The name the runtime uses, and the one this type gives.
     private const string ProductionName = "prod";
 
-    // The name the registries on the CDN and Designer use, which is only read.
+    // The name the registries on the CDN and Designer use.
     private const string ProductionAlias = "production";
 
     private readonly string? _name;
@@ -34,6 +35,13 @@ public readonly record struct RuntimeEnvironment
     /// <summary>The name the runtime uses, such as <c>prod</c> or <c>tt02</c>.</summary>
     /// <exception cref="InvalidOperationException">This is the default value of the type.</exception>
     public string Name => _name ?? throw DefaultValue.Of(nameof(RuntimeEnvironment));
+
+    /// <summary>
+    /// The name the registries on Altinn's CDN and Designer use, which is <c>production</c> for production and
+    /// <see cref="Name"/> for every other environment.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">This is the default value of the type.</exception>
+    public string RegistryName => IsProduction ? ProductionAlias : Name;
 
     /// <summary>Whether this is production.</summary>
     public bool IsProduction => _name == ProductionName;

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using Altinn.Studio.Common.Domain;
 using Altinn.Studio.Common.Domain.App;
-using Altinn.Studio.Common.Domain.App.V8;
-using Altinn.Studio.Common.Domain.App.V9;
 using Xunit;
 
 namespace Altinn.Studio.Common.Tests.Domain.App;
@@ -54,7 +52,7 @@ public sealed class AppDescriptionReaderTests
             project.PackageReferences
         );
         Assert.Equal(("Altinn.App.Api", "8.1.0", 8), Package(description));
-        Assert.Equal("4", description.V8.FrontendVersion?.Value);
+        Assert.Equal("4", description.FrontendVersion?.Value);
     }
 
     [Fact]
@@ -100,11 +98,11 @@ public sealed class AppDescriptionReaderTests
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", Project("Altinn.App.Api", declared));
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
 
-        Assert.Equal(new PackageReference("Altinn.App.Api", declared.Trim()), unknown.Reference);
+        Assert.Equal(new PackageReference("Altinn.App.Api", declared.Trim()), unknown.AltinnAppReference);
         Assert.Null(unknown.FrontendVersion);
-        Assert.Contains("names no major version", unknown.Reason, StringComparison.Ordinal);
+        Assert.Equal(UnknownContractReason.NoMajorVersion, unknown.Reason);
         Assert.Equal("App/App.csproj", unknown.AppProject?.Path.Value);
     }
 
@@ -114,34 +112,53 @@ public sealed class AppDescriptionReaderTests
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", Project("Altinn.App.Api", "$(Unresolved)"));
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
 
-        Assert.Equal(new PackageReference("Altinn.App.Api", null), unknown.Reference);
-        Assert.Equal("the version of Altinn.App.Api cannot be resolved", unknown.Reason);
+        Assert.Equal(new PackageReference("Altinn.App.Api", null), unknown.AltinnAppReference);
+        Assert.Equal(UnknownContractReason.VersionNotResolved, unknown.Reason);
     }
 
-    // The index page is the proof when the package is not: an app frontend of version 4 or lower goes with v8. Eleven
-    // production apps get Altinn.App through a package of their own, and their page loads app frontend 4.37.0.
+    // The index page is the proof when no project references Altinn.App: an app frontend of version 4 or lower goes
+    // with v8. Ten production apps get Altinn.App through a package of their own, and their page loads app frontend
+    // 4.37.0.
     [Theory]
-    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "4.37.0")]
-    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "4")]
-    [InlineData("Dibk.Ftpb.Common.AltinnApps", "1.7.5", "3")]
-    [InlineData("Altinn.App.Api", "[8.0.0,9.0.0)", "4")]
-    [InlineData("Altinn.App.Api", "$(Unresolved)", "4")]
-    public void Build_TakesAnAppFrontendOfV8ForProofWhenThePackageIsNone(
-        string package,
-        string version,
-        string frontend
-    )
+    [InlineData("4.37.0")]
+    [InlineData("4")]
+    [InlineData("3")]
+    public void Build_TakesAnAppFrontendOfV8ForProofWhenNoProjectReferencesAltinnApp(string frontend)
     {
         var reader = new AppDescriptionReader();
-        Read(reader, "App/App.csproj", Project(package, version));
+        Read(reader, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.7.5"));
         Read(reader, "App/views/Home/Index.cshtml", Index(frontend));
 
         var description = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(reader.Build());
 
         Assert.Null(description.AltinnApp);
-        Assert.Equal(frontend, description.V8.FrontendVersion?.Value);
+        Assert.Null(description.AltinnAppReference);
+        Assert.Equal(frontend, description.FrontendVersion?.Value);
+    }
+
+    // A reference that cannot be read may be to v9, and the page would then contradict it. So the page proves
+    // nothing while a reference is there, also one of a project that the app's project does not reference.
+    [Theory]
+    [InlineData("App/App.csproj", "[8.0.0,9.0.0)", UnknownContractReason.NoMajorVersion)]
+    [InlineData("App/App.csproj", "$(Unresolved)", UnknownContractReason.VersionNotResolved)]
+    [InlineData("App.Tests/App.Tests.csproj", "8.0.0", UnknownContractReason.NotReferencedByAppProject)]
+    public void Build_DoesNotTakeThePageForProofWhenAProjectReferencesAltinnApp(
+        string project,
+        string version,
+        UnknownContractReason reason
+    )
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", Project("Swashbuckle.AspNetCore", "10.1.7"));
+        Read(reader, project, Project("Altinn.App.Api", version));
+        Read(reader, "App/views/Home/Index.cshtml", Index("4"));
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+
+        Assert.Equal(reason, unknown.Reason);
+        Assert.Equal("4", unknown.FrontendVersion?.Value);
     }
 
     [Fact]
@@ -154,7 +171,7 @@ public sealed class AppDescriptionReaderTests
         var description = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(reader.Build());
 
         Assert.Equal(7, description.AltinnApp?.Major);
-        Assert.Equal("5", description.V8.FrontendVersion?.Value);
+        Assert.Equal("5", description.FrontendVersion?.Value);
     }
 
     // An upgrade to v9 that keeps a customized index page leaves an app like this, which is on neither contract.
@@ -178,8 +195,8 @@ public sealed class AppDescriptionReaderTests
         var description = Assert.IsType<AppDescription.FormApp.Inconsistent>(reader.Build());
 
         Assert.Equal(9, description.AltinnApp.Major);
-        Assert.Equal(frontend, description.FrontendVersion.Value);
-        Assert.Equal($"Altinn.App.Api 9.0.0 does not go with app frontend {frontend}", description.Reason);
+        Assert.Equal(frontend, description.FrontendVersion?.Value);
+        Assert.Equal(new PackageReference("Altinn.App.Api", "9.0.0"), description.AltinnAppReference);
     }
 
     // A page that names no version, or one later than those that go with v8, contradicts nothing.
@@ -202,11 +219,11 @@ public sealed class AppDescriptionReaderTests
         Read(reader, "App/App.csproj", Project("Dibk.Ftpb.Common.AltinnApps", "1.7.5"));
         Read(reader, "App/views/Home/Index.cshtml", Index("5"));
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
 
-        Assert.Null(unknown.Reference);
+        Assert.Null(unknown.AltinnAppReference);
         Assert.Equal("5", unknown.FrontendVersion?.Value);
-        Assert.Equal("no project references an Altinn.App package", unknown.Reason);
+        Assert.Equal(UnknownContractReason.FrontendNotOfV8, unknown.Reason);
     }
 
     // Designer takes these for apps on v8, in AltinnAppGitRepository.GetSchemaUrl, ReleaseService and
@@ -324,8 +341,8 @@ public sealed class AppDescriptionReaderTests
             $"<Project>{properties}<ItemGroup><PackageReference Include=\"Altinn.App.Api\" VersionOverride=\"9.1.0\" /></ItemGroup></Project>"
         );
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
     // MSBuild sets properties in order, so a property has the values that others had where it was set. It reads the
@@ -390,22 +407,23 @@ public sealed class AppDescriptionReaderTests
                 + "<ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"$(P40)\" /></ItemGroup></Project>"
         );
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
+    // What an Update, a Remove or a second Include leaves is for MSBuild and NuGet to say, so the version is unknown.
     [Theory]
-    [InlineData("<PackageReference Update=\"altinn.app.api\" Version=\"9.0.0\" />", "9.0.0")]
-    [InlineData(
-        "<PackageReference Update=\"Other;Altinn.App.Api\"><Version>9.0.0</Version></PackageReference>",
-        "9.0.0"
-    )]
-    [InlineData("<PackageReference Update=\"Altinn.App.Api\" PrivateAssets=\"all\" />", "8.0.0")]
-    [InlineData("<PackageReference Update=\"Other\" Version=\"9.0.0\" />", "8.0.0")]
+    [InlineData("<PackageReference Update=\"altinn.app.api\" Version=\"9.0.0\" />", null)]
+    [InlineData("<PackageReference Update=\"Other;Altinn.App.Api\"><Version>9.0.0</Version></PackageReference>", null)]
+    [InlineData("<PackageReference Update=\"Altinn.App.Api\" PrivateAssets=\"all\" />", null)]
     [InlineData("<PackageReference Update=\"@(PackageReference)\" Version=\"9.0.0\" />", null)]
     [InlineData("<PackageReference Update=\"Altinn.*\" Version=\"9.0.0\" />", null)]
-    [InlineData("<PackageReference Update=\"Altinn.App.Api\" Version=\"9.0.0\" Condition=\"'$(X)' == ''\" />", null)]
-    public void Build_AppliesAnUpdateToAReferenceOfDirectoryBuildProps(string update, string? version)
+    [InlineData("<PackageReference Remove=\"Altinn.App.Api\" />", null)]
+    [InlineData("<PackageReference Include=\"Altinn.App.Api\" Version=\"9.0.0\" />", null)]
+    [InlineData("<PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" />", null)]
+    [InlineData("<PackageReference Update=\"Other\" Version=\"9.0.0\" />", "8.0.0")]
+    [InlineData("<PackageReference Include=\"Other\" Version=\"9.0.0\" />", "8.0.0")]
+    public void Build_KnowsOnlyAVersionThatOneIncludeGives(string second, string? version)
     {
         var reader = new AppDescriptionReader();
         Read(
@@ -413,37 +431,21 @@ public sealed class AppDescriptionReaderTests
             "Directory.Build.props",
             "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
         );
-        Read(reader, "App/App.csproj", $"<Project><ItemGroup>{update}</ItemGroup></Project>");
+        Read(reader, "App/App.csproj", $"<Project><ItemGroup>{second}</ItemGroup></Project>");
 
         Assert.Equal(
-            [new PackageReference("Altinn.App.Api", version)],
-            WellFormed(reader.Build().Projects[0]).PackageReferences
+            new PackageReference("Altinn.App.Api", version),
+            WellFormed(reader.Build().Projects[0]).PackageReferences[0]
         );
     }
 
-    // With central package management, where a reference without a version gets the central one.
+    // The same holds for a central version, which is then no answer for a reference without a version of its own.
     [Theory]
-    // An update that sets the override to nothing clears it, and one that does not set it leaves it.
-    [InlineData(
-        "VersionOverride=\"9.0.0\"",
-        "<PackageReference Update=\"Altinn.App.Api\" VersionOverride=\"\" />",
-        "8.0.0"
-    )]
-    [InlineData("VersionOverride=\"9.0.0\"", "<PackageReference Update=\"Altinn.App.Api\" />", "9.0.0")]
-    // What a condition decides is not known, and the central version is then no answer either.
-    [InlineData(
-        "",
-        "<PackageReference Update=\"Altinn.App.Api\" VersionOverride=\"9.0.0\" Condition=\"'1' == '1'\" />",
-        null
-    )]
-    [InlineData(
-        "",
-        "<PackageReference Update=\"Altinn.App.Api\"><VersionOverride Condition=\"'1' == '1'\">9.0.0</VersionOverride></PackageReference>",
-        null
-    )]
-    [InlineData("", "<PackageVersion Update=\"Altinn.App.Api\" Version=\"9.0.0\" Condition=\"'1' == '1'\" />", null)]
-    [InlineData("", "<PackageReference Update=\"@(PackageReference)\" PrivateAssets=\"all\" />", null)]
-    public void Build_AppliesAnUpdateUnderCentralPackageManagement(string metadata, string update, string? version)
+    [InlineData("<PackageVersion Update=\"Altinn.App.Api\" Version=\"9.0.0\" />")]
+    [InlineData("<PackageVersion Include=\"Altinn.App.Api\" Version=\"9.0.0\" />")]
+    [InlineData("<PackageVersion Remove=\"Altinn.App.Api\" />")]
+    [InlineData("<PackageReference Update=\"Altinn.App.Api\" VersionOverride=\"9.0.0\" Condition=\"'1' == '1'\" />")]
+    public void Build_KnowsOnlyACentralVersionThatOneIncludeGives(string second)
     {
         var reader = new AppDescriptionReader();
         Read(
@@ -455,37 +457,12 @@ public sealed class AppDescriptionReaderTests
         Read(
             reader,
             "App/App.csproj",
-            $"<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" {metadata} />{update}</ItemGroup></Project>"
+            $"<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" />{second}</ItemGroup></Project>"
         );
 
-        Assert.Equal(
-            [new PackageReference("Altinn.App.Api", version)],
-            WellFormed(reader.Build().Projects[0]).PackageReferences
-        );
-    }
-
-    // MSBuild keeps both items of a package that is included twice, and NuGet warns and picks one.
-    [Theory]
-    [InlineData("9.0.0", null)]
-    [InlineData("8.0.0", "8.0.0")]
-    public void Build_TakesAPackageIncludedTwiceWithTwoVersionsForUnknown(string second, string? version)
-    {
-        var reader = new AppDescriptionReader();
-        Read(
-            reader,
-            "Directory.Build.props",
-            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
-        );
-        Read(
-            reader,
-            "App/App.csproj",
-            $"<Project><ItemGroup><PackageReference Include=\"altinn.app.api\" Version=\"{second}\" /></ItemGroup></Project>"
-        );
-
-        Assert.Equal(
-            [new PackageReference("Altinn.App.Api", version)],
-            WellFormed(reader.Build().Projects[0]).PackageReferences
-        );
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Equal(new PackageReference("Altinn.App.Api", null), unknown.AltinnAppReference);
+        Assert.Equal(UnknownContractReason.VersionNotResolved, unknown.Reason);
     }
 
     [Fact]
@@ -499,51 +476,66 @@ public sealed class AppDescriptionReaderTests
                 + "<Version Condition=\"'1' == '2'\">9.0.0</Version></PackageReference></ItemGroup></Project>"
         );
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
-    // Each element is applied in constant time. Walking the items for each one took minutes for a file like this.
+    // Every project gets the items of the props files above it, so the work is the projects times those items. The
+    // reader stops at a limit, after it has read the app's project.
     [Fact]
-    public void Build_ReadsManyElementsInLinearTime()
+    public void Build_StopsReadingProjectsAtALimitOnTheWork()
     {
-        const int Count = 200_000;
         var items = new StringBuilder();
-        for (int i = 0; i < Count; i++)
+        for (int i = 0; i < 20_000; i++)
         {
             items.Append(CultureInfo.InvariantCulture, $"<PackageReference Include=\"P{i}\" Version=\"1.0.0\" />");
         }
 
-        for (int i = 0; i < Count; i++)
+        var reader = new AppDescriptionReader();
+        Read(reader, "Directory.Build.props", $"<Project><ItemGroup>{items}</ItemGroup></Project>");
+        Read(reader, "App/App.csproj", Project("Altinn.App.Api", "8.0.0"));
+        for (int i = 0; i < 2_000; i++)
         {
-            items.Append("<PackageReference Update=\"@(PackageReference)\" Version=\"2.0.0\" />");
-            items.Append(CultureInfo.InvariantCulture, $"<PackageReference Remove=\"P{i}\" />");
+            Read(reader, string.Create(CultureInfo.InvariantCulture, $"Aaa{i}/P.csproj"), "<Project />");
         }
 
-        var reader = new AppDescriptionReader();
-        Read(
-            reader,
-            "App/App.csproj",
-            $"<Project><ItemGroup>{items}<PackageReference Include=\"P0\" Version=\"3.0.0\" /></ItemGroup></Project>"
-        );
+        var description = Assert.IsType<AppDescription.FormApp.V8OrEarlier>(reader.Build());
 
-        Assert.Equal([new PackageReference("P0", "3.0.0")], WellFormed(reader.Build().Projects[0]).PackageReferences);
+        Assert.Equal(20_001, WellFormed(description.AppProject!).PackageReferences.Count);
+        Assert.Equal(2_001, description.Projects.Count);
+        Assert.InRange(description.Projects.Count(p => p is ProjectDescription.WellFormed), 2, 60);
+        Assert.Equal(
+            description.Projects.Count,
+            description.Projects.Count(p => p is ProjectDescription.WellFormed or ProjectDescription.NotRead)
+        );
     }
 
-    [Fact]
-    public void Build_AppliesARemove()
+    // A project that alone takes more work than the limit is not read, and neither is its Altinn.App reference.
+    [Theory]
+    [InlineData("<PropertyGroup><A>{0}</A>{1}</PropertyGroup>", 4_000, "<P>$(A)</P>", 400)]
+    [InlineData("<ItemGroup>{1}</ItemGroup>", 0, "<ProjectReference Include=\"..\\Other\\Other.csproj\" />", 60_000)]
+    public void Build_DoesNotReadAProjectThatTakesMoreWorkThanTheLimit(
+        string group,
+        int text,
+        string repeated,
+        int count
+    )
     {
+        string body = string.Format(
+            CultureInfo.InvariantCulture,
+            group,
+            new string('8', text),
+            string.Concat(Enumerable.Repeat(repeated, count))
+        );
         var reader = new AppDescriptionReader();
         Read(
             reader,
             "App/App.csproj",
-            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" />"
-                + "<PackageReference Include=\"Other\" Version=\"1.0.0\" />"
-                + "<PackageReference Remove=\"Altinn.App.Api\" /></ItemGroup></Project>"
+            $"<Project>{body}<ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
         );
 
         var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
-        Assert.Equal([new PackageReference("Other", "1.0.0")], WellFormed(description.Projects[0]).PackageReferences);
+        Assert.IsType<ProjectDescription.NotRead>(description.AppProject);
     }
 
     // Whether a condition holds is not known without evaluating the project, so what it decides is not known either.
@@ -567,8 +559,8 @@ public sealed class AppDescriptionReaderTests
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", $"<Project>{properties}<ItemGroup>{items}</ItemGroup></Project>");
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
     // MSBuild imports the nearest Directory.Build.props and stops there, so one that is malformed hides the ones above.
@@ -584,8 +576,8 @@ public sealed class AppDescriptionReaderTests
             "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"$(V)\" /></ItemGroup></Project>"
         );
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
     [Fact]
@@ -644,34 +636,59 @@ public sealed class AppDescriptionReaderTests
         );
     }
 
-    // A project that the app's project does not reference says nothing about the app, and neither does one that it
-    // references only when a condition holds.
+    // A project that the app's project does not reference shows that the app is a form app, but not which contract
+    // it is on. The same holds for one that it references only when a condition holds.
     [Theory]
     [InlineData("")]
     [InlineData("<ProjectReference Include=\"../Shared/Shared.csproj\" Condition=\"'$(OS)' == 'Windows_NT'\" />")]
     [InlineData("<ProjectReference Include=\"$(SharedProject)\" />")]
     [InlineData("<ProjectReference Update=\"../Shared/Shared.csproj\" />")]
-    public void Build_DoesNotTakeTheAltinnPackageOfAProjectTheAppProjectDoesNotReference(string references)
+    public void Build_DoesNotTakeTheContractFromAProjectTheAppProjectDoesNotReference(string references)
     {
         var reader = new AppDescriptionReader();
         Read(reader, "App/App.csproj", $"<Project><ItemGroup>{references}</ItemGroup></Project>");
         Read(reader, "Shared/Shared.csproj", Project("Altinn.App.Core", "8.0.0"));
         Read(reader, "App.Tests/App.Tests.csproj", Project("Altinn.App.Api", "9.0.0"));
 
-        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
-        Assert.Empty(WellFormed(description.AppProject!).ProjectReferences);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+
+        Assert.Equal(UnknownContractReason.NotReferencedByAppProject, unknown.Reason);
+        Assert.Null(unknown.AltinnAppReference);
+        Assert.Empty(WellFormed(unknown.AppProject!).ProjectReferences);
     }
 
-    // Nothing says which project the app is built from, so no project's package says which contract it is on.
-    [Fact]
-    public void Build_TakesNoAltinnPackageWhenTheAppProjectIsNotKnown()
+    // Nothing says which project the app is built from, or that project cannot be read, so no project's package
+    // says which contract the app is on.
+    [Theory]
+    [InlineData("App/One.csproj", "App/Two.csproj", null)]
+    [InlineData("App/App.csproj", "Shared/Shared.csproj", "not xml")]
+    public void Build_TakesNoContractWhenTheAppProjectIsNotKnownOrNotRead(string first, string second, string? content)
     {
         var reader = new AppDescriptionReader();
-        Read(reader, "App/One.csproj", Project("Altinn.App.Api", "8.0.0"));
-        Read(reader, "App/Two.csproj", Project("Altinn.App.Api", "9.0.0"));
+        Read(reader, first, content ?? Project("Altinn.App.Api", "8.0.0"));
+        Read(reader, second, Project("Altinn.App.Api", "9.0.0"));
 
-        var description = Assert.IsType<AppDescription.Unrecognized>(reader.Build());
-        Assert.Null(description.AppProject);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+
+        Assert.Equal(UnknownContractReason.NotReferencedByAppProject, unknown.Reason);
+        Assert.Equal(content is null, unknown.AppProject is null);
+    }
+
+    // Only the reader creates a description, so that a case cannot hold what contradicts it.
+    [Fact]
+    public void Descriptions_HaveNoPublicConstructors()
+    {
+        Type[] types =
+        [
+            .. typeof(AppDescription).GetNestedTypes(),
+            .. typeof(AppDescription.FormApp).GetNestedTypes(),
+            .. typeof(ProjectDescription).GetNestedTypes(),
+            typeof(V9Description),
+            typeof(AltinnAppPackage),
+        ];
+
+        Assert.Equal(11, types.Length);
+        Assert.All(types, type => Assert.Empty(type.GetConstructors()));
     }
 
     // The layouts are those of apps deployed to production and tt02.
@@ -817,8 +834,8 @@ public sealed class AppDescriptionReaderTests
 
         Read(reader, propsPath, "not xml");
 
-        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
-        Assert.Null(unknown.Reference?.Version);
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownContract>(reader.Build());
+        Assert.Null(unknown.AltinnAppReference?.Version);
     }
 
     [Theory]

@@ -1,26 +1,23 @@
 using System;
 using System.Collections.Generic;
-using Altinn.Studio.Common.Domain.App.V8;
-using Altinn.Studio.Common.Domain.App.V9;
 
 namespace Altinn.Studio.Common.Domain.App;
 
 /// <summary>
 /// Reads an <see cref="AppDescription"/> from an app's project files, the <c>Directory.Build.props</c> and
-/// <c>Directory.Packages.props</c> beside them, and the files each version's part needs.
+/// <c>Directory.Packages.props</c> beside them, its index page and the settings files of its UI folders.
 /// </summary>
 /// <remarks>
-/// Files arrive before the kind of app and its version are known, so it reads what every version's part may need,
-/// and <see cref="Build"/> picks the case. It guesses nothing. An app is a form app when a project references an
-/// Altinn.App package or the index page loads the app frontend. It is on a version's contract when that reference
-/// names the major version, or else when the page loads an app frontend that goes with v8. Designer takes every
-/// app it cannot prove to be on v9 for one on v8, which is a decision for a caller to make.
+/// Files arrive before the kind of app and its contract are known, so it reads what any case may need, and
+/// <see cref="Build"/> picks the case. It guesses nothing, and says unknown where only MSBuild, NuGet or a browser
+/// could say more.
 /// A project gets the properties and package references of the nearest <c>Directory.Build.props</c> and the
 /// central package versions of the nearest <c>Directory.Packages.props</c>, as MSBuild imports them. The app's
 /// Altinn.App package is the first of <see cref="AltinnAppPackage.PackageNames"/> that
 /// <see cref="AppDescription.AppProject"/> references, or else the first that a project it references does, since
 /// the app's project may get it through a library project of its own. A project that the app's project does not
-/// reference, such as its tests, says nothing about the app.
+/// reference, such as its tests, says that the app is a form app but not which contract it is on.
+/// Designer takes every app it cannot prove to be on v9 for one on v8, which is a decision for a caller to make.
 /// </remarks>
 public sealed class AppDescriptionReader : IAppSourceReader
 {
@@ -30,14 +27,19 @@ public sealed class AppDescriptionReader : IAppSourceReader
     private const string PackagesPropsName = "Directory.Packages.props";
     private const int LastV8Major = 8;
 
+    // What describing one app may cost: an element applied to a project costs one, and so does each character of a
+    // property's value. The project files of an app need a few hundred. Projects past the limit are not read, so
+    // that a repository made to cost more does not.
+    private const int MaxWork = 1_000_000;
+
     private readonly Dictionary<AppFilePath, ProjectFile> _projects = [];
     private readonly HashSet<AppFilePath> _malformedProjects = [];
 
     // By directory. A malformed file is null: MSBuild takes the nearest file, and could not have imported it.
     private readonly Dictionary<string, ProjectFile?> _buildProps = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ProjectFile?> _packagesProps = new(StringComparer.Ordinal);
-    private readonly V8DescriptionReader _v8 = new();
     private readonly V9DescriptionReader _v9 = new();
+    private AppFrontendVersion? _frontendVersion;
 
     private enum FileKind
     {
@@ -48,13 +50,21 @@ public sealed class AppDescriptionReader : IAppSourceReader
     }
 
     /// <inheritdoc />
-    public bool Accepts(AppFilePath path) => Kind(path) != FileKind.Other || _v8.Accepts(path) || _v9.Accepts(path);
+    public bool Accepts(AppFilePath path) =>
+        Kind(path) != FileKind.Other || path.Is(AppFrontendVersionReader.IndexPath) || _v9.Accepts(path);
 
     /// <inheritdoc />
     public void Read(AppFilePath path, ReadOnlyMemory<byte> content)
     {
-        ReadVersionParts(path, reader => reader.Read(path, content));
-        if (Kind(path) != FileKind.Other)
+        if (path.Is(AppFrontendVersionReader.IndexPath))
+        {
+            _frontendVersion = AppFrontendVersionReader.Read(content);
+        }
+        else if (_v9.Accepts(path))
+        {
+            _v9.Read(path, content);
+        }
+        else if (Kind(path) != FileKind.Other)
         {
             Add(path, ProjectFile.TryParse(content, out ProjectFile? file) ? file : null);
         }
@@ -63,8 +73,15 @@ public sealed class AppDescriptionReader : IAppSourceReader
     /// <inheritdoc />
     public void Read(AppFilePath path, string content)
     {
-        ReadVersionParts(path, reader => reader.Read(path, content));
-        if (Kind(path) != FileKind.Other)
+        if (path.Is(AppFrontendVersionReader.IndexPath))
+        {
+            _frontendVersion = AppFrontendVersionReader.Read(content);
+        }
+        else if (_v9.Accepts(path))
+        {
+            _v9.Read(path, content);
+        }
+        else if (Kind(path) != FileKind.Other)
         {
             Add(path, ProjectFile.TryParse(content, out ProjectFile? file) ? file : null);
         }
@@ -84,62 +101,74 @@ public sealed class AppDescriptionReader : IAppSourceReader
             byPath[path.Value] = path;
         }
 
-        var projects = new List<ProjectDescription>(paths.Count);
-        foreach (AppFilePath path in paths)
+        // The app's project is described first, so that it is read whatever else the repository holds.
+        AppFilePath? appProjectPath = FindAppProject(paths);
+        var budget = new WorkBudget(MaxWork);
+        var described = new Dictionary<AppFilePath, ProjectDescription>(paths.Count);
+        if (appProjectPath is not null)
         {
-            projects.Add(
-                _projects.TryGetValue(path, out ProjectFile? file)
-                    ? Describe(path, file, byPath)
-                    : new ProjectDescription.Malformed(path)
+            described[appProjectPath] = Describe(appProjectPath, byPath, budget);
+        }
+
+        var projects = new ProjectDescription[paths.Count];
+        for (int i = 0; i < paths.Count; i++)
+        {
+            if (!described.TryGetValue(paths[i], out ProjectDescription? project))
+            {
+                project = Describe(paths[i], byPath, budget);
+                described[paths[i]] = project;
+            }
+
+            projects[i] = project;
+        }
+
+        ProjectDescription? appProject = appProjectPath is null ? null : described[appProjectPath];
+        ValueList<ProjectDescription> all = [.. projects];
+        PackageReference? reference = FindAltinnAppReference(appProject, described);
+        AltinnAppPackage? package = null;
+        _ = reference is not null && AltinnAppPackage.TryParse(reference, out package);
+        AppFrontendVersion? frontend = _frontendVersion;
+        bool frontendOfV8 = frontend is { Major: <= AppDescription.FormApp.LastV8FrontendMajor };
+
+        // The package says which contract the app is on. A page that loads an app frontend of v8 contradicts a
+        // package of v9, and is the proof of v8 when the repository has no reference to Altinn.App at all.
+        if (reference is not null && package is { Major: > LastV8Major })
+        {
+            return frontend is not null && frontendOfV8
+                ? new AppDescription.FormApp.Inconsistent(appProject, all, reference, frontend, package)
+                : new AppDescription.FormApp.V9OrLater(appProject, all, reference, frontend, package, _v9.Build());
+        }
+
+        if (package is not null)
+        {
+            return new AppDescription.FormApp.V8OrEarlier(appProject, all, reference, frontend, package);
+        }
+
+        if (reference is not null)
+        {
+            return Unknown(
+                reference.Version is null
+                    ? UnknownContractReason.VersionNotResolved
+                    : UnknownContractReason.NoMajorVersion
             );
         }
 
-        ProjectDescription? appProject = FindAppProject(projects);
-        ValueList<ProjectDescription> all = [.. projects];
-        PackageReference? reference = FindAltinnAppReference(appProject, projects);
-        AltinnAppPackage? package = null;
-        _ = reference is not null && AltinnAppPackage.TryParse(reference, out package);
-        V8Description v8 = _v8.Build();
-        AppFrontendVersion? frontend = v8.FrontendVersion;
-        bool frontendOfV8 = frontend is { Major: <= AppDescription.FormApp.LastV8FrontendMajor };
-
-        // The package says which contract the app is on. The index page says so when the package does not, and can
-        // contradict a package of v9, which loads no app frontend of v8.
-        return (package, frontend) switch
+        if (AnyReferencesAltinnApp(projects))
         {
-            ({ Major: > LastV8Major }, { }) when frontendOfV8 => new AppDescription.FormApp.Inconsistent(
-                appProject,
-                all,
-                package,
-                frontend
-            ),
-            ({ Major: > LastV8Major }, _) => new AppDescription.FormApp.V9OrLater(
-                appProject,
-                all,
-                package,
-                _v9.Build()
-            ),
-            ({ }, _) => new AppDescription.FormApp.V8OrEarlier(appProject, all, package, v8),
-            (null, _) when frontendOfV8 => new AppDescription.FormApp.V8OrEarlier(appProject, all, null, v8),
-            (null, _) when reference is not null || frontend is not null => new AppDescription.FormApp.UnknownVersion(
-                appProject,
-                all,
-                reference,
-                frontend
-            ),
-            _ => new AppDescription.Unrecognized(appProject, all),
-        };
-    }
-
-    private void ReadVersionParts(AppFilePath path, Action<IAppSourceReader> read)
-    {
-        foreach (IAppSourceReader reader in new IAppSourceReader[] { _v8, _v9 })
-        {
-            if (reader.Accepts(path))
-            {
-                read(reader);
-            }
+            return Unknown(UnknownContractReason.NotReferencedByAppProject);
         }
+
+        if (frontendOfV8)
+        {
+            return new AppDescription.FormApp.V8OrEarlier(appProject, all, null, frontend, null);
+        }
+
+        return frontend is not null
+            ? Unknown(UnknownContractReason.FrontendNotOfV8)
+            : new AppDescription.Unrecognized(appProject, all);
+
+        AppDescription.FormApp.UnknownContract Unknown(UnknownContractReason reason) =>
+            new(appProject, all, reference, frontend, reason);
     }
 
     private static FileKind Kind(AppFilePath path)
@@ -181,12 +210,17 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
     }
 
-    private ProjectDescription.WellFormed Describe(
+    private ProjectDescription Describe(
         AppFilePath path,
-        ProjectFile project,
-        Dictionary<string, AppFilePath> projectsByPath
+        Dictionary<string, AppFilePath> projectsByPath,
+        WorkBudget budget
     )
     {
+        if (!_projects.TryGetValue(path, out ProjectFile? project))
+        {
+            return new ProjectDescription.Malformed(path);
+        }
+
         // MSBuild imports Directory.Build.props, then Directory.Packages.props, then the project. It sets every
         // property before it reads an item, so an item gets the values the properties have in the end.
         ProjectFile?[] files = [Nearest(_buildProps, path.Directory), Nearest(_packagesProps, path.Directory), project];
@@ -195,7 +229,10 @@ public sealed class AppDescriptionReader : IAppSourceReader
         var packageReferences = new PackageItems();
         foreach (ProjectFile? file in files)
         {
-            file?.SetProperties(properties);
+            if (file is not null && !file.SetProperties(properties, budget))
+            {
+                return new ProjectDescription.NotRead(path);
+            }
         }
 
         foreach (ProjectFile? file in files)
@@ -203,6 +240,11 @@ public sealed class AppDescriptionReader : IAppSourceReader
             if (file is null)
             {
                 continue;
+            }
+
+            if (!budget.Spend(file.PackageVersions.Count + file.PackageReferences.Count))
+            {
+                return new ProjectDescription.NotRead(path);
             }
 
             foreach (ProjectFile.Item item in file.PackageVersions)
@@ -221,14 +263,9 @@ public sealed class AppDescriptionReader : IAppSourceReader
         bool central =
             properties.TryGetValue("ManagePackageVersionsCentrally", out string? manage)
             && string.Equals(manage?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
-        var references = new List<PackageReference>();
-        foreach (PackageItems.Entry reference in packageReferences.Entries)
+        var references = new List<PackageReference>(packageReferences.Included.Count);
+        foreach (PackageItems.Entry reference in packageReferences.Included)
         {
-            if (reference.IsRemoved)
-            {
-                continue;
-            }
-
             string? declared = null;
             if (!packageReferences.IsUnknown(reference))
             {
@@ -245,25 +282,36 @@ public sealed class AppDescriptionReader : IAppSourceReader
             );
         }
 
-        return new ProjectDescription.WellFormed(
-            path,
-            [.. TargetFrameworks(properties)],
-            [.. references],
-            [.. ProjectReferences(path, project, projectsByPath)]
-        );
+        List<AppFilePath>? projectReferences = ProjectReferences(path, project, projectsByPath, budget);
+        return projectReferences is null
+            ? new ProjectDescription.NotRead(path)
+            : new ProjectDescription.WellFormed(
+                path,
+                [.. TargetFrameworks(properties)],
+                [.. references],
+                [.. projectReferences]
+            );
     }
 
-    // The projects in the repository that a project references. A reference that a condition decides is left out,
-    // and so is one whose path a property is part of, since where it leads is not known here.
-    private static List<AppFilePath> ProjectReferences(
+    // The projects in the repository that a project references, or null when the budget does not cover them. A
+    // reference that a condition decides is left out, and so is one whose path a property is part of, since where
+    // it leads is not known here.
+    private static List<AppFilePath>? ProjectReferences(
         AppFilePath path,
         ProjectFile project,
-        Dictionary<string, AppFilePath> projectsByPath
+        Dictionary<string, AppFilePath> projectsByPath,
+        WorkBudget budget
     )
     {
         var references = new List<AppFilePath>();
+        var seen = new HashSet<AppFilePath>();
         foreach (ProjectFile.Item item in project.ProjectReferences)
         {
+            if (!budget.Spend(1 + item.Name.Length))
+            {
+                return null;
+            }
+
             if (item.Conditional || item.Operation != ProjectFile.Operation.Include)
             {
                 continue;
@@ -274,7 +322,7 @@ public sealed class AppDescriptionReader : IAppSourceReader
                 if (
                     Resolve(path.Directory, part.Trim()) is { } resolved
                     && projectsByPath.TryGetValue(resolved, out AppFilePath? referenced)
-                    && !references.Contains(referenced)
+                    && seen.Add(referenced)
                 )
                 {
                     references.Add(referenced);
@@ -341,22 +389,25 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
     private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 
-    // The items of one kind, as the elements of the files leave them, in the order they were included. Each element
-    // is applied in constant time, so that a file with many of them is read in time linear in its size.
+    // The items of one kind that the files include, in the order they are first included. The version of an item is
+    // known only when one element names it, an Include without a condition. What an Update, a Remove, a second
+    // Include or a condition leaves is for MSBuild and NuGet to say, so it is unknown here.
     private sealed class PackageItems
     {
         private readonly Dictionary<string, Entry> _byName = new(StringComparer.OrdinalIgnoreCase);
 
-        // The entries added before this many were added have a version that is not known.
+        // The items included before this many were have a version that is not known.
         private int _unknownBefore;
 
-        public List<Entry> Entries { get; } = [];
+        public List<Entry> Included { get; } = [];
 
         public bool IsUnknown(Entry entry) => entry.IsUnknown || entry.Number < _unknownBefore;
 
         // The version of a package, or null when it has none or it is not known.
         public string? Version(string name) =>
-            _byName.TryGetValue(name, out Entry? entry) && !IsUnknown(entry) ? NullIfEmpty(entry.Version) : null;
+            _byName.TryGetValue(name, out Entry? entry) && entry.Number >= 0 && !IsUnknown(entry)
+                ? NullIfEmpty(entry.Version)
+                : null;
 
         public void Apply(ProjectFile.Item item)
         {
@@ -366,7 +417,7 @@ public sealed class AppDescriptionReader : IAppSourceReader
             {
                 if (item.Operation != ProjectFile.Operation.Include)
                 {
-                    _unknownBefore = Entries.Count;
+                    _unknownBefore = Included.Count;
                 }
 
                 return;
@@ -384,83 +435,56 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
         private void Apply(ProjectFile.Item item, string name)
         {
-            if (!_byName.TryGetValue(name, out Entry? entry))
+            bool include = item.Operation == ProjectFile.Operation.Include;
+            if (_byName.TryGetValue(name, out Entry? entry))
             {
-                if (item.Operation == ProjectFile.Operation.Include)
+                entry.IsUnknown = true;
+            }
+            else
+            {
+                entry = new Entry(name, item.Version, item.VersionOverride)
                 {
-                    entry = new Entry(name, Entries.Count)
-                    {
-                        Version = item.Version,
-                        VersionOverride = item.VersionOverride,
-                        IsUnknown = item.Conditional,
-                    };
-                    _byName[name] = entry;
-                    Entries.Add(entry);
-                }
-
-                return;
+                    IsUnknown = !include || item.Conditional,
+                };
+                _byName[name] = entry;
             }
 
-            // Whether a condition holds is not known here, so neither is what a conditional element leaves.
-            if (item.Conditional)
+            if (include && entry.Number < 0)
             {
-                entry.IsUnknown = true;
-            }
-            else if (item.Operation == ProjectFile.Operation.Remove)
-            {
-                entry.IsRemoved = true;
-                _byName.Remove(name);
-            }
-            else if (item.Operation == ProjectFile.Operation.Update)
-            {
-                entry.Version = item.Version ?? entry.Version;
-                entry.VersionOverride = item.VersionOverride ?? entry.VersionOverride;
-            }
-            else if (
-                !string.Equals(NullIfEmpty(item.Version), NullIfEmpty(entry.Version), StringComparison.Ordinal)
-                || !string.Equals(
-                    NullIfEmpty(item.VersionOverride),
-                    NullIfEmpty(entry.VersionOverride),
-                    StringComparison.Ordinal
-                )
-            )
-            {
-                // MSBuild keeps both items of a package that is included twice, and NuGet then warns and picks one.
-                entry.IsUnknown = true;
+                entry.Number = Included.Count;
+                Included.Add(entry);
             }
         }
 
-        public sealed class Entry(string name, int number)
+        public sealed class Entry(string name, string? version, string? versionOverride)
         {
             public string Name { get; } = name;
 
-            // How many entries were added before this one.
-            public int Number { get; } = number;
+            public string? Version { get; } = version;
 
-            public string? Version { get; set; }
-
-            public string? VersionOverride { get; set; }
+            public string? VersionOverride { get; } = versionOverride;
 
             public bool IsUnknown { get; set; }
 
-            public bool IsRemoved { get; set; }
+            // How many items were included before this one, or -1 while no element has included it.
+            public int Number { get; set; } = -1;
         }
     }
 
     // App/App.csproj is what the app template creates and its Dockerfile publishes. An app that has renamed it has one
     // project in App. Failing both, the only project in the repository is the one that is built.
-    private static ProjectDescription? FindAppProject(List<ProjectDescription> projects)
+    private static AppFilePath? FindAppProject(List<AppFilePath> projects)
     {
-        ProjectDescription? onlyInAppFolder = null;
+        AppFilePath? onlyInAppFolder = null;
         int inAppFolder = 0;
-        foreach (ProjectDescription project in projects)
+        foreach (AppFilePath project in projects)
         {
-            if (project.Path.Is(AppProjectPath))
+            if (project.Is(AppProjectPath))
             {
                 return project;
             }
 
-            if (string.Equals(project.Path.Directory, AppFolder, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(project.Directory, AppFolder, StringComparison.OrdinalIgnoreCase))
             {
                 onlyInAppFolder = project;
                 inAppFolder++;
@@ -476,22 +500,15 @@ public sealed class AppDescriptionReader : IAppSourceReader
     }
 
     // The Altinn.App reference of the app's project, or else of the nearest project it references, also through
-    // other projects. A project that the app's project does not reference, such as its tests, says nothing about
-    // the app.
+    // other projects.
     private static PackageReference? FindAltinnAppReference(
         ProjectDescription? appProject,
-        List<ProjectDescription> projects
+        Dictionary<AppFilePath, ProjectDescription> projects
     )
     {
         if (appProject is null)
         {
             return null;
-        }
-
-        var byPath = new Dictionary<AppFilePath, ProjectDescription>(projects.Count);
-        foreach (ProjectDescription project in projects)
-        {
-            byPath[project.Path] = project;
         }
 
         var seen = new HashSet<AppFilePath> { appProject.Path };
@@ -512,7 +529,7 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
             foreach (AppFilePath path in wellFormed.ProjectReferences)
             {
-                if (seen.Add(path) && byPath.TryGetValue(path, out ProjectDescription? referenced))
+                if (seen.Add(path) && projects.TryGetValue(path, out ProjectDescription? referenced))
                 {
                     queue.Enqueue(referenced);
                 }
@@ -520,6 +537,19 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
 
         return null;
+    }
+
+    private static bool AnyReferencesAltinnApp(ProjectDescription[] projects)
+    {
+        foreach (ProjectDescription project in projects)
+        {
+            if (FindAltinnAppReference(project) is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static PackageReference? FindAltinnAppReference(ProjectDescription project)

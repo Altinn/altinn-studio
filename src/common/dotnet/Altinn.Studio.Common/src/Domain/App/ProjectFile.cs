@@ -186,14 +186,23 @@ internal sealed class ProjectFile
     /// <summary>
     /// Sets the file's properties in a set of resolved ones, in order, as MSBuild does: a property gets the values
     /// that the properties it refers to have where it is set, not the ones they get later. A value is <c>null</c>
-    /// when the property is set but to something unknown, which is so for one that a condition decides.
+    /// when the property is set but to something unknown, which is so for one that a condition decides. Returns
+    /// <c>false</c> when the budget does not cover the properties and the values they get.
     /// </summary>
-    public void SetProperties(Dictionary<string, string?> resolved)
+    public bool SetProperties(Dictionary<string, string?> resolved, WorkBudget budget)
     {
         foreach (Property property in Properties)
         {
-            resolved[property.Name] = property.Conditional ? null : Expand(property.Value, resolved);
+            string? value = property.Conditional ? null : Expand(property.Value, resolved);
+            if (!budget.Spend(1 + (value?.Length ?? 0)))
+            {
+                return false;
+            }
+
+            resolved[property.Name] = value;
         }
+
+        return true;
     }
 
     /// <summary>

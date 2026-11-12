@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Common.Domain.App.V9;
+namespace Altinn.Studio.Common.Domain.App;
 
-/// <summary>Reads a <see cref="V9Description"/>, whether or not the app turns out to be on v9.</summary>
-public sealed class V9DescriptionReader : IAppSourceReader
+// Reads a V9Description, whether or not the app turns out to be on v9.
+internal sealed class V9DescriptionReader : IAppSourceReader
 {
     private const string UiDirectory = "App/ui/";
     private const string SettingsFile = "Settings.json";

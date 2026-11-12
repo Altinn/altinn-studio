@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Altinn.Studio.Common.Domain.App.V8;
+namespace Altinn.Studio.Common.Domain.App;
 
 /// <summary>
-/// The app frontend version that a v8 app loads: an exact version, or a channel that follows the newest release of a
-/// major or of a minor.
+/// The app frontend version that an app's index page loads: an exact version, or a channel that follows the newest
+/// release of a major or of a minor.
 /// </summary>
 public abstract record AppFrontendVersion
 {

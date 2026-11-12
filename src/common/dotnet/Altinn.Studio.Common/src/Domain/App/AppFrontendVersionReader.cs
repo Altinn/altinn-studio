@@ -2,10 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Altinn.Studio.Common.Domain.App.V8;
+namespace Altinn.Studio.Common.Domain.App;
 
 /// <summary>
-/// Reads which app frontend version a v8 app loads from <see cref="IndexPath"/>.
+/// Reads which app frontend version an app loads from <see cref="IndexPath"/>. An app on v8 or earlier has the page.
+/// From v9 the backend serves the frontend itself, unless the app has kept the page.
 /// </summary>
 /// <remarks>
 /// A <c>meta</c> tag with <c>data-altinn-app-frontend-version</c> wins. Otherwise the version is the path segment of

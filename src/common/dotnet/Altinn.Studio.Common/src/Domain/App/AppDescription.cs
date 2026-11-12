@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Altinn.Studio.Common.Domain.App.V8;
-using Altinn.Studio.Common.Domain.App.V9;
 
 namespace Altinn.Studio.Common.Domain.App;
 
@@ -10,6 +8,10 @@ namespace Altinn.Studio.Common.Domain.App;
 /// What an app's source files say about it: which kind of app it is, and for a form app which contract it is on for
 /// the files that make it up. A case says only what the files prove.
 /// </summary>
+/// <remarks>
+/// Only <see cref="AppDescriptionReader"/> creates one, so a case holds what the reader found and nothing that
+/// contradicts it.
+/// </remarks>
 public abstract record AppDescription
 {
     private AppDescription(ProjectDescription? appProject, ValueList<ProjectDescription> projects)
@@ -47,6 +49,9 @@ public abstract record AppDescription
     /// that Altinn Studio has. The files show one by a project that references an Altinn.App package, or by an index
     /// page that loads the app frontend.
     /// </summary>
+    /// <remarks>
+    /// It has what the files say, and each case adds what that proves.
+    /// </remarks>
     public abstract record FormApp : AppDescription
     {
         /// <summary>
@@ -55,105 +60,161 @@ public abstract record AppDescription
         /// </summary>
         public const int LastV8FrontendMajor = 4;
 
-        private FormApp(ProjectDescription? appProject, ValueList<ProjectDescription> projects)
-            : base(appProject, projects) { }
+        private FormApp(
+            ProjectDescription? appProject,
+            ValueList<ProjectDescription> projects,
+            PackageReference? altinnAppReference,
+            AppFrontendVersion? frontendVersion
+        )
+            : base(appProject, projects)
+        {
+            AltinnAppReference = altinnAppReference;
+            FrontendVersion = frontendVersion;
+        }
 
         /// <summary>
-        /// A form app on the contract of Altinn.App v8 and earlier. The package proves it, or else the index page
-        /// does, by loading an app frontend of version <see cref="LastV8FrontendMajor"/> or lower.
+        /// The reference to an Altinn.App package that <see cref="AppDescription.AppProject"/> has, itself or
+        /// through a project it references, or <c>null</c> when it has none. Its version is <c>null</c> when it
+        /// cannot be resolved.
         /// </summary>
-        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-        /// <param name="Projects">Every project file in the repository.</param>
-        /// <param name="AltinnApp">
-        /// The Altinn.App package, or <c>null</c> when the index page is the proof: the app then gets Altinn.App
-        /// through a package of its own, or with a version that names no major version.
-        /// </param>
-        /// <param name="V8">What only this contract has.</param>
-        public sealed record V8OrEarlier(
-            ProjectDescription? AppProject,
-            ValueList<ProjectDescription> Projects,
-            AltinnAppPackage? AltinnApp,
-            V8Description V8
-        ) : FormApp(AppProject, Projects);
+        public PackageReference? AltinnAppReference { get; }
+
+        /// <summary>
+        /// The app frontend version that the index page loads, or <c>null</c> when the app has no such page or the
+        /// page names none.
+        /// </summary>
+        public AppFrontendVersion? FrontendVersion { get; }
+
+        /// <summary>
+        /// A form app on the contract of Altinn.App v8 and earlier. The package proves it. When no project in the
+        /// repository references an Altinn.App package, the index page does, by loading an app frontend of version
+        /// <see cref="LastV8FrontendMajor"/> or lower.
+        /// </summary>
+        public sealed record V8OrEarlier : FormApp
+        {
+            internal V8OrEarlier(
+                ProjectDescription? appProject,
+                ValueList<ProjectDescription> projects,
+                PackageReference? altinnAppReference,
+                AppFrontendVersion? frontendVersion,
+                AltinnAppPackage? altinnApp
+            )
+                : base(appProject, projects, altinnAppReference, frontendVersion)
+            {
+                AltinnApp = altinnApp;
+            }
+
+            /// <summary>
+            /// The Altinn.App package, or <c>null</c> when the index page is the proof: the app then gets
+            /// Altinn.App through a package of its own.
+            /// </summary>
+            public AltinnAppPackage? AltinnApp { get; }
+        }
 
         /// <summary>
         /// A form app on the contract of Altinn.App v9 and later, which the package proves and no index page
         /// contradicts.
         /// </summary>
-        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-        /// <param name="Projects">Every project file in the repository.</param>
-        /// <param name="AltinnApp">The Altinn.App package.</param>
-        /// <param name="V9">What only this contract has.</param>
-        public sealed record V9OrLater(
-            ProjectDescription? AppProject,
-            ValueList<ProjectDescription> Projects,
-            AltinnAppPackage AltinnApp,
-            V9Description V9
-        ) : FormApp(AppProject, Projects);
+        public sealed record V9OrLater : FormApp
+        {
+            internal V9OrLater(
+                ProjectDescription? appProject,
+                ValueList<ProjectDescription> projects,
+                PackageReference altinnAppReference,
+                AppFrontendVersion? frontendVersion,
+                AltinnAppPackage altinnApp,
+                V9Description v9
+            )
+                : base(appProject, projects, altinnAppReference, frontendVersion)
+            {
+                AltinnApp = altinnApp;
+                V9 = v9;
+            }
+
+            /// <summary>The Altinn.App package.</summary>
+            public AltinnAppPackage AltinnApp { get; }
+
+            /// <summary>What only this contract has.</summary>
+            public V9Description V9 { get; }
+        }
 
         /// <summary>
         /// A form app whose files contradict each other, so that it is on no contract: the package is of v9 or
         /// later, and the index page loads an app frontend that goes with v8. An upgrade to v9 that kept a
-        /// customized index page leaves an app like this.
+        /// customized index page leaves an app like this. It always has an <see cref="FormApp.AltinnAppReference"/>
+        /// and a <see cref="FormApp.FrontendVersion"/>, which are what contradict each other.
         /// </summary>
-        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-        /// <param name="Projects">Every project file in the repository.</param>
-        /// <param name="AltinnApp">The Altinn.App package, of v9 or later.</param>
-        /// <param name="FrontendVersion">
-        /// The app frontend version the index page loads, of <see cref="LastV8FrontendMajor"/> or lower.
-        /// </param>
-        public sealed record Inconsistent(
-            ProjectDescription? AppProject,
-            ValueList<ProjectDescription> Projects,
-            AltinnAppPackage AltinnApp,
-            AppFrontendVersion FrontendVersion
-        ) : FormApp(AppProject, Projects)
+        public sealed record Inconsistent : FormApp
         {
-            /// <summary>What contradicts what, in a few words.</summary>
-            public string Reason =>
-                $"{AltinnApp.Name} {AltinnApp.Version} does not go with app frontend {FrontendVersion}";
+            internal Inconsistent(
+                ProjectDescription? appProject,
+                ValueList<ProjectDescription> projects,
+                PackageReference altinnAppReference,
+                AppFrontendVersion frontendVersion,
+                AltinnAppPackage altinnApp
+            )
+                : base(appProject, projects, altinnAppReference, frontendVersion)
+            {
+                AltinnApp = altinnApp;
+            }
+
+            /// <summary>The Altinn.App package, of v9 or later.</summary>
+            public AltinnAppPackage AltinnApp { get; }
         }
 
         /// <summary>
-        /// A form app whose contract the files do not show. A project references an Altinn.App package without a
-        /// version that names a major version, or no project references one and the index page loads an app
-        /// frontend later than <see cref="LastV8FrontendMajor"/>.
+        /// A form app whose contract the files do not show. <see cref="Reason"/> says why.
         /// </summary>
-        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-        /// <param name="Projects">Every project file in the repository.</param>
-        /// <param name="Reference">
-        /// The reference to the Altinn.App package, or <c>null</c> when no project has one. Its version is
-        /// <c>null</c> when it cannot be resolved, and is otherwise one that names no major version, such as a range.
-        /// </param>
-        /// <param name="FrontendVersion">
-        /// The app frontend version the index page loads, or <c>null</c> when it names none.
-        /// </param>
-        public sealed record UnknownVersion(
-            ProjectDescription? AppProject,
-            ValueList<ProjectDescription> Projects,
-            PackageReference? Reference,
-            AppFrontendVersion? FrontendVersion
-        ) : FormApp(AppProject, Projects)
+        public sealed record UnknownContract : FormApp
         {
-            /// <summary>Why the version is not known, in a few words.</summary>
-            public string Reason =>
-                Reference switch
-                {
-                    null => "no project references an Altinn.App package",
-                    { Version: { } version } => $"the version of {Reference.Name}, {version}, names no major version",
-                    _ => $"the version of {Reference.Name} cannot be resolved",
-                };
+            internal UnknownContract(
+                ProjectDescription? appProject,
+                ValueList<ProjectDescription> projects,
+                PackageReference? altinnAppReference,
+                AppFrontendVersion? frontendVersion,
+                UnknownContractReason reason
+            )
+                : base(appProject, projects, altinnAppReference, frontendVersion)
+            {
+                Reason = reason;
+            }
+
+            /// <summary>Why the files do not show the contract.</summary>
+            public UnknownContractReason Reason { get; }
         }
     }
 
     /// <summary>
-    /// An app of no kind this model knows: no project references an Altinn.App package, and no index page loads the
-    /// app frontend.
+    /// An app that the files do not show to be of a kind this model knows: no project that could be read references
+    /// an Altinn.App package, and no index page loads the app frontend.
     /// </summary>
-    /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-    /// <param name="Projects">Every project file in the repository.</param>
-    public sealed record Unrecognized(ProjectDescription? AppProject, ValueList<ProjectDescription> Projects)
-        : AppDescription(AppProject, Projects);
+    public sealed record Unrecognized : AppDescription
+    {
+        internal Unrecognized(ProjectDescription? appProject, ValueList<ProjectDescription> projects)
+            : base(appProject, projects) { }
+    }
+}
+
+/// <summary>Why an app's files do not show which contract a form app is on.</summary>
+public enum UnknownContractReason
+{
+    /// <summary>The version of the Altinn.App reference cannot be resolved.</summary>
+    VersionNotResolved,
+
+    /// <summary>The version of the Altinn.App reference names no major version, as a range does not.</summary>
+    NoMajorVersion,
+
+    /// <summary>
+    /// A project references an Altinn.App package, but not the app's project or one that it references, or nothing
+    /// says which project the app is built from.
+    /// </summary>
+    NotReferencedByAppProject,
+
+    /// <summary>
+    /// No project references an Altinn.App package, and the index page loads an app frontend later than
+    /// <see cref="AppDescription.FormApp.LastV8FrontendMajor"/>.
+    /// </summary>
+    FrontendNotOfV8,
 }
 
 /// <summary>A project file of an app.</summary>
@@ -168,30 +229,59 @@ public abstract record ProjectDescription
     public AppFilePath Path { get; }
 
     /// <summary>A project file that is well-formed XML.</summary>
-    /// <param name="Path">The project file.</param>
-    /// <param name="TargetFrameworks">From <c>TargetFramework</c> or <c>TargetFrameworks</c>.</param>
-    /// <param name="PackageReferences">The packages the project references, in the order they are declared.</param>
-    /// <param name="ProjectReferences">
-    /// The projects in the repository that the project references without a condition, in the order they are
-    /// declared.
-    /// </param>
-    public sealed record WellFormed(
-        AppFilePath Path,
-        ValueList<string> TargetFrameworks,
-        ValueList<PackageReference> PackageReferences,
-        ValueList<AppFilePath> ProjectReferences
-    ) : ProjectDescription(Path);
+    public sealed record WellFormed : ProjectDescription
+    {
+        internal WellFormed(
+            AppFilePath path,
+            ValueList<string> targetFrameworks,
+            ValueList<PackageReference> packageReferences,
+            ValueList<AppFilePath> projectReferences
+        )
+            : base(path)
+        {
+            TargetFrameworks = targetFrameworks;
+            PackageReferences = packageReferences;
+            ProjectReferences = projectReferences;
+        }
+
+        /// <summary>From <c>TargetFramework</c> or <c>TargetFrameworks</c>.</summary>
+        public ValueList<string> TargetFrameworks { get; }
+
+        /// <summary>The packages the project references, in the order they are first included.</summary>
+        public ValueList<PackageReference> PackageReferences { get; }
+
+        /// <summary>
+        /// The projects in the repository that the project references without a condition, in the order they are
+        /// declared.
+        /// </summary>
+        public ValueList<AppFilePath> ProjectReferences { get; }
+    }
 
     /// <summary>A project file that is not well-formed XML, so nothing can be read from it.</summary>
-    /// <param name="Path">The project file.</param>
-    public sealed record Malformed(AppFilePath Path) : ProjectDescription(Path);
+    public sealed record Malformed : ProjectDescription
+    {
+        internal Malformed(AppFilePath path)
+            : base(path) { }
+    }
+
+    /// <summary>
+    /// A project file that was not read, since the repository's project files take more work to read than a reader
+    /// does for one app. No app of a service owner is near that limit.
+    /// </summary>
+    public sealed record NotRead : ProjectDescription
+    {
+        internal NotRead(AppFilePath path)
+            : base(path) { }
+    }
 }
 
 /// <summary>A NuGet package that a project references.</summary>
 /// <param name="Name">The package ID, as written in the project.</param>
 /// <param name="Version">
 /// The version asked for, with properties and central package management resolved and an exact pin such as
-/// <c>[8.0.0]</c> reduced to <c>8.0.0</c>, or <c>null</c> when it cannot be resolved.
+/// <c>[8.0.0]</c> reduced to <c>8.0.0</c>, or <c>null</c> when it cannot be resolved. It is known only for a package
+/// that one element includes, without a condition. What an update, a removal, a second include or a condition
+/// leaves is for MSBuild and NuGet to say, so it is <c>null</c> here.
 /// </param>
 public sealed record PackageReference(string Name, string? Version);
 

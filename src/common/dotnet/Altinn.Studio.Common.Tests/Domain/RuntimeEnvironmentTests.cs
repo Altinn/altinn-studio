@@ -16,6 +16,7 @@ public sealed class RuntimeEnvironmentTests
         Assert.True(RuntimeEnvironment.TryParse(name, out RuntimeEnvironment environment));
         Assert.Equal(RuntimeEnvironment.Production, environment);
         Assert.Equal("prod", environment.Name);
+        Assert.Equal("production", environment.RegistryName);
         Assert.True(environment.IsProduction);
     }
 
@@ -27,6 +28,7 @@ public sealed class RuntimeEnvironmentTests
     {
         Assert.True(RuntimeEnvironment.TryParse(name, out RuntimeEnvironment environment));
         Assert.Equal(name, environment.Name);
+        Assert.Equal(name, environment.RegistryName);
         Assert.False(environment.IsProduction);
     }
 
@@ -56,6 +58,7 @@ public sealed class RuntimeEnvironmentTests
     public void Name_ThrowsForTheDefaultValue()
     {
         Assert.Throws<System.InvalidOperationException>(() => default(RuntimeEnvironment).Name);
+        Assert.Throws<System.InvalidOperationException>(() => default(RuntimeEnvironment).RegistryName);
         Assert.False(default(RuntimeEnvironment).IsProduction);
         Assert.Equal(string.Empty, default(RuntimeEnvironment).ToString());
     }

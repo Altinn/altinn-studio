@@ -3,10 +3,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Common.Domain;
 using Altinn.Studio.Common.Domain.App;
-using Altinn.Studio.Common.Domain.App.V8;
 using Xunit;
 
-namespace Altinn.Studio.Common.Tests.Domain.App.V8;
+namespace Altinn.Studio.Common.Tests.Domain.App;
 
 // Altinn.Studio.Common has an Assert of its own, which the enclosing namespace would find first.
 using Assert = Xunit.Assert;
