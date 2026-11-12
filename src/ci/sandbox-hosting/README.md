@@ -1,4 +1,4 @@
-# sandbox-host
+# sandbox-hosting
 
 This crate holds the host setup that Sandbox workloads share inside their pods on the Altinn sandbox nodes. Each job
 runs there in its own short-lived microVM. [`sandbox-node`](../sandbox-node/README.md) prepares the nodes themselves.
@@ -34,4 +34,4 @@ the home when the run ends, also when the Provider cannot open or the run fails.
 
 The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/README.md) uses this crate.
 
-See the [`Makefile`](Makefile) for available development commands. `sandbox-host-build.yaml` runs them in CI.
+See the [`Makefile`](Makefile) for available development commands. `sandbox-hosting-build.yaml` runs them in CI.

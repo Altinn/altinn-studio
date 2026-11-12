@@ -13,7 +13,7 @@ futures-util.workspace = true
 jsonwebtoken.workspace = true
 reqwest.workspace = true
 sandbox.workspace = true
-sandbox-host.workspace = true
+sandbox-hosting.workspace = true
 serde.workspace = true
 tokio.workspace = true
 

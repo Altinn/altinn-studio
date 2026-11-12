@@ -2,8 +2,8 @@
 
 The coordinator runs one ephemeral GitHub Actions runner in a Sandbox, through the Sandbox SDK. The Provider setup and
 `sandbox-image`, which exports and imports prepared images, are in the shared
-[sandbox-host](../../sandbox-host/README.md) crate. The [runner README](../README.md) describes how it fits with the
-rest, and the constraints it keeps.
+[sandbox-hosting](../../sandbox-hosting/README.md) crate. The [runner README](../README.md) describes how it fits with
+the rest, and the constraints it keeps.
 
 The Sandbox SDK crates, `sandbox` and `sandbox-microsandbox`, come from
 [digdir/digdir-agents](https://github.com/digdir/digdir-agents), pinned by `rev` in the root `Cargo.toml`. Fix bugs in

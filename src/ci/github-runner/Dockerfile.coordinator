@@ -17,7 +17,7 @@ RUN cargo build \
     --release \
     --bins \
     --package github-runner-coordinator \
-    --package sandbox-host \
+    --package sandbox-hosting \
     && strip --strip-unneeded \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image

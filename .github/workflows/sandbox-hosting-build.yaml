@@ -1,4 +1,4 @@
-name: sandbox-host - Build and test
+name: sandbox-hosting - Build and test
 
 on:
   pull_request:
@@ -9,9 +9,9 @@ on:
       - 'clippy.toml'
       - 'rust-toolchain.toml'
       - 'rustfmt.toml'
-      - 'src/ci/sandbox-host/**'
+      - 'src/ci/sandbox-hosting/**'
       - '.github/actions/setup-rust-cached/**'
-      - '.github/workflows/sandbox-host-build.yaml'
+      - '.github/workflows/sandbox-hosting-build.yaml'
       - '!**/*.md'
   workflow_dispatch:
 
@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: src/ci/sandbox-host
+        working-directory: src/ci/sandbox-hosting
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

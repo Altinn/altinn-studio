@@ -1784,7 +1784,7 @@ dependencies = [
  "jsonwebtoken",
  "reqwest",
  "sandbox",
- "sandbox-host",
+ "sandbox-hosting",
  "serde",
  "tokio",
 ]
@@ -4407,7 +4407,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sandbox-host"
+name = "sandbox-hosting"
 version = "0.1.0"
 dependencies = [
  "clap",

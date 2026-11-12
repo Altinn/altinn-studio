@@ -2,7 +2,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use github_runner_coordinator::CoordinatorArguments;
-use sandbox_host::{AnyError, ProviderArguments, require_kvm};
+use sandbox_hosting::{AnyError, ProviderArguments, require_kvm};
 
 #[derive(Parser)]
 #[command(about = "Run one ephemeral GitHub Actions runner inside a Sandbox")]

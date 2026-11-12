@@ -16,7 +16,7 @@ use sandbox::{
     init::InitSystem,
     progress::{Progress, ProgressCursor, Update},
 };
-use sandbox_host::{
+use sandbox_hosting::{
     AnyError, ShutdownSignals, delete_in_time, native_linux_platform, validate_immutable_image_reference,
 };
 

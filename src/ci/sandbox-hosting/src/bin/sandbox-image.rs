@@ -5,7 +5,7 @@ use sandbox::{
     RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
 };
-use sandbox_host::{AnyError, ProviderArguments, native_linux_platform, validate_immutable_image_reference};
+use sandbox_hosting::{AnyError, ProviderArguments, native_linux_platform, validate_immutable_image_reference};
 
 #[derive(Parser)]
 #[command(about = "Export or import a prepared Sandbox image")]

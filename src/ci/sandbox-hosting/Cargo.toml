@@ -1,5 +1,5 @@
 [package]
-name = "sandbox-host"
+name = "sandbox-hosting"
 description = "Host wiring for Sandbox workloads on the Altinn sandbox nodes"
 edition.workspace = true
 license.workspace = true

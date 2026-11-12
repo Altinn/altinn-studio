@@ -5,7 +5,7 @@ use std::{
 
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use reqwest::{Client, Response};
-use sandbox_host::AnyError;
+use sandbox_hosting::AnyError;
 use serde::{Deserialize, Serialize};
 
 const API_VERSION: &str = "2022-11-28";

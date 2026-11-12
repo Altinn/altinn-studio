@@ -5,5 +5,5 @@
 !Cargo.toml
 !rust-toolchain.toml
 !src/ci/github-runner/coordinator/**
-!src/ci/sandbox-host/**
+!src/ci/sandbox-hosting/**
 **/target/

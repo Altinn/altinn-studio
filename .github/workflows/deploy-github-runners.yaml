@@ -7,7 +7,7 @@ on:
       - 'Cargo.toml'
       - 'rust-toolchain.toml'
       - 'src/ci/github-runner/**'
-      - 'src/ci/sandbox-host/**'
+      - 'src/ci/sandbox-hosting/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
       - '!**/*.md'
