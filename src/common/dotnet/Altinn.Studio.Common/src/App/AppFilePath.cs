@@ -4,12 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 namespace Altinn.Studio.Common.App;
 
 /// <summary>
-/// The path of a file that an <see cref="AppSource"/> has, relative to the app's root, with <c>/</c> separators. It
-/// cannot point outside the app, so it is safe to join to the folder the app is in, on any operating system.
+/// The path of a file that an <see cref="AppSource"/> has, relative to the app's root, with <c>/</c> separators. By
+/// its form it cannot point outside the app on any operating system: it is relative and has no <c>..</c> segment.
 /// </summary>
 /// <remarks>
 /// Only an <see cref="AppSource"/> creates one, so code that holds one knows that a source had that file, and not
-/// only that a string has the form of a path.
+/// only that a string has the form of a path. The form says nothing about links: a link in the app's folder can
+/// lead outside it, so a source that reads from disk must not follow links.
 /// </remarks>
 public sealed record AppFilePath
 {
