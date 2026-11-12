@@ -35,6 +35,7 @@ from agents.graph.nodes.agentic_loop_node import (
 )
 from agents.graph.state import AgentState
 from agents.services.git import git_ops
+from shared.config.base_config import BaseConfig
 
 from .git_repo import create_committed_repo, git, write_files
 
@@ -77,6 +78,17 @@ class TestBuildRegistry:
     def test_skill_tool_registered_with_discovered_skills(self):
         registry = _build_registry()
         assert "skill" in registry
+
+    def test_render_check_registered_only_when_enabled(self, monkeypatch):
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
+        assert "preview_render_check" not in _build_registry()
+
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
+        assert "preview_render_check" in _build_registry()
+
+    def test_render_check_override(self, monkeypatch):
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
+        assert "preview_render_check" in _build_registry(preview_check=True)
 
 
 class TestEventBridge:
@@ -731,6 +743,8 @@ async def _handle_events(
     monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", events.append)
     if remote is None:
         _use_remote(monkeypatch, repo, *(pushes or (pushed,)))
+    if render_checks is not None:
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
     checks = list(render_checks or [_outcome(is_error=True, unavailable=True)])
 
     # The registry of `handle` accepts only a real tool, not a `_CheckStub`.
@@ -1246,7 +1260,18 @@ class TestEnforcedRenderCheck:
         check = _CheckStub(outcomes)
         monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
         return check
+
+    async def test_a_disabled_check_does_not_run(self, tmp_path, monkeypatch):
+        check = self._use_check(monkeypatch, _outcome(is_error=True))
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
+        reran = self._use_loop(monkeypatch)
+
+        await _repair(_state(), _committed_ctx(tmp_path))
+
+        assert check.calls == 0
+        assert reran == []
 
     def _use_loop(self, monkeypatch, result: LoopResult | None = None, edits: tuple[str, ...] = ()) -> list:
         """Replace the loop of the repair round. The model writes `edits` and does not commit them."""

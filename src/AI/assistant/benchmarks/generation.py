@@ -251,10 +251,11 @@ def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
     """The real tool catalog the loop offers, optionally narrowed."""
     from agents.graph.nodes.agentic_loop_node import _build_registry
 
-    schemas = _build_registry().to_schema()
     if names is None:
-        return schemas
-    by_name = {schema["name"]: schema for schema in schemas}
+        return _build_registry().to_schema()
+    # An item names the tools of the session it was recorded from.  A session
+    # with the render check turned on had `preview_render_check`.
+    by_name = {schema["name"]: schema for schema in _build_registry(preview_check=True).to_schema()}
     missing = [name for name in names if name not in by_name]
     if missing:
         raise ValueError(f"unknown tool(s) {missing}; the registry has {sorted(by_name)}")

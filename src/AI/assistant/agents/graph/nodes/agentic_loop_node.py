@@ -48,6 +48,7 @@ from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
 from agents.services.llm.recent_turns import truncate_to_history_limit
+from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -335,6 +336,8 @@ async def _repair_render_failures(
     session branch, thus it runs only if that branch has all edits. Return the
     last loop result.
     """
+    if not get_config().PREVIEW_CHECK_ENABLED:
+        return result
     if result.reason is TerminationReason.CANCELLED or not ctx.extras.get("session_pushed") or _unsaved_files(ctx):
         return result
 
@@ -405,16 +408,21 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
-    """Register every tool available in workflow mode, all in-process."""
+def _build_registry(skills: list | None = None, *, preview_check: bool | None = None) -> ToolRegistry:
+    """Register every tool available in workflow mode, all in-process.
+
+    `preview_check` overrides `PREVIEW_CHECK_ENABLED`.
+    """
+    if preview_check is None:
+        preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
+    for tool in _internal_tools(skills or [], preview_check=preview_check):
         registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
-    return [
+def _internal_tools(skills: list, *, preview_check: bool) -> list[Tool]:
+    tools: list[Tool] = [
         ScanRepoTool(),
         ReadFileTool(),
         EditFileTool(),
@@ -422,12 +430,18 @@ def _internal_tools(skills: list) -> list[Tool]:
         DiscardFileChangesTool(),
         VerifyChangesTool(),
         CommitSessionBranchTool(),
-        PreviewRenderCheckTool(),
+    ]
+    # The check works only with the local Designer stack.  A model that sees
+    # the tool where it cannot run tells the user about it.
+    if preview_check:
+        tools.append(PreviewRenderCheckTool())
+    tools += [
         SkillTool(skills),
         LayoutPropsTool(),
         DatamodelSyncTool(),
         WebFetchTool(),
     ]
+    return tools
 
 
 def _make_event_bridge(session_id: str) -> EventCallback:
