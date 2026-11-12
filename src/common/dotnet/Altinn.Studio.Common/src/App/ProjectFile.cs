@@ -68,9 +68,14 @@ internal sealed class ProjectFile
     /// <summary>A package item as written in the file, before properties are resolved.</summary>
     /// <param name="Operation">What the element does.</param>
     /// <param name="Name">The package ID from <c>Include</c>, <c>Update</c> or <c>Remove</c>.</param>
-    /// <param name="Version">The <c>Version</c> attribute or element.</param>
-    /// <param name="VersionOverride">The <c>VersionOverride</c> attribute or element.</param>
-    /// <param name="Conditional">Whether a condition decides if the element applies.</param>
+    /// <param name="Version">
+    /// The <c>Version</c> attribute or element, which is empty when the file sets it to nothing and <c>null</c> when
+    /// the file does not set it. An update with an empty value clears the version, and one without leaves it.
+    /// </param>
+    /// <param name="VersionOverride">The <c>VersionOverride</c> attribute or element, in the same way.</param>
+    /// <param name="Conditional">
+    /// Whether a condition decides if the element applies, or what its version or version override is.
+    /// </param>
     public sealed record Item(
         Operation Operation,
         string Name,
@@ -289,10 +294,12 @@ internal sealed class ProjectFile
             {
                 if (reader.NodeType == XmlNodeType.Element && Is(reader.LocalName, "Version"))
                 {
+                    conditional |= HasCondition(reader);
                     version = ReadText(reader);
                 }
                 else if (reader.NodeType == XmlNodeType.Element && Is(reader.LocalName, "VersionOverride"))
                 {
+                    conditional |= HasCondition(reader);
                     versionOverride = ReadText(reader);
                 }
                 else if (reader.NodeType == XmlNodeType.Element)
@@ -308,7 +315,7 @@ internal sealed class ProjectFile
         if (name is not null && name.Length > 0)
         {
             (isReference ? packageReferences : packageVersions).Add(
-                new Item(operation, name, NullIfEmpty(version), NullIfEmpty(versionOverride), conditional)
+                new Item(operation, name, version, versionOverride, conditional)
             );
         }
     }
@@ -362,6 +369,4 @@ internal sealed class ProjectFile
 
     private static bool Is(string? name, string expected) =>
         string.Equals(name, expected, StringComparison.OrdinalIgnoreCase);
-
-    private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 }

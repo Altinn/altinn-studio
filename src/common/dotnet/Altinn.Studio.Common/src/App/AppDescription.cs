@@ -216,21 +216,25 @@ public sealed record AltinnAppPackage
     }
 
     // The major of a version that is not a semantic version but still names one: a NuGet version of one to four
-    // numbers, such as 8 or 8.5, or a floating one, such as 8.* or 8.5.0-*.
+    // numbers, such as 8 or 8.5, or a floating one, such as 8.* or 8.5.0-*. As in NuGet, a floating version has no
+    // build metadata, and one whose numbers float has no pre-release or the pre-release *.
     private static int? ReadMajor(string version)
     {
         int plus = version.AsSpan().IndexOf('+');
         string withoutBuild = plus < 0 ? version : version.Substring(0, plus);
         int hyphen = withoutBuild.AsSpan().IndexOf('-');
         string[] numbers = (hyphen < 0 ? withoutBuild : withoutBuild.Substring(0, hyphen)).Split('.');
+        string? preRelease = hyphen < 0 ? null : withoutBuild.Substring(hyphen + 1);
+        bool numbersFloat = numbers[numbers.Length - 1] == "*";
+        bool floats = withoutBuild.AsSpan().IndexOf('*') >= 0;
         bool valid =
             numbers.Length <= 4
-            && (plus < 0 || AreIdentifiers(version.Substring(plus + 1), floating: false))
-            && (hyphen < 0 || AreIdentifiers(withoutBuild.Substring(hyphen + 1), floating: true));
+            && (plus < 0 || (!floats && AreIdentifiers(version.Substring(plus + 1), floating: false)))
+            && (preRelease is null || AreIdentifiers(preRelease, floating: true))
+            && (!numbersFloat || preRelease is null or "*");
         for (int i = 0; valid && i < numbers.Length; i++)
         {
-            bool floats = i > 0 && i == numbers.Length - 1 && numbers[i] == "*";
-            valid = floats || IsNumber(numbers[i]);
+            valid = (numbersFloat && i > 0 && i == numbers.Length - 1) || IsNumber(numbers[i]);
         }
 
         return valid ? int.Parse(numbers[0], System.Globalization.CultureInfo.InvariantCulture) : null;

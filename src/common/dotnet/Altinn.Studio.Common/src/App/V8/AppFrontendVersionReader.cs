@@ -88,7 +88,8 @@ public static class AppFrontendVersionReader
             : source.Substring(ScriptPrefix.Length, suffix - ScriptPrefix.Length);
     }
 
-    // Razor leaves a comment, @* to *@, out of the page it renders, wherever in the page it is. @@ is an @ as text.
+    // Razor leaves a comment, @* to *@, out of the page it renders, wherever in the page it is. @@ is an @ as text,
+    // so of several @ in a row only an odd one out starts a comment.
     private static string WithoutRazorComments(string page)
     {
         int open = page.IndexOf("@*", StringComparison.Ordinal);
@@ -101,7 +102,13 @@ public static class AppFrontendVersionReader
         int position = 0;
         while (open >= 0)
         {
-            if (open > position && page[open - 1] == '@')
+            int first = open;
+            while (first > position && page[first - 1] == '@')
+            {
+                first--;
+            }
+
+            if ((open - first) % 2 == 1)
             {
                 open = page.IndexOf("@*", open + 1, StringComparison.Ordinal);
                 continue;
@@ -190,7 +197,7 @@ public static class AppFrontendVersionReader
             while (position < _tagEnd)
             {
                 char c = _html[position];
-                if (char.IsWhiteSpace(c) || c == '/')
+                if (IsSpace(c) || c == '/')
                 {
                     position++;
                     continue;
@@ -202,17 +209,13 @@ public static class AppFrontendVersionReader
                 }
 
                 int nameStart = position;
-                while (
-                    position < _tagEnd
-                    && !char.IsWhiteSpace(_html[position])
-                    && _html[position] is not ('=' or '>' or '/')
-                )
+                while (position < _tagEnd && !IsSpace(_html[position]) && _html[position] is not ('=' or '>' or '/'))
                 {
                     position++;
                 }
 
                 bool matches = TextEquals(nameStart, position, name);
-                while (position < _tagEnd && char.IsWhiteSpace(_html[position]))
+                while (position < _tagEnd && IsSpace(_html[position]))
                 {
                     position++;
                 }
@@ -221,7 +224,7 @@ public static class AppFrontendVersionReader
                 if (position < _tagEnd && _html[position] == '=')
                 {
                     position++;
-                    while (position < _tagEnd && char.IsWhiteSpace(_html[position]))
+                    while (position < _tagEnd && IsSpace(_html[position]))
                     {
                         position++;
                     }
@@ -249,7 +252,7 @@ public static class AppFrontendVersionReader
             }
 
             int start = position;
-            while (position < _tagEnd && !char.IsWhiteSpace(_html[position]) && _html[position] != '>')
+            while (position < _tagEnd && !IsSpace(_html[position]) && _html[position] != '>')
             {
                 position++;
             }
@@ -285,7 +288,7 @@ public static class AppFrontendVersionReader
                     return position + 1;
                 }
 
-                if (!char.IsWhiteSpace(c))
+                if (!IsSpace(c))
                 {
                     previous = c;
                 }
@@ -293,6 +296,9 @@ public static class AppFrontendVersionReader
 
             return -1;
         }
+
+        // The characters that HTML takes for a space, which are fewer than the ones Unicode has.
+        private static bool IsSpace(char c) => c is ' ' or '\t' or '\n' or '\f' or '\r';
 
         private readonly bool TextEquals(int start, int end, string name) =>
             end - start == name.Length
@@ -307,7 +313,8 @@ public static class AppFrontendVersionReader
                 name = NameIs(candidate) ? candidate : name;
             }
 
-            if (name is null || _html[_tagEnd - 2] == '/')
+            // A / before the > does not close these elements in HTML, so their text follows also then.
+            if (name is null)
             {
                 return;
             }
@@ -326,7 +333,7 @@ public static class AppFrontendVersionReader
 
                 if (
                     string.Compare(_html, close + 2, name, 0, name.Length, StringComparison.OrdinalIgnoreCase) == 0
-                    && (char.IsWhiteSpace(_html[after]) || _html[after] is '/' or '>')
+                    && (IsSpace(_html[after]) || _html[after] is '/' or '>')
                 )
                 {
                     _position = close;

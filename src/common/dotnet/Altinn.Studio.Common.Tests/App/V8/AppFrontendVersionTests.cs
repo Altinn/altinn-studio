@@ -92,6 +92,9 @@ public sealed partial class AppFrontendVersionTests
         "<script @* src='https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js' *@></script>"
     )]
     [InlineData("@* @* <meta data-altinn-app-frontend-version='1'> *@")]
+    [InlineData("@@@*<meta data-altinn-app-frontend-version='1'>*@")]
+    [InlineData("@@@@@*<meta data-altinn-app-frontend-version='1'>*@")]
+    [InlineData("@* a *@@*<meta data-altinn-app-frontend-version='1'>*@")]
     public void Read_IgnoresRazorCommentsInsideTags(string commented)
     {
         string html = Page($"{commented}<p>a@@*b</p><script src=\"{Script("4")}\"></script>");
@@ -114,6 +117,10 @@ public sealed partial class AppFrontendVersionTests
     [InlineData("<textarea><meta data-altinn-app-frontend-version=1></textarea>")]
     [InlineData("<title><meta data-altinn-app-frontend-version=1></title>")]
     [InlineData("<STYLE>a{content:'<meta data-altinn-app-frontend-version=1>'}</STYLE>")]
+    // A / before the > does not close these elements, and only the spaces of HTML end the name of an end tag.
+    [InlineData("<textarea/><meta data-altinn-app-frontend-version=1></textarea>")]
+    [InlineData("<script/><meta data-altinn-app-frontend-version=1></script>")]
+    [InlineData("<script>var x='</script\u00A0><meta data-altinn-app-frontend-version=1>';</script>")]
     public void Read_IgnoresTagsWrittenInText(string text)
     {
         string html = Page($"{text}<script src=\"{Script("4")}\"></script>");

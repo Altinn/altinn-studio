@@ -319,6 +319,115 @@ public sealed class AppDescriptionReaderTests
         );
     }
 
+    // With central package management, where a reference without a version gets the central one.
+    [Theory]
+    // An update that sets the override to nothing clears it, and one that does not set it leaves it.
+    [InlineData(
+        "VersionOverride=\"9.0.0\"",
+        "<PackageReference Update=\"Altinn.App.Api\" VersionOverride=\"\" />",
+        "8.0.0"
+    )]
+    [InlineData("VersionOverride=\"9.0.0\"", "<PackageReference Update=\"Altinn.App.Api\" />", "9.0.0")]
+    // What a condition decides is not known, and the central version is then no answer either.
+    [InlineData(
+        "",
+        "<PackageReference Update=\"Altinn.App.Api\" VersionOverride=\"9.0.0\" Condition=\"'1' == '1'\" />",
+        null
+    )]
+    [InlineData(
+        "",
+        "<PackageReference Update=\"Altinn.App.Api\"><VersionOverride Condition=\"'1' == '1'\">9.0.0</VersionOverride></PackageReference>",
+        null
+    )]
+    [InlineData("", "<PackageVersion Update=\"Altinn.App.Api\" Version=\"9.0.0\" Condition=\"'1' == '1'\" />", null)]
+    [InlineData("", "<PackageReference Update=\"@(PackageReference)\" PrivateAssets=\"all\" />", null)]
+    public void Build_AppliesAnUpdateUnderCentralPackageManagement(string metadata, string update, string? version)
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Packages.props",
+            "<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>"
+                + "<ItemGroup><PackageVersion Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
+        );
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" {metadata} />{update}</ItemGroup></Project>"
+        );
+
+        Assert.Equal(
+            [new PackageReference("Altinn.App.Api", version)],
+            WellFormed(reader.Build().Projects[0]).PackageReferences
+        );
+    }
+
+    // MSBuild keeps both items of a package that is included twice, and NuGet warns and picks one.
+    [Theory]
+    [InlineData("9.0.0", null)]
+    [InlineData("8.0.0", "8.0.0")]
+    public void Build_TakesAPackageIncludedTwiceWithTwoVersionsForUnknown(string second, string? version)
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "Directory.Build.props",
+            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\" /></ItemGroup></Project>"
+        );
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><ItemGroup><PackageReference Include=\"altinn.app.api\" Version=\"{second}\" /></ItemGroup></Project>"
+        );
+
+        Assert.Equal(
+            [new PackageReference("Altinn.App.Api", version)],
+            WellFormed(reader.Build().Projects[0]).PackageReferences
+        );
+    }
+
+    [Fact]
+    public void Build_TakesAConditionOnTheVersionElementForUnknown()
+    {
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\">"
+                + "<Version Condition=\"'1' == '2'\">9.0.0</Version></PackageReference></ItemGroup></Project>"
+        );
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
+    }
+
+    // Each element is applied in constant time. Walking the items for each one took minutes for a file like this.
+    [Fact]
+    public void Build_ReadsManyElementsInLinearTime()
+    {
+        const int Count = 200_000;
+        var items = new StringBuilder();
+        for (int i = 0; i < Count; i++)
+        {
+            items.Append(CultureInfo.InvariantCulture, $"<PackageReference Include=\"P{i}\" Version=\"1.0.0\" />");
+        }
+
+        for (int i = 0; i < Count; i++)
+        {
+            items.Append("<PackageReference Update=\"@(PackageReference)\" Version=\"2.0.0\" />");
+            items.Append(CultureInfo.InvariantCulture, $"<PackageReference Remove=\"P{i}\" />");
+        }
+
+        var reader = new AppDescriptionReader();
+        Read(
+            reader,
+            "App/App.csproj",
+            $"<Project><ItemGroup>{items}<PackageReference Include=\"P0\" Version=\"3.0.0\" /></ItemGroup></Project>"
+        );
+
+        Assert.Equal([new PackageReference("P0", "3.0.0")], WellFormed(reader.Build().Projects[0]).PackageReferences);
+    }
+
     [Fact]
     public void Build_AppliesARemove()
     {
@@ -480,6 +589,11 @@ public sealed class AppDescriptionReaderTests
     [InlineData("Altinn.App.Api", "*", null, 0)]
     [InlineData("Altinn.App.Api", "9.0.0.0.0", null, 0)]
     [InlineData("Altinn.App.Api", "9.0.0+build*", null, 0)]
+    // NuGet has no floating version with build metadata, and none whose numbers float before a named pre-release.
+    [InlineData("Altinn.App.Api", "9.*+build", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.0-*+build", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.*-rc", null, 0)]
+    [InlineData("Altinn.App.Api", "9.0.*-rc.*", null, 0)]
     [InlineData("Altinn.App.Api", "1234567.0", null, 0)]
     public void AltinnAppPackage_IsOnlyAReferenceToAnAltinnAppPackageWithAMajorVersion(
         string name,

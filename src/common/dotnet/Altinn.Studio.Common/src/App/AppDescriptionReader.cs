@@ -178,17 +178,28 @@ public sealed class AppDescriptionReader : IAppSourceReader
             }
         }
 
-        // Without central package management, NuGet ignores the central versions and VersionOverride.
+        // Without central package management, NuGet ignores the central versions and VersionOverride. A version
+        // that is not known stays so, and does not fall back to another.
         bool central =
             properties.TryGetValue("ManagePackageVersionsCentrally", out string? manage)
             && string.Equals(manage?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
         var references = new List<PackageReference>();
         foreach (PackageItems.Entry reference in packageReferences.Entries)
         {
-            string? declared = reference.Version;
-            if (central)
+            if (reference.IsRemoved)
             {
-                declared = reference.VersionOverride ?? declared ?? packageVersions.Find(reference.Name)?.Version;
+                continue;
+            }
+
+            string? declared = null;
+            if (!packageReferences.IsUnknown(reference))
+            {
+                declared = NullIfEmpty(reference.Version);
+                if (central)
+                {
+                    declared =
+                        NullIfEmpty(reference.VersionOverride) ?? declared ?? packageVersions.Version(reference.Name);
+                }
             }
 
             references.Add(
@@ -223,24 +234,34 @@ public sealed class AppDescriptionReader : IAppSourceReader
         return frameworks;
     }
 
-    // The items of one kind, as the elements of the files leave them, in the order they were first included.
+    private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
+
+    // The items of one kind, as the elements of the files leave them, in the order they were included. Each element
+    // is applied in constant time, so that a file with many of them is read in time linear in its size.
     private sealed class PackageItems
     {
         private readonly Dictionary<string, Entry> _byName = new(StringComparer.OrdinalIgnoreCase);
 
+        // The entries added before this many were added have a version that is not known.
+        private int _unknownBefore;
+
         public List<Entry> Entries { get; } = [];
 
-        public Entry? Find(string name) => _byName.TryGetValue(name, out Entry? entry) ? entry : null;
+        public bool IsUnknown(Entry entry) => entry.IsUnknown || entry.Number < _unknownBefore;
+
+        // The version of a package, or null when it has none or it is not known.
+        public string? Version(string name) =>
+            _byName.TryGetValue(name, out Entry? entry) && !IsUnknown(entry) ? NullIfEmpty(entry.Version) : null;
 
         public void Apply(ProjectFile.Item item)
         {
             // An element names one package, several with ; between them, or a pattern such as @(PackageReference).
-            // What a pattern matches is not known here, so it leaves the version of every item unknown.
+            // What a pattern matches is not known here, so it leaves the version of every item so far unknown.
             if (item.Name.AsSpan().IndexOfAny("*?@$%".AsSpan()) >= 0)
             {
                 if (item.Operation != ProjectFile.Operation.Include)
                 {
-                    Entries.ForEach(entry => entry.Forget());
+                    _unknownBefore = Entries.Count;
                 }
 
                 return;
@@ -258,15 +279,18 @@ public sealed class AppDescriptionReader : IAppSourceReader
 
         private void Apply(ProjectFile.Item item, string name)
         {
-            Entry? entry = Find(name);
-            if (entry is null)
+            if (!_byName.TryGetValue(name, out Entry? entry))
             {
                 if (item.Operation == ProjectFile.Operation.Include)
                 {
-                    entry = new Entry(name);
+                    entry = new Entry(name, Entries.Count)
+                    {
+                        Version = item.Version,
+                        VersionOverride = item.VersionOverride,
+                        IsUnknown = item.Conditional,
+                    };
                     _byName[name] = entry;
                     Entries.Add(entry);
-                    Set(entry, item);
                 }
 
                 return;
@@ -275,55 +299,46 @@ public sealed class AppDescriptionReader : IAppSourceReader
             // Whether a condition holds is not known here, so neither is what a conditional element leaves.
             if (item.Conditional)
             {
-                entry.Forget();
+                entry.IsUnknown = true;
             }
             else if (item.Operation == ProjectFile.Operation.Remove)
             {
+                entry.IsRemoved = true;
                 _byName.Remove(name);
-                Entries.Remove(entry);
             }
-            else if (item.Operation == ProjectFile.Operation.Include)
-            {
-                Set(entry, item);
-            }
-            else
+            else if (item.Operation == ProjectFile.Operation.Update)
             {
                 entry.Version = item.Version ?? entry.Version;
                 entry.VersionOverride = item.VersionOverride ?? entry.VersionOverride;
             }
-        }
-
-        private static void Set(Entry entry, ProjectFile.Item item)
-        {
-            entry.Version = item.Version;
-            entry.VersionOverride = item.VersionOverride;
-            if (item.Conditional)
+            else if (
+                !string.Equals(NullIfEmpty(item.Version), NullIfEmpty(entry.Version), StringComparison.Ordinal)
+                || !string.Equals(
+                    NullIfEmpty(item.VersionOverride),
+                    NullIfEmpty(entry.VersionOverride),
+                    StringComparison.Ordinal
+                )
+            )
             {
-                entry.Forget();
+                // MSBuild keeps both items of a package that is included twice, and NuGet then warns and picks one.
+                entry.IsUnknown = true;
             }
         }
 
-        public sealed class Entry(string name)
+        public sealed class Entry(string name, int number)
         {
-            private bool _unknown;
-            private string? _version;
-            private string? _versionOverride;
-
             public string Name { get; } = name;
 
-            public string? Version
-            {
-                get => _unknown ? null : _version;
-                set => _version = value;
-            }
+            // How many entries were added before this one.
+            public int Number { get; } = number;
 
-            public string? VersionOverride
-            {
-                get => _unknown ? null : _versionOverride;
-                set => _versionOverride = value;
-            }
+            public string? Version { get; set; }
 
-            public void Forget() => _unknown = true;
+            public string? VersionOverride { get; set; }
+
+            public bool IsUnknown { get; set; }
+
+            public bool IsRemoved { get; set; }
         }
     }
 
