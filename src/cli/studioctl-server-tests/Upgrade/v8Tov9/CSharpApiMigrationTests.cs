@@ -2138,7 +2138,10 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
 
-        Assert.Contains(result.Todos, t => t.Contains("GetCalculationConfig"));
+        // The replacement's name is a prefix of the removed one, so assert the call form, which only the
+        // replacement is written as.
+        var todo = Assert.Single(result.Todos, t => t.Contains("GetCalculationConfiguration(dataTypeId) is removed"));
+        Assert.Contains("Use GetCalculationConfig(dataTypeId), which returns a CalculationConfig", todo);
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Calculations.cs") && w.Contains("GetCalculationConfiguration")
