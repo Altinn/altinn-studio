@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using DiffEngine;
 
 namespace Altinn.App.Integration.Tests;
@@ -17,7 +18,18 @@ internal static class ModuleInitializer
             BuildServerDetector.Detected = false; // WSL is not a build server
         VerifierSettings.AutoVerify(includeBuildServer: false);
         VerifierSettings.IgnoreMember(typeof(HttpRequestMessage), "ConnectionId");
+        // Responses deserialize `object` members, such as form data, to JsonElement
+        VerifierSettings.AddExtraSettings(settings => settings.Converters.Add(new JsonElementConverter()));
         VerifyAspNetCore.Initialize();
+    }
+
+    /// <summary>
+    /// Snapshots a <see cref="JsonElement"/> as the JSON it holds, not as its properties, such as ValueKind.
+    /// </summary>
+    private sealed class JsonElementConverter : WriteOnlyJsonConverter<JsonElement>
+    {
+        public override void Write(VerifyJsonWriter writer, JsonElement value) =>
+            writer.Serialize(Argon.JToken.Parse(value.GetRawText()));
     }
 
     internal static string GetProjectDirectory() => GetProjectDirectoryInternal();

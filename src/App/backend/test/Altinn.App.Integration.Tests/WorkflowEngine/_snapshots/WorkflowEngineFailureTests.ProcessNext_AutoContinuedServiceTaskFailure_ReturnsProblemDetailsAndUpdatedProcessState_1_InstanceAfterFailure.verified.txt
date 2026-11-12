@@ -97,7 +97,7 @@
           Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
           Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
         },
-        Size: 200,
+        Size: 258,
         BlobVersionId: <blobVersionId[0]>,
         Locked: true,
         IsRead: true,

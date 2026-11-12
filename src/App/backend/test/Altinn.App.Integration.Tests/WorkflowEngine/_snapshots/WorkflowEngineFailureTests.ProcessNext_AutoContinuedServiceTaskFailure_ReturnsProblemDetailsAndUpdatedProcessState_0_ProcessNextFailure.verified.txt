@@ -61,13 +61,32 @@
     Detail: A workflow step failed while performing the process action.,
     Extensions: {
       processState: {
-        ValueKind: Object
+        status: processing,
+        started: DateTimeOffset_1,
+        startEvent: StartEvent_1,
+        currentTask: {
+          flow: 3,
+          started: DateTimeOffset_2,
+          elementId: Task_Service,
+          name: Feilende service task,
+          altinnTaskType: failing-service,
+          ended: null,
+          validated: null,
+          flowType: CompleteCurrentMoveToNext
+        },
+        ended: null,
+        endEvent: null
       },
-      processStateChanged: {
-        ValueKind: True
-      },
+      processStateChanged: true,
       workflowFailure: {
-        ValueKind: Object
+        kind: stepFailed,
+        workflowId: Guid_1,
+        workflowOperationId: Process next: Task_1 -> Task_Service,
+        stepOperationId: ExecuteServiceTask: 0,
+        commandType: app,
+        retryCount: 0,
+        retryAction: resumeWorkflow,
+        retryTargetWorkflowId: Guid_1
       }
     }
   }

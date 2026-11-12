@@ -2,7 +2,8 @@
   actual_iss: localtest,
   client_id: Guid_1,
   consumer: {
-    ValueKind: Object
+    authority: iso6523-actorid-upis,
+    ID: 0192:405003309
   },
   exp: {Scrubbed},
   iat: {Scrubbed},

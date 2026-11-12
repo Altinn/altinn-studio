@@ -85,7 +85,7 @@ public sealed partial class AppFixture
                 }
                 else
                 {
-                    model = Argon.JsonConvert.DeserializeObject<T>(body);
+                    model = JsonSerializer.Deserialize<T>(body, _jsonSerializerOptions);
                 }
             }
             catch (Exception ex)
