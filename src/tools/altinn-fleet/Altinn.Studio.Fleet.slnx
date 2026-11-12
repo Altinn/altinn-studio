@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+    <Project Path="src/Altinn.Studio.Fleet.Cli/Altinn.Studio.Fleet.Cli.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Altinn.Studio.Fleet.Tests/Altinn.Studio.Fleet.Tests.csproj" />
+  </Folder>
+  <Folder Name="/common/">
+    <Project Path="../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
+  </Folder>
+</Solution>
