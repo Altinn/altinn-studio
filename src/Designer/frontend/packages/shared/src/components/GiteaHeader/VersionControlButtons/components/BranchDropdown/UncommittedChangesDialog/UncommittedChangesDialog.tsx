@@ -5,7 +5,7 @@ import {
   StudioParagraph,
   StudioHeading,
   StudioAlert,
-} from '@studio/components';
+} from '@designer/components';
 import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/api/BranchTypes';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { FileChangesTable } from '../../FileChangesTable';

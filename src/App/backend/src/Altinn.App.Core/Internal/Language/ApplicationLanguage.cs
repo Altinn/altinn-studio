@@ -9,10 +9,9 @@ namespace Altinn.App.Core.Internal.Language;
 /// </summary>
 internal sealed class ApplicationLanguage : IApplicationLanguage
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly AppFilesAccessor _appFiles;
     private readonly Telemetry? _telemetry;

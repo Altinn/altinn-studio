@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
 import { isField, isObject, isReference } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from '@studio/hooks';
+import { usePrevious } from '@designer/hooks';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { AddPropertiesMenu } from '../../AddPropertiesMenu';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import type { UiSchemaNode } from '@altinn/schema-model/types';
 import { useTranslation } from 'react-i18next';
 

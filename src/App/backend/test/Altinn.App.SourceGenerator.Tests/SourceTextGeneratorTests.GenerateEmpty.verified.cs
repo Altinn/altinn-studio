@@ -115,6 +115,22 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
         );
     }
 
+    /// <inheritdoc />
+    public void CopyFrom(object dataModel)
+    {
+        if (dataModel is not global::Altinn.App.SourceGenerator.Tests.Empty source)
+        {
+            throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Tests.Empty, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+
+        if (ReferenceEquals(source, _dataModel))
+        {
+            return;
+        }
+    }
+
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
     private static global::Altinn.App.SourceGenerator.Tests.Empty? CopyRecursive(
         global::Altinn.App.SourceGenerator.Tests.Empty? data

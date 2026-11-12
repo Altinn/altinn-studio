@@ -38,21 +38,9 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             var page = Path.GetFileNameWithoutExtension(document.FilePath);
             foreach (var component in NavigationComponents(components))
             {
-                var type = StringValue(component["type"]);
-                var properties = string.Equals(type, "NavigationButtons", StringComparison.OrdinalIgnoreCase)
-                    ? new[]
-                    {
-                        ("validateOnNext", NavigationDirection.Forward),
-                        ("validateOnPrevious", NavigationDirection.Backward),
-                    }
-                    :
-                    [
-                        ("validateOnForward", NavigationDirection.Forward),
-                        ("validateOnBackward", NavigationDirection.Backward),
-                    ];
-                foreach (var (property, direction) in properties)
+                foreach (var (property, config, trigger) in ValidationSettings(component))
                 {
-                    if (component[property] is null || !CanNavigate(data, component, page, order, direction))
+                    if (config is null || !CanNavigate(data, component, page, order, trigger))
                         continue;
 
                     var inherited = InheritedSetting(data, document.FilePath, settings, workspace.UiDirectory);
@@ -60,9 +48,9 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
                         continue;
 
                     AnalyzeSetting(
-                        component,
-                        property,
-                        direction,
+                        $"component '{StringValue(component["id"]) ?? "<missing id>"}', {property}",
+                        config,
+                        trigger,
                         new PageContext(document.FilePath, page, order),
                         inherited,
                         messages
@@ -85,26 +73,22 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
     }
 
     private void AnalyzeSetting(
-        JsonObject component,
-        string property,
-        NavigationDirection direction,
+        string settingLocation,
+        JsonNode config,
+        ValidationTrigger trigger,
         PageContext context,
         InheritedValidation inherited,
         List<UpgradeMessage> messages
     )
     {
-        var id = StringValue(component["id"]) ?? "<missing id>";
-        var location = $"{DisplayPath(context.File)}, component '{id}', {property}";
+        var location = $"{DisplayPath(context.File)}, {settingLocation}";
         if (inherited.Error is { } error)
         {
             messages.Todo($"{location}: could not determine inherited validation for v9. {error} Settings unchanged.");
             return;
         }
 
-        if (
-            !TryReadValidation(component[property], out var after)
-            || !TryReadValidation(inherited.Config, out var before)
-        )
+        if (!TryReadValidation(config, out var after) || !TryReadValidation(inherited.Config, out var before))
         {
             messages.Todo(
                 $"{location}: could not compare with {inherited.Level}-level validation in {DisplayPath(inherited.File)}. Expected a valid page scope and validation type list. Settings unchanged."
@@ -118,16 +102,56 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             before.Page == after.Page
             || (beforePages is not null && afterPages is not null && beforePages.SetEquals(afterPages));
         // Frontend errors with category 0 match every validation mask, including an empty show list.
-        if (direction == NavigationDirection.Forward && before.Categories == after.Categories && samePages)
+        if (trigger != ValidationTrigger.BackwardNavigation && before.Categories == after.Categories && samePages)
             return;
 
         var difference =
-            direction == NavigationDirection.Backward
+            trigger == ValidationTrigger.BackwardNavigation
                 ? $"Backward navigation will now check {DescribeCategories(after.Categories)} on {DescribePages(after.Page)}. Previously, this component allowed backward navigation without validation."
-                : DescribeForward(before, after, samePages);
+                : DescribeChange(before, after, samePages, trigger);
         messages.Todo(
             $"{location}: overrides {inherited.Level}-level validation in {DisplayPath(inherited.File)} in v9. {difference} Settings unchanged."
         );
+    }
+
+    private static IEnumerable<(string Property, JsonNode? Config, ValidationTrigger Trigger)> ValidationSettings(
+        JsonObject component
+    )
+    {
+        var type = StringValue(component["type"]);
+        if (string.Equals(type, "CustomButton", StringComparison.OrdinalIgnoreCase))
+        {
+            if (component["actions"] is not JsonArray actions)
+                yield break;
+            for (var index = 0; index < actions.Count; index++)
+            {
+                if (actions[index] is not JsonObject action)
+                    continue;
+                var id = StringValue(action["id"]);
+                var trigger = StringValue(action["type"]) switch
+                {
+                    "ClientAction" when id == "previousPage" => ValidationTrigger.BackwardNavigation,
+                    "ClientAction" when id == "nextPage" => ValidationTrigger.ForwardNavigation,
+                    _ => ValidationTrigger.Action,
+                };
+                yield return ($"actions[{index}].validation (action '{id}')", action["validation"], trigger);
+            }
+            yield break;
+        }
+
+        var properties = string.Equals(type, "NavigationButtons", StringComparison.OrdinalIgnoreCase)
+            ? new[]
+            {
+                ("validateOnNext", ValidationTrigger.ForwardNavigation),
+                ("validateOnPrevious", ValidationTrigger.BackwardNavigation),
+            }
+            :
+            [
+                ("validateOnForward", ValidationTrigger.ForwardNavigation),
+                ("validateOnBackward", ValidationTrigger.BackwardNavigation),
+            ];
+        foreach (var (property, trigger) in properties)
+            yield return (property, component[property], trigger);
     }
 
     private InheritedValidation? InheritedSetting(JsonObject data, string layout, SettingsFile task, string ui)
@@ -191,6 +215,7 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
             if (
                 string.Equals(type, "NavigationButtons", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(type, "NavigationBar", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(type, "CustomButton", StringComparison.OrdinalIgnoreCase)
             )
                 yield return obj;
             foreach (var child in obj.Select(property => property.Value).OfType<JsonNode>())
@@ -214,23 +239,23 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         JsonObject component,
         string page,
         string[]? order,
-        NavigationDirection direction
+        ValidationTrigger trigger
     )
     {
         if (IsTrue(data["hidden"]) || IsTrue(component["hidden"]))
             return false;
         if (
-            direction == NavigationDirection.Backward
+            trigger == ValidationTrigger.BackwardNavigation
             && string.Equals(StringValue(component["type"]), "NavigationButtons", StringComparison.OrdinalIgnoreCase)
             && component["showBackButton"] is JsonValue back
             && back.TryGetValue<bool>(out var showBack)
             && !showBack
         )
             return false;
-        if (order is null)
+        if (trigger == ValidationTrigger.Action || order is null)
             return true;
         var index = Array.IndexOf(order, page);
-        return index >= 0 && (direction == NavigationDirection.Forward ? index < order.Length - 1 : index > 0);
+        return index >= 0 && (trigger == ValidationTrigger.ForwardNavigation ? index < order.Length - 1 : index > 0);
     }
 
     private static bool IsTrue(JsonNode? node) =>
@@ -288,19 +313,20 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
         return true;
     }
 
-    private static string DescribeForward(Validation before, Validation after, bool samePages)
+    private static string DescribeChange(Validation before, Validation after, bool samePages, ValidationTrigger trigger)
     {
+        var subject = trigger == ValidationTrigger.Action ? "This action" : "Forward navigation";
         var changes = new List<string>();
         if (!samePages)
             changes.Add(
-                $"Forward navigation will validate {DescribePages(after.Page)} instead of {DescribePages(before.Page)}."
+                $"{subject} will validate {DescribePages(after.Page)} instead of {DescribePages(before.Page)}."
             );
         var added = after.Categories & ~before.Categories;
         var removed = before.Categories & ~after.Categories;
         if (added != Categories.None)
-            changes.Add($"Forward navigation will also check {DescribeCategories(added)}.");
+            changes.Add($"{subject} will also check {DescribeCategories(added)}.");
         if (removed != Categories.None)
-            changes.Add($"Forward navigation will no longer check {DescribeCategories(removed)}.");
+            changes.Add($"{subject} will no longer check {DescribeCategories(removed)}.");
         return string.Join(" ", changes);
     }
 
@@ -340,10 +366,11 @@ internal sealed class NavigationValidationAdvisor(string projectFolder)
 
     private string DisplayPath(string file) => Path.GetRelativePath(projectFolder, file).Replace('\\', '/');
 
-    private enum NavigationDirection
+    private enum ValidationTrigger
     {
-        Forward,
-        Backward,
+        ForwardNavigation,
+        BackwardNavigation,
+        Action,
     }
 
     private sealed record SettingsFile(string File, JsonObject? Root, string? Error = null);

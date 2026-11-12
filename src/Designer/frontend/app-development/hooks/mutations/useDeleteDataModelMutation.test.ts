@@ -12,7 +12,7 @@ import {
   createJsonMetadataMock,
   createXsdMetadataMock,
 } from 'app-shared/mocks/dataModelMetadataMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const modelName = 'modelName';
 const modelJsonPath = createJsonModelPathMock(modelName);

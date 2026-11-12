@@ -1,5 +1,5 @@
 import { GIT_BRANCH_VALIDATION } from 'app-shared/constants/gitBranchValidation';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 export interface ValidationResult {
   isValid: boolean;

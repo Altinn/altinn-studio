@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { PublishedApplicationDetails } from 'admin/features/apps/types/PublishedApplicationDetails';
 import { appDetailsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import axios from 'axios';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 
 export const useAppDetailsQuery = (
   org: string,
@@ -13,7 +13,8 @@ export const useAppDetailsQuery = (
   return useQuery<PublishedApplicationDetails>({
     queryKey: [QueryKey.PublishedAppDetails, org, env, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<PublishedApplicationDetails>(appDetailsPath(org, env, app), { signal }))
-        .data,
+      await getAdminResource<PublishedApplicationDetails>(appDetailsPath(org, env, app), {
+        signal,
+      }),
   });
 };

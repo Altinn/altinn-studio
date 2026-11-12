@@ -1149,8 +1149,7 @@ public class DataController : ControllerBase
         // Run data processors keeping track of changes for diff return
         var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
         await _patchService.RunDataProcessors(dataMutator, new DataElementChanges([requestedChange]), taskId, language);
-        // A processor may have replaced the form's data, so compare with the object the save writes.
-        var jsonAfterDataProcessors = JsonSerializer.Serialize(await dataMutator.GetFormData(dataElement));
+        var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 
         if (dataMutator.GetAbandonResponse() is { } abandonResponse)
         {

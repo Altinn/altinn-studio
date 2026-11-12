@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './RepoNameInput.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph, StudioTextfield } from '@studio/components';
+import { StudioParagraph, StudioTextfield } from '@designer/components';
 
 type RepoNameInputProps = {
   repoName?: string;

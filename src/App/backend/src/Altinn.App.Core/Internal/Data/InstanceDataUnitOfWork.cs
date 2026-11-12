@@ -90,16 +90,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedProcessingRelease;
     private bool _stagedInstanceDeletion;
     private bool _stagedCompleteConfirmation;
-    private readonly ConcurrentDictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, string?> _stagedInstancePresentationTexts = new(
-        StringComparer.Ordinal
-    );
+    private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _stagedInstancePresentationTexts = new(StringComparer.Ordinal);
 
-    // The instance's data values and presentation texts are plain dictionaries that the setters change in place.
-    private readonly Lock _instanceFieldsLock = new();
-
-    // Metadata changes per data element, existing or staged for creation, merged per property.
-    private readonly ConcurrentDictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
+    private readonly Dictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -197,20 +191,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <inheritdoc />
-    public async Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model)
+    public async Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
+        where T : class
     {
         ArgumentNullException.ThrowIfNull(model);
-        if (
-            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
-            && _changesForCreation.Any(change => change.DataElementIdentifier == dataElementIdentifier)
-        )
+        if (GetUnsavedCreation(dataElementIdentifier) is not null)
         {
             throw new InvalidOperationException(
                 $"Data element {dataElementIdentifier.Id} is added in this unit of work and cannot be replaced; change the object passed to AddFormDataElement instead"
             );
         }
 
-        DataElement dataElement = GetDataElement(dataElementIdentifier);
         if (_changesForDeletion.Any(change => change.DataElementIdentifier == dataElementIdentifier))
         {
             throw new InvalidOperationException(
@@ -234,11 +225,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        IFormDataWrapper replacement = FormDataWrapperFactory.Create(model, dataType, dataElement).Copy();
-        // The save compares the replacement with the persisted bytes, which loading the element caches.
-        await GetFormDataWrapper(dataElementIdentifier);
-        replacement.InitializeAltinnRowIds();
-        SetFormData(dataElementIdentifier, replacement);
+        IFormDataWrapper formData = await GetFormDataWrapper(dataElementIdentifier);
+        formData.CopyFrom(model);
+        formData.InitializeAltinnRowIds();
+        return formData.BackingData<T>();
     }
 
     /// <inheritdoc />
@@ -537,10 +527,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             return;
         }
 
-        _stagedMetadataUpdates.AddOrUpdate(
-            dataElementIdentifier,
-            static (_, update) => MergeMetadataUpdate(previous: null, update),
-            static (_, previous, update) => MergeMetadataUpdate(previous, update),
+        _stagedMetadataUpdates[dataElementIdentifier] = MergeMetadataUpdate(
+            _stagedMetadataUpdates.GetValueOrDefault(dataElementIdentifier),
             update
         );
 
@@ -580,28 +568,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             update.Filename ?? previous?.Filename
         );
 
-    private DataElement GetDataElementOrStagedCreation(DataElementIdentifier dataElementIdentifier)
-    {
-        if (
-            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
-            && _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier)
-                is { DataElement: { } stagedDataElement }
-        )
-        {
-            return stagedDataElement;
-        }
+    private DataElement GetDataElementOrStagedCreation(DataElementIdentifier dataElementIdentifier) =>
+        GetUnsavedCreation(dataElementIdentifier)?.DataElement ?? GetDataElement(dataElementIdentifier);
 
-        return GetDataElement(dataElementIdentifier);
-    }
+    // A user save leaves its creations tracked, with the saved element on the instance.
+    private DataElementChange? GetUnsavedCreation(DataElementIdentifier dataElementIdentifier) =>
+        Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
+            ? null
+            : _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier);
 
     private void ValidateMetadataUpdate(DataElementMetadataUpdate update)
     {
         foreach (Guid reference in update.Refs ?? [])
         {
-            if (
-                !Instance.Data.Exists(dataElement => dataElement.Id == reference.ToString())
-                && _changesForCreation.Any(change => change.DataElementIdentifier.Guid == reference)
-            )
+            if (GetUnsavedCreation(new DataElementIdentifier(reference)) is not null)
             {
                 throw new InvalidOperationException(
                     $"Data element {reference} is added in this unit of work and cannot be referred to: its id is assigned when the instance is saved"
@@ -734,16 +714,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedCompleteConfirmation = true;
     }
 
-    internal void UpdateInstanceDataValue(string key, string? value)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        _stagedInstanceDataValues[key] = value;
-    }
-
     /// <inheritdoc />
     /// <remarks>
-    /// The save derives the keys in <c>dataFields</c> from the cached form data each time, which would
-    /// overwrite an explicit value in the next save, so such keys are refused.
+    /// Every save derives the keys in <c>dataFields</c> from the form data, which would overwrite a value set here.
     /// </remarks>
     public void SetDataValue(string key, string? value)
     {
@@ -755,11 +728,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        lock (_instanceFieldsLock)
-        {
-            _stagedInstanceDataValues[key] = value;
-            Instance.DataValues = SetInstanceField(Instance.DataValues, key, value);
-        }
+        _stagedInstanceDataValues[key] = value;
+        Instance.DataValues = SetInstanceField(Instance.DataValues, key, value);
     }
 
     /// <inheritdoc />
@@ -776,11 +746,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        lock (_instanceFieldsLock)
-        {
-            _stagedInstancePresentationTexts[key] = value;
-            Instance.PresentationTexts = SetInstanceField(Instance.PresentationTexts, key, value);
-        }
+        _stagedInstancePresentationTexts[key] = value;
+        Instance.PresentationTexts = SetInstanceField(Instance.PresentationTexts, key, value);
     }
 
     private static Dictionary<string, string?>? SetInstanceField(
@@ -805,14 +772,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
 
     /// <summary>
-    /// Whether a save would write something a command or app code staged: the element changes, or a change to
-    /// element metadata, data values, presentation texts or the complete confirmation.
+    /// Whether a save would write a data element change, element metadata, a data value, a presentation text or a
+    /// complete confirmation. Lock statuses, instance deletion and process state are not checked.
     /// </summary>
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0
-        || !_stagedMetadataUpdates.IsEmpty
-        || !_stagedInstanceDataValues.IsEmpty
-        || !_stagedInstancePresentationTexts.IsEmpty
+        || _stagedMetadataUpdates.Count > 0
+        || _stagedInstanceDataValues.Count > 0
+        || _stagedInstancePresentationTexts.Count > 0
         || _stagedCompleteConfirmation;
 
     /// <summary>
@@ -1245,23 +1212,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             ContentType = change.ContentType,
                             // A content update replaces the element's refs and task reference, so send the
                             // current ones back or the update would drop them.
-                            Refs = stagedMetadata?.Refs ?? change.DataElement.Refs,
+                            Refs = change.DataElement.Refs,
                             GeneratedFromTask = change
                                 .DataElement.References?.Find(reference =>
                                     reference.Relation == RelationType.GeneratedFrom
                                     && reference.ValueType == ReferenceType.Task
                                 )
                                 ?.Value,
-                            Filename =
-                                stagedMetadata?.Filename
-                                ?? change switch
-                                {
-                                    BinaryDataChange binaryDataChange => binaryDataChange.FileName,
-                                    FormDataChange => change.DataElement.Filename,
-                                    _ => throw new UnreachableException(
-                                        "ChangeType.Updated must be a form or binary data change"
-                                    ),
-                                },
+                            Filename = change.DataElement.Filename,
                             Metadata = stagedMetadata?.Metadata,
                             UserDefinedMetadata = stagedMetadata?.UserDefinedMetadata,
                             Tags = stagedMetadata?.Tags,

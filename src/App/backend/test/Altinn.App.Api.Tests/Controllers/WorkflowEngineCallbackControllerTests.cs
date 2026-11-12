@@ -1260,13 +1260,38 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
-    [Theory]
-    [InlineData("dataValue")]
-    [InlineData("presentationText")]
-    [InlineData("elementMetadata")]
-    [InlineData("completeConfirmation")]
-    public async Task ExecuteCommand_ServiceTaskDefersAfterStagingAnInstanceChange_ReturnsNonRetryableProblem(
-        string stagedChange
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterAddingADataElement_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, _) => mutator.AddBinaryDataElement(DataTypeId, ContentType, "added.json", "{}"u8.ToArray())
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingADataValue_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem((mutator, _) => mutator.SetDataValue("status", "sent"));
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingAPresentationText_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, _) => mutator.SetPresentationText("status", "Sent")
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterUpdatingElementMetadata_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, dataElement) =>
+                mutator.UpdateDataElementMetadata(dataElement, new DataElementMetadataUpdate { Tags = ["sent"] })
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterStagingACompleteConfirmation_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            // Built-in service tasks such as eFormidling stage the confirmation.
+            (mutator, _) => Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation()
+        );
+
+    private static async Task AssertDeferralAfterStagingReturnsNonRetryableProblem(
+        Action<IInstanceDataMutator, DataElement> stageChange
     )
     {
         var dataElement = new DataElement
@@ -1278,7 +1303,7 @@ public class WorkflowEngineCallbackControllerTests
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
-                services.Services.AddSingleton<IServiceTask>(new DeferringServiceTask(stagedChange, dataElement));
+                services.Services.AddSingleton<IServiceTask>(new DeferringServiceTask(stageChange, dataElement));
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
                     serviceProvider.GetRequiredService<AppImplementationFactory>(),
                     new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
@@ -1525,7 +1550,10 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class DeferringServiceTask(string stagedChange, DataElement dataElement) : IServiceTask
+    private sealed class DeferringServiceTask(
+        Action<IInstanceDataMutator, DataElement> stageChange,
+        DataElement dataElement
+    ) : IServiceTask
     {
         public const string ServiceTaskType = "DeferAfterStagingForCallbackTest";
 
@@ -1535,26 +1563,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
-            IInstanceDataMutator mutator = context.InstanceDataMutator;
-            switch (stagedChange)
-            {
-                case "dataValue":
-                    mutator.SetDataValue("status", "sent");
-                    break;
-                case "presentationText":
-                    mutator.SetPresentationText("status", "Sent");
-                    break;
-                case "elementMetadata":
-                    mutator.UpdateDataElementMetadata(dataElement, new DataElementMetadataUpdate { Tags = ["sent"] });
-                    break;
-                case "completeConfirmation":
-                    // Built-in service tasks such as eFormidling stage the confirmation.
-                    Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(stagedChange));
-            }
-
+            stageChange(context.InstanceDataMutator, dataElement);
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)));
         }
     }

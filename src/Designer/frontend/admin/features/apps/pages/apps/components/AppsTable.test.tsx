@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppsTable, type AppsTableProps } from './AppsTable';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import axios from 'axios';
-import type { AxiosStatic } from 'axios';
+import { get } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { OrgContext } from 'admin/contexts/OrgContext';
@@ -39,10 +38,10 @@ const defaultProps: AppsTableProps = {
   org,
 };
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+}));
 vi.mock('admin/features/apps/hooks/useQueryParamState');
 
 const mockSetRange = vi.fn();
@@ -63,6 +62,7 @@ describe('AppsTable', () => {
 
   describe('Metrics', () => {
     it('should render loading state', () => {
+      vi.mocked(get).mockReturnValue(new Promise(() => {}));
       const queryClient = createQueryClientMock();
 
       queryClient.setQueryData([QueryKey.PublishedApps, org], {
@@ -82,8 +82,8 @@ describe('AppsTable', () => {
     });
 
     it('should render error state with danger alert for non-403 errors', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-      (axios.get as Mock).mockRejectedValue(axiosError);
+      const apiError = createApiErrorMock(ServerCodes.InternalServerError);
+      vi.mocked(get).mockRejectedValue(apiError);
 
       const queryClient = createQueryClientMock();
 
@@ -110,8 +110,8 @@ describe('AppsTable', () => {
     });
 
     it('should render info alert when missing rights', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as Mock).mockRejectedValue(axiosError);
+      const apiError = createApiErrorMock(ServerCodes.Forbidden);
+      vi.mocked(get).mockRejectedValue(apiError);
 
       const queryClient = createQueryClientMock();
 
@@ -142,8 +142,8 @@ describe('AppsTable', () => {
     });
 
     it('should use org username when full name is missing in missing rights alert', async () => {
-      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as Mock).mockRejectedValue(axiosError);
+      const apiError = createApiErrorMock(ServerCodes.Forbidden);
+      vi.mocked(get).mockRejectedValue(apiError);
 
       const queryClient = createQueryClientMock();
 

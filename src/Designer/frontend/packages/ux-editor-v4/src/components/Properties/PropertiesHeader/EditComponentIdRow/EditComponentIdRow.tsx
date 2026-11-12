@@ -3,7 +3,7 @@ import {
   StudioAlert,
   StudioToggleableTextfieldSchema,
   type SchemaValidationError,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';

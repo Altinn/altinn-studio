@@ -1,5 +1,5 @@
-import type { LogicalTupleFunc } from '@studio/components';
-import { GeneralRelationOperator, LogicalTupleOperator } from '@studio/components';
+import type { LogicalTupleFunc } from '@designer/components';
+import { GeneralRelationOperator, LogicalTupleOperator } from '@designer/components';
 
 const stringValue = 'some-string-value';
 const numberValue = 1024;

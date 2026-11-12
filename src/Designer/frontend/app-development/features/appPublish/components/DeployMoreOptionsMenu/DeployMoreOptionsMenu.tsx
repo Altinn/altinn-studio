@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import {
   ArrowsCirclepathIcon,
   CloudSlashIcon,
   ExternalLinkIcon,
   MenuElipsisVerticalIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { UndeployDialog } from '../UndeployDialog';
 import { RestartAppDialog } from '../RestartAppDialog';
 import classes from './DeployMoreOptionsMenu.module.css';

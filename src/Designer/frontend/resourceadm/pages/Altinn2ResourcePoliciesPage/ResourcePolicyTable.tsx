@@ -1,7 +1,7 @@
 import { startTransition, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PackageIcon, PersonTallShortIcon } from '@navikt/aksel-icons';
-import { StudioButton, StudioDialog, StudioTableLocalPagination } from '@studio/components';
+import { StudioButton, StudioDialog, StudioTableLocalPagination } from '@designer/components';
 import { deprecatedAltinn2Roles } from 'app-shared/utils/altinn2RoleUtils';
 import { useResourceAccessPackagesQuery } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';

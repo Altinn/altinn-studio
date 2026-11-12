@@ -352,6 +352,63 @@ public sealed class NavigationValidationAdvisorTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData("nextPage", "ClientAction", CurrentAll, CurrentRequired, "Forward navigation will also check")]
+    [InlineData("navigateToPage", "ClientAction", CurrentAll, CurrentRequired, "This action will also check")]
+    [InlineData("closeSubform", "ClientAction", CurrentAll, CurrentRequired, "This action will also check")]
+    [InlineData("save", "ServerAction", CurrentRequired, CurrentAll, "This action will no longer check")]
+    [InlineData("previousPage", "ServerAction", CurrentAll, CurrentRequired, "This action will also check")]
+    [InlineData("previousPage", "ClientAction", CurrentAll, CurrentAll, "Backward navigation will now check")]
+    [InlineData("previousPage", "ClientAction", CurrentEmpty, CurrentAll, "validation errors shown immediately")]
+    [InlineData("nextPage", "ClientAction", CurrentAll, CurrentAll, null)]
+    [InlineData("save", "ServerAction", CurrentAll, CurrentAll, null)]
+    [InlineData("nextPage", "ClientAction", CurrentAll, null, null)]
+    public async Task CustomButton_ReportsOnlyChangedLayoutActionValidation(
+        string id,
+        string type,
+        string validation,
+        string? inherited,
+        string? expectedEffect
+    )
+    {
+        Settings(inherited);
+        Page(
+            new JsonObject
+            {
+                ["id"] = "custom",
+                ["type"] = "CustomButton",
+                ["actions"] = new JsonArray(
+                    new JsonObject { ["id"] = "save", ["type"] = "ServerAction" },
+                    new JsonObject
+                    {
+                        ["id"] = id,
+                        ["type"] = type,
+                        ["validation"] = JsonNode.Parse(validation),
+                        ["metadata"] = new JsonObject { ["page"] = "A" },
+                    }
+                ),
+            }
+        );
+        var original = _app.Read("ui/Task_1/layouts/B.json");
+
+        var result = await Analyze();
+
+        if (expectedEffect is null)
+            Assert.Empty(result.Messages);
+        else
+        {
+            var todo = Assert.Single(result.Todos);
+            Assert.Contains(
+                "component 'custom', actions[1].validation (action '" + id + "')",
+                todo,
+                StringComparison.Ordinal
+            );
+            Assert.Contains(expectedEffect, todo, StringComparison.Ordinal);
+            Assert.True(result.RequiresManualFollowUp);
+        }
+        Assert.Equal(original, _app.Read("ui/Task_1/layouts/B.json"));
+    }
+
     [Fact]
     public async Task NoUi_IsSilent() => Assert.Empty((await Analyze()).Messages);
 

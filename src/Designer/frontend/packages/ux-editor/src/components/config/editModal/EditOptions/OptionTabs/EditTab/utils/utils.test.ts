@@ -4,8 +4,8 @@ import {
   createTextResourceWithLanguage,
   convertTextResourceToMutationArgs,
 } from './utils';
-import type { TextResources, TextResourceWithLanguage } from '@studio/content-library';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResources, TextResourceWithLanguage } from '@designer/content-library';
+import type { TextResource } from '@designer/pure-functions';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 // Test data:

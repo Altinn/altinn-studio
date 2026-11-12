@@ -16,8 +16,7 @@ Each app is a .NET project in its own repository, built on the backend libraries
 
 The backend, frontend and v9 template are for v9 apps. v8 apps use the libraries in
 [app-lib-dotnet](https://github.com/Altinn/app-lib-dotnet) and the frontend in
-[app-frontend-react](https://github.com/Altinn/app-frontend-react). Backend fixes for v8 land in app-lib-dotnet first,
-and we merge them into the backend here as [upstream sync](docs/upstream-sync.md) describes.
+[app-frontend-react](https://github.com/Altinn/app-frontend-react).
 
 - The `Altinn.App.Api` package carries the frontend build, and an app serves it as static files.
 - An app runs process transitions through the [workflow engine](../Runtime/workflow-engine/README.md), which calls

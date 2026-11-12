@@ -3,8 +3,7 @@ using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// New values for a data element's metadata; a null property keeps the current value, so an update with every
-/// property null changes nothing.
+/// New values for a data element's metadata. A null property keeps the current value.
 /// </summary>
 public sealed record DataElementMetadataUpdate
 {

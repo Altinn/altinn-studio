@@ -62,8 +62,7 @@ and returns the re-signed state.
 - Commands and app hooks stage changes on the instance data unit of work and never write to Storage. While the
   instance is processing, Storage rejects data and process writes that do not come from the workflow's own save.
 - Keys derived from `dataFields`/`presentationFields` cannot be set through the mutator, because every save derives
-  them again from the cached forms. A content update carries the element's refs and generated-from task again, since
-  Storage sets both from it.
+  them again from the cached forms.
 - A deferral saves nothing and returns the incoming state, so the next attempt starts where this one did. A deferring
   step that staged any change, such as a data value or element metadata, fails with a 422.
 

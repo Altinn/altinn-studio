@@ -21,7 +21,6 @@
 !src/cli/.editorconfig
 !src/cli/Directory.Build.props
 !src/cli/Directory.Packages.props
-!src/cli/common/dotnet/.editorconfig
 !src/cli/common/dotnet/Directory.Build.props
 !src/cli/common/dotnet/Altinn.Studio.AppDist
 !src/cli/common/dotnet/Altinn.Studio.AppDist/**

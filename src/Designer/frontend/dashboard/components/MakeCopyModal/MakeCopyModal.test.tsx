@@ -12,7 +12,7 @@ import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
 
 vi.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery');

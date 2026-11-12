@@ -773,6 +773,27 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         );
     }
 
+    /// <inheritdoc />
+    public void CopyFrom(object dataModel)
+    {
+        if (dataModel is not global::Altinn.App.SourceGenerator.Tests.Skjema source)
+        {
+            throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Tests.Skjema, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+
+        if (ReferenceEquals(source, _dataModel))
+        {
+            return;
+        }
+
+        _dataModel.Skjemanummer = source.Skjemanummer;
+        _dataModel.Skjemaversjon = source.Skjemaversjon;
+        _dataModel.Skjemainnhold = CopyRecursive(source.Skjemainnhold);
+        _dataModel.EierAdresse = CopyRecursive(source.EierAdresse);
+    }
+
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
     private static global::Altinn.App.SourceGenerator.Tests.Skjema? CopyRecursive(
         global::Altinn.App.SourceGenerator.Tests.Skjema? data

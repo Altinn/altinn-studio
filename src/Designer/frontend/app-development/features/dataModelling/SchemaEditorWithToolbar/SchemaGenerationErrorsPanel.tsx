@@ -1,12 +1,12 @@
 import classes from './SchemaGenerationErrorsPanel.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioCloseIcon } from '@studio/icons';
+import { StudioCloseIcon } from '@designer/icons';
 import {
   StudioButton,
   StudioError,
   StudioParagraph,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 
 export interface SchemaGenerationErrorsPanelProps {
   onCloseErrorsPanel: () => void;

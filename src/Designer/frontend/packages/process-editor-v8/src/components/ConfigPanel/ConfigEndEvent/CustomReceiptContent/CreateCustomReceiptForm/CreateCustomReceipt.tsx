@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CreateCustomReceipt.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';

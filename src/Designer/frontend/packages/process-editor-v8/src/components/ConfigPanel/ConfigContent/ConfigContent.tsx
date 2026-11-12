@@ -7,7 +7,7 @@ import {
   StudioDetails,
   StudioDisplayTile,
   useStudioRecommendedNextActionContext,
-} from '@studio/components';
+} from '@designer/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { EditActions } from './EditActions';

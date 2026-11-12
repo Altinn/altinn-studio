@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesTableProps } from './FileChangesTable';
 import { FileChangesTable } from './FileChangesTable';

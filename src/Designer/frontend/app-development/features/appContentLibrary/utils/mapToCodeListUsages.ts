@@ -1,5 +1,5 @@
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import type { CodeListReference } from '@studio/content-library';
+import type { CodeListReference } from '@designer/content-library';
 
 export const mapToCodeListUsages = (
   optionListUsages: OptionListReferences,

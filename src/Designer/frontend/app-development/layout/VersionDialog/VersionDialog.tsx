@@ -7,10 +7,10 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioTable,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLocalStorage } from '@studio/hooks';
+import { useLocalStorage } from '@designer/hooks';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionDialog.module.css';
 import cn from 'classnames';

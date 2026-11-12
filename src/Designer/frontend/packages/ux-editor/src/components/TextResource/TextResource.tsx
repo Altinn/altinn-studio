@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
 import { TextResourceAction } from './TextResourceAction';
 import type { TranslationKey } from 'language/type';

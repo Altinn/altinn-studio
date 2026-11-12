@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon } from '@designer/icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks/useAppContext';
-import { StudioButton, StudioFieldset, StudioTextarea } from '@studio/components';
+import { StudioButton, StudioFieldset, StudioTextarea } from '@designer/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();

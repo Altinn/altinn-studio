@@ -56,6 +56,22 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task UpdateBinaryDataElement_SendsTheElementsFilename()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
+        Assert.Equal("payment.json", update.Filename);
+    }
+
+    [Fact]
     public async Task Init_WithStorageVersions_CapturesProvidedSnapshot()
     {
         StorageVersionMetadata metadata = new(InstanceVersion: 7, ProcessStateVersion: 3);
@@ -1362,7 +1378,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
             seedStorageVersions: true,
             blobVersionId: BlobVersion(1)
         );
-        setup.DataMutator.UpdateInstanceDataValue("eFormidlingShipmentStatus", "levert");
+        setup.DataMutator.SetDataValue("eFormidlingShipmentStatus", "levert");
         setup.DataMutator.AddCompleteConfirmation();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -2336,7 +2352,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
             Encoding.UTF8.GetBytes("""{"status":"attempt-two"}""")
         );
         Guid stagedDataElementId = createdChange.DataElementIdentifier.Guid;
-        unitOfWork.UpdateInstanceDataValue("attempt", "two");
+        unitOfWork.SetDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>

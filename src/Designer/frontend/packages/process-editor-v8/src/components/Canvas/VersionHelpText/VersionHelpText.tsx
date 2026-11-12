@@ -1,5 +1,5 @@
 import classes from './VersionHelpText.module.css';
-import { StudioHelpText, StudioParagraph } from '@studio/components';
+import { StudioHelpText, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 

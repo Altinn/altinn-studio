@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
-import { UploadIcon, CheckmarkIcon } from '@studio/icons';
+import { UploadIcon, CheckmarkIcon } from '@designer/icons';
 import { BuildSource } from '../components/BuildSource';
 import {
   StudioError,
@@ -13,7 +13,7 @@ import {
   StudioParagraph,
   StudioPopover,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';

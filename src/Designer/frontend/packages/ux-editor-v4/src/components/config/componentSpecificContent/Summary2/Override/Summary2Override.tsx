@@ -1,4 +1,4 @@
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
@@ -6,7 +6,7 @@ import type {
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
-import { PlusCircleIcon } from '@studio/icons';
+import { PlusCircleIcon } from '@designer/icons';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

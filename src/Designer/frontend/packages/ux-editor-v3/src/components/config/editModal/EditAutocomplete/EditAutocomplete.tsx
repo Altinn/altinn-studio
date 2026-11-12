@@ -2,7 +2,7 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
-import { StudioSelect, type StudioSelectProps } from '@studio/components';
+import { StudioSelect, type StudioSelectProps } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { updateAutocomplete } from './updateAutocomplete';
 import { autocompleteOptions } from './autocompleteOptions';

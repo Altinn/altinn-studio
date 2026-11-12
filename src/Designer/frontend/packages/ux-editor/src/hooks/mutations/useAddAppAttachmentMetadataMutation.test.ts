@@ -3,7 +3,7 @@ import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetada
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const metadata: ApplicationAttachmentMetadata = {

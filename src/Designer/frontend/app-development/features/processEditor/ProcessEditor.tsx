@@ -2,7 +2,7 @@ import React from 'react';
 import { ProcessEditor as ProcessEditorLatest } from '@altinn/process-editor';
 import { ProcessEditor as ProcessEditorV8 } from '@altinn/process-editor-v8';
 import { useTranslation } from 'react-i18next';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner } from '@designer/components';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { NEXT_V9_VERSION } from 'app-shared/constants';

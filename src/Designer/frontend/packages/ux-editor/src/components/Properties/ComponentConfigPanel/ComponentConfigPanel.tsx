@@ -1,7 +1,7 @@
 import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { StudioDetails } from '@studio/components';
+import { StudioDetails } from '@designer/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
