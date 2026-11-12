@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
@@ -41,6 +40,7 @@ from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import ResourceValidator, text_resource_ids, text_resource_warnings
 from agents.core.tool import LoopContext, ToolResult, WriteTool
+from agents.services.git import git_ops
 from agents.services.git.app_files import APP_FILE_ENCODING, AppFiles, CommitFiles, WorkingTreeFiles
 from shared.utils.langfuse_utils import trace_span
 
@@ -420,18 +420,9 @@ def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> _Result:
         f"{file_path}: {replacement}"
         for file_path in changed
         for pattern, replacement in forbidden_patterns.items()
-        if PurePosixPath(file_path).match(pattern) and not _exists_in_head(ctx.repo_path, file_path)
+        if PurePosixPath(file_path).match(pattern) and not git_ops.exists_in_head(ctx.repo_path, file_path)
     ]
     return _Result(not notes, notes)
-
-
-def _exists_in_head(repo_path: str, file_path: str) -> bool:
-    result = subprocess.run(
-        ["git", "cat-file", "-e", f"HEAD:{file_path}"],
-        cwd=repo_path,
-        capture_output=True,
-    )
-    return result.returncode == 0
 
 
 _CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden_new_files)
