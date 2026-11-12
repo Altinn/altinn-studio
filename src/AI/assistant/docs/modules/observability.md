@@ -4,7 +4,7 @@ Code: `src/AI/assistant/shared/utils/langfuse_utils.py`, `src/AI/assistant/api/r
 
 Each run makes one Langfuse trace. The root span is "Altinity Agent Workflow". Model calls and tool calls are child spans. The output of the root span holds the summary, the changed files, the sources and the commit hash.
 
-Four LLM-as-a-judge evaluators in Langfuse score this output: `intent_match`, `no_hallucination`, `faithful_summary` and `no_irrelevant_responses`. Their reviewed source is in `src/AI/assistant/agents/prompts/llm-as-a-judge/`. This is the online evaluation. The [benchmark](benchmarks.md) is the offline evaluation.
+LLM-as-a-judge evaluators in Langfuse score this output, for example `intent_match` and `no_hallucination`. Their reviewed source is in `src/AI/assistant/agents/prompts/llm-as-a-judge/`. This is the online evaluation. The [benchmark](benchmarks.md) is the offline evaluation.
 
 ```mermaid
 flowchart LR

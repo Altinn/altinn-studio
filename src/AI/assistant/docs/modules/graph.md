@@ -46,35 +46,7 @@ flowchart TD
 
 _From a document to the loop._
 
-```mermaid
-classDiagram
-  FormSpec "1" --> "*" FormSpecPage
-  FormSpecPage "1" --> "*" FormSpecField
-  FormSpecField "1" --> "*" FormSpecOption
-  class FormSpec {
-    title
-    language
-    total_pages
-  }
-  class FormSpecPage {
-    page_name
-    title
-    section_id
-  }
-  class FormSpecField {
-    id
-    label
-    field_type
-    required
-    data_model_binding
-  }
-  class FormSpecOption {
-    label
-    value
-  }
-```
-
-_The shape of a `FormSpec`, in `src/AI/assistant/agents/graph/state.py`._
+A `FormSpec` has pages, a page has fields, and a field can have options. `src/AI/assistant/agents/graph/state.py` defines them.
 
 ## Agentic loop node
 

@@ -90,16 +90,6 @@ flowchart LR
 
 _The main path of the workbench. The manifest says what the agent must do. The registry says which evals exist._
 
-```mermaid
-flowchart LR
-  C["check.py task_for"] -->|prompt| G["gates.py"]
-  C -->|generation| N["generation.py"]
-  C -->|planner| P["planner.py"]
-  C -->|e2e| A["agent_task.py"]
-```
-
-_One task class for each kind of eval._
-
 ## State is in memory
 
 The event buffers, the session status, the conversation history, the clone paths and the open permission prompts are Python objects in the process. The deployment has one replica. If the pod restarts, this state is lost.

@@ -58,7 +58,7 @@ Designer makes a short-lived API key for each run. The key expires after 20 minu
 
 Designer also selects the organization that the model usage of the run is recorded on, and sends it as `cost_org`. In a repository of an organization, it is that organization. In the developer's own repository, it is the one organization with access to the assistant that the developer is a member of. If the developer is a member of more than one, it is `unattributed`.
 
-Attachments go to Designer first. Designer accepts eight file types up to 20 MB each and keeps them in memory for a maximum of 30 minutes. Then it sends them as base64 in the start request.
+Attachments go to Designer first. Designer accepts PDF, Markdown, text and image files up to 20 MB each and keeps them in memory for a maximum of 30 minutes. Then it sends them as base64 in the start request.
 
 ```mermaid
 sequenceDiagram
@@ -126,7 +126,7 @@ _Two user actions during a run. The assistant service checks that the caller own
 
 A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-ai-agents.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
 
-The pod gets five secrets from Key Vault: the Azure key and four Langfuse values. The model names are not in the manifest, so they come from the defaults in code.
+The pod gets the Azure key and the Langfuse settings from Key Vault. The model names are not in the manifest, so they come from the defaults in code.
 
 ```mermaid
 flowchart LR
@@ -172,14 +172,4 @@ sequenceDiagram
 
 _One end to end eval. The items run one at a time, because each run pushes to the same test repository._
 
-GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and needs secrets. For these reasons, the bench is a local command.
-
-```mermaid
-flowchart LR
-  P["Pull request in src/AI/assistant"] --> J["Impact job"]
-  J --> B["BASELINE.json"]
-  J --> D["Digests of actor prompt and tools"]
-  J --> V{"Baseline still valid?"}
-```
-
-_The CI gate. It fails when a change moves what the bench measures and the pull request has no new `BASELINE.json`._
+GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and needs secrets. For these reasons, the bench is a local command. [Benchmarks](modules/benchmarks.md) describes the CI gate.
