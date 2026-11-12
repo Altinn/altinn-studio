@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// The response from the process engine for a <see cref="WorkflowEnqueueRequest"/>.
+/// The response from the workflow engine for a <see cref="WorkflowEnqueueRequest"/>.
 /// </summary>
 public abstract record WorkflowEnqueueResponse
 {

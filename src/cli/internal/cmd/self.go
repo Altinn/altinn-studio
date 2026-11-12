@@ -39,12 +39,15 @@ type SelfCommand struct {
 	service          *installpkg.Service
 	transition       *selfcmd.Transition
 	interactiveInput func() (io.Reader, func() error, error)
+	addToUserPath    func(dir string, out *ui.Output) (bool, error)
 }
 
 type applyBundleOptions struct {
 	TargetDir  string
 	Candidates []selfcmd.Candidate
 	WarnPath   bool
+	// AddToPath lets a Windows install add TargetDir to the user's PATH. It is false when --path chose TargetDir.
+	AddToPath bool
 }
 
 type uninstallBinaryFunc func() (installpkg.UninstallResult, error)
@@ -57,6 +60,7 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 		service:          installpkg.NewService(cfg, envInstallHooks(cfg, out)),
 		transition:       selfcmd.NewTransition(cfg, out),
 		interactiveInput: ui.InteractiveInput,
+		addToUserPath:    selfcmd.AddToUserPath,
 	}
 }
 
@@ -170,6 +174,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 
 	candidates := selfcmd.DetectCandidates(nil)
 
+	explicitPath := targetPath != ""
 	if targetPath == "" {
 		selected, err := c.resolveInstallLocation(ctx, candidates)
 		if err != nil {
@@ -181,7 +186,10 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 		targetPath = selected
 	}
 
-	return c.performInstall(ctx, targetPath, candidates)
+	// Only studioctl's own locations go on PATH. A directory reused because studioctl is on PATH there may be one an
+	// earlier --path chose.
+	addToPath := !explicitPath && selfcmd.IsCandidateLocation(targetPath, candidates)
+	return c.performInstall(ctx, targetPath, candidates, addToPath)
 }
 
 func (c *SelfCommand) resolveInstallLocation(
@@ -237,6 +245,7 @@ func (c *SelfCommand) performInstall(
 	ctx context.Context,
 	targetPath string,
 	candidates []selfcmd.Candidate,
+	addToPath bool,
 ) error {
 	bundle, err := c.service.CurrentBundle(os.Getenv(config.EnvResourcesArchive), targetPath)
 	if err != nil {
@@ -247,6 +256,7 @@ func (c *SelfCommand) performInstall(
 		TargetDir:  targetPath,
 		Candidates: candidates,
 		WarnPath:   true,
+		AddToPath:  addToPath,
 	})
 }
 
@@ -307,11 +317,8 @@ func (c *SelfCommand) applyBundle(
 				c.out.Successf("Binary installed to %s", result.BinaryPath)
 			}
 
-			if opts.WarnPath && !selfcmd.LocationInPath(opts.TargetDir, opts.Candidates) {
-				c.out.Println("")
-				c.out.Warning("This directory is not in your PATH.")
-				c.out.Println("")
-				c.out.Println(selfcmd.LocationPathInstructions(opts.TargetDir))
+			if opts.WarnPath {
+				c.addToPathOrExplain(opts)
 			}
 		},
 	})
@@ -324,6 +331,44 @@ func (c *SelfCommand) applyBundle(
 	}
 	restoreOnFailure = false
 	return nil
+}
+
+// addToPathOrExplain adds the install directory to the user's PATH on Windows. Elsewhere, or when that fails, it
+// prints how to add it unless this process already has it on PATH.
+func (c *SelfCommand) addToPathOrExplain(opts applyBundleOptions) {
+	inPath := selfcmd.LocationInPath(opts.TargetDir, opts.Candidates)
+	// This process's PATH can hold the directory for this session only, so check the user's saved PATH as well.
+	if opts.AddToPath && runtime.GOOS == osutil.OSWindows {
+		added, err := c.addToUserPath(opts.TargetDir, c.out)
+		switch {
+		case err != nil:
+			c.out.Verbosef("failed to add %s to PATH: %v", opts.TargetDir, err)
+		case added:
+			c.out.Successf(
+				"Added %s to your PATH. Terminals opened from now on will find %s.",
+				opts.TargetDir,
+				selfcmd.InstalledCommandName,
+			)
+			return
+		case !inPath:
+			c.out.Printlnf(
+				"%s is already on your PATH. Terminals opened from now on will find %s.",
+				opts.TargetDir,
+				selfcmd.InstalledCommandName,
+			)
+			return
+		default:
+			return
+		}
+	}
+	if inPath {
+		return
+	}
+
+	c.out.Println("")
+	c.out.Warning("This directory is not in your PATH.")
+	c.out.Println("")
+	c.out.Println(selfcmd.LocationPathInstructions(opts.TargetDir))
 }
 
 func (c *SelfCommand) handleNoWritableLocations() error {
@@ -411,6 +456,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, name string, args []string)
 		TargetDir:  "",
 		Candidates: nil,
 		WarnPath:   false,
+		AddToPath:  false,
 	}); err != nil {
 		return fmt.Errorf("apply update bundle: %w", err)
 	}

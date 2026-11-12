@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { InfoBox } from './InfoBox';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PageName } from '../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 
 const pageNameMock: PageName = PageName.CodeListsWithTextResources;
 

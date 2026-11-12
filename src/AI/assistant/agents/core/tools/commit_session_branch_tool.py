@@ -11,13 +11,18 @@ The tool requires `ctx.allow_app_changes`.
 
 from __future__ import annotations
 
+import posixpath
+import subprocess
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git import git_ops
 
+from .utils.repo_files import mark_changed
 
-def unverified_changed_files(ctx: LoopContext) -> set[str]:
+
+def _unverified_changed_files(ctx: LoopContext) -> set[str]:
     """Return changed files that haven't been verified since their last edit.
 
     `verify_changes` populates `ctx.extras["verified_files"]` on success;
@@ -28,6 +33,19 @@ def unverified_changed_files(ctx: LoopContext) -> set[str]:
     changed: set[str] = ctx.extras.get("changed_files") or set()
     verified: set[str] = ctx.extras.get("verified_files") or set()
     return changed - verified
+
+
+def _track_uncommitted_files(ctx: LoopContext) -> None:
+    """Add each file that git shows as not committed to the changed files.
+
+    A commit takes all files in the working tree, and each must pass
+    `verify_changes`. A write that fails part of the way can change a file
+    that the tools did not record.
+    """
+    recorded = {posixpath.normpath(path) for path in ctx.extras.get("changed_files") or set()}
+    for path in git_ops.uncommitted_files(ctx.repo_path):
+        if path not in recorded:
+            mark_changed(ctx, path)
 
 
 def _session_branch_name(ctx: LoopContext) -> str:
@@ -44,6 +62,19 @@ def _session_branch_name(ctx: LoopContext) -> str:
     name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
+
+
+def _commit_to_push_again(ctx: LoopContext) -> str | None:
+    """Return the last commit if the remote does not have all local commits, or None.
+
+    The working tree is clean. But a commit with a failed push stays in the
+    container until a later push succeeds.
+    """
+    if not git_ops.unpushed_files(ctx.repo_path):
+        return None
+    head = git_ops.head_commit(ctx.repo_path)
+    # The short hash, in the format that `git_ops.commit` returns.
+    return head[:8] if head else None
 
 
 class CommitSessionBranchArgs(BaseModel):
@@ -70,14 +101,20 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
         "FAILURE MODES:\n"
         "  - Nothing to commit: working tree is clean.  Probably you already "
         "committed the changes — check your earlier tool results.\n"
-        "  - Push rejected / push raises: the commit is local-only.  You can "
-        "retry with the same message, or stop and let the user resolve."
+        "  - Push rejected / push raises: the commit is local-only, and the "
+        "user does not get it.  Retry with the same message, which pushes the "
+        "commit again.  If the push still fails, say in your final message "
+        "that the change is not saved."
     )
     input_schema = CommitSessionBranchArgs
     is_concurrency_safe = False
 
     async def run(self, args: CommitSessionBranchArgs, ctx: LoopContext) -> ToolResult:
-        unverified = unverified_changed_files(ctx)
+        try:
+            _track_uncommitted_files(ctx)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return ToolResult(content=f"Commit failed: git cannot read the working tree: {exc}", is_error=True)
+        unverified = _unverified_changed_files(ctx)
         if unverified:
             return ToolResult(
                 content=(
@@ -90,7 +127,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
 
         branch = _session_branch_name(ctx)
         try:
-            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch)
+            commit_hash = git_ops.commit(args.message, ctx.repo_path, branch) or _commit_to_push_again(ctx)
         except Exception as exc:
             return ToolResult(content=f"Commit failed: {exc}", is_error=True)
 
@@ -114,6 +151,7 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             repo_manager = get_repo_manager()
             pushed = repo_manager.push_branch(ctx.session_id, branch)
         except Exception as exc:
+            ctx.extras["session_pushed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but push failed: {exc}"),
                 is_error=True,
@@ -121,16 +159,15 @@ class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
             )
 
         if not pushed:
+            ctx.extras["session_pushed"] = False
             return ToolResult(
                 content=(f"Committed {commit_hash} to {branch}, but the push was rejected."),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
-        # Record that the session has committed at least once so the
-        # agentic node's auto-commit safety net doesn't fire a duplicate
-        # commit when the loop finishes normally.
-        ctx.extras["session_committed"] = True
+        # The render check runs only if the remote branch has the latest commit.
+        ctx.extras["session_pushed"] = True
         return ToolResult(
             content=f"Committed {commit_hash} to {branch} and pushed.",
             metadata={"commit": commit_hash, "branch": branch, "pushed": True},

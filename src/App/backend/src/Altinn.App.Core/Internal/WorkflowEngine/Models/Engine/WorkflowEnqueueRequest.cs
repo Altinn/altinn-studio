@@ -17,7 +17,7 @@ internal sealed record WorkflowEnqueueRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
-    /// Opaque context passed to command handlers at execution time.
+    /// Opaque context passed to the commands at execution time.
     /// Contains <see cref="AppWorkflowContext"/> with actor, org/app and instance identification,
     /// and the callback authentication token.
     /// The engine never inspects this.

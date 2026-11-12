@@ -20,6 +20,7 @@ class BaseConfig:
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
     GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal/repos")
+    DESIGNER_BASE_URL = os.getenv("DESIGNER_BASE_URL", "http://host.docker.internal")
 
     CORS_ORIGINS: ClassVar[list[str]] = [
         "http://localhost:3000",  # React dev server
@@ -30,11 +31,9 @@ class BaseConfig:
 
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
     AZURE_ANTHROPIC_API_KEY = os.getenv("AZURE_ANTHROPIC_API_KEY") or os.getenv("AZURE_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://altinn-studio-assistant.openai.azure.com/")
-    # Anthropic is only on the older resource; the EU data zone one has OpenAI alone.
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://team-altinnstudio-ai.openai.azure.com/")
     AZURE_ANTHROPIC_ENDPOINT = os.getenv(
-        "AZURE_ANTHROPIC_ENDPOINT",
-        "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/",
+        "AZURE_ANTHROPIC_ENDPOINT", "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
     )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
@@ -64,9 +63,9 @@ class BaseConfig:
     ATTACHMENTS_ROOT = Path(os.getenv("AGENT_ATTACHMENTS_PATH", str(_DEFAULT_ATTACHMENTS_PATH)))
 
     PROJECT_ROOT = Path(__file__).parent.parent.parent
-    LAYOUT_SCHEMA_V9_DIR = (
-        PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json" / "layout"
-    )
+    _LAYOUT_CONTRACT_SCHEMAS_DIR = PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json"
+    LAYOUT_SCHEMA_V9_DIR = _LAYOUT_CONTRACT_SCHEMAS_DIR / "layout"
+    TEXT_RESOURCES_SCHEMA_V9_PATH = _LAYOUT_CONTRACT_SCHEMAS_DIR / "text-resources" / "text-resources.schema.v1.json"
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")

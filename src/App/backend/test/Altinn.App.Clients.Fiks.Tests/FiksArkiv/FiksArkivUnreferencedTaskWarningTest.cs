@@ -29,7 +29,7 @@ public class FiksArkivUnreferencedTaskWarningTest
         environment.SetupGet(e => e.EnvironmentName).Returns("tt02");
         services.AddSingleton(environment.Object);
         // AddFiksArkiv() registers this; its dependencies are irrelevant to startup validation.
-        services.AddSingleton<IPipelineServiceTask>(
+        services.AddSingleton<IServiceTask>(
             (FiksArkivServiceTask)RuntimeHelpers.GetUninitializedObject(typeof(FiksArkivServiceTask))
         );
         await using ServiceProvider provider = services.BuildServiceProvider();

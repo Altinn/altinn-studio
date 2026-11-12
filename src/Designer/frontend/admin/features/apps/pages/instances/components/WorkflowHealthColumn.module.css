@@ -1,0 +1,47 @@
+.header {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  white-space: nowrap;
+}
+
+/* The design system caps a popover at 300px, too narrow for a tag beside its description. */
+.header :global(.ds-popover) {
+  --dsc-popover-max-width: none;
+}
+
+/* The popover renders inside the header cell, so it would inherit the header's nowrap and weight. */
+.legendContent {
+  width: min(24rem, 80vw);
+  white-space: normal;
+  font-weight: normal;
+  text-align: start;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin: var(--ds-size-2) 0 0;
+}
+
+.legendRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-size-2);
+}
+
+.legendRow > dt {
+  flex-shrink: 0;
+}
+
+.legendDescription {
+  margin: 0;
+  font-size: var(--ds-font-size-1);
+}
+
+.skeleton {
+  display: inline-block;
+  width: 4rem;
+  height: 1.5rem;
+}

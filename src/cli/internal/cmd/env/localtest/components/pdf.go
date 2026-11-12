@@ -28,9 +28,10 @@ func registerPDFComponents(manifest *Manifest, opts *Options) {
 
 func pdfImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
+		// src/ is the build context, for the shared Go module in src/common/go.
 		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
-			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3")),
+			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile: filepath.ToSlash(
 				filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3/Dockerfile.worker"),
 			),
@@ -46,12 +47,14 @@ func pdfImage(ctx *Options) resource.ImageResource {
 }
 
 func pdfContainer(ctx *Options) *ContainerSpec {
+	env := pdfEnv(ctx.Topology)
 	spec := newContainerSpec(
 		ContainerPDF3,
 		// TODO: same as above, we only need host port mapping here because old
 		[]types.PortMapping{newPort("5300", "5031")},
-		pdfEnv(ctx.Topology),
-		nil,
+		env,
+		// pdf3's entrypoint imports the bundle into its Chromium's certificate store, which ignores the system's.
+		ctx.CABundle.Mount(env, nil),
 		nil,
 		[]string{ContainerLocaltest},
 		nil,

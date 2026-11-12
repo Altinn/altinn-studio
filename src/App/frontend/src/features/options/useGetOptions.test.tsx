@@ -8,19 +8,20 @@ import type {
   IRawOption,
   ISelectionComponentFull,
 } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { StaticOptionSet } from 'src/features/formBootstrap/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { ILayout } from 'src/layout/layout';
-import type { fetchOptions } from 'src/queries/queries';
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -30,7 +31,7 @@ interface RenderProps {
   queryParameters?: IQueryParameters;
   selected?: string;
   preselectedOptionIndex?: number;
-  fetchOptions?: Mock<typeof fetchOptions>;
+  fetchOptions?: Mock<AppQueries['fetchOptions']>;
   extraLayout?: ILayout;
   staticOptions?: Record<string, StaticOptionSet>;
 }
@@ -87,7 +88,11 @@ async function render(props: RenderProps) {
   ];
 
   return renderWithInstanceAndLayout({
-    renderer: <TestOptions baseComponentId='myComponent' />,
+    renderer: (
+      <ErrorBoundary>
+        <TestOptions baseComponentId='myComponent' />
+      </ErrorBoundary>
+    ),
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
@@ -123,16 +128,15 @@ async function render(props: RenderProps) {
         }),
       fetchOptions:
         props.fetchOptions ??
-        (async () =>
-          ({
-            data: props.options?.map((option) => ({
-              value: option.value,
-              label: option.label,
-              description: option.description,
-              helpText: option.helpText,
-            })),
-            headers: {},
-          }) as AxiosResponse<IRawOption[]>),
+        (async () => ({
+          data: (props.options ?? []).map((option) => ({
+            value: option.value,
+            label: option.label,
+            description: option.description,
+            helpText: option.helpText,
+          })),
+          headers: {},
+        })),
     },
   });
 }
@@ -163,6 +167,28 @@ describe('useGetOptions', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each(['', 'foo'])('reports an options request failure with selection "%s"', async (selected) => {
+    const error = new Error('Options request failed');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const logFetchError = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
+    try {
+      await render({
+        type: 'single',
+        via: 'api',
+        selected,
+        fetchOptions: vi.fn<NonNullable<RenderProps['fetchOptions']>>().mockRejectedValue(error),
+      });
+
+      expect(await screen.findByText(error.message)).toBeInTheDocument();
+      expect(screen.queryByTestId('options')).not.toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+      logError.mockRestore();
+      logFetchError.mockRestore();
+    }
   });
 
   it.each(permutations)('options should be cast to strings for $type + $via', async (props) => {
@@ -202,13 +228,10 @@ describe('useGetOptions', () => {
   });
 
   it('should include the query parameters in the api request', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockImplementation(
-      async (_url: string) =>
-        ({
-          data: [] as IRawOption[],
-          headers: {},
-        }) as AxiosResponse<IRawOption[]>,
-    );
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockImplementation(async (_url: string) => ({
+      data: [] as IRawOption[],
+      headers: {},
+    }));
 
     await render({
       via: 'api',
@@ -223,10 +246,10 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options and does not fetch options', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -244,10 +267,10 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are dynamic', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -266,10 +289,10 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are static but non-empty', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -288,10 +311,10 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when query parameters are empty', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -420,4 +443,3 @@ describe('useGetOptions', () => {
     );
   });
 });
-import type { Mock } from 'vitest';

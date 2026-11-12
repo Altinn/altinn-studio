@@ -267,6 +267,12 @@ export function nn() {
     'instance_selection.last_changed': 'Sist endra',
     'instance_selection.left_of': 'Hald fram der du slapp',
     'instance_selection.new_instance': 'Start på nytt',
+    'instantiate.not_yet_open_error_title': 'Denne tenesta har ikkje opna enno',
+    'instantiate.not_yet_open_error_text':
+      'Tenesta opnar {0}. Det er ikkje mogleg å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikkje starte denne tenesta',
+    'instantiate.closed_error_text':
+      'Det er ikkje mogleg å starte nye skjema i denne tenesta. Skjema du allereie har starta, kan du framleis fullføre frå innboksen.',
     'instantiate.all_forms': 'alle skjema',
     'instantiate.inbox': 'innboks',
     'instantiate.profile': 'profil',

@@ -3,7 +3,7 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { screen, waitFor } from '@testing-library/react';
@@ -13,7 +13,7 @@ import { formItemContextProviderMock } from '../../../../../testing/formItemCont
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import {
   component1IdMock,
   componentWithOptionsMock,

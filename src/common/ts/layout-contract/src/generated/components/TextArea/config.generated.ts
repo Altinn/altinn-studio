@@ -27,9 +27,13 @@ export interface CompTextAreaExternal
   maxLength?: number;
 }
 
+export interface TextAreaSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type TextAreaSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TextArea' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & TextAreaSummaryOverrides)
+  | ({ componentType: 'TextArea' } & TextAreaSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -55,8 +59,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompTextAreaExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: TextAreaSummaryOverrides;
   summaryOverridesWithRef: TextAreaSummaryOverridesWithRef;
 };
 
-// Source hash: ee9ed1352da63d5af4e91ee7aaa4ded2e6499068a1cb7f51c339ec061703bbe5
+// Source hash: 49325d3f6d55bfb40fac0652f81f537d012f62f3e3172b60dbc1a45154401c56

@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
+import { useAttachmentActivity } from 'src/core/queries/attachments';
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
+import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {
   type BackendComponentValidation,
   type BackendValidationIssue,
@@ -33,6 +32,11 @@ import type { DataModelValidationState } from 'src/features/formData/FormDataWri
 export interface ValidationInternals {
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
+   * The backend validation issues in effect: the initial validations, where the issues from each validator are
+   * replaced by those from the last save it ran in. A save only returns the validators that ran.
+   */
+  backendIssues: BackendValidationIssue[];
+  /**
    * updateDataModelValidations
    * if validations is undefined, nothing will be changed
    */
@@ -46,6 +50,7 @@ export interface ValidationInternals {
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
     componentValidations?: BackendComponentValidation[],
+    backendIssues?: BackendValidationIssue[],
   ) => void;
   setOtherDataElementBackendValidations: (dataElementId: string, validationIssues: BackendValidationIssue[]) => void;
 }
@@ -102,6 +107,7 @@ export function createValidationSlice(
       initial: bootstrap.allInitialValidations,
       incremental: undefined,
     },
+    backendIssues: bootstrap.allInitialValidations,
     updateDataModelValidations: (key, dataType, validations) =>
       set((state) => {
         const dataModel = state.data.models[dataType];
@@ -109,9 +115,21 @@ export function createValidationSlice(
           dataModel.validations[key] = validations;
         }
       }),
-    updateBackendValidations: (backendValidations, processedLast, taskValidations, componentValidations) =>
+    updateBackendValidations: (
+      backendValidations,
+      processedLast,
+      taskValidations,
+      componentValidations,
+      backendIssues,
+    ) =>
       set((state) => {
-        updateBackendValidations(state)(backendValidations, processedLast, taskValidations, componentValidations);
+        updateBackendValidations(state)(
+          backendValidations,
+          processedLast,
+          taskValidations,
+          componentValidations,
+          backendIssues,
+        );
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -141,7 +159,10 @@ export function createValidationSlice(
 export function updateBackendValidations(
   state: Draft<FormStoreState>,
 ): ValidationInternals['updateBackendValidations'] {
-  return (backendValidations, processedLast, taskValidations, componentValidations) => {
+  return (backendValidations, processedLast, taskValidations, componentValidations, backendIssues) => {
+    if (backendIssues) {
+      state.validation.backendIssues = backendIssues;
+    }
     if (
       processedLast?.incremental &&
       !deepEqual(state.validation.processedLast.incremental, processedLast.incremental)
@@ -226,7 +247,6 @@ export function useWaitForValidation() {
   const waitForSave = FormStore.data.useWaitForSave();
   const store = FormStore.raw.useStore();
   const waitForState = useWaitForState<undefined, FormStoreState>(store);
-  const queryClient = useQueryClient();
   const selectFromInstance = useSelectFromInstanceData();
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
@@ -235,9 +255,9 @@ export function useWaitForValidation() {
     () => selectFromInstance((instance) => instance.data) ?? [],
     [selectFromInstance],
   );
-  const waitForActiveAttachments = useCallback(
-    () => waitForAttachments(store, queryClient, getInstanceData),
-    [getInstanceData, queryClient, store],
+  const { hasPending: hasPendingAttachments, wait: waitForActiveAttachments } = useAttachmentActivity(
+    store,
+    getInstanceData,
   );
   const initialBackendValidationsAreProcessed = useCallback(
     () => (state: FormStoreState) => {
@@ -262,14 +282,12 @@ export function useWaitForValidation() {
       do {
         await waitForActiveAttachments();
         await waitForSaveAndBackendValidations();
-      } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
+      } while (hasPendingAttachments());
     },
     [
-      getInstanceData,
       hasWritableDataTypes,
       initialBackendValidationsAreProcessed,
-      queryClient,
-      store,
+      hasPendingAttachments,
       waitForActiveAttachments,
       waitForSave,
       waitForState,

@@ -16,6 +16,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Api.Controllers;
@@ -160,8 +161,8 @@ public class CustomOpenApiController : Controller
 
         sb.AppendLine("This is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.");
         sb.AppendLine("This app has the following data types:");
-        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskId |");
-        sb.AppendLine("|------------|------|----------------|-----------|--------|");
+        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskIds |");
+        sb.AppendLine("|------------|------|----------------|-----------|---------|");
         foreach (var dataType in appMetadata.DataTypes)
         {
             sb.Append('|');
@@ -217,7 +218,7 @@ public class CustomOpenApiController : Controller
                 sb.Append('*');
             }
             sb.Append('|');
-            sb.Append(dataType.TaskId);
+            sb.AppendJoin(", ", dataType.TaskIds ?? []);
             sb.Append('|');
             sb.AppendLine();
         }
@@ -1105,7 +1106,7 @@ public class CustomOpenApiController : Controller
         const string libraryRefRegex =
             @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
         var optionsIds = appMetadata
-            .DataTypes.Select(d => d.TaskId)
+            .DataTypes.SelectMany(d => d.TaskIds ?? [])
             .Distinct()
             .Select(taskId => _appResources.GetLayoutModelForFolder(taskId))
             .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
@@ -1483,36 +1484,9 @@ file static class Snippets
                             {
                                 Type = JsonSchemaType.Array,
                                 Title = "Json patch",
-                                Description = "A standard RFC 6902 document describing changes to one data element",
-                                Items = new OpenApiSchema
-                                {
-                                    Type = JsonSchemaType.Object,
-                                    Required = new HashSet<string>() { "op", "path" },
-                                    Properties = new Dictionary<string, IOpenApiSchema>
-                                    {
-                                        ["op"] = new OpenApiSchema
-                                        {
-                                            Title = "Patch operation",
-                                            Type = JsonSchemaType.String,
-                                            Enum = ["add", "remove", "replace", "move", "copy", "test"],
-                                        },
-                                        ["from"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["path"] = new OpenApiSchema
-                                        {
-                                            Title = "JsonPointer",
-                                            Type = JsonSchemaType.String,
-                                        },
-                                        ["value"] = new OpenApiSchema
-                                        {
-                                            Title = "the value",
-                                            Description = "The value to add or replace",
-                                        },
-                                    },
-                                },
+                                Description =
+                                    "A standard RFC 6902 document describing changes to one data element. The move and copy operations are not supported",
+                                Items = JsonPatchOperation.OpenApiSchema(),
                             },
                         },
                     },

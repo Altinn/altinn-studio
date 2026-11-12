@@ -16,6 +16,7 @@ flowchart LR
   B["Browser: Designer frontend"] -->|SignalR| D["Designer backend"]
   D -->|HTTP and WebSocket| A["Assistant service"]
   A -->|git clone and push| G["Gitea"]
+  A -->|generate data model files| D
   A -->|model calls| L["Azure AI models"]
 ```
 
@@ -52,7 +53,7 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 ## Start a run
 
-Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. The service has no Gitea token of its own.
+Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. It also uses the key to let the Designer API generate data model files. The service has no Gitea token of its own.
 
 Attachments go to Designer first. Designer accepts eight file types up to 20 MB each and keeps them in memory for a maximum of 30 minutes. Then it sends them as base64 in the start request.
 
@@ -77,6 +78,8 @@ _The start request returns quickly. The real work happens after the response._
 
 The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
 
+Each Designer replica that has a WebSocket for the developer gets all the events, and each replica saves the answer. The database keeps one message for each event id, so the thread shows the answer one time. The browser does not save the answer. It gets the saved answer from Designer.
+
 ```mermaid
 sequenceDiagram
   participant A as Assistant service
@@ -89,7 +92,9 @@ sequenceDiagram
   D->>DB: Save the message in the chat thread
   D-->>B: assistant_message with persistedMessageId
   A-->>D: done
-  B->>D: Reset the repo and check out the session branch
+  opt The answer has pushedBranch
+    B->>D: Reset the repo and check out that branch
+  end
 ```
 
 _Event flow from the assistant service to the user._

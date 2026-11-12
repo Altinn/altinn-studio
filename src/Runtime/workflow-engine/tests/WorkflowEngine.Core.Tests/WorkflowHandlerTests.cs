@@ -270,6 +270,46 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_StepRetryableError_FirstFailure_StampsFirstFailedAt()
+    {
+        var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var handler = CreateHandler(executor.Object, settings, timeProvider: new FakeTimeProvider(_t0));
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, step.RequeueCount);
+        Assert.Equal(_t0, step.FirstFailedAt);
+    }
+
+    [Fact]
+    public async Task Handle_StepRetryableError_LaterFailure_KeepsFirstFailedAt()
+    {
+        // The stamp marks where the run of consecutive failures began, so a later failure in the same run
+        // leaves it alone.
+        var executor = MockExecutor(ExecutionResult.RetryableError("still transient"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var handler = CreateHandler(executor.Object, settings, timeProvider: new FakeTimeProvider(_t0));
+        var step = CreateStep();
+        step.RequeueCount = 1;
+        step.FirstFailedAt = _t0.AddMinutes(-1);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, step.RequeueCount);
+        Assert.Equal(_t0.AddMinutes(-1), step.FirstFailedAt);
+    }
+
+    [Fact]
     public async Task Handle_StepRetryableError_RetriesExhausted_WorkflowFailed()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("still failing"));
@@ -607,6 +647,27 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_RetryableError_RecordsTheFailureTimeToTheMicrosecond()
+    {
+        // A clock with sub-microsecond ticks, as on Linux. FirstFailedAt and the first error must still read as
+        // one instant after PostgreSQL drops the ticks below a microsecond.
+        var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var time = new FakeTimeProvider(_t0.AddTicks(1_234_567));
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        var step = workflow.Steps[0];
+        Assert.Equal(_t0.AddTicks(1_234_560), step.FirstFailedAt);
+        Assert.Equal(step.FirstFailedAt, Assert.Single(step.ErrorHistory).Timestamp);
+    }
+
+    [Fact]
     public async Task Handle_Success_DoesNotAddErrorHistory()
     {
         var executor = MockExecutor(ExecutionResult.Success());
@@ -682,18 +743,20 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_StepDefers_ResetsRequeueCount()
+    public async Task Handle_StepDefers_ResetsRequeueCountAndFirstFailedAt()
     {
         var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
         var handler = CreateHandler(executor.Object);
         var step = CreateStep();
         step.RequeueCount = 3; // Transient errors before this successful "not yet" check
+        step.FirstFailedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
         var workflow = CreateWorkflow(step);
 
         await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Waiting, step.Status);
         Assert.Equal(0, step.RequeueCount);
+        Assert.Null(step.FirstFailedAt);
     }
 
     [Fact]

@@ -9,7 +9,7 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

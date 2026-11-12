@@ -20,3 +20,10 @@ export const contactPointToPerson = (cp: ContactPoint): Person => ({
   email: cp.methods.find((m) => m.methodType === 'email')?.value ?? '',
   phone: cp.methods.find((m) => m.methodType === 'sms')?.value ?? '',
 });
+
+// Mirrors PhoneNumber.TryNormalize in the backend: a number with a country code (+ or 00), where a Norwegian
+// number must be a mobile number, or a Norwegian mobile number without one
+export const isValidPhoneNumber = (phone: string): boolean =>
+  /^(?:(?:\+|00)(?:47[49][0-9]{7}|(?!47)[1-9][0-9]{6,14})|[49][0-9]{7})$/.test(
+    phone.replace(/[\s-]/g, ''),
+  );

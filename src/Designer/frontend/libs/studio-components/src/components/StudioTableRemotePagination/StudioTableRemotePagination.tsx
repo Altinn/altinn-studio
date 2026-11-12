@@ -9,7 +9,7 @@ import {
   StudioParagraph,
   StudioSelect,
   StudioLabel,
-} from '@studio/components';
+} from '@designer/components';
 
 export type Columns = {
   accessor: string;

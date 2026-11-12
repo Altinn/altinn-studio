@@ -4,6 +4,7 @@ import 'cypress-network-idle';
 import 'test/e2e/support/custom';
 import 'test/e2e/support/start-app-instance';
 import 'test/e2e/support/global';
+import 'test/e2e/support/diagnostics';
 import 'test/e2e/support/auth';
 import 'test/e2e/support/navigation';
 import 'test/e2e/support/formFiller';

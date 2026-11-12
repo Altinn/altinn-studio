@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyEditorPageProps } from './PolicyEditorPage';
 import { PolicyEditorPage } from './PolicyEditorPage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
-import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
@@ -21,12 +21,6 @@ const mockPolicy: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '3',
 };
-
-const mockActions: PolicyAction[] = [
-  { actionId: 'a1', actionTitle: 'Action 1', actionDescription: 'The first action' },
-  { actionId: 'a2', actionTitle: 'Action 2', actionDescription: 'The second action' },
-  { actionId: 'a3', actionTitle: 'Action 3', actionDescription: 'The third action' },
-];
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -71,7 +65,6 @@ const mockSubjects: PolicySubject[] = [
 ];
 
 const getPolicy = vi.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve([]));
 const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve([]));
 const getResource = vi.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -92,11 +85,6 @@ describe('PolicyEditorPage', () => {
   it('fetches policy on mount', () => {
     renderPolicyEditorPage();
     expect(getPolicy).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches actions on mount', () => {
-    renderPolicyEditorPage();
-    expect(getPolicyActions).toHaveBeenCalledTimes(1);
   });
 
   it('fetches subjects on mount', () => {
@@ -122,8 +110,6 @@ describe('PolicyEditorPage', () => {
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
-
-    getPolicyActions.mockImplementation(() => Promise.resolve<PolicyAction[]>(mockActions));
 
     expect(
       screen.getByLabelText(textMock('resourceadm.policy_editor_spinner')),
@@ -176,7 +162,6 @@ const renderPolicyEditorPage = (
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getPolicy,
-    getPolicyActions,
     getPolicySubjects,
     getResource,
     ...queries,

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDropdown } from './index';
-import { PencilIcon, UploadIcon } from '@studio/icons';
+import { PencilIcon, UploadIcon } from '@designer/icons';
 
 const ComposedComponent = (args): ReactElement => (
   <StudioDropdown triggerButtonText='My menu label'>

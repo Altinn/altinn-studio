@@ -31,7 +31,7 @@ import type { HTMLCellInputElement } from './types/HTMLCellInputElement';
 import type { EventName } from './types/EventName';
 import type { FormEventProps } from './types/FormEventProps';
 import type { EventPropName } from './types/EventPropName';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 type ElementName =
   'checkbox' | 'textfield' | 'numberfield' | 'textarea' | 'button' | 'textResource';

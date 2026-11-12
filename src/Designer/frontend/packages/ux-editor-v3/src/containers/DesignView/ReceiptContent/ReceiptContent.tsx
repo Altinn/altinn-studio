@@ -4,7 +4,7 @@ import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
 import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 
 export type ReceiptContentProps = {
   /**

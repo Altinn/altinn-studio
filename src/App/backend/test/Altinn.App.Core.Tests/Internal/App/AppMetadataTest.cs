@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Altinn.App.Core.Features.ExternalApi;
@@ -24,6 +25,21 @@ public class AppMetadataTest
         Path.Join(PathUtils.GetCoreTestsPath(), "Internal", "App", "TestData") + Path.DirectorySeparatorChar;
 
     [Fact]
+    public void GetApplicationMetadata_accepts_comments_and_trailing_commas_without_rewriting_source()
+    {
+        const string json = """
+            // App metadata
+            { "id": "ttd/app", "dataTypes": [], }
+            """;
+        var files = new AppFiles(Encoding.UTF8.GetBytes(json), null, null);
+
+        var metadata = SetupAppMetadata(files).ApplicationMetadata;
+
+        Assert.Equal("ttd/app", metadata.Id);
+        Assert.Equal(json, Encoding.UTF8.GetString(files.ApplicationMetadata.Span));
+    }
+
+    [Fact]
     public async Task GetApplicationMetadata_desrializes_file_from_disk()
     {
         Dictionary<string, bool> enabledFrontendFeatures = [];
@@ -45,14 +61,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = new List<string>() { "application/pdf" },
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -92,14 +108,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -163,14 +179,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -221,14 +237,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -278,14 +294,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -336,14 +352,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()

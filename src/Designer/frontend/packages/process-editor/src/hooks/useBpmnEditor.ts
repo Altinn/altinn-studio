@@ -8,7 +8,7 @@ import { useReloadSavedProcess } from './useReloadSavedProcess';
 import type { TaskEvent } from '../types/TaskEvent';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
-import { useStudioRecommendedNextActionContext } from '@studio/components';
+import { useStudioRecommendedNextActionContext } from '@designer/components';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 

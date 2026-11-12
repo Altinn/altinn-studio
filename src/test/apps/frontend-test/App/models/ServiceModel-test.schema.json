@@ -1,4 +1,5 @@
 ﻿{
+  // App files support comments and trailing commas together.
   "$schema": "http://json-schema.org/schema#",
   "$id": "schema.json",
   "type": "object",
@@ -517,6 +518,9 @@
         "CustomMode": { "type": "string" },
         "ChooseExtraPages": {
           "type": "string"
+        },
+        "FailReferenceOptions": {
+          "type": "boolean"
         },
         "Numeric": {
           "type": "object",
@@ -2821,5 +2825,5 @@
           "Value10": { "type": "string" }
         }
     }
-  }
+  },
 }

@@ -89,7 +89,7 @@ async function render(props: TestProps) {
         autoCreate: true,
         classRef: name,
       },
-      taskId: 'Task_1',
+      taskIds: ['Task_1'],
       maxCount: 1,
       minCount: 1,
     }));
@@ -113,6 +113,7 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
+      getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           for (const dm of Object.keys(props.dataModels)) {
@@ -144,11 +145,6 @@ async function render(props: TestProps) {
         throw new Error(
           `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
         );
-      },
-    },
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       },
     },
   });

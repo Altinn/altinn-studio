@@ -6,12 +6,18 @@ import {
 } from './language';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
+import { mockUseTranslation } from '@designer/testing/mocks/i18nMock';
 import { componentCatalog } from '@app/layout-contract';
 import type { PropertyDefinition } from '@app/layout-contract';
 import nbTranslations from '../../../../language/src/nb.json';
 import enTranslations from '../../../../language/src/en.json';
 import i18next from 'i18next';
+import { formItemConfigs } from '../data/formItemConfig';
+
+// Components without a Designer config fall back to the generated name, so they need no translation.
+const configuredComponentTypes = Object.values(ComponentType).filter(
+  (componentType) => componentType in formItemConfigs,
+);
 
 vi.mock('i18next', () => ({ default: { language: 'nb' } }));
 
@@ -65,7 +71,7 @@ describe('Designer > utils/language', () => {
 
     it('defines component titles in every supported language', () => {
       const translations = [nbTranslations, enTranslations] as Record<string, string>[];
-      const componentNames = [...Object.values(ComponentType), ...Object.values(ComponentPreset)];
+      const componentNames = [...configuredComponentTypes, ...Object.values(ComponentPreset)];
 
       componentNames.forEach((componentName) => {
         translations.forEach((language) => {
@@ -75,7 +81,8 @@ describe('Designer > utils/language', () => {
     });
 
     it('keeps Designer component-name translations aligned with the generated catalogue', () => {
-      Object.entries(componentCatalog).forEach(([componentType, definition]) => {
+      configuredComponentTypes.forEach((componentType) => {
+        const definition = componentCatalog[componentType];
         const key = `ux_editor.component_title.${componentType}`;
         expect((nbTranslations as Record<string, string>)[key]).toBe(definition.metadata.name.nb);
         expect((enTranslations as Record<string, string>)[key]).toBe(definition.metadata.name.en);

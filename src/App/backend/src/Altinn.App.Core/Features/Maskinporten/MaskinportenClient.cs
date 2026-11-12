@@ -6,6 +6,7 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
@@ -79,6 +80,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     private readonly IOptionsMonitor<MaskinportenSettings> _options;
     private readonly PlatformSettings _platformSettings;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IAppMetadata _appMetadata;
     private readonly TimeProvider _timeProvider;
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
@@ -96,6 +98,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// <param name="platformSettings">Platform settings.</param>
     /// <param name="httpClientFactory">HttpClient factory.</param>
     /// <param name="tokenCache">Token cache store.</param>
+    /// <param name="appMetadata">The app's metadata, for the org that owns it.</param>
     /// <param name="logger">Logger interface.</param>
     /// <param name="timeProvider">Optional TimeProvider implementation.</param>
     /// <param name="telemetry">Optional telemetry service.</param>
@@ -104,6 +107,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         IOptions<PlatformSettings> platformSettings,
         IHttpClientFactory httpClientFactory,
         HybridCache tokenCache,
+        IAppMetadata appMetadata,
         ILogger<MaskinportenClient> logger,
         TimeProvider? timeProvider = null,
         Telemetry? telemetry = null
@@ -115,6 +119,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _appMetadata = appMetadata;
         _tokenCache = tokenCache;
     }
 
@@ -277,6 +282,11 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
             );
 
             string exchangeUri = _platformSettings.ApiAuthenticationEndpoint.TrimEnd('/') + "/exchange/maskinporten";
+            if (IsTestOrg(_appMetadata.ApplicationMetadata.AppIdentifier.Org))
+            {
+                exchangeUri += "?test=true";
+            }
+
             using HttpClient client = _httpClientFactory.CreateClient();
 
             using var request = new HttpRequestMessage(HttpMethod.Get, exchangeUri);
@@ -315,6 +325,14 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
             throw new MaskinportenAuthenticationException($"Authentication with Altinn failed: {e.Message}", e);
         }
     }
+
+    /// <summary>
+    /// Whether the app is owned by ttd, the test service owner. ttd has no organization number, so its apps get a
+    /// Maskinporten client under Digdir's, and Altinn Authentication issues their tokens as <c>digdir</c> unless the
+    /// exchange asks for a test token. Asking for one makes the token carry <c>ttd</c>, the org that the app's
+    /// policy and Storage expect of the app.
+    /// </summary>
+    private static bool IsTestOrg(string org) => string.Equals(org, "ttd", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Generates a JWT grant for the supplied token request along with the pre-configured client id and private key.

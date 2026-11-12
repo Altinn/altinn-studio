@@ -30,7 +30,7 @@ import {
   TableIcon,
   TasklistIcon,
   TitleIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 

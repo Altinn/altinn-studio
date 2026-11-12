@@ -7,7 +7,7 @@ import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import { CodeListItemTextProperty } from '../types/CodeListItemTextProperty';
 import { ReducerActionType } from '../StudioCodeListEditorReducer';
 import type { ReducerAction } from '../StudioCodeListEditorReducer';

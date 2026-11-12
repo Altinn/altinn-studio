@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CreateCustomReceiptFormLegacy.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@designer/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';

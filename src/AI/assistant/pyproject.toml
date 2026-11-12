@@ -26,7 +26,7 @@ dependencies = [
     "anthropic>=0.86.0",
 
     # Observability
-    "langfuse>=3.0.0,<5",
+    "langfuse>=5.2.0,<6",
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
@@ -87,6 +87,7 @@ line-length = 120
 exclude = ["*.md"]
 
 [tool.ruff.lint]
+# Give a reason in a comment for every ignored rule, # noqa and # pyright: ignore.
 select = [
     "E",     # pycodestyle errors: whitespace, comparisons to None, bare except, ambiguous names
     "W",     # pycodestyle warnings: trailing whitespace and invalid escape sequences

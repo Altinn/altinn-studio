@@ -1,23 +1,28 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import axios from 'axios';
-import type { AxiosStatic } from 'axios';
+import { get, del } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
+import type { InstanceDataViewSection } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { workflowCounts } from 'admin/testing/workflowCounts';
+import type { ProcessTaskMetadata } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn(), delete: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+  del: vi.fn(),
+}));
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -38,13 +43,44 @@ const appMetadataMock: ApplicationMetadata = {
   org,
 };
 
+const dataTypeId = 'model';
+
+const instanceWithDataMock: SimpleInstanceDetails = {
+  ...instanceMock,
+  data: [
+    {
+      id: 'bd1c7d5e-0d3f-4f6e-8a4c-2d1f0e9b7a61',
+      dataType: dataTypeId,
+      contentType: 'application/xml',
+      size: 1000,
+      locked: false,
+      isRead: true,
+    },
+  ],
+};
+
+const processMetadataMock: ProcessTaskMetadata[] = [
+  { id: 'Task_1', name: 'Utfylling', dataTypeTags: [] },
+  { id: 'Task_2', dataTypeTags: [] },
+];
+
 describe('InstanceDataView', () => {
   it('shows a spinner while loading', () => {
-    (axios.get as Mock).mockReturnValue(new Promise(() => {}));
+    vi.mocked(get).mockReturnValue(new Promise(() => {}));
 
     renderInstanceDataView({ instance: null });
 
     expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders the data elements as their own card, without the delete button', () => {
+    renderInstanceDataView({ section: 'dataElements' });
+
+    expect(screen.getByText(textMock('admin.instances.data_elements'))).toBeInTheDocument();
+    expect(screen.queryByText(textMock('admin.instances.info.title'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('general.delete') }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders an enabled delete button when the instance is not soft-deleted', () => {
@@ -64,7 +100,7 @@ describe('InstanceDataView', () => {
   it('deletes the instance and invalidates instance queries when the user confirms', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as Mock).mockResolvedValue({});
+    vi.mocked(del).mockResolvedValue(undefined);
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     renderInstanceDataView({ queryClient });
@@ -73,9 +109,7 @@ describe('InstanceDataView', () => {
 
     expect(window.confirm).toHaveBeenCalledWith(textMock('admin.instances.delete.confirm'));
     await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        instanceDeletePath(org, environment, app, instanceId),
-      );
+      expect(del).toHaveBeenCalledWith(instanceDeletePath(org, environment, app, instanceId));
     });
     await waitFor(() => {
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
@@ -90,14 +124,53 @@ describe('InstanceDataView', () => {
   it('disables the delete button while the deletion is pending so only one request is sent', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as Mock).mockReturnValue(new Promise(() => {}));
+    vi.mocked(del).mockReturnValue(new Promise(() => {}));
     renderInstanceDataView();
 
     await user.click(getDeleteButton());
     expect(getDeleteButton()).toBeDisabled();
     await user.click(getDeleteButton());
 
-    expect(axios.delete).toHaveBeenCalledTimes(1);
+    expect(del).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the instance's health on the workflow engine only when asked to", () => {
+    renderInstanceDataView({ showWorkflowHealth: true });
+    expect(screen.getByText(textMock('admin.workflows.health'))).toBeInTheDocument();
+  });
+
+  it("rests the instance's health on the engine's rollup, not on the workflows loaded so far", async () => {
+    // The newest page of workflows is all completed, and an older auxiliary workflow failed.
+    const rollup: WorkflowCollectionListResponse = {
+      data: [
+        {
+          key: instanceId,
+          namespace: `${org}/${app}`,
+          createdAt: '2026-10-01T10:00:00Z',
+          workflowCounts: workflowCounts({ total: 26, auxiliary: { failed: 1 } }),
+        },
+      ],
+      pageSize: 1,
+      totalCount: 1,
+      unmatchedKeys: [],
+    };
+    const newestWorkflows = { data: [completedWorkflow], pageSize: 25, totalCount: 26 };
+    vi.mocked(get).mockImplementation((url: string) =>
+      Promise.resolve(url.includes('/collections') ? rollup : newestWorkflows),
+    );
+
+    renderInstanceDataView({ showWorkflowHealth: true });
+
+    expect(
+      await screen.findByText(textMock('admin.workflows.health.auxiliary_workflow_failed')),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the workflow engine out of the info card, and unasked, by default', () => {
+    renderInstanceDataView();
+
+    expect(screen.queryByText(textMock('admin.workflows.health'))).not.toBeInTheDocument();
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('does not delete the instance when the user cancels the confirmation', async () => {
@@ -107,31 +180,99 @@ describe('InstanceDataView', () => {
 
     await user.click(getDeleteButton());
 
-    expect(axios.delete).not.toHaveBeenCalled();
+    expect(del).not.toHaveBeenCalled();
+  });
+
+  it('shows the task a data type is bound to with taskId', () => {
+    renderInstanceDataView({
+      section: 'dataElements',
+      instance: instanceWithDataMock,
+      appMetadata: { ...appMetadataMock, dataTypes: [{ id: dataTypeId, taskId: 'Task_1' }] },
+      processMetadata: processMetadataMock,
+    });
+
+    expect(screen.getByText('Utfylling')).toBeInTheDocument();
+  });
+
+  it('shows every task a data type is bound to with taskIds, by name where the task has one', () => {
+    renderInstanceDataView({
+      section: 'dataElements',
+      instance: instanceWithDataMock,
+      appMetadata: {
+        ...appMetadataMock,
+        dataTypes: [{ id: dataTypeId, taskIds: ['Task_1', 'Task_2'] }],
+      },
+      processMetadata: processMetadataMock,
+    });
+
+    expect(screen.getByText('Utfylling')).toBeInTheDocument();
+    expect(screen.getByText('Task_2')).toBeInTheDocument();
+  });
+
+  it('shows the task whose configuration names a data type that is bound to no task', () => {
+    renderInstanceDataView({
+      section: 'dataElements',
+      instance: instanceWithDataMock,
+      appMetadata: { ...appMetadataMock, dataTypes: [{ id: dataTypeId }] },
+      processMetadata: [
+        processMetadataMock[0],
+        { id: 'Task_2', dataTypeTags: [{ dataTypeId, tag: 'signatureDataType' }] },
+      ],
+    });
+
+    expect(screen.getByText('Task_2')).toBeInTheDocument();
+    expect(screen.queryByText('Utfylling')).not.toBeInTheDocument();
   });
 });
+
+const completedWorkflow: WorkflowStatus = {
+  databaseId: 'newest',
+  collectionKey: instanceId,
+  operationId: 'Process next',
+  idempotencyKey: 'newest',
+  namespace: `${org}/${app}`,
+  createdAt: '2026-10-02T10:00:00Z',
+  overallStatus: 'Completed',
+  role: 'Primary',
+  steps: [],
+};
 
 const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
 
 type RenderInstanceDataViewOptions = {
   instance?: SimpleInstanceDetails | null;
+  appMetadata?: ApplicationMetadata;
+  processMetadata?: ProcessTaskMetadata[];
   queryClient?: QueryClient;
+  section?: InstanceDataViewSection;
+  showWorkflowHealth?: boolean;
 };
 
 function renderInstanceDataView({
   instance = instanceMock,
+  appMetadata = appMetadataMock,
+  processMetadata = [],
   queryClient = createQueryClientMock(),
+  section = 'info',
+  showWorkflowHealth,
 }: RenderInstanceDataViewOptions = {}) {
   if (instance) {
     queryClient.setQueryData(
       [QueryKey.AppInstanceDetails, org, environment, app, instanceId],
       instance,
     );
-    queryClient.setQueryData([QueryKey.AppMetadata, org, environment, app], appMetadataMock);
-    queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], []);
+    queryClient.setQueryData([QueryKey.AppMetadata, org, environment, app], appMetadata);
+    queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], processMetadata);
   }
   return renderWithProviders(
-    <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />,
+    <InstanceDataView
+      org={org}
+      environment={environment}
+      app={app}
+      id={instanceId}
+      section={section}
+      showWorkflowHealth={showWorkflowHealth}
+    />,
     { queryClient },
   );
 }

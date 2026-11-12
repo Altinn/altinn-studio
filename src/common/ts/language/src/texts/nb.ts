@@ -267,6 +267,12 @@ export function nb() {
     'instance_selection.last_changed': 'Sist endret',
     'instance_selection.left_of': 'Fortsett der du slapp',
     'instance_selection.new_instance': 'Start på nytt',
+    'instantiate.not_yet_open_error_title': 'Denne tjenesten har ikke åpnet ennå',
+    'instantiate.not_yet_open_error_text':
+      'Tjenesten åpner {0}. Det er ikke mulig å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikke starte denne tjenesten',
+    'instantiate.closed_error_text':
+      'Det er ikke mulig å starte nye skjema i denne tjenesten. Skjema du allerede har startet, kan du fortsatt fullføre fra innboksen.',
     'instantiate.all_forms': 'alle skjema',
     'instantiate.inbox': 'innboks',
     'instantiate.profile': 'profil',

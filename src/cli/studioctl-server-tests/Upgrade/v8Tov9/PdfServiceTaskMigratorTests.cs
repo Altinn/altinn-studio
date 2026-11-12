@@ -670,10 +670,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task MissingFlagOnFormData_GetsPdfServiceTask()
+    public async Task MissingFlagOnFormData_GetsNoPdfServiceTask()
     {
-        // enablePdfCreation defaults to true in v8, so a form data type without the flag generated a
-        // PDF at the end of its task and needs a PDF service task to keep doing so.
+        // v8 counted a missing flag as true, but the upgrade does not: on a re-run it cannot tell a missing
+        // flag from a false that the first run removed.
         var metadata = Metadata(
             """
                 {
@@ -690,12 +690,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             "config/process/process.bpmn",
             Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
         );
+        var processBefore = _app.Read("config/process/process.bpmn");
 
         var result = await MigrateResult();
 
-        var process = ProcessAfter();
-        Assert.NotNull(ElementById(process, "PdfTask_Task_1"));
-        Assert.Equal("PdfTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
         Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
@@ -727,10 +726,34 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task SecondRun_AfterExplicitFalseWasStripped_AddsNoPdfTask()
+    {
+        // The first run removes the false, so the second sees no flag at all, and must still add nothing.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: false))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+        var processBefore = _app.Read("config/process/process.bpmn");
+
+        await MigrateResult();
+        var metadataAfterFirst = _app.Read("config/applicationmetadata.json");
+        var result = await MigrateResult();
+
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
+        Assert.Equal(metadataAfterFirst, _app.Read("config/applicationmetadata.json"));
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
     public async Task MissingFlagOnAttachmentOrTaskLessData_GetsNoPdfTaskAndNoWarning()
     {
-        // The implicit default never generated a PDF without a classRef or a taskId either, and it is on
-        // every such data type, so unlike an explicit flag it is not worth a warning.
+        // As on a form data type, a missing flag means no PDF here, so unlike an explicit flag it is not
+        // worth a warning.
         _app.Write(
             "config/applicationmetadata.json",
             Metadata(
@@ -1002,12 +1025,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         pdfTask.Descendants().Any(e => e.Name.LocalName is "pdfConfig" or "autoPdfTaskIds");
 
     /// <summary>The files of the layout set Altinn Studio creates for a custom PDF named pdfReceipt.</summary>
-    private static readonly string[] _pdfTaskLayoutSet =
-    [
-        "Settings.json",
-        "layouts/ServiceTask.json",
-        "layouts/pdfReceipt.json",
-    ];
+    private static readonly string[] _pdfTaskLayoutSet = ["Settings.json", "layouts/pdfReceipt.json"];
 
     [Fact]
     public async Task TaskWithCustomPdfLayout_GetsALayoutSetPointingAtTheTask()
@@ -1028,18 +1046,14 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Equal("PdfTask_Task_1", ElementById(process, "SequenceFlow_2")?.Attribute("targetRef")?.Value);
         Assert.Equal("Task_2", ElementById(process, "Flow_PdfTask_Task_1_to_Task_2")?.Attribute("targetRef")?.Value);
 
-        // The layout set Altinn Studio creates for a custom PDF: the PDF layout, a waiting page and settings
-        // naming both, bound to the task's data model. None of the task's pages are copied.
+        // The layout set Altinn Studio creates for a custom PDF: the PDF layout and settings naming it, bound to
+        // the task's data model. No page is listed, since v9 shows the pages in pages.order while the task runs.
+        // None of the task's pages are copied.
         Assert.Equal(_pdfTaskLayoutSet, Files(PdfTaskFolder).Keys);
         var settings = Json($"{PdfTaskFolder}/Settings.json");
         Assert.Equal("pdfReceipt", settings["pages"]?["pdfLayoutName"]?.GetValue<string>());
-        Assert.Equal("""["ServiceTask"]""", settings["pages"]?["order"]?.ToJsonString());
+        Assert.Equal("[]", settings["pages"]?["order"]?.ToJsonString());
         Assert.Equal("datamodel", settings["defaultDataType"]?.GetValue<string>());
-        Assert.Equal<string?>(
-            ["service_task.waiting_title", "service_task.waiting_body"],
-            Components($"{PdfTaskFolder}/layouts/ServiceTask.json")
-                .Select(c => c["textResourceBindings"]?["title"]?.GetValue<string>())
-        );
 
         // Every summary now names Task_1. The page summaries only gained the taskId; the legacy Summary
         // components, which cannot show another task's components, became Summary2 component summaries.
@@ -1329,8 +1343,19 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
+        // The copy lists no pages, since v9 shows the pages in pages.order while the task runs.
         Assert.False(HasAutoPdfTaskIds(PdfTaskAfter("Task_1")));
-        Assert.Equal(taskFolderBefore, Files(PdfTaskFolder));
+        var copy = Files(PdfTaskFolder);
+        Assert.Equal(taskFolderBefore.Keys, copy.Keys);
+        Assert.All(
+            copy.Where(file => file.Key != "Settings.json"),
+            file => Assert.Equal(taskFolderBefore[file.Key], file.Value)
+        );
+        Assert.Equal(
+            """{"excludeFromPdf":["01_Intro"],"order":[],"showProgress":true,"pdfLayoutName":"pdfReceipt"}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
+        Assert.Equal("datamodel", Json($"{PdfTaskFolder}/Settings.json")["defaultDataType"]?.GetValue<string>());
         Assert.DoesNotContain(
             "enablePdfCreation",
             _app.Read("config/applicationmetadata.json"),
@@ -1338,7 +1363,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         var todo = Assert.Single(result.Todos);
         Assert.Contains(reason, todo, StringComparison.Ordinal);
-        Assert.Contains("copied App/ui/Task_1 to App/ui/PdfTask_Task_1", todo, StringComparison.Ordinal);
+        Assert.Contains(
+            "copied App/ui/Task_1 to App/ui/PdfTask_Task_1, with an empty pages.order",
+            todo,
+            StringComparison.Ordinal
+        );
         Assert.Contains(
             "Removed pdfLayoutName and layouts/pdfReceipt.json from App/ui/Task_1",
             todo,
@@ -1346,6 +1375,33 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         Assert.Contains("target.taskId", todo, StringComparison.Ordinal);
         Assert.Contains("https://docs.altinn.studio/", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CopyOfATaskFolderWithPageGroups_ListsNoPages()
+    {
+        WriteMetadataForTask1();
+        WriteDataThenFeedbackProcess();
+        WriteTaskUi(
+            DataTaskFolder,
+            """
+            {
+              "pages": {
+                "groups": [{ "order": ["01_Intro", "02_Kontaktinformasjon"] }],
+                "pdfLayoutName": "pdfReceipt"
+              },
+              "defaultDataType": "datamodel"
+            }
+            """,
+            """{ "id": "nav", "type": "NavigationBar" }"""
+        );
+
+        await MigrateResult();
+
+        Assert.Equal(
+            """{"pdfLayoutName":"pdfReceipt","order":[]}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
     }
 
     [Fact]
@@ -1435,7 +1491,6 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
             settings["$schema"]?.GetValue<string>()
         );
-        Assert.Equal(LayoutSchema, Json($"{PdfTaskFolder}/layouts/ServiceTask.json")["$schema"]?.GetValue<string>());
     }
 
     [Fact]

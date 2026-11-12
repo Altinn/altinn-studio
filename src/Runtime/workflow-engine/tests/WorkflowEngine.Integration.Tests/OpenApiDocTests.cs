@@ -43,6 +43,82 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
     }
 
     [Fact]
+    public async Task RoleFilter_DocumentsItsValues()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var roleParam = doc
+            .RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/{namespace}/workflows")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .Single(p => p.GetProperty("name").GetString() == "role");
+
+        var description = roleParam.GetProperty("description").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(description));
+        Assert.Contains("Primary", description, StringComparison.Ordinal);
+        Assert.Contains("Auxiliary", description, StringComparison.Ordinal);
+
+        var values = roleParam
+            .GetProperty("schema")
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Select(e => e.GetString())
+            .ToList();
+        foreach (var name in Enum.GetNames<WorkflowRole>())
+            Assert.Contains(name, values);
+    }
+
+    [Fact]
+    public async Task WorkflowRoleSchema_ListsTheWireNames()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var values = doc
+            .RootElement.GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty(nameof(WorkflowRole))
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Where(e => e.ValueKind == JsonValueKind.String)
+            .Select(e => e.GetString())
+            .ToList();
+
+        Assert.Equal(["Primary", "Auxiliary"], values);
+    }
+
+    [Fact]
+    public async Task ListCollectionsParameters_ExposeDescriptionsAndFailuresEnum()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var parameters = doc
+            .RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/{namespace}/collections")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .ToDictionary(p => p.GetProperty("name").GetString()!);
+
+        foreach (var name in new[] { "key", "failures", "cursor", "pageSize" })
+            Assert.False(string.IsNullOrWhiteSpace(parameters[name].GetProperty("description").GetString()));
+
+        var failureValues = parameters["failures"]
+            .GetProperty("schema")
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Select(e => e.GetString())
+            .ToList();
+
+        foreach (var name in Enum.GetNames<CollectionFailureFilter>())
+            Assert.Contains(name, failureValues);
+    }
+
+    [Fact]
     public async Task LinksToTechnicalGuide_AtDocumentAndOperationLevel()
     {
         using var client = fixture.CreateEngineClient();

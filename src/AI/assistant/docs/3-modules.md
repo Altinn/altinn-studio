@@ -10,10 +10,10 @@ The service is one Python process. It uses `asyncio`, so many runs can share the
 | `src/AI/assistant/agents/graph/`      | Runs the gates, then the graph: intake → spec → agentic loop. Holds `AgentState`.                                                               |
 | `src/AI/assistant/agents/core/`       | The loop engine: loop, tool interface, tool registry, model adapters, history compaction, system prompt, skills.                                |
 | `src/AI/assistant/agents/core/tools/` | The tools that the model can call.                                                                                                              |
-| `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, LLM gates and client, repo scan, preview render check.                                                       |
+| `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, Designer API, LLM gates and client, repo scan, preview render check.                                         |
 | `src/AI/assistant/agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
-| `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation, data model conversion.                         |
-| `src/AI/assistant/agents/skills/`     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
+| `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation.                                                |
+| `src/AI/assistant/agents/skills/`     | The skills that `SKILLS` names.                                                                                                                 |
 | `src/AI/assistant/agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
 | `src/AI/assistant/services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
 | `src/AI/assistant/shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
@@ -121,7 +121,6 @@ The conversation history for follow-up questions is also lost. Designer keeps th
 | Permission prompt timeout            | 300 s                     | `src/AI/assistant/agents/services/events/permissions.py`   |
 | Starts for each developer            | 5 / min                   | `src/AI/assistant/api/routes/agent.py`                     |
 | Starts for all developers            | 30 / min                  | `src/AI/assistant/api/routes/agent.py`                     |
-| Minimum intent confidence            | 0.30                      | `src/AI/assistant/agents/services/llm/intent_parser.py`    |
 | Render repair rounds                 | 1                         | `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py` |
 | Langfuse trace retention             | 90 days                   | `LANGFUSE_TRACE_RETENTION_DAYS`                            |
 | Pod resources                        | 100m CPU, 250Mi–1Gi       | `src/AI/assistant/infra/kustomize/deployment.yaml`         |

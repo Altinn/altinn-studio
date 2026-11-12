@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -120,17 +121,10 @@ internal static class DashboardEndpoints
         app.MapGet(
                 "/dashboard/config",
                 (IOptions<EngineSettings> settings) =>
-                {
-                    DashboardSettings dashboard = settings.Value.Dashboard;
-                    return Results.Json(
-                        new
-                        {
-                            grafanaUrl = dashboard.GrafanaUrl,
-                            grafanaTracesDatasourceUid = dashboard.GrafanaTracesDatasourceUid,
-                        },
+                    Results.Json(
+                        new { traceUrlTemplate = TraceUrlTemplate.Resolve(settings.Value.Dashboard) },
                         _jsonCompact
-                    );
-                }
+                    )
             )
             .ExcludeFromDescription();
 
@@ -391,6 +385,7 @@ internal static class DashboardEndpoints
                     string? labels,
                     string? collectionKey,
                     string? @namespace,
+                    string? role,
                     CancellationToken ct
                 ) =>
                 {
@@ -406,21 +401,24 @@ internal static class DashboardEndpoints
                         : status
                             .Split(',')
                             .Select(s =>
-                                s.Trim().ToUpperInvariant() switch
-                                {
-                                    "COMPLETED" => PersistentItemStatus.Completed,
-                                    "FAILED" => PersistentItemStatus.Failed,
-                                    "REQUEUED" => PersistentItemStatus.Requeued,
-                                    "WAITING" => PersistentItemStatus.Waiting,
-                                    "HELD" => PersistentItemStatus.Held,
-                                    "ENQUEUED" => PersistentItemStatus.Enqueued,
-                                    "PROCESSING" => PersistentItemStatus.Processing,
-                                    "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
-                                    _ => null,
-                                }
+                                EnumNames.TryParse(s.Trim(), out PersistentItemStatus parsed)
+                                    ? (PersistentItemStatus?)parsed
+                                    : null
                             )
                             .OfType<PersistentItemStatus>()
                             .ToArray();
+
+                    WorkflowRole? roleFilter = null;
+                    if (!string.IsNullOrWhiteSpace(role))
+                    {
+                        if (!EnumNames.TryParse(role, out WorkflowRole parsedRole))
+                            return Results.Problem(
+                                detail: $"'{role}' is not a valid workflow role.",
+                                statusCode: StatusCodes.Status400BadRequest
+                            );
+
+                        roleFilter = parsedRole;
+                    }
 
                     bool retriedOnly = retried == true;
 
@@ -438,6 +436,7 @@ internal static class DashboardEndpoints
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
                         collectionKey: collectionKey,
+                        role: roleFilter,
                         cancellationToken: ct
                     );
 

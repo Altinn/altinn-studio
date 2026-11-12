@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"altinn.studio/devenv/pkg/container"
@@ -35,11 +36,13 @@ type EnvCommand struct {
 }
 
 type envUpOutput struct {
-	Runtime        string `json:"runtime"`
-	Running        bool   `json:"running"`
-	Started        bool   `json:"started"`
-	AlreadyRunning bool   `json:"alreadyRunning"`
-	JSONOutput     bool   `json:"-"`
+	Runtime string `json:"runtime"`
+	// Warnings are what the environment warned about on stderr, such as an unusable STUDIO_CA_BUNDLE.
+	Warnings       []string `json:"warnings,omitempty"`
+	Running        bool     `json:"running"`
+	Started        bool     `json:"started"`
+	AlreadyRunning bool     `json:"alreadyRunning"`
+	JSONOutput     bool     `json:"-"`
 }
 
 func (o envUpOutput) Print(out *ui.Output) error {
@@ -85,11 +88,12 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 	}
 	if !o.Status.Running {
 		out.Printlnf("%s is running with issues.", o.Runtime)
-		out.Println("")
-		renderLocaltestStatus(out, o.Status)
-		return nil
+	} else {
+		out.Printlnf("%s is running.", o.Runtime)
 	}
-	out.Printlnf("%s is running.", o.Runtime)
+	if o.Status.URL != "" {
+		out.Printlnf("Access the platform at: %s", o.Status.URL)
+	}
 	out.Println("")
 	renderLocaltestStatus(out, o.Status)
 	return nil
@@ -174,6 +178,8 @@ func (c *EnvCommand) Usage() string {
 		"",
 		"Options for 'env up':",
 		"  -d, --detach     Run in background (default: true)",
+		"  --port PORT      Serve localtest on this host port until env down (default: "+
+			envtopology.DefaultIngressPortString()+")",
 		"  --monitoring     Start monitoring stack",
 		"  --pgadmin        Start pgAdmin for the workflow-engine database",
 		"  --open           Open localtest in browser after starting",
@@ -260,6 +266,7 @@ func (c *EnvCommand) withContainerClient(
 // envUpFlags holds parsed flags for the env up command.
 type envUpFlags struct {
 	runtime           string
+	port              int
 	detach            bool
 	devWorkflowEngine bool
 	monitoring        bool
@@ -283,6 +290,8 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 			"Options:",
 			"  -r, --runtime    Runtime to use (default: localtest)",
 			"  -d, --detach     Run in background (default: true)",
+			"  --port PORT      Serve localtest on this host port until env down (default: "+
+				envtopology.DefaultIngressPortString()+")",
 			"  --monitoring     Start monitoring stack",
 			"  --pgadmin        Start pgAdmin for the workflow-engine database",
 			"  --open           Open localtest in browser after starting",
@@ -299,12 +308,24 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
 	fs.BoolVar(&f.devWorkflowEngine, "dev-workflow-engine", false, "Route workflow-engine to a host process")
+	fs.IntVar(&f.port, "port", 0, "Serve localtest on this host port")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return f, true, nil // help was shown
 		}
 		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+	portSet := false
+	fs.Visit(func(set *flag.Flag) {
+		if set.Name == "port" {
+			portSet = true
+		}
+	})
+	if portSet {
+		if err := envlocaltest.ValidatePublicPort(f.port, "--port"); err != nil {
+			return f, false, fmt.Errorf("%w: %w", ErrInvalidFlagValue, err)
+		}
 	}
 
 	return f, false, nil
@@ -332,12 +353,30 @@ func (c *EnvCommand) runUp(ctx context.Context, args []string) error {
 	})
 }
 
+// localtestPortChanged reports whether env up asks for another port than localtest was last started with. A running
+// environment then has to be started again rather than reported as already running.
+func localtestPortChanged(cfg *config.Config, port int) (bool, error) {
+	if port == 0 {
+		return false, nil
+	}
+	topology, err := envlocaltest.RecordedTopology(cfg)
+	if err != nil {
+		return false, fmt.Errorf("read localtest port: %w", err)
+	}
+	return topology.IngressPort() != strconv.Itoa(port), nil
+}
+
 func (c *EnvCommand) runLocaltestUp(
 	ctx context.Context,
 	client container.ContainerClient,
 	flags envUpFlags,
 ) error {
-	env := envlocaltest.NewEnv(c.cfg, commandOutput(c.out, flags.jsonOutput), client)
+	// With --json, the environment's warnings go to stderr and into the JSON, as env hosts does.
+	envOut := c.out
+	if flags.jsonOutput {
+		envOut = c.out.ForJSON()
+	}
+	env := envlocaltest.NewEnv(c.cfg, envOut, client)
 
 	upOpts := envtypes.UpOptions{
 		Detach:            flags.detach,
@@ -345,6 +384,7 @@ func (c *EnvCommand) runLocaltestUp(
 		Monitoring:        flags.monitoring,
 		OpenBrowser:       flags.openBrowser,
 		PgAdmin:           flags.pgAdmin,
+		Port:              flags.port,
 	}
 
 	preflightErr := env.Preflight(ctx, upOpts)
@@ -356,9 +396,14 @@ func (c *EnvCommand) runLocaltestUp(
 	if err != nil {
 		return fmt.Errorf("get status: %w", err)
 	}
-	if status.Running && !flags.devWorkflowEngine {
+	portChanged, err := localtestPortChanged(c.cfg, flags.port)
+	if err != nil {
+		return err
+	}
+	if status.Running && !flags.devWorkflowEngine && !portChanged {
 		return envUpOutput{
 			Runtime:        runtimeLocaltest,
+			Warnings:       envOut.Warnings(),
 			Running:        true,
 			Started:        false,
 			AlreadyRunning: true,
@@ -369,8 +414,12 @@ func (c *EnvCommand) runLocaltestUp(
 	if err := env.Up(ctx, upOpts); err != nil {
 		return fmt.Errorf("env up: %w", err)
 	}
+	if portChanged && status.AnyRunning && !flags.jsonOutput {
+		c.out.Warning("Restart any app you started before the port changed: it still uses the previous port.")
+	}
 	return envUpOutput{
 		Runtime:        runtimeLocaltest,
+		Warnings:       envOut.Warnings(),
 		Running:        true,
 		Started:        true,
 		AlreadyRunning: false,

@@ -10,14 +10,11 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataTagsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-    : ApiTestBase(factory, outputHelper),
-        IClassFixture<WebApplicationFactory<Program>>
+public class DataTagsControllerTests(ITestOutputHelper outputHelper) : ApiTestBase(outputHelper)
 {
     readonly string _org = "tdd";
     readonly string _app = "contributer-restriction";

@@ -31,4 +31,22 @@ describe('getFileUploadMetadataProperties', () => {
       }),
     ).toThrow('maxNumberOfAttachments must be a static number');
   });
+
+  it('preserves existing static counts for expression limits', () => {
+    expect(
+      getFileUploadMetadataProperties(
+        {
+          ...component,
+          maxNumberOfAttachments: ['if', true, 3, 1],
+          minNumberOfAttachments: ['if', true, 1, 0],
+        },
+        { maxCount: 10, minCount: 0 },
+      ),
+    ).toEqual({
+      fileType: '.pdf, .png',
+      maxCount: 10,
+      minCount: 0,
+      maxSize: 25,
+    });
+  });
 });

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -80,6 +81,7 @@ func TestServerUpJSON_AlreadyRunning(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &ServerCommand{
+		cfg:    &config.Config{DataDir: t.TempDir()},
 		out:    ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatus(&studioctlserver.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
@@ -106,6 +108,7 @@ func TestServerUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	var ensured bool
 	var out bytes.Buffer
 	command := &ServerCommand{
+		cfg:    &config.Config{DataDir: t.TempDir()},
 		out:    ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatus(&studioctlserver.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
@@ -122,11 +125,40 @@ func TestServerUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	}
 }
 
+// studioctl-server restarts whenever it is started with another port, so every command has to start it with the
+// port env up last started localtest on.
+func TestServerUpUsesTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir()}
+	if err := envlocaltest.WriteState(cfg, envlocaltest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	var startedWith string
+	command := &ServerCommand{
+		cfg:    cfg,
+		out:    ui.NewOutput(io.Discard, io.Discard, false),
+		client: fakeServerClientWithStatus(&studioctlserver.Status{ProcessID: 1}, nil),
+		ensureStarted: func(_ context.Context, _ *config.Config, port string) error {
+			startedWith = port
+			return nil
+		},
+	}
+
+	if err := command.Run(context.Background(), []string{"up", "--json"}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if startedWith != "8100" {
+		t.Fatalf("ensureStarted port = %q, want 8100", startedWith)
+	}
+}
+
 func TestServerUpJSON_Started(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
 	command := &ServerCommand{
+		cfg: &config.Config{DataDir: t.TempDir()},
 		out: ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatusSequence(
 			fakeStatusResult{err: studioctlserver.ErrNotRunning},
@@ -155,6 +187,7 @@ func TestServerUpJSON_Restarted(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &ServerCommand{
+		cfg: &config.Config{DataDir: t.TempDir()},
 		out: ui.NewOutput(&out, io.Discard, false),
 		client: fakeServerClientWithStatusSequence(
 			fakeStatusResult{status: &studioctlserver.Status{ProcessID: 1}},

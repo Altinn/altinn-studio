@@ -1,7 +1,9 @@
 using Altinn.Studio.Common;
 using Altinn.Studio.Gateway.Api;
 using Altinn.Studio.Gateway.Api.Authentication;
+using Altinn.Studio.Gateway.Api.Health;
 using Altinn.Studio.Gateway.Api.Hosting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HostPortScope = Altinn.Studio.Common.PortScope;
 using HostPortScopeMetadata = Altinn.Studio.Common.PortScopeMetadata;
 
@@ -22,7 +24,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
-builder.Services.AddHealthChecks();
+builder.Services.AddRuntimeHealth(builder.Configuration);
 builder.Services.AddOpenApi(
     "public-v1",
     options =>
@@ -68,8 +70,17 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
 });
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+// Probes aren't traffic: the shared telemetry setup keeps them out of traces, and these out of request metrics.
+// They only reflect the gateway itself, so an unavailable dependency doesn't take it out of rotation.
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).DisableHttpMetrics();
+app.MapHealthChecks(
+        "/health/ready",
+        new HealthCheckOptions
+        {
+            Predicate = registration => registration.Tags.Contains(RuntimeHealthRegistration.ReadyTag),
+        }
+    )
+    .DisableHttpMetrics();
 
 app.UseGateway();
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
 import { StudioIconCard } from './';
-import { ClipboardIcon } from '@studio/icons';
+import { ClipboardIcon } from '@designer/icons';
 
 describe('StudioIconCard', () => {
   it('should render children as content', async () => {

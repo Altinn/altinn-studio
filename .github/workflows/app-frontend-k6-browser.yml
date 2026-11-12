@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
+      - '!src/App/backend/test/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
       - 'src/App/AppCoreDependency.props'
@@ -12,6 +13,7 @@ on:
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
+      - 'src/common/go/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'

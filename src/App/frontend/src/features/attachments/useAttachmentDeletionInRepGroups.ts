@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 
+import { useSelectFromInstanceData } from 'src/core/queries/instance';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
 import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
-import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentBehaviors } from 'src/layout';

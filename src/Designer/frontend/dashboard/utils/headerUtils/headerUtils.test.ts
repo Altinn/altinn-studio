@@ -8,7 +8,7 @@ import {
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
 import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 

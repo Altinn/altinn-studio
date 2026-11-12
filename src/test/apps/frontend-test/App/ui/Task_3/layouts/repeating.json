@@ -1,4 +1,5 @@
 ﻿{
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
@@ -390,6 +391,11 @@
           ],
           ["greaterThan", ["component", "currentValue"], 100]
         ],
+        "rowsBefore": [
+          {
+            "cells": [{ "component": "subGroupStaticBefore" }, {}, {}, {}]
+          }
+        ],
         "rowsAfter": [
           {
             "header": true,
@@ -397,8 +403,33 @@
           },
           {
             "cells": [{ "text": "nested.isParentPrefill" }, {}, {}, {}]
+          },
+          {
+            "cells": [{ "component": "subGroupStaticAfter" }, {}, {}, {}]
           }
         ]
+      },
+      {
+        "id": "subGroupStaticBefore",
+        "type": "Input",
+        "textResourceBindings": { "title": "Før tabellen" },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange"
+        },
+        "hidden": ["notEquals", ["dataModel", "useBothRepGroups"], true],
+        "readOnly": true,
+        "formatting": { "number": { "prefix": "NOK " } }
+      },
+      {
+        "id": "subGroupStaticAfter",
+        "type": "Input",
+        "textResourceBindings": { "title": "Etter tabellen" },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange"
+        },
+        "hidden": ["notEquals", ["dataModel", "useBothRepGroups"], true],
+        "readOnly": true,
+        "formatting": { "number": { "prefix": "NOK " } }
       },
       {
         "id": "nested-source",
@@ -724,5 +755,5 @@
         }
       }
     ]
-  }
+  },
 }

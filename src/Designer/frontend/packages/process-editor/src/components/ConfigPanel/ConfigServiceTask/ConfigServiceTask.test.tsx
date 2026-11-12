@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
@@ -139,7 +139,7 @@ describe('ConfigServiceTask', () => {
 
     expect(
       screen.getByLabelText(
-        textMock('process_editor.configuration_panel_subform_pdf_component_id_label'),
+        textMock('process_editor.configuration_panel_subform_pdf_ui_folder_label'),
       ),
     ).toBeInTheDocument();
   });

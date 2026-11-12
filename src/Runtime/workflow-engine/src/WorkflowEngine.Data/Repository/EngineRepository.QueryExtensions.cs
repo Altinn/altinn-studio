@@ -132,7 +132,8 @@ internal static class EngineRepositoryQueryExtensions
             bool retriedOnly = false,
             string? collectionKeyFilter = null,
             string? namespaceFilter = null,
-            IReadOnlyDictionary<string, string>? labelFilter = null
+            IReadOnlyDictionary<string, string>? labelFilter = null,
+            WorkflowRole? roleFilter = null
         )
         {
             var query = dbContext
@@ -140,6 +141,7 @@ internal static class EngineRepositoryQueryExtensions
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .MaybeFilterByCollectionKey(collectionKeyFilter)
+                .MaybeFilterByRole(roleFilter)
                 .Where(x => statuses.Contains(x.Status));
 
             if (since.HasValue)
@@ -235,6 +237,21 @@ internal static class EngineRepositoryQueryExtensions
         {
             if (!string.IsNullOrWhiteSpace(collectionKey))
                 entityQuery = entityQuery.Where(wf => wf.CollectionKey == collectionKey);
+
+            return entityQuery;
+        }
+
+        /// <summary>
+        /// Filters by <see cref="WorkflowRole"/>, using the shared <see cref="WorkflowRolePredicates"/>.
+        /// Primary is not directive equality: it matches a directive of <c>true</c> or unset, since
+        /// <c>null</c> is the default directive of nearly every ordinary workflow.
+        /// </summary>
+        private IQueryable<WorkflowEntity> MaybeFilterByRole(WorkflowRole? role)
+        {
+            if (role == WorkflowRole.Primary)
+                entityQuery = entityQuery.Where(WorkflowRolePredicates.Primary);
+            else if (role == WorkflowRole.Auxiliary)
+                entityQuery = entityQuery.Where(WorkflowRolePredicates.Auxiliary);
 
             return entityQuery;
         }

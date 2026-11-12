@@ -24,7 +24,9 @@ playground-stop: ## Stop the observability playground
 
 playground-host: ## Run the observability playground with the engine on the host (Ctrl+C, then make stop)
 	docker compose up -d
-	set -a; . .k6/playground.env; set +a; dotnet run --project tests/WorkflowEngine.TestApp
+	set -a; . .k6/playground.env; set +a; \
+	OTEL_EXPORTER_OTLP_ENDPOINT="$${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4317}" \
+	dotnet run --project tests/WorkflowEngine.TestApp
 
 reset db-reset: ## Stop all services and delete the database volume
 	docker compose --profile core down

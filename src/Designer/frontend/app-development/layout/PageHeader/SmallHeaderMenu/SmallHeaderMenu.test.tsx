@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import userEvent from '@testing-library/user-event';
@@ -97,6 +97,23 @@ describe('SmallHeaderMenu', () => {
       level: 2,
     });
     expect(heading).toBeInTheDocument();
+  });
+
+  it('should render a profile menu item with a link action as a plain link', async () => {
+    const user = userEvent.setup();
+    const profileLinkHref = '/settings/ttd';
+    renderSmallHeaderMenu({
+      profileMenuItems: [
+        { action: { type: 'link', href: profileLinkHref }, itemName: 'profileLink' },
+      ],
+    });
+
+    await user.click(screen.getByRole('button', { name: textMock('top_menu.menu') }));
+
+    expect(screen.getByRole('menuitem', { name: 'profileLink' })).toHaveAttribute(
+      'href',
+      profileLinkHref,
+    );
   });
 });
 

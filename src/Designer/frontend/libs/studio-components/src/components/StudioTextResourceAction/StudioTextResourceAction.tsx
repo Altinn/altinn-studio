@@ -1,7 +1,7 @@
-import type { StudioTextResourceEditorTexts, StudioTextResourceTab } from '@studio/components';
-import { StudioConfigCard, StudioTextResourceEditor } from '@studio/components';
+import type { StudioTextResourceEditorTexts, StudioTextResourceTab } from '@designer/components';
+import { StudioConfigCard, StudioTextResourceEditor } from '@designer/components';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 
 export type StudioTextResourceActionTexts = {
   cardLabel: string;

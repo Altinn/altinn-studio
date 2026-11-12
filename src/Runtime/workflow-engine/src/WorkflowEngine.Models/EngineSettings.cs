@@ -9,14 +9,6 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
-    /// Whether to enable OpenTelemetry tracing, metrics, and log export.
-    /// Defaults to <c>true</c>. Set to <c>false</c> to skip all OTEL registration
-    /// (useful for local stress testing without a collector).
-    /// </summary>
-    [JsonPropertyName("enableTelemetry")]
-    public bool EnableTelemetry { get; set; } = true;
-
-    /// <summary>
     /// Trace sampling rate between 0.0 (drop all traces) and 1.0 (keep all traces).
     /// Defaults to <c>1.0</c>. Lower this during stress testing to reduce OTLP export volume
     /// while keeping metrics and logs at full fidelity.
@@ -266,7 +258,7 @@ public sealed record EngineSettings
     public ThrottlingSettings Throttling { get; set; } = new();
 
     /// <summary>
-    /// Dashboard settings: the Grafana its trace links open. Unset by default, so the dashboard draws no trace links.
+    /// Dashboard settings: where its trace links open. Unset by default, so the dashboard draws no trace links.
     /// </summary>
     [JsonPropertyName("dashboard")]
     public DashboardSettings Dashboard { get; set; } = new();
@@ -481,17 +473,54 @@ public sealed record PaginationSettings
     /// </summary>
     [JsonPropertyName("maxPageSize")]
     public int MaxPageSize { get; set; } = 100;
+
+    /// <summary>
+    /// Maximum number of distinct collection keys one annotate request may carry
+    /// (<c>GET /collections?key=…</c>).
+    /// </summary>
+    /// <remarks>
+    /// Deliberately separate from <see cref="MaxPageSize"/> even though both default to 100:
+    /// a page size above the maximum is <em>clamped</em>, while a key list above this one is
+    /// <em>rejected</em>. Silently dropping keys from a health read would let their failures
+    /// pass as healthy, which is the failure class the endpoint exists to surface. Sharing one
+    /// knob would mean that lowering the page size to control query cost also shrinks what a
+    /// health caller may ask about, and callers sized against the old value start failing.
+    /// </remarks>
+    [JsonPropertyName("maxAnnotateKeys")]
+    public int MaxAnnotateKeys { get; set; } = 100;
 }
 
 /// <summary>
-/// Settings for the dashboard's trace links, which open a workflow's trace in Grafana Explore. A host that runs a
-/// Grafana sets both; the dashboard draws the links only when both are set. An empty or whitespace value counts as
-/// unset.
+/// Settings for the dashboard's trace links, which open a workflow's trace by its ID. A host names its trace viewer
+/// either with <see cref="TraceUrlTemplate"/>, any viewer with a page per trace, or with the Grafana pair
+/// <see cref="GrafanaUrl"/> and <see cref="GrafanaTracesDatasourceUid"/>, which opens the trace in Grafana Explore.
+/// The template wins when both are set; with neither, the dashboard draws no trace links. An empty or whitespace
+/// value counts as unset.
 /// </summary>
 public sealed record DashboardSettings
 {
     /// <summary>
-    /// The Grafana base URL as a browser reaches it, such as <c>https://grafana.example.com</c>. Unset by default.
+    /// The placeholder <see cref="TraceUrlTemplate"/> must contain, spelled exactly so; the dashboard replaces it with
+    /// the URL-encoded trace ID.
+    /// </summary>
+    public const string TraceIdPlaceholder = "{traceId}";
+
+    /// <summary>
+    /// The absolute http(s) URL of one trace's page as a browser reaches it, with <see cref="TraceIdPlaceholder"/>
+    /// where the trace ID goes, such as <c>http://localhost:18888/traces/detail/{traceId}</c> for the .NET Aspire
+    /// dashboard. Takes precedence over the Grafana pair. Unset by default.
+    /// </summary>
+    [JsonPropertyName("traceUrlTemplate")]
+    [SuppressMessage(
+        "Design",
+        "CA1056:URI-like properties should not be strings",
+        Justification = "A template, not a URL, until the dashboard substitutes the trace ID"
+    )]
+    public string? TraceUrlTemplate { get; set; }
+
+    /// <summary>
+    /// The Grafana base URL as a browser reaches it, such as <c>https://grafana.example.com</c>. Used only with
+    /// <see cref="GrafanaTracesDatasourceUid"/> and while <see cref="TraceUrlTemplate"/> is unset. Unset by default.
     /// </summary>
     [JsonPropertyName("grafanaUrl")]
     [SuppressMessage(

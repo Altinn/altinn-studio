@@ -3,13 +3,13 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 import {
   StudioPageHeader,
   StudioAvatar,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { userLogoutAfterPath } from 'app-shared/api/paths';

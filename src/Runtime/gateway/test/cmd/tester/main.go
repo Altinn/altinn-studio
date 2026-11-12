@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
@@ -186,8 +187,7 @@ func runTest() (exitCode int) {
 			return exitCodeCanceled
 		}
 
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			writeStdoutf("\n=== Tests FAILED (exit code %d) ===\n", exitErr.ExitCode())
 			return exitErr.ExitCode()
 		}
@@ -247,7 +247,7 @@ func gatewayGraph(root string, runtime *kind.KindContainerRuntime) (*resource.Gr
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolve CA bundle: %w", err)
 	}
-	workloads := []cabundle.KubernetesWorkload{{
+	workloads := []kubeartifact.KubernetesWorkload{{
 		Deployment: "gateway",
 		Namespace:  "runtime-gateway",
 		Container:  "gateway",
@@ -282,7 +282,7 @@ func addGatewayPublishResources(
 	runtime *kind.KindContainerRuntime,
 	root string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) (gatewayPublishedResources, func() error, error) {
 	srcRoot := filepath.Clean(filepath.Join(root, "../.."))
 	gatewayImage := &resource.BuiltImage{
@@ -301,7 +301,7 @@ func addGatewayPublishResources(
 		Source:    resource.Ref(gatewayImage),
 		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
 	}
-	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+	preparedArtifact, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(root, "infra/kustomize"),
 		bundle,
 		workloads,
@@ -359,10 +359,10 @@ func addGatewayDeploymentResources(
 	runtime *kind.KindContainerRuntime,
 	root string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 	deps []resource.ResourceRef,
 ) error {
-	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+	configMapSet, hasConfigMapSet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		runtime.ClusterRef(),
 		"deployment-gateway-ca-bundle",

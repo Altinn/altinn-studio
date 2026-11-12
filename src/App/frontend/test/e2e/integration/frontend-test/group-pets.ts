@@ -190,7 +190,7 @@ describe('Group (Pets)', () => {
     });
     cy.get('[data-summary-target="option-test4"]')
       .should('contain.text', 'Svømmedyr')
-      .and('not.contain.text', 'Dyr som svømmer');
+      .and('contain.text', 'Dyr som svømmer');
 
     for (const isCompact of [undefined, false, true]) {
       if (isCompact !== undefined) {

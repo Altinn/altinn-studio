@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import classes from './PdfConfigCard.module.css';
-import { StudioSwitch, StudioParagraph, StudioCard, StudioHeading } from '@studio/components';
+import { StudioSwitch, StudioParagraph, StudioCard, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';
 import { useSavableFormLayoutSettings } from '../../../../../hooks/useSavableFormLayoutSettings';

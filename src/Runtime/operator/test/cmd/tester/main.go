@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
@@ -219,9 +220,6 @@ func runUnitTest() int {
 	testCmd := exec.CommandContext(ctx, "go", args...)
 	testCmd.Dir = projectRoot
 	testCmd.Env = append(os.Environ(), "KUBEBUILDER_ASSETS="+kubebuilderAssets)
-	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
-		testCmd.Env = append(testCmd.Env, "UPDATE_SNAPS=true")
-	}
 	testCmd.Stdout = os.Stdout
 	testCmd.Stderr = os.Stderr
 
@@ -297,8 +295,8 @@ func operatorGraph(projectRoot string, runtime *kind.KindContainerRuntime) (*res
 	return graph, cleanup, nil
 }
 
-func operatorCABundleWorkloads() []cabundle.KubernetesWorkload {
-	return []cabundle.KubernetesWorkload{{
+func operatorCABundleWorkloads() []kubeartifact.KubernetesWorkload {
+	return []kubeartifact.KubernetesWorkload{{
 		Deployment: "controller-manager",
 		Namespace:  "runtime-operator",
 		Container:  "manager",
@@ -310,7 +308,7 @@ func addOperatorPublishResources(
 	runtime *kind.KindContainerRuntime,
 	projectRoot string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) ([]resource.ResourceRef, func() error, error) {
 	imageResources, imageRefs := operatorImageResources(projectRoot, runtime)
 	artifactResources, artifactRefs, cleanup, err := operatorArtifactResources(
@@ -334,13 +332,15 @@ func operatorImageResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 ) ([]resource.Resource, []resource.ResourceRef) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	controllerImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}
@@ -366,26 +366,26 @@ func operatorImageResources(
 	}
 
 	return []resource.Resource{
-			controllerImage,
-			fakesImage,
-			localtestAppImage,
-			controllerPublished,
-			fakesPublished,
-			localtestAppPublished,
-		}, []resource.ResourceRef{
-			resource.Ref(controllerPublished),
-			resource.Ref(fakesPublished),
-			resource.Ref(localtestAppPublished),
-		}
+		controllerImage,
+		fakesImage,
+		localtestAppImage,
+		controllerPublished,
+		fakesPublished,
+		localtestAppPublished,
+	}, []resource.ResourceRef{
+		resource.Ref(controllerPublished),
+		resource.Ref(fakesPublished),
+		resource.Ref(localtestAppPublished),
+	}
 }
 
 func operatorArtifactResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) ([]resource.Resource, []resource.ResourceRef, func() error, error) {
-	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+	preparedArtifact, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(projectRoot, "config"),
 		bundle,
 		workloads,
@@ -421,13 +421,13 @@ func operatorArtifactResources(
 	}
 
 	return []resource.Resource{
-			operatorArtifact,
-			chartCheckout,
-			chartArtifact,
-		}, []resource.ResourceRef{
-			resource.Ref(operatorArtifact),
-			resource.Ref(chartArtifact),
-		}, preparedArtifact.Cleanup, nil
+		operatorArtifact,
+		chartCheckout,
+		chartArtifact,
+	}, []resource.ResourceRef{
+		resource.Ref(operatorArtifact),
+		resource.Ref(chartArtifact),
+	}, preparedArtifact.Cleanup, nil
 }
 
 func addOperatorDeploymentResources(
@@ -435,11 +435,11 @@ func addOperatorDeploymentResources(
 	runtime *kind.KindContainerRuntime,
 	projectRoot string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 	publishedDeps []resource.ResourceRef,
 ) error {
 	operatorDeps := append([]resource.ResourceRef{}, publishedDeps...)
-	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+	configMapSet, hasConfigMapSet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		runtime.ClusterRef(),
 		"deployment-operator-ca-bundle",
@@ -706,10 +706,6 @@ func runTests(ctx context.Context, projectRoot, packagePath string) error {
 	//nolint:gosec // This helper only runs `go test` on internal package paths chosen by the caller.
 	cmd := exec.CommandContext(ctx, "go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
 	cmd.Dir = filepath.Join(projectRoot, "test")
-	cmd.Env = os.Environ()
-	if os.Getenv("CI") == "" && os.Getenv("UPDATE_SNAPS") == "" {
-		cmd.Env = append(cmd.Env, "UPDATE_SNAPS=true")
-	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -18,6 +19,7 @@ namespace Altinn.Studio.Designer.Scheduling;
 public class PeriodicReportJob(
     IContactPointsRepository contactPointsRepository,
     IReportService reportService,
+    NotificationMetrics metrics,
     ILogger<PeriodicReportJob> logger
 ) : IJob
 {
@@ -30,7 +32,7 @@ public class PeriodicReportJob(
 
         var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
-        activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.Frequency, frequency.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.Frequency, ServiceTelemetry.EnumValue(frequency));
 
         var targets = await contactPointsRepository.GetReportTargetsAsync(frequency, cancellationToken);
         activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.TargetCount, targets.Count);
@@ -49,10 +51,12 @@ public class PeriodicReportJob(
             try
             {
                 await reportService.SendReportAsync(target.Org, target.Environment, frequency, cancellationToken);
+                metrics.RecordPeriodicReport(frequency, target.Org, target.Environment, error: null);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 failedCount++;
+                metrics.RecordPeriodicReport(frequency, target.Org, target.Environment, ex);
                 reportActivity?.SetStatus(ActivityStatusCode.Error);
                 reportActivity?.AddException(ex);
                 logger.LogError(

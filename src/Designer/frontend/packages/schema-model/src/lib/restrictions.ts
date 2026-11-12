@@ -1,4 +1,4 @@
-import { ValidationUtils } from '@studio/pure-functions';
+import { ValidationUtils } from '@designer/pure-functions';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   ArrRestrictionKey,

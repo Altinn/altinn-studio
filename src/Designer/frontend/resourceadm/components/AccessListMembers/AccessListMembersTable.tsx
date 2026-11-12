@@ -6,10 +6,10 @@ import {
   StudioButton,
   StudioValidationMessage,
   StudioTableLocalPagination,
-} from '@studio/components';
-import type { Columns } from '@studio/components';
+} from '@designer/components';
+import type { Columns } from '@designer/components';
 import classes from './AccessListMembers.module.css';
-import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
+import { PlusCircleIcon, MinusCircleIcon } from '@designer/icons';
 import { stringNumberToAriaLabel } from '../../utils/stringUtils';
 
 interface AccessListMembersTableProps {

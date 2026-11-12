@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('CodeListsCounterMessage', () => {
   it('renders the code list counter message with correct text for 0 list elements', () => {

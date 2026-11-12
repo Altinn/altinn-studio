@@ -18,7 +18,7 @@ internal static class ServiceCollectionExtensions
 {
     internal static void AddWorkflowEngineIntegration(this IServiceCollection services)
     {
-        // Process engine callback helpers
+        // Workflow engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
         services.AddTransient<ProcessNextRequestFactory>();
         services.AddSingleton<ProcessStepOptionsResolver>();
@@ -47,42 +47,41 @@ internal static class ServiceCollectionExtensions
             ServiceDescriptor.Singleton<IValidateOptions<AppCodesSettings>, WorkflowCallbackAppCodesValidator>()
         );
 
-        // Process engine callback handlers - TaskStart
+        // Workflow engine commands - TaskStart
         services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
         services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
         services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
 
-        // Process engine callback handlers - TaskAbandon
+        // Workflow engine commands - TaskAbandon
         services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
 
-        // Process engine callback handlers - TaskEnd
+        // Workflow engine commands - TaskEnd
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
         services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
-        // Process engine callback handlers - ServiceTask
+        // Workflow engine commands - ServiceTask
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
 
-        // Process engine callback handlers - Notifications
+        // Workflow engine commands - Notifications
         services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
 
-        // Process engine callback handlers - ProcessEnd
+        // Workflow engine commands - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();
         services.AddTransient<IWorkflowEngineCommand, DeleteDataOnProcessEnd>();
 
-        // Process engine callback handlers - State Management
+        // Workflow engine commands - State Management
         services.AddTransient<ProcessingStatusAcquirer>();
-        services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, ReleaseProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueAuxiliaryWorkflows>();
 
-        // Process engine callback handlers - Altinn Events
+        // Workflow engine commands - Altinn Events
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
@@ -90,8 +89,8 @@ internal static class ServiceCollectionExtensions
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
-        // Fail fast at startup on invalid service-task pipelines (throwing/null Define, replaced
-        // forwarding default).
+        // Fail fast at startup on invalid service-task pipelines (a DefineExecute that throws or returns null, a
+        // mailbox left unanswered).
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

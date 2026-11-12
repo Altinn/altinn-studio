@@ -3,6 +3,7 @@ using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Altinn.Studio.Gateway.Contracts.Metrics;
 using Azure;
 using Azure.Core;
@@ -290,6 +291,7 @@ public sealed class AppActivitySignalsTests
                 }
             ),
             logsQueryClient,
+            new GatewayMetrics(TestMeterFactory.Shared),
             NullLogger<AzureMonitorClient>.Instance
         );
 

@@ -9,12 +9,14 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"time"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -27,12 +29,15 @@ import (
 // AppCommand implements the 'app' subcommand.
 type AppCommand struct {
 	out     *ui.Output
+	cfg     *config.Config
 	logs    *appLogsCommand
 	ps      *AppPsCommand
 	run     *RunCommand
 	stop    *StopCommand
 	server  studioctlServerAccess
 	service *appsvc.Service
+	// checkLegacyLocaltest reports a running localtest that studioctl did not start. Nil skips the check.
+	checkLegacyLocaltest func(context.Context) error
 }
 
 const (
@@ -88,12 +93,17 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 	service := appsvc.NewService(cfg)
 	return &AppCommand{
 		out:     out,
+		cfg:     cfg,
 		logs:    newAppLogsCommand(cfg, out, service),
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
 		stop:    newStopCommand(cfg, out, service),
 		server:  newStudioctlServerAccess(cfg),
 		service: service,
+
+		checkLegacyLocaltest: func(ctx context.Context) error {
+			return checkLegacyLocaltestRunning(ctx, out)
+		},
 	}
 }
 
@@ -292,7 +302,19 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 	}
 
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	// The app libraries run `app env --json` whenever an app starts in Development and studioctl is installed,
+	// and apply what it prints. With app-localtest running instead of studioctl's environment, that would
+	// point the app at the wrong ports, so the command fails and the app keeps its own configuration.
+	if c.checkLegacyLocaltest != nil {
+		if err = c.checkLegacyLocaltest(ctx); err != nil {
+			return err
+		}
+	}
+
+	topology, err := envlocaltest.RecordedTopology(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	spec, err := c.service.BuildDotnetRunSpec(
 		ctx,
 		result.AppRoot,
@@ -309,6 +331,33 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 	}
 
 	return printAppEnv(c.out, spec.Env, flags.jsonOutput)
+}
+
+// legacyLocaltestCheckTimeout bounds the container runtime probe, which app startup waits on. Detecting the
+// runtime alone can take half a second, and the app libraries give the whole of `app env` three seconds.
+const legacyLocaltestCheckTimeout = 2 * time.Second
+
+// checkLegacyLocaltestRunning returns ErrLegacyLocaltestRunning when a localtest that studioctl did not start
+// is running. A container runtime that cannot be reached or inspected has no legacy localtest to report.
+func checkLegacyLocaltestRunning(ctx context.Context, out *ui.Output) error {
+	ctx, cancel := context.WithTimeout(ctx, legacyLocaltestCheckTimeout)
+	defer cancel()
+
+	client, err := containerruntime.Detect(ctx)
+	if err != nil {
+		return nil
+	}
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			out.Verbosef("failed to close container client: %v", cerr)
+		}
+	}()
+
+	err = envlocaltest.CheckForLegacyLocaltest(ctx, client)
+	if errors.Is(err, envlocaltest.ErrLegacyLocaltestRunning) {
+		return fmt.Errorf("app env: %w", err)
+	}
+	return nil
 }
 
 func (c *AppCommand) parseAppEnvFlags(args []string) (appEnvFlags, bool, error) {

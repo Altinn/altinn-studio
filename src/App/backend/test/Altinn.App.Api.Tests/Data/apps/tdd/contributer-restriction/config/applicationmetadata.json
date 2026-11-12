@@ -25,7 +25,7 @@
                 "autoCreate": true,
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "allowedKeysForUserDefinedMetadata": [
                 "TheKey"
             ]
@@ -39,11 +39,11 @@
                 "orgno:405003309",
                 "invalidKey:value"
             ],
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         },
         {
             "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "maxSize": 1,
             "maxCount": 1,
             "minCount": 0
@@ -51,7 +51,7 @@
         {
             "id": "specificFileType",
             "description": {"en": "Data type for attachments with specific file types allowed"},
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "maxSize": 1,
             "maxCount": 1,
             "minCount": 0,
@@ -76,7 +76,7 @@
             "appLogic": {
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "allowedKeysForUserDefinedMetadata": [
                 "TheKey"
             ]
@@ -91,7 +91,7 @@
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
                 "disallowUserCreate": true
             },
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         },
         {
             "id": "disallowUserDelete",
@@ -103,7 +103,7 @@
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
                 "disallowUserDelete": true
             },
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         },
         {
             "id": "requiresActionToRead",
@@ -114,7 +114,7 @@
             "appLogic": {
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "actionRequiredToRead": "customReadAction"
         },
         {
@@ -126,7 +126,7 @@
             "appLogic": {
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "actionRequiredToWrite": "customWriteAction"
         },
         {
@@ -135,7 +135,7 @@
                 "image/png"
             ],
             "maxCount": 10,
-            "taskId": "Task_2"
+            "taskIds": ["Task_2"]
         }
     ],
     "presentationFields": [

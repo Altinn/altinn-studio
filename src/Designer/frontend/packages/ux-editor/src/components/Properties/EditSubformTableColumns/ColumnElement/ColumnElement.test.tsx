@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import type { TableColumn } from '../types/TableColumn';
 import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';

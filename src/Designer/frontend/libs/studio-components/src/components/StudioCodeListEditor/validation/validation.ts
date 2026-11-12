@@ -1,6 +1,6 @@
 import type { CodeList } from '../types/CodeList';
 import type { ValueError } from '../types/ValueError';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
 
 export function isCodeListValid(codeList: CodeList): boolean {

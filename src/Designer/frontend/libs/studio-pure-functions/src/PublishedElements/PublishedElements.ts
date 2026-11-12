@@ -1,4 +1,4 @@
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 import { FileNameUtils } from '../FileNameUtils';
 import { ArrayUtils } from '../ArrayUtils';
 

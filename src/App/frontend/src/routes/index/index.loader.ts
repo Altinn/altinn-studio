@@ -1,20 +1,22 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import type { QueryClient } from '@tanstack/react-query';
-
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
+import { getInstantiationClosedReason, isInstantiationClosedError } from 'src/features/instantiate/instantiationClosed';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
+import type { AppQueriesContext } from 'src/core/queries/types';
+import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 export type IndexLoaderError =
+  | { error: 'instantiation-closed'; reason: InstantiationClosedReason }
   | { error: 'forbidden' }
   | { error: 'forbidden-validation'; validationResult: InstantiationValidationResult }
   | { error: 'instantiation-failed'; cause: Error };
@@ -23,7 +25,7 @@ export type IndexLoaderResult = null | IndexLoaderError;
 
 export async function clientLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
-  const { instanceApi } = context.get(apiClientsContext);
+  const instanceApi = context.get(appQueriesContext);
   if (isStateless()) {
     // redirect is handled by routes/index/stateless-index.route.tsx
     return null;
@@ -50,7 +52,10 @@ export async function clientLoader({ context }: LoaderFunctionArgs): Promise<Ind
   throw new Error(`Unexpected entry type: ${entryType}`);
 }
 
-async function handleSelectInstance(queryClient: QueryClient, instanceApi: InstanceApi): Promise<Response> {
+async function handleSelectInstance(
+  queryClient: AppQueryClient,
+  instanceApi: AppQueriesContext,
+): Promise<Response | IndexLoaderError> {
   const activeInstances = await prefetchActiveInstances(
     queryClient,
     String(GlobalData.getSelectedParty()!.partyId),
@@ -64,13 +69,25 @@ async function handleSelectInstance(queryClient: QueryClient, instanceApi: Insta
   return redirect('/instance-selection');
 }
 
-async function createInstanceAndRedirect(instanceApi: InstanceApi): Promise<Response> {
-  const instance = await instanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
+async function createInstanceAndRedirect(instanceApi: AppQueriesContext): Promise<Response | IndexLoaderError> {
+  const reason = getInstantiationClosedReason(GlobalData.applicationMetadata, new Date(), window.location.host);
+  if (reason) {
+    return { error: 'instantiation-closed', reason };
+  }
+  const instance = await instanceApi.createInstance({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
   const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }
 
 function toLoaderError(error: unknown): IndexLoaderError {
+  if (isInstantiationClosedError(error)) {
+    return {
+      error: 'instantiation-closed',
+      reason: getInstantiationClosedReason(GlobalData.applicationMetadata, new Date(), window.location.host) ?? {
+        reason: 'closed',
+      },
+    };
+  }
   if (isAxiosError(error) && error.response?.status === 403) {
     const data = error.response?.data;
     if (isInstantiationValidationResult(data)) {

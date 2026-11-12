@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - src/Runtime/operator/**
+      - src/common/go/**
       - .github/workflows/deploy-runtime-operator.yaml
   workflow_dispatch:
     inputs:
@@ -86,11 +87,14 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
+        # src/ is the build context, for the shared Go module in src/common/go.
+        working-directory: src
         run: |
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-operator:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-operator:buildcache,mode=max \
-            -t ${{ steps.vars.outputs.ghcr-image-repo }} -f Dockerfile .
+            --build-arg SERVICE_VERSION=${{ steps.vars.outputs.short-sha }} \
+            -t ${{ steps.vars.outputs.ghcr-image-repo }} -f Runtime/operator/Dockerfile .
 
       - name: push images
         run: docker push ${{ steps.vars.outputs.ghcr-image-repo }}

@@ -2,30 +2,26 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
-using Json.Pointer;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_RequiredActionTests : ApiTestBase
 {
     private const string OrgId = "tdd";
     private const string AppId = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
     private const int UserId = 1337;
 
-    public DataController_RequiredActionTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataController_RequiredActionTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData("userInteractionUnspecified", false, HttpStatusCode.OK)]
@@ -156,10 +152,14 @@ public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<Web
             HttpStatusCode.Created
         );
 
-        var pointer = JsonPointer.Create("melding", "name");
-        var patch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("\"Ola Olsen\"")),
-            PatchOperation.Replace(pointer, JsonNode.Parse("\"Olga Olsen\""))
+        var pointer = "/melding/name";
+        var patch = JsonPatchOperation.ParseList(
+            $$"""
+            [
+                { "op": "test", "path": "{{pointer}}", "value": "Ola Olsen" },
+                { "op": "replace", "path": "{{pointer}}", "value": "Olga Olsen" }
+            ]
+            """
         );
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch },

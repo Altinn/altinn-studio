@@ -50,8 +50,8 @@ import {
   subExpression2,
   unParsableComplexExpression,
 } from '../testing/expressionMocks';
-import { ObjectUtils } from '@studio/pure-functions';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { ObjectUtils } from '@designer/pure-functions';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { FormContainer } from '../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 

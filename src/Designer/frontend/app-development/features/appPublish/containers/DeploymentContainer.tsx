@@ -11,8 +11,9 @@ import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
-import { StudioError, StudioPageSpinner } from '@studio/components';
+import { StudioError, StudioPageSpinner } from '@designer/components';
 import { BuildResult } from 'app-shared/types/Build';
+import { environmentsOf } from 'app-shared/types/api/DeploymentsResponse';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -68,8 +69,8 @@ export const DeploymentContainer = () => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList
           .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
           .filter((item, index) => index === 0 || item.build?.result !== BuildResult.none);
-        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
-          (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
+        const appInEnvironment = environmentsOf(appDeployment).find(
+          (item) => item.environment.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
           <DeploymentEnvironment
@@ -78,7 +79,8 @@ export const DeploymentContainer = () => {
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
             pipelineDeploymentList={pipelineDeploymentList}
-            kubernetesDeployment={kubernetesDeployment}
+            runningApp={appInEnvironment?.runningApp ?? undefined}
+            isStatusUnknown={appInEnvironment?.state === 'unknown'}
             orgName={orgName}
           />
         );

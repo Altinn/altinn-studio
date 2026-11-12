@@ -7,8 +7,8 @@ import type { ValidLanguageKey } from '@app/language';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
-import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ProcessTaskType } from 'src/types';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -36,6 +36,7 @@ export const ButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const instanceLocked = FormStore.useIsInstanceLocked();
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
   }
@@ -50,6 +51,7 @@ export const ButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     }
   }
   const disabled =
+    instanceLocked ||
     attachmentState.hasPending ||
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);

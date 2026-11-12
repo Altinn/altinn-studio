@@ -4,7 +4,7 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export enum Direction {
@@ -32,6 +32,7 @@ type UseRepoSearchResult = {
 type UseReposSearchProps = {
   keyword?: string;
   uid?: number;
+  excludeNonAppRepos?: boolean;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
   storageKey?: TableSortStorageKey;
 };
@@ -39,6 +40,7 @@ type UseReposSearchProps = {
 export const useReposSearch = ({
   keyword,
   uid,
+  excludeNonAppRepos,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   storageKey = TableSortStorageKey.OrgRepos,
 }: UseReposSearchProps): UseRepoSearchResult => {
@@ -91,6 +93,7 @@ export const useReposSearch = ({
   const filter = {
     uid,
     keyword,
+    excludeNonAppRepos,
     limit: pageSize,
     page: pageNumber,
     sortby: selectedColumn,
@@ -105,7 +108,7 @@ export const useReposSearch = ({
     useSearchReposQuery(cleanFilter);
 
   const getNextExistingPageNumber = () => {
-    const numberOfPages = Math.ceil(searchResults?.totalCount / pageSize);
+    const numberOfPages = searchResults?.totalPages ?? 0;
     const nextPageNumber = pageNumber + 1;
     return nextPageNumber <= numberOfPages ? nextPageNumber : pageNumber;
   };

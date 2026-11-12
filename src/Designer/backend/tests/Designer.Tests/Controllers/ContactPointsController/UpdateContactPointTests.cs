@@ -36,7 +36,7 @@ public class UpdateContactPointTests
             $"{existing.Name}-updated",
             false,
             ["dev", "staging"],
-            [CreateMethodRequest(ContactMethodType.Sms, "+4712345678")]
+            [CreateMethodRequest(ContactMethodType.Sms, "+4798765432")]
         );
 
         using var request = new HttpRequestMessage(HttpMethod.Put, $"{VersionPrefix(AllowedOrg)}/{existing.Id}")
@@ -66,7 +66,7 @@ public class UpdateContactPointTests
         Assert.Equal(payload.Environments, dbRecord.Environments);
         Assert.Single(dbRecord.Methods);
         Assert.Equal(ContactMethodType.Sms, dbRecord.Methods[0].MethodType);
-        Assert.Equal("+4712345678", dbRecord.Methods[0].Value);
+        Assert.Equal("+4798765432", dbRecord.Methods[0].Value);
         Assert.DoesNotContain(dbRecord.Methods, method => method.Value == "before@example.com");
         Assert.DoesNotContain(dbRecord.Methods, method => method.Value == "#before");
     }

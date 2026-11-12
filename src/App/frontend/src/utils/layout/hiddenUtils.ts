@@ -15,7 +15,12 @@ interface HiddenCallbackSource {
   id: string;
 }
 
-export type HiddenSource = HiddenExprSource | HiddenCallbackSource;
+interface HiddenPdfSource {
+  type: 'pdfExcluded';
+  id: string;
+}
+
+export type HiddenSource = HiddenExprSource | HiddenCallbackSource | HiddenPdfSource;
 export type HiddenReason = HiddenSource['type'] | 'pageOrder';
 
 interface EvaluateHiddenSourcesProps {
@@ -30,6 +35,7 @@ interface EvaluateHiddenSourcesProps {
 export function collectHiddenSources(
   baseComponentId: string | undefined,
   layoutLookups: LayoutLookups,
+  pdfExcludedComponents: readonly string[] = [],
 ): HiddenSource[] {
   const out: HiddenSource[] = [];
   if (baseComponentId === undefined) {
@@ -37,6 +43,9 @@ export function collectHiddenSources(
   }
 
   const component = layoutLookups.allComponents[baseComponentId];
+  if (pdfExcludedComponents.includes(baseComponentId)) {
+    out.push({ type: 'pdfExcluded', id: baseComponentId });
+  }
   if (component?.hidden !== undefined) {
     out.push({ type: 'hidden', expr: component.hidden, id: baseComponentId });
   }
@@ -44,6 +53,9 @@ export function collectHiddenSources(
   let childId = baseComponentId;
   let parent = layoutLookups.componentToParent[childId];
   while (parent?.type === 'node') {
+    if (pdfExcludedComponents.includes(parent.id)) {
+      out.push({ type: 'pdfExcluded', id: parent.id });
+    }
     const parentComponent = layoutLookups.getComponent(parent.id);
     const parentDef = getComponentDef(parentComponent.type);
     if (implementsIsChildHidden(parentDef)) {
@@ -89,6 +101,9 @@ export function evaluateHiddenSources({
   }
 
   for (const source of hiddenSources) {
+    if (source.type === 'pdfExcluded') {
+      return { reason: source.type, hidden: true };
+    }
     if (source.type === 'callback') {
       if (source.callback()) {
         return { reason: source.type, hidden: true };

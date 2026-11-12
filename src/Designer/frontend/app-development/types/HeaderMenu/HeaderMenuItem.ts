@@ -1,7 +1,7 @@
 import { type HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { type HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type RepositoryType } from 'app-shared/types/global';
-import { type FeatureFlag } from '@studio/feature-flags';
+import { type FeatureFlag } from '@designer/feature-flags';
 import { type FeatureName } from 'app-shared/enums/CanUseFeature';
 
 export interface HeaderMenuItem {

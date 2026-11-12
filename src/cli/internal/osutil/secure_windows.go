@@ -35,7 +35,7 @@ func SecureFile(path string) error {
 			AccessPermissions: windows.GENERIC_ALL,
 			AccessMode:        windows.GRANT_ACCESS,
 			Inheritance:       windows.NO_INHERITANCE,
-			Trustee: windows.TRUSTEE{ //nolint:exhaustruct // MultipleTrustee fields intentionally zero for single trustee
+			Trustee: windows.TRUSTEE{ //nolint:exhaustruct_v5 // MultipleTrustee fields intentionally zero for single trustee
 				TrusteeForm:  windows.TRUSTEE_IS_SID,
 				TrusteeType:  windows.TRUSTEE_IS_USER,
 				TrusteeValue: windows.TrusteeValueFromSID(ownerSID),

@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PdfFilenameTextResource } from './PdfFilenameTextResource';
 import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
 import {
   updateModdlePropertiesMock,
   createMock,
 } from '../../../../../../test/mocks/bpmnModelerMock';
-import type { StudioTextResourceActionProps } from '@studio/components';
+import type { StudioTextResourceActionProps } from '@designer/components';
 
 vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
@@ -32,8 +32,8 @@ vi.mock('app-shared/hooks/mutations', () => ({
 
 let capturedProps: StudioTextResourceActionProps | null = null;
 
-vi.mock('@studio/components', async () => {
-  const actual = await vi.importActual('@studio/components');
+vi.mock('@designer/components', async () => {
+  const actual = await vi.importActual('@designer/components');
   return {
     ...actual,
     StudioTextResourceAction: (props: StudioTextResourceActionProps) => {

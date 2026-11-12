@@ -71,6 +71,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("user_name");
 
+                    b.Property<Guid?>("WorkflowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workflow_id");
+
                     b.HasKey("Id")
                         .HasName("admin_audit_log_pkey");
 

@@ -1,8 +1,7 @@
+# Build context: repository root
 **
 !Cargo.lock
 !Cargo.toml
-!src/
-!src/ci/github-runner/
-!src/ci/github-runner/coordinator/
+!rust-toolchain.toml
 !src/ci/github-runner/coordinator/**
 **/target/

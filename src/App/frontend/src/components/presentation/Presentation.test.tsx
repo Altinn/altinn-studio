@@ -1,16 +1,18 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { MockedFunction } from 'vitest';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
+import { expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { AppQueries } from 'src/queries/types';
+import type { AppQueries } from 'src/core/queries/types';
 
 vi.mock('src/core/routing/useIsReceiptPage', () => ({
   useIsReceiptPage: vi.fn(),
@@ -50,9 +52,8 @@ describe('Presentation', () => {
   });
 
   it('should link to default messagebox url if query parameter returnUrl is not valid', async () => {
-    const host = 'ttd.apps.tt02.altinn.no';
     const returnUrl = 'https://altinn.cloud.no';
-    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, host };
+    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}` };
     vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(getPartyMock().partyId);
 
@@ -66,9 +67,8 @@ describe('Presentation', () => {
   });
 
   it('should link to default messagebox url if query parameter returnUrl is not found', async () => {
-    const host = 'ttd.apps.tt02.altinn.no';
     const partyId = getPartyMock().partyId;
-    const mockedLocation = { ...realLocation, host, search: '' };
+    const mockedLocation = { ...realLocation, search: '' };
     vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(partyId);
 
@@ -79,6 +79,14 @@ describe('Presentation', () => {
     });
 
     expect(closeButton).toHaveAttribute('href', messageBoxUrl);
+  });
+
+  it('shows the inbox link as not configured when no inbox url is configured', async () => {
+    window.altinnAppGlobalData.platformFrontendSettings.arbeidsflateInboxUrl = undefined;
+
+    await render();
+
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: 'Tilbake til innboks' }), 'ArbeidsflateInboxUrl');
   });
 
   it('should render children', async () => {
@@ -118,9 +126,6 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: 
   await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
     taskId: 'Task_1',
-    queries: {
-      ...queries,
-    },
+    queries: { ...queries },
   });
 };
-import type { MockedFunction } from 'vitest';

@@ -26,9 +26,13 @@ export interface CompTimePickerExternal
   maxTime?: ExprValToActualOrExpr<ExprVal.String> | string;
 }
 
+export interface TimePickerSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type TimePickerSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & TimePickerSummaryOverrides)
+  | ({ componentType: 'TimePicker' } & TimePickerSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -54,8 +58,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompTimePickerExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: TimePickerSummaryOverrides;
   summaryOverridesWithRef: TimePickerSummaryOverridesWithRef;
 };
 
-// Source hash: 71c5d1e68bde42d62ed4c0955a3bbfdab210218a184b5f2b118d5a07810f0783
+// Source hash: 26bda881ce89ad0541ee5d08fb5353adc2d3d6958534728569937a8f22fa35d1

@@ -1,4 +1,5 @@
 ﻿{
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "order": [
@@ -16,6 +17,5 @@
   "components": {
     "excludeFromPdf": []
   },
-  "defaultDataType": "nested-group"
+  "defaultDataType": "nested-group",
 }
-

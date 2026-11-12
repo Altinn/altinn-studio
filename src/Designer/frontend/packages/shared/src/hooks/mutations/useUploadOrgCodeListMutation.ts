@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
-import { FileUtils } from '@studio/pure-functions';
+import { FileUtils } from '@designer/pure-functions';
 
 export const useUploadOrgCodeListMutation = (org: string, meta?: MutationMeta) => {
   const queryClient = useQueryClient();

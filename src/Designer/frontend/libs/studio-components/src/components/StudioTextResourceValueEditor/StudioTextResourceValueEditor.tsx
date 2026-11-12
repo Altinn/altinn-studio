@@ -1,6 +1,6 @@
 import type { HTMLAttributes, Ref } from 'react';
 import React, { forwardRef } from 'react';
-import { StudioCodeFragment, StudioTextarea } from '@studio/components';
+import { StudioCodeFragment, StudioTextarea } from '@designer/components';
 import classes from './StudioTextResourceValueEditor.module.css';
 import { useAutoSizeTextArea } from '../../hooks/useAutoSizeTextArea';
 import type { Override } from '../../types/Override';

@@ -1,3 +1,4 @@
+import { getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { ProcessTaskType } from 'src/types';
 import type { IProcess } from 'src/types/shared';
@@ -34,6 +35,20 @@ describe('getTaskTypeById', () => {
   });
 
   it('lets a ui folder named after the task win', () => {
-    expect(getTaskTypeById(process, 'Sign', false, { Sign: {} })).toBe(ProcessTaskType.Data);
+    expect(getTaskTypeById(process, 'Sign', false, { Sign: getLayoutSettingsMock({}) })).toBe(ProcessTaskType.Data);
+  });
+
+  it('counts a service task as having a page only when its folder lists one', () => {
+    const withPage = { Approval: getLayoutSettingsMock({}) };
+    const emptyOrder = { Approval: getLayoutSettingsMock({ pages: { order: [] } }) };
+    const emptyGroups = { Approval: getLayoutSettingsMock({ pages: { groups: [{ id: 'g', name: 'g', order: [] }] } }) };
+    const pageInGroup = {
+      Approval: getLayoutSettingsMock({ pages: { groups: [{ id: 'g', name: 'g', order: ['page1'] }] } }),
+    };
+
+    expect(getTaskTypeById(process, 'Approval', false, withPage)).toBe(ProcessTaskType.Data);
+    expect(getTaskTypeById(process, 'Approval', false, pageInGroup)).toBe(ProcessTaskType.Data);
+    expect(getTaskTypeById(process, 'Approval', false, emptyOrder)).toBe(ProcessTaskType.Service);
+    expect(getTaskTypeById(process, 'Approval', false, emptyGroups)).toBe(ProcessTaskType.Service);
   });
 });

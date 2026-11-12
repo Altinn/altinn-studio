@@ -28,6 +28,7 @@ public class DiscardChangesTests
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
+        base.ConfigureTestServices(services);
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_sourceControlMock.Object);

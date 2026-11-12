@@ -15,12 +15,12 @@ import classes from './LogicalExpressionEditor.module.css';
 import { StudioButton } from '../../../StudioButton';
 import type { ReactNode } from 'react';
 import React, { Fragment } from 'react';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { Subexpression } from './SubExpression';
 import { useStudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
 import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
-import { type UseUniqueKey, useUniqueKeys } from '@studio/hooks';
+import { type UseUniqueKey, useUniqueKeys } from '@designer/hooks';
 import { StudioFieldset } from '../../../StudioFieldset';
 
 export type LogicalExpressionEditorProps = {

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useId, useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
-import type { Expression, DataLookupOptions } from '@studio/components';
-import { DataLookupFuncName, StudioConfigCard } from '@studio/components';
+import type { Expression, DataLookupOptions } from '@designer/components';
+import { DataLookupFuncName, StudioConfigCard } from '@designer/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';

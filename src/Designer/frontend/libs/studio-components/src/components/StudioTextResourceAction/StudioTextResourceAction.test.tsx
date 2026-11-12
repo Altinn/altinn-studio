@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceActionProps } from './StudioTextResourceAction';
 import { StudioTextResourceAction } from './StudioTextResourceAction';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 
 const textResourceId = 'text-1';
 const generatedId = 'generated-id';

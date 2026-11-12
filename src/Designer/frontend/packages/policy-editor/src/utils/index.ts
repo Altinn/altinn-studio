@@ -1,4 +1,4 @@
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import type {
   PolicyAction,
   PolicyEditorUsage,
@@ -167,7 +167,6 @@ export const mergeActionsFromPolicyWithActionOptions = (
         const newAction: PolicyAction = {
           actionId: actionString,
           actionTitle: actionString,
-          actionDescription: null,
         };
         copiedActions.push(newAction);
         existingActionIds.push(actionString);

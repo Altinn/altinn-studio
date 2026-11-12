@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -15,12 +17,14 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Telemetry;
 using Designer.Tests.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -33,8 +37,12 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Services;
 
-public class DeploymentServiceTest
+public class DeploymentServiceTest : IDisposable
 {
+    private readonly AppDeployMetricsRecorder _metrics = new();
+
+    public void Dispose() => _metrics.Dispose();
+
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
     private readonly Mock<IDeploymentRepository> _deploymentRepository;
     private readonly Mock<IDeployEventRepository> _deployEventRepository;
@@ -85,6 +93,7 @@ public class DeploymentServiceTest
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -95,6 +104,7 @@ public class DeploymentServiceTest
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -164,7 +174,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -224,6 +235,8 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        AssertQueued(org, "deploy", "at23", "manual");
     }
 
     [Theory]
@@ -290,7 +303,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -376,7 +390,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -463,7 +478,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -570,7 +586,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -670,7 +687,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -715,7 +733,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         // Act
@@ -820,7 +839,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -962,7 +982,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1012,6 +1033,63 @@ public class DeploymentServiceTest
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
                     azureDevOpsSettings.GitOpsManagerDefinitionId,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task SendToSlackAsync_WhenInstallFailed_ShouldNotifyAboutTheDeployment()
+    {
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object,
+            _metrics.Metrics
+        );
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        await deploymentService.SendToSlackAsync(
+            "ttd",
+            environment,
+            "test-app",
+            DeployEventType.InstallFailed,
+            "123",
+            startedDate: null,
+            CancellationToken.None
+        );
+
+        _notificationService.Verify(
+            s =>
+                s.NotifyInternalAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _notificationService.Verify(
+            s =>
+                s.NotifyServiceOwnersAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -1135,7 +1213,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1192,6 +1271,8 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        AssertQueued(org, "undeploy", env, "manual");
     }
 
     [Theory]
@@ -1231,7 +1312,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1254,6 +1336,7 @@ public class DeploymentServiceTest
             Times.Never
         );
         _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Never);
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
     }
 
     [Theory]
@@ -1323,7 +1406,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1418,7 +1502,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1549,7 +1634,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1686,7 +1772,8 @@ public class DeploymentServiceTest
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1801,6 +1888,168 @@ public class DeploymentServiceTest
             Times.Once
         );
         _apiKeyService.VerifyNoOtherCalls();
+        AssertQueued(editingContext.Org, "undeploy", environment, "inactivity");
+    }
+
+    [Fact]
+    public async Task UndeployAsync_CountsAPendingUndeploysAgeFromWhenItWasQueued()
+    {
+        // Arrange: the pending undeploy started 10 min 15 s ago, but its pipeline was queued 9 min 45 s ago.
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        var now = new DateTimeOffset(2026, 02, 17, 12, 00, 00, TimeSpan.Zero);
+        _fakeTimeProvider.SetUtcNow(now);
+        _deploymentRepository
+            .Setup(r => r.GetPendingDecommission(org, app, env))
+            .ReturnsAsync(
+                new DeploymentEntity
+                {
+                    Org = org,
+                    App = app,
+                    EnvName = env,
+                    DeploymentType = DeploymentType.Decommission,
+                    Created = now.AddSeconds(-615).UtcDateTime,
+                    Build = new BuildEntity { Id = "123" },
+                    Events =
+                    [
+                        new DeployEvent
+                        {
+                            EventType = DeployEventType.PipelineScheduled,
+                            Timestamp = now.AddSeconds(-585),
+                        },
+                    ],
+                }
+            );
+
+        // Act
+        await CreateService()
+            .UndeployAsync(
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                env
+            );
+
+        // Assert: it is still within the 10 minutes, so this undeploy is skipped.
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+    }
+
+    [Fact]
+    public async Task UndeployAsync_TimesTheUndeployFromWhenItStarts()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        DateTime started = _fakeTimeProvider.GetUtcNow().UtcDateTime;
+        DeploymentEntity created = null;
+        _gitOpsConfigurationManager
+            .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(false);
+        _deploymentRepository
+            .Setup(r => r.GetLastDeployed(org, app, env))
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => _fakeTimeProvider.Advance(TimeSpan.FromSeconds(30)))
+            .ReturnsAsync(GetBuild());
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .Callback<DeploymentEntity>(entity => created = entity)
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+        // Act
+        await CreateService()
+            .UndeployAsync(
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                env
+            );
+
+        // Assert
+        Assert.NotNull(created);
+        Assert.Equal(started, created.Created);
+        Assert.Equal(DateTimeKind.Utc, created.Created.Kind);
+    }
+
+    [Fact]
+    public async Task UndeployAsync_WhenAzureDevOpsRejectsTheQueueRequest_CountsNothing()
+    {
+        // Arrange
+        const string org = "ttd";
+        const string app = "test-app";
+        const string env = "at23";
+        _gitOpsConfigurationManager
+            .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(false);
+        _deploymentRepository
+            .Setup(r => r.GetLastDeployed(org, app, env))
+            .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b =>
+                b.QueueAsync(
+                    It.IsAny<GitOpsManagementBuildParameters>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("Bad Request", null, HttpStatusCode.BadRequest));
+
+        // Act
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            CreateService()
+                .UndeployAsync(
+                    AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken"),
+                    env
+                )
+        );
+
+        // Assert
+        Assert.Empty(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+        _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Never);
+    }
+
+    private DeploymentService CreateService() =>
+        new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object,
+            _metrics.Metrics
+        );
+
+    private void AssertQueued(string serviceOwner, string pipelineType, string environment, string trigger)
+    {
+        RecordedAppDeployMeasurement queued = Assert.Single(_metrics.Measurements(AppDeployMetrics.QueuedMetricName));
+        Assert.Equal(1, queued.Value);
+        Assert.Equal(serviceOwner, queued.Tags["altinn.service_owner"]);
+        Assert.Equal(pipelineType, queued.Tags["altinn.designer.app_deploy.pipeline.type"]);
+        Assert.Equal(environment, queued.Tags["altinn.environment"]);
+        Assert.Equal(trigger, queued.Tags["altinn.designer.app_deploy.trigger"]);
     }
 
     [Theory]
@@ -1839,6 +2088,7 @@ public class DeploymentServiceTest
             _apiKeyService.Object,
             _notificationService.Object,
             _hostEnvironment.Object,
+            _metrics.Metrics,
             gitOpsSettings
         );
 

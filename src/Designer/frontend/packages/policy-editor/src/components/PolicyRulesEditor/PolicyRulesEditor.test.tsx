@@ -5,7 +5,7 @@ import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
 import { mockPolicyRules } from '../../../test/mocks/policyRuleMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { Policy, RequiredAuthLevel } from '../../types';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';

@@ -1,4 +1,4 @@
-import { ArrayUtils, FileNameUtils, ReadonlyMapUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils, ReadonlyMapUtils } from '@designer/pure-functions';
 import { v4 as uuid } from 'uuid';
 import type { CodeListMapError } from './types/CodeListMapError';
 import type {
@@ -7,7 +7,7 @@ import type {
   OrdinaryCodeListFile,
 } from '../../../types/CodeListFile';
 import type { CodeListFileMap } from './types/CodeListFileMap';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 
 export function createCodeListMap(codeLists: CodeListFile[]): CodeListFileMap {
   const entries: [string, CodeListFile][] = codeLists.map((codeList) => [uuid(), codeList]);

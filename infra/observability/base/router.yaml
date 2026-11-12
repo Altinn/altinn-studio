@@ -9,7 +9,12 @@ spec:
   image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
-  replicas: 1
+  # All of a cluster's telemetry passes through this collector, so a second pod keeps it flowing
+  # while one is evicted or cannot be scheduled on a full node. The spread below puts them in
+  # different zones where it can.
+  replicas: 2
+  podDisruptionBudget:
+    maxUnavailable: 1
   resources:
     requests:
       cpu: 50m
@@ -99,6 +104,14 @@ spec:
         logs:
           log_record:
             - 'severity_number < SEVERITY_NUMBER_WARN'
+      # A service's OTLP exports to this router are HTTP calls too, and .NET's HttpClient counts
+      # them in http.client.*. They're the pipeline's work, not the service's, so they're dropped
+      # here for every service rather than in each query. The SDK already keeps them out of traces.
+      filter/exporter_calls:
+        error_mode: ignore
+        metrics:
+          datapoint:
+            - 'IsMatch(metric.name, "^http\\.client\\.") and IsMatch(datapoint.attributes["server.address"], "^otel-router\\.(runtime-obs|observability|product-studio-obs)\\.svc\\.cluster\\.local$")'
       transform/drop:
         metric_statements:
           - context: datapoint

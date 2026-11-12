@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { AssistantTexts } from '@studio/assistant';
+import type { AssistantTexts } from '@designer/assistant';
 
 export const useAssistantTexts = (): AssistantTexts => {
   const { t } = useTranslation();
@@ -13,6 +13,10 @@ export const useAssistantTexts = (): AssistantTexts => {
     showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
+    threadSelector: {
+      deleteThread: t('ai_assistant.delete_thread'),
+      deleteThreadConfirm: t('ai_assistant.delete_thread_confirm'),
+    },
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
       intro: t('ai_assistant.about_assistant_intro'),

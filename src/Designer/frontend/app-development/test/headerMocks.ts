@@ -3,9 +3,9 @@ import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { userMock } from './userMock';
-import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components';
+import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@designer/components';
 import { type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
-import { org, app } from '@studio/testing/testids';
+import { org, app } from '@designer/testing/testids';
 
 const menuItemsMock: HeaderMenuItem[] = [
   {

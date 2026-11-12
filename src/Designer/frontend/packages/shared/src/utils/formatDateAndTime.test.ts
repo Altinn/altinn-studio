@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
 import { formatDateAndTime } from './formatDateAndTime';
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 
 describe('formatDateAndTime', () => {
   let toLocaleTimeStringSpy: MockInstance;

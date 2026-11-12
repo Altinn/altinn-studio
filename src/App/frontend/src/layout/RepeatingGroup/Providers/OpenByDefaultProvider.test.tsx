@@ -3,9 +3,14 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import {
+  defaultMockDataElementId,
+  getInstanceAtServiceTaskMock,
+  getInstanceDataMock,
+} from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID, IDataModelMultiPatchResponse } from 'src/features/formData/types';
@@ -15,7 +20,7 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';
 
@@ -71,9 +76,10 @@ describe('openByDefault', () => {
     existingRows?: Row[];
     edit?: Partial<CompRepeatingGroupExternal['edit']>;
     hiddenRow?: CompRepeatingGroupExternal['hiddenRow'];
+    onServiceTaskPage?: boolean;
   }
 
-  async function render({ existingRows, edit, hiddenRow }: Props) {
+  async function render({ existingRows, edit, hiddenRow, onServiceTaskPage = false }: Props) {
     const layout: ILayout = [
       {
         id: 'myGroup',
@@ -104,6 +110,11 @@ describe('openByDefault', () => {
         </RepeatingGroupProvider>
       ),
       queries: {
+        ...(onServiceTaskPage
+          ? {
+              getInstance: async () => getInstanceAtServiceTaskMock(),
+            }
+          : undefined),
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.dataModels[defaultDataTypeMock].initialData = {
@@ -147,8 +158,8 @@ describe('openByDefault', () => {
           ? expect.objectContaining({ patches: [expect.objectContaining({ patch: expectedPatch })] })
           : expect.anything(),
       );
-      mutations.doPatchMultipleFormData.resolve({
-        data: {
+      mutations.doPatchMultipleFormData.resolve(
+        httpResponse({
           validationIssues: [],
           newDataModels: [
             {
@@ -157,8 +168,8 @@ describe('openByDefault', () => {
             },
           ],
           instance: getInstanceDataMock(),
-        } satisfies IDataModelMultiPatchResponse,
-      });
+        } satisfies IDataModelMultiPatchResponse),
+      );
       (mutations.doPatchMultipleFormData.mock as Mock).mockClear();
     }
 
@@ -169,7 +180,7 @@ describe('openByDefault', () => {
     // the state doesn't change again.
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(getState()).toEqual(state);
-    expect(mutations?.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
+    expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
 
     if (expectedWarning) {
       await waitFor(() => expect(window.logWarn).toHaveBeenCalled());
@@ -235,6 +246,28 @@ describe('openByDefault', () => {
       },
       mutations,
     });
+  });
+
+  it("should not add a new row on a service task's page", async () => {
+    nextUuids.push('abc123');
+    const { mutations } = await render({
+      existingRows: [],
+      edit: { openByDefault: true },
+      onServiceTaskPage: true,
+    });
+
+    await waitUntil({
+      state: {
+        editingId: undefined,
+        addingIds: [],
+        visibleRows: [],
+        hiddenRows: [],
+        data: [],
+      },
+      mutations,
+    });
+    // No new row took the id
+    expect(nextUuids.splice(0)).toEqual(['abc123']);
   });
 
   it('should not add a new row if one already exists', async () => {
@@ -548,4 +581,3 @@ describe('openByDefault', () => {
     },
   );
 });
-import type { Mock } from 'vitest';

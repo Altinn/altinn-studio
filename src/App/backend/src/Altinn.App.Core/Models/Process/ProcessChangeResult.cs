@@ -75,14 +75,15 @@ public class ProcessChangeResult
     internal StorageVersionMetadata MutatedInstanceVersions { get; init; } = StorageVersionMetadata.Empty;
 
     /// <summary>
+    /// The process moved on, but the workflow chain the change started is parked: a service task deferred, or a
+    /// mailbox step waits for its message. The chain goes on without this request.
+    /// </summary>
+    internal bool WorkflowParked { get; init; }
+
+    /// <summary>
     /// The exact non-idle process status that blocked this user-facing request, if applicable.
     /// </summary>
     internal ProcessStatus? BlockingProcessStatus { get; init; }
-
-    /// <summary>
-    /// Indicates that CompleteProcess's legacy task-type authorization failed and must retain its bare 403 response.
-    /// </summary>
-    internal bool CompleteProcessAuthorizationFailed { get; init; }
 
     /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.

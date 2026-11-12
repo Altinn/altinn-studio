@@ -1,4 +1,5 @@
 {
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "en",
   "resources": [
@@ -394,6 +395,6 @@
       "id": "customComponent.readOnlyCaption",
       "value": "Read-only caption"
     }
-  ]
+  ],
 }
 

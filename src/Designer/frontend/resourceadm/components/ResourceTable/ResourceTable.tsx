@@ -1,14 +1,14 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, FileImportIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon } from '@designer/icons';
 import {
   StudioButton,
   StudioSpinner,
   StudioTag,
   StudioTableLocalPagination,
-} from '@studio/components';
+} from '@designer/components';
 
-import type { Columns } from '@studio/components';
+import type { Columns } from '@designer/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
@@ -109,8 +109,8 @@ export const ResourceTable = ({
 
   const getListItemTitle = (listItem): string => {
     return (
-      listItem.title[i18n?.language] ||
-      listItem.title.nb ||
+      listItem.title?.[i18n?.language] ||
+      listItem.title?.nb ||
       t('dashboard.resource_table_row_missing_title')
     );
   };

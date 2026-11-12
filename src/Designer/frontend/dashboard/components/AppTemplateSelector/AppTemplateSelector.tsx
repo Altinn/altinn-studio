@@ -1,6 +1,6 @@
 import React from 'react';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type AppTemplateSelectorProps = {

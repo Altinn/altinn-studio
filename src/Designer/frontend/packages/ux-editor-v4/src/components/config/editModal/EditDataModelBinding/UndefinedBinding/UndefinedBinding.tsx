@@ -1,5 +1,5 @@
-import { StudioProperty } from '@studio/components';
-import { LinkIcon } from '@studio/icons';
+import { StudioProperty } from '@designer/components';
+import { LinkIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 
 export type UndefinedBindingProps = {

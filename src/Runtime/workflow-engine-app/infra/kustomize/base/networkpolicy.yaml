@@ -20,3 +20,17 @@ spec:
           port: 9090
         - protocol: TCP
           port: 4143
+    # Allow traffic from the gateway pods only (whitelisted Studio pass-through)
+    # Linkerd proxy port 4143 required when source pod has linkerd sidecar
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: runtime-gateway
+          podSelector:
+            matchLabels:
+              app: gateway
+      ports:
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 4143

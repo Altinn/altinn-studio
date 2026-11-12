@@ -1,259 +1,110 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
-import type { AxiosError } from 'axios';
-import axios from 'axios';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { del, get, patch, post, put } from './networking';
 
-vi.mock('axios');
-const mockedAxios = axios as Mocked<typeof axios>;
-const testUrl = 'test';
+const testUrl = '/designer/api/test';
 
-describe('get', () => {
-  describe('when API call is successful', () => {
-    it('should return response data', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.get.mockResolvedValueOnce({ data });
+const lastHeaders = (fetchSpy: MockInstance<typeof fetch>): Headers =>
+  fetchSpy.mock.lastCall[1].headers as Headers;
 
-      // when
-      const result = await get(testUrl, config);
+const jsonResponse = (data: unknown, status: number = 200): Response =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 
-      // then
-      expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, config);
-      expect(result).toEqual(data);
+const emptyResponse = (status: number = 204): Response => new Response(null, { status });
+
+describe('networking', () => {
+  let fetchSpy: MockInstance<typeof fetch>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  });
+
+  describe('response data', () => {
+    it('get and post return the parsed body', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse([{ value: '1' }]));
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ id: 1 }));
+
+      expect(await get(testUrl)).toEqual([{ value: '1' }]);
+      expect(await post(testUrl, { name: 'test' })).toEqual({ id: 1 });
     });
-    it('should return null if there is no response data', async () => {
-      // given
-      const config = {};
-      mockedAxios.get.mockResolvedValueOnce({});
 
-      // when
-      const result = await get(testUrl, config);
+    it('get and post return null when the response has no body', async () => {
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
 
-      // then
-      expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, config);
-      expect(result).toBeNull();
+      expect(await get(testUrl)).toBeNull();
+      expect(await post(testUrl, { name: 'test' })).toBeNull();
+    });
+
+    it('put, patch and del return the parsed body', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ updated: true }));
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ updated: true }));
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ deleted: true }));
+
+      expect(await put(testUrl, { name: 'test' })).toEqual({ updated: true });
+      expect(await patch(testUrl, { name: 'test' })).toEqual({ updated: true });
+      expect(await del(testUrl, { data: { members: ['123'] } })).toEqual({ deleted: true });
     });
   });
-  describe('when API call fails', () => {
-    it('should return error code', async () => {
-      // given
-      const networkError = {
-        message: 'Bad request',
-        code: '400',
-      } as AxiosError;
-      mockedAxios.get.mockRejectedValueOnce({ ...networkError });
-      let error;
-      try {
-        await get(testUrl);
-      } catch (err) {
-        error = err;
-      }
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, undefined);
-      expect(error.message).toEqual('Bad request');
-      expect(error.code).toEqual('400');
+  describe('XSRF token', () => {
+    it('is sent from the cookie on same-origin requests', async () => {
+      document.cookie = 'XSRF-TOKEN=token%2Fvalue; path=/';
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await post(testUrl, { name: 'test' });
+
+      expect(lastHeaders(fetchSpy).get('X-XSRF-TOKEN')).toBe('token/value');
+    });
+
+    it('is not sent to other origins', async () => {
+      document.cookie = 'XSRF-TOKEN=token; path=/';
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await post('https://example.com/api', { name: 'test' });
+
+      expect(lastHeaders(fetchSpy).has('X-XSRF-TOKEN')).toBe(false);
+    });
+
+    it('is not sent when there is no cookie', async () => {
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await post(testUrl, { name: 'test' });
+
+      expect(lastHeaders(fetchSpy).has('X-XSRF-TOKEN')).toBe(false);
     });
   });
-});
 
-describe('del', () => {
-  describe('when API call is successful', () => {
-    it('should return response data', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.delete.mockResolvedValueOnce({ data });
+  describe('redirect to login', () => {
+    const originalLocation = window.location;
 
-      // when
-      const result = await del(testUrl, config);
-
-      // then
-      expect(mockedAxios.delete).toHaveBeenCalledWith(testUrl, config);
-      expect(result).toEqual(data);
-    });
-  });
-  describe('when API call fails', () => {
-    it('should return error code', async () => {
-      // given
-      const networkError = {
-        message: 'Bad request',
-        code: '400',
-      } as AxiosError;
-      mockedAxios.delete.mockRejectedValueOnce({ ...networkError });
-      let error;
-      try {
-        await del(testUrl);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(mockedAxios.delete).toHaveBeenCalledWith(testUrl, undefined);
-      expect(error.message).toEqual('Bad request');
-      expect(error.code).toEqual('400');
-    });
-  });
-});
-
-describe('post', () => {
-  // afterEach(() => {
-  //   mockedAxios.post.mockReset();
-  // });
-  describe('when API call is successful', () => {
-    it('should return response data when it exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.post.mockResolvedValueOnce({ data });
-
-      // when
-      const result = await post(testUrl, data, config);
-
-      // then
-      expect(mockedAxios.post).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toEqual(data);
+    beforeEach(() => {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, href: originalLocation.href },
+      });
     });
 
-    it('should return null when no response data exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.post.mockResolvedValueOnce({});
-
-      // when
-      const result = await post(testUrl, data, config);
-
-      // then
-      expect(mockedAxios.post).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toBeNull();
-    });
-  });
-  describe('when API call fails', () => {
-    it('should return error code', async () => {
-      // given
-      const networkError = {
-        message: 'Bad request',
-        code: '400',
-      } as AxiosError;
-      mockedAxios.post.mockRejectedValueOnce({ ...networkError });
-      let error;
-      try {
-        await post(testUrl, null);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(mockedAxios.post).toHaveBeenCalledWith(testUrl, null, undefined);
-      expect(error.message).toEqual('Bad request');
-      expect(error.code).toEqual('400');
-    });
-  });
-});
-
-describe('put', () => {
-  // afterEach(() => {
-  //   mockedAxios.post.mockReset();
-  // });
-  describe('when API call is successful', () => {
-    it('should return response data when it exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.put.mockResolvedValueOnce({ data });
-
-      // when
-      const result = await put(testUrl, data, config);
-
-      // then
-      expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toEqual(data);
+    afterEach(() => {
+      Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
     });
 
-    it('should return undefined when no response data exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.put.mockResolvedValueOnce({});
+    it('sends the browser to /login when Gitea redirected the request to its login page', async () => {
+      const response = new Response('<html></html>', { status: 200 });
+      Object.defineProperty(response, 'url', { value: 'http://localhost/repos/user/login' });
+      fetchSpy.mockResolvedValueOnce(response);
 
-      // when
-      const result = await put(testUrl, data, config);
+      await get(testUrl);
 
-      // then
-      expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toBeUndefined();
-    });
-  });
-  describe('when API call fails', () => {
-    it('should return error code', async () => {
-      // given
-      const networkError = {
-        message: 'Bad request',
-        code: '400',
-      } as AxiosError;
-      mockedAxios.put.mockRejectedValueOnce({ ...networkError });
-      let error;
-      try {
-        await put(testUrl, null);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, null, undefined);
-      expect(error.message).toEqual('Bad request');
-      expect(error.code).toEqual('400');
-    });
-  });
-});
-
-describe('patch', () => {
-  describe('when API call is successful', () => {
-    it('should return response data when it exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.patch.mockResolvedValueOnce({ data });
-
-      // when
-      const result = await patch(testUrl, data, config);
-
-      // then
-      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toEqual(data);
-    });
-
-    it('should return undefined when no response data exists', async () => {
-      // given
-      const config = {};
-      const data = [{ value: '1' }, { value: '2' }];
-      mockedAxios.patch.mockResolvedValueOnce({});
-
-      // when
-      const result = await patch(testUrl, data, config);
-
-      // then
-      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, data, config);
-      expect(result).toBeUndefined();
-    });
-  });
-  describe('when API call fails', () => {
-    it('should return error code', async () => {
-      // given
-      const networkError = {
-        message: 'Bad request',
-        code: '400',
-      } as AxiosError;
-      mockedAxios.patch.mockRejectedValueOnce({ ...networkError });
-      let error;
-      try {
-        await patch(testUrl, null);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, null, undefined);
-      expect(error.message).toEqual('Bad request');
-      expect(error.code).toEqual('400');
+      expect(window.location.href).toBe('/login');
     });
   });
 });

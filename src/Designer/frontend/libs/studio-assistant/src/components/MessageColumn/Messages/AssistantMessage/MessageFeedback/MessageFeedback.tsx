@@ -6,7 +6,7 @@ import {
   StudioFormGroup,
   StudioHeading,
   StudioTextarea,
-} from '@studio/components';
+} from '@designer/components';
 import {
   ThumbDownIcon,
   ThumbUpIcon,
@@ -14,7 +14,7 @@ import {
   ThumbUpFillIcon,
   PaperplaneFillIcon,
   XMarkIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import type { MessageFeedbackTexts } from '../../../../../types/AssistantTexts';
 import type { FeedbackPayload } from '../../../../../types/UserFeedback';
 import classes from './MessageFeedback.module.css';

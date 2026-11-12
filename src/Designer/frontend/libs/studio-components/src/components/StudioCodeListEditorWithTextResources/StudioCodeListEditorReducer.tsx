@@ -1,8 +1,8 @@
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import { updateCodeList } from './utils';
-import { TextResourceUtils } from '@studio/pure-functions';
+import { TextResourceUtils } from '@designer/pure-functions';
 
 export type ReducerState = {
   codeList: CodeListWithTextResources;

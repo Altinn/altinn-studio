@@ -1,3 +1,5 @@
+using Altinn.App.Core.Models.Expressions;
+
 namespace Altinn.App.Core.Models;
 
 /// <summary>
@@ -34,6 +36,21 @@ public class Pages
     /// Specifies when the application saves form data.
     /// </summary>
     public AutoSaveBehavior? AutoSaveBehavior { get; set; }
+
+    /// <summary>
+    /// Overrides the default navigation panel title. Can be a text resource key or an expression.
+    /// </summary>
+    public Expression? NavigationTitle { get; set; }
+
+    /// <summary>
+    /// Page validation settings used when navigating between pages.
+    /// </summary>
+    public PageValidation? ValidationOnNavigation { get; set; }
+
+    /// <summary>
+    /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
+    /// </summary>
+    public Expression? HideAppNameInPdf { get; set; }
 
     /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.

@@ -1,8 +1,8 @@
-import { StudioSpinner, StudioError, StudioCard, StudioHeading } from '@studio/components';
+import { StudioSpinner, StudioError, StudioCard, StudioHeading } from '@designer/components';
 import { useAppDetailsQuery } from 'admin/features/apps/hooks/queries/useAppDetailsQuery';
 import type { PublishedApplicationDetails } from 'admin/features/apps/types/PublishedApplicationDetails';
 import { useTranslation } from 'react-i18next';
-import { ExternalLinkIcon } from '@studio/icons';
+import { ExternalLinkIcon } from '@designer/icons';
 
 import classes from './AppInfo.module.css';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';

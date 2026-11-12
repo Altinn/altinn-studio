@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.Deployments;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -12,8 +16,8 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Runtime;
 using Altinn.Studio.Designer.Telemetry;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -33,21 +37,17 @@ public class DeploymentsController : ControllerBase
 {
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
-    private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+    private readonly AppRuntime _appRuntime;
 
     // TODO(#18666): DeveloperAppToken is unused with OIDC auth; placeholder satisfies
     // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
     private const string OidcAuthTokenPlaceholder = "studio-oidc-auth";
 
-    public DeploymentsController(
-        IDeploymentService deploymentService,
-        IGiteaClient giteaClient,
-        IKubernetesDeploymentsService kubernetesDeploymentsService
-    )
+    public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, AppRuntime appRuntime)
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
-        _kubernetesDeploymentsService = kubernetesDeploymentsService;
+        _appRuntime = appRuntime;
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class DeploymentsController : ControllerBase
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and Kubernetes deployments</returns>
+    /// <returns>List of Pipeline deployments and the app as it runs in each environment</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -74,16 +74,17 @@ public class DeploymentsController : ControllerBase
             cancellationToken
         );
 
-        List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(
-            org,
-            app,
-            cancellationToken
-        );
+        IReadOnlyList<AppRunState> runStates = await _appRuntime.GetAll(org, app, cancellationToken);
+
+        // A limited list can leave out the deploy that runs.
+        IEnumerable<DeploymentEntity> deploymentsToMatch = query?.Top is null
+            ? deployments.Results
+            : (await AllDeployments(org, app, cancellationToken)).Results;
 
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            KubernetesDeploymentList = kubernetesDeploymentList,
+            EnvironmentList = runStates.Select(state => AppInEnvironment.From(state, deploymentsToMatch)).ToList(),
         };
     }
 
@@ -139,6 +140,51 @@ public class DeploymentsController : ControllerBase
         var createResult = await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel());
         return Created(string.Empty, createResult);
     }
+
+    /// <summary>
+    /// Restarts the app in an environment, so its instances are replaced with new ones of the same version.
+    /// </summary>
+    /// <param name="org">Organization name</param>
+    /// <param name="app">Application name</param>
+    /// <param name="restartRequest">The environment to restart the app in</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The app as the restart left it, or why it could not be restarted</returns>
+    [HttpPost("restart")]
+    [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
+    public async Task<ActionResult<RunningApp>> Restart(
+        string org,
+        string app,
+        [FromBody] RestartRequest restartRequest,
+        CancellationToken cancellationToken
+    )
+    {
+        Guard.AssertValidEnvironmentName(restartRequest.Environment);
+        HttpContext.SetTargetEnvironment(restartRequest.Environment);
+        // The request's trace is the only record of who restarted the app, so sampling must not drop it.
+        RootSpan.Of(HttpContext).SetAlwaysSample();
+
+        // Read before restarting, since a restart keeps the deploy that runs, so that a failing read cannot report a
+        // restart that started as failed.
+        IEnumerable<DeploymentEntity> deployments = (await AllDeployments(org, app, cancellationToken)).Results;
+        AppRestart restart = await _appRuntime.Restart(org, app, restartRequest.Environment, cancellationToken);
+        return restart switch
+        {
+            AppRestart.Started started => Accepted(RunningApp.From(started.Running, deployments)),
+            AppRestart.NotRunning => RestartProblem(DeploymentErrorCodes.AppNotRunning, HttpStatusCode.NotFound),
+            AppRestart.Updating => RestartProblem(DeploymentErrorCodes.AppUpdating, HttpStatusCode.Conflict),
+            AppRestart.Paused => RestartProblem(DeploymentErrorCodes.AppPaused, HttpStatusCode.Conflict),
+            _ => RestartProblem(DeploymentErrorCodes.AppDeployedElsewhere, HttpStatusCode.Conflict),
+        };
+    }
+
+    private Task<SearchResults<DeploymentEntity>> AllDeployments(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    ) => _deploymentService.GetAsync(org, app, new DocumentQueryModel(), cancellationToken);
+
+    private ObjectResult RestartProblem(string errorCode, HttpStatusCode statusCode) =>
+        StatusCode((int)statusCode, ProblemDetailsUtils.GenerateProblemDetails(errorCode, statusCode));
 
     /// <summary>
     /// Initiates the undeployment of an application from a specific environment

@@ -10,9 +10,8 @@ from opentelemetry import trace as otel_trace
 from agents.services.events import AgentEvent, EventSink, sink
 from agents.services.llm import (
     GATE_FAILED_ACTION,
-    MINIMUM_INTENT_CONFIDENCE,
     check_scope_async,
-    parse_intent_async,
+    check_security_async,
     suggest_goal_correction,
 )
 from shared.utils.langfuse_utils import (
@@ -20,6 +19,7 @@ from shared.utils.langfuse_utils import (
     get_current_trace_id,
     init_langfuse,
     is_langfuse_enabled,
+    propagate_span_attributes,
 )
 from shared.utils.logging_utils import get_logger
 
@@ -125,6 +125,8 @@ graph = build_graph()
 
 _log = _logging.getLogger(__name__)
 
+WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
+
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
@@ -135,13 +137,10 @@ _GATE_UNAVAILABLE_MESSAGE = (
     "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
     "litt."
 )
-_UNCLEAR_GOAL_MESSAGE = (
-    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive endringen litt mer konkret?"
-)
 
 
 class GoalRejected(Exception):
-    """Raised when the intent parser rejects the user's goal."""
+    """Raised when a gate rejects the user's goal."""
 
     def __init__(self, message: str, suggestions: list[str] | None = None):
         super().__init__(message)
@@ -160,7 +159,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
       general-purpose chatbot on government infrastructure. An out-of-scope
       write request rejects like any other invalid goal; an out-of-scope
       chat question gets a polite decline delivered as a normal reply.
-    - Intent validation (write runs only): see _validate_intent.
+    - Security check (write runs only): see _check_security.
     """
     _raise_if_cancelled(state, event_sink)
     scope_result = await check_scope_async(state.user_goal, state.conversation_history)
@@ -180,7 +179,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
         return decline_text
 
     if state.allow_app_changes:
-        await _validate_intent(state)
+        await _check_security(state)
     return None
 
 
@@ -198,7 +197,6 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
         "content": decline_text,
         "filesChanged": [],
         "sources": [],
-        "no_branch_operations": True,
     }
     # Same event identity as a real answer: lets the frontend dedupe
     # redelivered events and submit feedback on the decline.
@@ -228,17 +226,21 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
     )
 
 
-async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals, for write runs only.
+async def _check_security(state: AgentState):
+    """Reject unsafe goals, for write runs only.
+
+    An unclear goal is not rejected here. It goes to the loop, which reads the
+    app to find what to change. When the loop cannot tell, its prompt has it end
+    with a message that says what it needs.
 
     Read-only runs are held back structurally rather than by this gate.
     """
-    parsed = await parse_intent_async(
+    parsed = await check_security_async(
         state.user_goal, attachments=state.attachments, conversation=state.conversation_history
     )
 
     if parsed.action == GATE_FAILED_ACTION:
-        _log.error("Intent gate could not run for session %s: %s", state.session_id, parsed.reason)
+        _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
@@ -248,29 +250,26 @@ async def _validate_intent(state: AgentState):
         )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
-    if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
-        _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = await suggest_goal_correction(state.user_goal, conversation=state.conversation_history)
-        raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
-
     _log.info(
-        "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
+        "Goal passed the security gate for session %s: action=%s, component=%s",
         state.session_id,
         parsed.action,
         parsed.component,
-        parsed.confidence,
     )
 
 
-def _mark_as_experiment_item(state: AgentState, root_span) -> None:
-    """Declare this trace one item of a dataset run."""
+def _mark_as_experiment_item(state: AgentState, root_span) -> dict[str, str]:
+    """Declare this trace one item of a dataset run.
+
+    Returns the attributes that the child spans must carry too.
+    """
     if not state.experiment:
-        return
+        return {}
     span = otel_trace.get_current_span()
-    if not span.is_recording():
-        return
-    for key, value in state.experiment.span_attributes(root_span.id).items():
-        span.set_attribute(key, value)
+    if span.is_recording():
+        for key, value in state.experiment.root_span_attributes(root_span.id).items():
+            span.set_attribute(key, value)
+    return state.experiment.span_attributes(root_span.id)
 
 
 async def run_once(state: AgentState, event_sink: EventSink | None = None):
@@ -288,7 +287,7 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
         history_for_trace = [{"role": m.role, "content": m.content[:300]} for m in state.conversation_history]
         with langfuse.start_as_current_observation(
             as_type="span",
-            name="Altinity Agent Workflow",
+            name=WORKFLOW_TRACE_NAME,
             input={
                 "user_goal": str(state.user_goal)[:500],
                 "repo_path": str(state.repo_path),
@@ -305,8 +304,15 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
             },
         ) as root_span:
             state.trace_id = get_current_trace_id()
-            _mark_as_experiment_item(state, root_span)
-            with propagate_attributes(user_id=state.cost_org):
+            experiment_attributes = _mark_as_experiment_item(state, root_span)
+            with (
+                propagate_span_attributes(experiment_attributes),
+                propagate_attributes(
+                    user_id=state.cost_org,
+                    session_id=str(state.session_id),
+                    trace_name=WORKFLOW_TRACE_NAME,
+                ),
+            ):
                 try:
                     decline_text = await _gate_goal(state, event_sink)
                     if decline_text is not None:

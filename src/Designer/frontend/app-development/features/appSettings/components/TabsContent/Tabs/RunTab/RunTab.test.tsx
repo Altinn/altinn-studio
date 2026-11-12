@@ -3,12 +3,12 @@ import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/rea
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RunTab } from './RunTab';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import userEvent from '@testing-library/user-event';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('RunTab', () => {
   it('initially displays spinner when loading data', () => {

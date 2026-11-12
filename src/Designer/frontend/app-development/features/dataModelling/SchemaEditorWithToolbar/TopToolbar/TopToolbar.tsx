@@ -7,10 +7,10 @@ import { DataModelMenu } from './DataModelMenu';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
-import { usePrevious } from '@studio/hooks';
+import { usePrevious } from '@designer/hooks';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
-import { StudioDivider } from '@studio/components';
+import { StudioDivider } from '@designer/components';
 
 export interface TopToolbarProps {
   isCreateNewOpen: boolean;

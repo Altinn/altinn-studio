@@ -514,7 +514,7 @@ public static class TestAuthentication
             { AltinnCoreClaimTypes.AuthenticationLevel, 3 },
         };
 
-        AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
+        var authorizationDetails = new SystemUserAuthorizationDetailsClaim(
             [Guid.Parse(systemUserId)],
             systemId,
             new OrgClaim(

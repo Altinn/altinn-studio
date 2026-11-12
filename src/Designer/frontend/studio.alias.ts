@@ -38,5 +38,5 @@ export default [
     find: '@altinn/ux-editor-v3',
     replacement: path.resolve(__dirname, './packages/ux-editor-v3/src'),
   },
-  { find: '@studio/testing', replacement: path.resolve(__dirname, './testing') },
+  { find: '@designer/testing', replacement: path.resolve(__dirname, './testing') },
 ];

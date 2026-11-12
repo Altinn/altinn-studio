@@ -12,6 +12,15 @@
       </item>
       <validationReport jobEndStatus="normal" profileName="PDF/A-2B validation profile" statement="PDF file is not compliant with Validation Profile requirements." isCompliant="false">
         <details passedRules="141" failedRules="3" passedChecks="2133" failedChecks="206">
+          <rule specification="ISO 19005-2:2011" clause="6.1.3" testNumber="1" status="failed" failedChecks="1">
+            <description>The file trailer dictionary shall contain the ID keyword whose value shall be File Identifiers as defined in ISO 32000-1:2008, 14.4</description>
+            <object>CosDocument</object>
+            <test>lastID != null &amp;&amp; lastID.length() &gt; 0</test>
+            <check status="failed">
+              <context>root</context>
+              <errorMessage>Missing or empty ID in the document trailer</errorMessage>
+            </check>
+          </rule>
           <rule specification="ISO 19005-2:2011" clause="6.2.4.3" testNumber="2" status="failed" failedChecks="204">
             <description>DeviceRGB shall only be used if a device independent DefaultRGB colour space has been set when the DeviceRGB colour space is used, or if the file has a PDF/A OutputIntent that contains an RGB destination profile</description>
             <object>PDDeviceRGB</object>
@@ -415,15 +424,6 @@
             <check status="failed">
               <context>root/document[0]/pages[0](2 0 obj PDPage)/contentStream[0](6 0 obj PDContentStream)/operators[218]/fillCS[0]</context>
               <errorMessage>DeviceRGB colour space is used without RGB output intent profile</errorMessage>
-            </check>
-          </rule>
-          <rule specification="ISO 19005-2:2011" clause="6.1.3" testNumber="1" status="failed" failedChecks="1">
-            <description>The file trailer dictionary shall contain the ID keyword whose value shall be File Identifiers as defined in ISO 32000-1:2008, 14.4</description>
-            <object>CosDocument</object>
-            <test>lastID != null &amp;&amp; lastID.length() &gt; 0</test>
-            <check status="failed">
-              <context>root</context>
-              <errorMessage>Missing or empty ID in the document trailer</errorMessage>
             </check>
           </rule>
           <rule specification="ISO 19005-2:2011" clause="6.6.2.1" testNumber="1" status="failed" failedChecks="1">

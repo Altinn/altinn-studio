@@ -7,12 +7,12 @@ import { AttachmentListComponent } from './AttachmentListComponent';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './attachmentListUtils';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 
@@ -40,11 +40,11 @@ const defaultLayoutSets: LayoutSets = [
 ];
 
 const defaultDataTypes: DataTypeElement[] = [
-  { id: 'test1', taskId: 'Task_1' },
-  { id: 'test2', taskId: 'Task_1', appLogic: {} },
-  { id: 'test3', taskId: 'Task_2' },
-  { id: 'test4', taskId: 'Task_3' },
-  { id: 'test5', taskId: 'Task_3' },
+  { id: 'test1', taskIds: ['Task_1'] },
+  { id: 'test2', taskIds: ['Task_1'], appLogic: {} },
+  { id: 'test3', taskIds: ['Task_2'] },
+  { id: 'test4', taskIds: ['Task_3'] },
+  { id: 'test5', taskIds: ['Task_3'] },
   { id: reservedDataTypes.refDataAsPdf },
 ];
 
@@ -210,6 +210,55 @@ describe('AttachmentListComponent', () => {
     expect(currentTaskCheckbox).toBeChecked();
 
     expect(handleComponentChange).not.toHaveBeenCalled();
+  });
+
+  it('should treat a data type whose taskIds lists the current task among others as an attachment of the current task', async () => {
+    const dataTypes: DataTypeElement[] = [
+      { id: 'test1', taskIds: ['Task_1'] },
+      { id: 'test2', taskIds: ['Task_1', 'Task_3'] },
+      { id: 'test4', taskIds: ['Task_3'] },
+    ];
+    await render(
+      { component: { ...defaultComponent, dataTypeIds: ['test1', 'test2'] } },
+      'layoutSetId3',
+      defaultLayoutSets,
+      dataTypes,
+    );
+
+    const currentTaskCheckbox = screen.getByRole('switch', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    await user.click(currentTaskCheckbox);
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test2', reservedDataTypes.currentTask],
+    });
+  });
+
+  it('should ignore taskId and treat a data type without taskIds as bound to no task', async () => {
+    const dataTypes: DataTypeElement[] = [
+      { id: 'test2', taskIds: ['Task_3'] },
+      { id: 'test3', taskId: 'Task_3' },
+      { id: 'test4', taskId: 'Task_3', taskIds: [] },
+      { id: 'test5', taskId: 'Task_1', taskIds: ['Task_3'] },
+    ];
+    await render(
+      { component: { ...defaultComponent, dataTypeIds: ['test3', 'test4', 'test5'] } },
+      'layoutSetId3',
+      defaultLayoutSets,
+      dataTypes,
+    );
+
+    const currentTaskCheckbox = screen.getByRole('switch', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    await user.click(currentTaskCheckbox);
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test5', reservedDataTypes.currentTask],
+    });
   });
 
   it('should handle toggle of "Select All Attachments" checkbox correctly', async () => {

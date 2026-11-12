@@ -34,7 +34,10 @@ def make_raw_observation(obs_id="obs-1", trace_id="trace-1"):
         "traceId": trace_id,
         "startTime": "2026-05-03T10:00:00Z",
         "model": "gpt-4o",
-        "usage": {"input": 100, "output": 50, "total": 150},
+        # The shape of the usage field group in Observations API v2
+        "inputUsage": 100,
+        "outputUsage": 50,
+        "totalUsage": 150,
         "usageDetails": {"input": 100, "output": 50, "total": 150},
         "nonRelevantAttribute": "some-value",
     }

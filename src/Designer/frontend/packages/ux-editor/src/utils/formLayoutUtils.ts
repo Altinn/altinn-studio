@@ -5,14 +5,14 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
+import { ArrayUtils, ObjectUtils } from '@designer/pure-functions';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormItem } from '../types/FormItem';
 import { generateFormItem } from './component';
 import type { FormItemConfig } from '../data/formItemConfig';
-import { formItemConfigs } from '../data/formItemConfig';
+import { getFormItemConfig } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
@@ -375,8 +375,7 @@ export const isComponentTypeValidChild = (
   if (parentId === BASE_CONTAINER_ID) return true;
   const parent = getItem(layout, parentId);
   if (!formItemUtils.isContainer(parent)) return false;
-  const parentTypeConfig = formItemConfigs[parent.type];
-  return parentTypeConfig.validChildTypes?.includes(componentType);
+  return getFormItemConfig(parent.type).validChildTypes?.includes(componentType);
 };
 
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>

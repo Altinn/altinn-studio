@@ -12,6 +12,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -264,22 +265,19 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Start")).Build();
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.End")).Build();
 
-    public Task Abandon(ProcessTaskContext context)
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Abandon")).Build();
+
+    private static Task<StageResult> Log(string message)
     {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        SnapshotLogger.LogInfo(message);
+        return Task.FromResult(StageResult.Completed());
     }
 }
 
@@ -287,22 +285,19 @@ internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Start")).Build();
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.End")).Build();
 
-    public Task Abandon(ProcessTaskContext context)
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(_ => Log("IProcessTask.Abandon")).Build();
+
+    private static Task<StageResult> Log(string message)
     {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        SnapshotLogger.LogInfo(message);
+        return Task.FromResult(StageResult.Completed());
     }
 }
 

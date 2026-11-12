@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { AppConfigForm } from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ApplicationMetadata, ContactPoint } from 'app-shared/types/ApplicationMetadata';

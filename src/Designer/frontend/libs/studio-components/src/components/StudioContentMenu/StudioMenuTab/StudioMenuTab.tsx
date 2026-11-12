@@ -1,5 +1,5 @@
 import classes from './StudioMenuTab.module.css';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 import type { ReactNode, ReactElement } from 'react';
 
 type StudioMenuTabProps = {

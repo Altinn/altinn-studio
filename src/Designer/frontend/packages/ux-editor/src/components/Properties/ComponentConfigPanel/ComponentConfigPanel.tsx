@@ -1,7 +1,7 @@
 import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { StudioDetails } from '@studio/components';
+import { StudioDetails } from '@designer/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
@@ -10,7 +10,6 @@ import { DataModelBindings } from '../DataModelBindings';
 import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
-import { formItemConfigs } from '../../../data/formItemConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
@@ -35,7 +34,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
     return null;
   }
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+  const isUnknownInternalComponent: boolean = !getComponentDefinition(formItem.type);
   if (isUnknownInternalComponent)
     return (
       <div className={classes.unknownComponentAlert}>

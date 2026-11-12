@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioValidationMessage } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';

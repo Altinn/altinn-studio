@@ -6,6 +6,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -16,12 +17,14 @@ import { FormProvider } from 'src/features/form/FormProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import {
+  ALTINN_ROW_ID,
   DEFAULT_DEBOUNCE_TIMEOUT,
   IDataModelMultiPatchRequest,
   IDataModelMultiPatchResponse,
 } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import {
+  httpResponse,
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
   renderWithMinimalProviders,
@@ -342,6 +345,7 @@ describe('FormData', () => {
             />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () =>
@@ -358,7 +362,6 @@ describe('FormData', () => {
               };
             }),
         },
-        ...props,
       });
 
       return { ...utils, renderCounts };
@@ -491,6 +494,7 @@ describe('FormData', () => {
             <HasUnsavedChanges />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForInstance: async () => {
@@ -503,7 +507,6 @@ describe('FormData', () => {
             return obj;
           },
         },
-        ...props,
       });
     }
 
@@ -606,7 +609,7 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      mutations.doPatchMultipleFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -672,7 +675,7 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      mutations.doPatchMultipleFormData.resolve({ data: response });
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
 
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
@@ -707,6 +710,7 @@ describe('FormData', () => {
             <NavigationButton />
           </>
         ),
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () => {
@@ -716,7 +720,6 @@ describe('FormData', () => {
             return obj;
           },
         },
-        ...props,
       });
     }
 
@@ -745,13 +748,13 @@ describe('FormData', () => {
         obj2: { prop1: 'a' },
       });
 
-      mutations.doPostStatelessFormData.resolve();
+      mutations.doPostStatelessFormData.resolve({});
       await screen.findByText('something different');
     });
 
     it('Navigating away and back again should restore the form data', async () => {
       const user = userEvent.setup({ delay: null });
-      const { mutations, queries } = await render();
+      const { queries, mutations } = await render();
 
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
@@ -765,7 +768,7 @@ describe('FormData', () => {
       // as otherwise it would still be working on saving the form data (and form data is marked as unsaved until the
       // save operation is finished).
       expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
-      mutations.doPostStatelessFormData.resolve();
+      mutations.doPostStatelessFormData.resolve({});
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
@@ -796,9 +799,9 @@ describe('FormData', () => {
         ]),
       );
 
-      const { mutations, queries } = await render();
-      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as Mock;
-      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
+      const { queries } = await render();
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless;
+      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls;
       const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
         string,
         Record<string, string>
@@ -811,7 +814,6 @@ describe('FormData', () => {
 
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
-      mutations.doPostStatelessFormData.resolve();
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
@@ -870,6 +872,7 @@ describe('FormData', () => {
     async function render(props: MinimalRenderProps = {}) {
       return await statelessRender({
         renderer: <InvalidReadWrite path='obj3.prop1' />,
+        ...props,
         queries: {
           ...props.queries,
           fetchFormBootstrapForStateless: async () =>
@@ -882,7 +885,6 @@ describe('FormData', () => {
               };
             }),
         },
-        ...props,
       });
     }
 
@@ -968,5 +970,80 @@ describe('FormData', () => {
       await waitFor(() => expect(screen.getByTestId('list-value')).toHaveTextContent('id-2,id-1'));
     });
   });
+
+  describe('setLeafValueInList', () => {
+    const rowsSchema: JSONSchema7 = {
+      type: 'object',
+      properties: {
+        rows: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              [ALTINN_ROW_ID]: { type: 'string' },
+              value: { type: 'string' },
+            },
+          },
+        },
+      },
+    };
+
+    function RowWriter() {
+      const setLeafValueInList = FormStore.data.useSetLeafValueInList();
+      const rows = FormStore.data.useCurrentPick({ field: 'rows', dataType: defaultDataTypeMock }) as
+        { [ALTINN_ROW_ID]: string; value: string }[] | undefined;
+      const setValueInRow = (rowId: string) =>
+        setLeafValueInList({
+          reference: { field: 'rows', dataType: defaultDataTypeMock },
+          findRow: (row) => row[ALTINN_ROW_ID] === rowId,
+          field: 'value',
+          newValue: 'changed',
+        });
+
+      return (
+        <>
+          <div data-testid='rows'>{rows?.map((row) => `${row[ALTINN_ROW_ID]}=${row.value}`).join(',')}</div>
+          <button onClick={() => setValueInRow('row2')}>Update row2</button>
+          <button onClick={() => setValueInRow('missing')}>Update missing</button>
+        </>
+      );
+    }
+
+    async function render() {
+      return statefulRender({
+        renderer: <RowWriter />,
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((bootstrap) => {
+              bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
+                schema: rowsSchema,
+                initialData: {
+                  rows: [
+                    { [ALTINN_ROW_ID]: 'row1', value: 'one' },
+                    { [ALTINN_ROW_ID]: 'row2', value: 'two' },
+                  ],
+                },
+              });
+            }),
+        },
+      });
+    }
+
+    it('should set the value in the row found by the callback', async () => {
+      const user = userEvent.setup();
+      await render();
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=two');
+
+      await user.click(screen.getByRole('button', { name: 'Update row2' }));
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=changed');
+    });
+
+    it('should not change anything when no row matches', async () => {
+      const user = userEvent.setup();
+      await render();
+
+      await user.click(screen.getByRole('button', { name: 'Update missing' }));
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=two');
+    });
+  });
 });
-import type { Mock } from 'vitest';

@@ -1,14 +1,114 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
 describe('Group summary test', () => {
-  it('Renders the different options for add buttons correctly', () => {
+  it('Evaluates readOnly expressions inside nested groups in Summary2', () => {
+    cy.interceptLayout('Task_1', (component) => {
+      if (component.type === 'Input' && component.id === 'RepeatingGroup-With-Group-Input-Name') {
+        component.readOnly = [
+          'or',
+          ['equals', ['dataModel', 'repeatingGroup.points'], '1'],
+          ['equals', ['dataModel', 'repeatingGroup.points'], '8'],
+        ];
+      }
+    });
+
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
+
+    ['1', '8', '2'].forEach((points, index) => {
+      cy.findAllByRole('button', { name: /Legg til ny/ })
+        .eq(1)
+        .click();
+      cy.findByRole('textbox', { name: /Navn/ }).type(`Navn ${index}`);
+      cy.findByRole('textbox', { name: /Poeng/ }).type(points);
+      cy.findByRole('textbox', { name: /Navn/ }).should(points === '2' ? 'not.have.attr' : 'have.attr', 'readonly');
+      cy.findAllByRole('button', { name: /Lagre og lukk/ })
+        .first()
+        .click();
+    });
+
+    const summary = '[data-componentid="RepeatingGroup-With-Group-Summary2"]';
+    cy.get(summary).should('contain.text', 'Navn 0').and('contain.text', 'Navn 1').and('contain.text', 'Navn 2');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-0"]`).should('not.exist');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-1"]`).should('not.exist');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-2"]`).should('be.visible');
+    cy.get('@window.logError').should('not.be.calledWithMatch', 'Cannot lookup dataType undefined');
+  });
+
+  it('Renders the different options for add buttons and limits cell text without truncating headers', () => {
+    const tableTitle = 'A long column heading that must remain fully visible. '.repeat(8).trim();
+    cy.interceptLayout('Task_1', (component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
+        };
+      }
+      if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
+        component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
+      }
+    });
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Repeterende gruppe');
+    const inputValue = 'Long cell content that should be truncated. '.repeat(12).trim();
+
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .first()
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type(inputValue);
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+
+    cy.get('[data-testid="group-RepeatingGroup"] > table').within(() => {
+      cy.findByRole('columnheader', { name: tableTitle })
+        .children('span')
+        .should(($header) => {
+          const header = $header[0];
+          const lineHeight = parseFloat(getComputedStyle(header).lineHeight);
+          expect(header.clientHeight, 'long header remains taller than four lines').to.be.greaterThan(4 * lineHeight);
+          expect(header.scrollHeight, 'header is not clipped').to.equal(header.clientHeight);
+        });
+      cy.findByRole('cell', { name: inputValue })
+        .children('span')
+        .first()
+        .should(($content) => {
+          const content = $content[0];
+          const lineHeight = parseFloat(getComputedStyle(content).lineHeight);
+          expect(content.clientHeight, 'cell is limited to four lines').to.be.closeTo(4 * lineHeight, 1);
+          expect(content.scrollHeight, 'content exceeds the visible lines').to.be.greaterThan(content.clientHeight);
+        });
+    });
+    cy.get('#add-button-RepeatingGroup').should('be.visible');
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: 'Extra action' }).should('exist');
+      cy.contains('td', 'Additional information').should('exist');
+      cy.contains('td', 'Across columns').should('have.attr', 'colspan', '2');
+    });
     cy.visualTesting('repeatingGroupAddButtons');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.rowsBefore = [];
+        component.rowsAfter = [];
+      }
+    });
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: /^A long column heading/ }).should('exist');
+      cy.findByRole('columnheader', { name: 'Poeng' }).should('exist');
+      cy.findByRole('columnheader', { name: 'Dato' }).should('exist');
+      cy.findByRole('cell', { name: inputValue }).should('exist');
+      cy.findAllByRole('row')
+        .should('have.length', 2)
+        .each(($row) => {
+          cy.wrap($row).children().should('have.length', 4);
+        });
+      cy.findByRole('columnheader', { name: 'Extra action', timeout: 0 }).should('not.exist');
+    });
   });
 
   it('Fills in an input in the repeating group, the text appears in summary', () => {
@@ -25,6 +125,14 @@ describe('Group summary test', () => {
       .first()
       .within(() => {
         cy.contains('span', inputValue).should('exist');
+      });
+    cy.get('[data-componentid="RepeatingGroup-Summary"]')
+      .contains('span', inputValue)
+      .should(($value) => {
+        const edit = $value.closest('[data-testid="summary-group-component"]').find('button')[0];
+        expect($value[0].compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).to.equal(
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        );
       });
   });
 
@@ -104,7 +212,11 @@ describe('Group summary test', () => {
     cy.get('[data-testid="summary-repeating-group-component"] > table').should('not.contain.text', 'Testnavn2');
   });
 
-  it('Displays a summary for a filled repeating group in table', () => {
+  it('Displays a summary table and omits PDF-excluded columns and their errors', { retries: 0 }, () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_1.pages.pdfLayoutName = 'RepeatingGroupPage';
+      data.ui.folders.Task_1.components = { excludeFromPdf: ['RepeatingGroup-Input-Points'] };
+    });
     cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
         component.tableColumns = {
@@ -123,6 +235,7 @@ describe('Group summary test', () => {
       .first()
       .click();
     cy.findByRole('textbox', { name: /Navn/ }).type(inputValue);
+    cy.findByRole('textbox', { name: /Poeng/ }).type('101');
     cy.findAllByRole('button', { name: /Lagre og lukk/ })
       .first()
       .click();
@@ -135,15 +248,30 @@ describe('Group summary test', () => {
       .click();
 
     cy.get('div[data-testid="summary-repeating-group-component"] > table').within(() => {
-      cy.findAllByRole('row').should('have.length', 3);
+      cy.findAllByRole('row').should('have.length', 5);
       cy.findByRole('columnheader', { name: /Navn/ }).should('exist');
       cy.findAllByRole('cell', { name: inputValue }).should('exist');
       cy.findAllByRole('cell', { name: inputValue2 }).should('exist');
-      cy.findAllByRole('columnheader').should(($headers) => {
-        const nameWidth = $headers[0].getBoundingClientRect().width;
-        const pointsWidth = $headers[1].getBoundingClientRect().width;
-        expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+      cy.findByRole('columnheader', { name: /Navn/ }).then(($nameHeader) => {
+        const nameWidth = $nameHeader[0].getBoundingClientRect().width;
+        cy.findByRole('columnheader', { name: /Poeng/ }).should(($pointsHeader) => {
+          const pointsWidth = $pointsHeader[0].getBoundingClientRect().width;
+          expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+        });
       });
+      cy.contains('Største gyldig tall er 100').should('be.visible');
+    });
+
+    cy.testPdf({
+      freeze: false,
+      callback: () => {
+        cy.get('[data-componentid="RepeatingGroup-Summary2-table"]').within(() => {
+          cy.contains('td', inputValue).should('be.visible');
+          cy.contains('td', inputValue2).should('be.visible');
+          cy.findByRole('columnheader', { name: /Poeng/, timeout: 0 }).should('not.exist');
+          cy.contains('Største gyldig tall er 100', { timeout: 0 }).should('not.exist');
+        });
+      },
     });
   });
 

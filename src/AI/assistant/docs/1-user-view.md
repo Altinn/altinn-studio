@@ -7,7 +7,7 @@ The user does not see the assistant service directly. The user opens the assista
 The page has three columns:
 
 - **Threads** ("Tråder"). Each thread is one conversation. The thread id is also the session id in the assistant service.
-- **Messages**. The user writes a request here. The user can attach PDF files or images, for example a paper form.
+- **Messages**. The user writes a request here. The user can attach PDF, Markdown or text files, or images, for example a paper form.
 - **Tool column**. It shows a preview of the app, or a file browser.
 
 ```mermaid
@@ -35,7 +35,7 @@ _The two modes, and the permission prompt that connects them._
 
 While the assistant works, the user sees an activity trail. Each line is a short Norwegian status, for example "Leser App/ui/form/layouts/Side1.json" or "Validerer endringer". The model text also appears in the chat. The user can stop the run at any time.
 
-At the end, the user gets a final message. It lists the changed files and the sources that the assistant used. Designer then checks out the session branch, so that the preview shows the changed app. The user can give a thumbs up or a thumbs down on each answer.
+At the end, the user gets a final message. It lists the changed files and the sources that the assistant used. If the assistant pushed a commit, Designer checks out the session branch. Then the preview shows the changed app. If not, Designer does not change the branch of the user. The user can give a thumbs up or a thumbs down on each answer.
 
 ```mermaid
 sequenceDiagram
@@ -47,8 +47,10 @@ sequenceDiagram
   A-->>S: Status lines, for example Leser fil
   A-->>S: Model text
   A-->>S: Final message with files and sources
-  S->>S: Check out branch assistant_xxxxxxxx
-  S-->>U: The preview shows the changed app
+  opt The assistant pushed a commit
+    S->>S: Check out branch assistant_xxxxxxxx
+    S-->>U: The preview shows the changed app
+  end
   U->>S: Thumbs up or thumbs down
 ```
 
@@ -57,7 +59,7 @@ _One run, as the user sees it._
 Some requests do not give changes:
 
 - A question that is not about Altinn app development gets a polite decline.
-- In workflow mode, an unsafe or unclear request gets a rejection, with suggestions for a better request.
+- In workflow mode, an unsafe request is rejected, with suggestions for a safer request. An unclear request goes to the agent. If the agent cannot tell what to change, its reply says what it needs.
 - If an uploaded document contains instructions to the assistant, the user gets a warning. The assistant does not obey these instructions.
 
 ## A second user: the assistant developer

@@ -35,7 +35,8 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	CABundle          *CABundle // the host's STUDIO_CA_BUNDLE, which pdf3 takes; nil for none
+	RuntimeUser       string    // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	RuntimeUsernsMode string
 	Images            config.ImagesConfig
 	Paths             Paths
@@ -75,11 +76,14 @@ func EnsureLocaltestStorageDir(dataDir string) error {
 	return nil
 }
 
+// PublishedHostIP is the host address every container port is published on.
+const PublishedHostIP = "127.0.0.1"
+
 func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
 		ContainerPort: containerPort,
-		HostIP:        "127.0.0.1",
+		HostIP:        PublishedHostIP,
 		Protocol:      "",
 	}
 }

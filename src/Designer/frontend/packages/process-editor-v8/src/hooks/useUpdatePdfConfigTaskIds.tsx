@@ -2,7 +2,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { BpmnDetails } from '../types/BpmnDetails';
 import { useBpmnContext } from '@altinn/process-editor-v8/contexts/BpmnContext';
-import { useDebounce } from '@studio/hooks';
+import { useDebounce } from '@designer/hooks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 export const useUpdatePdfConfigTaskIds = () => {

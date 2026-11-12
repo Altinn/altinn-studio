@@ -1,7 +1,7 @@
 """Experiment identity for a benchmark run.
 
 A trace declares its own dataset-run membership through OTel attributes on its
-root span, so the caller that owns the dataset passes this in at session start.
+spans, so the caller that owns the dataset passes this in at session start.
 """
 
 from __future__ import annotations
@@ -28,14 +28,21 @@ class ExperimentContext(BaseModel):
     description: str | None = None
 
     def span_attributes(self, root_observation_id: str) -> dict[str, str]:
-        """`root_observation_id` must be the root span's own id, per the spec."""
-        attributes = {
+        """What every span of the trace carries, so Langfuse links each one to the item.
+
+        `root_observation_id` must be the root span's own id, per the spec.
+        """
+        return {
             EXPERIMENT_ID: self.experiment_id,
             EXPERIMENT_NAME: self.experiment_name,
             EXPERIMENT_DATASET_ID: self.dataset_id,
             EXPERIMENT_ITEM_ID: self.item_id,
             EXPERIMENT_ITEM_ROOT_OBSERVATION_ID: root_observation_id,
         }
+
+    def root_span_attributes(self, root_observation_id: str) -> dict[str, str]:
+        """The root span also carries the description, which the spec keeps off the child spans."""
+        attributes = self.span_attributes(root_observation_id)
         if self.description:
             attributes[EXPERIMENT_DESCRIPTION] = self.description
         return attributes

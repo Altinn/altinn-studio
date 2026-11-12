@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
-import { StarFillIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { StarFillIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ComponentButton.module.css';
 

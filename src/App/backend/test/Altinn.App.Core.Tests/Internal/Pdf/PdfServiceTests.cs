@@ -436,16 +436,21 @@ public class PdfServiceTests
         await target.GenerateSubformPdf(
             instance,
             "Task_1",
-            new SubformPdfContext("subform-component", "subform-data-element"),
+            new SubformPdfContext("Sub form", "subform-data-element"),
             LanguageConst.Nb
         );
 
+        // The subform is passed as query parameters, the way autoPdfTaskIds are, so the frontend renders the entry
+        // from the subform's UI folder whatever UI folder the task has
         _pdfGeneratorClient.Verify(
             s =>
                 s.GeneratePdf(
                     It.Is<Uri>(u =>
-                        u.AbsoluteUri.Contains(instance.Id)
-                        && u.AbsoluteUri.Contains("/Task_1/subform/subform-component/subform-data-element")
+                        u.AbsoluteUri.EndsWith(
+                            $"instance/{instance.Id}/Task_1?pdf=1&lang=nb"
+                                + "&subformUiFolder=Sub%20form&subformDataElementId=subform-data-element",
+                            StringComparison.Ordinal
+                        )
                     ),
                     It.IsAny<string?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
@@ -552,6 +557,97 @@ public class PdfServiceTests
                 ),
             Times.Once
         );
+    }
+
+    [Theory]
+    [InlineData(false, true, false, false, true)]
+    [InlineData(true, false, false, false, false)]
+    [InlineData(false, true, true, false, true)]
+    [InlineData(true, false, true, false, false)]
+    [InlineData(false, true, false, true, true)]
+    [InlineData(true, false, false, true, false)]
+    [InlineData(false, true, true, true, true)]
+    [InlineData(true, false, true, true, false)]
+    [InlineData(true, null, false, false, true)]
+    [InlineData(false, null, false, false, false)]
+    [InlineData(true, null, true, false, true)]
+    [InlineData(false, null, true, false, false)]
+    public async Task GeneratePdf_FooterUsesRenderedFolderSettings(
+        bool globalHideAppName,
+        bool? folderHideAppName,
+        bool subform,
+        bool useExpression,
+        bool expectedHideAppName
+    )
+    {
+        _appResources
+            .Setup(s => s.GetGlobalUiSettings())
+            .Returns(new GlobalPageSettings { HideAppNameInPdf = new Expression((ExpressionValue)globalHideAppName) });
+        // A subform inherits app settings, not the parent task's overrides.
+        _appResources
+            .Setup(s => s.GetLayoutSettingsForFolder("Task_1"))
+            .Returns(
+                new LayoutSettings
+                {
+                    Pages = new Pages { HideAppNameInPdf = new Expression((ExpressionValue)!globalHideAppName) },
+                }
+            );
+        Expression? folderSetting = folderHideAppName is { } hide
+            ? useExpression
+                ? new Expression(
+                    ExpressionFunction.equals,
+                    new Expression((ExpressionValue)hide),
+                    new Expression(ExpressionValue.True)
+                )
+                : new Expression((ExpressionValue)hide)
+            : null;
+        _appResources
+            .Setup(s => s.GetLayoutSettingsForFolder(subform ? "subform" : "Task_1"))
+            .Returns(new LayoutSettings { Pages = new Pages { HideAppNameInPdf = folderSetting } });
+
+        string? footer = null;
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>(
+                (_, content, _, _) => footer = content
+            )
+            .ReturnsAsync([]);
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+        var target = SetupPdfService(
+            pdfGeneratorSettingsOptions: Options.Create(new PdfGeneratorSettings { DisplayFooter = true })
+        );
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = [],
+        };
+
+        if (subform)
+        {
+            await target.GenerateSubformPdf(
+                instance,
+                "Task_1",
+                new SubformPdfContext("subform", Guid.NewGuid().ToString()),
+                LanguageConst.Nb
+            );
+        }
+        else
+        {
+            await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb);
+        }
+
+        Assert.NotNull(footer);
+        Assert.Equal(!expectedHideAppName, footer.Contains("not-really-an-app"));
     }
 
     [Fact]

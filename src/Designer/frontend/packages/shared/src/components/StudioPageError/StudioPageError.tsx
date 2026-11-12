@@ -3,7 +3,7 @@ import {
   StudioPageError as StudioPageErrorBase,
   StudioParagraph,
   StudioLink,
-} from '@studio/components';
+} from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 
 export function StudioPageError(): ReactElement {

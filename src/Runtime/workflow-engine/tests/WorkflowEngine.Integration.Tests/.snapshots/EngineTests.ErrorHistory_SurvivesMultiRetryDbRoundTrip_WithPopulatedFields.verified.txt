@@ -12,6 +12,7 @@
     org: ttd
   },
   overallStatus: Completed,
+  role: Primary,
   steps: [
     {
       databaseId: {Scrubbed},
@@ -24,6 +25,7 @@
       },
       status: Completed,
       retryCount: 3,
+      firstFailedAt: DateTimeOffset_1,
       deferCount: 0,
       retryStrategy: {
         backoffType: Constant,

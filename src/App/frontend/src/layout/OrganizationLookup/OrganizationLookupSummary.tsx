@@ -3,12 +3,14 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -17,6 +19,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'OrganizationLookup');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'OrganizationLookup');
   const required = useEvalExpression(config.required, Expressions.OrganizationLookup.required);
   const summaryTitle = useEvalOptionalText(
@@ -48,15 +51,21 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
       }
     >
       <div className={classes.organisationSummaryWrapper}>
-        <Heading
-          data-size='sm'
-          level={2}
-        >
-          <Lang id={title} />
-        </Heading>
+        <LabelContent
+          {...labelProps}
+          label={
+            <Heading
+              data-size='sm'
+              level={2}
+            >
+              <Lang id={title} />
+            </Heading>
+          }
+        />
         <div className={classes.organizationLookupSummary}>
           <div className={classes.organizationLookupSummaryNr}>
             <SingleValueSummary
+              showLabelMetadata={false}
               title={<Lang id='organization_lookup.orgnr_label' />}
               displayData={orgnr}
               targetBaseComponentId={targetBaseComponentId}
@@ -72,6 +81,7 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
           {name && (
             <div className={classes.organizationLookupSummaryName}>
               <SingleValueSummary
+                showLabelMetadata={false}
                 title={<Lang id='organization_lookup.org_name' />}
                 displayData={name}
                 targetBaseComponentId={targetBaseComponentId}

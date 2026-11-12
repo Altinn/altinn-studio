@@ -45,12 +45,12 @@
 
 .breadcrumb {
   overflow: hidden;
+  font-weight: var(--ds-font-weight-medium);
   text-overflow: ellipsis;
 }
 
 .currentBreadcrumb {
   color: var(--ds-color-neutral-text-default);
-  font-weight: var(--ds-font-weight-medium);
   border-radius: var(--ds-border-radius-sm);
 }
 
@@ -77,7 +77,6 @@
   padding: var(--ds-size-2) var(--ds-size-3);
   color: var(--ds-color-neutral-text-default);
   font-size: var(--ds-body-sm-font-size);
-  font-weight: var(--ds-font-weight-regular);
   text-align: left;
   border-left: var(--ds-size-1) solid transparent;
   border-radius: 0;
@@ -94,7 +93,6 @@
 }
 
 .selectedEntry {
-  font-weight: var(--ds-font-weight-medium);
   background-color: var(--ds-color-neutral-background-default);
   border-left-color: var(--ds-color-accent-border-strong);
 }

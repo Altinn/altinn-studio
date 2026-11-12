@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { useBackToEditingHref } from './useBackToEditingHref';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { renderHookWithProviders } from '../../../test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 const mockLayoutId: string = 'layout1';

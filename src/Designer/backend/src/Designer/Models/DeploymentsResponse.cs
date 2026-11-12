@@ -1,16 +1,14 @@
-#nullable disable
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
 namespace Altinn.Studio.Designer.Models;
 
 /// <summary>
-/// Deployments response
+/// The app's deploys through this Studio environment, and what runs of it in each of the org's environments.
 /// </summary>
-public class DeploymentsResponse
+public sealed class DeploymentsResponse
 {
-    public List<DeploymentEntity> PipelineDeploymentList { get; set; }
+    public required IReadOnlyList<DeploymentEntity> PipelineDeploymentList { get; init; }
 
-    public List<KubernetesDeployment> KubernetesDeploymentList { get; set; }
+    public required IReadOnlyList<AppInEnvironment> EnvironmentList { get; init; }
 }

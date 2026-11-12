@@ -3,9 +3,11 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
-import { app, org } from '@studio/testing/testids';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { AppInEnvironment } from 'app-shared/types/api/RunningApp';
+import { app, org } from '@designer/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const render = (queries = {}) => {
@@ -33,9 +35,17 @@ describe('DeploymentContainer', () => {
     expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
   });
 
-  it('renders page', async () => {
+  it.each<{ environmentList?: AppInEnvironment[] }>([
+    { environmentList: undefined },
+    { environmentList: [] },
+  ])('renders page when the environment list is $environmentList', async ({ environmentList }) => {
     const envName = 'tt02';
     render({
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList }),
+        ),
       getEnvironments: vi.fn().mockImplementation(() =>
         Promise.resolve([
           {

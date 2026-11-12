@@ -13,7 +13,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -157,7 +156,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		}
 		scJSON, err := json.Marshal(scSnapshot)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-storageclass")).MatchJSON(GinkgoT(), scJSON)
+		matchJSONSnapshot("cnpg-storageclass", scJSON)
 	})
 
 	It("should create CNPG HelmRepository", func() {
@@ -184,7 +183,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("snapshotting HelmRepository spec")
 		specJSON, err := json.Marshal(readyRepo.Spec)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-helmrepo-spec")).MatchJSON(GinkgoT(), specJSON)
+		matchJSONSnapshot("cnpg-helmrepo-spec", specJSON)
 	})
 
 	It("should create CNPG HelmRelease and become ready", func() {
@@ -219,7 +218,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("snapshotting HelmRelease spec")
 		specJSON, err := json.Marshal(readyHr.Spec)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-helmrelease-spec")).MatchJSON(GinkgoT(), specJSON)
+		matchJSONSnapshot("cnpg-helmrelease-spec", specJSON)
 	})
 
 	It("should create ImageCatalog", func() {
@@ -245,7 +244,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("snapshotting ImageCatalog spec")
 		specJSON, err := json.Marshal(readyCatalog)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-imagecatalog-spec")).MatchJSON(GinkgoT(), specJSON)
+		matchJSONSnapshot("cnpg-imagecatalog-spec", specJSON)
 	})
 
 	It("should create Cluster", func() {
@@ -274,7 +273,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("snapshotting Cluster spec")
 		specJSON, err := json.Marshal(clusterSpecSnapshot(readyCluster))
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-cluster-spec")).MatchJSON(GinkgoT(), specJSON)
+		matchJSONSnapshot("cnpg-cluster-spec", specJSON)
 	})
 
 	It("should create password secret for app", func() {
@@ -316,7 +315,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		}
 		snapshotJSON, err := json.Marshal(secretSnapshot)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-password-secret")).MatchJSON(GinkgoT(), snapshotJSON)
+		matchJSONSnapshot("cnpg-password-secret", snapshotJSON)
 	})
 
 	It("should have managed role reconciled", func() {
@@ -384,7 +383,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		By("snapshotting Database spec")
 		specJSON, err := json.Marshal(appliedDb)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-database-spec")).MatchJSON(GinkgoT(), specJSON)
+		matchJSONSnapshot("cnpg-database-spec", specJSON)
 	})
 
 	It("should sync postgresql.json to app secret", func() {
@@ -423,7 +422,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		}
 		redactedJSON, err := json.Marshal(connData)
 		Expect(err).NotTo(HaveOccurred())
-		snaps.WithConfig(snaps.Filename("cnpg-postgresql-json")).MatchJSON(GinkgoT(), redactedJSON)
+		matchJSONSnapshot("cnpg-postgresql-json", redactedJSON)
 	})
 
 	It("should execute SELECT 1 using synced connection string", func() {

@@ -17,7 +17,7 @@ import { renderHookWithProviders } from '../../../../test/renderHookWithProvider
 import type { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
 import { useAddReference } from './useAddReference';
 import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 // Test data:
 const nameOfDefinition = extractNameFromPointer(definitionNodeMock.schemaPointer);

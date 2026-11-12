@@ -4,14 +4,13 @@ import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsMutating } from 'src/core/queries/reactQuery';
+import { useIsProcessResumePending } from 'src/core/queries/process';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
-import { useProcessResume } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/process/service/ServiceTaskFailed.module.css';
+import { useProcessResume } from 'src/features/process/useProcessNext';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 /**
@@ -72,7 +71,7 @@ const RetryButton = () => {
   // The transition loader replaces this view while a resume is processing, so the button can
   // remount mid-resume; read the pending state from the mutation cache, not this observer.
   const { mutate: processResume } = useProcessResume();
-  const isResuming = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
+  const isResuming = useIsProcessResumePending();
 
   return (
     <Button

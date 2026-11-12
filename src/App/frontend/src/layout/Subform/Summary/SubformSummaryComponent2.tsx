@@ -2,9 +2,10 @@ import React, { Fragment, type PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Label as DesignSystemLabel, Paragraph } from '@digdir/designsystemet-react';
 
-import { Label, LabelInner } from 'src/components/label/Label';
+import { Label } from 'src/components/label/Label';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -21,6 +22,10 @@ import {
   useSubformFormData,
 } from 'src/layout/Subform/utils';
 import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
+import {
+  useSummaryLabelProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
@@ -39,8 +44,17 @@ const SummarySubformWrapperInner = ({
   targetBaseComponentId: string;
 }>) => {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
+  const labelText = useSummaryLabelText(targetBaseComponentId);
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Subform.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Subform.textResourceBindings.title,
+  );
+  const title = summaryTitle ?? resolvedTitle;
 
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
@@ -56,6 +70,7 @@ const SummarySubformWrapperInner = ({
             hideIndicators
             weight='regular'
             textResourceBindings={{
+              ...labelText,
               title,
             }}
             className={classes.summaryLabelMargin}
@@ -99,10 +114,9 @@ const DoSummaryWrapper = ({
   title: string | undefined;
   baseComponentId: string;
 }>) => {
-  const config = useComponentConfig(baseComponentId, 'Subform');
-
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const labelProps = useSummaryLabelProps(baseComponentId);
 
   if (isSubformDataFetching) {
     return <Loader reason='subform-data' />;
@@ -117,49 +131,60 @@ const DoSummaryWrapper = ({
       ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, baseComponentId)
       : null;
 
+  const label = title ? (
+    <LabelContent
+      {...labelProps}
+      wrapperId={`label-${baseComponentId}`}
+      label={
+        <DesignSystemLabel
+          asChild
+          weight='regular'
+        >
+          <span>
+            <Lang id={title} />
+          </span>
+        </DesignSystemLabel>
+      }
+    />
+  ) : null;
+
   return (
     <div className={classes.summaryWrapperMargin}>
-      <TaskOverrides
-        dataModelElementId={dataElement.id}
-        dataModelType={dataElement.dataType}
-        uiFolder={uiFolder}
-      >
-        <FormProvider
-          readOnly={true}
-          uiFolderOverride={uiFolder}
-          dataElementIdOverride={dataElement.id}
+      <div className={classes_singlevaluesummary.labelValueWrapper}>
+        {label}
+        <TaskOverrides
+          dataModelElementId={dataElement.id}
+          dataModelType={dataElement.dataType}
+          uiFolder={uiFolder}
         >
-          <Flex
-            container
-            spacing={6}
-            alignItems='flex-start'
+          <FormProvider
+            readOnly={true}
+            uiFolderOverride={uiFolder}
+            dataElementIdOverride={dataElement.id}
           >
-            <Flex item>
-              <div className={classes_singlevaluesummary.labelValueWrapper}>
-                <LabelInner
-                  config={config}
-                  baseComponentId={baseComponentId}
-                  id={`subform-summary2-${dataElement.id}`}
-                  renderLabelAs='span'
-                  hideIndicators
-                  weight='regular'
-                  textResourceBindings={{ title }}
-                />
-                {subformEntryName && (
-                  <Heading
-                    className='no-visual-testing'
-                    data-size='sm'
-                    level={2}
-                  >
-                    {subformEntryName}
-                  </Heading>
-                )}
-              </div>
+            <Flex
+              container
+              spacing={6}
+              alignItems='flex-start'
+            >
+              <Flex item>
+                <div className={classes_singlevaluesummary.labelValueWrapper}>
+                  {subformEntryName && (
+                    <Heading
+                      className='no-visual-testing'
+                      data-size='sm'
+                      level={2}
+                    >
+                      {subformEntryName}
+                    </Heading>
+                  )}
+                </div>
+              </Flex>
+              <LayoutSetSummary />
             </Flex>
-            <LayoutSetSummary />
-          </Flex>
-        </FormProvider>
-      </TaskOverrides>
+          </FormProvider>
+        </TaskOverrides>
+      </div>
     </div>
   );
 };

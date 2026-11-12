@@ -18,7 +18,7 @@ import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;

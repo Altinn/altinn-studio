@@ -92,7 +92,7 @@ public class FiksArkivReplyAddressRoundTripTest
         PrepareForPayloadGeneration(fixture, dataMutator);
 
         // 1. The send stage publishes the mailbox id as the reply address.
-        var sendStage = Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]);
+        var sendStage = Assert.IsType<PipelineStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]);
         ServiceTaskOpeningStageResult sendResult = await sendStage.Work(
             CreateSendContext(dataMutator.Object),
             new ServiceTaskMailbox { Id = _mailboxId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) }
@@ -234,7 +234,7 @@ public class FiksArkivReplyAddressRoundTripTest
             );
     }
 
-    private static ServiceTaskContext CreateSendContext(IInstanceDataMutator dataMutator) =>
+    private static StageContext CreateSendContext(IInstanceDataMutator dataMutator) =>
         new()
         {
             InstanceDataMutator = dataMutator,

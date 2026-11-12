@@ -1,14 +1,18 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"altinn.studio/common/telemetry"
+)
 
 func TestResolveOTelSignals(t *testing.T) {
-	all := OTelSignals{Traces: true, Metrics: true, Logs: true}
+	all := telemetry.AllSignals()
 	tests := []struct {
 		env         map[string]string
 		name        string
 		environment string
-		want        OTelSignals
+		want        telemetry.Signals
 	}{
 		{name: "cluster exports everything", environment: "prod", want: all},
 		{name: "localtest exports nothing by default", environment: EnvironmentLocaltest},
@@ -22,19 +26,19 @@ func TestResolveOTelSignals(t *testing.T) {
 			name:        "localtest traces endpoint exports only traces",
 			environment: EnvironmentLocaltest,
 			env:         map[string]string{"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://traces:4317"},
-			want:        OTelSignals{Traces: true},
+			want:        telemetry.Signals{Traces: true},
 		},
 		{
 			name:        "localtest metrics endpoint exports only metrics",
 			environment: EnvironmentLocaltest,
 			env:         map[string]string{"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://metrics:4317"},
-			want:        OTelSignals{Metrics: true},
+			want:        telemetry.Signals{Metrics: true},
 		},
 		{
 			name:        "localtest logs endpoint exports only logs",
 			environment: EnvironmentLocaltest,
 			env:         map[string]string{"OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://logs:4317"},
-			want:        OTelSignals{Logs: true},
+			want:        telemetry.Signals{Logs: true},
 		},
 	}
 
@@ -53,7 +57,7 @@ func TestResolveOTelSignals(t *testing.T) {
 			if got != tc.want {
 				t.Fatalf("ResolveOTelSignals() = %+v, want %+v", got, tc.want)
 			}
-			if got.Any() != (tc.want != OTelSignals{}) {
+			if got.Any() != (tc.want != telemetry.Signals{}) {
 				t.Errorf("Any() = %v for %+v", got.Any(), got)
 			}
 		})

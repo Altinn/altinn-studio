@@ -1,47 +1,43 @@
-# About upgrading Gitea
+# Gitea
 
-The routine for upgrading Gitea can be found [here](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea) in Norwegian, but in short :
+The image for Studio's Git server, with our configuration, templates and locales. Designer reaches it through the
+[gitea-proxy](../gitea-proxy), and [deploy-repositories.yaml](../../.github/workflows/deploy-repositories.yaml) builds
+and deploys both. Locally, run `docker compose up -d --build studio_repositories` in `src/Designer` to apply a change.
 
-> :warning:
-> Do not upgrade to the first patch version `x.x.0`, wait until the major version is stable
+## Personal access tokens
 
-> :warning:
-> Ensure all custom files (configuration, templates, and locales) are up to date, as they may change between releases
+On the public proxy listener, `/api/v1/users/{username}/tokens` and its child routes require a Designer browser
+session. Studio API keys, native Gitea tokens, and standalone Basic authentication cannot create, list, or delete
+personal access tokens. This prevents a token from issuing another credential with an independent lifetime.
+Token authentication remains available for other permitted Git and API operations.
 
-## Updating configuration
+## Git hooks
 
-Ensure that our custom configuration is up to date by comparing it with the app.example.ini file provided by Gitea (see: https://github.com/go-gitea/gitea/blob/v{VERSION}/custom/conf/app.example.ini).
+Repositories must not contain symbolic links, since the tools that check them out, such as app builds, would follow
+them out of the repository. [app.ini](files/conf/app.ini) points git's `core.hooksPath` at `/etc/gitea/git-hooks`,
+where the [Dockerfile](Dockerfile) installs [the hook script](files/git-hooks/hook) under each hook name that Gitea
+uses, so it runs for every repository, including ones created later. As `pre-receive`, it rejects a push that adds or
+changes a symbolic link in any commit, or that pushes a tag pointing at a tree holding one. Symbolic links that a
+repository already holds can stay until someone changes them. For every hook, it then runs the repository's own hook,
+which Gitea generates and needs for its push handling.
 
-## Updating templates
+The hook only sees pushes, which include Gitea's own changes such as edits in the web editor, merges and repositories
+generated from a template. Migrations and pull mirrors fetch without running receive hooks, so they can still bring in
+symbolic links.
 
-Ensure that our custom templates are up to date by comparing them with the templates from Gitea (see: https://github.com/go-gitea/gitea/tree/v{VERSION}/templates).
+## Upgrading Gitea
 
-## Updating locales
+The [upgrade routine](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea)
+is in Norwegian. In short:
 
-### Updating original locales from Gitea
-
-The files located in [./files/locale/base](./files/locale/base) are the original translations from Gitea. They must be updated when upgrading Gitea to a newer version.
-
-- Update [locale_en-US.ini](./files/locale/base/locale_en-US.ini) using https://github.com/go-gitea/gitea/tree/v{VERSION}/options/locale/locale_en-US.ini.
-
-- Update [locale_nb-NO.ini](./files/locale/base/locale_nb-NO.ini) using [Crowdin](https://crowdin.com/project/gitea/no). Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
-
-> :warning:
-> Do not make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
->
-> - Submit your changes via [Crowdin](https://crowdin.com/project/gitea/no) for the Norwegian version, and download the updated file that includes your changes
-> - Add custom translations to our custom locale files (see below)
-
-### Updating custom locales
-
-The files located in [./files/locale/custom](./files/locale/custom) are our custom locales for Studio. Ensure that all keys in these files are still in use when upgrading Gitea to a newer version.
-
-## Useful commands
-
-Reload config:
-
-```bash
-docker rm --force studio-repositories
-docker rmi --force repositories:latest
-docker compose -f ../compose.yaml up -d
-```
+- Wait for a maintenance release before upgrading to a new release series.
+- Our configuration, templates and locales can break between releases. Compare
+  [app.ini](files/conf/app.ini) with Gitea's `custom/conf/app.example.ini`, and [templates](files/custom/templates)
+  with Gitea's `templates`, at the version you upgrade to.
+- Check that the [Dockerfile](Dockerfile) installs the hook script under every hook name that Gitea generates in a
+  repository's `hooks` folder. Gitea's push handling breaks for a hook missing from `/etc/gitea/git-hooks`.
+- [files/locale/base](files/locale/base) holds Gitea's Norwegian translation. Update it from
+  [Crowdin](https://crowdin.com/project/gitea/no) when you upgrade, checking that the keys match the new version, since
+  Crowdin only has the latest. The [Dockerfile](Dockerfile) takes the English locale from the Gitea image.
+- Do not edit the base translation, since the next upgrade overwrites it. Submit a change to Crowdin, or add it to
+  our own locales in [files/locale/custom](files/locale/custom). Check that their keys are still in use.

@@ -3,7 +3,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useText } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
