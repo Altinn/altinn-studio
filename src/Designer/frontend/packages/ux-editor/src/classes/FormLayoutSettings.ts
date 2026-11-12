@@ -58,8 +58,9 @@ export class FormLayoutSettings {
         order: group.order.filter((page) => page !== layoutName),
       }));
     } else {
-      const indexOfLayout = this.layoutSettings.pages.order.indexOf(layoutName);
-      this.layoutSettings.pages.order.splice(indexOfLayout, 1);
+      this.layoutSettings.pages.order = this.layoutSettings.pages.order.filter(
+        (page) => page !== layoutName,
+      );
     }
   }
 
