@@ -40,7 +40,12 @@ internal sealed class AssistantWorkflowService(
         CancellationToken cancellationToken
     )
     {
-        SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
+        SessionAccess access = await OpenSession(
+            editingContext,
+            threadId,
+            registrationRequired: true,
+            cancellationToken
+        );
         if (!access.IsGranted)
         {
             return access.Status;
@@ -80,7 +85,12 @@ internal sealed class AssistantWorkflowService(
         CancellationToken cancellationToken
     )
     {
-        SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
+        SessionAccess access = await OpenSession(
+            editingContext,
+            threadId,
+            registrationRequired: false,
+            cancellationToken
+        );
         if (!access.IsGranted)
         {
             return access.Status;
@@ -100,7 +110,12 @@ internal sealed class AssistantWorkflowService(
         CancellationToken cancellationToken
     )
     {
-        SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
+        SessionAccess access = await OpenSession(
+            editingContext,
+            threadId,
+            registrationRequired: false,
+            cancellationToken
+        );
         if (!access.IsGranted)
         {
             return access.Status;
@@ -129,6 +144,7 @@ internal sealed class AssistantWorkflowService(
     private async Task<SessionAccess> OpenSession(
         AltinnRepoEditingContext editingContext,
         Guid threadId,
+        bool registrationRequired,
         CancellationToken cancellationToken
     )
     {
@@ -148,7 +164,24 @@ internal sealed class AssistantWorkflowService(
             return SessionAccess.Refused(AssistantWorkflowStatus.NotFound);
         }
 
-        await webSocketService.RegisterSessionAsync(threadId.ToString(), editingContext.Developer, cancellationToken);
+        try
+        {
+            await webSocketService.RegisterSessionAsync(
+                threadId.ToString(),
+                editingContext.Developer,
+                cancellationToken
+            );
+        }
+        catch (Exception ex) when (!registrationRequired && !cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(
+                ex,
+                "Could not register session {SessionId} for {Developer}. The command is sent anyway.",
+                threadId,
+                editingContext.Developer
+            );
+        }
+
         return SessionAccess.Granted(costOrg);
     }
 

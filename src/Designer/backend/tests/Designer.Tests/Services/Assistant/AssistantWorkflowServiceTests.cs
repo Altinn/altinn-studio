@@ -228,6 +228,58 @@ public class AssistantWorkflowServiceTests
         VerifyNothingSent();
     }
 
+    [Fact]
+    public async Task CancelWorkflow_CancelsTheSession_WhenTheSessionCannotBeRegistered()
+    {
+        SetupRegistrationFailure();
+
+        var status = await RunCommand(CancelCommand, EditingContext());
+
+        Assert.Equal(AssistantWorkflowStatus.Success, status);
+        _assistantClientMock.Verify(
+            c => c.CancelWorkflow(Developer, _threadId.ToString(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RespondToPermission_SendsTheAnswer_WhenTheSessionCannotBeRegistered()
+    {
+        SetupRegistrationFailure();
+
+        var status = await RunCommand(PermissionCommand, EditingContext());
+
+        Assert.Equal(AssistantWorkflowStatus.Success, status);
+        _assistantClientMock.Verify(
+            c =>
+                c.RespondToPermission(
+                    Developer,
+                    _threadId.ToString(),
+                    "request-1",
+                    true,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task StartWorkflow_Throws_WhenTheSessionCannotBeRegistered()
+    {
+        SetupRegistrationFailure();
+
+        await Assert.ThrowsAsync<TimeoutException>(() => RunCommand(StartCommand, EditingContext()));
+
+        Assert.DoesNotContain(StartCommand, _calls);
+    }
+
+    private void SetupRegistrationFailure()
+    {
+        _webSocketServiceMock
+            .Setup(ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TimeoutException("The assistant service did not accept the WebSocket."));
+    }
+
     private async Task<AssistantWorkflowStatus> RunCommand(string command, AltinnRepoEditingContext editingContext)
     {
         AssistantWorkflowService service = CreateService();
