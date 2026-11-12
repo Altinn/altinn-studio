@@ -14,7 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports navigation validation settings that may behave differently or need review, including CustomButton actions configured in layouts. TODOs identify what to review and test. Your settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 
 - `studioctl app upgrade v9` migrates calculations: ([#21928](https://github.com/Altinn/altinn-studio/pull/21928))
-  - converts `calculations` in `models/*.calculation.json` to the v9 list format, keeping comments and formatting, and leaves a TODO in files it cannot convert
+  - converts `calculations` in `models/*.calculation.json` to the v9 list, keeping comments and formatting. A file whose calculations would not load in v9, such as one without an `expression`, is left as it is and reported as a TODO that says what to fix
   - reports app code that calls the removed `IAppResources.GetCalculationConfiguration`
 
 ### Changed
