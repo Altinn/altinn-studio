@@ -57,19 +57,25 @@ function successful(result) {
   return result.values;
 }
 
+// The platform default for tt02, merged below the app's own values.
+const tt02Defaults = { autoscaling: { replicas: { min: 1 } } };
+
 for (const nested of [false, true]) {
   test(`missing environment file preserves ${nested ? 'nested' : 'flat'} shared values`, (t) => {
     const values = { replicaCount: 2, resources: { requests: { cpu: '50m' } } };
     assert.deepEqual(
       successful(deploy(t, { 'values.yaml': nested ? { deployment: values } : values })),
-      values,
+      { ...tt02Defaults, ...values },
     );
   });
 }
 
 test('missing both files leaves platform overrides intact', (t) => {
   const overrides = { image: { tag: 'release' } };
-  assert.deepEqual(successful(deploy(t, {}, 'tt02', overrides)), overrides);
+  assert.deepEqual(successful(deploy(t, {}, 'tt02', overrides)), {
+    ...tt02Defaults,
+    ...overrides,
+  });
 });
 
 for (const sharedNested of [false, true]) {
@@ -126,7 +132,7 @@ test('only the target environment file is loaded, including production', (t) => 
 test('an environment file works without shared values', (t) => {
   assert.deepEqual(
     successful(deploy(t, { 'values.tt02.yaml': { deployment: { replicaCount: 1 } } })),
-    { replicaCount: 1 },
+    { ...tt02Defaults, replicaCount: 1 },
   );
 });
 
@@ -135,7 +141,7 @@ test('empty environment file preserves shared values', (t) => {
     successful(
       deploy(t, { 'values.yaml': { replicaCount: 2 }, 'values.tt02.yaml': '# no overrides\n' }),
     ),
-    { replicaCount: 2 },
+    { ...tt02Defaults, replicaCount: 2 },
   );
 });
 
@@ -163,11 +169,32 @@ test('platform routing and existing custom ingress handling keep their precedenc
     ),
   );
   assert.deepEqual(values, {
+    ...tt02Defaults,
     service: { name: 'platform-service', internalPort: 5005 },
     ingressRoute: overrides.ingressRoute,
     customIngressRoutes: customIngress,
   });
 });
+
+for (const [environment, files, replicas] of [
+  ['tt02', {}, { min: 1 }],
+  [
+    'tt02',
+    { 'values.yaml': { deployment: { autoscaling: { replicas: { min: 2 } } } } },
+    { min: 2 },
+  ],
+  [
+    'tt02',
+    { 'values.tt02.yaml': { autoscaling: { replicas: { min: 3, max: 4 } } } },
+    { min: 3, max: 4 },
+  ],
+  ['production', {}, undefined],
+  ['yt01', {}, undefined],
+]) {
+  test(`${environment} with ${Object.keys(files).join(', ') || 'no values files'} gets replicas ${JSON.stringify(replicas)}`, (t) => {
+    assert.deepEqual(successful(deploy(t, files, environment)).autoscaling?.replicas, replicas);
+  });
+}
 
 test('root-level keys still take precedence over nested deployment keys', (t) => {
   assert.equal(
@@ -200,7 +227,7 @@ test('environment normalization errors fail before publishing values', (t) => {
 test('multiple shared YAML documents retain the existing merge behavior', (t) => {
   assert.deepEqual(
     successful(deploy(t, { 'values.yaml': 'replicaCount: 1\n---\nreplicaCount: 2' })),
-    { replicaCount: 2 },
+    { ...tt02Defaults, replicaCount: 2 },
   );
 });
 
