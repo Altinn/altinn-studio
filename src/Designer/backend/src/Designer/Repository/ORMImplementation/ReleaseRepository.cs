@@ -107,9 +107,9 @@ public class ReleaseRepository : IReleaseRepository
         var dbObjects = await _dbContext
             .Releases.FromSqlRaw(
                 SucceededReleasesSql,
-                TextArrayParameter("orgs", keys.Select(k => k.Org)),
-                TextArrayParameter("apps", keys.Select(k => k.App)),
-                TextArrayParameter("tag_names", keys.Select(k => k.TagName)),
+                TextArrayParameter("orgs", keys.Select(k => k.App.Org.Value)),
+                TextArrayParameter("apps", keys.Select(k => k.App.App.Value)),
+                TextArrayParameter("tag_names", keys.Select(k => k.Version.Value)),
                 new NpgsqlParameter("succeeded", NpgsqlDbType.Text)
                 {
                     Value = BuildResult.Succeeded.ToEnumMemberAttributeValue(),

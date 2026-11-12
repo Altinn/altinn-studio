@@ -36,8 +36,12 @@ public class LookupTests
 
     // The caller is not a member of any org, which the lookup does not require.
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
-    private readonly string _org = $"org-{Guid.NewGuid():N}";
-    private readonly string _app = $"app-{Guid.NewGuid():N}"[..LookupController.MaxAppLength];
+
+    // A service owner code: lower-case letters and digits.
+    private readonly string _org = $"org{Guid.NewGuid():N}";
+
+    // 30 characters, the longest an app name can be.
+    private readonly string _app = $"app-{Guid.NewGuid():N}"[..30];
 
     public LookupTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture)
@@ -141,6 +145,8 @@ public class LookupTests
 
     [Theory]
     [InlineData("-ttd", "app", "1.0.0")]
+    [InlineData("TTD", "app", "1.0.0")]
+    [InlineData("some-user", "app", "1.0.0")]
     [InlineData("ttd", "App", "1.0.0")]
     [InlineData("ttd", "app;drop", "1.0.0")]
     [InlineData("ttd", "app", "")]
@@ -156,14 +162,14 @@ public class LookupTests
     }
 
     [Theory]
-    [InlineData(LookupController.MaxOrgLength + 1, 0, "")]
+    [InlineData(41, 0, "")]
     [InlineData(40_000, 0, "!")]
-    [InlineData(0, LookupController.MaxAppLength + 1, "")]
+    [InlineData(0, 31, "")]
     [InlineData(0, 40_000, "!")]
     public async Task Lookup_OverlongOrgOrApp_ReturnsBadRequestQuickly(int orgLength, int appLength, string suffix)
     {
-        // A long run of letters followed by a character the pattern rejects makes the app name's regular
-        // expression backtrack for seconds per item, unless the length is checked first.
+        // A long run of letters followed by a character the rule rejects makes a backtracking regular expression
+        // for app names run for seconds per item, so the names must be parsed without one.
         string org = orgLength == 0 ? _org : new string('a', orgLength - suffix.Length) + suffix;
         string app = appLength == 0 ? _app : new string('a', appLength - suffix.Length) + suffix;
         var items = Enumerable.Range(0, 20).Select(i => new ReleaseLookupItem(org, app, $"1.0.{i}")).ToArray();
@@ -207,7 +213,7 @@ public class LookupTests
     [Fact]
     public async Task Lookup_OverlongVersion_ReturnsBadRequest()
     {
-        string version = new('1', LookupController.MaxVersionLength + 1);
+        string version = new('1', 129);
 
         using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(Uri, Request(Item(version)));
 

@@ -1,7 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Domain;
+using Altinn.Studio.Common.Domain.App;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
@@ -32,15 +34,8 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
 {
     public const int MaxItems = 1000;
 
-    // Gitea refuses org names longer than 40 characters, and Designer app names longer than 30.
-    public const int MaxOrgLength = 40;
-    public const int MaxAppLength = 30;
-
-    // The longest tag an image can have, and the longest version a release can be created with.
-    public const int MaxVersionLength = 128;
-
-    // MaxItems items of maximum length take about 250 kB as JSON, so this leaves room for formatting but stops a
-    // client from sending megabytes for the server to parse.
+    // MaxItems items with the longest names and versions take about 250 kB as JSON, so this leaves room for
+    // formatting but stops a client from sending megabytes for the server to parse.
     public const int MaxRequestBytes = 1_000_000;
 
     /// <summary>
@@ -72,9 +67,13 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             );
         }
 
+        var keys = new HashSet<ReleaseLookupKey>();
         for (int i = 0; i < items.Count; i++)
         {
-            ValidateItem(items[i], i);
+            if (TryParseItem(items[i], i, out ReleaseLookupKey? key))
+            {
+                keys.Add(key);
+            }
         }
 
         if (!ModelState.IsValid)
@@ -82,17 +81,23 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             return ValidationProblem(ModelState);
         }
 
-        List<ReleaseLookupKey> keys = items
-            .Select(item => new ReleaseLookupKey(item!.Org, item.App, item.Version))
-            .Distinct()
-            .ToList();
-
         // The newest succeeded release is the one that last pushed the image tag, so it is the only one whose commit
         // the running version can have. When it was not built from a commit, the commit is unknown, even if an older
         // build of the same tag had one.
-        var releases = (await releaseRepository.GetSucceededReleases(keys, cancellationToken))
-            .Where(r => IsFullCommitId(r.TargetCommitish))
-            .ToList();
+        var releases = new List<ReleaseLookupResult>();
+        foreach (var release in await releaseRepository.GetSucceededReleases(keys, cancellationToken))
+        {
+            // A release can also target a branch, a tag or an abbreviated ID, which could point at another commit than
+            // the one it was built from. Git and Gitea resolve 40 hexadecimal digits as an object ID before any ref of
+            // that name, so only such a target is certain to be the commit. App repositories are SHA-1, where the 64
+            // digits of a SHA-256 ID would be a ref name.
+            if (CommitSha.TryParse(release.TargetCommitish, out CommitSha commit))
+            {
+                releases.Add(
+                    new ReleaseLookupResult(release.Org, release.App, release.TagName, commit.Value, release.Created)
+                );
+            }
+        }
 
         logger.LogInformation(
             "Release lookup by {Username} found {Found} of {Requested} versions.",
@@ -101,89 +106,46 @@ public class ReleaseLookupController(IReleaseRepository releaseRepository, ILogg
             keys.Count
         );
 
-        return new ReleaseLookupResponse(
-            releases
-                .Select(r => new ReleaseLookupResult(
-                    r.Org,
-                    r.App,
-                    r.TagName,
-                    r.TargetCommitish.ToLowerInvariant(),
-                    r.Created
-                ))
-                .ToList()
-        );
+        return new ReleaseLookupResponse(releases);
     }
 
-    private void ValidateItem(ReleaseLookupItem? item, int index)
+    private bool TryParseItem(ReleaseLookupItem? item, int index, [NotNullWhen(true)] out ReleaseLookupKey? key)
     {
+        key = null;
         if (item is null)
         {
             ModelState.AddModelError($"items[{index}]", "The item is empty.");
-            return;
+            return false;
         }
 
-        // The lengths are checked first, because the app name's regular expression backtracks on long input.
-        if (
-            string.IsNullOrEmpty(item.Org)
-            || item.Org.Length > MaxOrgLength
-            || !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(item.Org)
-        )
+        // The lookup is for deployed apps, which a service owner owns, so the org must be a service owner code. A
+        // repository whose owner is no service owner's has no deployed version to look up.
+        bool hasOrg = ServiceOwnerCode.TryParse(item.Org, out ServiceOwnerCode org);
+        if (!hasOrg)
         {
-            ModelState.AddModelError($"items[{index}].org", "The org is not a valid organization name.");
+            ModelState.AddModelError($"items[{index}].org", "The org is not a valid service owner code.");
         }
 
-        if (
-            string.IsNullOrEmpty(item.App)
-            || item.App.Length > MaxAppLength
-            || !AltinnRegexes.AltinnAppNameRegex().IsMatch(item.App)
-        )
+        bool hasApp = AppName.TryParse(item.App, out AppName app);
+        if (!hasApp)
         {
             ModelState.AddModelError($"items[{index}].app", "The app is not a valid app name.");
         }
 
-        if (!IsImageTag(item.Version))
+        // A succeeded release pushed an image tagged with its version, so a version that cannot be an image tag has
+        // no release.
+        bool hasVersion = AppVersion.TryParse(item.Version, out AppVersion version);
+        if (!hasVersion)
         {
             ModelState.AddModelError($"items[{index}].version", "The version is not a valid release version.");
         }
-    }
 
-    /// <summary>
-    /// Checks whether a release's target is a full commit ID rather than a branch, tag or abbreviated ID, which could
-    /// point at another commit than the one the release was built from.
-    /// </summary>
-    /// <remarks>
-    /// Git and Gitea resolve 40 hexadecimal digits as an object ID before any ref of that name, so such a target
-    /// cannot stand for a branch. App repositories are SHA-1, since Designer creates them without an object format and
-    /// Gitea then uses SHA-1. A SHA-256 commit ID of 64 digits is not accepted yet: in a SHA-1 repository those 64
-    /// digits are only a ref name, which Git resolves as a branch.
-    /// </remarks>
-    private static bool IsFullCommitId(string? target) => target is { Length: 40 } && target.All(char.IsAsciiHexDigit);
-
-    /// <summary>
-    /// Checks the version against the grammar of an image tag.
-    /// </summary>
-    /// <remarks>
-    /// A succeeded release pushed an image tagged with its version, so a version that is not an image tag cannot
-    /// match one. The grammar is wider than the rule for creating a release, which also rejects uppercase letters
-    /// and underscores, so the lookup never rejects a version that a release built before that rule could have.
-    /// </remarks>
-    private static bool IsImageTag(string? version)
-    {
-        if (string.IsNullOrEmpty(version) || version.Length > MaxVersionLength)
+        if (!hasOrg || !hasApp || !hasVersion)
         {
             return false;
         }
 
-        for (int i = 0; i < version.Length; i++)
-        {
-            char c = version[i];
-            bool isWordCharacter = char.IsAsciiLetterOrDigit(c) || c == '_';
-            if (!isWordCharacter && (i == 0 || (c != '.' && c != '-')))
-            {
-                return false;
-            }
-        }
-
+        key = new ReleaseLookupKey(new AppIdentifier(org, app), version);
         return true;
     }
 }
