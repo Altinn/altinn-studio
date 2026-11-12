@@ -66,6 +66,8 @@ export const pageNavigationHooks = {
 };
 
 export function ClearInvalidReturnState() {
+  const readOnly = FormStore.useIsReadOnly();
+  const hasParent = FormStore.raw.useSelector((state) => state.parent !== undefined);
   const returnToView = FormStore.pageNavigation.useReturnToView();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
@@ -73,14 +75,16 @@ export function ClearInvalidReturnState() {
   const page = useCurrentView();
   const mainPage = useNavigationParam('mainPageKey');
   // Keep watching the parent page while the user edits one of its subforms.
-  const currentPage = mainPage && order.includes(mainPage) ? mainPage : page;
+  const isParentForm = Boolean(mainPage) && !hasParent;
+  const currentPage = isParentForm ? mainPage : page;
   const [searchParams, setSearchParams] = useSearchParams();
-  const backToPage = searchParams.get(SearchParams.BackToPage);
+  // The URL belongs to the active form. A parent only watches its own summary return.
+  const backToPage = isParentForm ? null : searchParams.get(SearchParams.BackToPage);
   const returnPage = returnToView?.pageId ?? backToPage;
   const original = useRef<{ from: string | undefined; to: string; pages: string }>(undefined);
 
   useEffect(() => {
-    if (!returnPage) {
+    if (readOnly || !returnPage) {
       original.current = undefined;
       return;
     }
@@ -104,7 +108,7 @@ export function ClearInvalidReturnState() {
         }, replaceAndPreventResetOptions);
       }
     }
-  }, [returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
+  }, [readOnly, returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
 
   return null;
 }
