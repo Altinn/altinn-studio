@@ -8,6 +8,10 @@
         {
             "field": "total",
             "expression": ["multiply", ["dataModel", "price"], ["dataModel", "quantity"]]
+        },
+        {
+            "field": "lines",
+            "expression": ["list", ["object", "label", "total", "amount", ["dataModel", "total"]]]
         }
     ]
 }

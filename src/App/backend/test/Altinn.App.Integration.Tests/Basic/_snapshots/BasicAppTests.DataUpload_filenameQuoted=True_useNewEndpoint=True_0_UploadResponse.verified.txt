@@ -112,7 +112,7 @@
             Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
-          Size: 210,
+          Size: 316,
           BlobVersionId: <blobVersionId[0]>,
           Locked: false,
           IsRead: true,
@@ -153,7 +153,14 @@
         Data: {
           price: 200,
           quantity: 1,
-          total: 200
+          total: 200,
+          lines: [
+            {
+              altinnRowId: Guid_3,
+              label: total,
+              amount: 200
+            }
+          ]
         }
       }
     ]

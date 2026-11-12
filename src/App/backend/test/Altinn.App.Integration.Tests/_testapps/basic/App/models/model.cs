@@ -41,5 +41,33 @@ namespace Altinn.App.Models.model
         [JsonProperty("total")]
         [JsonPropertyName("total")]
         public decimal? total { get; set; }
+
+        [XmlElement("lines", Order = 7)]
+        [JsonProperty("lines")]
+        [JsonPropertyName("lines")]
+        public List<line> lines { get; set; }
+    }
+
+    public class line
+    {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public Guid AltinnRowId { get; set; }
+
+        public bool AltinnRowIdSpecified()
+        {
+            return AltinnRowId == default;
+        }
+
+        [XmlElement("label", Order = 1)]
+        [JsonProperty("label")]
+        [JsonPropertyName("label")]
+        public string label { get; set; }
+
+        [XmlElement("amount", Order = 2)]
+        [JsonProperty("amount")]
+        [JsonPropertyName("amount")]
+        public decimal amount { get; set; }
     }
 }
