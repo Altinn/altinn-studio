@@ -34,7 +34,7 @@ public class ReportService(
     private const string AppsWithFailuresLabel = "Apper med feil";
     private const string FailedProcessNextLabel = "Feilende process/next";
     private const string FailedInstanceCreationLabel = "Feilende instansieringer";
-    private const string FailedWorkflowCallbackLabel = "Feilende forsøk i arbeidsflyter";
+    private const string InstancesWithFailedWorkflowsLabel = "Instanser med feilende arbeidsflyt";
     private const string ProcessesStartedLabel = "Påbegynte instanser";
     private const string ProcessesEndedLabel = "Fullførte instanser";
 
@@ -45,7 +45,7 @@ public class ReportService(
         "App-bibliotek",
         FailedProcessNextLabel,
         FailedInstanceCreationLabel,
-        FailedWorkflowCallbackLabel,
+        InstancesWithFailedWorkflowsLabel,
         ProcessesStartedLabel,
         ProcessesEndedLabel,
     ];
@@ -223,8 +223,9 @@ public class ReportService(
     private static double SumCounts(IEnumerable<Metric> metrics, string metricName) =>
         metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
 
+    // A metric that counts instances cannot sum its buckets, since one instance can fail in several of them.
     private static double SumCounts(IEnumerable<AllAppsErrorMetric> metrics, string metricName) =>
-        metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
+        metrics.Where(metric => metric.Name == metricName).Sum(metric => metric.Count ?? metric.Counts.Sum());
 
     // The totals across all apps. SMS sends only this, so it is the whole report for SMS recipients.
     private static string FormatSummary(IReadOnlyCollection<AppSummary> apps) =>
@@ -234,7 +235,7 @@ public class ReportService(
             $"{AppsWithFailuresLabel}: {FormatCount(apps.Count(app => app.HasFailures))}",
             $"{FailedProcessNextLabel}: {FormatCount(apps.Sum(app => app.FailedProcessNextRequests))}",
             $"{FailedInstanceCreationLabel}: {FormatCount(apps.Sum(app => app.FailedInstanceCreationRequests))}",
-            $"{FailedWorkflowCallbackLabel}: {FormatCount(apps.Sum(app => app.FailedWorkflowCallbackRequests))}",
+            $"{InstancesWithFailedWorkflowsLabel}: {FormatCount(apps.Sum(app => app.InstancesWithFailedWorkflows))}",
             $"{ProcessesStartedLabel}: {FormatCount(apps.Sum(app => app.ProcessesStarted))}",
             $"{ProcessesEndedLabel}: {FormatCount(apps.Sum(app => app.ProcessesEnded))}"
         );
@@ -255,13 +256,13 @@ public class ReportService(
         string? AppLibVersion,
         double FailedProcessNextRequests,
         double FailedInstanceCreationRequests,
-        double FailedWorkflowCallbackRequests,
+        double InstancesWithFailedWorkflows,
         double ProcessesStarted,
         double ProcessesEnded
     )
     {
         public bool HasFailures =>
-            FailedProcessNextRequests + FailedInstanceCreationRequests + FailedWorkflowCallbackRequests > 0;
+            FailedProcessNextRequests + FailedInstanceCreationRequests + InstancesWithFailedWorkflows > 0;
 
         public bool HasActivity => HasFailures || ProcessesStarted + ProcessesEnded > 0;
 
@@ -272,7 +273,7 @@ public class ReportService(
                 AppLibVersion,
                 FormatCount(FailedProcessNextRequests),
                 FormatCount(FailedInstanceCreationRequests),
-                FormatCount(FailedWorkflowCallbackRequests),
+                FormatCount(InstancesWithFailedWorkflows),
                 FormatCount(ProcessesStarted),
                 FormatCount(ProcessesEnded),
             ];
