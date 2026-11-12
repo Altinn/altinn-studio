@@ -143,6 +143,53 @@ public sealed class AppFilesLoaderTests : IDisposable
         Assert.DoesNotContain("unrelated.json", exception.Message);
     }
 
+    [Fact]
+    public void Loading_reports_a_calculation_file_in_the_v8_format()
+    {
+        WriteStandardApp();
+        WriteFile(
+            "models/model.calculation.json",
+            """{ "calculations": { "skjema.name": { "expression": "fixed" } } }"""
+        );
+
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
+
+        Assert.Contains(" - models/model.calculation.json: ", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
+    }
+
+    [Fact]
+    public void Loading_reports_a_calculation_without_an_expression()
+    {
+        WriteStandardApp();
+        WriteFile("models/model.calculation.json", """{ "calculations": [{ "field": "skjema.name" }] }""");
+
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
+
+        Assert.Contains(" - models/model.calculation.json: ", exception.Message);
+        Assert.Contains("expression", exception.Message);
+    }
+
+    [Fact]
+    public void A_calculation_file_with_comments_and_trailing_commas_is_loaded()
+    {
+        WriteStandardApp();
+        const string calculation = """
+            {
+                // The app file grammar allows comments and trailing commas
+                "calculations": [
+                    { "field": "skjema.name", "expression": "fixed", },
+                ],
+            }
+            """;
+        WriteFile("models/model.calculation.json", calculation);
+
+        var files = Load();
+
+        Assert.Equal(calculation, AsString(files.GetModelFiles("model")!.CalculationConfiguration));
+    }
+
     // The scanner lists the folders and matches names ordinally, so wrongly cased names are not found even
     // on a case-insensitive file system, where a path lookup would have succeeded. Each casing gets its own
     // test (and temp directory) because such a file system keeps only one of two names that differ by case.

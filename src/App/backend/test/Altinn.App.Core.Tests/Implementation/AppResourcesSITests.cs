@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -308,13 +309,48 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetCalculationConfig_throws_on_legacy_dictionary_format()
+    public void Loading_app_throws_on_legacy_dictionary_format()
     {
         // Before the "calculations" property became a list it was an object keyed by field name.
-        // Such files are no longer supported and must be rejected rather than silently ignored.
-        IAppResources appResources = GetAppResourcesForCalculation("legacy");
+        // The loader rejects such files before the app starts, and the message says how to convert them.
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation("legacy"));
 
-        Assert.Throws<JsonException>(() => appResources.GetCalculationConfig("legacy"));
+        Assert.Contains("models/legacy.calculation.json", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
+    }
+
+    [Fact]
+    public void GetCalculationConfig_throws_on_legacy_dictionary_format_in_a_snapshot()
+    {
+        // A snapshot that did not go through the loader gets the same message from GetCalculationConfig
+        var legacyFile = File.ReadAllBytes(
+            Path.Join(
+                PathUtils.GetCoreTestsPath(),
+                "Implementation",
+                "TestData",
+                "Calculation",
+                "legacy.calculation.json"
+            )
+        );
+        var appFiles = new AppFilesAccessor(
+            new AppFiles(
+                applicationMetadata: Encoding.UTF8.GetBytes(ApplicationMetadataJson),
+                models: ImmutableSortedDictionary.CreateRange(
+                    StringComparer.Ordinal,
+                    [KeyValuePair.Create("legacy", new AppModelFiles(calculationConfiguration: legacyFile))]
+                )
+            )
+        );
+        var frontendFeatures = new Mock<IFrontendFeatures>();
+        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
+        IAppResources appResources = new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
+
+        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationConfig("legacy"));
+
+        Assert.StartsWith("models/legacy.calculation.json: ", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
     }
 
     [Theory]
@@ -323,13 +359,27 @@ public class AppResourcesSITests
     [InlineData("null-item")]
     [InlineData("null-field")]
     [InlineData("empty-field")]
-    public void GetCalculationConfig_throws_with_file_name_on_null_values(string dataTypeId)
+    [InlineData("missing-expression")]
+    public void Loading_app_throws_with_file_name_on_invalid_calculation_values(string dataTypeId)
     {
-        IAppResources appResources = GetAppResourcesForCalculation(dataTypeId);
+        // The app files loader rejects the file before the app starts, so GetCalculationConfig never sees it
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation(dataTypeId));
 
-        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationConfig(dataTypeId));
+        Assert.Contains($"models/{dataTypeId}.calculation.json: ", exception.Message);
+    }
 
-        Assert.Contains($"{dataTypeId}.calculation.json", exception.Message);
+    [Fact]
+    public void GetCalculationConfig_accepts_null_expression()
+    {
+        // A null expression evaluates to null, which clears the field, so it is a valid expression
+        IAppResources appResources = GetAppResourcesForCalculation("null-expression");
+
+        CalculationConfig? actual = appResources.GetCalculationConfig("null-expression");
+
+        Assert.NotNull(actual);
+        var calculation = Assert.Single(actual.Calculations);
+        Assert.Equal("skjema.name", calculation.Field);
+        Assert.Equal("null", JsonSerializer.Serialize(calculation.Expression));
     }
 
     /// <summary>

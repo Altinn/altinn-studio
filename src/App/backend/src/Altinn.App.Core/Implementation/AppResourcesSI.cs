@@ -348,18 +348,7 @@ internal sealed class AppResourcesSI : IAppResources
             return null;
         }
 
-        try
-        {
-            return Deserialize<CalculationConfig>(bytes.Span, _jsonSerializerOptions)
-                ?? throw new System.Text.Json.JsonException("The calculation configuration is null");
-        }
-        catch (System.Text.Json.JsonException e)
-        {
-            throw new System.Text.Json.JsonException(
-                $"Invalid calculation configuration in models/{dataTypeId}.calculation.json: {e.Message}",
-                e
-            );
-        }
+        return CalculationConfig.Parse(bytes, $"models/{dataTypeId}.calculation.json");
     }
 
     /// <summary>
