@@ -10,6 +10,7 @@ from .lf_api import LangfuseApi
 from .remote import _since
 
 EXPERIMENT_LABEL = "experiment"
+SDK_EXPERIMENT_ENVIRONMENT = "sdk-experiment"
 
 
 @dataclass
@@ -32,9 +33,8 @@ def _remote_items(lf: LangfuseApi, name: str) -> int | None:
     return len([r for r in rows if r.get("status") != "ARCHIVED"])
 
 
-def _is_scored(lf: LangfuseApi, experiment_id: str) -> bool:
-    """Whether any item in an experiment carries a score."""
-    rows = (
+def _sample_items(lf: LangfuseApi, experiment_id: str) -> list[dict]:
+    return (
         lf._get(
             "/api/public/experiment-items",
             experimentId=experiment_id,
@@ -43,11 +43,15 @@ def _is_scored(lf: LangfuseApi, experiment_id: str) -> bool:
         ).get("data")
         or []
     )
-    for row in rows[:5]:
+
+
+def _is_scored(lf: LangfuseApi, items: list[dict]) -> bool:
+    """Whether any item in an experiment carries a score."""
+    for row in items[:5]:
         trace = row.get("traceId")
         if not trace:
             continue
-        if lf._get("/api/public/v2/scores", traceId=trace, limit=5).get("data"):
+        if lf._get("/api/public/v3/scores", traceId=trace, limit=5).get("data"):
             return True
     return False
 
@@ -55,11 +59,6 @@ def _is_scored(lf: LangfuseApi, experiment_id: str) -> bool:
 def _runs(lf: LangfuseApi, name: str) -> list[str]:
     encoded = name.replace("/", "%2F")
     found: list[str] = []
-    try:
-        for run in lf._get(f"/api/public/datasets/{encoded}/runs", limit=50).get("data") or []:
-            found.append(f"sdk:{run['name']}")
-    except Exception:
-        pass
     try:
         identity = lf._get(f"/api/public/v2/datasets/{encoded}")
         experiments = (
@@ -72,12 +71,14 @@ def _runs(lf: LangfuseApi, name: str) -> list[str]:
             ).get("data")
             or []
         )
-        known = {name.split(":", 1)[1] for name in found}
         for x in experiments:
             label = x.get("name") or ""
-            if label in known:
-                continue
-            marker = "ui" if _is_scored(lf, x["id"]) else "ui-unscored"
+            items = _sample_items(lf, x["id"])
+            # The SDK's experiment runner records its items in an environment of its own.
+            if any(row.get("environment") == SDK_EXPERIMENT_ENVIRONMENT for row in items):
+                marker = "sdk"
+            else:
+                marker = "ui" if _is_scored(lf, items) else "ui-unscored"
             found.append(f"{marker}:{label}")
     except Exception:
         pass
