@@ -97,14 +97,14 @@
           Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
           Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
         },
-        Size: 258,
+        Size: 364,
         BlobVersionId: <blobVersionId[0]>,
         Locked: true,
-        IsRead: true,
+        IsRead: false,
         Created: DateTime_4,
         CreatedBy: 991825827,
         LastChanged: DateTime_5,
-        LastChangedBy: 1337
+        LastChangedBy: 991825827
       }
     ],
     Created: DateTime_1,
