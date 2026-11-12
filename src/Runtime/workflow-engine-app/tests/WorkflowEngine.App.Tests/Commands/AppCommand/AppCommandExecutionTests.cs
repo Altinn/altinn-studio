@@ -314,11 +314,11 @@ public class AppCommandExecutionTests
         Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 
+    // 404 is not here: whether it is retried depends on the body, see the tests below.
     [Theory]
     [InlineData(HttpStatusCode.BadRequest)]
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden)]
-    [InlineData(HttpStatusCode.NotFound)]
     [InlineData(HttpStatusCode.MethodNotAllowed)]
     [InlineData(HttpStatusCode.Conflict)]
     [InlineData((HttpStatusCode)422)] // Unprocessable Entity
@@ -338,6 +338,58 @@ public class AppCommandExecutionTests
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("client error", result.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal((int)statusCode, result.HttpStatusCode);
+    }
+
+    // The problem details the app's callback controller answers with when it has no command for the key.
+    [Fact]
+    public async Task Execute_NotFoundWithNonRetryableMarker_ReturnsCriticalError()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
+        fixture.HttpHandler.ResponseContent = """
+            {"title": "Command Not Found", "status": 404, "detail": "Workflow app command not found.", "nonRetryable": true}
+            """;
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Contains("Command Not Found", result.Message, StringComparison.Ordinal);
+        Assert.Equal(404, result.HttpStatusCode);
+    }
+
+    // What a pod on an app version without callbacks, an ingress or Localtest may answer when no route matched.
+    [Theory]
+    // Problem details without the marker
+    [InlineData("""{"title": "Not Found", "status": 404}""")]
+    [InlineData("""{"title": "Not Found", "status": 404, "nonRetryable": false}""")]
+    [InlineData("""{"title": "Not Found", "status": 404, "nonRetryable": "true"}""")]
+    [InlineData("""[{"nonRetryable": true}]""")]
+    // No JSON at all
+    [InlineData("")]
+    [InlineData("<html><body><h1>404 Not Found</h1></body></html>")]
+    [InlineData("Not Found")]
+    [InlineData("""{"title": "Command Not Found", "nonRetryable": tr""")]
+    public async Task Execute_NotFoundWithoutNonRetryableMarker_ReturnsRetryableError(string body)
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
+        fixture.HttpHandler.ResponseContent = body;
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.RetryableError, result.Status);
+        Assert.Contains("no callback route matched", result.Message, StringComparison.Ordinal);
+        Assert.Equal(404, result.HttpStatusCode);
     }
 
     // --- StateOut handling ---

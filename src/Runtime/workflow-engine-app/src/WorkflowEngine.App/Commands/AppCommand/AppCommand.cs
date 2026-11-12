@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -27,6 +28,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private const string CommandTypeId = "app";
     public override string CommandType => CommandTypeId;
+
+    private const string NonRetryableMarker = "nonRetryable";
 
     public AppCommand(
         IOptions<AppCommandSettings> settings,
@@ -206,6 +209,24 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         var statusCode = (int)response.StatusCode;
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
+        // A v9 app sets the marker on its permanent failures, including the 404 for a command key it does not have.
+        // An unmarked 404 means no callback route matched: a pod on an app version without callbacks, during a
+        // rolling deploy or after a rollback, or Localtest answering for an app that is restarting. Retrying lets
+        // the step reach an app that has the route. A wrong CommandEndpoint is retried too, until the step's retry
+        // budget runs out, so each one is logged with the host it went to.
+        if (response.StatusCode == HttpStatusCode.NotFound && !IsMarkedNonRetryable(errorBody))
+        {
+            _logger.AppCommandRouteNotFound(
+                commandData.CommandKey,
+                httpClient.BaseAddress?.Authority,
+                context.Workflow.DatabaseId
+            );
+            return ExecutionResult.RetryableError(
+                $"AppCommand failed with {response.StatusCode} and no '{NonRetryableMarker}' marker, so no callback route matched: {errorBody}",
+                httpStatusCode: statusCode
+            );
+        }
+
         // 4xx client errors (except 408/418/429) are not worth retrying
         if (statusCode is >= 400 and < 500 and not 408 and not 418 and not 429)
         {
@@ -219,6 +240,26 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}",
             httpStatusCode: statusCode
         );
+    }
+
+    /// <summary>
+    /// Whether the error body is a JSON object with <c>nonRetryable</c> set to <c>true</c>: the problem details
+    /// extension the app's callback controller adds to its permanent failures. An empty body, HTML or invalid JSON is
+    /// unmarked.
+    /// </summary>
+    private static bool IsMarkedNonRetryable(string errorBody)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(errorBody);
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty(NonRetryableMarker, out var marker)
+                && marker.ValueKind == JsonValueKind.True;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -309,6 +350,19 @@ internal static partial class AppCommandLogs
         long seq,
         bool delivered,
         MailboxDisposedReason? disposedReason
+    );
+
+    // The host only: the callback URL's path carries the instance owner's party ID, which the README keeps off
+    // telemetry. The HttpClient span records the full URL.
+    [LoggerMessage(
+        LogLevel.Warning,
+        "AppCommand '{CommandKey}' got 404 without the nonRetryable marker from {Host}, so no callback route matched; retrying (workflowId: {WorkflowId})"
+    )]
+    internal static partial void AppCommandRouteNotFound(
+        this ILogger<AppCommand> logger,
+        string commandKey,
+        string? host,
+        Guid workflowId
     );
 
     // The app's reason is not logged here — it is free text, and it reaches the engine log via the deferral.

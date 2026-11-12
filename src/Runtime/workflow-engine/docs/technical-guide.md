@@ -960,7 +960,16 @@ runs a step by calling back to the app.
 - **Execution**: an HTTP POST to `AppCommandSettings.CommandEndpoint`, a URL template whose placeholders the command
   fills from the workflow context. The callback carries `executionReferenceTime`: the workflow's `startAt`, or else the
   step's creation time.
-- **Classification**: 2xx is success, 408, 418, 429 and 5xx are retryable, and any other 4xx is critical.
+- **Classification**: 2xx is success, 408, 418, 429 and 5xx are retryable, and any other 4xx is critical, except a
+  404 without the `nonRetryable` marker.
+- **Unmarked 404**: the app sets `nonRetryable: true` in the problem details of its permanent failures, including
+  the 404 for a command key it does not have, so a 404 without it means no callback route matched. That is a pod on
+  an app version without callbacks, during a rolling deploy or after a rollback, or Localtest answering for an app
+  that is restarting. The command retries it, so a rolling deploy heals once the callbacks reach the new version. An
+  empty, HTML or invalid JSON body counts as unmarked. The cost is that a wrong `CommandEndpoint` is retried for the
+  step's retry budget, a day by default, where it used to fail at once. The command logs each unmarked 404 as a
+  warning with the host it called. The retry strategy's `NonRetryableHttpStatusCodes` plays no part here: only
+  `WebhookCommand` reads it.
 - **State**: the command reads `state` from the response body and returns it as the step's output. The next step's
   callback receives it as `state`.
 - **Validation**: the engine validates every context field at enqueue, so an invalid request never enters the queue.
