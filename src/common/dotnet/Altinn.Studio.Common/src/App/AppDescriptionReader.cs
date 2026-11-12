@@ -10,8 +10,10 @@ namespace Altinn.Studio.Common.App;
 /// <c>Directory.Packages.props</c> beside them, and the files each version's part needs.
 /// </summary>
 /// <remarks>
-/// Files arrive before the app's version is known, so it reads what every version's part may need, and
-/// <see cref="Build"/> picks the case.
+/// Files arrive before the kind of app and its version are known, so it reads what every version's part may need,
+/// and <see cref="Build"/> picks the case. It guesses nothing: an app is a form app only when a project references
+/// an Altinn.App package, and on a version's contract only when that reference names the major version. Designer
+/// takes every app it cannot prove to be on v9 for one on v8, which is a decision for a caller to make.
 /// A project gets the properties and package references of the nearest <c>Directory.Build.props</c> and the
 /// central package versions of the nearest <c>Directory.Packages.props</c>, as MSBuild imports them. The app's
 /// Altinn.App package is the first of <see cref="AltinnAppPackage.PackageNames"/> that
@@ -82,19 +84,15 @@ public sealed class AppDescriptionReader : IAppSourceReader
         }
 
         ProjectDescription? appProject = FindAppProject(projects);
-        AltinnAppDependency altinnApp = FindAltinnAppReference(appProject, projects) switch
+        return FindAltinnAppReference(appProject, projects) switch
         {
-            null => new AltinnAppDependency.Unknown.NotReferenced(),
-            { } reference when AltinnAppPackage.TryParse(reference, out AltinnAppPackage? package) =>
-                new AltinnAppDependency.Known(package),
-            { Version: null } reference => new AltinnAppDependency.Unknown.VersionNotResolved(reference),
-            { } reference => new AltinnAppDependency.Unknown.NoMajorVersion(reference),
+            null => new AppDescription.Unrecognized(appProject, projects),
+            { } reference when AltinnAppPackage.TryParse(reference, out AltinnAppPackage? package) => package.Major
+            > LastV8Major
+                ? new AppDescription.FormApp.V9OrLater(appProject, projects, package, _v9.Build())
+                : new AppDescription.FormApp.V8OrEarlier(appProject, projects, package, _v8.Build()),
+            { } reference => new AppDescription.FormApp.UnknownVersion(appProject, projects, reference),
         };
-
-        // Only a version the project files name proves the v9 contract. Designer decides the same way.
-        return altinnApp is AltinnAppDependency.Known { Package.Major: > LastV8Major } known
-            ? new AppDescription.V9OrLater(appProject, projects, known.Package, _v9.Build())
-            : new AppDescription.V8OrEarlier(appProject, projects, altinnApp, _v8.Build());
     }
 
     private void ReadVersionParts(AppFilePath path, Action<IAppSourceReader> read)

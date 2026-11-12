@@ -7,8 +7,8 @@ using Altinn.Studio.Common.App.V9;
 namespace Altinn.Studio.Common.App;
 
 /// <summary>
-/// What an app's source files say about it, as one case per contract for which files make up an app. An app is on the
-/// v9 contract only when its project files prove it, and on the v8-or-earlier contract otherwise, as Designer decides.
+/// What an app's source files say about it: which kind of app it is, and for a form app which contract it is on for
+/// the files that make it up. A case says only what the files prove.
 /// </summary>
 public abstract record AppDescription
 {
@@ -43,77 +43,70 @@ public abstract record AppDescription
             : null;
 
     /// <summary>
-    /// An app on the contract of Altinn.App v8 and earlier, which is every app whose project files do not prove v9,
-    /// including apps that use Altinn.App through a package of their own and apps that do not use it at all.
+    /// A form app: an app built on the Altinn.App libraries, with or without a user interface. It is the kind of app
+    /// that Altinn Studio has, and a project of it references an Altinn.App package.
+    /// </summary>
+    public abstract record FormApp : AppDescription
+    {
+        private FormApp(ProjectDescription? appProject, IReadOnlyList<ProjectDescription> projects)
+            : base(appProject, projects) { }
+
+        /// <summary>A form app on the contract of Altinn.App v8 and earlier.</summary>
+        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
+        /// <param name="Projects">Every project file in the repository.</param>
+        /// <param name="AltinnApp">The Altinn.App package.</param>
+        /// <param name="V8">What only this contract has.</param>
+        public sealed record V8OrEarlier(
+            ProjectDescription? AppProject,
+            IReadOnlyList<ProjectDescription> Projects,
+            AltinnAppPackage AltinnApp,
+            V8Description V8
+        ) : FormApp(AppProject, Projects);
+
+        /// <summary>A form app on the contract of Altinn.App v9 and later.</summary>
+        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
+        /// <param name="Projects">Every project file in the repository.</param>
+        /// <param name="AltinnApp">The Altinn.App package.</param>
+        /// <param name="V9">What only this contract has.</param>
+        public sealed record V9OrLater(
+            ProjectDescription? AppProject,
+            IReadOnlyList<ProjectDescription> Projects,
+            AltinnAppPackage AltinnApp,
+            V9Description V9
+        ) : FormApp(AppProject, Projects);
+
+        /// <summary>
+        /// A form app whose contract the project files do not show. A project references an Altinn.App package, but
+        /// not with a version that names a major version.
+        /// </summary>
+        /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
+        /// <param name="Projects">Every project file in the repository.</param>
+        /// <param name="Reference">
+        /// The reference to the Altinn.App package. Its version is <c>null</c> when it cannot be resolved, and is
+        /// otherwise one that names no major version, such as a range.
+        /// </param>
+        public sealed record UnknownVersion(
+            ProjectDescription? AppProject,
+            IReadOnlyList<ProjectDescription> Projects,
+            PackageReference Reference
+        ) : FormApp(AppProject, Projects)
+        {
+            /// <summary>Why the version is not known, in a few words.</summary>
+            public string Reason =>
+                Reference.Version is { } version
+                    ? $"the version of {Reference.Name}, {version}, names no major version"
+                    : $"the version of {Reference.Name} cannot be resolved";
+        }
+    }
+
+    /// <summary>
+    /// An app of no kind this model knows, since no project references an Altinn.App package. It may use Altinn.App
+    /// through a package of its own, or not at all.
     /// </summary>
     /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
     /// <param name="Projects">Every project file in the repository.</param>
-    /// <param name="AltinnApp">What the project files say about the Altinn.App package.</param>
-    /// <param name="V8">What only this contract has.</param>
-    public sealed record V8OrEarlier(
-        ProjectDescription? AppProject,
-        IReadOnlyList<ProjectDescription> Projects,
-        AltinnAppDependency AltinnApp,
-        V8Description V8
-    ) : AppDescription(AppProject, Projects);
-
-    /// <summary>An app whose project files reference Altinn.App v9 or later.</summary>
-    /// <param name="AppProject">The project the app is built from, if the repository shows which one it is.</param>
-    /// <param name="Projects">Every project file in the repository.</param>
-    /// <param name="AltinnApp">The Altinn.App package.</param>
-    /// <param name="V9">What only this contract has.</param>
-    public sealed record V9OrLater(
-        ProjectDescription? AppProject,
-        IReadOnlyList<ProjectDescription> Projects,
-        AltinnAppPackage AltinnApp,
-        V9Description V9
-    ) : AppDescription(AppProject, Projects);
-}
-
-/// <summary>What an app's project files say about the Altinn.App package it is built on, if any.</summary>
-public abstract record AltinnAppDependency
-{
-    private AltinnAppDependency() { }
-
-    /// <summary>A project references an Altinn.App package whose major version can be read.</summary>
-    /// <param name="Package">The package.</param>
-    public sealed record Known(AltinnAppPackage Package) : AltinnAppDependency;
-
-    /// <summary>The project files do not say which Altinn.App version the app is built on.</summary>
-    public abstract record Unknown : AltinnAppDependency
-    {
-        private Unknown() { }
-
-        /// <summary>Why, in a few words.</summary>
-        public abstract string Reason { get; }
-
-        /// <summary>
-        /// No project references an Altinn.App package. The app may use one through a package of its own, or not
-        /// at all.
-        /// </summary>
-        public sealed record NotReferenced : Unknown
-        {
-            /// <inheritdoc />
-            public override string Reason => "no project references an Altinn.App package";
-        }
-
-        /// <summary>A project references Altinn.App, but its version cannot be resolved.</summary>
-        /// <param name="Reference">The reference, whose version is <c>null</c>.</param>
-        public sealed record VersionNotResolved(PackageReference Reference) : Unknown
-        {
-            /// <inheritdoc />
-            public override string Reason => $"the version of {Reference.Name} cannot be resolved";
-        }
-
-        /// <summary>A project references Altinn.App with a version that names no major version, such as a range.</summary>
-        /// <param name="Reference">The reference.</param>
-        public sealed record NoMajorVersion(PackageReference Reference) : Unknown
-        {
-            /// <inheritdoc />
-            public override string Reason =>
-                $"the version of {Reference.Name}, {Reference.Version}, names no major version";
-        }
-    }
+    public sealed record Unrecognized(ProjectDescription? AppProject, IReadOnlyList<ProjectDescription> Projects)
+        : AppDescription(AppProject, Projects);
 }
 
 /// <summary>A project file of an app.</summary>
