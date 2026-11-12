@@ -421,7 +421,7 @@ public class ProcessControllerTests : ApiTestBase
         OverrideServicesForThisTest = services =>
         {
             services.AddSingleton(SetupPdfGeneratorMock().Object);
-            services.AddSingleton<IOnTaskEndingHandler>(new MutatorMembersTaskEndHandler());
+            services.AddSingleton<IOnTaskEndingHandler>(new FormDataMetadataAndInstanceFieldsTaskEndHandler());
         };
         using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
 
@@ -449,7 +449,7 @@ public class ProcessControllerTests : ApiTestBase
         );
     }
 
-    private sealed class MutatorMembersTaskEndHandler : IOnTaskEndingHandler
+    private sealed class FormDataMetadataAndInstanceFieldsTaskEndHandler : IOnTaskEndingHandler
     {
         public bool ShouldRunForTask(string taskId) => true;
 
