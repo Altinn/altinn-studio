@@ -1473,7 +1473,82 @@ describe('useAssistantWorkflow', () => {
     expect(status?.message).toBe('Skanner repo');
     consoleErrorSpy.mockRestore();
   });
+
+  it('sends the cancel after the start request has answered', async () => {
+    const { result, start, cancelWorkflow } = await renderWithPendingStart();
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    expect(result.current.workflowStatusByThread['thread-1']?.isActive).toBe(false);
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+
+    await act(async () => {
+      start.resolve();
+      await Promise.all([start.submit, cancel]);
+    });
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
+  });
+
+  it('sends no cancel when the start request fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, start, cancelWorkflow } = await renderWithPendingStart();
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    await act(async () => {
+      start.reject(new Error('start failed'));
+      await Promise.all([start.submit, cancel]);
+    });
+
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
 });
+
+// Submits a message whose start request has not answered yet.
+const renderWithPendingStart = async () => {
+  const threads = createThreadState({ selectedThreadId: 'thread-1' });
+  let resolve: () => void;
+  let reject: (error: Error) => void;
+  const startRequest = new Promise<void>((resolveStart, rejectStart) => {
+    resolve = resolveStart;
+    reject = rejectStart;
+  });
+  const startWorkflow = vi.fn(() => startRequest);
+  const cancelWorkflow = vi.fn().mockResolvedValue(undefined);
+  mockUseAssistantWebSocket.mockReturnValue({
+    connectionStatus: 'connected',
+    onAgentMessage: vi.fn(),
+  });
+  mockUseCurrentBranchQuery.mockReturnValue({
+    data: createMockCurrentBranchInfo(),
+  } as UseQueryResult<CurrentBranchInfo>);
+  const { result } = renderUseAssistantWorkflow(threads, {
+    startAssistantWorkflow: startWorkflow,
+    cancelAssistantWorkflow: cancelWorkflow,
+  });
+
+  let submit: Promise<void>;
+  act(() => {
+    submit = result.current.onSubmitMessage({
+      role: MessageAuthor.User,
+      content: 'Lag et skjema',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    });
+  });
+  await waitFor(() => expect(startWorkflow).toHaveBeenCalled());
+
+  return {
+    result,
+    cancelWorkflow,
+    start: { submit, resolve, reject },
+  };
+};
 
 const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => {
   const base: AssistantThreadState = {

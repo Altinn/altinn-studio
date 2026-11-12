@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioSwitch, StudioTextarea } from '@designer/components';
+import {
+  StudioButton,
+  StudioSwitch,
+  StudioTextarea,
+  StudioValidationMessage,
+} from '@designer/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@designer/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
@@ -8,6 +13,10 @@ import { createUserMessage } from '../../../utils/messageUtils';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
 
 const allowedAttachmentFileExtensions = '.pdf,.md,.txt,.png,.jpg,.jpeg,.gif,.webp';
+const maxAttachmentBytes = 20 * 1024 * 1024;
+// The message and its attachments go in one request, and the load balancer accepts up to 50 MB.
+// The last 5 MB are for the text and the form encoding.
+const maxTotalAttachmentBytes = 45 * 1024 * 1024;
 
 export type UserInputProps = {
   texts: AssistantTexts;
@@ -31,6 +40,7 @@ export function UserInput({
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
   const [attachments, setAttachments] = useState<UserAttachment[]>([]);
+  const [attachmentsTooLarge, setAttachmentsTooLarge] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -45,6 +55,7 @@ export function UserInput({
   const resetInputs = useCallback((): void => {
     setMessageContent('');
     setAttachments([]);
+    setAttachmentsTooLarge(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -71,6 +82,12 @@ export function UserInput({
       const files = event.target.files;
       if (!files || files.length === 0) return;
       const newFiles = Array.from(files);
+      const tooLarge = !fitSizeLimits(attachments, newFiles);
+      setAttachmentsTooLarge(tooLarge);
+      if (tooLarge) {
+        event.target.value = '';
+        return;
+      }
       try {
         const newAttachments = await Promise.all(newFiles.map((file) => fileToAttachment(file)));
         setAttachments((prev) => [...prev, ...newAttachments]);
@@ -82,11 +99,12 @@ export function UserInput({
         }
       }
     },
-    [fileToAttachment],
+    [attachments, fileToAttachment],
   );
 
   const handleRemoveAttachment = useCallback((indexToRemove: number) => {
     setAttachments((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setAttachmentsTooLarge(false);
   }, []);
 
   const handleSubmit = (): void => {
@@ -154,6 +172,9 @@ export function UserInput({
           </StudioButton>
         )}
       </div>
+      {attachmentsTooLarge && (
+        <StudioValidationMessage>{texts.attachmentsTooLarge}</StudioValidationMessage>
+      )}
       {attachments.length > 0 && (
         <ul className={classes.attachmentList}>
           {attachments.map((attachment, index) => (
@@ -175,5 +196,14 @@ export function UserInput({
         </ul>
       )}
     </div>
+  );
+}
+
+function fitSizeLimits(attachments: UserAttachment[], newFiles: File[]): boolean {
+  const attachedBytes = attachments.reduce((sum, attachment) => sum + (attachment.size ?? 0), 0);
+  const newBytes = newFiles.reduce((sum, file) => sum + file.size, 0);
+  return (
+    newFiles.every((file) => file.size <= maxAttachmentBytes) &&
+    attachedBytes + newBytes <= maxTotalAttachmentBytes
   );
 }

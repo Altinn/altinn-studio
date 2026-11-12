@@ -70,6 +70,34 @@ describe('UserInput', () => {
     expect(getSendButton()).toBeDisabled();
   });
 
+  it('should refuse an attachment larger than 20 MB and say why', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+    const fileInput = screen.getByLabelText(mockTexts.addAttachment, { selector: 'input' });
+
+    await user.upload(fileInput, createFileOfSize('stor.txt', 21 * megabyte));
+
+    expect(screen.getByText(mockTexts.attachmentsTooLarge)).toBeInTheDocument();
+    expect(screen.queryByText('stor.txt')).not.toBeInTheDocument();
+  });
+
+  it('should refuse attachments that together are larger than 45 MB', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+    const fileInput = screen.getByLabelText(mockTexts.addAttachment, { selector: 'input' });
+
+    await user.upload(fileInput, createFileOfSize('første.txt', 20 * megabyte));
+    expect(await screen.findByText('første.txt')).toBeInTheDocument();
+    await user.upload(fileInput, [
+      createFileOfSize('andre.txt', 15 * megabyte),
+      createFileOfSize('tredje.txt', 15 * megabyte),
+    ]);
+
+    expect(screen.getByText(mockTexts.attachmentsTooLarge)).toBeInTheDocument();
+    expect(screen.queryByText('andre.txt')).not.toBeInTheDocument();
+    expect(screen.getByText('første.txt')).toBeInTheDocument();
+  });
+
   it('should disable send button when entering empty or white-space only message', async () => {
     const user = userEvent.setup();
     renderUserInput();
@@ -180,3 +208,12 @@ const renderUserInput = (props?: Partial<UserInputProps>): void => {
 const getSendButton = (): HTMLElement => screen.getByRole('button', { name: mockTexts.send });
 
 const getTextarea = (): HTMLElement => screen.getByPlaceholderText(mockTexts.textarea.placeholder);
+
+const megabyte = 1024 * 1024;
+
+// The size is set without allocating the content.
+const createFileOfSize = (name: string, size: number): File => {
+  const file = new File(['innhold'], name, { type: 'text/plain' });
+  Object.defineProperty(file, 'size', { value: size });
+  return file;
+};

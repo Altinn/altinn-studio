@@ -33,6 +33,7 @@ export const useAssistantTexts = (): AssistantTexts => {
       placeholder: t('ai_assistant.textarea_placeholder'),
     },
     addAttachment: t('ai_assistant.add_attachment'),
+    attachmentsTooLarge: t('ai_assistant.attachments_too_large'),
     allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
     send: t('ai_assistant.send'),
     cancel: t('general.cancel'),

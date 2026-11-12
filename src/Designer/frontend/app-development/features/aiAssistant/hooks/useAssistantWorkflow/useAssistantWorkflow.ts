@@ -73,6 +73,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
   // Threads whose messages are already fetched for the current run.
   const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
+  // The start requests that have not answered yet, by thread.
+  const pendingStartsByThreadRef = useRef<Record<string, Promise<void>>>({});
 
   const {
     selectedThreadId,
@@ -397,19 +399,25 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         message: INITIAL_WORKFLOW_MESSAGE,
         steps: [initialStep],
       });
+      const start = startWorkflow({
+        threadId,
+        payload: createWorkflowFormData({
+          goal,
+          branch: currentBranch,
+          allowAppChanges,
+          attachments,
+        }),
+      });
+      pendingStartsByThreadRef.current[threadId] = start;
       try {
-        await startWorkflow({
-          threadId,
-          payload: createWorkflowFormData({
-            goal,
-            branch: currentBranch,
-            allowAppChanges,
-            attachments,
-          }),
-        });
+        await start;
       } catch (error) {
         setWorkflowStatus(threadId, { isActive: false });
         throw error;
+      } finally {
+        if (pendingStartsByThreadRef.current[threadId] === start) {
+          delete pendingStartsByThreadRef.current[threadId];
+        }
       }
     },
     [currentBranch, startWorkflow, setWorkflowStatus],
@@ -491,6 +499,17 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       } catch (error) {
         console.error('Failed to delete the cancelled message:', error);
       }
+    }
+
+    // The assistant service cannot cancel a run that has not started yet, and the start request
+    // answers when the run has started. If the start fails, there is no run to cancel.
+    const pendingStart = pendingStartsByThreadRef.current[threadId];
+    if (pendingStart) {
+      const started = await pendingStart.then(
+        () => true,
+        () => false,
+      );
+      if (!started) return;
     }
 
     try {

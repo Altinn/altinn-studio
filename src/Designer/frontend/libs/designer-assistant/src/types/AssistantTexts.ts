@@ -12,6 +12,7 @@ export type AssistantTexts = {
   emptyThread: EmptyThreadTexts;
   textarea: TextAreaTexts;
   addAttachment: string;
+  attachmentsTooLarge: string;
   allowAppChangesSwitch: string;
   send: string;
   cancel: string;
