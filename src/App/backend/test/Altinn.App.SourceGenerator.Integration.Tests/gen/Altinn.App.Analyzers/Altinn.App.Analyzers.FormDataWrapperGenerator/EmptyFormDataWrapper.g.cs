@@ -147,6 +147,15 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFor
     public void InitializeAltinnRowIds() { }
 
     #endregion AltinnRowIds
+    #region FixedValues
+
+    /// <inheritdoc />
+    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues()
+    {
+        return global::System.Array.Empty<global::Altinn.App.Core.Internal.Data.FixedValueError>();
+    }
+
+    #endregion FixedValues
     public static global::System.ReadOnlySpan<char> ParseSegment(
         global::System.ReadOnlySpan<char> path,
         int offset,
