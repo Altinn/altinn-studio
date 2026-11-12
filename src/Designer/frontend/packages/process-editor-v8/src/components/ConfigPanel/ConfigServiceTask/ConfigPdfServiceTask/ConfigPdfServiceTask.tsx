@@ -8,7 +8,7 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioRadioGroup,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './ConfigPdfServiceTask.module.css';
 import {
   isVersionEqualOrGreater,

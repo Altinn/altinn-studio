@@ -32,10 +32,9 @@ internal sealed class BootstrapGlobalService(
     ILogger<BootstrapGlobalService> _logger
 )
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private const string DefaultLanguage = LanguageConst.Nb;
 

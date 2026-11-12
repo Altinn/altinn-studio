@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioPageHeader } from '@studio/components';
-import { useMediaQuery } from '@studio/hooks';
+import { StudioPageHeader } from '@designer/components';
+import { useMediaQuery } from '@designer/hooks';
 import {
   DASHBOARD_BASENAME,
   APP_DASHBOARD_BASENAME,

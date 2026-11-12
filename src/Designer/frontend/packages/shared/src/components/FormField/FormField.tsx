@@ -1,4 +1,4 @@
-import { StudioHelpText, StudioValidationMessage } from '@studio/components';
+import { StudioHelpText, StudioValidationMessage } from '@designer/components';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { TranslationKey } from 'language/type';
 import React, { useCallback, useEffect, useState, type JSX } from 'react';

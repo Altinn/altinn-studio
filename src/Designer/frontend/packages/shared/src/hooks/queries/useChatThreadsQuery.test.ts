@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useChatThreadsQuery } from './useChatThreadsQuery';
 import { waitFor } from '@testing-library/react';
 import type { ChatThread } from 'app-shared/types/api';

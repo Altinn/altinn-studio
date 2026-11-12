@@ -1,4 +1,4 @@
-import { StudioHeading, StudioCard } from '@studio/components';
+import { StudioHeading, StudioCard } from '@designer/components';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';

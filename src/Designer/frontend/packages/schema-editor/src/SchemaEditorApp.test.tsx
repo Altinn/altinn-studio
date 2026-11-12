@@ -4,7 +4,7 @@ import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { organization, user as mockUser } from 'app-shared/mocks/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

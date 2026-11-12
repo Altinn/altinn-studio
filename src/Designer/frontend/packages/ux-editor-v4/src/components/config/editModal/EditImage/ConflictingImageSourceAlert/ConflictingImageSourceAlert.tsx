@@ -1,5 +1,5 @@
 import classes from './ConflictingImageSourceAlert.module.css';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 interface ConflictingImageSourceAlertProps {

@@ -13,7 +13,7 @@ import {
   StudioSelect,
   StudioSwitch,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
 import { useFormLayouts } from '../../../hooks';

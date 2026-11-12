@@ -1,4 +1,4 @@
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText, useComponentPropertyLabel, useComponentPropertyHelpText } from '../../../hooks';
 import { FormField } from 'app-shared/components/FormField';

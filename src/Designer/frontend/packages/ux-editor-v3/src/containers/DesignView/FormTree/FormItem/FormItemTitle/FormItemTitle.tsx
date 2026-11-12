@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import classes from './FormItemTitle.module.css';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';

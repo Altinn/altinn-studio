@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './FieldsetWrapper.module.css';
-import { StudioButton, StudioDialog } from '@studio/components';
-import { TrashIcon, PlusIcon } from '@studio/icons';
+import { StudioButton, StudioDialog } from '@designer/components';
+import { TrashIcon, PlusIcon } from '@designer/icons';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 const DELETE_ID_NOT_SET = -1;

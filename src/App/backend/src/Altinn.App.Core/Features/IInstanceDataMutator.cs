@@ -95,45 +95,30 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
-    /// Makes the state of <paramref name="model"/> at this call the element's form data; it is saved with the other changes.
+    /// Copies <paramref name="model"/> into the form data of an existing data element.
     /// </summary>
     /// <remarks>
-    /// Later changes to <paramref name="model"/> are not saved, also when it is the object that
-    /// <see cref="IInstanceDataAccessor.GetFormData"/> returned. Afterwards <see cref="IInstanceDataAccessor.GetFormData"/>
-    /// returns the replaced data as an object of its own. To change a form added in this unit of work, change the object
-    /// passed to <see cref="AddFormDataElement(string, object)"/>.
+    /// The copy is taken at the call and holds only the fields of the data model.
+    /// Make later changes to the returned object.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">when <paramref name="model"/> is null</exception>
-    /// <exception cref="InvalidOperationException">
-    /// when the element is not on the instance, is marked for deletion, or its data type's classRef is not the type of <paramref name="model"/>
-    /// </exception>
-    Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model);
+    /// <returns>The element's form data, the object that <see cref="IInstanceDataAccessor.GetFormData"/> returns</returns>
+    Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
+        where T : class;
 
     /// <summary>
     /// Sets tags, metadata, user-defined metadata, refs or the filename of a data element.
     /// </summary>
-    /// <remarks>
-    /// Also works for an element added in this unit of work. Each list replaces the element's current list; several calls
-    /// for one element keep the last value given for each property. The element in <see cref="IInstanceDataAccessor.Instance"/>
-    /// shows the new values at once.
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">when <paramref name="update"/> is null</exception>
-    /// <exception cref="InvalidOperationException">
-    /// when the element is not on the instance, is marked for deletion, or a ref names an element added in this unit of work
-    /// </exception>
     void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update);
 
     /// <summary>
     /// Sets a data value on the instance; null or empty removes the key.
     /// </summary>
-    /// <exception cref="ArgumentException">when <paramref name="key"/> is null or blank</exception>
     /// <exception cref="InvalidOperationException">when the key is derived from <c>dataFields</c> in applicationmetadata.json</exception>
     void SetDataValue(string key, string? value);
 
     /// <summary>
     /// Sets a presentation text on the instance; null or empty removes the key.
     /// </summary>
-    /// <exception cref="ArgumentException">when <paramref name="key"/> is null or blank</exception>
     /// <exception cref="InvalidOperationException">when the key is derived from <c>presentationFields</c> in applicationmetadata.json</exception>
     void SetPresentationText(string key, string? value);
 

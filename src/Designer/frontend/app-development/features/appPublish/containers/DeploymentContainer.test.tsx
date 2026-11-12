@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { environment, pipelineDeployment } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { BuildResult } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';

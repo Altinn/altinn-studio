@@ -9,7 +9,7 @@ import {
   StudioError,
   StudioTabs,
   StudioAlert,
-} from '@studio/components';
+} from '@designer/components';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -17,7 +17,7 @@ import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState
 import { useErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useErrorMetricsQuery';
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
-import { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
 
@@ -150,7 +150,7 @@ const AppsTableContent = ({
   return (
     <>
       {errorMetricsIsError &&
-        (isAxiosError(errorMetricsError) && errorMetricsError.response?.status === 403 ? (
+        (isHttpError(errorMetricsError) && errorMetricsError.response?.status === 403 ? (
           <StudioAlert data-color='info' className={classes.errorAlert}>
             {t('admin.metrics.errors.missing_rights', { envTitle, orgName })}
           </StudioAlert>

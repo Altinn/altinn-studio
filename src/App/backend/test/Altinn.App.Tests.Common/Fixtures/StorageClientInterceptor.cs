@@ -958,7 +958,6 @@ public class StorageClientInterceptor : HttpMessageHandler
         || mutation.UpdateDataElements.Count > 0
         || mutation.DeleteDataElements.Count > 0
         || mutation.DeleteInstance is not null
-        || mutation.AddCompleteConfirmation
         || mutation.DataValues.Count > 0
         || mutation.PresentationTexts.Count > 0
         || mutation.AddCompleteConfirmation

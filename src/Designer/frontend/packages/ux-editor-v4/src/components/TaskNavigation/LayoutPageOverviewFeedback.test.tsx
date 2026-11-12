@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutPageOverviewFeedback } from './LayoutPageOverviewFeedback';
-import axios from 'axios';
+import { post } from 'app-shared/utils/networking';
 
-vi.mock('axios');
-var mockedAxios = axios as Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  post: vi.fn(),
+}));
+const mockedPost = vi.mocked(post);
 
 describe('LayoutPageOverviewFeedback', () => {
   beforeEach(() => {
-    mockedAxios.post.mockClear();
+    mockedPost.mockClear();
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -29,32 +31,28 @@ describe('LayoutPageOverviewFeedback', () => {
 
   it('should close the feedback form when clicking send', async () => {
     const user = userEvent.setup();
-    mockedAxios.post.mockResolvedValueOnce({});
+    mockedPost.mockResolvedValueOnce(null);
     renderLayoutPageOverviewFeedback();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Send' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(mockedAxios.post).toHaveBeenCalled();
+    expect(mockedPost).toHaveBeenCalled();
   });
 
   it('should submit form data correctly', async () => {
     const user = userEvent.setup({ delay: 100 });
-    mockedAxios.post.mockResolvedValueOnce({});
+    mockedPost.mockResolvedValueOnce(null);
     renderLayoutPageOverviewFeedback();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     await user.click(screen.getByRole('button', { name: 'Ja' }));
     await user.click(screen.getByRole('button', { name: 'Send' }));
-    expect(mockedAxios.post).toHaveBeenCalledWith(
-      expect.any(String),
-      {
-        answers: {
-          feedbackFormId: 'utforming-overview',
-          likerUtformingJaNei: 'yes',
-        },
+    expect(mockedPost).toHaveBeenCalledWith(expect.any(String), {
+      answers: {
+        feedbackFormId: 'utforming-overview',
+        likerUtformingJaNei: 'yes',
       },
-      undefined,
-    );
+    });
   });
 });
 

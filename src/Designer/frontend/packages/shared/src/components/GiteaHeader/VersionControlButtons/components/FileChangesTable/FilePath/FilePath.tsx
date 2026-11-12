@@ -1,9 +1,9 @@
 import classes from './FilePath.module.css';
 import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
-import { ChevronRightIcon } from '@studio/icons';
+import { ChevronRightIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FilePathProps {

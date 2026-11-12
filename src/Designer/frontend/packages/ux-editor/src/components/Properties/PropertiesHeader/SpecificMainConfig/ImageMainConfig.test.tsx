@@ -5,10 +5,10 @@ import { ImageMainConfig } from './ImageMainConfig';
 import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const imageComponent: FormItem<ComponentType.Image> = {
   id: '0',

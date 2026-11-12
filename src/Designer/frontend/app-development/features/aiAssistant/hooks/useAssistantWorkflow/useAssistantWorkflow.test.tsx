@@ -8,10 +8,10 @@ import type {
   UserMessage,
   WorkflowEvent,
   WorkflowRequest,
-} from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+} from '@designer/assistant';
+import { MessageAuthor } from '@designer/assistant';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from './useAssistantWorkflow';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';

@@ -381,22 +381,4 @@ public static class IInstanceDataAccessorExtensions
             yield return (dataType, dataElement);
         }
     }
-
-    /// <summary>
-    /// Reads a copy of the element's current form data (cast into T); changes to the copy are not saved.
-    /// </summary>
-    /// <remarks>
-    /// The copy includes earlier changes in memory, such as changes to the object
-    /// <see cref="IInstanceDataAccessor.GetFormData"/> returns and data set with
-    /// <see cref="IInstanceDataMutator.ReplaceFormData"/>.
-    /// </remarks>
-    public static async Task<T> GetFormDataCopy<T>(
-        this IInstanceDataAccessor accessor,
-        DataElementIdentifier dataElementIdentifier
-    )
-        where T : class
-    {
-        IFormDataWrapper data = await accessor.GetFormDataWrapper(dataElementIdentifier);
-        return data.Copy().BackingData<T>();
-    }
 }

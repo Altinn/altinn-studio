@@ -2,8 +2,8 @@ import type { ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
-import { StudioPageHeader } from '@studio/components';
-import { UrlUtils } from '@studio/pure-functions';
+import { StudioPageHeader } from '@designer/components';
+import { UrlUtils } from '@designer/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 

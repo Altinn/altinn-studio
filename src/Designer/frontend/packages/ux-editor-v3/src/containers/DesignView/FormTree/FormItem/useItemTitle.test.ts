@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { useItemTitle } from './useItemTitle';
 import { renderHookWithMockStore } from '../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -9,7 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const title = 'En tittel';

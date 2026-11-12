@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
 import { renderWithProviders } from '../../test/mocks';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@designer/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
@@ -23,7 +23,7 @@ vi.mock('app-shared/utils/previewAvailability', () => ({
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 vi.mock('react-router-dom', async () => ({
   ...(await vi.importActual('react-router-dom')),
   useParams: vi.fn(() => ({

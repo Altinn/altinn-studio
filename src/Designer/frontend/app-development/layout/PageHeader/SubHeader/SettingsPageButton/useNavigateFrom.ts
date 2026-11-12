@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { typedLocalStorage, UrlUtils } from '@studio/pure-functions';
+import { typedLocalStorage, UrlUtils } from '@designer/pure-functions';
 import type { RoutePaths } from 'app-development/enums/RoutePaths';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 

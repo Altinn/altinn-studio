@@ -7,7 +7,7 @@ import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutati
 import { useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
 import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

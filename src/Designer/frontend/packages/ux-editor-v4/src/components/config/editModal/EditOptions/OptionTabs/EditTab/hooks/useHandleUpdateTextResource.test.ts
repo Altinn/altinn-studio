@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { waitFor } from '@testing-library/react';
 

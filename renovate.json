@@ -249,6 +249,13 @@
       "pinDigests": false
     },
     {
+      "description": "The Agent images build on the agentctl base image of an agentctl release, such as ubuntu-26.04-v0.1.0-preview.14. Docker versioning would read the preview as a compatibility suffix and never update it, so the preview number is the build. A new release is not automerged: its release notes can ask for changes to the manifests in agents/",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["ghcr.io/digdir/agentctl-base"],
+      "versioning": "regex:^ubuntu-26\\.04-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-preview\\.(?<build>\\d+)$"
+    },
+    {
       "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",
       "matchManagers": ["dockerfile"],
       "matchFileNames": ["agents/Dockerfile"],

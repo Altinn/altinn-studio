@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useResetState } from '@studio/hooks';
+import { useResetState } from '@designer/hooks';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordionCheckbox.module.css';
-import { StudioCheckbox } from '@studio/components';
+import { StudioCheckbox } from '@designer/components';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
 export type PolicyAccessPackageAccordionCheckboxProps = {

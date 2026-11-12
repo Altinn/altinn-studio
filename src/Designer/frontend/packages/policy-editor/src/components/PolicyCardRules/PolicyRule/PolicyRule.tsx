@@ -10,7 +10,7 @@ import { PolicyDescription } from './PolicyDescription';
 import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { PolicySubjects } from './PolicySubjects';
 
 export type PolicyRuleProps = {

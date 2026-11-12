@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter, StudioSpinner } from '@studio/components';
+import { StudioCenter, StudioSpinner } from '@designer/components';
 
 export function LoadingTabData(): ReactElement {
   const { t } = useTranslation();

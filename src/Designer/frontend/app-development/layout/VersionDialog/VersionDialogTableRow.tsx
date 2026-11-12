@@ -1,4 +1,4 @@
-import { StudioLinkButton, StudioTable } from '@studio/components';
+import { StudioLinkButton, StudioTable } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type VersionDialogTableRowProps = {

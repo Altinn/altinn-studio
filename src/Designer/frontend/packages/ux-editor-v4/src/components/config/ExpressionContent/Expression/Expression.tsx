@@ -1,5 +1,5 @@
-import type { StudioExpressionProps } from '@studio/components';
-import { StudioExpression } from '@studio/components';
+import type { StudioExpressionProps } from '@designer/components';
+import { StudioExpression } from '@designer/components';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 
 export type ExpressionProps = Omit<StudioExpressionProps, 'texts'>;

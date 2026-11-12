@@ -6,7 +6,7 @@ import {
   StudioError,
   StudioHeading,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { useAppMetricsQuery } from 'admin/features/apps/hooks/queries/useAppMetricsQuery';
 import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';
@@ -28,7 +28,7 @@ import {
 } from 'chart.js';
 import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAppErrorMetricsQuery';
 import { AppErrorMetric } from './AppErrorMetric';
-import { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
@@ -84,7 +84,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appHealthMetricsIsError) {
-      if (isAxiosError(appHealthMetricsError) && appHealthMetricsError.response?.status === 403) {
+      if (isHttpError(appHealthMetricsError) && appHealthMetricsError.response?.status === 403) {
         return (
           <StudioAlert data-color='info' className={classes.metric}>
             {t('admin.metrics.app.health.missing_rights', {
@@ -111,7 +111,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appErrorMetricsIsError) {
-      if (isAxiosError(appErrorMetricsError) && appErrorMetricsError.response?.status === 403) {
+      if (isHttpError(appErrorMetricsError) && appErrorMetricsError.response?.status === 403) {
         return (
           <StudioAlert data-color='info' className={classes.metric}>
             {t('admin.metrics.app.errors.missing_rights', {
@@ -140,7 +140,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     if (appMetricsIsError) {
-      if (isAxiosError(appMetricsError) && appMetricsError.response?.status === 403) {
+      if (isHttpError(appMetricsError) && appMetricsError.response?.status === 403) {
         return (
           <StudioAlert data-color='info' className={classes.metric}>
             {t('admin.metrics.app.missing_rights', { envTitle, orgName })}

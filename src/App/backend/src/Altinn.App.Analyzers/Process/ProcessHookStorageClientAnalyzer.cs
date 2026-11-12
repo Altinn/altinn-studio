@@ -3,39 +3,50 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Altinn.App.Analyzers;
 
 /// <summary>
-/// Reports a call to <c>IDataClient</c>, <c>IInstanceClient</c> or <c>IDataService</c> in a process hook, a service
-/// task or <c>IInstantiationProcessor.DataCreation</c>. These can run while the process is transitioning, when Storage
-/// refuses the clients' writes; the instance data mutator in the hook's context reads and writes the current instance
-/// and saves the changes with the transition.
+/// Reports calls to <c>IDataClient</c>, <c>IInstanceClient</c> and <c>IDataService</c> in process hooks, service tasks
+/// and <c>IInstantiationProcessor.DataCreation</c>, where Storage refuses most of their writes while the process is
+/// transitioning.
 /// </summary>
 /// <remarks>
-/// Only calls in the body of the member that implements the hook, or overrides that member, and in a method that takes
-/// a <c>StageContext</c> (a stage) are reported, lambdas and local functions included. A helper method the hook calls,
-/// a base class method that becomes a hook only in a derived class, a wrapper interface of the app's own, or code in a
-/// referenced package is not seen.
-/// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported; calls that target another
-/// instance on purpose can suppress the warning.
-/// The mutator cannot set a substatus or confirm the instance as complete, so for those calls the message does not
-/// point at it. For a complete confirmation it names <c>autoConfirmCompleteOnProcessEnd</c> instead.
+/// Only the body of the hook and of methods that take a <c>StageContext</c> is checked, not the methods they call.
+/// <c>IInstanceClient.GetInstances</c> and <c>CreateInstance</c> never concern the current instance, so they are not
+/// reported.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
 {
+    private const string DataClientTypeName = "Altinn.App.Core.Internal.Data.IDataClient";
     private const string InstanceClientTypeName = "Altinn.App.Core.Internal.Instances.IInstanceClient";
-    private const string GetInstancesMethodName = "GetInstances";
     private const string StageContextTypeName = "Altinn.App.Core.Features.Process.StageContext";
 
     // The message format ends each of these with a period.
     private const string UseTheMutator = "Use the instance data mutator from the context for the current instance";
-    private const string NoMutatorReplacement =
+    private const string RefusedWithoutMutatorReplacement =
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
+    private const string NoMutatorReplacement = "The instance data mutator has no replacement for it";
     private const string ConfirmOnProcessEnd =
         "Storage refuses this call then. Set autoConfirmCompleteOnProcessEnd in applicationmetadata.json to confirm "
         + "the instance as complete when the process ends";
 
+    private static readonly string[] _instanceClientMethodsForOtherInstances = ["GetInstances", "CreateInstance"];
+
+    private static readonly Dictionary<(string ClientTypeName, string MethodName), string> _callsWithoutReplacement =
+        new()
+        {
+            [(DataClientTypeName, "LockDataElement")] = RefusedWithoutMutatorReplacement,
+            [(DataClientTypeName, "UnlockDataElement")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "AddCompleteConfirmation")] = ConfirmOnProcessEnd,
+            [(InstanceClientTypeName, "DeleteInstance")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateProcess")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateProcessAndEvents")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateSubstatus")] = RefusedWithoutMutatorReplacement,
+            // Storage sets the read status without checking the process status.
+            [(InstanceClientTypeName, "UpdateReadStatus")] = NoMutatorReplacement,
+        };
+
     private static readonly string[] _clientTypeNames =
     [
-        "Altinn.App.Core.Internal.Data.IDataClient",
+        DataClientTypeName,
         InstanceClientTypeName,
         "Altinn.App.Core.Internal.Data.IDataService",
     ];
@@ -87,10 +98,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
             if (clients.Count == 0 || hookMembers.Count == 0)
                 return;
 
-            var instanceClient = startContext.Compilation.GetTypeByMetadataName(InstanceClientTypeName);
             var stageContext = startContext.Compilation.GetTypeByMetadataName(StageContextTypeName);
             startContext.RegisterOperationAction(
-                ctx => Analyze(ctx, clients, instanceClient, hookMembers, stageContext),
+                ctx => Analyze(ctx, clients, hookMembers, stageContext),
                 OperationKind.Invocation,
                 OperationKind.MethodReference
             );
@@ -100,7 +110,6 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
     private static void Analyze(
         OperationAnalysisContext context,
         HashSet<INamedTypeSymbol> clients,
-        INamedTypeSymbol? instanceClient,
         List<IMethodSymbol> hookMembers,
         INamedTypeSymbol? stageContext
     )
@@ -123,10 +132,8 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (client is null || !clients.Contains(client.OriginalDefinition))
             return;
 
-        if (
-            target.Name == GetInstancesMethodName
-            && SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
-        )
+        string clientTypeName = client.OriginalDefinition.ToDisplayString();
+        if (clientTypeName == InstanceClientTypeName && _instanceClientMethodsForOtherInstances.Contains(target.Name))
             return;
 
         if (context.ContainingSymbol is not IMethodSymbol { ContainingType: { } containingType } method)
@@ -158,15 +165,6 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (hook is null)
             return;
 
-        string advice = SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
-            ? target.Name switch
-            {
-                "AddCompleteConfirmation" => ConfirmOnProcessEnd,
-                "UpdateSubstatus" => NoMutatorReplacement,
-                _ => UseTheMutator,
-            }
-            : UseTheMutator;
-
         context.ReportDiagnostic(
             Diagnostic.Create(
                 Diagnostics.CodeSmells.StorageClientInProcessHook,
@@ -174,7 +172,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
                 client.Name,
                 target.Name,
                 hook,
-                advice
+                _callsWithoutReplacement.TryGetValue((clientTypeName, target.Name), out string? advice)
+                    ? advice
+                    : UseTheMutator
             )
         );
     }

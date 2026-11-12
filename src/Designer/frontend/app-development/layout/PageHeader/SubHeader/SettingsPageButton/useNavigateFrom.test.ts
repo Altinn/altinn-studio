@@ -4,7 +4,7 @@ import { renderHook } from '@testing-library/react';
 import { useNavigateFrom } from './useNavigateFrom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useLocation } from 'react-router-dom';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 vi.mock('react-router-dom', async () => ({

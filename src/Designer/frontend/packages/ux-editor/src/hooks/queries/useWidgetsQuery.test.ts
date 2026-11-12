@@ -5,7 +5,7 @@ import { useWidgetsQuery } from './useWidgetsQuery';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { IWidget } from '../../types/global';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const widgetUrl1 = 'url1';

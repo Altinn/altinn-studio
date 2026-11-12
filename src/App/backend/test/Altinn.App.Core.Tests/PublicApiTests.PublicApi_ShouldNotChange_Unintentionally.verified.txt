@@ -1527,8 +1527,6 @@ namespace Altinn.App.Core.Features
             where T :  class { }
         public static System.Threading.Tasks.Task<T?> GetFormData<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.Platform.Storage.Interface.Models.DataType dataType)
             where T :  class { }
-        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
-            where T :  class { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper?> GetFormDataWrapper(this Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.ModelBinding modelBinding, Altinn.App.Core.Models.DataElementIdentifier? defaultDataElementIdentifier) { }
     }
     public interface IInstanceDataListProvider
@@ -1544,7 +1542,8 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
-        System.Threading.Tasks.Task ReplaceFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model);
+        System.Threading.Tasks.Task<T> ReplaceFormData<T>(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, T model)
+            where T :  class;
         void SetDataValue(string key, string? value);
         void SetPresentationText(string key, string? value);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
@@ -3096,6 +3095,7 @@ namespace Altinn.App.Core.Internal.Data
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();
+        void CopyFrom(object dataModel);
         object? Get(System.ReadOnlySpan<char> path);
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
@@ -4168,6 +4168,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
         public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideOptionalIndicator")]
+        public bool HideOptionalIndicator { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("navigationTitle")]
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
@@ -4433,6 +4435,7 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         public bool? HideCloseButton { get; set; }
+        public bool? HideOptionalIndicator { get; set; }
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
         public string? PdfLayoutName { get; set; }

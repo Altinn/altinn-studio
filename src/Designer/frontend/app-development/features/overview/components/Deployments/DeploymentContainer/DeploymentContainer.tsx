@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';
-import { StudioSpinner, StudioError } from '@studio/components';
+import { StudioSpinner, StudioError } from '@designer/components';
 import type { Environment } from 'app-shared/types/Environment';
 import { environmentsOf } from 'app-shared/types/api/DeploymentsResponse';
 

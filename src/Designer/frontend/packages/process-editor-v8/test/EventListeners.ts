@@ -1,4 +1,4 @@
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 type ListenerMap<EventMap extends Record<string, (...args: unknown[]) => void>> = Map<
   keyof EventMap,
