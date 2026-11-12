@@ -22,7 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- Expression handeling in backend now supports accessing base class properties, when a derived class is used in the datamodell class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- Expression handling in backend now supports accessing base class properties, when a derived class is used in the data modell class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` and `AD0001` instead, which still fail a build that treats warnings as errors. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))
 - Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
