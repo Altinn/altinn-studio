@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -784,7 +785,7 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 
 	cookies := make([]map[string]any, 0, len(req.request.Cookies))
 	for _, cookie := range req.request.Cookies {
-		cookieData, ok := w.buildCookieData(req.ctx, cookie)
+		cookieData, ok := w.buildCookieData(req.ctx, cookie, req.request.URL)
 		if !ok {
 			continue
 		}
@@ -804,7 +805,13 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 	return nil
 }
 
-func (w *browserSession) buildCookieData(ctx context.Context, cookie types.Cookie) (map[string]any, bool) {
+// buildCookieData returns the cookie as Chrome's Storage.setCookies takes it. pageURL is the URL
+// the browser loads, after any localtest rewrite.
+func (w *browserSession) buildCookieData(
+	ctx context.Context,
+	cookie types.Cookie,
+	pageURL string,
+) (map[string]any, bool) {
 	sameSite := "Lax"
 	switch cookie.SameSite {
 	case "Strict":
@@ -839,6 +846,11 @@ func (w *browserSession) buildCookieData(ctx context.Context, cookie types.Cooki
 	}
 	if cookie.Secure != nil {
 		cookieData["secure"] = *cookie.Secure
+	} else if isHTTPS(cookie.Url) || (cookie.Url == "" && isHTTPS(pageURL)) {
+		// Apps send their access token as a cookie, and leave secure out. On an https page, Secure
+		// keeps the browser from sending the cookie over plain http if the page ends up there.
+		// Local pages are http, so their cookies stay as the request has them.
+		cookieData["secure"] = true
 	}
 	if cookie.HttpOnly != nil {
 		cookieData["httpOnly"] = *cookie.HttpOnly
@@ -847,6 +859,11 @@ func (w *browserSession) buildCookieData(ctx context.Context, cookie types.Cooki
 		cookieData["url"] = cookie.Url
 	}
 	return cookieData, true
+}
+
+func isHTTPS(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	return err == nil && strings.EqualFold(u.Scheme, "https")
 }
 
 func (w *browserSession) navigateToPage(req *workerRequest, page cdp.Commander) error {
