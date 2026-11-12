@@ -55,6 +55,30 @@ public class InheritedPropertyTests
     }
 
     [Fact]
+    public void CreateRootSymbolNode_SkipsPropertiesWithAnAccessorTheGeneratedCodeCannotCall()
+    {
+        var source = """
+            public class Parent
+            {
+                public string Kept { get; set; }
+
+                public string PrivateSet { get; private set; }
+
+                public string ProtectedSet { get; protected set; }
+
+                public string PrivateGet { private get; set; }
+            }
+
+            public class TestClass : Parent
+            {
+                public string OwnPrivateSet { get; private set; }
+            }
+            """;
+
+        Assert.Equal(["Kept: string"], DescribeProperties(source));
+    }
+
+    [Fact]
     public void CreateRootSymbolNode_ListsRedeclaredAndOverriddenPropertiesOnce()
     {
         var source = """

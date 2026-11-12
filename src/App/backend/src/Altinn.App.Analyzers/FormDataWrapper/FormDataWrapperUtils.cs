@@ -286,8 +286,11 @@ public static class FormDataWrapperUtils
             return true;
         }
 
-        // Skip properties the generated code cannot access, such as an internal one in another assembly
-        if (!compilation.IsSymbolAccessibleWithin(property, compilation.Assembly))
+        // Skip properties with an accessor the generated code cannot call, such as a private setter
+        if (
+            (property.GetMethod is { } getter && !compilation.IsSymbolAccessibleWithin(getter, compilation.Assembly))
+            || (property.SetMethod is { } setter && !compilation.IsSymbolAccessibleWithin(setter, compilation.Assembly))
+        )
         {
             return true;
         }
