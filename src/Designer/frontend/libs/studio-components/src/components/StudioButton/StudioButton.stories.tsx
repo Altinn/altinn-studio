@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioButton } from './StudioButton';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 
 const meta = {
   title: 'Components/StudioButton',

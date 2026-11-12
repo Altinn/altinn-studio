@@ -4,10 +4,10 @@ import {
   StudioDeleteButton,
   StudioButton,
   type StudioSuggestionItem,
-} from '@studio/components';
+} from '@designer/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon } from '@designer/icons';
 import classes from './SelectDataTypes.module.css';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 

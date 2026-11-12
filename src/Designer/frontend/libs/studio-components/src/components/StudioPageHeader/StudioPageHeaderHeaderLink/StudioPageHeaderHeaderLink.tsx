@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactElement } from 'react';
 import cn from 'classnames';
 import linkClasses from './StudioPageHeaderHeaderLink.module.css';
-import { studioBetaTagClasses } from '@studio/components';
+import { studioBetaTagClasses } from '@designer/components';
 
 export type StudioPageHeaderHeaderLinkProps = {
   renderLink: (props: HTMLAttributes<HTMLAnchorElement>) => ReactElement;

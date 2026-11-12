@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ResourceItem, type ResourceItemProps } from './ResourceItem';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import '@testing-library/jest-dom';
 import { type Resource } from 'dashboard/types/Resource';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import { QuestionmarkIcon } from '@studio/icons';
+import { QuestionmarkIcon } from '@designer/icons';
 
 describe('getLayoutSetIcon', () => {
   it('should return default icon for unknown types', () => {

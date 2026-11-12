@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BuildSource, type BuildSourceProps } from './BuildSource';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
+import { app, org } from '@designer/testing/testids';
 import { gitCommitPath } from 'app-shared/api/paths';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 

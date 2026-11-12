@@ -10,7 +10,7 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { getFirstBySelector } from '../../test-utils/selectors';
 import userEvent from '@testing-library/user-event';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 
 // Test data:
 const textResources = textResourcesMock;

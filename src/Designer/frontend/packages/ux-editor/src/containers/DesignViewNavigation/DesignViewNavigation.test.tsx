@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '../../testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 

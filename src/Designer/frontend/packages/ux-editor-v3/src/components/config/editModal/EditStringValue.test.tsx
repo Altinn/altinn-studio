@@ -6,7 +6,7 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/m
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

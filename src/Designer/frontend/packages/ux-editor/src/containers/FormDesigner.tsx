@@ -7,13 +7,13 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useLocalStorage } from '@studio/hooks';
+import { useLocalStorage } from '@designer/hooks';
 import {
   StudioPageError,
   StudioPageSpinner,
   StudioDragAndDropTree,
   StudioResizableLayout,
-} from '@studio/components';
+} from '@designer/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -30,7 +30,7 @@ import {
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import { ItemType } from '../components/Properties/ItemType';
 import useUxEditorParams from '../hooks/useUxEditorParams';
 

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioTag } from '@studio/components';
+import { StudioTag } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
 

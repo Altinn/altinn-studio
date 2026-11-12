@@ -1,5 +1,5 @@
 import classes from './LandingPagePanel.module.css';
-import { StudioHeading, StudioButton, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioButton, StudioParagraph } from '@designer/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
 import { useTranslation } from 'react-i18next';
 

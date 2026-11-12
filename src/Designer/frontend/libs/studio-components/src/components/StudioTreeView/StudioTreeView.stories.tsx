@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioTreeView } from './index';
 
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 
 const PreviewComponent = (args): React.ReactElement => (
   <StudioTreeView.Root>

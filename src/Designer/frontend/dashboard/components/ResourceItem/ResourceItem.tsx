@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import classes from './ResourceItem.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioLink } from '@studio/components';
+import { StudioLink } from '@designer/components';
 import { type Resource } from 'dashboard/types/Resource';
 
 export type ResourceItemProps = {

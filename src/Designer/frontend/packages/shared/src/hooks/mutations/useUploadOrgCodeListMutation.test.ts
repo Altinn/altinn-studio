@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { useUploadOrgCodeListMutation } from './useUploadOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
-import { FileUtils } from '@studio/pure-functions';
+import { FileUtils } from '@designer/pure-functions';
 
 // Test data:
 const fileName = 'fileName';

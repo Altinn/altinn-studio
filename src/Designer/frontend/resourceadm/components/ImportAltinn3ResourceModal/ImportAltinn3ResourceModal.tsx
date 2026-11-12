@@ -6,7 +6,7 @@ import {
   StudioRadio,
   StudioRadioGroup,
   useStudioRadioGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';

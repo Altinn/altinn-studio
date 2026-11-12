@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,

@@ -3,7 +3,7 @@ import { Page } from '../Page';
 import type { PagePropsMap } from '../../types/PagesProps';
 import React from 'react';
 import { CodeListsPage } from './CodeListsPage';
-import { CodeListsIcon } from '@studio/icons';
+import { CodeListsIcon } from '@designer/icons';
 
 export class CodeLists extends Page<PageName.CodeLists> {
   readonly name: PageName.CodeLists = PageName.CodeLists;

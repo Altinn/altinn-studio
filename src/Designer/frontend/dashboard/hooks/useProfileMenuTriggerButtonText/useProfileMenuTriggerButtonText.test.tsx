@@ -6,7 +6,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useSelectedContext } from '../useSelectedContext';
 import { userMock } from '../../testing/userMock';
 import { headerContextValueMock } from '../../testing/headerContextMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { mockOrg1 } from '../../testing/organizationMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 

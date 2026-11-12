@@ -3,7 +3,7 @@ import React, { forwardRef } from 'react';
 import { StudioTextfield } from '../StudioTextfield';
 import classes from './StudioIconViewer.module.css';
 import { StudioParagraph } from '../StudioParagraph';
-import * as StudioIcons from '@studio/icons';
+import * as StudioIcons from '@designer/icons';
 
 const icons = Object.keys(StudioIcons);
 

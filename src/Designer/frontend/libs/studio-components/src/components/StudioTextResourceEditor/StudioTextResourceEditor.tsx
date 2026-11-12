@@ -1,14 +1,14 @@
 import type { Ref } from 'react';
 import React, { forwardRef, useState } from 'react';
-import type { StudioTabsProps } from '@studio/components';
+import type { StudioTabsProps } from '@designer/components';
 import {
   StudioTextResourcePicker,
   StudioTextResourceValueEditor,
   StudioAlert,
   StudioTabs,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './StudioTextResourceEditor.module.css';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import type { Override } from '../../types/Override';
 import type { DSTabElement } from '@digdir/designsystemet-web';
 

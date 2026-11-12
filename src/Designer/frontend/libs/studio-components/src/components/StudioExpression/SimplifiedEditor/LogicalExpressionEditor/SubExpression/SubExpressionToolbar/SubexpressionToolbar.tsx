@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioButton } from '../../../../../StudioButton';
 import { StudioDeleteButton } from '../../../../../StudioDeleteButton';
-import { FloppydiskIcon, PencilIcon } from '@studio/icons';
+import { FloppydiskIcon, PencilIcon } from '@designer/icons';
 import classes from './SubexpressionToolbar.module.css';
 import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 

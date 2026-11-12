@@ -16,7 +16,7 @@ import {
   StudioParagraph,
   StudioTextarea,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';

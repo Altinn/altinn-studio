@@ -8,7 +8,7 @@ import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
-import { StudioError, StudioLink, StudioPageSpinner } from '@studio/components';
+import { StudioError, StudioLink, StudioPageSpinner } from '@designer/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export default function DeployPage() {

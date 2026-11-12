@@ -11,7 +11,7 @@ import {
   StudioSuggestion,
   StudioTextfield,
   type StudioSuggestionItem,
-} from '@studio/components';
+} from '@designer/components';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';

@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './AppVisibilityAndDelegationCard.module.css';
-import { StudioCard, StudioParagraph, StudioSwitch } from '@studio/components';
+import { StudioCard, StudioParagraph, StudioSwitch } from '@designer/components';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { InputfieldsWithTranslation } from '../InputfieldsWithTranslation';
-import { InformationSquareFillIcon } from '@studio/icons';
+import { InformationSquareFillIcon } from '@designer/icons';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';

@@ -3,7 +3,7 @@ import { Page } from '../Page';
 import type { PagePropsMap } from '../../types/PagesProps';
 import React from 'react';
 import { LandingPage } from './LandingPage';
-import { BookIcon } from '@studio/icons';
+import { BookIcon } from '@designer/icons';
 
 export class Landing extends Page<PageName.LandingPage> {
   readonly name: PageName.LandingPage = PageName.LandingPage;

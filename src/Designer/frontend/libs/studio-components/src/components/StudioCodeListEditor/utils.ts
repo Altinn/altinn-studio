@@ -1,6 +1,6 @@
 import type { MultiLanguageCodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
-import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
+import { ArrayUtils, ObjectUtils } from '@designer/pure-functions';
 import type { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import type { MultiLanguageText } from '../../types/MultiLanguageText';
 

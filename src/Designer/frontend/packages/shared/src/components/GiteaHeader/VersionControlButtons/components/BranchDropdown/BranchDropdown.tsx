@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioDropdown, StudioSpinner } from '@studio/components';
-import { BranchingIcon, PlusIcon, TrashIcon } from '@studio/icons';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioDropdown, StudioSpinner } from '@designer/components';
+import { BranchingIcon, PlusIcon, TrashIcon } from '@designer/icons';
 import { UncommittedChangesDialog } from './UncommittedChangesDialog';
 import { CreateBranchDialog } from './CreateBranchDialog';
 import { DEFAULT_APP_BRANCH, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

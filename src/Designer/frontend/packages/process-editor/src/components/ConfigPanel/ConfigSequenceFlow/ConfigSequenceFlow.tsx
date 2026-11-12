@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioSectionHeader, StudioParagraph } from '@studio/components';
+import { StudioSectionHeader, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';

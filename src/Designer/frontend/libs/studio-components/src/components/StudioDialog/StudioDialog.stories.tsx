@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDialog } from './index';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 import { StudioHeading } from '../StudioHeading';
 
 const ComposedComponent = (args): ReactElement => (

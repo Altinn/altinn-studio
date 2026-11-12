@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
-import { StudioButton, StudioLinkButton, StudioTable } from '@studio/components';
+import { StudioButton, StudioLinkButton, StudioTable } from '@designer/components';
 import classes from './TasksTable.module.css';
 import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';
 import { useTranslation } from 'react-i18next';
-import { EyeClosedIcon, EyeIcon, PlayFillIcon } from '@studio/icons';
+import { EyeClosedIcon, EyeIcon, PlayFillIcon } from '@designer/icons';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor-v4/hooks/mutations/useTaskNavigationGroupMutation';

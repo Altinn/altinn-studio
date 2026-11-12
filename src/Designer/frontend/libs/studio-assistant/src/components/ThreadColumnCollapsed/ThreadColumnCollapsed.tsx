@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
-import { SidebarLeftIcon, PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { SidebarLeftIcon, PlusIcon } from '@designer/icons';
 import classes from './ThreadColumnCollapsed.module.css';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 

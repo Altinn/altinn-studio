@@ -5,7 +5,7 @@ import { StudioLanguagePicker } from './StudioLanguagePicker';
 import type { StudioLanguagePickerProps } from './StudioLanguagePicker';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import { studioTest } from '@studio/ui-test';
+import { studioTest } from '@designer/ui-test';
 import { defaultProps, texts, twoLetterCodes, threeLetterCodes } from './test-data/props';
 import { UncontrolledLanguagePicker } from './test-data/UncontrolledLanguagePicker';
 

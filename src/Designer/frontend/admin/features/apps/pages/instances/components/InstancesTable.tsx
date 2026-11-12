@@ -5,7 +5,7 @@ import {
   StudioError,
   StudioAlert,
   StudioSkeleton,
-} from '@studio/components';
+} from '@designer/components';
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
 import { useTranslation } from 'react-i18next';

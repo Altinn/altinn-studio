@@ -8,7 +8,7 @@ import {
   StudioDetails,
   StudioLink,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListData } from '../../../../types/CodeListData';
 import {

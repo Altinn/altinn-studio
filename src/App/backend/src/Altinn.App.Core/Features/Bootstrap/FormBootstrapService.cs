@@ -25,10 +25,9 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// </summary>
 internal sealed class FormBootstrapService
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;

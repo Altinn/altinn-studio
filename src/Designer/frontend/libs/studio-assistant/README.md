@@ -12,7 +12,7 @@ The package contains two interface modes:
 ## Installation
 
 Since this package is part of a monorepo, you can include it in your project using Yarn:
-`yarn add "@studio/assistant@workspace:^"`
+`yarn add "@designer/assistant@workspace:^"`
 
 ## Dependencies
 

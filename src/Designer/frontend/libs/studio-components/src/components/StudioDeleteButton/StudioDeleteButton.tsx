@@ -1,7 +1,7 @@
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
 import { forwardRef } from 'react';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import type { MouseEvent, ReactElement, Ref } from 'react';
 
 export interface StudioDeleteButtonProps extends StudioButtonProps {

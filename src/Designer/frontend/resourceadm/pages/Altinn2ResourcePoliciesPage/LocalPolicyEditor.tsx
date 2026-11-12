@@ -13,7 +13,7 @@ import {
   StudioDialog,
   StudioHeading,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import type { ResourceError, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import {

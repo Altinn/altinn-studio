@@ -8,7 +8,7 @@ import {
 } from '../../../../contexts/PolicyRuleContext';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { type PolicyError } from '../../../../types';
 
 const policyError: PolicyError = mockPolicyRuleContextValue.policyError;

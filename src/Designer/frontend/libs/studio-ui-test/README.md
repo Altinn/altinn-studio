@@ -1,6 +1,6 @@
-# @studio/ui-test
+# @designer/ui-test
 
-`@studio/ui-test` is a library consisting of tools for testing React components.
+`@designer/ui-test` is a library consisting of tools for testing React components.
 It should only be imported in test files as a dev dependency.
 
 Here are some of the exported modules:

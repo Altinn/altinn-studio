@@ -1,5 +1,5 @@
 import type { HLJSApi } from 'highlight.js';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import type { StudioCodeViewerLanguage } from './registerHighlighter';
 
 const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {

@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import classes from './ActionButtons.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@designer/icons';
 
 export type ActionButtonsProps = {
   onSave: () => void;

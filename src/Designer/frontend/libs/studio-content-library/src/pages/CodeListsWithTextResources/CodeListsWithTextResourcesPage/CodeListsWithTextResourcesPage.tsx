@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { TextResource } from '@studio/pure-functions';
-import { StudioHeading } from '@studio/components';
+import type { TextResource } from '@designer/pure-functions';
+import { StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeListsWithTextResources } from './CodeListsWithTextResources';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListsWithTextResourcesPage.module.css';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@designer/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
 import {
   createTextResourceWithLanguage,

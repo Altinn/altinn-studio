@@ -8,7 +8,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext/EnvironmentConfigContext';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 
 const container = document.getElementById('root');
 const root = createRoot(container);

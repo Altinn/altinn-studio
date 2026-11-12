@@ -1,7 +1,7 @@
 import type { ImgHTMLAttributes, ReactElement } from 'react';
 import classes from './StudioAvatar.module.css';
 import cn from 'classnames';
-import { PersonCircleIcon } from '@studio/icons';
+import { PersonCircleIcon } from '@designer/icons';
 
 export type StudioAvatarProps = ImgHTMLAttributes<HTMLImageElement>;
 

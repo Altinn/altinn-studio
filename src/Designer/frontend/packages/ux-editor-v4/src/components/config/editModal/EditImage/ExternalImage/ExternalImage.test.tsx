@@ -3,10 +3,10 @@ import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/rea
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';
 import { ExternalImage } from './ExternalImage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { UserEvent } from '@testing-library/user-event';

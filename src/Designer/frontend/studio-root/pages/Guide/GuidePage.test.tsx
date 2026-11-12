@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { get, HttpError } from 'app-shared/utils/networking';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { GuidePage } from './GuidePage';
 
 vi.mock('app-shared/utils/networking', async () => ({

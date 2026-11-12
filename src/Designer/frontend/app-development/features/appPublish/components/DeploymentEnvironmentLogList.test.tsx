@@ -4,7 +4,7 @@ import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentL
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
@@ -17,7 +17,7 @@ import {
   WarningEventType,
 } from 'app-shared/types/api/PipelineDeployment';
 import { deployEvent } from 'app-shared/mocks/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 vi.mock('app-shared/ext-urls', () => ({
   grafanaPodLogsUrl: vi.fn(() => 'https://grafana.example/logs'),

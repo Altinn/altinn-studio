@@ -77,6 +77,10 @@ class RepoManager:
             existing_path = self.active_repos[session_id]
             if existing_path.exists():
                 log.info(f"Using existing cloned repo for session {session_id}: {existing_path}")
+                # Each turn starts from the saved state. Thus the model cannot
+                # read an edit that the user does not have, and tell the user
+                # that the edit is in the app.
+                git_ops.discard_unsaved(str(existing_path))
                 # If a branch was specified and we're reusing an existing repo, checkout that branch
                 if branch:
                     try:
@@ -137,6 +141,11 @@ class RepoManager:
             error_msg = f"Failed to clone repository {repo_url}: {e.stderr}"
             log.error(error_msg)
             raise Exception(error_msg) from e
+        except subprocess.TimeoutExpired as e:
+            # The message of the exception has the command, and the command has the API key.
+            error_msg = f"Failed to clone repository {repo_url}: no answer after {e.timeout} seconds"
+            log.error(error_msg)
+            raise Exception(error_msg) from None
 
     def get_session_start_commit(self, session_id: str) -> str | None:
         """The commit that the session started from. A later start that uses the clone again keeps it."""

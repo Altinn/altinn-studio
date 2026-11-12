@@ -4,9 +4,9 @@ import type { DeploymentStatusProps } from './DeploymentStatus';
 import { DeploymentStatus } from './DeploymentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { runningApp } from 'app-shared/mocks/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data
 const defaultProps: DeploymentStatusProps = {

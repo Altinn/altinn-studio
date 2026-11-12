@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';

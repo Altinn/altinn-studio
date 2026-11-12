@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
-import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioSwitch, StudioTextarea } from '@designer/components';
+import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@designer/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/messageUtils';

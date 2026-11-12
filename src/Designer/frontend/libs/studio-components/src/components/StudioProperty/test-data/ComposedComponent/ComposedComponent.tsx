@@ -4,7 +4,7 @@ import { StudioProperty } from '../../';
 import { StudioButton } from '../../../StudioButton';
 import { XMarkIcon } from '../../../../../../studio-icons';
 import { StudioTextfield } from '../../../StudioTextfield';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import classes from './ComposedComponent.module.css';
 
 export type ComposedComponentProps = {

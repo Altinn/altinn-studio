@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { OwnerIndexRedirect } from './OwnerIndexRedirect';
 import { renderWithProviders } from '../../testing/mocks';
 import { user as userMock } from 'app-shared/mocks/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
 import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
 

@@ -3,9 +3,9 @@ import React from 'react';
 import type { ComponentProps } from 'react';
 import type { PagePropsMap, PagesConfig } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
-import { StudioContentMenu } from '@studio/components';
+import { StudioContentMenu } from '@designer/components';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 
 export abstract class Page<Name extends PageName> {
   abstract readonly name: Name;

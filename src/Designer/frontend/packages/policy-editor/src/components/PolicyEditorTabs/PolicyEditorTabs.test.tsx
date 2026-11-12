@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { PolicyEditorTabs } from './PolicyEditorTabs';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('PolicyEditorTabs', () => {
