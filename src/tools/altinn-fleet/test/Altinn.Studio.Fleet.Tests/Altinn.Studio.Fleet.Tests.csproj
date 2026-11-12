@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Altinn.Studio.Fleet.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+    <ProjectReference Include="../../src/Altinn.Studio.Fleet.Cli/Altinn.Studio.Fleet.Cli.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- The request and response that Designer's own test checks its release lookup against. -->
+  <ItemGroup>
+    <None
+      Include="../../../../Designer/backend/tests/Designer.Tests/_TestData/ReleaseLookup/*.json"
+      LinkBase="ReleaseLookupContract"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+  </ItemGroup>
+</Project>
