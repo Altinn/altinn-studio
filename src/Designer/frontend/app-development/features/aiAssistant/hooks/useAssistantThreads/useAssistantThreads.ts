@@ -89,9 +89,14 @@ export const useAssistantThreads = (): AssistantThreadState => {
   );
 
   // Gets the thread's messages again, so that the cache has the answers that Designer saved.
+  // invalidateQueries does not restart the first fetch of a thread, which can have read the thread
+  // before the save, so that fetch is cancelled first.
   const refreshMessages = useCallback(
     (threadId: string): void => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });
+      const queryKey = [QueryKey.ChatMessages, org, app, threadId];
+      void queryClient
+        .cancelQueries({ queryKey })
+        .then(() => queryClient.invalidateQueries({ queryKey }));
     },
     [queryClient, org, app],
   );
