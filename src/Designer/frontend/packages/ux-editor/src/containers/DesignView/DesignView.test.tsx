@@ -26,6 +26,7 @@ import type { ILayoutSettings } from 'app-shared/types/global';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
@@ -158,6 +159,20 @@ describe('DesignView', () => {
     });
   });
 
+  it('does not offer to delete the PDF page of a PDF task', () => {
+    renderDesignViewWithPdfPage({ taskType: 'pdf' });
+    expect(screen.getByText(pdfPageName)).toBeInTheDocument();
+    expect(queryDeletePdfPageButton()).not.toBeInTheDocument();
+  });
+
+  it.each<[string, Partial<UiFolderLayoutSetModel>]>([
+    ['a subform', { type: 'subform', taskType: undefined }],
+    ['a data task', { taskType: 'data' }],
+  ])('offers to delete the PDF page in %s', (_, layoutSetModel) => {
+    renderDesignViewWithPdfPage(layoutSetModel);
+    expect(queryDeletePdfPageButton()).toBeInTheDocument();
+  });
+
   it('does not render Accordion when pagesModel has no pages', () => {
     renderDesignView({ layoutSettings: { ...formLayoutSettingsMock, pages: { order: [] } } });
     const accordion = screen.queryByRole('group', { name: /accordion/i });
@@ -196,18 +211,45 @@ describe('DesignView', () => {
   });
 });
 
+const pdfPageName = 'PdfLayout';
+
+const renderDesignViewWithPdfPage = (layoutSetModel: Partial<UiFolderLayoutSetModel>) =>
+  renderDesignView({
+    layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName: pdfPageName } },
+    externalLayout: { [pdfPageName]: layout1Mock },
+    pagesModel: { pages: [], pdfLayoutName: pdfPageName },
+    layoutSetModel,
+  });
+
+const queryDeletePdfPageButton = (): HTMLElement | null =>
+  screen.queryByRole('button', { name: textMock('general.delete_item', { item: pdfPageName }) });
+
 type renderDesignViewParams = {
   layoutSettings?: ILayoutSettings;
   externalLayout?: SerializedFormLayoutsResponse;
   pagesModel?: PagesModel;
+  layoutSetModel?: Partial<UiFolderLayoutSetModel>;
 };
 
 const renderDesignView = ({
   layoutSettings = formLayoutSettingsMock,
   externalLayout = externalLayoutsMock,
   pagesModel = pagesModelMock,
+  layoutSetModel,
 }: renderDesignViewParams) => {
   const queryClient = createQueryClientMock();
+  if (layoutSetModel) {
+    const layoutSets: UiFolderLayoutSetModel[] = [
+      {
+        id: mockSelectedLayoutSet,
+        dataType: 'model',
+        type: null,
+        taskType: 'data',
+        ...layoutSetModel,
+      },
+    ];
+    queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSets);
+  }
   queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayout),

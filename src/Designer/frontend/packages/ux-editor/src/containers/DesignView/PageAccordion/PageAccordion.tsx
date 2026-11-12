@@ -25,6 +25,7 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
+  showDeleteButton?: boolean;
   groupIndex?: number;
 };
 
@@ -50,6 +51,7 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
+  showDeleteButton = true,
   groupIndex,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
@@ -109,13 +111,15 @@ export const PageAccordion = ({
             title={t('general.options_for_item', { item: pageName || pageId })}
           />
         )}
-        <StudioButton
-          icon={<TrashIcon aria-hidden />}
-          onClick={handleConfirmDelete}
-          title={t('general.delete_item', { item: pageName || pageId })}
-          variant='tertiary'
-          disabled={isPending}
-        />
+        {showDeleteButton && (
+          <StudioButton
+            icon={<TrashIcon aria-hidden />}
+            onClick={handleConfirmDelete}
+            title={t('general.delete_item', { item: pageName || pageId })}
+            variant='tertiary'
+            disabled={isPending}
+          />
+        )}
       </div>
     </div>
   );
