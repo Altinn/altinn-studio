@@ -58,8 +58,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
     is_concurrency_safe = False
 
     async def run(self, args: PreviewRenderCheckArgs, ctx: LoopContext) -> ToolResult:
-        config = get_config()
-        refusal = _check_preconditions(ctx, is_enabled=config.PREVIEW_CHECK_ENABLED)
+        refusal = _check_preconditions(ctx)
         if refusal is not None:
             return refusal
 
@@ -74,6 +73,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
                 is_error=True,
             )
 
+        config = get_config()
         try:
             results = await asyncio.to_thread(
                 render_check,
@@ -91,9 +91,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
         return _report_results(results)
 
 
-def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | None:
-    if not is_enabled:
-        return _report_unavailable("Preview render check is disabled in this deployment.")
+def _check_preconditions(ctx: LoopContext) -> ToolResult | None:
     if not ctx.extras.get("session_pushed") or not ctx.extras.get("session_branch"):
         return ToolResult(
             content=(

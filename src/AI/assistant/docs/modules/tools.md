@@ -13,7 +13,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `discard_file_changes`  | Reset one file to HEAD, or delete a new file     | No       | Yes              |
 | `verify_changes`        | Validate all changed files                       | Yes      | Yes              |
 | `commit_session_branch` | Commit and push to the session branch            | No       | Yes              |
-| `preview_render_check`  | Render each page in a headless browser           | No       | Yes              |
+| `preview_render_check`  | Render each page in a headless browser, if on    | No       | Yes              |
 | `skill`                 | Load the full text of one skill                  | Yes      | No               |
 | `altinn_layout_props`   | Get the allowed properties of a component type   | Yes      | No               |
 | `altinn_datamodel_sync` | Make XSD and C# from a JSON Schema model         | No       | Yes              |
@@ -21,17 +21,19 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 
 The loop cuts every tool result at a fixed size, and the model cannot get the cut text back. So `read_file`, `web_fetch` and `skill` return long text in parts, and each part ends with a note that names the lines the model has not read and how to read them. `write_file` refuses to replace a file that the model has read only part of. [`text_parts.py`](../../agents/core/tools/utils/text_parts.py) explains why.
 
-There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` gets the files from the Designer API at `DESIGNER_BASE_URL`. The model must read a file that this tool wrote again before it changes the file. `preview_render_check` is off by default (`PREVIEW_CHECK_ENABLED=false`) and works only with the local Designer stack.
+There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` gets the files from the Designer API at `DESIGNER_BASE_URL`. The model must read a file that this tool wrote again before it changes the file.
+
+`preview_render_check` works only with the local Designer stack, so it is off by default (`PREVIEW_CHECK_ENABLED=false`). When it is off, the loop node does not register it, and the system prompt does not mention it. A model that is told to run a check that cannot run tells the user about it, and the user cannot act on that.
 
 ```mermaid
 flowchart LR
   R["read_file"] --> W["edit_file or write_file"]
   W --> V["verify_changes"]
   V --> C["commit_session_branch"]
-  C --> P["preview_render_check"]
+  C -.-> P["preview_render_check"]
 ```
 
-_The usual write path. The system prompt tells the model to follow it._
+_The usual write path. The system prompt tells the model to follow it. The last step is only there when `PREVIEW_CHECK_ENABLED=true`._
 
 ```mermaid
 flowchart TD
