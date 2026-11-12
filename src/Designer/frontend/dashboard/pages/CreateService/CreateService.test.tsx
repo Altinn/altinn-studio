@@ -177,8 +177,8 @@ describe('CreateService', () => {
 
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
-    const axiosError = createApiErrorMock(ServerCodes.Conflict);
-    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(axiosError));
+    const httpError = createApiErrorMock(ServerCodes.Conflict);
+    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(httpError));
 
     renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
@@ -197,7 +197,7 @@ describe('CreateService', () => {
     });
     await user.click(createBtn);
 
-    await expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(httpError);
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });
@@ -237,8 +237,8 @@ describe('CreateService', () => {
 
   it('should not display loading if process form fails, should display create and cancel button', async () => {
     const user = userEvent.setup();
-    const axiosError = createApiErrorMock(ServerCodes.Conflict);
-    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(axiosError));
+    const httpError = createApiErrorMock(ServerCodes.Conflict);
+    const addRepoMock = vi.fn().mockImplementation(() => Promise.reject(httpError));
 
     renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
@@ -260,7 +260,7 @@ describe('CreateService', () => {
       });
     await user.click(getCreateBtn());
 
-    await expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(httpError);
 
     await waitFor(() =>
       expect(

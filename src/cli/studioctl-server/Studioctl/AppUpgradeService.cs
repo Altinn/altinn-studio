@@ -14,7 +14,7 @@ internal sealed class AppUpgradeService : IDisposable
     private const string DefaultAppSettingsFolder = "App";
     private const string DefaultBackendTargetFramework = "net8.0";
     private const string DefaultV9TargetFramework = "net11.0";
-    internal const string MinimumV9SdkVersion = "11.0.100-rc.2";
+    internal const string MinimumV9SdkVersion = "11.0.100";
     private const int DefaultV9TargetMajorVersion = 9;
     private const string DefaultFrontendTargetVersion = "4";
     private const string DefaultBackendTargetVersion = "8.7.0";

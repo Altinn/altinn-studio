@@ -4,7 +4,7 @@ import type { FileNameErrorResult } from '@studio/pure-functions';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
@@ -35,7 +35,7 @@ export const XSDUpload = ({
   const { mutate: uploadDataModel, isPending: uploading } = useUploadDataModelMutation(
     selectedOption?.value?.repositoryRelativeUrl,
     {
-      hideDefaultError: (error: AxiosError<ApiError>) => !error.response?.data?.errorCode,
+      hideDefaultError: (error: HttpError<ApiError>) => !error.response?.data?.errorCode,
     },
   );
   const validationAlert = useValidationAlert();
@@ -59,7 +59,7 @@ export const XSDUpload = ({
 
   const handleUpload = (file: File): void => {
     uploadDataModel(file, {
-      onError: (error: AxiosError<ApiError>) => {
+      onError: (error: HttpError<ApiError>) => {
         if (!error.response?.data?.errorCode)
           toast.error(t('form_filler.file_uploader_validation_error_upload'));
       },

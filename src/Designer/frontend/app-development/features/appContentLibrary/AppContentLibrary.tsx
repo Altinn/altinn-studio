@@ -18,7 +18,7 @@ import { StudioPageError, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import {
   useAddOptionListMutation,
@@ -164,7 +164,7 @@ function AppContentLibraryWithData({
 
 function useUploadOptionList(org: string, app: string): (file: File) => void {
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+    hideDefaultError: (error: HttpError<ApiError>) => isErrorUnknown(error),
   });
   const { t } = useTranslation();
 
@@ -174,7 +174,7 @@ function useUploadOptionList(org: string, app: string): (file: File) => void {
         onSuccess: () => {
           toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
         },
-        onError: (error: AxiosError<ApiError>) => {
+        onError: (error: HttpError<ApiError>) => {
           if (isErrorUnknown(error)) {
             toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
           }

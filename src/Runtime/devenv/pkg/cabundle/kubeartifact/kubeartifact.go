@@ -1,4 +1,7 @@
-package cabundle
+// Package kubeartifact gives Kubernetes workloads of a devenv cluster the host CA bundle: it patches a
+// Deployment artifact to mount the bundle and declares the ConfigMap that holds it. It is apart from cabundle so
+// that cabundle needs only the standard library.
+package kubeartifact
 
 import (
 	"bytes"
@@ -9,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/resource"
 
@@ -43,7 +47,7 @@ type PreparedArtifact struct {
 // PrepareKubernetesArtifact copies and patches a Kubernetes artifact directory with CA bundle mounts/env.
 func PrepareKubernetesArtifact(
 	artifactPath string,
-	bundle *Bundle,
+	bundle *cabundle.Bundle,
 	workloads []KubernetesWorkload,
 ) (*PreparedArtifact, error) {
 	if bundle == nil || len(workloads) == 0 {
@@ -97,7 +101,7 @@ func (p *PreparedArtifact) Cleanup() error {
 
 // KubernetesConfigMapObjectSet returns a ConfigMap object set for CA-aware workloads.
 func KubernetesConfigMapObjectSet(
-	bundle *Bundle,
+	bundle *cabundle.Bundle,
 	cluster resource.ResourceRef,
 	name string,
 	workloads []KubernetesWorkload,
@@ -191,7 +195,7 @@ func closeFileBestEffort(file *os.File) {
 
 func patchCABundleArtifactFiles(
 	root string,
-	bundle *Bundle,
+	bundle *cabundle.Bundle,
 	workloads []KubernetesWorkload,
 ) (bool, error) {
 	patchedAny := false
@@ -230,7 +234,7 @@ func isPatchableYAMLPath(path string) bool {
 
 func patchCABundleArtifactFile(
 	path string,
-	bundle *Bundle,
+	bundle *cabundle.Bundle,
 	workloads []KubernetesWorkload,
 ) (bool, error) {
 	//nolint:gosec // Artifact manifest paths are resolved from configured fixture inputs.
@@ -286,7 +290,7 @@ func patchCABundleArtifactFile(
 
 func patchDeploymentObjectCABundle(
 	obj *unstructured.Unstructured,
-	bundle *Bundle,
+	bundle *cabundle.Bundle,
 	workloads []KubernetesWorkload,
 ) (bool, error) {
 	if obj.GetKind() != "Deployment" {
@@ -315,16 +319,16 @@ func patchDeploymentObjectCABundle(
 		if err != nil || !found {
 			env = []any{}
 		}
-		container["env"] = ApplyKubernetesEnv(env)
+		container["env"] = cabundle.ApplyKubernetesEnv(env)
 
 		mounts, found, err := unstructured.NestedSlice(container, "volumeMounts")
 		if err != nil || !found {
 			mounts = []any{}
 		}
-		container["volumeMounts"] = ApplyKubernetesVolumeMount(
+		container["volumeMounts"] = cabundle.ApplyKubernetesVolumeMount(
 			mounts,
-			KubernetesVolumeName,
-			KubernetesConfigMapKey,
+			cabundle.KubernetesVolumeName,
+			cabundle.KubernetesConfigMapKey,
 		)
 		containers[i] = container
 		patched = true
@@ -378,14 +382,14 @@ func patchCABundleObjectVolume(obj *unstructured.Unstructured) error {
 	out := make([]any, 0, len(volumes)+1)
 	for _, volume := range volumes {
 		volumeMap, ok := volume.(map[string]any)
-		if !ok || volumeMap["name"] != KubernetesVolumeName {
+		if !ok || volumeMap["name"] != cabundle.KubernetesVolumeName {
 			out = append(out, volume)
 		}
 	}
-	out = append(out, KubernetesConfigMapVolume(
-		KubernetesVolumeName,
-		KubernetesConfigMapName,
-		KubernetesConfigMapKey,
+	out = append(out, cabundle.KubernetesConfigMapVolume(
+		cabundle.KubernetesVolumeName,
+		cabundle.KubernetesConfigMapName,
+		cabundle.KubernetesConfigMapKey,
 	))
 
 	if err := unstructured.SetNestedSlice(obj.Object, out, "spec", "template", "spec", "volumes"); err != nil {
@@ -413,7 +417,7 @@ func patchCABundleObjectAnnotation(obj *unstructured.Unstructured, digest string
 	return nil
 }
 
-func kubernetesConfigMaps(bundle *Bundle, workloads []KubernetesWorkload) (string, error) {
+func kubernetesConfigMaps(bundle *cabundle.Bundle, workloads []KubernetesWorkload) (string, error) {
 	seen := map[string]bool{}
 	objects := make([]k8sruntime.Object, 0)
 	for _, workload := range workloads {
@@ -437,14 +441,14 @@ func kubernetesConfigMaps(bundle *Bundle, workloads []KubernetesWorkload) (strin
 				Kind:       "ConfigMap",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      KubernetesConfigMapName,
+				Name:      cabundle.KubernetesConfigMapName,
 				Namespace: namespace,
 				Annotations: map[string]string{
 					caBundleDigestAnnotation: bundle.Digest,
 				},
 			},
 			Data: map[string]string{
-				KubernetesConfigMapKey: string(bundle.Data),
+				cabundle.KubernetesConfigMapKey: string(bundle.Data),
 			},
 		})
 	}

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import logging
+import mimetypes
 import shutil
 from base64 import b64decode, b64encode
 from pathlib import Path
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,19 @@ class AgentAttachment(BaseModel):
     data_base64: str | None = None
     azure_file_id: str | None = None
 
+    @field_validator("mime_type")
+    @classmethod
+    def _resolve_mime_type(cls, value: str, info: ValidationInfo) -> str:
+        """Normalize the type the browser sent, and guess it from the name when it sent none.
+
+        A browser uploads an extension it has no type for, such as Markdown on
+        Windows, as application/octet-stream.
+        """
+        mime_type = value.split(";", 1)[0].strip().lower()
+        if mime_type in ("", "application/octet-stream"):
+            return mimetypes.guess_type(info.data.get("name", ""))[0] or mime_type
+        return mime_type
+
     def _ensure_base64(self) -> str | None:
         """Return base64-encoded file data, reading from disk if necessary."""
         if self.data_base64:
@@ -63,13 +77,38 @@ class AgentAttachment(BaseModel):
             return b64encode(self.path.read_bytes()).decode("ascii")
         return None
 
+    def _text_block(self, data: str) -> dict:
+        """Send a text file as text.
+
+        Azure OpenAI accepts only PDFs as file input. Anthropic also takes a
+        text `document` block, but its content sits in `source.data`, where the
+        caller's spotlighting does not escape a closing tag.
+        """
+        raw = b64decode(data)
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            logger.warning("Attachment %s is not valid UTF-8; replacing the invalid bytes", self.name)
+            text = raw.decode("utf-8-sig", errors="replace")
+        return {"type": "text", "text": f"Attachment {self.name}:\n\n{text}"}
+
+    def _placeholder_block(self) -> dict:
+        return {
+            "type": "text",
+            "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable or unsupported format",
+        }
+
     def to_content_blocks(self) -> list[dict]:
         """Convert attachment to LLM content blocks.
 
-        Prefers native file passthrough so the model receives the original
-        document.  Falls back to a text placeholder when no data is available.
+        Sends text as text, and images and PDFs natively, so the model
+        receives the original document.  Falls back to a text placeholder
+        when no data is available or the model takes no such file.
         """
         data = self._ensure_base64()
+
+        if data and self.mime_type.startswith("text/"):
+            return [self._text_block(data)]
 
         if self.mime_type.startswith("image/") and data:
             return [
@@ -79,7 +118,7 @@ class AgentAttachment(BaseModel):
                 }
             ]
 
-        if data:
+        if data and self.mime_type == "application/pdf":
             return [
                 {
                     "type": "file",
@@ -90,7 +129,7 @@ class AgentAttachment(BaseModel):
                 }
             ]
 
-        return [{"type": "text", "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable"}]
+        return [self._placeholder_block()]
 
     def to_content_block(self) -> dict | None:
         """Legacy single-block method. Returns the first content block."""
@@ -110,6 +149,9 @@ class AgentAttachment(BaseModel):
         there.
         """
         data = self._ensure_base64()
+
+        if data and self.mime_type.startswith("text/"):
+            return [self._text_block(data)]
 
         if data and self.mime_type.startswith("image/"):
             return [
@@ -136,12 +178,7 @@ class AgentAttachment(BaseModel):
                 }
             ]
 
-        return [
-            {
-                "type": "text",
-                "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable or unsupported format",
-            }
-        ]
+        return [self._placeholder_block()]
 
 
 def get_session_dir(root: Path, session_id: str) -> Path:

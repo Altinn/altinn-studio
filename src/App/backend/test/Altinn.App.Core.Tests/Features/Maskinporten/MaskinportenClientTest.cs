@@ -1507,10 +1507,9 @@ public class MaskinportenClientTests
         // Act
         var jwt = fixture.Client().GenerateJwtGrant(request, "https://aud/");
         var details = DecodeJwtPayload(jwt).GetProperty("authorization_details");
-        var parsed = Authenticated.AuthorizationDetailsClaim.Parse(details);
+        var systemUser = Authenticated.SystemUserAuthorizationDetailsClaim.Parse(details);
 
         // Assert
-        var systemUser = Assert.IsType<Authenticated.SystemUserAuthorizationDetailsClaim>(parsed);
         Assert.Equal("iso6523-actorid-upis", systemUser.SystemUserOrg.Authority);
         Assert.Equal("0192:991825827", systemUser.SystemUserOrg.Id);
     }

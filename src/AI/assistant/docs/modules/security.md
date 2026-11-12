@@ -20,7 +20,7 @@ The security model has four layers. Each layer covers a risk that the other laye
 
 ```mermaid
 flowchart LR
-  U["Uploaded PDF"] --> X["Spec extraction"]
+  U["Uploaded document"] --> X["Spec extraction"]
   X --> F["form_spec block with a data notice"]
   F --> M["Loop model"]
   M -->|SECURITY_NOTICE line| A["Warning flag in Designer"]

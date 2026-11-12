@@ -1,0 +1,4 @@
+{
+  // Use the default explicitly to exercise app-wide configuration parsing.
+  "autoSaveBehavior": "onChangeFormData",
+}

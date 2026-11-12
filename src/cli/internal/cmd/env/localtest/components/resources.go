@@ -35,7 +35,8 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	CABundle          *CABundle // the host's STUDIO_CA_BUNDLE, which pdf3 takes; nil for none
+	RuntimeUser       string    // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	RuntimeUsernsMode string
 	Images            config.ImagesConfig
 	Paths             Paths

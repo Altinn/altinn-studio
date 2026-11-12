@@ -14,7 +14,7 @@ import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { InstanceStatus } from './InstanceStatus';
-import { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
 import { useInstancesWorkflowHealthQuery } from 'admin/features/apps/hooks/queries/useInstancesWorkflowHealthQuery';
@@ -72,14 +72,14 @@ export const InstancesTable = ({
     case 'pending':
       return <InstancesTableSkeleton n={11} />;
     case 'error':
-      if (isAxiosError(error) && error.response?.status === 403) {
+      if (isHttpError(error) && error.response?.status === 403) {
         return (
           <StudioAlert data-color='info'>
             {t('admin.instances.missing_rights', { envTitle, orgName })}
           </StudioAlert>
         );
       }
-      if (isAxiosError(error) && error.response?.status === 404) {
+      if (isHttpError(error) && error.response?.status === 404) {
         return (
           <StudioAlert data-color='info'>
             {t('admin.instances.unavailable', { envTitle, orgName })}

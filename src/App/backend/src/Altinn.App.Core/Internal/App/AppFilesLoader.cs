@@ -33,12 +33,6 @@ internal static class AppFilesLoader
 
     private static readonly byte[] _utf8Bom = [0xEF, 0xBB, 0xBF];
 
-    private static readonly JsonDocumentOptions _jsonValidationOptions = new()
-    {
-        AllowTrailingCommas = true,
-        CommentHandling = JsonCommentHandling.Skip,
-    };
-
     /// <summary>
     /// Reads and validates the app files.
     /// </summary>
@@ -159,7 +153,7 @@ internal static class AppFilesLoader
             {
                 try
                 {
-                    using var _ = JsonDocument.Parse(bytes, _jsonValidationOptions);
+                    using var _ = JsonDocument.Parse(bytes, AppFileJson.DocumentOptions);
                 }
                 catch (JsonException e)
                 {
