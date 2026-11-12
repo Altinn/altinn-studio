@@ -13,10 +13,12 @@ export const useCreateChatMessageMutation = () => {
   return useMutation({
     mutationFn: ({ threadId, payload }: CreateChatMessageMutationArgs) =>
       createChatMessage(org, app, threadId, payload),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: [QueryKey.ChatMessages, org, app, variables.threadId],
-      });
+    onSuccess: async (_data, variables) => {
+      const queryKey = [QueryKey.ChatMessages, org, app, variables.threadId];
+      // Invalidating does not restart the query's first fetch, and that fetch may have read the
+      // thread before this message was saved.
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 };
