@@ -81,23 +81,20 @@ export function ClearInvalidReturnState() {
   // The URL belongs to the active form. A parent only watches its own summary return.
   const backToPage = isParentForm ? null : searchParams.get(SearchParams.BackToPage);
   const returnPage = returnToView?.pageId ?? backToPage;
-  const original = useRef<{ from: string | undefined; to: string; pages: string }>(undefined);
+  const previous = useRef<{ from: string | undefined; to: string; pages: string[] }>(undefined);
 
   useEffect(() => {
     if (readOnly || !returnPage) {
-      original.current = undefined;
+      previous.current = undefined;
       return;
     }
     const from = order.indexOf(currentPage ?? '');
     const to = order.indexOf(returnPage);
-    const pages = from < 0 || to < 0 ? undefined : order.slice(Math.min(from, to), Math.max(from, to) + 1).join('\0');
+    const pages = from < 0 || to < 0 ? undefined : order.slice(Math.min(from, to), Math.max(from, to) + 1);
 
-    // An edit can reveal a page that the return button would skip. Remove the shortcut
-    // when these visible pages change. Keep the original list until the edit ends,
-    // so undoing an answer cannot bring the shortcut back.
-    if (pages && (original.current?.from !== currentPage || original.current?.to !== returnPage)) {
-      original.current = { from: currentPage, to: returnPage, pages };
-    } else if (!pages || pages !== original.current?.pages) {
+    const sameRoute = previous.current?.from === currentPage && previous.current?.to === returnPage;
+    const revealedPage = sameRoute && pages?.some((id) => !previous.current?.pages.includes(id));
+    if (!pages || revealedPage) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
       if (backToPage) {
@@ -107,6 +104,9 @@ export function ClearInvalidReturnState() {
           return next;
         }, replaceAndPreventResetOptions);
       }
+    } else {
+      // Hiding a page is safe, but revealing it again must remove the shortcut.
+      previous.current = { from: currentPage, to: returnPage, pages };
     }
   }, [readOnly, returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
 
