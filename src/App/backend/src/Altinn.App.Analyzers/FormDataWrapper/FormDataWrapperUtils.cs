@@ -157,7 +157,7 @@ public static class FormDataWrapperUtils
         }
 
         var nodeProperties = new List<ModelPathNode>();
-        foreach (var property in GetPropertiesIncludingInherited(namedTypeSymbol))
+        foreach (var property in GetPropertiesIncludingInherited(namedTypeSymbol, compilation))
         {
             if (PropertyShouldBeSkipped(property, compilation))
             {
@@ -194,21 +194,29 @@ public static class FormDataWrapperUtils
 
     /// <summary>
     /// The properties of the type, then those of its base classes from the nearest one.
-    /// A property hides the base class properties with the same name, as in C# member lookup.
+    /// A member that the generated code can access hides the base class properties with the same name, as in C#
+    /// member lookup.
     /// </summary>
     /// <remarks>
     /// Base classes in System are left out: with List&lt;T&gt;.Capacity as a model property, a class that derives
     /// from List&lt;T&gt; would be copied without its items.
     /// </remarks>
-    private static IEnumerable<IPropertySymbol> GetPropertiesIncludingInherited(INamedTypeSymbol typeSymbol)
+    private static IEnumerable<IPropertySymbol> GetPropertiesIncludingInherited(
+        INamedTypeSymbol typeSymbol,
+        Compilation compilation
+    )
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
         INamedTypeSymbol? type = typeSymbol;
         do
         {
-            foreach (var property in type.GetMembers().OfType<IPropertySymbol>())
+            foreach (var member in type.GetMembers())
             {
-                if (names.Add(property.Name))
+                if (
+                    compilation.IsSymbolAccessibleWithin(member, compilation.Assembly)
+                    && names.Add(member.Name)
+                    && member is IPropertySymbol property
+                )
                 {
                     yield return property;
                 }

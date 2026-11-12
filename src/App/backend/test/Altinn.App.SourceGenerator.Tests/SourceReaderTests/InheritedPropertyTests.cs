@@ -89,6 +89,52 @@ public class InheritedPropertyTests
     }
 
     [Fact]
+    public void CreateRootSymbolNode_LeavesOutPropertiesHiddenByAnotherKindOfMember()
+    {
+        var source = """
+            public class Parent
+            {
+                public string HiddenByField { get; set; }
+
+                public string HiddenByMethod { get; set; }
+
+                public string Inherited { get; set; }
+            }
+
+            public class TestClass : Parent
+            {
+                public new int HiddenByField;
+
+                public new int HiddenByMethod() => 0;
+            }
+            """;
+
+        Assert.Equal(["Inherited: string"], DescribeProperties(source));
+    }
+
+    [Fact]
+    public void CreateRootSymbolNode_KeepsPropertiesBehindMembersTheGeneratedCodeCannotAccess()
+    {
+        var source = """
+            public class Parent
+            {
+                public string BehindPrivateProperty { get; set; }
+
+                public string BehindPrivateField { get; set; }
+            }
+
+            public class TestClass : Parent
+            {
+                private new int BehindPrivateProperty { get; set; }
+
+                private new int BehindPrivateField;
+            }
+            """;
+
+        Assert.Equal(["BehindPrivateProperty: string", "BehindPrivateField: string"], DescribeProperties(source));
+    }
+
+    [Fact]
     public void CreateRootSymbolNode_ReadsGenericBaseClassPropertiesWithTheTypeArguments()
     {
         var source = """
