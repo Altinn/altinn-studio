@@ -7,6 +7,7 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.CalculationExpressions;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
 
@@ -257,6 +258,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
 
+        // Normalize existing v8 calculations before merging generated rules into the v9 list.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
+
         var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
         returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
 
@@ -325,9 +330,6 @@ internal static class V8Tov9Upgrade
         // After the PDF service task migration, so the PDF service tasks it adds are included.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
@@ -1670,7 +1672,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<RuleMigrationOutcome> GenerateDataProcessors(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Data processors");
+        UpgradeConsole.BeginStep("Calculations and data processors");
         try
         {
             var uiPath = Path.Combine(projectFolder, "App", "ui");
@@ -1683,6 +1685,13 @@ internal static class V8Tov9Upgrade
                     return new RuleMigrationOutcome(ExitSuccess, new HashSet<string>(StringComparer.Ordinal));
                 }
             }
+
+            var expressions = CalculationMigration.Migrate(projectFolder);
+            var expressionCount = expressions.ConvertedRules.Values.Sum(rules => rules.Count);
+            if (expressionCount > 0)
+                UpgradeConsole.Ok($"Converted {expressionCount} calculation(s) to data model expressions");
+            foreach (var reason in expressions.FallbackReasons)
+                UpgradeConsole.WriteLine($"[Expression conversion skipped] {reason}");
 
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
             var totalProcessed = 0;
@@ -1707,6 +1716,24 @@ internal static class V8Tov9Upgrade
 
                 if (dataProcessingRules.Count == 0)
                 {
+                    continue;
+                }
+
+                if (expressions.ConvertedRules.TryGetValue(layoutSetName, out var converted))
+                    dataProcessingRules = dataProcessingRules
+                        .Where(rule => !converted.Contains(rule.Key))
+                        .ToDictionary();
+                if (expressions.ManualRules.TryGetValue(layoutSetName, out var manual))
+                {
+                    layoutSetsToKeep.Add(layoutSetName);
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': {manual.Count} calculation(s) conflict with existing expressions. Resolve the conflict before migrating these rules."
+                    );
+                    dataProcessingRules = dataProcessingRules.Where(rule => !manual.Contains(rule.Key)).ToDictionary();
+                }
+                if (dataProcessingRules.Count == 0)
+                {
+                    totalProcessed++;
                     continue;
                 }
 

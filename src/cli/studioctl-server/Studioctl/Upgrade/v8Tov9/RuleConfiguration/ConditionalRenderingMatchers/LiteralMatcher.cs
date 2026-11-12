@@ -29,6 +29,11 @@ public class LiteralMatcher : IExpressionMatcher
         if (expression is not Literal literal)
             return null;
 
-        return literal.Value ?? new object?[] { null };
+        return literal.Value switch
+        {
+            null => new object?[] { null },
+            string or bool or int or long or double or float => literal.Value,
+            _ => null,
+        };
     }
 }
