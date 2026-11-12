@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { HttpError } from '@studio/http-client';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { AxiosError, AxiosResponse } from 'axios';
 
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
@@ -12,17 +12,12 @@ const failedInstantiationBody = {
   status: 500,
 };
 
-function makeInstantiationError(): AxiosError {
-  const error = new Error('Request failed with status code 500') as AxiosError;
-  error.name = 'AxiosError';
-  error.isAxiosError = true;
-  error.config = {
-    method: 'post',
-    baseURL: '/ttd/component-library',
-    url: '/instances?instanceOwnerPartyId=501337&language=nb',
-  } as AxiosError['config'];
-  error.response = { status: 500, data: failedInstantiationBody } as AxiosResponse;
-  return error;
+const failedInstantiationUrl = '/ttd/component-library/instances?instanceOwnerPartyId=501337&language=nb';
+
+function makeInstantiationError(): HttpError {
+  return new HttpError({ status: 500, data: failedInstantiationBody }, undefined, {
+    request: { method: 'POST', url: failedInstantiationUrl },
+  });
 }
 
 describe('Unknown error', () => {
@@ -58,7 +53,7 @@ describe('Unknown error', () => {
     expect(copyButton).toHaveAccessibleName('Kopiert');
   });
 
-  it('should show the failing request and the response body for an axios error', async () => {
+  it('should show the failing request and the response body for an http error', async () => {
     const user = userEvent.setup({ delay: null });
     vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderWithMinimalProviders({
@@ -68,7 +63,7 @@ describe('Unknown error', () => {
     await user.click(screen.getByText('Vis detaljer om feilen').closest('summary')!);
 
     expect(screen.getByText('POST')).toBeInTheDocument();
-    expect(screen.getByText('/instances?instanceOwnerPartyId=501337&language=nb')).toBeInTheDocument();
+    expect(screen.getByText(failedInstantiationUrl)).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
     expect(screen.getByText(/"title": "Instance initialization failed\."/)).toBeInTheDocument();
 
@@ -78,7 +73,7 @@ describe('Unknown error', () => {
     const copiedJson = JSON.parse(writeTextMock.mock.calls[0][0]);
     expect(copiedJson).toMatchObject({
       method: 'POST',
-      url: '/instances?instanceOwnerPartyId=501337&language=nb',
+      url: failedInstantiationUrl,
       responseStatus: 500,
       responseData: failedInstantiationBody,
     });

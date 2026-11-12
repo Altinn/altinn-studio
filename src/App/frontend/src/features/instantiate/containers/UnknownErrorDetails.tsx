@@ -2,24 +2,24 @@ import React, { useState } from 'react';
 
 import { AccordionItem, Button, Flex } from '@app/form-component';
 import { CheckmarkCircleIcon } from '@navikt/aksel-icons';
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import classes from 'src/features/instantiate/containers/UnknownErrorDetails.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { formatResponseBody, getAxiosErrorDetails } from 'src/utils/axiosErrorDetails';
+import { formatResponseBody, getHttpErrorDetails } from 'src/utils/httpErrorDetails';
 
 interface UnknownErrorDetailsProps {
-  error: Error | AxiosError;
+  error: Error | HttpError;
   className?: string;
 }
 
 export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsProps) {
   const [now] = useState(new Date());
   const [copied, setCopied] = useState(false);
-  const [axiosError] = useState(() => getAxiosErrorDetails(error));
+  const [httpErrorDetails] = useState(() => getHttpErrorDetails(error));
   const [location] = useState(window?.location.href);
 
-  const responseBody = formatResponseBody(axiosError?.responseData);
+  const responseBody = formatResponseBody(httpErrorDetails?.responseData);
 
   async function handleCopyErrorClicked() {
     const errorInfo = {
@@ -29,7 +29,7 @@ export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsPro
       cause: error.cause,
       location,
       time: now.toISOString(),
-      ...axiosError,
+      ...httpErrorDetails,
     };
     if (navigator.clipboard) {
       // clipboard is only available in secure contexts (https)
@@ -82,24 +82,24 @@ export function UnknownErrorDetails({ error, className }: UnknownErrorDetailsPro
           value={now.toISOString()}
         />
 
-        {axiosError?.url && (
+        {httpErrorDetails?.url && (
           <DetailItem
             name='Request url'
-            value={axiosError.url}
+            value={httpErrorDetails.url}
           />
         )}
 
-        {axiosError?.method && (
+        {httpErrorDetails?.method && (
           <DetailItem
             name='Request method'
-            value={axiosError.method}
+            value={httpErrorDetails.method}
           />
         )}
 
-        {axiosError && (
+        {httpErrorDetails && (
           <DetailItem
             name='Response status'
-            value={axiosError.responseStatus ? axiosError.responseStatus.toString() : ''}
+            value={httpErrorDetails.responseStatus ? httpErrorDetails.responseStatus.toString() : ''}
           />
         )}
 

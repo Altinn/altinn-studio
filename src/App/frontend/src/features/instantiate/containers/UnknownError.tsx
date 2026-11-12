@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button } from '@app/form-component';
-import { type AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
@@ -12,7 +12,7 @@ import { Lang } from 'src/features/language/Lang';
 import { isDev } from 'src/utils/isDev';
 
 interface Props {
-  error: Error | AxiosError;
+  error: Error | HttpError;
 }
 
 export function UnknownError({ error }: Props) {

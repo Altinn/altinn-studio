@@ -1,4 +1,4 @@
-import { isAxiosError } from 'axios';
+import { isHttpError } from '@studio/http-client';
 
 import { DevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import type { IDevToolsLog } from 'src/features/devtools/data/types';
@@ -37,10 +37,10 @@ function postLog(level: 'info' | 'warn' | 'error', args: unknown[], once = false
 export function parseErrorArgs(args: unknown[]): string {
   return args
     .map((arg) => {
-      if (isAxiosError(arg)) {
+      if (isHttpError(arg)) {
         const message = arg.message;
-        const method = arg.config?.method?.toUpperCase();
-        const url = arg.config?.url;
+        const method = arg.request?.method;
+        const url = arg.request?.url;
         const data = arg.response?.data;
         const stringData = typeof data === 'object' ? JSON.stringify(data) : String(data);
         return `Message: ${message}\nRequest: ${method ?? '<method not found>'} '${

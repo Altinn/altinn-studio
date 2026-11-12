@@ -1,5 +1,7 @@
 import { LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
+import { HttpError } from '@studio/http-client';
+
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
@@ -84,10 +86,7 @@ describe('instance-selection clientLoader', () => {
       validParties: [],
       message: 'Not allowed',
     };
-    const error = Object.assign(new Error('Forbidden'), {
-      isAxiosError: true,
-      response: { status: 403, data: validationResult },
-    });
+    const error = new HttpError({ status: 403, data: validationResult }, 'Forbidden');
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
     vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
@@ -102,10 +101,7 @@ describe('instance-selection clientLoader', () => {
   });
 
   it('should return forbidden error when instantiation fails with 403 without validation', async () => {
-    const error = Object.assign(new Error('Forbidden'), {
-      isAxiosError: true,
-      response: { status: 403, data: {} },
-    });
+    const error = new HttpError({ status: 403, data: {} }, 'Forbidden');
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
     vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
@@ -163,9 +159,7 @@ describe('instance-selection clientLoader', () => {
       onEntry: { show: 'new-instance' },
     });
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.createInstance.mock).mockRejectedValue(
-      Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
-    );
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(new HttpError({ status: 410, data: undefined }, 'Gone'));
 
     const result = await clientLoader(createLoaderArgs());
 

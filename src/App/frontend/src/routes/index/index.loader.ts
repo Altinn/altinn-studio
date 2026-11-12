@@ -1,6 +1,8 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
+import { isHttpError } from '@studio/http-client';
+
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { getInstantiationClosedReason, isInstantiationClosedError } from 'src/features/instantiate/instantiationClosed';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
@@ -9,7 +11,6 @@ import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import type { AppQueryClient } from 'src/core/queries/queryClient';
 import type { AppQueriesContext } from 'src/core/queries/types';
 import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
@@ -88,7 +89,7 @@ function toLoaderError(error: unknown): IndexLoaderError {
       },
     };
   }
-  if (isAxiosError(error) && error.response?.status === 403) {
+  if (isHttpError(error) && error.response?.status === 403) {
     const data = error.response?.data;
     if (isInstantiationValidationResult(data)) {
       return { error: 'forbidden-validation', validationResult: data };

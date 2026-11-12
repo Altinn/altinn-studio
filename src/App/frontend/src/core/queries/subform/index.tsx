@@ -1,7 +1,7 @@
 import { toast } from 'react-toastify';
 
+import { isHttpError } from '@studio/http-client';
 import { useMutation } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { useInvalidateInstanceDataCache } from 'src/core/queries/instance';
@@ -30,7 +30,7 @@ export const useAddEntryMutation = (dataType: string) => {
     onError: (error) => {
       window.logErrorOnce('Failed to add subform entry:', error);
 
-      if (isAxiosError(error) && error.response?.status === 409) {
+      if (isHttpError(error) && error.response?.status === 409) {
         toast(langAsString('form_filler.error_max_count_reached_subform_server', [dataType]), { type: 'error' });
       } else {
         toast(langAsString('form_filler.error_add_subform'), { type: 'error' });

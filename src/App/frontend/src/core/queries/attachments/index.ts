@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { useIsMutating, useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 import type { StoreApi } from 'zustand';
 
 import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
@@ -73,7 +73,7 @@ export const AttachmentMutations = {
         }
         return doAttachmentUpload(instanceId, dataTypeId, language, file);
       },
-      onError: (error: AxiosError) => {
+      onError: (error: HttpError) => {
         if (!isDataPostError(error.response?.data)) {
           window.logError('Failed to upload attachment:\n', error.message);
         }
@@ -96,7 +96,7 @@ export const AttachmentMutations = {
         }
         return doAttachmentRemove(instanceId, dataElementId, language);
       },
-      onError: (error: AxiosError) => window.logError('Failed to delete attachment:\n', error),
+      onError: (error: HttpError) => window.logError('Failed to delete attachment:\n', error),
       onSuccess: (_data, { dataElementId }) => optimisticallyRemoveDataElement(dataElementId),
     });
     return mutationResult(mutation);
@@ -115,7 +115,7 @@ export const AttachmentMutations = {
         }
         return doUpdateAttachmentTags({ instanceId, dataElementId, setTagsRequest });
       },
-      onError: (error: AxiosError) => window.logError('Failed to add tag to attachment:\n', error),
+      onError: (error: HttpError) => window.logError('Failed to add tag to attachment:\n', error),
       onSuccess: (data) => {
         if (data.validationIssues) {
           updateIncrementalValidations(backendValidationIssueGroupListToObject(data.validationIssues));

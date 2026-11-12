@@ -1,5 +1,7 @@
 import { type LoaderFunctionArgs, redirect } from 'react-router';
 
+import { isHttpError } from '@studio/http-client';
+
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { prefetchPartiesAllowedToInstantiate } from 'src/core/queries/party';
 import { getInstantiationClosedReason, isInstantiationClosedError } from 'src/features/instantiate/instantiationClosed';
@@ -8,7 +10,6 @@ import { GlobalData } from 'src/GlobalData';
 import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { buildInstanceUrl } from 'src/routesBuilder';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
@@ -58,7 +59,7 @@ function toLoaderError(error: unknown): InstanceSelectionLoaderError {
       },
     };
   }
-  if (isAxiosError(error) && error.response?.status === 403) {
+  if (isHttpError(error) && error.response?.status === 403) {
     const data = error.response?.data;
     if (isInstantiationValidationResult(data)) {
       return { error: 'forbidden-validation', validationResult: data };
