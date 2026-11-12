@@ -12,6 +12,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -652,12 +653,9 @@ internal sealed class FormBootstrapService
         return _appModel.Create(classRef);
     }
 
-    private object? GetCalculationConfig(string dataType)
+    private CalculationSchema? GetCalculationConfig(string dataType)
     {
-        var configJson = _appResources.GetCalculationConfiguration(dataType);
-        return string.IsNullOrEmpty(configJson)
-            ? null
-            : JsonSerializer.Deserialize<JsonElement>(configJson, _jsonSerializerOptions);
+        return _appResources.GetCalculationSchema(dataType);
     }
 
     private HashSet<string> IncludeCalculationDependencies(HashSet<string> dataTypes)

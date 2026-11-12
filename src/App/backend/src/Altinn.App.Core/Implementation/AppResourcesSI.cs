@@ -341,13 +341,6 @@ internal sealed class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    [Obsolete("Use GetCalculationSchema instead")]
-    public string? GetCalculationConfiguration(string dataTypeId)
-    {
-        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration);
-    }
-
-    /// <inheritdoc />
     public CalculationSchema? GetCalculationSchema(string dataTypeId)
     {
         if (_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration is not { } bytes)

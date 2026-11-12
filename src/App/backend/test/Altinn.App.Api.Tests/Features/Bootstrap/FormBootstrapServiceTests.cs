@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -199,8 +200,12 @@ public class FormBootstrapServiceTests
     {
         SetupMocks(CreateAppMetadata("model"));
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("model"))
-            .Returns("""{ "calculations": { "value": { "expression": ["multiply", 4, 2] } } }""");
+            .Setup(x => x.GetCalculationSchema("model"))
+            .Returns(
+                ParseCalculationSchema(
+                    """{ "calculations": [{ "field": "value", "expression": ["multiply", 4, 2] }] }"""
+                )
+            );
 
         var result = await CreateService()
             .GetInstanceFormBootstrap(CreateTestInstance("Task_1", locked: locked), "Task_1", null, isPdf, "nb");
@@ -208,21 +213,25 @@ public class FormBootstrapServiceTests
         Assert.Equal(included, result.DataModels["model"].CalculationConfig is not null);
         if (included)
         {
-            var config = Assert.IsType<JsonElement>(result.DataModels["model"].CalculationConfig);
-            Assert.Equal(
-                "multiply",
-                config.GetProperty("calculations").GetProperty("value").GetProperty("expression")[0].GetString()
+            // The frontend gets the calculations in the same list format as calculation.json
+            using var config = JsonDocument.Parse(
+                JsonSerializer.Serialize(result.DataModels["model"].CalculationConfig)
             );
+            var calculation = Assert.Single(config.RootElement.GetProperty("calculations").EnumerateArray());
+            Assert.Equal("value", calculation.GetProperty("field").GetString());
+            Assert.Equal("multiply", calculation.GetProperty("expression")[0].GetString());
         }
     }
 
     [Theory]
     [InlineData(null)]
-    [InlineData("{ \"calculations\": { \"value\": { \"expression\": true } } }")]
+    [InlineData("{ \"calculations\": [{ \"field\": \"value\", \"expression\": true }] }")]
     public async Task GetStatelessFormBootstrap_CalculationConfig(string? configuration)
     {
         SetupStatelessMocks(CreateAppMetadata("model"));
-        _appResources.Setup(x => x.GetCalculationConfiguration("model")).Returns(configuration);
+        _appResources
+            .Setup(x => x.GetCalculationSchema("model"))
+            .Returns(configuration is null ? null : ParseCalculationSchema(configuration));
 
         var result = await CreateService().GetStatelessFormBootstrap("stateless", "nb", ["model"]);
 
@@ -243,11 +252,19 @@ public class FormBootstrapServiceTests
             SetupMocks(CreateAppMetadata("model", "submodel"));
         }
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("model"))
-            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "submodel"] } } }""");
+            .Setup(x => x.GetCalculationSchema("model"))
+            .Returns(
+                ParseCalculationSchema(
+                    """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "submodel"] }] }"""
+                )
+            );
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("submodel"))
-            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "model"] } } }""");
+            .Setup(x => x.GetCalculationSchema("submodel"))
+            .Returns(
+                ParseCalculationSchema(
+                    """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "model"] }] }"""
+                )
+            );
 
         var service = CreateService();
         var result = stateless
@@ -1264,6 +1281,10 @@ public class FormBootstrapServiceTests
             Data = data,
         };
     }
+
+    private static CalculationSchema ParseCalculationSchema(string json) =>
+        JsonSerializer.Deserialize<CalculationSchema>(json)
+        ?? throw new InvalidOperationException("The calculation configuration is null");
 
     private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes) =>
         CreateAppMetadata(typeof(DummyModel), dataTypes);

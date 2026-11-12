@@ -260,7 +260,7 @@ public class AppResourcesSITests
     [Fact]
     public void GetCalculationSchema_deserializes_file_from_disk()
     {
-        IAppResources appResources = GetAppResourcesForCalculation();
+        IAppResources appResources = GetAppResourcesForCalculation("default");
 
         CalculationSchema? actual = appResources.GetCalculationSchema("default");
 
@@ -278,7 +278,7 @@ public class AppResourcesSITests
     [Fact]
     public void GetCalculationSchema_returns_null_when_file_is_missing()
     {
-        IAppResources appResources = GetAppResourcesForCalculation();
+        IAppResources appResources = GetAppResourcesForCalculation("default");
 
         CalculationSchema? actual = appResources.GetCalculationSchema("does-not-exist");
 
@@ -288,7 +288,7 @@ public class AppResourcesSITests
     [Fact]
     public void GetCalculationSchema_accepts_comments_in_file()
     {
-        IAppResources appResources = GetAppResourcesForCalculation();
+        IAppResources appResources = GetAppResourcesForCalculation("comments");
 
         CalculationSchema? actual = appResources.GetCalculationSchema("comments");
 
@@ -299,11 +299,12 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetCalculationSchema_throws_on_invalid_json()
+    public void Loading_app_throws_on_invalid_calculation_json()
     {
-        IAppResources appResources = GetAppResourcesForCalculation();
+        // The app files loader rejects invalid JSON before the app starts, so GetCalculationSchema never sees it
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation("invalid"));
 
-        Assert.Throws<JsonException>(() => appResources.GetCalculationSchema("invalid"));
+        Assert.Contains("models/invalid.calculation.json", exception.Message);
     }
 
     [Fact]
@@ -311,7 +312,7 @@ public class AppResourcesSITests
     {
         // Before the "calculations" property became a list it was an object keyed by field name.
         // Such files are no longer supported and must be rejected rather than silently ignored.
-        IAppResources appResources = GetAppResourcesForCalculation();
+        IAppResources appResources = GetAppResourcesForCalculation("legacy");
 
         Assert.Throws<JsonException>(() => appResources.GetCalculationSchema("legacy"));
     }
@@ -324,7 +325,7 @@ public class AppResourcesSITests
     [InlineData("empty-field")]
     public void GetCalculationSchema_throws_with_file_name_on_null_values(string dataTypeId)
     {
-        IAppResources appResources = GetAppResourcesForCalculation();
+        IAppResources appResources = GetAppResourcesForCalculation(dataTypeId);
 
         var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationSchema(dataTypeId));
 
@@ -332,9 +333,9 @@ public class AppResourcesSITests
     }
 
     /// <summary>
-    /// Loads an app whose models folder holds the files in TestData/Calculation.
+    /// Loads an app whose models folder holds <c>TestData/Calculation/{dataTypeId}.calculation.json</c>.
     /// </summary>
-    private IAppResources GetAppResourcesForCalculation()
+    private IAppResources GetAppResourcesForCalculation(string dataTypeId)
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Calculation-");
         try
@@ -342,10 +343,8 @@ public class AppResourcesSITests
             var modelsDir = Path.Join(tempDir.FullName, "models");
             Directory.CreateDirectory(modelsDir);
             var sourceDir = Path.Join(PathUtils.GetCoreTestsPath(), "Implementation", "TestData", "Calculation");
-            foreach (var file in Directory.EnumerateFiles(sourceDir, "*.calculation.json"))
-            {
-                File.Copy(file, Path.Join(modelsDir, Path.GetFileName(file)));
-            }
+            var fileName = $"{dataTypeId}.calculation.json";
+            File.Copy(Path.Join(sourceDir, fileName), Path.Join(modelsDir, fileName));
 
             return CreateAppResources(tempDir);
         }
