@@ -38,7 +38,17 @@ describe('createHttpClient', () => {
 
       const response = await createHttpClient().post(testUrl, { name: 'test' });
 
-      expect(response).toEqual({ status: 201, data: { id: 1 } });
+      expect(response).toMatchObject({ status: 201, data: { id: 1 } });
+    });
+
+    it('returns the response headers', async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response('[]', { headers: { 'altinn-downstreamparameters': 'a=1' } }),
+      );
+
+      const response = await createHttpClient().get(testUrl);
+
+      expect(response.headers?.get('altinn-downstreamparameters')).toBe('a=1');
     });
 
     it.each([
@@ -242,8 +252,19 @@ describe('createHttpClient', () => {
         .catch((e) => e);
 
       expect(isHttpError(error)).toBe(true);
-      expect(error.response).toEqual({ status: 409, data });
+      expect(error.response).toMatchObject({ status: 409, data });
       expect(error.message).toBe('Request failed with status code 409');
+    });
+
+    it('tells which request failed, as the request interceptors left it', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse({}, 500));
+      const client = createHttpClient({
+        onRequest: [(request) => void (request.url = `/app${request.url}`)],
+      });
+
+      const error = await client.put(testUrl, {}).catch((e) => e);
+
+      expect(error.request).toEqual({ method: 'PUT', url: `/app${testUrl}` });
     });
 
     it('throws an HttpError without a response when the request fails', async () => {
@@ -255,6 +276,7 @@ describe('createHttpClient', () => {
 
       expect(isHttpError(error)).toBe(true);
       expect(error.response).toBeUndefined();
+      expect(error.request).toEqual({ method: 'POST', url: testUrl });
       expect(error.message).toBe('Failed to fetch');
     });
 
@@ -283,6 +305,40 @@ describe('createHttpClient', () => {
       expect(error).toBe(abortError);
       expect(isHttpError(error)).toBe(false);
       expect(isRequestCancelled(error)).toBe(true);
+    });
+  });
+
+  describe('onError', () => {
+    it('runs on an error status and on a failed request, before the error is thrown', async () => {
+      const seen: unknown[] = [];
+      fetchSpy.mockResolvedValueOnce(jsonResponse({}, 500));
+      fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+      const client = createHttpClient({ onError: [(error) => void seen.push(error)] });
+
+      const statusError = await client.get(testUrl).catch((e) => e);
+      const networkError = await client.get(testUrl).catch((e) => e);
+
+      expect(seen).toEqual([statusError, networkError]);
+    });
+
+    it('does not run on an aborted request', async () => {
+      const onError = vi.fn();
+      fetchSpy.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'));
+
+      await createHttpClient({ onError: [onError] })
+        .get(testUrl)
+        .catch(() => {});
+
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('does not run on a successful response', async () => {
+      const onError = vi.fn();
+      fetchSpy.mockResolvedValueOnce(emptyResponse());
+
+      await createHttpClient({ onError: [onError] }).get(testUrl);
+
+      expect(onError).not.toHaveBeenCalled();
     });
   });
 
