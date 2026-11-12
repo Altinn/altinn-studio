@@ -111,6 +111,29 @@ namespace Altinn.App.Models
     [JsonProperty("PetsUseOptionComponent")]
     [JsonPropertyName("PetsUseOptionComponent")]
     public bool? PetsUseOptionComponent { get; set; }
+
+    [XmlElement("ChangeList")]
+    [JsonProperty("ChangeList")]
+    [JsonPropertyName("ChangeList")]
+    public List<decimal>? ChangeList { get; set; }
+
+    [XmlElement("ChangeSummary")]
+    [JsonProperty("ChangeSummary")]
+    [JsonPropertyName("ChangeSummary")]
+    public ChangeSummary? ChangeSummary { get; set; }
+  }
+
+  public class ChangeSummary
+  {
+    [XmlElement("Total")]
+    [JsonProperty("Total")]
+    [JsonPropertyName("Total")]
+    public decimal Total { get; set; }
+
+    [XmlElement("Rows")]
+    [JsonProperty("Rows")]
+    [JsonPropertyName("Rows")]
+    public int Rows { get; set; }
   }
 
   public class Pet

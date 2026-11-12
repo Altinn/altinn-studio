@@ -106,6 +106,29 @@
           "not_null(@, `[]`)[]"
         ]
       ]
+    },
+    {
+      // A list result: the calculated change of every row
+      "field": "ChangeList",
+      "expression": [
+        "jmespath",
+        [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        ],
+        "not_null(@, `[]`)[].CalculatedChange"
+      ]
+    },
+    {
+      // An object result, reading the list calculated above
+      "field": "ChangeSummary",
+      "expression": [
+        "object",
+        "Total",
+        ["dataModel", "sumAll"],
+        "Rows",
+        ["count", ["dataModel", "ChangeList"]]
+      ]
     }
   ],
 }
