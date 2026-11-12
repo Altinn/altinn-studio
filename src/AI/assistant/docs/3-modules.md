@@ -13,7 +13,7 @@ The service is one Python process. It uses `asyncio`, so many runs can share the
 | `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, Designer API, LLM gates and client, repo scan, preview render check.                                         |
 | `src/AI/assistant/agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
 | `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation.                                                |
-| `src/AI/assistant/agents/skills/`     | The skills that `SKILLS` names.                                                                                                                 |
+| `src/AI/assistant/agents/skills/`     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
 | `src/AI/assistant/agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
 | `src/AI/assistant/services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
 | `src/AI/assistant/shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
@@ -40,7 +40,7 @@ flowchart LR
   C["core/loop.py"] --> AD["core/llm_adapter.py"]
   C --> T["core/tools"]
   T --> AL["agents/altinn"]
-  T --> S["agents/services: git, repo, preview"]
+  T --> S["agents/services: git, repo, Designer API, preview"]
 ```
 
 _The loop knows only the adapter and the tool registry. The tools use the domain library and the services._
@@ -89,16 +89,6 @@ flowchart LR
 ```
 
 _The main path of the workbench. The manifest says what the agent must do. The registry says which evals exist._
-
-```mermaid
-flowchart LR
-  C["check.py task_for"] -->|prompt| G["gates.py"]
-  C -->|generation| N["generation.py"]
-  C -->|planner| P["planner.py"]
-  C -->|e2e| A["agent_task.py"]
-```
-
-_One task class for each kind of eval._
 
 ## State is in memory
 
