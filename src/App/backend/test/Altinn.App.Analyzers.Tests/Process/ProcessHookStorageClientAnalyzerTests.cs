@@ -25,6 +25,10 @@ public class ProcessHookStorageClientAnalyzerTests
 
         """;
 
+    private const string Refused =
+        "Storage refuses this call then, and the instance data mutator has no replacement for it";
+    private const string NotRefused = "The instance data mutator has no replacement for it";
+
     public static TheoryData<string, string> Hooks =>
         new()
         {
@@ -285,18 +289,25 @@ public class ProcessHookStorageClientAnalyzerTests
     }
 
     [Theory]
-    [InlineData("AddCompleteConfirmation(1337, System.Guid.Empty)")]
-    [InlineData("UpdateSubstatus(1337, System.Guid.Empty, new Substatus())")]
-    public async Task Does_Not_Point_At_The_Mutator_For_A_Call_It_Cannot_Replace(string call)
+    [InlineData("dataClient.LockDataElement(new InstanceIdentifier(instance), Guid.Empty)", Refused)]
+    [InlineData("dataClient.UnlockDataElement(new InstanceIdentifier(instance), Guid.Empty)", Refused)]
+    [InlineData("instanceClient.AddCompleteConfirmation(1337, Guid.Empty)", Refused)]
+    [InlineData("instanceClient.DeleteInstance(1337, Guid.Empty, false)", Refused)]
+    [InlineData("instanceClient.UpdateProcess(instance)", Refused)]
+    [InlineData("instanceClient.UpdateProcessAndEvents(instance, new List<InstanceEvent>())", Refused)]
+    [InlineData("instanceClient.UpdateSubstatus(1337, Guid.Empty, new Substatus())", Refused)]
+    [InlineData("instanceClient.UpdateReadStatus(1337, Guid.Empty, \"Read\")", NotRefused)]
+    public async Task Does_Not_Point_At_The_Mutator_For_A_Call_It_Cannot_Replace(string call, string advice)
     {
         var diagnostics = await Analyze(
             $$"""
-            public sealed class Hook(IInstanceClient instanceClient) : IOnTaskEndingHandler
+            public sealed class Hook(IDataClient dataClient, IInstanceClient instanceClient) : IOnTaskEndingHandler
             {
                 public bool ShouldRunForTask(string taskId) => true;
                 public async Task<HandlerResult> Execute(OnTaskEndingContext context)
                 {
-                    await instanceClient.{{call}};
+                    Instance instance = context.InstanceDataMutator.Instance;
+                    await {{call}};
                     return HandlerResult.Success();
                 }
             }
@@ -305,8 +316,7 @@ public class ProcessHookStorageClientAnalyzerTests
 
         Diagnostic diagnostic = Assert.Single(diagnostics);
         Assert.Equal("ALTINNAPP0501", diagnostic.Id);
-        Assert.Contains("has no replacement for it", diagnostic.GetMessage(), StringComparison.Ordinal);
-        Assert.DoesNotContain("Use the instance data mutator", diagnostic.GetMessage(), StringComparison.Ordinal);
+        Assert.EndsWith($"transitioning. {advice}.", diagnostic.GetMessage(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -339,17 +349,19 @@ public class ProcessHookStorageClientAnalyzerTests
         Assert.Empty(diagnostics);
     }
 
-    [Fact]
-    public async Task Does_Not_Report_Reading_Other_Instances()
+    [Theory]
+    [InlineData("GetInstances(new Dictionary<string, StringValues>())")]
+    [InlineData("CreateInstance(\"ttd\", \"app\", new Instance())")]
+    public async Task Does_Not_Report_Calls_On_Other_Instances(string call)
     {
         var diagnostics = await Analyze(
-            """
+            $$"""
             public sealed class Hook(IInstanceClient instanceClient) : IOnTaskEndingHandler
             {
                 public bool ShouldRunForTask(string taskId) => true;
                 public async Task<HandlerResult> Execute(OnTaskEndingContext context)
                 {
-                    await instanceClient.GetInstances(new Dictionary<string, StringValues>());
+                    await instanceClient.{{call}};
                     return HandlerResult.Success();
                 }
             }

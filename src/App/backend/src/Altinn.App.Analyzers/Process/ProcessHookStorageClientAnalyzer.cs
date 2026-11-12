@@ -4,33 +4,46 @@ namespace Altinn.App.Analyzers;
 
 /// <summary>
 /// Reports calls to <c>IDataClient</c>, <c>IInstanceClient</c> and <c>IDataService</c> in process hooks, service tasks
-/// and <c>IInstantiationProcessor.DataCreation</c>, where Storage refuses their writes while the process is transitioning.
+/// and <c>IInstantiationProcessor.DataCreation</c>, where Storage refuses most of their writes while the process is
+/// transitioning.
 /// </summary>
 /// <remarks>
 /// Only the body of the hook and of methods that take a <c>StageContext</c> is checked, not the methods they call.
-/// <c>IInstanceClient.GetInstances</c> reads other instances, so it is not reported.
+/// <c>IInstanceClient.GetInstances</c> and <c>CreateInstance</c> never concern the current instance, so they are not
+/// reported.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
 {
+    private const string DataClientTypeName = "Altinn.App.Core.Internal.Data.IDataClient";
     private const string InstanceClientTypeName = "Altinn.App.Core.Internal.Instances.IInstanceClient";
-    private const string GetInstancesMethodName = "GetInstances";
     private const string StageContextTypeName = "Altinn.App.Core.Features.Process.StageContext";
 
     // The message format ends each of these with a period.
     private const string UseTheMutator = "Use the instance data mutator from the context for the current instance";
-    private const string NoMutatorReplacement =
+    private const string RefusedWithoutMutatorReplacement =
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
+    private const string NoMutatorReplacement = "The instance data mutator has no replacement for it";
 
-    private static readonly string[] _instanceClientMethodsWithoutReplacement =
-    [
-        "AddCompleteConfirmation",
-        "UpdateSubstatus",
-    ];
+    private static readonly string[] _instanceClientMethodsForOtherInstances = ["GetInstances", "CreateInstance"];
+
+    private static readonly Dictionary<(string ClientTypeName, string MethodName), string> _callsWithoutReplacement =
+        new()
+        {
+            [(DataClientTypeName, "LockDataElement")] = RefusedWithoutMutatorReplacement,
+            [(DataClientTypeName, "UnlockDataElement")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "AddCompleteConfirmation")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "DeleteInstance")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateProcess")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateProcessAndEvents")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "UpdateSubstatus")] = RefusedWithoutMutatorReplacement,
+            // Storage sets the read status without checking the process status.
+            [(InstanceClientTypeName, "UpdateReadStatus")] = NoMutatorReplacement,
+        };
 
     private static readonly string[] _clientTypeNames =
     [
-        "Altinn.App.Core.Internal.Data.IDataClient",
+        DataClientTypeName,
         InstanceClientTypeName,
         "Altinn.App.Core.Internal.Data.IDataService",
     ];
@@ -82,10 +95,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
             if (clients.Count == 0 || hookMembers.Count == 0)
                 return;
 
-            var instanceClient = startContext.Compilation.GetTypeByMetadataName(InstanceClientTypeName);
             var stageContext = startContext.Compilation.GetTypeByMetadataName(StageContextTypeName);
             startContext.RegisterOperationAction(
-                ctx => Analyze(ctx, clients, instanceClient, hookMembers, stageContext),
+                ctx => Analyze(ctx, clients, hookMembers, stageContext),
                 OperationKind.Invocation,
                 OperationKind.MethodReference
             );
@@ -95,7 +107,6 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
     private static void Analyze(
         OperationAnalysisContext context,
         HashSet<INamedTypeSymbol> clients,
-        INamedTypeSymbol? instanceClient,
         List<IMethodSymbol> hookMembers,
         INamedTypeSymbol? stageContext
     )
@@ -118,10 +129,8 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (client is null || !clients.Contains(client.OriginalDefinition))
             return;
 
-        if (
-            target.Name == GetInstancesMethodName
-            && SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
-        )
+        string clientTypeName = client.OriginalDefinition.ToDisplayString();
+        if (clientTypeName == InstanceClientTypeName && _instanceClientMethodsForOtherInstances.Contains(target.Name))
             return;
 
         if (context.ContainingSymbol is not IMethodSymbol { ContainingType: { } containingType } method)
@@ -153,10 +162,6 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         if (hook is null)
             return;
 
-        bool hasNoReplacement =
-            SymbolEqualityComparer.Default.Equals(client.OriginalDefinition, instanceClient)
-            && _instanceClientMethodsWithoutReplacement.Contains(target.Name);
-
         context.ReportDiagnostic(
             Diagnostic.Create(
                 Diagnostics.CodeSmells.StorageClientInProcessHook,
@@ -164,7 +169,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
                 client.Name,
                 target.Name,
                 hook,
-                hasNoReplacement ? NoMutatorReplacement : UseTheMutator
+                _callsWithoutReplacement.TryGetValue((clientTypeName, target.Name), out string? advice)
+                    ? advice
+                    : UseTheMutator
             )
         );
     }
