@@ -18,10 +18,11 @@ export const useCreateChatMessageMutation = () => {
       // invalidateQueries restarts a running fetch only when the query has data. Without the saved
       // message here, the first fetch of a new thread can read the thread before the save.
       if (createdMessage) {
-        queryClient.setQueryData<ChatMessage[]>(queryKey, (messages = []) => [
-          ...messages,
-          createdMessage,
-        ]);
+        queryClient.setQueryData<ChatMessage[]>(queryKey, (messages = []) =>
+          messages.some((message) => message.id === createdMessage.id)
+            ? messages
+            : [...messages, createdMessage],
+        );
       }
       void queryClient.invalidateQueries({ queryKey });
     },

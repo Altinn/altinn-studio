@@ -73,4 +73,27 @@ describe('useCreateChatMessageMutation', () => {
 
     await waitFor(() => expect(result.current.messages.data).toHaveLength(1));
   });
+
+  it('Does not add the saved message again when the cache already has it', async () => {
+    const savedMessage: ChatMessage = {
+      id: 'message-1',
+      threadId,
+      createdAt: '2026-11-12T10:00:00Z',
+      role: MessageAuthor.User,
+      content: 'Hello',
+    };
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.ChatMessages, org, app, threadId], [savedMessage]);
+    const result = renderHookWithProviders(
+      { createChatMessage: vi.fn().mockResolvedValue(savedMessage) },
+      client,
+    )(() => useCreateChatMessageMutation()).renderHookResult.result;
+
+    result.current.mutate({ threadId, payload });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(client.getQueryData([QueryKey.ChatMessages, org, app, threadId])).toEqual([
+      savedMessage,
+    ]);
+  });
 });

@@ -6,7 +6,7 @@ import { useCreateChatThreadMutation } from './useCreateChatThreadMutation';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { CreateChatThreadPayload } from 'app-shared/types/api';
+import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api';
 
 const payload: CreateChatThreadPayload = { title: 'My new thread' };
 
@@ -22,6 +22,25 @@ describe('useCreateChatThreadMutation', () => {
     expect(queriesMock.createChatThread).toHaveBeenCalledWith(org, app, payload);
   });
 
+  it('Puts the created thread first in the cached thread list', async () => {
+    const existingThread: ChatThread = createThread('existing-thread');
+    const createdThread: ChatThread = createThread('created-thread');
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.ChatThreads, org, app], [existingThread]);
+    const result = renderHookWithProviders(
+      { createChatThread: vi.fn().mockResolvedValue(createdThread) },
+      client,
+    )(() => useCreateChatThreadMutation()).renderHookResult.result;
+
+    result.current.mutate(payload);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(client.getQueryData([QueryKey.ChatThreads, org, app])).toEqual([
+      createdThread,
+      existingThread,
+    ]);
+  });
+
   it('Invalidates ChatThreads when creating a thread', async () => {
     const client = createQueryClientMock();
     const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
@@ -35,4 +54,13 @@ describe('useCreateChatThreadMutation', () => {
       queryKey: [QueryKey.ChatThreads, org, app],
     });
   });
+});
+
+const createThread = (id: string): ChatThread => ({
+  id,
+  title: 'Tråd',
+  org,
+  app,
+  createdBy: 'testUser',
+  createdAt: '2026-01-01T00:00:00Z',
 });
