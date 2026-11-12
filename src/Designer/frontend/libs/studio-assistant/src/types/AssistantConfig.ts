@@ -1,4 +1,4 @@
-import type { UserAttachment, Source } from './ChatThread';
+import type { Source } from './ChatThread';
 
 export interface AssistantMessageData {
   response?: string;
@@ -103,16 +103,6 @@ export type WorkflowEvent =
   | DoneEvent
   | ErrorEvent
   | PermissionRequestEvent;
-
-export interface WorkflowRequest {
-  session_id: string;
-  goal: string;
-  org: string;
-  app: string;
-  branch: string;
-  allow_app_changes: boolean;
-  attachments?: UserAttachment[];
-}
 
 export interface ParsedIntent {
   suggestions?: string[];

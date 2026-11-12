@@ -4,7 +4,6 @@ import {
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
-  isAttachmentNotFoundError,
 } from './messageUtils';
 
 // Test data
@@ -52,20 +51,6 @@ describe('messageUtils', () => {
   describe('getAssistantMessageTimestamp', () => {
     it('uses assistant timestamp', () => {
       expect(getAssistantMessageTimestamp(baseAssistantMessage)).toEqual(new Date(testTimestamp));
-    });
-  });
-
-  describe('isAttachmentNotFoundError', () => {
-    it('recognizes the hub error that SignalR passes on', () => {
-      const error = new Error(
-        "An unexpected error occurred invoking 'StartWorkflow' on the server. HubException: ATTACHMENT_NOT_FOUND",
-      );
-      expect(isAttachmentNotFoundError(error)).toBe(true);
-    });
-
-    it('returns false for other errors', () => {
-      expect(isAttachmentNotFoundError(new Error('Access denied'))).toBe(false);
-      expect(isAttachmentNotFoundError('ATTACHMENT_NOT_FOUND')).toBe(false);
     });
   });
 });

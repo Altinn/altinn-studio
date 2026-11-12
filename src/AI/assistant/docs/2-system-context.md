@@ -4,16 +4,17 @@ _How is the service connected with other services?_
 
 Designer code:
 
+- `src/Designer/backend/src/Designer/Controllers/AssistantWorkflowController.cs`
 - `src/Designer/backend/src/Designer/Hubs/Assistant/`
 - `src/Designer/backend/src/Designer/Services/Implementation/Assistant/`
 - `src/Designer/frontend/app-development/features/aiAssistant/`
 - `src/Designer/frontend/libs/studio-assistant/`
 
-The browser never calls the assistant service. The Designer backend is between them. The browser talks to Designer through SignalR (`AssistantProxyHub`). Designer talks to the assistant service through HTTP for commands and through one WebSocket for events. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
+The browser never calls the assistant service. The Designer backend is between them. Both hops use HTTP for commands and a WebSocket for events. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
 
 ```mermaid
 flowchart LR
-  B["Browser: Designer frontend"] -->|SignalR| D["Designer backend"]
+  B["Browser: Designer frontend"] -->|HTTP and SignalR| D["Designer backend"]
   D -->|HTTP and WebSocket| A["Assistant service"]
   A -->|git clone and push| G["Gitea"]
   A -->|generate data model files| D
@@ -32,9 +33,11 @@ flowchart LR
 
 _Support services. Langfuse is optional. Without it, the service records no traces and uses local prompt files._
 
-## Connect and register a thread
+## Connect
 
-Designer opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.
+Each Designer replica opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.
+
+The assistant service sends events on a socket only after the socket gets a session frame. Each command from the browser therefore sends a session frame on the socket of the replica that handles the command.
 
 ```mermaid
 sequenceDiagram
@@ -42,11 +45,8 @@ sequenceDiagram
   participant D as Designer backend
   participant A as Assistant service
   B->>D: Connect to AssistantProxyHub
+  D->>D: Add the connection to the developer's group
   D->>A: Open WebSocket /ws, one for each developer
-  B->>D: RegisterSession(org, app, threadId)
-  D->>D: Check feature access and thread owner
-  D->>A: Frame type=session with session_id and developer
-  A-->>D: Frame type=session, status=registered
 ```
 
 _Connection setup. The assistant service sends events by developer, not by tab._
@@ -55,7 +55,7 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. It also uses the key to let the Designer API generate data model files. The service has no Gitea token of its own.
 
-Attachments go to Designer first. Designer accepts eight file types up to 20 MB each and keeps them in its distributed cache for a maximum of 30 minutes, so that every replica can find them. Then it sends them as base64 in the start request. If an attachment is missing, Designer stops the request and asks the user to attach the files again.
+The browser sends the message and its attachments in one multipart request. Designer accepts eight file types up to 20 MB each, and 50 MB for the whole request, which is the limit of the load balancer. It sends the files as base64 in the start request. Designer stores nothing between requests, so any replica can take the request.
 
 ```mermaid
 sequenceDiagram
@@ -63,7 +63,9 @@ sequenceDiagram
   participant D as Designer backend
   participant A as Assistant service
   participant G as Gitea proxy
-  B->>D: StartWorkflow(goal, branch, allow_app_changes)
+  B->>D: POST .../assistant/threads/ID/workflow with the message and files
+  D->>D: Check feature access and thread owner
+  D->>A: Frame type=session with session_id and developer
   D->>D: Make an API key that expires after 20 min
   D->>A: POST /api/agent/start with X-Api-Key and X-Developer
   A->>G: git clone with the X-Api-Key header
@@ -76,7 +78,7 @@ _The start request returns quickly. The real work happens after the response._
 
 ## Events come back
 
-The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
+The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Redis is SignalR's backplane, so the event also reaches tabs that are connected to another replica. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
 
 Each Designer replica that has a WebSocket for the developer gets all the events, and each replica saves the answer. The database keeps one message for each event id, so the thread shows the answer one time. The browser does not save the answer. It gets the saved answer from Designer.
 
@@ -109,15 +111,15 @@ sequenceDiagram
   participant D as Designer backend
   participant A as Assistant service
   A-->>B: permission_request with request_id, through Designer
-  B->>D: RespondToPermission(sessionId, requestId, granted)
+  B->>D: POST .../workflow/permission with requestId and granted
   D->>A: POST /api/agent/permission/ID
   A-->>B: permission_request with resolved=true
-  B->>D: CancelWorkflow(sessionId)
+  B->>D: POST .../workflow/cancel
   D->>A: POST /api/agent/cancel/ID
   A-->>B: error event with status=cancelled
 ```
 
-_Two user actions during a run. The assistant service checks that the caller owns the session._
+_Two user actions during a run. Designer checks that the developer owns the thread, and the assistant service checks that the caller owns the session._
 
 ## Deploy
 

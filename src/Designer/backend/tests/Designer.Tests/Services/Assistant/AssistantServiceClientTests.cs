@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models.Assistant;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -38,9 +41,105 @@ public class AssistantServiceClientTests
         await Assert.ThrowsAsync<HttpRequestException>(() => client.TriggerTraceCleanupAsync(CancellationToken.None));
     }
 
+    [Fact]
+    public async Task StartWorkflow_PostsTheRequestInTheAssistantsFormat()
+    {
+        HttpRequestMessage capturedRequest = null;
+        JsonElement capturedBody = default;
+        AssistantServiceClient client = CreateClient(
+            HttpStatusCode.OK,
+            request =>
+            {
+                capturedRequest = request;
+                capturedBody = JsonSerializer.Deserialize<JsonElement>(request.Content!.ReadAsStringAsync().Result);
+            },
+            responseBody: """{"accepted": true, "session_id": "session-1"}"""
+        );
+        var request = new AssistantWorkflowStartRequest(
+            SessionId: "session-1",
+            Goal: "Lag et skjema",
+            RepoUrl: "http://repos/ttd/app.git",
+            Branch: "master",
+            AllowAppChanges: true,
+            CostOrg: "ttd",
+            Attachments:
+            [
+                new AssistantWorkflowAttachment(
+                    "krav.pdf",
+                    "application/pdf",
+                    4,
+                    "data:application/pdf;base64,dGVzdA=="
+                ),
+            ]
+        );
+
+        JsonElement response = await client.StartWorkflow(request, "testUser", "api-key", CancellationToken.None);
+
+        Assert.True(response.GetProperty("accepted").GetBoolean());
+        Assert.Equal(HttpMethod.Post, capturedRequest.Method);
+        Assert.Equal($"{AgentUrl}/api/agent/start", capturedRequest.RequestUri!.ToString());
+        Assert.Equal("api-key", capturedRequest.Headers.GetValues("X-Api-Key").Single());
+        Assert.Equal("testUser", capturedRequest.Headers.GetValues("X-Developer").Single());
+        Assert.Equal("session-1", capturedRequest.Headers.GetValues("X-Session-Id").Single());
+        Assert.Equal("session-1", capturedBody.GetProperty("session_id").GetString());
+        Assert.Equal("http://repos/ttd/app.git", capturedBody.GetProperty("repo_url").GetString());
+        Assert.True(capturedBody.GetProperty("allow_app_changes").GetBoolean());
+        Assert.Equal("ttd", capturedBody.GetProperty("cost_org").GetString());
+        JsonElement attachment = Assert.Single(capturedBody.GetProperty("attachments").EnumerateArray());
+        Assert.Equal("application/pdf", attachment.GetProperty("mimeType").GetString());
+        Assert.Equal("data:application/pdf;base64,dGVzdA==", attachment.GetProperty("dataBase64").GetString());
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_PostsToTheSessionsCancelEndpointWithTheDeveloper()
+    {
+        HttpRequestMessage capturedRequest = null;
+        AssistantServiceClient client = CreateClient(HttpStatusCode.OK, request => capturedRequest = request);
+
+        await client.CancelWorkflow("testUser", "session-1", CancellationToken.None);
+
+        Assert.Equal(HttpMethod.Post, capturedRequest.Method);
+        Assert.Equal($"{AgentUrl}/api/agent/cancel/session-1", capturedRequest.RequestUri!.ToString());
+        // The assistant service rejects cancellation without the caller's identity.
+        Assert.Equal("testUser", capturedRequest.Headers.GetValues("X-Developer").Single());
+    }
+
+    [Fact]
+    public async Task RespondToPermission_PostsTheAnswerToTheSessionsPermissionEndpoint()
+    {
+        HttpRequestMessage capturedRequest = null;
+        JsonElement capturedBody = default;
+        AssistantServiceClient client = CreateClient(
+            HttpStatusCode.OK,
+            request =>
+            {
+                capturedRequest = request;
+                capturedBody = JsonSerializer.Deserialize<JsonElement>(request.Content!.ReadAsStringAsync().Result);
+            }
+        );
+
+        await client.RespondToPermission("testUser", "session-1", "request-1", true, CancellationToken.None);
+
+        Assert.Equal($"{AgentUrl}/api/agent/permission/session-1", capturedRequest.RequestUri!.ToString());
+        Assert.Equal("testUser", capturedRequest.Headers.GetValues("X-Developer").Single());
+        Assert.Equal("request-1", capturedBody.GetProperty("request_id").GetString());
+        Assert.True(capturedBody.GetProperty("granted").GetBoolean());
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_ThrowsOnNonSuccess()
+    {
+        AssistantServiceClient client = CreateClient(HttpStatusCode.Forbidden);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.CancelWorkflow("testUser", "session-1", CancellationToken.None)
+        );
+    }
+
     private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
-        Action<HttpRequestMessage> onRequest = null
+        Action<HttpRequestMessage> onRequest = null,
+        string responseBody = "{}"
     )
     {
         Mock<HttpMessageHandler> mockHandler = new(MockBehavior.Strict);
@@ -52,7 +151,9 @@ public class AssistantServiceClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Callback<HttpRequestMessage, CancellationToken>((request, _) => onRequest?.Invoke(request))
-            .ReturnsAsync(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent("") });
+            .ReturnsAsync(
+                new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(responseBody) }
+            );
 
         HttpClient httpClient = new(mockHandler.Object);
         IOptions<AssistantSettings> settings = Options.Create(new AssistantSettings { AgentUrl = AgentUrl });

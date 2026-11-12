@@ -17,15 +17,18 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
+import { useStartAssistantWorkflowMutation } from 'app-shared/hooks/mutations/useStartAssistantWorkflowMutation';
+import { useCancelAssistantWorkflowMutation } from 'app-shared/hooks/mutations/useCancelAssistantWorkflowMutation';
+import { useRespondToAssistantPermissionMutation } from 'app-shared/hooks/mutations/useRespondToAssistantPermissionMutation';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import {
   formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageTimestamp,
-  isAttachmentNotFoundError,
 } from '../../utils/messageUtils';
 import type { RejectionTexts } from '../../utils/messageUtils';
+import { createWorkflowFormData } from '../../utils/workflowFormData';
 
 const INITIAL_WORKFLOW_MESSAGE = 'Tenker på oppgaven';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
@@ -55,19 +58,14 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     }),
     [t],
   );
-  const attachmentNotFoundMessage = t('ai_assistant.attachment_not_found');
   const [workflowStatusByThread, setWorkflowStatusByThread] = useState<
     Record<string, WorkflowStatus>
   >({});
   const [cancelledMessageContent, setCancelledMessageContent] = useState<string | null>(null);
-  const {
-    connectionStatus,
-    startWorkflow,
-    cancelWorkflow,
-    respondToPermission: sendPermissionResponse,
-    registerSession,
-    onAgentMessage,
-  } = useAssistantWebSocket();
+  const { connectionStatus, onAgentMessage } = useAssistantWebSocket();
+  const { mutateAsync: startWorkflow } = useStartAssistantWorkflowMutation();
+  const { mutateAsync: cancelWorkflow } = useCancelAssistantWorkflowMutation();
+  const { mutateAsync: sendPermissionResponse } = useRespondToAssistantPermissionMutation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const { mutateAsync: resetRepository } = useResetRepositoryMutation(org, app);
@@ -231,22 +229,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       const threadId = findThreadIdByPermissionRequestId(workflowStatusByThread, requestId);
       if (!threadId) return;
       try {
-        // The hub rejects commands for sessions not registered on this connection.
-        await registerSession(org, app, threadId);
-        await sendPermissionResponse(threadId, requestId, granted);
+        await sendPermissionResponse({ threadId, payload: { requestId, granted } });
         clearPermissionRequest(threadId);
       } catch (error) {
         console.error('Permission response failed:', error);
       }
     },
-    [
-      workflowStatusByThread,
-      clearPermissionRequest,
-      sendPermissionResponse,
-      registerSession,
-      org,
-      app,
-    ],
+    [workflowStatusByThread, clearPermissionRequest, sendPermissionResponse],
   );
 
   // Agent events reach every tab, including tabs open on other apps.
@@ -415,13 +404,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       });
       try {
         const result = await startWorkflow({
-          session_id: threadId,
-          goal,
-          org,
-          app,
-          branch: currentBranch,
-          allow_app_changes: allowAppChanges,
-          attachments,
+          threadId,
+          payload: createWorkflowFormData({
+            goal,
+            branch: currentBranch,
+            allowAppChanges,
+            attachments,
+          }),
         });
         if (!result.accepted) setWorkflowStatus(threadId, { isActive: false });
         return result;
@@ -430,14 +419,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         throw error;
       }
     },
-    [app, currentBranch, org, startWorkflow, setWorkflowStatus],
+    [currentBranch, startWorkflow, setWorkflowStatus],
   );
 
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       try {
         await createMessage(threadId, userMessage);
-        await registerSession(org, app, threadId);
         const result = await startAgentWorkflow(
           threadId,
           userMessage.content,
@@ -456,23 +444,13 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
         console.error('Workflow request failed:', error);
         createMessage(threadId, {
           role: MessageAuthor.Assistant,
-          content: isAttachmentNotFoundError(error)
-            ? attachmentNotFoundMessage
-            : WORKFLOW_ERROR_MESSAGE,
+          content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
         });
       }
     },
-    [
-      createMessage,
-      registerSession,
-      org,
-      app,
-      startAgentWorkflow,
-      rejectionTexts,
-      attachmentNotFoundMessage,
-    ],
+    [createMessage, startAgentWorkflow, rejectionTexts],
   );
 
   const onSubmitMessage = useCallback(
@@ -531,8 +509,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     }
 
     try {
-      // The hub rejects commands for sessions not registered on this connection.
-      await registerSession(org, app, threadId);
       await cancelWorkflow(threadId);
     } catch (error) {
       // The run is still going, so stop showing it as stopped.
@@ -543,9 +519,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     }
   }, [
     cancelWorkflow,
-    registerSession,
-    org,
-    app,
     selectedThreadId,
     deleteMessage,
     chatMessages,

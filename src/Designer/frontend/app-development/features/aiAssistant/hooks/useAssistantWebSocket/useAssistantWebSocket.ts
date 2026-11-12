@@ -1,12 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { assistantWebSocketHub, assistantAttachmentsUploadPath } from 'app-shared/api/paths';
-import type {
-  WorkflowEvent,
-  WorkflowRequest,
-  AgentResponse,
-  ConnectionStatus,
-} from '@studio/assistant';
+import { assistantWebSocketHub } from 'app-shared/api/paths';
+import type { WorkflowEvent, ConnectionStatus } from '@studio/assistant';
 
 const ASSISTANT_CONNECTION_INDEX = 0; // WSConnector uses single connection for assistant hub
 
@@ -14,12 +9,9 @@ enum AssistantClientsName {
   ReceiveAgentMessage = 'ReceiveAgentMessage',
 }
 
+// The hub only pushes the assistant's events. The browser sends its commands over HTTP.
 export interface UseAssistantWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
-  startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
-  cancelWorkflow: (sessionId: string) => Promise<void>;
-  respondToPermission: (sessionId: string, requestId: string, granted: boolean) => Promise<void>;
-  registerSession: (org: string, app: string, threadId: string) => Promise<void>;
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
@@ -60,69 +52,8 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
     messageCallbackRef.current = callback;
   }, []);
 
-  const startWorkflow = useCallback(async (request: WorkflowRequest): Promise<AgentResponse> => {
-    const connection = getAssistantSignalRConnection(wsInstanceRef.current);
-    if (!connection) {
-      throw new Error('No active SignalR connection to assistant hub');
-    }
-
-    return await invokeStartWorkflowOnServer(connection, request);
-  }, []);
-
-  const cancelWorkflow = useCallback(async (cancelSessionId: string): Promise<void> => {
-    const connection = getAssistantSignalRConnection(wsInstanceRef.current);
-    if (!connection) {
-      throw new Error('No active SignalR connection to assistant hub');
-    }
-
-    try {
-      await connection.invoke('CancelWorkflow', cancelSessionId);
-    } catch (error) {
-      console.error('Failed to cancel workflow:', error);
-      throw error;
-    }
-  }, []);
-
-  const respondToPermission = useCallback(
-    async (sessionId: string, requestId: string, granted: boolean): Promise<void> => {
-      const connection = getAssistantSignalRConnection(wsInstanceRef.current);
-      if (!connection) {
-        throw new Error('No active SignalR connection to assistant hub');
-      }
-
-      try {
-        await connection.invoke('RespondToPermission', sessionId, requestId, granted);
-      } catch (error) {
-        console.error('Failed to respond to permission request:', error);
-        throw error;
-      }
-    },
-    [],
-  );
-
-  const registerSession = useCallback(
-    async (org: string, app: string, threadId: string): Promise<void> => {
-      const connection = getAssistantSignalRConnection(wsInstanceRef.current);
-      if (!connection) {
-        throw new Error('No active SignalR connection to assistant hub');
-      }
-
-      try {
-        await connection.invoke('RegisterSession', org, app, threadId);
-      } catch (error) {
-        console.error('Failed to register session:', error);
-        throw error;
-      }
-    },
-    [],
-  );
-
   return {
     connectionStatus,
-    startWorkflow,
-    cancelWorkflow,
-    respondToPermission,
-    registerSession,
     onAgentMessage,
   };
 };
@@ -190,52 +121,4 @@ function ensureAgentMessageDispatcher(connection: any): void {
       }
     });
   });
-}
-
-async function uploadAttachment(file: {
-  name: string;
-  mimeType: string;
-  dataBase64: string;
-}): Promise<string> {
-  const base64Data = file.dataBase64.includes(',')
-    ? file.dataBase64.split(',')[1]
-    : file.dataBase64;
-  const byteCharacters = atob(base64Data);
-  const byteArray = new Uint8Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteArray[i] = byteCharacters.charCodeAt(i);
-  }
-  const blob = new Blob([byteArray], { type: file.mimeType });
-
-  const formData = new FormData();
-  formData.append('file', blob, file.name);
-
-  const { post } = await import('app-shared/utils/networking');
-  const result = await post<{ attachmentId: string }, FormData>(
-    assistantAttachmentsUploadPath(),
-    formData,
-  );
-  return result!.attachmentId;
-}
-
-async function invokeStartWorkflowOnServer(
-  connection: any,
-  request: WorkflowRequest,
-): Promise<AgentResponse> {
-  try {
-    const { attachments, ...rest } = request;
-
-    let signalRRequest: Omit<WorkflowRequest, 'attachments'> & { attachment_ids?: string[] } = rest;
-
-    if (attachments && attachments.length > 0) {
-      const attachmentIds = await Promise.all(attachments.map(uploadAttachment));
-      signalRRequest = { ...rest, attachment_ids: attachmentIds };
-    }
-
-    const result: AgentResponse = await connection.invoke('StartWorkflow', signalRRequest);
-    return result;
-  } catch (error) {
-    console.error('Failed to start workflow:', error);
-    throw error;
-  }
 }

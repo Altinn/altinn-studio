@@ -2,13 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
-import type {
-  AgentResponse,
-  AssistantMessageEvent,
-  UserMessage,
-  WorkflowEvent,
-  WorkflowRequest,
-} from '@studio/assistant';
+import type { AssistantMessageEvent, UserMessage, WorkflowEvent } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -37,17 +31,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -70,10 +62,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -114,10 +102,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -147,10 +131,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -202,10 +182,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -250,10 +226,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -292,10 +264,6 @@ describe('useAssistantWorkflow', () => {
       let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
       mockUseAssistantWebSocket.mockReturnValue({
         connectionStatus: 'connected',
-        startWorkflow: vi.fn(),
-        cancelWorkflow: vi.fn(),
-        respondToPermission: vi.fn(),
-        registerSession: vi.fn(),
         onAgentMessage: vi.fn((callback) => {
           capturedOnAgentMessage = callback;
         }),
@@ -344,17 +312,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -372,10 +338,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -415,10 +377,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -451,10 +409,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -463,7 +417,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAssistantWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+    });
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -499,10 +455,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -511,7 +463,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAssistantWorkflow(threads);
+    const { result, rerender } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+    });
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -549,10 +503,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -561,7 +511,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+    });
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -603,10 +555,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -615,7 +563,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -640,27 +590,23 @@ describe('useAssistantWorkflow', () => {
 
   it('creates thread and starts workflow for new session', async () => {
     const threads = createThreadState();
-    const startWorkflow = vi
-      .fn<(request: WorkflowRequest) => Promise<AgentResponse>>()
-      .mockResolvedValue({
-        accepted: false,
-        session_id: 'backend-session',
-        message: 'Rejected',
-      });
+    const startWorkflow = vi.fn().mockResolvedValue({
+      accepted: false,
+      session_id: 'backend-session',
+      message: 'Rejected',
+    });
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -679,19 +625,14 @@ describe('useAssistantWorkflow', () => {
       'new-thread-id',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
     );
-    expect(startWorkflow).toHaveBeenCalledWith(
-      expect.objectContaining({
-        session_id: 'new-thread-id',
-        goal: 'Hello',
-        org: 'testOrg',
-        app: 'testApp',
-        branch: 'feature-branch',
-        allow_app_changes: false,
-      }),
-    );
+    expect(startWorkflow).toHaveBeenCalledWith(org, app, 'new-thread-id', expect.any(FormData));
+    const payload: FormData = startWorkflow.mock.calls[0][3];
+    expect(payload.get('goal')).toBe('Hello');
+    expect(payload.get('branch')).toBe('feature-branch');
+    expect(payload.get('allowAppChanges')).toBe('false');
   });
 
-  it('keeps the message and saves the generic failure text after it when session registration fails', async () => {
+  it('keeps the message and saves the generic failure text after it when starting the workflow fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let finishSavingUserMessage: () => void = () => {};
     const createMessage = vi
@@ -704,21 +645,19 @@ describe('useAssistantWorkflow', () => {
       )
       .mockResolvedValue({ id: 'error-message-id' });
     const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
-    const startWorkflow = vi.fn();
+    const startWorkflow = vi.fn().mockRejectedValue(new Error('assistant unavailable'));
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn().mockRejectedValue(new Error('hub unavailable')),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -732,8 +671,8 @@ describe('useAssistantWorkflow', () => {
       submission = result.current.onSubmitMessage(message);
     });
 
+    // The server orders messages by when it saves them, so the start waits for the message.
     expect(startWorkflow).not.toHaveBeenCalled();
-    // The server orders messages by when it saves them, so the reply waits for the message.
     expect(createMessage).toHaveBeenCalledTimes(1);
     expect(createMessage).toHaveBeenCalledWith(
       'thread-a',
@@ -765,22 +704,19 @@ describe('useAssistantWorkflow', () => {
       .mockRejectedValueOnce(new Error('thread unavailable'))
       .mockResolvedValue({ id: 'error-message-id' });
     const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
-    const registerSession = vi.fn();
     const startWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession,
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -793,7 +729,6 @@ describe('useAssistantWorkflow', () => {
       await result.current.onSubmitMessage(message);
     });
 
-    expect(registerSession).not.toHaveBeenCalled();
     expect(startWorkflow).not.toHaveBeenCalled();
     expect(createMessage).toHaveBeenLastCalledWith(
       'thread-a',
@@ -813,10 +748,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission,
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -825,7 +756,10 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -853,7 +787,10 @@ describe('useAssistantWorkflow', () => {
       await result.current.respondToPermission('req-1', true);
     });
 
-    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(respondToPermission).toHaveBeenCalledWith(org, app, 'thread-a', {
+      requestId: 'req-1',
+      granted: true,
+    });
     expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
   });
 
@@ -863,10 +800,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -895,10 +828,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission,
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -907,7 +836,10 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -946,10 +878,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: vi.fn(),
-      respondToPermission,
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -958,7 +886,10 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -983,7 +914,10 @@ describe('useAssistantWorkflow', () => {
     });
     consoleError.mockRestore();
 
-    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(respondToPermission).toHaveBeenCalledWith(org, app, 'thread-a', {
+      requestId: 'req-1',
+      granted: true,
+    });
     expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toEqual({
       requestId: 'req-1',
       message: 'write_file: App/ui/Side1.json',
@@ -996,10 +930,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1035,10 +965,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1067,63 +993,12 @@ describe('useAssistantWorkflow', () => {
     );
   });
 
-  it('asks the user to attach the files again when the server cannot find an attachment', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
-
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi
-        .fn()
-        .mockRejectedValue(
-          new Error(
-            "An unexpected error occurred invoking 'StartWorkflow' on the server. HubException: ATTACHMENT_NOT_FOUND",
-          ),
-        ),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
-      onAgentMessage: vi.fn(),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    const message: UserMessage = {
-      role: MessageAuthor.User,
-      content: 'Lag et skjema fra vedlegget',
-      createdAt: new Date().toISOString(),
-      allowAppChanges: false,
-      attachments: [{ name: 'skjema.pdf', mimeType: 'application/pdf', dataBase64: 'dGVzdA==' }],
-    };
-
-    await act(async () => {
-      await result.current.onSubmitMessage(message);
-    });
-
-    expect(threads.createMessage).toHaveBeenLastCalledWith(
-      'thread-a',
-      expect.objectContaining({
-        role: MessageAuthor.Assistant,
-        content: textMock('ai_assistant.attachment_not_found'),
-      }),
-    );
-    expect(result.current.workflowStatusByThread['thread-a']?.isActive).not.toBe(true);
-    consoleErrorSpy.mockRestore();
-  });
-
   it('does not create a message for cancelled workflows', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1154,17 +1029,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission,
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.respondToPermission('stale-request-id', true);
@@ -1190,58 +1063,22 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow,
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
     expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
-  });
-
-  it('registers the session on this connection before cancelling', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-1' });
-    const callOrder: string[] = [];
-    const registerSession = vi.fn(async () => {
-      callOrder.push('registerSession');
-    });
-    const cancelWorkflow = vi.fn(async () => {
-      callOrder.push('cancelWorkflow');
-    });
-
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow,
-      respondToPermission: vi.fn(),
-      registerSession,
-      onAgentMessage: vi.fn(),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    await act(async () => {
-      await result.current.cancelCurrentWorkflow();
-    });
-
-    // A tab that adopted the run (or reloaded mid-run) has no session on its
-    // hub connection — cancel must (re)register first or the hub rejects it.
-    expect(registerSession).toHaveBeenCalledWith('testOrg', 'testApp', 'thread-1');
-    expect(callOrder).toEqual(['registerSession', 'cancelWorkflow']);
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
   });
 
   it('still cancels the workflow when deleting the pending message fails', async () => {
@@ -1263,69 +1100,23 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow,
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
     // The message was not deleted, so its content must not be restored to the composer.
     expect(result.current.cancelledMessageContent).toBeNull();
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('puts the message back in the thread when session registration fails', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({
-      selectedThreadId: 'thread-1',
-      deleteMessage: vi.fn().mockResolvedValue(undefined),
-      chatMessages: [
-        {
-          id: 'message-1',
-          role: MessageAuthor.User,
-          content: 'Please do this',
-          createdAt: new Date().toISOString(),
-          allowAppChanges: false,
-        },
-      ],
-    });
-    const cancelWorkflow = vi.fn();
-
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow,
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn().mockRejectedValue(new Error('hub unavailable')),
-      onAgentMessage: vi.fn(),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    await act(async () => {
-      await result.current.cancelCurrentWorkflow();
-    });
-
-    // Registration failed, so the cancel never went out and the run continues.
-    expect(cancelWorkflow).not.toHaveBeenCalled();
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'thread-1',
-      expect.objectContaining({ role: MessageAuthor.User, content: 'Please do this' }),
-    );
     consoleErrorSpy.mockRestore();
   });
 
@@ -1348,17 +1139,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -1387,17 +1176,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -1436,24 +1223,22 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow,
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn().mockResolvedValue(undefined),
       onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
     expect(threads.deleteMessage).not.toHaveBeenCalled();
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
   });
 
   it('checks out the branch that the finished run pushed', async () => {
@@ -1467,10 +1252,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1512,10 +1293,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1554,10 +1331,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1591,10 +1364,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1627,10 +1396,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1663,10 +1428,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn(),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1696,10 +1457,6 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: vi.fn(),
-      cancelWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
-      respondToPermission: vi.fn(),
-      registerSession: vi.fn(),
       onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
@@ -1708,7 +1465,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
+    });
 
     await act(async () => {
       capturedOnAgentMessage!({
