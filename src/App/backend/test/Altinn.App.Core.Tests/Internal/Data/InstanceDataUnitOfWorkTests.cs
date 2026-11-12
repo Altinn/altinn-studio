@@ -56,6 +56,22 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task UpdateBinaryDataElement_SendsTheElementsFilename()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
+        Assert.Equal("payment.json", update.Filename);
+    }
+
+    [Fact]
     public async Task Init_WithStorageVersions_CapturesProvidedSnapshot()
     {
         StorageVersionMetadata metadata = new(InstanceVersion: 7, ProcessStateVersion: 3);

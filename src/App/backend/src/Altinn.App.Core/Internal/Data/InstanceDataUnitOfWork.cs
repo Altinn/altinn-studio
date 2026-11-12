@@ -1237,16 +1237,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                                     && reference.ValueType == ReferenceType.Task
                                 )
                                 ?.Value,
-                            Filename =
-                                stagedMetadata?.Filename
-                                ?? change switch
-                                {
-                                    BinaryDataChange binaryDataChange => binaryDataChange.FileName,
-                                    FormDataChange => change.DataElement.Filename,
-                                    _ => throw new UnreachableException(
-                                        "ChangeType.Updated must be a form or binary data change"
-                                    ),
-                                },
+                            Filename = change.DataElement.Filename,
                             Metadata = stagedMetadata?.Metadata,
                             UserDefinedMetadata = stagedMetadata?.UserDefinedMetadata,
                             Tags = stagedMetadata?.Tags,
