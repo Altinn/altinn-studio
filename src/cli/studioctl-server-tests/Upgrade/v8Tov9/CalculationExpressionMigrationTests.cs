@@ -717,20 +717,77 @@ public sealed class CalculationExpressionMigrationTests
         using var app = CreateApp();
         app.Write(
             "models/model.calculation.json",
-            "{\"$schema\":\"existing-schema\",\"custom\":42,\"calculations\":{\"other\":{\"expression\":7}}}"
+            "{\"$schema\":\"existing-schema\",\"custom\":42,\"calculations\":[{\"field\":\"other\",\"expression\":7}]}"
         );
         WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
         Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
         var document = JsonNode.Parse(app.Read("models/model.calculation.json"));
         Assert.Equal("existing-schema", document?["$schema"]?.GetValue<string>());
         Assert.Equal(42, document?["custom"]?.GetValue<int>());
-        Assert.Equal(7, document?["calculations"]?["other"]?["expression"]?.GetValue<int>());
+        Assert.Equal(7, document?["calculations"]?[0]?["expression"]?.GetValue<int>());
         WriteRules(app, new() { ["sum"] = Rule("sum", "other") }, "sum: function(obj) { " + Sum + " }");
         var before = File.ReadAllBytes(CalculationPath(app));
         var conflict = CalculationMigration.Migrate(app.Root);
         Assert.Empty(conflict.ConvertedRules);
         Assert.Equal("sum", Assert.Single(conflict.ManualRules["form"]));
         Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ExistingOrderedCalculations_KeepRepeatedFieldsAndAppendNewRulesOnce()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """{"calculations":[{"field":"other","expression":7},{"field":"other","expression":8}]}"""
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var items =
+            JsonNode.Parse(app.Read("models/model.calculation.json"))?["calculations"]?.AsArray()
+            ?? throw new InvalidOperationException();
+        Assert.Equal<string?>(["other", "other", "result"], items.Select(item => item?["field"]?.GetValue<string>()));
+        Assert.Equal(7, items[0]?["expression"]?.GetValue<int>());
+        Assert.Equal(8, items[1]?["expression"]?.GetValue<int>());
+        Assert.Equal(5d, Evaluate(items[2]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        var before = File.ReadAllBytes(CalculationPath(app));
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void MatchingExpressionWithAnotherWriter_RequiresManualResolution()
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var document =
+            JsonNode.Parse(app.Read("models/model.calculation.json")) ?? throw new InvalidOperationException();
+        document["calculations"]?.AsArray().Add(new JsonObject { ["field"] = "result", ["expression"] = 99 });
+        app.Write("models/model.calculation.json", document.ToJsonString());
+        var before = File.ReadAllBytes(CalculationPath(app));
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Equal("sum", Assert.Single(migration.ManualRules["form"]));
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public async Task UpgradePipeline_NormalizesV8CalculationsBeforeAddingLegacyRules()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """{"calculations":{"other":{"expression":7,},},} // Existing v8 calculation"""
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        app.CommitEverything();
+        await RunUpgrade(app);
+        var calculations = Calculations(app);
+        Assert.Equal<string>(["other", "result"], calculations.Select(item => item.Key));
+        Assert.Equal(7, calculations["other"]?["expression"]?.GetValue<int>());
+        Assert.Equal(5d, Evaluate(calculations["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        Assert.False(Directory.Exists(Path.Combine(app.Root, "App/logic/ConvertedLegacyRules")));
     }
 
     [Theory]
@@ -828,7 +885,9 @@ public sealed class CalculationExpressionMigrationTests
 
     [Theory]
     [InlineData("not json")]
-    [InlineData("{\"calculations\":[]}")]
+    [InlineData("{\"calculations\":{}}")]
+    [InlineData("{\"calculations\":[null]}")]
+    [InlineData("{\"calculations\":[{\"field\":\"other\"}]}")]
     public void InvalidExistingCalculationFile_IsPreservedAndRequiresManualWork(string content)
     {
         using var app = CreateApp();
@@ -955,8 +1014,15 @@ public sealed class CalculationExpressionMigrationTests
         Path.Combine(app.Root, "App/models/model.calculation.json");
 
     private static JsonObject Calculations(TempAppFolder app) =>
-        JsonNode.Parse(File.ReadAllText(CalculationPath(app)))?["calculations"]?.AsObject()
-        ?? throw new InvalidOperationException();
+        new(
+            (
+                JsonNode.Parse(File.ReadAllText(CalculationPath(app)))?["calculations"]?.AsArray()
+                ?? throw new InvalidOperationException()
+            ).Select(item => new KeyValuePair<string, JsonNode?>(
+                item?["field"]?.GetValue<string>() ?? throw new InvalidOperationException(),
+                item.DeepClone()
+            ))
+        );
 
     private static void WriteRules(
         TempAppFolder app,
