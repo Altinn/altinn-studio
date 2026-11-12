@@ -65,6 +65,25 @@ export const pageNavigationHooks = {
   },
 };
 
+/**
+ * The visible pages from the current page to the return target, both included. Undefined when either is not visible.
+ */
+export function getReturnRoute(order: string[], from: string | undefined, to: string): string[] | undefined {
+  const fromIndex = order.indexOf(from ?? '');
+  const toIndex = order.indexOf(to);
+  if (fromIndex < 0 || toIndex < 0) {
+    return undefined;
+  }
+  return order.slice(Math.min(fromIndex, toIndex), Math.max(fromIndex, toIndex) + 1);
+}
+
+/**
+ * A return route is still valid when it shows no page that was missing before.
+ */
+export function returnRouteStillValid(before: string[] | undefined, after: string[] | undefined): boolean {
+  return !!before && !!after && after.every((page) => before.includes(page));
+}
+
 export function ClearInvalidReturnState() {
   const readOnly = FormStore.useIsReadOnly();
   const hasParent = FormStore.raw.useSelector((state) => state.parent !== undefined);
@@ -88,18 +107,15 @@ export function ClearInvalidReturnState() {
       previous.current = undefined;
       return;
     }
-    const from = order.indexOf(currentPage ?? '');
-    const to = order.indexOf(returnPage);
-    const pages = from < 0 || to < 0 ? undefined : order.slice(Math.min(from, to), Math.max(from, to) + 1);
+    const pages = getReturnRoute(order, currentPage, returnPage);
 
     const sameRoute = previous.current?.from === currentPage && previous.current?.to === returnPage;
-    const revealedPage = sameRoute && pages?.some((id) => !previous.current?.pages.includes(id));
-    if (!pages || revealedPage) {
+    if (!pages || (sameRoute && !returnRouteStillValid(previous.current?.pages, pages))) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
       if (backToPage) {
-        setSearchParams((previous) => {
-          const next = new URLSearchParams(previous);
+        setSearchParams((params) => {
+          const next = new URLSearchParams(params);
           next.delete(SearchParams.BackToPage);
           return next;
         }, replaceAndPreventResetOptions);

@@ -5,26 +5,28 @@ import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 
+import { useCurrentProcessKey, useIsAnyProcessing, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
+import { getReturnRoute, returnRouteStillValid } from 'src/features/form/layout/PageNavigationContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
-import { usePageValidation } from 'src/hooks/usePageValidation';
 import {
-  useCurrentProcessKey,
-  useIsAnyProcessing,
-  useProcessingMutationWithKey,
-} from 'src/hooks/useProcessingMutation';
+  useNavigatePage,
+  useNextPageKey,
+  usePreviousPageKey,
+  useVisiblePageOrderSnapshot,
+} from 'src/hooks/useNavigatePage';
+import { usePageValidation } from 'src/hooks/usePageValidation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
@@ -94,10 +96,11 @@ function NavigationButtonsComponentInner({
 
   const { getPageValidation, getReturnValidation } = usePageValidation(baseComponentId);
   const validateOnForward = config.validateOnNext ?? getPageValidation();
-  const validateOnBackward = getPageValidation() ? undefined : config.validateOnPrevious;
+  const validateOnBackward = config.validateOnPrevious;
   const validateOnReturn = config.validateOnBackToSummary ?? config.validateOnNext ?? getReturnValidation();
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
+  const getVisibleOrder = useVisiblePageOrderSnapshot();
   const hasNext = !!useNextPageKey();
   const hasPrevious = !!usePreviousPageKey();
   const returnToView = FormStore.pageNavigation.useReturnToView();
@@ -173,12 +176,16 @@ function NavigationButtonsComponentInner({
 
   const onClickReturn = (key: 'backToSummary' | 'backToPage', getTargetPage: () => string | null | undefined) =>
     performProcess(key, async () => {
-      await maybeSaveOnPageChange();
       const targetPage = getTargetPage();
       if (!targetPage) {
         return;
       }
+      const currentPage = layoutLookups.componentToPage[baseComponentId];
+      const routeBefore = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
 
+      await maybeSaveOnPageChange();
+
+      // An empty show list opts out. Validating with it would hide errors that are already visible.
       if (
         validateOnReturn &&
         validateOnReturn.show.length > 0 &&
@@ -187,8 +194,10 @@ function NavigationButtonsComponentInner({
         return;
       }
 
-      // Saving or validation can change visibility and clear the return shortcut.
-      if (getTargetPage() === targetPage) {
+      // Saving or validation can reveal a page on the way back, before the rendered state has caught up.
+      // Then ClearInvalidReturnState removes the shortcut, and the user continues with regular navigation.
+      const routeAfter = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
+      if (getTargetPage() === targetPage && returnRouteStillValid(routeBefore, routeAfter)) {
         await navigateToPage(targetPage, { skipAutoSave: true });
       }
     });

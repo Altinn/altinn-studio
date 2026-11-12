@@ -214,7 +214,7 @@ export function useIsValidPageId() {
   );
 }
 
-function useVisiblePageOrderSnapshot() {
+export function useVisiblePageOrderSnapshot() {
   const rawOrder = useRawPageOrder();
   const rawOrderRef = useAsRef(rawOrder);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
