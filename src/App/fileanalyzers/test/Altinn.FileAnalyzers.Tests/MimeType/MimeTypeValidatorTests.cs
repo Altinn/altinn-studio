@@ -95,6 +95,8 @@ public class MimeTypeValidatorTests
         true
     )]
     [InlineData("audio/midi", new[] { "midi", "mid" }, "song.mid", new[] { "audio/mid" }, true)]
+    // The other extension's type is only an alias for the file's own extension
+    [InlineData("application/xml", new[] { "xml", "xsd" }, "data.xml", new[] { "text/xml" }, true)]
     // The content can have extensions of other types, so it doesn't show which type the file is
     [InlineData(
         "application/x-bzip2",

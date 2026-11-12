@@ -86,11 +86,15 @@ internal sealed class MimeTypeValidator : IFileValidator
         var contentTypesForExtension = MimeTypeMap.GetMimeType(extension);
 
         // Content that can have extensions of other types, such as bzip2 for both .bz2 and .tar, doesn't show which
-        // type the file is
+        // type the file is. Two extensions have the same type when the type of one is the type or an alias of the
+        // other
         if (
             !analysisResult.Extensions.All(analysedExtension =>
-                MimeTypeMap.GetMimeType(analysedExtension).IsMatch(contentTypesForExtension.Type)
-            )
+            {
+                var contentTypesForAnalysedExtension = MimeTypeMap.GetMimeType(analysedExtension);
+                return contentTypesForAnalysedExtension.IsMatch(contentTypesForExtension.Type)
+                    || contentTypesForExtension.IsMatch(contentTypesForAnalysedExtension.Type);
+            })
         )
         {
             return false;
