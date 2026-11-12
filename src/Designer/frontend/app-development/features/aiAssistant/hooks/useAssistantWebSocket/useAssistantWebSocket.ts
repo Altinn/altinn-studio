@@ -56,13 +56,9 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   };
 };
 
-function getAssistantSignalRConnection(wsInstance: any): any | null {
-  if (!wsInstance) return null;
-
-  const connections = wsInstance.connections;
-  if (!connections || connections.length === 0) return null;
-
-  return connections[ASSISTANT_CONNECTION_INDEX];
+// WSConnector keeps its connections private.
+function getAssistantSignalRConnection(wsInstance: any): any {
+  return wsInstance.connections?.[ASSISTANT_CONNECTION_INDEX];
 }
 
 const agentMessageSubscribers = new Set<(message: WorkflowEvent) => void>();

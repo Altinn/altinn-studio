@@ -61,15 +61,7 @@ public class AssistantServiceClientTests
             Branch: "master",
             AllowAppChanges: true,
             CostOrg: "ttd",
-            Attachments:
-            [
-                new AssistantWorkflowAttachment(
-                    "krav.pdf",
-                    "application/pdf",
-                    4,
-                    "data:application/pdf;base64,dGVzdA=="
-                ),
-            ]
+            Attachments: [new AssistantWorkflowAttachment("krav.pdf", "application/pdf", 4, "test"u8.ToArray())]
         );
 
         await client.StartWorkflow(request, "testUser", "api-key", CancellationToken.None);
@@ -85,7 +77,7 @@ public class AssistantServiceClientTests
         Assert.Equal("ttd", capturedBody.GetProperty("cost_org").GetString());
         JsonElement attachment = Assert.Single(capturedBody.GetProperty("attachments").EnumerateArray());
         Assert.Equal("application/pdf", attachment.GetProperty("mimeType").GetString());
-        Assert.Equal("data:application/pdf;base64,dGVzdA==", attachment.GetProperty("dataBase64").GetString());
+        Assert.Equal("dGVzdA==", attachment.GetProperty("dataBase64").GetString());
     }
 
     [Fact]

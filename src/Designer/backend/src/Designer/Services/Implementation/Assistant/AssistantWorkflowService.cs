@@ -165,8 +165,7 @@ internal sealed class AssistantWorkflowService(
                 await stream.ReadExactlyAsync(content, cancellationToken);
             }
 
-            string dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(content)}";
-            attachments.Add(new AssistantWorkflowAttachment(file.FileName, file.ContentType, file.Length, dataUrl));
+            attachments.Add(new AssistantWorkflowAttachment(file.FileName, file.ContentType, file.Length, content));
         }
 
         return attachments;

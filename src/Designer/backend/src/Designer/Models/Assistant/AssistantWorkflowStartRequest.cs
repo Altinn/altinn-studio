@@ -29,10 +29,10 @@ public sealed record AssistantWorkflowStartRequest(
 /// <param name="Name">The file name.</param>
 /// <param name="MimeType">The media type that the browser gave the file.</param>
 /// <param name="Size">The size of the file in bytes.</param>
-/// <param name="DataBase64">The content of the file as a base64 data URL.</param>
+/// <param name="Content">The content of the file. JSON writes it as base64 text.</param>
 public sealed record AssistantWorkflowAttachment(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("mimeType")] string MimeType,
     [property: JsonPropertyName("size")] long Size,
-    [property: JsonPropertyName("dataBase64")] string DataBase64
+    [property: JsonPropertyName("dataBase64")] byte[] Content
 );

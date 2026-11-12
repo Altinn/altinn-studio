@@ -98,10 +98,10 @@ public class AssistantWorkflowServiceTests
         Assert.Equal(Org, _sentStartRequest.CostOrg);
         Assert.Equal($"http://test-repos/{Org}/{App}.git", _sentStartRequest.RepoUrl);
         AssistantWorkflowAttachment attachment = Assert.Single(_sentStartRequest.Attachments);
-        Assert.Equal(
-            new AssistantWorkflowAttachment("krav.pdf", "application/pdf", 4, "data:application/pdf;base64,AQIDBA=="),
-            attachment
-        );
+        Assert.Equal("krav.pdf", attachment.Name);
+        Assert.Equal("application/pdf", attachment.MimeType);
+        Assert.Equal(4, attachment.Size);
+        Assert.Equal([1, 2, 3, 4], attachment.Content);
         _assistantClientMock.Verify(
             c =>
                 c.StartWorkflow(

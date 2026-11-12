@@ -417,9 +417,7 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
-    });
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -463,9 +461,7 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result, rerender } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
-    });
+    const { result, rerender } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -511,9 +507,7 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
-    });
+    const { result } = renderUseAssistantWorkflow(threads);
 
     const userMessage: UserMessage = {
       role: MessageAuthor.User,
@@ -563,9 +557,7 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
-    });
+    const { result } = renderUseAssistantWorkflow(threads);
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -753,7 +745,6 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 
@@ -833,7 +824,6 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 
@@ -883,7 +873,6 @@ describe('useAssistantWorkflow', () => {
     } as UseQueryResult<CurrentBranchInfo>);
 
     const { result } = renderUseAssistantWorkflow(threads, {
-      startAssistantWorkflow: vi.fn().mockResolvedValue(undefined),
       respondToAssistantPermission: respondToPermission,
     });
 

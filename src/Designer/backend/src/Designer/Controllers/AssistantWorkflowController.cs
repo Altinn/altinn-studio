@@ -47,7 +47,6 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
     /// </summary>
     [HttpPost]
     [RequestSizeLimit(MaxRequestBytes)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MaxRequestBytes)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

@@ -1,8 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -15,18 +13,10 @@ namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 public class AssistantServiceClient : IAssistantServiceClient
 {
     private const string TracesPath = "/api/traces";
-    private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
     private const string AgentPath = "/api/agent";
     private const string DeveloperHeader = "X-Developer";
     private const string ApiKeyHeader = "X-Api-Key";
     private const string SessionIdHeader = "X-Session-Id";
-
-    // The default encoder writes each plus sign in base64 text as +, and it reserves a very large buffer for
-    // that. The request goes only to the assistant service, so it needs no HTML escaping.
-    private static readonly JsonSerializerOptions s_startRequestJsonOptions = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    };
 
     private readonly HttpClient _httpClient;
     private readonly AssistantSettings _assistantSettings;
@@ -45,50 +35,31 @@ public class AssistantServiceClient : IAssistantServiceClient
         CancellationToken cancellationToken
     )
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, ServiceUri($"{TracesPath}/{traceId}/feedback"))
         {
             Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Assistant feedback returned {response.StatusCode}: {responseContent}");
-        }
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+        using var httpRequest = new HttpRequestMessage(
+            HttpMethod.Delete,
+            ServiceUri($"{TracesPath}/{traceId}/feedback")
+        );
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Assistant clear feedback returned {response.StatusCode}: {responseContent}"
-            );
-        }
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task TriggerTraceCleanupAsync(CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TraceCleanupPath}");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{TracesPath}/delete-expired"));
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Assistant trace cleanup returned {response.StatusCode}: {responseContent}"
-            );
-        }
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task StartWorkflow(
@@ -98,24 +69,24 @@ public class AssistantServiceClient : IAssistantServiceClient
         CancellationToken cancellationToken
     )
     {
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, AgentUri("start"))
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{AgentPath}/start"))
         {
-            Content = JsonContent.Create(request, options: s_startRequestJsonOptions),
+            Content = JsonContent.Create(request),
         };
         httpRequest.Headers.Add(ApiKeyHeader, apiKey);
         httpRequest.Headers.Add(DeveloperHeader, developer);
         httpRequest.Headers.Add(SessionIdHeader, request.SessionId);
 
-        await SendAgentRequest(httpRequest, cancellationToken);
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task CancelWorkflow(string developer, string sessionId, CancellationToken cancellationToken)
     {
         // The assistant service checks that the developer owns the session.
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, AgentUri($"cancel/{sessionId}"));
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{AgentPath}/cancel/{sessionId}"));
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        await SendAgentRequest(httpRequest, cancellationToken);
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task RespondToPermission(
@@ -126,18 +97,21 @@ public class AssistantServiceClient : IAssistantServiceClient
         CancellationToken cancellationToken
     )
     {
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, AgentUri($"permission/{sessionId}"))
+        using var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            ServiceUri($"{AgentPath}/permission/{sessionId}")
+        )
         {
             Content = JsonContent.Create(new { request_id = requestId, granted }),
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        await SendAgentRequest(httpRequest, cancellationToken);
+        await Send(httpRequest, cancellationToken);
     }
 
-    private Uri AgentUri(string path) => new($"{_assistantSettings.AgentUrl}{AgentPath}/{path}");
+    private Uri ServiceUri(string path) => new($"{_assistantSettings.AgentUrl}{path}");
 
-    private async Task SendAgentRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
+    private async Task Send(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
     {
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         if (!response.IsSuccessStatusCode)
