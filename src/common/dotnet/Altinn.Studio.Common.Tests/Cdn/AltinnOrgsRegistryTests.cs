@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Common.App;
 using Altinn.Studio.Common.Cdn;
+using Altinn.Studio.Common.Domain;
 using Xunit;
 
 namespace Altinn.Studio.Common.Tests.Cdn;

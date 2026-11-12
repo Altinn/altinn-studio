@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Common.App;
+using Altinn.Studio.Common.Domain;
 
 namespace Altinn.Studio.Common.Cdn;
 
