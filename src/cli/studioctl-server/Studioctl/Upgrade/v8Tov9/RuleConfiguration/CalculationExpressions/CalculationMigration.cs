@@ -194,12 +194,23 @@ internal static partial class CalculationMigration
                 document = File.Exists(filePath)
                     ? JsonNode.Parse(
                         File.ReadAllText(filePath),
-                        documentOptions: new() { CommentHandling = JsonCommentHandling.Skip }
+                        documentOptions: new()
+                        {
+                            CommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true,
+                        }
                     ) as JsonObject
                         ?? throw new JsonException("Expected a calculation object.")
-                    : new JsonObject { ["calculations"] = new JsonObject() };
-                if (document["calculations"] is not JsonObject)
-                    throw new JsonException("Expected a calculations object.");
+                    : new JsonObject { ["calculations"] = new JsonArray() };
+                if (
+                    document["calculations"] is not JsonArray items
+                    || items.Any(item =>
+                        item is not JsonObject definition
+                        || string.IsNullOrWhiteSpace(Field(definition))
+                        || !definition.ContainsKey("expression")
+                    )
+                )
+                    throw new JsonException("Expected a list of field and expression items.");
             }
             catch (JsonException)
             {
@@ -210,12 +221,13 @@ internal static partial class CalculationMigration
                 }
                 continue;
             }
-            var calculations = document["calculations"] as JsonObject ?? throw new InvalidOperationException();
+            var calculations = document["calculations"] as JsonArray ?? throw new InvalidOperationException();
             var alreadyConverted = rules
                 .Where(rule =>
                     rule.Reason == null
                     && rule.Target != null
-                    && JsonNode.DeepEquals(calculations[rule.Target], Definition(rule.Expression))
+                    && calculations.Count(item => Field(item) == rule.Target) == 1
+                    && calculations.Any(item => JsonNode.DeepEquals(item, Definition(rule.Target, rule.Expression)))
                 )
                 .Select(rule => rule.Target)
                 .ToHashSet(StringComparer.Ordinal);
@@ -245,8 +257,9 @@ internal static partial class CalculationMigration
                         rule.Manual = true;
                     }
                 }
-                foreach (var (target, definition) in calculations)
+                foreach (var definition in calculations)
                 {
+                    var target = Field(definition) ?? throw new InvalidOperationException();
                     if (alreadyConverted.Contains(target))
                         continue; // A resumed upgrade may already have written this exact calculation.
                     if (
@@ -277,9 +290,10 @@ internal static partial class CalculationMigration
                     continue;
                 if (
                     calculations.Any(calculation =>
-                        Overlaps(calculation.Key, target)
-                        || Inputs(rule.Paths).Any(input => Overlaps(input, calculation.Key))
-                        || References(calculation.Value).Any(input => Overlaps(input, target))
+                        Overlaps(Field(calculation) ?? throw new InvalidOperationException(), target)
+                        || Inputs(rule.Paths)
+                            .Any(input => Overlaps(input, Field(calculation) ?? throw new InvalidOperationException()))
+                        || References(calculation).Any(input => Overlaps(input, target))
                     )
                 )
                     rule.Manual = true;
@@ -302,9 +316,10 @@ internal static partial class CalculationMigration
             );
             if (schemaContent != null)
                 WriteCalculationFile(schema.FilePath, schemaContent);
+            var targets = calculations.Select(Field).ToHashSet(StringComparer.Ordinal);
             foreach (var rule in accepted)
-                if (rule.Target is { } target && !calculations.ContainsKey(target))
-                    calculations[target] = Definition(rule.Expression);
+                if (rule.Target is { } target && targets.Add(target))
+                    calculations.Add(Definition(target, rule.Expression));
             Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException());
             var content = document.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
             // Don't rewrite an existing file on resumed upgrades unless it actually gained entries.
@@ -313,7 +328,11 @@ internal static partial class CalculationMigration
                 || !JsonNode.DeepEquals(
                     JsonNode.Parse(
                         File.ReadAllText(filePath),
-                        documentOptions: new() { CommentHandling = JsonCommentHandling.Skip }
+                        documentOptions: new()
+                        {
+                            CommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true,
+                        }
                     ),
                     document
                 )
@@ -454,7 +473,13 @@ internal static partial class CalculationMigration
         return false;
     }
 
-    private static JsonObject Definition(JsonNode? expression) => new() { ["expression"] = expression?.DeepClone() };
+    private static string? Field(JsonNode? definition) =>
+        definition is JsonObject item && item["field"] is JsonValue field && field.TryGetValue<string>(out var name)
+            ? name
+            : null;
+
+    private static JsonObject Definition(string field, JsonNode? expression) =>
+        new() { ["field"] = field, ["expression"] = expression?.DeepClone() };
 
     private static string? Output(DataProcessingRule rule) =>
         rule.OutParams?.Count == 1 ? rule.OutParams.GetValueOrDefault("outParam0") : null;
