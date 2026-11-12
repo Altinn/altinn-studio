@@ -106,7 +106,7 @@ const STUDIO_WORKFLOWS = [
   'deploy-studio-observability.yaml',
   'deploy-lhci-server.yaml',
   'deploy-runner-org-sync.yaml',
-  'deploy-studio-ai-agents.yaml',
+  'deploy-studio-assistant.yaml',
   'deploy-studio-external-secrets-operator.yaml',
   'deploy-studio-keyvault-secret-store.yaml',
   'deploy-studio-ssl-cert.yaml',
