@@ -29,8 +29,6 @@ An image's build context holds only what the image needs.
   Podman matches `**/` re-includes differently, and re-including a parent directory sends all of it.
 - The `.dockerignore` of `src/` and of the root allows what any of their images needs, for Compose and plain
   `podman build`, which use it instead of an image's own. Regenerate both with `check-image-contexts.sh --write`.
-- An image that builds the root Cargo workspace re-includes every member of it, because Cargo reads all members to
-  build any one of them.
 - An image that compiles the shared .NET projects publishes with `/p:RunAnalyzers=false`, so its context needs no
   `.editorconfig` for analyzer rules. The build and test workflows run the analyzers. An `.editorconfig` that changes
   what the compiler reports, such as the severity of a `CS` warning, still has to be in the context.

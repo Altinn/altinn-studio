@@ -49,20 +49,16 @@ impl ProviderArguments {
     /// also fails, the error has both messages.
     pub async fn run_with_service<T>(
         &self,
-        registry_authentication: Option<RegistryAuthentication>,
         run: impl AsyncFnOnce(SandboxService) -> Result<T, AnyError>,
     ) -> Result<T, AnyError> {
-        let result = match self.open(registry_authentication).await {
-            Ok(service) => run(service).await,
-            Err(error) => Err(error),
-        };
+        let result = async { run(self.open().await?).await }.await;
         self.clear_home_after(result).await
     }
 
-    async fn open(&self, registry_authentication: Option<RegistryAuthentication>) -> Result<SandboxService, AnyError> {
+    async fn open(&self) -> Result<SandboxService, AnyError> {
         let runtime_bundle_sha256 = read_runtime_bundle_sha256(&self.runtime_bundle, &self.runtime_bundle_checksums)?;
         let builder = self
-            .provider_builder(registry_authentication)
+            .provider_builder(None)
             .runtime_bundle(&self.runtime_bundle, runtime_bundle_sha256);
         self.open_builder(builder).await
     }
@@ -98,11 +94,10 @@ impl ProviderArguments {
 
     /// Clears the Provider home after a run, also when the run failed, and returns the run's `result`.
     async fn clear_home_after<T>(&self, result: Result<T, AnyError>) -> Result<T, AnyError> {
-        let cleared = self.clear_home().await;
+        let cleared = self.clear_home().await.map_err(AnyError::from);
         match (result, cleared) {
             (Ok(value), Ok(())) => Ok(value),
-            (Err(error), Ok(())) => Err(error),
-            (Ok(_), Err(clear_error)) => Err(clear_error.into()),
+            (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
             (Err(error), Err(clear_error)) => Err(io::Error::other(format!(
                 "{error}; clearing the Sandbox Provider home also failed: {clear_error}"
             ))
@@ -249,7 +244,7 @@ mod tests {
         let mut ran = false;
 
         let result = arguments(home)
-            .run_with_service(None, async |_service| {
+            .run_with_service(async |_service| {
                 ran = true;
                 Ok(())
             })

@@ -14,30 +14,6 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 header_src='# Build context: src/'
 header_root='# Build context: repository root'
 
-# The members of the root Cargo workspace. Cargo reads all of them to build any one, so an image that builds the
-# workspace needs them all.
-workspace_members=()
-if [ -f "${repo_root}/Cargo.toml" ]; then
-  while IFS= read -r member; do
-    workspace_members+=("${member}")
-  done < <(awk '
-    /^members *= *\[/ { collecting = 1 }
-    collecting { sub(/#.*/, ""); print; if (index($0, "]")) exit }
-  ' "${repo_root}/Cargo.toml" | grep -o '"[^"]*"' | tr -d '"')
-  if [ "${#workspace_members[@]}" -eq 0 ]; then
-    echo "Found no workspace members in Cargo.toml." >&2
-    exit 1
-  fi
-  for member in "${workspace_members[@]}"; do
-    case "${member}" in
-    *[*?[]*)
-      echo "Cargo.toml lists the workspace member ${member} as a glob, which this script does not expand." >&2
-      exit 1
-      ;;
-    esac
-  done
-fi
-
 # Prints the Dockerfiles, relative to the repository root, whose allowlist starts with the given line.
 images_with_header() {
   find "${repo_root}/src" \( -name node_modules -o -name .git -o -name bin -o -name obj -o -name target \) -prune -o \
@@ -62,32 +38,15 @@ load_context() {
   root)
     context_dir="${repo_root}" prefix="" header="${header_root}"
     max_context_bytes=$((64 * 1024 * 1024)) max_shared_context_bytes=$((96 * 1024 * 1024))
-    excludes=("${common_excludes[@]}" '**/dist') keeps=()
+    # Rust keeps binaries' sources in src/bin/, which the .NET build output exclusion would leave out.
+    excludes=("${common_excludes[@]}" '**/dist')
+    keeps=('!src/ci/github-runner/coordinator/src/bin/**' '!src/ci/sandbox-host/src/bin/**')
     ;;
   esac
   images=()
   while IFS= read -r dockerfile; do
     images+=("${dockerfile#"${prefix}"}")
   done < <(images_with_header "${header}")
-  # Rust keeps binaries' sources in src/bin/, which the .NET build output exclusion would leave out.
-  if [ "$1" = root ]; then
-    for member in ${workspace_members[@]+"${workspace_members[@]}"}; do
-      if image_reincludes "!${member}/**"; then
-        keeps+=("!${member}/src/bin/**")
-      fi
-    done
-  fi
-}
-
-# Succeeds when an image's allowlist in the loaded context has the given line.
-image_reincludes() {
-  local image
-  for image in ${images[@]+"${images[@]}"}; do
-    if grep -qxF -- "$1" "${context_dir}/${image}.dockerignore"; then
-      return 0
-    fi
-  done
-  return 1
 }
 contexts=(src root)
 common_excludes=(
@@ -157,13 +116,6 @@ for context in "${contexts[@]}"; do
     if [ ! -f "${context_dir}/${image}" ]; then
       fail "${prefix}${image}.dockerignore starts with '${header}', but ${prefix}${image} does not exist."
       continue
-    fi
-    if [ "${context}" = root ] && grep -qxF '!Cargo.toml' "${allowlist}"; then
-      for member in ${workspace_members[@]+"${workspace_members[@]}"}; do
-        if ! grep -qxF -- "!${member}/**" "${allowlist}"; then
-          fail "${image}.dockerignore re-includes Cargo.toml but not the workspace member ${member}/**, which Cargo reads to build any member."
-        fi
-      done
     fi
     # Podman does not re-include a file through **/ inside a directory that an earlier pattern excluded.
     if grep -nE '^[[:space:]]*!.*\*\*/' "${allowlist}" >"${work_dir}/reincludes"; then

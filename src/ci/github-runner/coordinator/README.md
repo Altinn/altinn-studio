@@ -7,9 +7,9 @@ rest, and the constraints it keeps.
 
 The Sandbox SDK crates, `sandbox` and `sandbox-microsandbox`, come from
 [digdir/digdir-agents](https://github.com/digdir/digdir-agents), pinned by `rev` in the root `Cargo.toml`. Fix bugs in
-them there. A pin bump moves that `rev`, `Cargo.lock` and `MICROSANDBOX_RUNTIME_VERSION` in
-[Dockerfile.coordinator](../Dockerfile.coordinator) together, and `make deps-check` checks that the
-Microsandbox versions match.
+them there. A pin bump moves that `rev` and `Cargo.lock` together, and
+[Dockerfile.coordinator](../Dockerfile.coordinator) then downloads the Microsandbox runtime of the version in
+`Cargo.lock`.
 
 The two images build with different contexts. Build the coordinator image from the repository root:
 

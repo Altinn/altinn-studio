@@ -17,8 +17,7 @@ use sandbox::{
     progress::{Progress, ProgressCursor, Update},
 };
 use sandbox_host::{
-    AnyError, ShutdownSignals, delete_sandbox, delete_sandbox_of, native_linux_platform,
-    validate_immutable_image_reference,
+    AnyError, ShutdownSignals, delete_in_time, native_linux_platform, validate_immutable_image_reference,
 };
 
 use crate::github::{GithubClient, GithubConfig};
@@ -162,11 +161,11 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
         Ok(EnsureOutcome::Ready(sandbox)) => *sandbox,
         Ok(EnsureOutcome::Interrupted) => {
             eprintln!("shutdown requested while creating Sandbox");
-            delete_sandbox(&service, &sandbox_name).await?;
+            delete_in_time(service.delete(&sandbox_name)).await?;
             return Ok(ExitCode::from(ShutdownSignals::EXIT_CODE));
         }
         Err(error) => {
-            let cleanup = delete_sandbox(&service, &sandbox_name).await;
+            let cleanup = delete_in_time(service.delete(&sandbox_name)).await;
             return Err(combine_errors(error, cleanup));
         }
     };
@@ -174,14 +173,14 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
     let github = match GithubClient::authenticate(github_config.clone()).await {
         Ok(client) => client,
         Err(error) => {
-            let cleanup = delete_sandbox_of(sandbox).await;
+            let cleanup = delete_in_time(sandbox.delete()).await;
             return Err(combine_errors(error, cleanup));
         }
     };
     let registration_token = match github.registration_token().await {
         Ok(token) => token,
         Err(error) => {
-            let cleanup = delete_sandbox_of(sandbox).await;
+            let cleanup = delete_in_time(sandbox.delete()).await;
             return Err(combine_errors(error, cleanup));
         }
     };
@@ -200,7 +199,7 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
 
     let cleanup_started = Instant::now();
     let (sandbox_cleanup, registration_cleanup) = tokio::join!(
-        delete_sandbox_of(sandbox),
+        delete_in_time(sandbox.delete()),
         cleanup_runner_registration(github_config, &runner_name),
     );
     let cleanup = combine_cleanup(sandbox_cleanup, registration_cleanup);
@@ -219,7 +218,7 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
 }
 
 fn validate_arguments(arguments: &CoordinatorArguments) -> Result<(), io::Error> {
-    validate_immutable_image_reference("SANDBOX_IMAGE", &arguments.runner_image)?;
+    validate_immutable_image_reference(&arguments.runner_image)?;
     require_nonempty("APP_PRIVATE_KEY", &arguments.app_private_key)?;
     require_nonempty("GITHUB_API_URL", &arguments.github_api_url)?;
     require_nonempty("GITHUB_SERVER_URL", &arguments.github_server_url)?;

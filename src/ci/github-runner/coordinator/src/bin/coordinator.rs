@@ -18,8 +18,6 @@ async fn main() -> Result<ExitCode, AnyError> {
     let Arguments { provider, coordinator } = Arguments::parse();
     require_kvm()?;
     provider
-        .run_with_service(None, async |service| {
-            github_runner_coordinator::run(service, coordinator).await
-        })
+        .run_with_service(async |service| github_runner_coordinator::run(service, coordinator).await)
         .await
 }

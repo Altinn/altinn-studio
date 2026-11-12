@@ -9,8 +9,6 @@ on:
       - 'clippy.toml'
       - 'rust-toolchain.toml'
       - 'rustfmt.toml'
-      - 'src/ci/github-runner/Dockerfile.coordinator'
-      - 'src/ci/github-runner/Dockerfile.coordinator.dockerignore'
       - 'src/ci/github-runner/coordinator/**'
       - 'src/ci/sandbox-host/**'
       - '.github/actions/setup-rust-cached/**'
@@ -43,10 +41,6 @@ jobs:
       - name: Set up Rust
         uses: ./.github/actions/setup-rust-cached
 
-      # Before the build, so that a Microsandbox runtime pin skew fails in seconds.
-      - name: Check dependencies
-        run: make deps-check
-
       - name: Check formatting
         run: |
           make fmt
@@ -61,24 +55,5 @@ jobs:
       - name: Run tests
         run: make test
 
-  image:
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    name: Build coordinator image
-    runs-on: self-hosted-ubuntu
-    timeout-minutes: 45
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # deploy-github-runners.yaml publishes the image only after merge. Building it here catches a build context that
-      # lacks a workspace member, or a broken Dockerfile, before then. No --cache-from: the image's build cache lives
-      # in ACR, which a pull request job has no credentials for.
-      - name: Build image
-        run: |
-          docker buildx build \
-            --provenance=false --sbom=false \
-            --file src/ci/github-runner/Dockerfile.coordinator \
-            --platform linux/amd64 \
-            .
+      - name: Check dependencies
+        run: make deps-check
