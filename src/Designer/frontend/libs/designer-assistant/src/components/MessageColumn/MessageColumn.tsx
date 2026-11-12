@@ -22,6 +22,7 @@ export type MessageColumnProps = {
   onClearMessageFeedback?: (traceId: string) => void;
   onPermissionResponse?: (requestId: string, granted: boolean) => void;
   workflowStatus?: WorkflowStatus;
+  canSubmit?: boolean;
   enableCompactInterface: boolean;
   currentUser?: User;
 };
@@ -37,6 +38,7 @@ export function MessageColumn({
   onClearMessageFeedback,
   onPermissionResponse,
   workflowStatus,
+  canSubmit,
   enableCompactInterface,
   currentUser,
 }: MessageColumnProps): ReactElement {
@@ -71,6 +73,7 @@ export function MessageColumn({
           cancelledMessageContent={cancelledMessageContent}
           onCancelledMessageConsumed={onCancelledMessageConsumed}
           workflowIsActive={workflowIsActive}
+          canSubmit={canSubmit}
           enableCompactInterface={enableCompactInterface}
         />
       </StudioResizableLayout.Element>

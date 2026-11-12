@@ -54,6 +54,17 @@ describe('UserInput', () => {
     expect(allowAppChangesSwitch).not.toBeInTheDocument();
   });
 
+  it('should disable send button and ignore Enter when canSubmit is false', async () => {
+    const user = userEvent.setup();
+    renderUserInput({ canSubmit: false });
+
+    await user.type(getTextarea(), 'Test message{Enter}');
+
+    expect(getSendButton()).toBeDisabled();
+    expect(onSubmitMessage).not.toHaveBeenCalled();
+    expect(getTextarea()).toHaveValue('Test message');
+  });
+
   it('should disable send button when textarea is empty', () => {
     renderUserInput();
     expect(getSendButton()).toBeDisabled();

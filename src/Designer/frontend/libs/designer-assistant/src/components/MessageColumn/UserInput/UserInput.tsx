@@ -25,6 +25,8 @@ export type UserInputProps = {
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
+  // False while the browser cannot receive the events of a run, such as when its connection is down.
+  canSubmit?: boolean;
   enableCompactInterface: boolean;
 };
 
@@ -35,6 +37,7 @@ export function UserInput({
   cancelledMessageContent,
   onCancelledMessageConsumed,
   workflowIsActive = false,
+  canSubmit = true,
   enableCompactInterface,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
@@ -108,7 +111,7 @@ export function UserInput({
   }, []);
 
   const handleSubmit = (): void => {
-    if (!hasTextContent) return;
+    if (!hasTextContent || !canSubmit) return;
     const message: UserMessage = createUserMessage(messageContent, allowAppChanges, attachments);
     onSubmitMessage(message);
     resetInputs();
@@ -167,7 +170,7 @@ export function UserInput({
             {texts.cancel} <XMarkIcon />
           </StudioButton>
         ) : (
-          <StudioButton onClick={handleSubmit} disabled={!hasTextContent}>
+          <StudioButton onClick={handleSubmit} disabled={!hasTextContent || !canSubmit}>
             {texts.send} <PaperplaneFillIcon />
           </StudioButton>
         )}

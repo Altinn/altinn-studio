@@ -43,6 +43,9 @@ export function CompleteInterface({
     ? workflowStatusByThread?.[activeThreadId]
     : undefined;
 
+  // A run that starts while the connection is down sends its events to no tab of this browser.
+  const canSubmit = connectionStatus === 'connected';
+
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
   const handleCreateThread = useCallback(() => {
@@ -98,6 +101,7 @@ export function CompleteInterface({
             onClearMessageFeedback={onClearMessageFeedback}
             onPermissionResponse={onPermissionResponse}
             workflowStatus={currentThreadWorkflowStatus}
+            canSubmit={canSubmit}
             enableCompactInterface={false}
             currentUser={currentUser}
           />
