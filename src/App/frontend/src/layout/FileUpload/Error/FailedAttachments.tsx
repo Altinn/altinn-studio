@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import { isAxiosError } from 'axios';
+import { isHttpError } from '@studio/http-client';
 
 import { type IFailedAttachment } from 'src/features/attachments';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
@@ -75,7 +75,7 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
   const [showingMore, setShowingMore] = useState(false);
 
-  if (isAxiosError(error)) {
+  if (isHttpError(error)) {
     const reply = error.response?.data;
     const issues = isDataPostError(reply) ? reply.uploadValidationIssues : null;
 

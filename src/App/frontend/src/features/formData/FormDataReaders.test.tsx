@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { HttpError } from '@studio/http-client';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -201,9 +202,7 @@ describe('FormDataReaders', () => {
 
   it('advanced, should fetch data from multiple models, handle failures', async () => {
     vi.useFakeTimers();
-    const missingError = new Error('This should fail when fetching');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (missingError as any).isAxiosError = true;
+    const missingError = new HttpError(undefined, 'This should fail when fetching');
 
     const model2Promise = new Promise((resolve) => {
       setTimeout(() => resolve({ name: 'Universe' }), 100);

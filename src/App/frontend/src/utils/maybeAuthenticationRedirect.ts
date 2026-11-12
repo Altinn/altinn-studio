@@ -1,4 +1,5 @@
-import { isAxiosError } from 'src/utils/isAxiosError';
+import { isHttpError } from '@studio/http-client';
+
 import { putWithoutConfig } from 'src/utils/network/networking';
 import { getUpgradeAuthLevelUrl, invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHelper';
 
@@ -10,7 +11,7 @@ import { getUpgradeAuthLevelUrl, invalidateCookieUrl, redirectToUpgrade } from '
  */
 export function isAuthenticationRedirectError(error: unknown): boolean {
   return !!(
-    isAxiosError(error) &&
+    isHttpError(error) &&
     error.response?.status === 403 &&
     error.response.data &&
     error.response.data['RequiredAuthenticationLevel'] &&

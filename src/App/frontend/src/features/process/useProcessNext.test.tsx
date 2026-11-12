@@ -2,9 +2,9 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import type { createMemoryRouter } from 'react-router';
 
+import { HttpError } from '@studio/http-client';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
@@ -40,12 +40,6 @@ function SubmitProbe() {
   );
 }
 
-function createAxiosLikeError(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error(`Request failed with status code ${status}`), {
-    response: { status, data },
-  });
-}
-
 // setupTests makes window.logError throw, so unhandled workflow failures also fail these tests.
 async function renderFailingProcessNext(
   errorBody: Record<string, unknown>,
@@ -56,7 +50,7 @@ async function renderFailingProcessNext(
   let transitionAttempted = false;
   vi.mocked(doProcessNext).mockImplementation(async () => {
     transitionAttempted = true;
-    throw createAxiosLikeError(status, errorBody);
+    throw new HttpError({ status, data: errorBody });
   });
 
   await renderWithInstanceAndLayout({
@@ -234,9 +228,7 @@ function processNextResponse(data: IInstanceWithProcess): ProcessNextResponse {
   return {
     data,
     status: 200,
-    statusText: 'OK',
-    headers: new AxiosHeaders(),
-    config: { headers: new AxiosHeaders() },
+    headers: new Headers(),
   };
 }
 

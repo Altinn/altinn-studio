@@ -1,6 +1,7 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
+import { HttpError } from '@studio/http-client';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IQueryParameters } from '@app/layout-contract/generated/common.generated';
@@ -124,9 +125,7 @@ describe('InstantiationButton', () => {
 
   it('should explain that the service cannot be started, and disable the button, after a 410 response', async () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
-    const createWithPrefill = vi
-      .fn()
-      .mockRejectedValue(Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }));
+    const createWithPrefill = vi.fn().mockRejectedValue(new HttpError({ status: 410, data: undefined }, 'Gone'));
     await render(createWithPrefill);
 
     await userEvent.click(screen.getByRole('button', { name: 'Instantiate' }));

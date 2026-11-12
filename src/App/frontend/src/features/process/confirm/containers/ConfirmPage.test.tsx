@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AxiosResponse } from 'axios';
+import type { HttpResponse } from '@studio/http-client';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
@@ -72,7 +72,7 @@ describe('ConfirmPage', () => {
     const user = userEvent.setup();
 
     // Create a promise that never resolves to keep the loading state
-    const processNextPromise = new Promise<AxiosResponse<IInstanceWithProcess>>(() => {
+    const processNextPromise = new Promise<HttpResponse<IInstanceWithProcess>>(() => {
       // Never resolves
     });
 
