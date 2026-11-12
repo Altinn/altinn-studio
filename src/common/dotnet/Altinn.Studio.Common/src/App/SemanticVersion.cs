@@ -15,7 +15,7 @@ namespace Altinn.Studio.Common.App;
 public sealed record SemanticVersion : IComparable<SemanticVersion>
 {
     // More digits than this do not fit in an int, and no version has them.
-    private const int MaxDigits = 9;
+    private const int MaxDigits = 10;
 
     private SemanticVersion(string value, int major, int minor, int patch, string preRelease, string build)
     {
@@ -158,7 +158,7 @@ public sealed record SemanticVersion : IComparable<SemanticVersion>
             : Math.Sign(string.CompareOrdinal(leftDigits, rightDigits));
     }
 
-    // A number without leading zeros.
+    // A number without leading zeros that an int can hold.
     private static bool TryParseNumber(string text, out int number)
     {
         number = 0;
@@ -167,11 +167,18 @@ public sealed record SemanticVersion : IComparable<SemanticVersion>
             return false;
         }
 
+        long value = 0;
         foreach (char c in text)
         {
-            number = (number * 10) + (c - '0');
+            value = (value * 10) + (c - '0');
         }
 
+        if (value > int.MaxValue)
+        {
+            return false;
+        }
+
+        number = (int)value;
         return true;
     }
 

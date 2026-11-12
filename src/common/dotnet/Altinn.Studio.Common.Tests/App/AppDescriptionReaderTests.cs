@@ -354,6 +354,30 @@ public sealed class AppDescriptionReaderTests
     }
 
     [Theory]
+    [InlineData(
+        "Directory.Packages.props",
+        "<Project><ItemGroup><PackageVersion Include=\"Altinn.App.Api\" Version=\"9.0.0\" /></ItemGroup></Project>",
+        "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" /></ItemGroup></Project>"
+    )]
+    [InlineData(
+        "Directory.Build.props",
+        "<Project><PropertyGroup><AltinnApp>9.0.0</AltinnApp></PropertyGroup></Project>",
+        "<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"$(AltinnApp)\" /></ItemGroup></Project>"
+    )]
+    public void Read_ForgetsPropsThatAreMalformedWhenReadAgain(string propsPath, string props, string project)
+    {
+        var reader = new AppDescriptionReader();
+        Read(reader, "App/App.csproj", project);
+        Read(reader, propsPath, props);
+        Assert.IsType<AppDescription.FormApp.V9OrLater>(reader.Build());
+
+        Read(reader, propsPath, "not xml");
+
+        var unknown = Assert.IsType<AppDescription.FormApp.UnknownVersion>(reader.Build());
+        Assert.Null(unknown.Reference.Version);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("not xml")]
     [InlineData("<Project><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.0.0\"></ItemGroup>")]

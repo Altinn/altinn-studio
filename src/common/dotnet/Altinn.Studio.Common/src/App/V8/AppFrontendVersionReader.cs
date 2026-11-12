@@ -9,9 +9,9 @@ namespace Altinn.Studio.Common.App.V8;
 /// </summary>
 /// <remarks>
 /// A <c>meta</c> tag with <c>data-altinn-app-frontend-version</c> wins. Otherwise the version is the path segment of
-/// the <c>altinn-app-frontend.js</c> script from altinncdn.no. Either must be an <see cref="AppFrontendVersion"/>,
-/// or the page names none. Old pages hold malformed markup and Razor, so it scans tags leniently, skipping comments
-/// and the content of scripts and styles.
+/// the first <c>altinn-app-frontend.js</c> script whose source is on altinncdn.no. Either must be an
+/// <see cref="AppFrontendVersion"/>, or the page names none. Old pages hold malformed markup and Razor, so it scans
+/// tags leniently, skipping HTML and Razor comments and the content of scripts and styles.
 /// </remarks>
 public static class AppFrontendVersionReader
 {
@@ -51,10 +51,11 @@ public static class AppFrontendVersionReader
             }
             else if (tags.NameIs("script") && scriptSource is null)
             {
-                string? source = tags.Attribute("src");
+                // The page loads what the source starts with, so the address must not only be somewhere in it.
+                string? source = tags.Attribute("src")?.Trim();
                 if (
                     source is not null
-                    && source.AsSpan().IndexOf(ScriptPrefix.AsSpan(), StringComparison.Ordinal) >= 0
+                    && source.StartsWith(ScriptPrefix, StringComparison.Ordinal)
                     && source.AsSpan().IndexOf(ScriptFile.AsSpan(), StringComparison.Ordinal) >= 0
                 )
                 {
@@ -75,14 +76,11 @@ public static class AppFrontendVersionReader
             return null;
         }
 
-        int prefix = source.IndexOf(ScriptPrefix, StringComparison.Ordinal);
+        // The suffix starts inside the prefix when the source has no segment between them.
         int suffix = source.IndexOf(ScriptSuffix, StringComparison.Ordinal);
-        if (prefix < 0 || suffix < 0 || prefix >= suffix)
-        {
-            return null;
-        }
-
-        return source.Substring(prefix + ScriptPrefix.Length, suffix - prefix - ScriptPrefix.Length);
+        return suffix < ScriptPrefix.Length
+            ? null
+            : source.Substring(ScriptPrefix.Length, suffix - ScriptPrefix.Length);
     }
 
     // Finds start tags in HTML, one at a time, and reads their attributes on request.
@@ -94,9 +92,13 @@ public static class AppFrontendVersionReader
         private int _nameEnd;
         private int _tagEnd;
 
+        // Where the next Razor comment starts, or -1 when the rest of the page has none.
+        private int _razorComment;
+
         public TagScanner(string html)
         {
             _html = html;
+            _razorComment = html.IndexOf("@*", StringComparison.Ordinal);
         }
 
         public readonly bool NameIs(string name) => TextEquals(_nameStart, _nameEnd, name);
@@ -112,6 +114,19 @@ public static class AppFrontendVersionReader
                 }
 
                 int open = _html.IndexOf('<', _position);
+                if (_razorComment >= 0 && _razorComment < _position)
+                {
+                    _razorComment = _html.IndexOf("@*", _position, StringComparison.Ordinal);
+                }
+
+                // Razor leaves a comment, @* to *@, out of the page it renders.
+                if (_razorComment >= 0 && (open < 0 || _razorComment < open))
+                {
+                    int close = _html.IndexOf("*@", _razorComment + 2, StringComparison.Ordinal);
+                    _position = close < 0 ? _html.Length : close + 2;
+                    continue;
+                }
+
                 if (open < 0 || open + 1 >= _html.Length)
                 {
                     _position = _html.Length;

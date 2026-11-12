@@ -123,11 +123,18 @@ public sealed class AppDescriptionReader : IAppSourceReader
             : FileKind.Other;
     }
 
-    // A malformed props file is as good as none, since MSBuild could not have imported it either.
+    // A malformed props file is as good as none, since MSBuild could not have imported it either. A file that is
+    // read again replaces what the earlier read gave.
     private void Add(AppFilePath path, ProjectFile? file)
     {
         switch (Kind(path), file)
         {
+            case (FileKind.BuildProps, null):
+                _buildProps.Remove(path.Directory);
+                break;
+            case (FileKind.PackagesProps, null):
+                _packagesProps.Remove(path.Directory);
+                break;
             case (FileKind.Project, null):
                 _projects.Remove(path);
                 _malformedProjects.Add(path);

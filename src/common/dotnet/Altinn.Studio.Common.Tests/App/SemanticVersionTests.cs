@@ -64,6 +64,18 @@ public sealed partial class SemanticVersionTests
         Assert.Equal(Official().IsMatch(value), SemanticVersion.TryParse(value, out _));
     }
 
+    // A number is an int, so the limit is the largest int and not a count of digits.
+    [Theory]
+    [InlineData("4.11.2026111212", true)]
+    [InlineData("2147483647.0.0", true)]
+    [InlineData("2147483648.0.0", false)]
+    [InlineData("0.0.99999999999", false)]
+    public void TryParse_AcceptsTheNumbersAnIntHolds(string value, bool expected)
+    {
+        Assert.Equal(expected, SemanticVersion.TryParse(value, out SemanticVersion? version));
+        Assert.Equal(expected ? value : null, version?.Value);
+    }
+
     // The exception to semantic versioning: a hash of only digits can start with a zero.
     [Theory]
     [InlineData("1.2.3-01")]

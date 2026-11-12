@@ -72,9 +72,46 @@ public sealed partial class AppFrontendVersionTests
         Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
     }
 
+    [Fact]
+    public void Read_IgnoresRazorComments()
+    {
+        string html = Page(
+            "@* <meta data-altinn-app-frontend-version=\"1\"> *@"
+                + $"@* <script src=\"{Script("3")}\"></script> *@"
+                + $"<script src=\"{Script("4")}\"></script>"
+                + "@* unterminated"
+        );
+
+        Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
+    }
+
+    [Theory]
+    [InlineData(
+        "https://example.org/loader.js?from=https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js"
+    )]
+    [InlineData("https://altinncdn.no/toolkits/altinn-app-frontend/altinn-app-frontend.js")]
+    [InlineData("//altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js")]
+    public void Read_TakesOnlyAScriptThatIsLoadedFromTheCdnWithAVersion(string source)
+    {
+        Assert.Null(AppFrontendVersionReader.Read(Page($"<script src=\"{source}\"></script>")));
+    }
+
+    [Fact]
+    public void Read_TakesTheFirstScriptFromTheCdn()
+    {
+        string html = Page(
+            "<script src=\"https://example.org/altinn-app-frontend.js\"></script>"
+                + $"<script src=\" {Script("4")} \"></script><script src=\"{Script("3")}\"></script>"
+        );
+
+        Assert.Equal("4", AppFrontendVersionReader.Read(html)?.Value);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("<")]
+    [InlineData("@*")]
+    [InlineData("<script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/altinn-app-frontend.js\">")]
     [InlineData("<script src=\"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js")]
     [InlineData("<meta data-altinn-app-frontend-version")]
     [InlineData("<!-- unterminated")]

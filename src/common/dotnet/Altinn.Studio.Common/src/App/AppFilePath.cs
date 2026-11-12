@@ -5,7 +5,7 @@ namespace Altinn.Studio.Common.App;
 
 /// <summary>
 /// The path of a file that an <see cref="AppSource"/> has, relative to the app's root, with <c>/</c> separators. It
-/// cannot point outside the app, so it is safe to join to the folder the app is in.
+/// cannot point outside the app, so it is safe to join to the folder the app is in, on any operating system.
 /// </summary>
 /// <remarks>
 /// Only an <see cref="AppSource"/> creates one, so code that holds one knows that a source had that file, and not
@@ -30,7 +30,8 @@ public sealed record AppFilePath
     /// <summary>The segments before the last, such as <c>App</c>, or empty for a file at the root.</summary>
     public string Directory { get; }
 
-    // A relative path whose segments are not empty, . or .., without \ or NUL.
+    // A relative path whose segments are not empty, . or .., without \ or NUL. It has no : either, which on Windows
+    // names a drive, as in C:/x, or a stream of a file.
     internal static bool TryCreate(string? value, [NotNullWhen(true)] out AppFilePath? path)
     {
         path = null;
@@ -42,7 +43,7 @@ public sealed record AppFilePath
         int start = 0;
         for (int i = 0; i <= value.Length; i++)
         {
-            if (i < value.Length && value[i] is '\\' or '\0')
+            if (i < value.Length && value[i] is '\\' or '\0' or ':')
             {
                 return false;
             }
