@@ -312,8 +312,8 @@ public static class FormDataWrapperUtils
             return true;
         }
 
-        // Skip properties with an accessor the generated code cannot call, such as a private setter.
-        // System.Text.Json uses such an accessor only with [JsonInclude], so without it the property holds no form data.
+        // Skip properties with an accessor the generated code cannot call, such as a private setter, like read-only ones.
+        // With [JsonInclude], System.Text.Json fills the property through that accessor, so it is form data.
         if (HasInaccessibleAccessor(property, compilation) && !SourceReaderUtils.HasJsonIncludeAttribute(property))
         {
             return true;
