@@ -147,6 +147,32 @@ describe('Repeating group nested validation and visibility', () => {
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
   });
 
+  it('keeps the nested editor frame around directly editable validation messages', () => {
+    setup(true);
+    cy.changeLayout((component) => {
+      if (component.id === 'validationNested' && component.type === 'RepeatingGroup') {
+        component.tableColumns = { validationComment: { editInTable: true } };
+      }
+    });
+    cy.get(row(1)).find(indicator).click();
+    cy.findByRole('dialog', { name: 'Meldinger' }).find('button[data-target-node="validationComment-1-1"]').click();
+    const nestedRow = '#group-validationNested-1-table-body > tr[data-row-num="1"]';
+    const messages = '#group-validationNested-1-table-body > tr[data-for-row="1"]';
+    cy.get(nestedRow).findByTestId('repeating-group-edit-button').click();
+    cy.get(messages).should('have.css', 'border-left-style', 'dotted').and('have.css', 'border-right-style', 'dotted');
+    cy.get(nestedRow)
+      .find('td')
+      .first()
+      .then(($cell) => {
+        cy.get(messages)
+          .children('td')
+          .should('have.css', 'background-color', $cell.css('background-color'))
+          .and('have.css', 'border-bottom-width', '0px');
+      });
+    cy.get(nestedRow).findByTestId('repeating-group-edit-button').click();
+    cy.get(messages).should('have.css', 'border-left-style', 'none');
+  });
+
   it('does not reveal deferred validations until existing visibility rules reveal them', () => {
     setup(false);
     cy.get('#group-validationGroup').find(indicator).should('not.exist');

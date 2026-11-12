@@ -163,6 +163,22 @@ describe('Repeating group validation showcase', () => {
     cy.get('[data-validation-for]').find('button').should('not.exist');
     assertTableArrows();
 
+    cy.get(row('mixed', 0)).findByTestId('repeating-group-edit-button').click();
+    cy.get(row('mixed', 0))
+      .find('td')
+      .first()
+      .then(($cell) => {
+        cy.get('#group-validation-mixed-table-body > [data-for-row="0"] > td')
+          .should('have.css', 'background-color', $cell.css('background-color'))
+          .and('have.css', 'border-bottom-width', '0px');
+      });
+    cy.get(row('mixed', 0)).findByTestId('repeating-group-edit-button').click();
+    cy.get('#group-validation-mixed-table-body > [data-for-row="0"] > td').should(
+      'have.css',
+      'border-bottom-width',
+      '1px',
+    );
+
     openRow('mixed', 2);
     dialog().find('button[data-target-node="validation-mixed-age-2"]').click();
     cy.get('#validation-mixed-age-2').should('have.focus');
