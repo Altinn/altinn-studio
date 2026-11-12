@@ -2223,7 +2223,8 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Converts calculations keyed by field in models/*.calculation.json to the list v9 reads.
+    /// Job 16: convert calculations keyed by field in models/*.calculation.json to the list v9 reads. A file whose
+    /// conversion would not load in v9 is left as written and reported as a to-do.
     /// </summary>
     static async Task<int> MigrateCalculationLists(string projectFolder)
     {
