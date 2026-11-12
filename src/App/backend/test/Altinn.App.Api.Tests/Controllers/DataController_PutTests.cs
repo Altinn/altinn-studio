@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
@@ -94,8 +95,16 @@ public class DataController_PutTests : ApiTestBase
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
-        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        // default.calculation.json sets melding.calculated-fixed-value, so the response lists the changed fields
+        var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
+        changes
+            .ChangedFields.Should()
+            .ContainKey("melding.calculated-fixed-value")
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetString()
+            .Should()
+            .Be("Hello Ola Olsen");
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
@@ -104,6 +113,7 @@ public class DataController_PutTests : ApiTestBase
             HttpStatusCode.OK
         );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
+        readDataElementResponseParsed.Melding.CalculatedFixedValue.Should().Be("Hello Ola Olsen");
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
 

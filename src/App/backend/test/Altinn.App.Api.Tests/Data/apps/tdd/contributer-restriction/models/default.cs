@@ -97,7 +97,7 @@ public class Dummy
     public bool ShouldSerializeHiddenRange() => HiddenRange.HasValue;
 
     /// <summary>
-    /// Skjema.calculation.json sets til to "Hello {skjema.name}" to test that the calculation is applied to the field.
+    /// default.calculation.json sets this to "Hello {melding.name}" to test that the calculation is applied to the field.
     /// </summary>
     [XmlElement("calculated-fixed-value", IsNullable = true, Order = 15)]
     [JsonProperty("calculated-fixed-value")]
