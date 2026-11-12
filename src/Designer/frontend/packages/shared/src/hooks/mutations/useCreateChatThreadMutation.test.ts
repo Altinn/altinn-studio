@@ -3,7 +3,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@designer/testing/testids';
 import { useCreateChatThreadMutation } from './useCreateChatThreadMutation';
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
+import { useChatThreadsQuery } from '../queries/useChatThreadsQuery';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api';
@@ -22,23 +23,33 @@ describe('useCreateChatThreadMutation', () => {
     expect(queriesMock.createChatThread).toHaveBeenCalledWith(org, app, payload);
   });
 
-  it('Puts the created thread first in the cached thread list', async () => {
+  it('Lists the created thread first while the thread list is fetched again', async () => {
     const existingThread: ChatThread = createThread('existing-thread');
     const createdThread: ChatThread = createThread('created-thread');
-    const client = createQueryClientMock();
-    client.setQueryData([QueryKey.ChatThreads, org, app], [existingThread]);
+    let answerRefetch: (threads: ChatThread[]) => void = () => {};
+    const getChatThreads = vi
+      .fn()
+      .mockResolvedValueOnce([existingThread])
+      .mockImplementationOnce(
+        () => new Promise<ChatThread[]>((resolve) => (answerRefetch = resolve)),
+      );
     const result = renderHookWithProviders(
-      { createChatThread: vi.fn().mockResolvedValue(createdThread) },
-      client,
-    )(() => useCreateChatThreadMutation()).renderHookResult.result;
+      { getChatThreads, createChatThread: vi.fn().mockResolvedValue(createdThread) },
+      createQueryClientMock(),
+    )(() => ({
+      threads: useChatThreadsQuery(),
+      createThread: useCreateChatThreadMutation(),
+    })).renderHookResult.result;
+    await waitFor(() => expect(result.current.threads.data).toEqual([existingThread]));
 
-    result.current.mutate(payload);
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await act(() => result.current.createThread.mutateAsync(payload));
 
-    expect(client.getQueryData([QueryKey.ChatThreads, org, app])).toEqual([
-      createdThread,
-      existingThread,
-    ]);
+    await waitFor(() =>
+      expect(result.current.threads.data).toEqual([createdThread, existingThread]),
+    );
+    expect(getChatThreads).toHaveBeenCalledTimes(2);
+    expect(result.current.threads.isFetching).toBe(true);
+    act(() => answerRefetch([createdThread, existingThread]));
   });
 
   it('Invalidates ChatThreads when creating a thread', async () => {

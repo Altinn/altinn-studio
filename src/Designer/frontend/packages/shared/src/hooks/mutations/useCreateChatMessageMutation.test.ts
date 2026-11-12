@@ -51,13 +51,20 @@ describe('useCreateChatMessageMutation', () => {
       role: MessageAuthor.User,
       content: 'Hello',
     };
+    const answerSavedByDesigner: ChatMessage = {
+      id: 'answer-1',
+      threadId,
+      createdAt: '2026-11-12T10:00:05Z',
+      role: MessageAuthor.Assistant,
+      content: 'Svar',
+    };
     let answerFirstFetch: (messages: ChatMessage[]) => void = () => {};
     const getChatMessages = vi
       .fn()
       .mockImplementationOnce(
         () => new Promise<ChatMessage[]>((resolve) => (answerFirstFetch = resolve)),
       )
-      .mockResolvedValue([savedMessage]);
+      .mockResolvedValue([savedMessage, answerSavedByDesigner]);
     const createChatMessage = vi.fn().mockResolvedValue(savedMessage);
     const result = renderHookWithProviders(
       { getChatMessages, createChatMessage },
@@ -71,7 +78,13 @@ describe('useCreateChatMessageMutation', () => {
     await act(() => result.current.createMessage.mutateAsync({ threadId, payload }));
     act(() => answerFirstFetch([]));
 
-    await waitFor(() => expect(result.current.messages.data).toHaveLength(1));
+    await waitFor(() =>
+      expect(result.current.messages.data?.map((message) => message.id)).toEqual([
+        'message-1',
+        'answer-1',
+      ]),
+    );
+    expect(getChatMessages).toHaveBeenCalledTimes(2);
   });
 
   it('Does not add the saved message again when the cache already has it', async () => {
