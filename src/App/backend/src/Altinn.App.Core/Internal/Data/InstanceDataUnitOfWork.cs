@@ -93,7 +93,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _stagedInstancePresentationTexts = new(StringComparer.Ordinal);
 
-    private readonly ConcurrentDictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
+    private readonly Dictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -527,10 +527,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             return;
         }
 
-        _stagedMetadataUpdates.AddOrUpdate(
-            dataElementIdentifier,
-            static (_, update) => MergeMetadataUpdate(previous: null, update),
-            static (_, previous, update) => MergeMetadataUpdate(previous, update),
+        _stagedMetadataUpdates[dataElementIdentifier] = MergeMetadataUpdate(
+            _stagedMetadataUpdates.GetValueOrDefault(dataElementIdentifier),
             update
         );
 
@@ -779,7 +777,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// </summary>
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0
-        || !_stagedMetadataUpdates.IsEmpty
+        || _stagedMetadataUpdates.Count > 0
         || _stagedInstanceDataValues.Count > 0
         || _stagedInstancePresentationTexts.Count > 0
         || _stagedCompleteConfirmation;
