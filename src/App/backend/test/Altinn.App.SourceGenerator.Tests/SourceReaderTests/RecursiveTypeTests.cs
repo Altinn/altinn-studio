@@ -7,35 +7,41 @@ namespace Altinn.App.SourceGenerator.Tests.SourceReaderTests;
 public class RecursiveTypeTests
 {
     [Theory]
-    [InlineData("public class TestClass { public TestClass Next { get; set; } }")]
-    [InlineData("public class Parent { public TestClass Child { get; set; } } public class TestClass : Parent { }")]
-    public void CreateRootSymbolNode_ThrowsForATypeThatContainsItself(string source)
+    [InlineData("public class TestClass { public TestClass Next { get; set; } }", "global::TestClass")]
+    [InlineData(
+        "public class Parent { public TestClass Child { get; set; } } public class TestClass : Parent { }",
+        "global::TestClass"
+    )]
+    [InlineData(
+        "public class Parent<T> { public Child<Child<T>> Next { get; set; } } public class Child<T> : Parent<T> { }"
+            + " public class TestClass : Parent<int> { }",
+        "global::Child<T>"
+    )]
+    public void CreateRootSymbolNode_ThrowsForATypeThatContainsItself(string source, string type)
     {
         var exception = Assert.Throws<NotSupportedException>(() => CreateRootSymbolNode(source));
 
-        Assert.Contains("global::TestClass", exception.Message);
+        Assert.EndsWith($"Type: {type}", exception.Message);
     }
 
     [Fact]
-    public void CreateRootSymbolNode_ReadsATypeUsedOnSeparatePaths()
+    public void CreateRootSymbolNode_ReadsTypesNestedAsDeepAsSystemTextJsonReads()
     {
-        var source = """
-            public class Address
+        // TestClass is the first of the 64 levels that JsonSerializerOptions.MaxDepth allows by default
+        var wrappers = string.Concat(Enumerable.Repeat("Wrapper<", 63)) + "string" + new string('>', 63);
+        var source = $$"""
+            public class Wrapper<T>
             {
-                public string Street { get; set; }
+                public T Value { get; set; }
             }
 
             public class TestClass
             {
-                public Address Home { get; set; }
-
-                public Address Work { get; set; }
+                public {{wrappers}} Value { get; set; }
             }
             """;
 
-        var rootNode = CreateRootSymbolNode(source);
-
-        Assert.Equal(["Home", "Work"], rootNode?.Properties.Select(property => property.CSharpName));
+        Assert.NotNull(CreateRootSymbolNode(source));
     }
 
     private static ModelPathNode? CreateRootSymbolNode(string source)

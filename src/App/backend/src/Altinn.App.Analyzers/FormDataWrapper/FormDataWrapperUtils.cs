@@ -6,6 +6,9 @@ namespace Altinn.App.Analyzers;
 
 public static class FormDataWrapperUtils
 {
+    // System.Text.Json reads and writes no deeper than this by default
+    private const int MaxDepth = 64;
+
     public static bool IsApplicationMetadataFile(AdditionalText text)
     {
         return text.Path.Replace('\\', '/').EndsWith("config/applicationmetadata.json");
@@ -134,13 +137,7 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(
-                rootSymbol,
-                compilation,
-                diagnostics,
-                collectionTypeSymbols,
-                new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
-            )
+            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols, depth: 1)
         );
     }
 
@@ -149,7 +146,7 @@ public static class FormDataWrapperUtils
         Compilation compilation,
         List<Diagnostic> diagnostics,
         SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols,
-        HashSet<ITypeSymbol> typesOnPath
+        int depth
     )
     {
         if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
@@ -163,11 +160,12 @@ public static class FormDataWrapperUtils
             return null;
         }
 
-        // Reading a type that contains itself would not end, and the stack overflow takes the compiler down with it
-        if (!typesOnPath.Add(namedTypeSymbol))
+        // Reading a type that contains itself would not end, and the stack overflow takes the compiler down with it.
+        // The type need not repeat on the way: a generic one can come back with a larger type argument each time.
+        if (depth > MaxDepth)
         {
             throw new NotSupportedException(
-                $"Types that contain themselves are not supported. Type: {SourceReaderUtils.TypeSymbolToString(namedTypeSymbol)}"
+                $"Types nested more than {MaxDepth} levels deep are not supported, as when a type contains itself. Type: {SourceReaderUtils.TypeSymbolToString(namedTypeSymbol.OriginalDefinition)}"
             );
         }
 
@@ -189,7 +187,7 @@ public static class FormDataWrapperUtils
                 compilation,
                 diagnostics,
                 collectionTypeSymbols,
-                typesOnPath
+                depth + 1
             );
 
             nodeProperties.Add(
@@ -205,8 +203,6 @@ public static class FormDataWrapperUtils
                 )
             );
         }
-
-        typesOnPath.Remove(namedTypeSymbol);
         return nodeProperties.ToArray();
     }
 
