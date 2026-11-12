@@ -3,15 +3,11 @@ name: Agents - build images
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    # No Markdown file is in the image: skills and instructions reach an Agent through its manifest.
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
   push:
     branches:
@@ -19,12 +15,7 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
 
 permissions:
