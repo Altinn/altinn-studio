@@ -5,7 +5,7 @@ use sandbox::{
     RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
 };
-use sandbox_host::{AnyError, ProviderArguments, native_linux_platform};
+use sandbox_host::{AnyError, ProviderArguments, native_linux_platform, validate_immutable_image_reference};
 
 #[derive(Parser)]
 #[command(about = "Export or import a prepared Sandbox image")]
@@ -54,12 +54,14 @@ async fn main() -> Result<(), AnyError> {
             registry_username,
             registry_password,
         } => {
+            validate_immutable_image_reference("SANDBOX_IMAGE", &image)?;
             let service = provider
                 .open_images(registry_authentication(registry_username, registry_password)?)
                 .await?;
             export(&service, image, destination).await
         }
         Command::Import { image, source } => {
+            validate_immutable_image_reference("SANDBOX_IMAGE", &image)?;
             let service = provider.open_images(None).await?;
             import(&service, image, source).await
         }

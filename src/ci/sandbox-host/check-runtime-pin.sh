@@ -4,7 +4,7 @@
 set -euo pipefail
 
 dockerfile="${1:?usage: check-runtime-pin.sh <Dockerfile>}"
-lockfile="$(dirname "$(cargo locate-project --workspace --message-format plain)")/Cargo.lock"
+lockfile="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/Cargo.lock"
 lock_version="$(awk '
   $0 == "name = \"microsandbox\"" { found = 1; next }
   found && /^version = / { gsub(/"/, "", $3); print $3; exit }
@@ -12,7 +12,12 @@ lock_version="$(awk '
 runtime_version="$(sed -n 's/^ARG MICROSANDBOX_RUNTIME_VERSION=//p' "${dockerfile}")"
 
 if [ -z "${lock_version}" ] || [ "${runtime_version}" != "${lock_version}" ]; then
-  echo "${dockerfile}: MICROSANDBOX_RUNTIME_VERSION is ${runtime_version:-missing}, but Cargo.lock has microsandbox ${lock_version:-missing}." >&2
+  message="${dockerfile}: MICROSANDBOX_RUNTIME_VERSION is ${runtime_version:-missing}, but Cargo.lock has microsandbox ${lock_version:-missing}."
+  if [ "${GITHUB_ACTIONS:-}" = true ]; then
+    echo "::error title=Microsandbox pin skew::${message}"
+  else
+    echo "${message}" >&2
+  fi
   exit 1
 fi
 echo "✓ ${dockerfile} downloads Microsandbox ${runtime_version}"

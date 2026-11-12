@@ -40,10 +40,10 @@ test: ## Run all tests
 deps: ## Print the coordinator dependency graph
 	@cargo tree -p github-runner-coordinator --locked
 
-deps-check: ## Check for unused direct dependencies and the Microsandbox runtime pin
+deps-check: ## Check the Microsandbox runtime pin and for unused direct dependencies
+	@../../sandbox-host/check-runtime-pin.sh ../Dockerfile.coordinator
 	@cargo machete --with-metadata .
 	@git diff --exit-code -- ':(top)Cargo.lock'
-	@../../sandbox-host/check-runtime-pin.sh ../Dockerfile.coordinator
 
 check: fmt build lint test deps-check ## Run all local checks
 	@echo "✓ All checks passed"

@@ -15,9 +15,11 @@ struct Arguments {
 
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<ExitCode, AnyError> {
-    let arguments = Arguments::parse();
+    let Arguments { provider, coordinator } = Arguments::parse();
     require_kvm()?;
-    let service = arguments.provider.open(None).await?;
-    let result = github_runner_coordinator::run(service, arguments.coordinator).await;
-    arguments.provider.clear_home_after(result).await
+    provider
+        .run_with_service(None, async |service| {
+            github_runner_coordinator::run(service, coordinator).await
+        })
+        .await
 }

@@ -1,13 +1,15 @@
 # sandbox-host
 
-Starts jobs in their own short-lived microVM on the Altinn sandbox nodes. This crate is the host setup those
-workloads share to start Sandboxes safely. [`sandbox-node`](../sandbox-node/README.md) prepares the nodes themselves.
+This crate holds the host setup that Sandbox workloads share inside their pods on the Altinn sandbox nodes. Each job
+runs there in its own short-lived microVM. [`sandbox-node`](../sandbox-node/README.md) prepares the nodes themselves.
 
-- `ProviderArguments` opens the Microsandbox Provider with the runtime bundle in the container image, after checking
-  it against its published checksum. It takes the Provider home from `SANDBOX_PROVIDER_HOME` and the image cache from
-  `SANDBOX_CACHE_HOME`, as described in [Provider home and image cache](#provider-home-and-image-cache).
+- `ProviderArguments::run_with_service` opens the Microsandbox Provider with the runtime bundle in the container
+  image, after checking it against its published checksum, and runs the workload with it. It takes the Provider home
+  from `SANDBOX_PROVIDER_HOME` and the image cache from `SANDBOX_CACHE_HOME`, as described in
+  [Provider home and image cache](#provider-home-and-image-cache).
 - `validate_immutable_image_reference` accepts only images that are pinned by sha256 digest, so that every Sandbox
-  starts the same image. A tag such as `latest` can point to a different image later.
+  starts the same image. A tag such as `latest` can point to a different image later. Its error names the setting the
+  workload read the image from.
 - `require_kvm` checks that the process can open `/dev/kvm`, so that a pod without hardware virtualization fails at
   start with a clear error.
 - `delete_sandbox` and `delete_sandbox_of` delete a Sandbox, and fail when the delete takes more than one minute.
@@ -31,8 +33,8 @@ pod spec of each workload mounts two folders from it, and `ProviderArguments` on
   `/var/lib/altinn/sandbox/cache`, mounted at `SANDBOX_CACHE_HOME`. The init container imports the prepared image into
   it, with a throwaway Provider home in the pod's `/tmp`.
 
-`clear_home_after` empties the Provider home with `clear_home` when a run ends, also after a failed run, so that
-nothing carries over to the next run.
+The node keeps a pod's Provider home after the pod ends, and nothing removes it. `run_with_service` therefore empties
+the home when the run ends, also when the Provider cannot open or the run fails.
 
 The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/README.md) uses this crate.
 

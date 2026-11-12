@@ -17,13 +17,11 @@ use sandbox::{
     progress::{Progress, ProgressCursor, Update},
 };
 use sandbox_host::{
-    ShutdownSignals, delete_sandbox, delete_sandbox_of, native_linux_platform, validate_immutable_image_reference,
+    AnyError, ShutdownSignals, delete_sandbox, delete_sandbox_of, native_linux_platform,
+    validate_immutable_image_reference,
 };
 
-use crate::{
-    AnyError,
-    github::{GithubClient, GithubConfig},
-};
+use crate::github::{GithubClient, GithubConfig};
 
 const DEFAULT_RUNNER_HOME: &str = "/home/runner";
 const DEFAULT_RUNNER_LABELS: &str = "self-hosted-ubuntu";
@@ -221,7 +219,7 @@ pub async fn run(service: SandboxService, arguments: CoordinatorArguments) -> Re
 }
 
 fn validate_arguments(arguments: &CoordinatorArguments) -> Result<(), io::Error> {
-    validate_immutable_image_reference(&arguments.runner_image)?;
+    validate_immutable_image_reference("SANDBOX_IMAGE", &arguments.runner_image)?;
     require_nonempty("APP_PRIVATE_KEY", &arguments.app_private_key)?;
     require_nonempty("GITHUB_API_URL", &arguments.github_api_url)?;
     require_nonempty("GITHUB_SERVER_URL", &arguments.github_server_url)?;
