@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Assistant;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.TransientFaultHandling;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -116,10 +117,28 @@ public class AssistantServiceClientTests
         Assert.True(capturedBody.GetProperty("granted").GetBoolean());
     }
 
-    [Fact]
-    public async Task CancelWorkflow_ThrowsOnNonSuccess()
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    public async Task CancelWorkflow_ThrowsWithTheStatusOfAClientError(HttpStatusCode statusCode)
     {
-        AssistantServiceClient client = CreateClient(HttpStatusCode.Forbidden);
+        AssistantServiceClient client = CreateClient(statusCode);
+
+        var exception = await Assert.ThrowsAsync<HttpRequestWithStatusException>(() =>
+            client.CancelWorkflow("testUser", "session-1", CancellationToken.None)
+        );
+
+        // GlobalExceptionHandler gives the browser this status.
+        Assert.Equal(statusCode, exception.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task CancelWorkflow_ThrowsAServerErrorForOtherFailures(HttpStatusCode statusCode)
+    {
+        AssistantServiceClient client = CreateClient(statusCode);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
             client.CancelWorkflow("testUser", "session-1", CancellationToken.None)

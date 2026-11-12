@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -7,6 +8,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
@@ -115,12 +117,26 @@ public class AssistantServiceClient : IAssistantServiceClient
     private async Task Send(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
     {
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
         {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}: {responseContent}"
-            );
+            return;
         }
+
+        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        string message =
+            $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}: {responseContent}";
+
+        // The assistant service answers with a client error in expected cases, such as a permission request
+        // that has timed out, a session that it no longer has, or its rate limit. The browser gets the same
+        // status. A 401 means that Designer's own request was wrong, so the browser gets a server error for it.
+        if (
+            response.StatusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
+            && response.StatusCode != HttpStatusCode.Unauthorized
+        )
+        {
+            throw new HttpRequestWithStatusException(message) { StatusCode = response.StatusCode };
+        }
+
+        throw new HttpRequestException(message, null, response.StatusCode);
     }
 }
