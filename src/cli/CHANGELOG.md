@@ -26,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Apps upgraded with `studioctl app upgrade v9` show calculated totals and warnings for the current input instead of the previous edit. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - `studioctl app upgrade v9` preserves legacy calculation and visibility results when inputs are missing, empty or zero. ([#21291](https://github.com/Altinn/altinn-studio/pull/21291))
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))

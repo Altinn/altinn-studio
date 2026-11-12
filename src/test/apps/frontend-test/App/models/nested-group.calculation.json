@@ -106,6 +106,46 @@
           "not_null(@, `[]`)[]"
         ]
       ]
+    },
+    {
+      "field": "CalculatedAnnualWork",
+      "expression": [
+        "if",
+        [
+          "dataModel",
+          "CalculateAnnualWork"
+        ],
+        [
+          "if",
+          [
+            "and",
+            [
+              "greaterThan",
+              [
+                "dataModel",
+                "Persons"
+              ],
+              0
+            ],
+            [
+              "greaterThan",
+              [
+                "dataModel",
+                "AnnualWork"
+              ],
+              0
+            ]
+          ],
+          [
+            "dataModel",
+            "AnnualWork"
+          ],
+          "else",
+          null
+        ],
+        "else",
+        0
+      ]
     }
   ],
 }

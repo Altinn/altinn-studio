@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
 
 /// <summary>
-/// Writes generated IDataWriteProcessor files to disk
+/// Writes generated IDataProcessor files to disk
 /// </summary>
 internal sealed class DataProcessorFileWriter
 {
