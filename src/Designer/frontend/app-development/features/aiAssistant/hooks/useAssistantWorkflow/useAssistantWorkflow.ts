@@ -412,6 +412,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       try {
         await start;
       } catch (error) {
+        // No run started, so this tab must adopt a run that another tab starts in the thread.
+        runMessagesRefreshedThreadsRef.current.delete(threadId);
+        delete workflowStartedAtMsByThreadRef.current[threadId];
         setWorkflowStatus(threadId, { isActive: false });
         throw error;
       } finally {

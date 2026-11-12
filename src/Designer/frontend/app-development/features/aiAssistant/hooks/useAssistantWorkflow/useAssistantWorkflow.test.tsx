@@ -1491,6 +1491,43 @@ describe('useAssistantWorkflow', () => {
     expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
   });
 
+  it('adopts a run that another tab starts after the start in this tab failed', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockRejectedValue(new Error('start failed')),
+    });
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Lag et skjema',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
+      });
+    });
+
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    consoleErrorSpy.mockRestore();
+  });
+
   it('sends no cancel when the start request fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result, start, cancelWorkflow } = await renderWithPendingStart();
