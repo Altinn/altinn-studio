@@ -67,6 +67,7 @@ RUN cd src/Designer/frontend && yarn build
 FROM mcr.microsoft.com/dotnet/sdk:10.0-resolute@sha256:667f3cee6f24afb202d3e32c7941e3800bbac57dd70bb68f89e52a6245aff88f AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
+COPY src/common/dotnet/.editorconfig ./src/common/dotnet/
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
 COPY src/common/dotnet/Altinn.Studio.Common.Telemetry ./src/common/dotnet/Altinn.Studio.Common.Telemetry
 COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/

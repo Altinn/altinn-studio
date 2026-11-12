@@ -9,6 +9,7 @@ ARG BUILD_CONFIGURATION=Release
 ARG BUILD_VERSION=dev
 WORKDIR /build
 
+COPY common/dotnet/.editorconfig common/dotnet/
 COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
 COPY common/dotnet/Altinn.Studio.Common.Telemetry/ common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/

@@ -1,5 +1,6 @@
 # Build context: src/
 **
+!common/dotnet/.editorconfig
 !common/dotnet/Altinn.Studio.Common/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**

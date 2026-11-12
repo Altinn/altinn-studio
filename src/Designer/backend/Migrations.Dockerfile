@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37
 
 WORKDIR /src
 
+COPY common/dotnet/.editorconfig ./common/dotnet/
 COPY common/dotnet/Altinn.Studio.Common ./common/dotnet/Altinn.Studio.Common
 COPY common/dotnet/Altinn.Studio.Common.Telemetry ./common/dotnet/Altinn.Studio.Common.Telemetry
 COPY cli/.editorconfig cli/Directory.Build.props cli/Directory.Packages.props ./cli/

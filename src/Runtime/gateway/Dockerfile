@@ -6,10 +6,9 @@ RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt
 WORKDIR /build
 
 # Copy project files and package management
+COPY common/dotnet/.editorconfig common/dotnet/
 COPY common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj common/dotnet/Altinn.Studio.Common/
-COPY common/dotnet/Altinn.Studio.Common/.editorconfig common/dotnet/Altinn.Studio.Common/
 COPY common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj common/dotnet/Altinn.Studio.Common.Telemetry/
-COPY common/dotnet/Altinn.Studio.Common.Telemetry/.editorconfig common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/gateway/Directory.Packages.props Runtime/gateway/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj Runtime/gateway/src/Altinn.Studio.Gateway.Api/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/Altinn.Studio.Gateway.Contracts.csproj Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/

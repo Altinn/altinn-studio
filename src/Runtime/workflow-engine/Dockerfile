@@ -8,6 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:de4fe90a98845d75910b9769662465c84d
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
+COPY common/dotnet/.editorconfig common/dotnet/
 COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
 COPY common/dotnet/Altinn.Studio.Common.Telemetry/ common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/

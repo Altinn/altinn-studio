@@ -45,12 +45,11 @@
 !cli/common/dotnet/.editorconfig
 !cli/common/dotnet/Altinn.Studio.AppDist/**
 !cli/common/dotnet/Directory.Build.props
+!common/dotnet/.editorconfig
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
-!common/dotnet/Altinn.Studio.Common.Telemetry/.editorconfig
 !common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj
 !common/dotnet/Altinn.Studio.Common.Telemetry/src/**
 !common/dotnet/Altinn.Studio.Common/**
-!common/dotnet/Altinn.Studio.Common/.editorconfig
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
 !common/dotnet/Altinn.Studio.Common/src/**
 !common/go/**

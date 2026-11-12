@@ -1,10 +1,9 @@
 # Build context: src/
 **
+!common/dotnet/.editorconfig
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
-!common/dotnet/Altinn.Studio.Common/.editorconfig
 !common/dotnet/Altinn.Studio.Common/src/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj
-!common/dotnet/Altinn.Studio.Common.Telemetry/.editorconfig
 !common/dotnet/Altinn.Studio.Common.Telemetry/src/**
 !Runtime/gateway/Directory.Packages.props
 !Runtime/gateway/src/Altinn.Studio.Gateway.Api/**
