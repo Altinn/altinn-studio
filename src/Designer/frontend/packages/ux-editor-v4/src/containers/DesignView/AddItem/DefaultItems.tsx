@@ -1,8 +1,8 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioButton, StudioHeading } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioHeading } from '@designer/components';
+import { XMarkIcon } from '@designer/icons';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
 import { useFormLayouts } from '../../../hooks';

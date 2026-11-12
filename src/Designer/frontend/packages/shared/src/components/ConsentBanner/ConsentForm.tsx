@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioHeading, StudioParagraph, StudioSwitch } from '@studio/components';
+import { StudioButton, StudioHeading, StudioParagraph, StudioSwitch } from '@designer/components';
 import { useConsent, useConsentMutation } from '../../utils/consent';
 import classNames from 'classnames';
 import classes from './ConsentForm.module.css';

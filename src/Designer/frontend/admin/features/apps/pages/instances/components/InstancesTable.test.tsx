@@ -4,19 +4,20 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios, { AxiosError, type AxiosResponse, type AxiosStatic } from 'axios';
+import { get, HttpError } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesTable } from './InstancesTable';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+}));
 
 const environment = 'at23';
 const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
@@ -58,24 +59,20 @@ const healthResponse = {
   unmatchedKeys: [unmatchedGuid],
 };
 
-const engineUnavailableError = () => {
-  const error = new AxiosError();
-  error.response = {
+const engineUnavailableError = () =>
+  new HttpError({
     status: 502,
     data: {
       type: 'urn:altinn:studio:gateway:workflow-engine-unavailable',
       title: 'Workflow engine unavailable',
     },
-  } as AxiosResponse;
-  return error;
-};
+  });
 
 const keysFrom = (url: string) => [
   ...new URLSearchParams(url.slice(url.indexOf('?'))).getAll('key'),
 ];
 
-type ResponseLike = { status: number; data: unknown };
-type RouteHandler = (url: string) => ResponseLike | Promise<ResponseLike>;
+type RouteHandler = (url: string) => unknown;
 
 type RouteHandlers = {
   instances?: RouteHandler;
@@ -84,20 +81,14 @@ type RouteHandlers = {
 
 /** Serves the two paged instance pages by continuation token, so both are loadable. */
 const pagedInstances: RouteHandler = (url) =>
-  url.includes(`continuationToken=${continuationToken}`)
-    ? { status: 200, data: secondInstancesPage }
-    : { status: 200, data: firstInstancesPage };
+  url.includes(`continuationToken=${continuationToken}`) ? secondInstancesPage : firstInstancesPage;
 
 const mockRequests = ({ instances: instancesHandler, health }: RouteHandlers = {}) => {
-  vi.mocked(axios.get).mockImplementation(async (url: string) => {
+  vi.mocked(get).mockImplementation(async (url: string) => {
     if (url.includes('/workflows/')) {
-      const result = health ? await health(url) : { status: 200, data: healthResponse };
-      return result as AxiosResponse;
+      return health ? health(url) : healthResponse;
     }
-    const result = instancesHandler
-      ? await instancesHandler(url)
-      : { status: 200, data: instancesResponse };
-    return result as AxiosResponse;
+    return instancesHandler ? instancesHandler(url) : instancesResponse;
   });
 };
 
@@ -124,7 +115,7 @@ const expectHealth = (instanceId: string, healthTextKey: string) =>
 
 const workflowEngineRequests = () =>
   vi
-    .mocked(axios.get)
+    .mocked(get)
     .mock.calls.map(([url]) => url as string)
     .filter((url) => url.includes('/workflows/'));
 
@@ -143,14 +134,11 @@ describe('InstancesTable workflow health column', () => {
   it('lists the newest instance first, whatever order Storage handed them over in', async () => {
     mockRequests({
       instances: () => ({
-        status: 200,
-        data: {
-          instances: [
-            { id: healthyGuid, org, app, isRead: true, createdAt: '2026-08-01T10:00:00Z' },
-            { id: activeGuid, org, app, isRead: true, createdAt: '2026-08-03T10:00:00Z' },
-            { id: failedGuid, org, app, isRead: true, createdAt: '2026-08-02T10:00:00Z' },
-          ],
-        },
+        instances: [
+          { id: healthyGuid, org, app, isRead: true, createdAt: '2026-08-01T10:00:00Z' },
+          { id: activeGuid, org, app, isRead: true, createdAt: '2026-08-03T10:00:00Z' },
+          { id: failedGuid, org, app, isRead: true, createdAt: '2026-08-02T10:00:00Z' },
+        ],
       }),
     });
     renderInstancesTable();
@@ -213,7 +201,7 @@ describe('InstancesTable workflow health column', () => {
     await healthCellOf(healthyGuid);
 
     const healthCalls = vi
-      .mocked(axios.get)
+      .mocked(get)
       .mock.calls.map(([url]) => url as string)
       .filter((url) => url.includes('/collections'));
 
@@ -258,9 +246,7 @@ describe('InstancesTable workflow health column', () => {
       instances: pagedInstances,
       // The first page's annotate request answers; the second page's never does.
       health: (url) =>
-        keysFrom(url).includes(healthyGuid)
-          ? { status: 200, data: healthResponse }
-          : new Promise<ResponseLike>(() => {}),
+        keysFrom(url).includes(healthyGuid) ? healthResponse : new Promise(() => {}),
     });
     renderInstancesTable();
 
@@ -286,7 +272,7 @@ describe('InstancesTable workflow health column', () => {
       instances: pagedInstances,
       health: (url) =>
         keysFrom(url).includes(healthyGuid)
-          ? { status: 200, data: healthResponse }
+          ? healthResponse
           : Promise.reject(engineUnavailableError()),
     });
     renderInstancesTable();
@@ -301,7 +287,7 @@ describe('InstancesTable workflow health column', () => {
   });
 
   it('reports no data for an empty annotate answer', async () => {
-    mockRequests({ health: () => Promise.resolve({ status: 204, data: '' }) });
+    mockRequests({ health: () => Promise.resolve(null) });
     renderInstancesTable();
 
     await waitFor(async () =>

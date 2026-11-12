@@ -47,7 +47,7 @@ import { SchemaModel } from '../SchemaModel';
 import type { FieldNode } from '../../types/FieldNode';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import type { CombinationNode } from '../../types/CombinationNode';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 describe('ui-schema-reducers', () => {
   let result: SchemaModel;

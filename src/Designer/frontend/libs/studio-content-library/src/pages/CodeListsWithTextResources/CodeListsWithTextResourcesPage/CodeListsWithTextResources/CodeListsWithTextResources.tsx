@@ -6,8 +6,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeListsWithTextResources.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
-import type { TextResource } from '@studio/pure-functions';
-import { StudioDetails, StudioCard, StudioAlert } from '@studio/components';
+import type { TextResource } from '@designer/pure-functions';
+import { StudioDetails, StudioCard, StudioAlert } from '@designer/components';
 
 export type CodeListsWithTextResourcesProps = {
   codeListDataList: CodeListDataWithTextResources[];

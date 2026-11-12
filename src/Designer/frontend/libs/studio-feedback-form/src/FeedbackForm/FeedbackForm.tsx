@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { toast } from 'react-toastify';
-import { StudioButton, StudioParagraph, StudioDialog, StudioHeading } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioDialog, StudioHeading } from '@designer/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';

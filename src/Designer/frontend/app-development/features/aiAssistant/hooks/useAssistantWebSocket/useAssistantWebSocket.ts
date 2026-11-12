@@ -6,7 +6,7 @@ import type {
   WorkflowRequest,
   AgentResponse,
   ConnectionStatus,
-} from '@studio/assistant';
+} from '@designer/assistant';
 
 const ASSISTANT_CONNECTION_INDEX = 0; // WSConnector uses single connection for assistant hub
 

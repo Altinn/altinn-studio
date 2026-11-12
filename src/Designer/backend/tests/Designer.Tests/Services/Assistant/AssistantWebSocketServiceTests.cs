@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Hubs.Assistant;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
@@ -30,39 +29,36 @@ namespace Designer.Tests.Services.Assistant;
 
 public class AssistantWebSocketServiceTests
 {
+    private const string Developer = "testUser";
     private static readonly Guid s_threadId = Guid.NewGuid();
-    private static readonly AltinnRepoEditingContext s_editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-        "ttd",
-        "test-app",
-        "testUser"
-    );
 
     private readonly Mock<IChatService> _chatServiceMock = new();
 
     [Fact]
-    public async Task TryPersistAssistantMessage_PersistsOnceAndEnrichesTheEvent()
+    public async Task TryPersistAssistantMessage_SavesInTheDevelopersThreadWithoutARegisteredSession()
     {
         var persisted = CreateMessageEntity();
         _chatServiceMock
             .Setup(s =>
-                s.CreateMessageAsync(
+                s.CreateMessageInDeveloperThreadAsync(
                     s_threadId,
+                    Developer,
                     It.IsAny<CreateChatMessageRequest>(),
-                    s_editingContext,
                     It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(persisted);
+        // The test does not register the session, as on a replica that only gets the developer's events.
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
-        await service.TryPersistAssistantMessageAsync(message);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         _chatServiceMock.Verify(
             s =>
-                s.CreateMessageAsync(
+                s.CreateMessageInDeveloperThreadAsync(
                     s_threadId,
+                    Developer,
                     It.Is<CreateChatMessageRequest>(r =>
                         r.Role == Role.Assistant
                         && r.Content == "Ferdig! Endringene er committet."
@@ -72,7 +68,6 @@ public class AssistantWebSocketServiceTests
                         && r.TraceId == "abc123"
                         && r.EventId == "event-123"
                     ),
-                    s_editingContext,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -81,31 +76,9 @@ public class AssistantWebSocketServiceTests
     }
 
     [Fact]
-    public async Task TryPersistAssistantMessage_SkipsUnregisteredSessions()
-    {
-        AssistantWebSocketService service = CreateService();
-        JsonNode message = CreateAssistantMessage();
-
-        await service.TryPersistAssistantMessageAsync(message);
-
-        _chatServiceMock.Verify(
-            s =>
-                s.CreateMessageAsync(
-                    It.IsAny<Guid>(),
-                    It.IsAny<CreateChatMessageRequest>(),
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-        Assert.Null(message["data"]!["persistedMessageId"]);
-    }
-
-    [Fact]
     public async Task TryPersistAssistantMessage_IgnoresOtherEventTypes()
     {
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
             ["type"] = "workflow_status",
@@ -113,7 +86,7 @@ public class AssistantWebSocketServiceTests
             ["data"] = new JsonObject { ["message"] = "Vent litt..." },
         };
 
-        await service.TryPersistAssistantMessageAsync(message);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         _chatServiceMock.VerifyNoOtherCalls();
     }
@@ -123,65 +96,42 @@ public class AssistantWebSocketServiceTests
     {
         _chatServiceMock
             .Setup(s =>
-                s.CreateMessageAsync(
+                s.CreateMessageInDeveloperThreadAsync(
                     It.IsAny<Guid>(),
+                    It.IsAny<string>(),
                     It.IsAny<CreateChatMessageRequest>(),
-                    It.IsAny<AltinnRepoEditingContext>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .ThrowsAsync(new InvalidOperationException("db down"));
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
-        // Must not throw — the event is forwarded unenriched and the client
-        // falls back to persisting its own copy.
-        await service.TryPersistAssistantMessageAsync(message);
+        // Must not throw, so that the listener still forwards the event.
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         Assert.Null(message["data"]!["persistedMessageId"]);
-        _chatServiceMock.Verify(
-            s =>
-                s.CreateMessageAsync(
-                    s_threadId,
-                    It.IsAny<CreateChatMessageRequest>(),
-                    s_editingContext,
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
     }
 
     [Fact]
-    public async Task TryPersistAssistantMessage_LeavesEventUnenrichedWhenThreadIsNotOwned()
+    public async Task TryPersistAssistantMessage_LeavesEventUnenrichedWhenTheDeveloperHasNoSuchThread()
     {
         _chatServiceMock
             .Setup(s =>
-                s.CreateMessageAsync(
+                s.CreateMessageInDeveloperThreadAsync(
                     It.IsAny<Guid>(),
+                    It.IsAny<string>(),
                     It.IsAny<CreateChatMessageRequest>(),
-                    It.IsAny<AltinnRepoEditingContext>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync((ChatMessageEntity)null);
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
-        await service.TryPersistAssistantMessageAsync(message);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         Assert.Null(message["data"]!["persistedMessageId"]);
-        _chatServiceMock.Verify(
-            s =>
-                s.CreateMessageAsync(
-                    s_threadId,
-                    It.IsAny<CreateChatMessageRequest>(),
-                    s_editingContext,
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -189,16 +139,15 @@ public class AssistantWebSocketServiceTests
     {
         _chatServiceMock
             .Setup(s =>
-                s.CreateMessageAsync(
+                s.CreateMessageInDeveloperThreadAsync(
                     s_threadId,
+                    Developer,
                     It.Is<CreateChatMessageRequest>(r => r.Content == "Svar i message-feltet"),
-                    s_editingContext,
                     It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(CreateMessageEntity());
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
             ["type"] = "assistant_message",
@@ -206,53 +155,70 @@ public class AssistantWebSocketServiceTests
             ["data"] = new JsonObject { ["message"] = "Svar i message-feltet" },
         };
 
-        await service.TryPersistAssistantMessageAsync(message);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         Assert.NotNull(message["data"]!["persistedMessageId"]);
     }
 
     [Fact]
-    public async Task RemoveSessionContextsForDeveloper_EvictsOnlyThatDevelopersSessions()
+    public async Task TryPersistAssistantMessage_SavesTheAnswerWhenOtherFieldsHaveUnexpectedTypes()
     {
-        var otherContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "other-app", "otherUser");
-        var otherThreadId = Guid.NewGuid();
-        _chatServiceMock
-            .Setup(s =>
-                s.CreateMessageAsync(
-                    It.IsAny<Guid>(),
-                    It.IsAny<CreateChatMessageRequest>(),
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(CreateMessageEntity());
+        List<CreateChatMessageRequest> requests = SetupSavesAndCaptureRequests();
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
-        service.TrackSessionContext(otherThreadId.ToString(), otherContext);
+        JsonNode message = JsonNode.Parse(
+            $$"""
+            {
+              "type": "assistant_message",
+              "session_id": "{{s_threadId}}",
+              "data": {
+                "content": "Svar",
+                "filesChanged": "App/ui/form/layouts/Side1.json",
+                "sources": [{"url": "https://docs.altinn.studio/x"}],
+                "traceId": 123,
+                "attachmentInstructionFlagged": "yes",
+                "eventId": "event-123"
+              }
+            }
+            """
+        )!;
 
-        service.RemoveSessionContextsForDeveloper(s_editingContext.Developer);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
-        // Evicted session: no context → persistence is left to the client.
-        JsonNode evicted = CreateAssistantMessage();
-        await service.TryPersistAssistantMessageAsync(evicted);
-        Assert.Null(evicted["data"]!["persistedMessageId"]);
+        CreateChatMessageRequest request = Assert.Single(requests);
+        Assert.Equal("Svar", request.Content);
+        Assert.Equal("event-123", request.EventId);
+        Assert.Null(request.FilesChanged);
+        Assert.Null(request.Sources);
+        Assert.Null(request.TraceId);
+        Assert.Null(request.AttachmentInstructionFlagged);
+        Assert.NotNull(message["data"]!["persistedMessageId"]);
+    }
 
-        // The other developer's session is untouched.
-        JsonNode kept = new JsonObject
+    [Fact]
+    public async Task RegisterSession_OpensTheConnectionWhenItIsClosed()
+    {
+        var firstFrame = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using WebApplication agent = await StartAgentAsync(async webSocket =>
         {
-            ["type"] = "assistant_message",
-            ["session_id"] = otherThreadId.ToString(),
-            ["data"] = new JsonObject { ["content"] = "Svar" },
-        };
-        await service.TryPersistAssistantMessageAsync(kept);
-        Assert.NotNull(kept["data"]!["persistedMessageId"]);
+            byte[] buffer = new byte[1024];
+            WebSocketReceiveResult frame = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+            firstFrame.TrySetResult(Encoding.UTF8.GetString(buffer, 0, frame.Count));
+        });
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+
+        // No EnsureConnectedAsync first, as when the assistant service closed the connection after the hub connected.
+        await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+
+        JsonNode frame = JsonNode.Parse(await firstFrame.Task.WaitAsync(TimeSpan.FromSeconds(10)))!;
+        Assert.Equal("session", frame["type"]!.GetValue<string>());
+        Assert.Equal(s_threadId.ToString(), frame["session_id"]!.GetValue<string>());
+        Assert.Equal(Developer, frame["developer"]!.GetValue<string>());
     }
 
     [Fact]
     public async Task TryPersistAssistantMessage_SkipsMessagesWithoutContent()
     {
         AssistantWebSocketService service = CreateService();
-        service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
             ["type"] = "assistant_message",
@@ -260,7 +226,7 @@ public class AssistantWebSocketServiceTests
             ["data"] = new JsonObject { ["sources"] = new JsonArray() },
         };
 
-        await service.TryPersistAssistantMessageAsync(message);
+        await service.TryPersistAssistantMessageAsync(Developer, message);
 
         _chatServiceMock.VerifyNoOtherCalls();
     }
@@ -268,8 +234,14 @@ public class AssistantWebSocketServiceTests
     [Fact]
     public async Task ListenerForwardsEachMessageInARootSpanWithTheUser()
     {
-        const string Developer = "listener-test-user";
-        await using WebApplication agent = await StartAgentThatSendsOneMessageAsync();
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            webSocket.SendAsync(
+                Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}"""),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            )
+        );
         var assistantClient = new Mock<IAssistantClient>();
         var clients = new Mock<IHubClients<IAssistantClient>>();
         clients.Setup(c => c.Group(Developer)).Returns(assistantClient.Object);
@@ -325,7 +297,11 @@ public class AssistantWebSocketServiceTests
         throw new TimeoutException("The listener forwarded no message.");
     }
 
-    private static async Task<WebApplication> StartAgentThatSendsOneMessageAsync()
+    /// <summary>
+    /// Starts a fake assistant service that runs <paramref name="onConnected"/> on each WebSocket and then keeps
+    /// the WebSocket open until the client closes it.
+    /// </summary>
+    private static async Task<WebApplication> StartAgentAsync(Func<WebSocket, Task> onConnected)
     {
         WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
@@ -334,16 +310,31 @@ public class AssistantWebSocketServiceTests
         agent.Run(async context =>
         {
             using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            byte[] message = Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}""");
-            await webSocket.SendAsync(message, WebSocketMessageType.Text, true, CancellationToken.None);
             try
             {
-                await webSocket.ReceiveAsync(new byte[256], CancellationToken.None);
+                await onConnected(webSocket);
+                await webSocket.ReceiveAsync(new byte[1024], CancellationToken.None);
             }
             catch (WebSocketException) { }
         });
         await agent.StartAsync();
         return agent;
+    }
+
+    private List<CreateChatMessageRequest> SetupSavesAndCaptureRequests()
+    {
+        var requests = new List<CreateChatMessageRequest>();
+        _chatServiceMock
+            .Setup(s =>
+                s.CreateMessageInDeveloperThreadAsync(
+                    s_threadId,
+                    Developer,
+                    Capture.In(requests),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(CreateMessageEntity());
+        return requests;
     }
 
     private AssistantWebSocketService CreateService(

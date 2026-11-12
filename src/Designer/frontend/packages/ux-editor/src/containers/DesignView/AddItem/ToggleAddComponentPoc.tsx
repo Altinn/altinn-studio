@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import type { ChangeEventHandler } from 'react';
 import { FeedbackForm } from './FeedbackForm';
-import { StudioSwitch, StudioHelpText, StudioParagraph } from '@studio/components';
-import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
+import { StudioSwitch, StudioHelpText, StudioParagraph } from '@designer/components';
+import { FeatureFlag, useFeatureToggle } from '@designer/feature-flags';
 import classes from './ToggleAddComponentPoc.module.css';
 
 /**

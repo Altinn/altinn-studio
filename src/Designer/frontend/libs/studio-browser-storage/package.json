@@ -1,5 +1,5 @@
 {
-  "name": "@studio/browser-storage",
+  "name": "@designer/browser-storage",
   "packageManager": "yarn@4.18.0",
   "version": "0.1.0",
   "main": "./src/index.ts",

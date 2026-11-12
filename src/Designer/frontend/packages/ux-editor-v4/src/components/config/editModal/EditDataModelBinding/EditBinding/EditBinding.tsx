@@ -10,7 +10,7 @@ import {
 import { useAppContext } from '@altinn/ux-editor-v4/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor-v4/containers/FormItemContext';
 import { useValidDataModels } from '@altinn/ux-editor-v4/hooks/useValidDataModels';
-import { StudioConfigCard, StudioSpinner } from '@studio/components';
+import { StudioConfigCard, StudioSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor-v4/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';

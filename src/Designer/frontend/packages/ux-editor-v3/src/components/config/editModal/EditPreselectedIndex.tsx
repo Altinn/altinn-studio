@@ -6,7 +6,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@designer/components';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();

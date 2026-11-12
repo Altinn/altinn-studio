@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioButton, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioButton, StudioHeading, StudioParagraph } from '@designer/components';
 import type { PermissionPromptTexts } from '../../../../types/AssistantTexts';
 import classes from './PermissionPrompt.module.css';
 

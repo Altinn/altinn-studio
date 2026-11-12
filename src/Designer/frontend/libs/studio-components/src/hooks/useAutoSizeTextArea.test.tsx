@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import React from 'react';
-import { StudioTextarea } from '@studio/components';
+import { StudioTextarea } from '@designer/components';
 import {
   DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
   DEFAULT_MIN_HEIGHT_PX_TEXTAREA,

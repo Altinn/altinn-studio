@@ -7,7 +7,7 @@ import {
   StudioPageHeader,
   StudioFormActions,
   StudioDeleteButton,
-} from '@studio/components';
+} from '@designer/components';
 import {
   type Scope,
   getCardLabel,

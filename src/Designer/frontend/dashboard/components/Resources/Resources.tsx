@@ -9,9 +9,9 @@ import {
   DesignResourceIcon,
   RoadmapResourceIcon,
   OperationStatusResourceIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { type Resource } from 'dashboard/types/Resource';
 
 const resources: Resource[] = [

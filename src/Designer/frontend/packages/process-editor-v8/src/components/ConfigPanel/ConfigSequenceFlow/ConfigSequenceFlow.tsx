@@ -7,9 +7,9 @@ import {
   SimpleSubexpressionValueType,
   StudioExpression,
   StudioParagraph,
-} from '@studio/components';
-import { StudioSectionHeader, StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+} from '@designer/components';
+import { StudioSectionHeader, StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioIconCard } from './';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioIconCard.stories.module.css';
-import { InformationIcon } from '@studio/icons';
+import { InformationIcon } from '@designer/icons';
 
 const meta = {
   title: 'Components/StudioIconCard',

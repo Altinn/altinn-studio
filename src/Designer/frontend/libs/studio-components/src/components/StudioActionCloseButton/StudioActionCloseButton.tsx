@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import React, { forwardRef } from 'react';
-import { CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@designer/icons';
 import { StudioButton, type StudioButtonProps } from '../StudioButton';
 
 export type StudioActionCloseButtonProps = StudioButtonProps & {

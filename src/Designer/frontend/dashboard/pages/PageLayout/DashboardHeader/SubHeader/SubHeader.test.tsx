@@ -8,7 +8,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { HeaderContextProvider } from '../../../../context/HeaderContext';
 import { headerContextValueMock } from '../../../../testing/headerContextMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from '../../../../enums/SelectedContextType';
 

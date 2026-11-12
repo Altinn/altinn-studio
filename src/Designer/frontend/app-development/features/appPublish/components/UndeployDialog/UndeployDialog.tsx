@@ -9,7 +9,7 @@ import {
   StudioList,
   StudioParagraph,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

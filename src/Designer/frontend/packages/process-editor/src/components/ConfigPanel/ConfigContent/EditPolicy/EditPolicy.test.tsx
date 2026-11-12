@@ -4,11 +4,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditPolicy } from './EditPolicy';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 vi.mock('react-router-dom', async () => ({

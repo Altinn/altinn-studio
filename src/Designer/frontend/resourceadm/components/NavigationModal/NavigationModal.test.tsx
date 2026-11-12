@@ -5,7 +5,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { NavigationModalProps } from './NavigationModal';
 import { NavigationModal } from './NavigationModal';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockButtonText: string = 'Mock Button';
 const mockOnClose = vi.fn();

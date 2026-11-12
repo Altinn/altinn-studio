@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -8,7 +8,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { EditLayoutSet } from './EditLayoutSet';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { layoutSets } from 'app-shared/mocks/mocks';
 

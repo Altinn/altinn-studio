@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { AssistantTexts } from '@studio/assistant';
+import type { AssistantTexts } from '@designer/assistant';
 
 export const useAssistantTexts = (): AssistantTexts => {
   const { t } = useTranslation();

@@ -3,7 +3,7 @@ import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useBpmnMutation } from './useBpmnMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('useBpmnMutation', () => {
   it('Calls updateBpmnXml with correct arguments and payload', async () => {

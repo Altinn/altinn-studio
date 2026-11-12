@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import cn from 'classnames';
-import { StudioAvatar } from '@studio/components';
+import { StudioAvatar } from '@designer/components';
 import classes from './ChatAvatar.module.css';
 import assistantLogo from '../../../../assets/assistant-logo.png';
 

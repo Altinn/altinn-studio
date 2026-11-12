@@ -98,7 +98,7 @@ RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-tem
 
 # Building the final image. The chiseled image has no shell or package manager, so this stage only copies files.
 # Its -extra variant adds ICU and time zones, which Designer needs.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:41db8302b4b08401ccf2bf139b02b37460da8872179d793899782ec0ef90933a AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:728d90568c65ec25adf8bacd9da65356a7f5bbeb37eaca1193e6ed082900a1bc AS final
 WORKDIR /app
 # Designer's database connections never use Kerberos. Without this, Npgsql looks for the Kerberos library, which the
 # image does not have, and the runtime prints an error at startup. A connection string can still set the mode.

@@ -5,10 +5,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { TextResourceAction, type TextResourceActionProps } from './TextResourceAction';
 import { renderWithProviders } from '../../../testing/mocks';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { TranslationKey } from '@altinn-studio/language/type';
 
 const newText = 'New text';

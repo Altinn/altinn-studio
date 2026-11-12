@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import type { CodeList } from '@studio/components';
+import type { CodeList } from '@designer/components';
 import codelistSchema from './codelist.schema.v1.json';
 
 const ajv = new Ajv({ strict: false });

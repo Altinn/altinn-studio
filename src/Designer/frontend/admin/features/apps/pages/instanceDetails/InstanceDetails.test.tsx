@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
-import axios from 'axios';
-import type { AxiosResponse, AxiosStatic } from 'axios';
+import { get } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { RunningApplicationMetadata } from 'admin/features/apps/types/RunningApplicationMetadata';
 import { InstanceDetails } from './InstanceDetails';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+}));
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -32,13 +32,13 @@ const instanceMock: SimpleInstanceDetails = {
 
 const workflowEngineRequests = () =>
   vi
-    .mocked(axios.get)
+    .mocked(get)
     .mock.calls.map(([url]) => url as string)
     .filter((url) => url.includes('/workflows/'));
 
 describe('InstanceDetails', () => {
   beforeEach(() => {
-    vi.mocked(axios.get).mockResolvedValue({ status: 204, data: '' } as AxiosResponse);
+    vi.mocked(get).mockResolvedValue(null);
   });
 
   it('shows an instance of an app on app libraries before v9 without the workflow engine', async () => {

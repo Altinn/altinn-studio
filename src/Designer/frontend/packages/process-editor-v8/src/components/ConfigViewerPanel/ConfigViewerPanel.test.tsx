@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { ConfigViewerPanel } from './ConfigViewerPanel';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 
 vi.mock('../../contexts/BpmnContext', () => ({

@@ -1,7 +1,7 @@
-import { StudioButton, StudioTable } from '@studio/components';
+import { StudioButton, StudioTable } from '@designer/components';
 import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
 import type {

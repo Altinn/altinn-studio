@@ -6,17 +6,17 @@ import type { CodeListDataWithTextResources } from '../../../types/CodeListDataW
 import { CodeListsWithTextResourcesPage } from './CodeListsWithTextResourcesPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   codeList1Data,
   codeList2Data,
   codeListDataList,
 } from '../../../test-data/codeListDataList';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
-import { screen, within } from '@studio/ui-test';
+import { screen, within } from '@designer/ui-test';
 
 const onCreateCodeList = vi.fn();
 const onCreateTextResource = vi.fn();

@@ -1,4 +1,4 @@
-import { StudioParagraph, StudioLink, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioLink, StudioAlert } from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './RepoOwnedByPersonInfo.module.css';
 

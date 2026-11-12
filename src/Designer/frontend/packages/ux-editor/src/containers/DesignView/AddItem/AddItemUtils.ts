@@ -2,7 +2,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { type ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
 import { allComponents, defaultComponents, getFormItemConfig } from '../../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../../utils/formLayoutUtils';

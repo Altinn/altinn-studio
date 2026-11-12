@@ -1,16 +1,4 @@
-import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
-
-export function decorateMessagesWithTraceIds(
-  messages: Message[],
-  traceIdsByMessageId: Record<string, string>,
-): Message[] {
-  return messages.map((message) => {
-    if (message.role !== MessageAuthor.Assistant || !message.id) return message;
-    const traceId = traceIdsByMessageId[message.id];
-    return traceId ? { ...message, traceId } : message;
-  });
-}
+import type { AgentResponse, AssistantMessageData } from '@designer/assistant';
 
 export type RejectionTexts = {
   heading: string;
@@ -36,14 +24,6 @@ export function formatRejectedEventMessage(
   return parts.join('\n\n');
 }
 
-export function getAssistantMessageContent(assistantMessage: AssistantMessageData): string {
-  return assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
-}
-
 export function getAssistantMessageTimestamp(assistantMessage: AssistantMessageData): Date {
   return new Date(assistantMessage.timestamp || Date.now());
-}
-
-export function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
-  return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
 }

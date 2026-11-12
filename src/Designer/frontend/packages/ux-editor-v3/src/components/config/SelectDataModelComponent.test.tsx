@@ -5,11 +5,11 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mock
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const getDataModelMetadata = () =>
   Promise.resolve<DataModelMetadataResponse>({

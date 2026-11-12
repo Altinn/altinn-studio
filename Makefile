@@ -1,12 +1,4 @@
 # Altinn Studio Makefile
-# Make targets for syncing subtree repositories
-
-# Configuration: name|prefix|repo-url|branch
-SUBTREES := localtest|src/Runtime/localtest|https://github.com/Altinn/app-localtest.git|main \
-           frontend|src/App/frontend|https://github.com/Altinn/app-frontend-react.git|main \
-           backend|src/App/backend|https://github.com/Altinn/app-lib-dotnet.git|main \
-           fileanalyzers|src/App/fileanalyzers|https://github.com/Altinn/fileanalyzers-lib-dotnet.git|main \
-           codelists|src/App/codelists|https://github.com/Altinn/codelists-lib-dotnet.git|main
 
 # Test apps configuration for subtree syncing (these all live in src/test/apps)
 # Format: app-name|repo-url|branch (using | delimiter since URLs contain colons)
@@ -26,18 +18,13 @@ TEST_APPS := anonymous-stateless-app|https://dev.altinn.studio/repos/ttd/anonymo
 # Default branch
 DEFAULT_BRANCH = main
 
-# Extract target names for .PHONY
-SUBTREE_TARGETS := $(foreach subtree,$(SUBTREES),sync-$(word 1,$(subst |, ,$(subtree))))
-
-.PHONY: $(SUBTREE_TARGETS) help create-pr sync-test-apps sync-all
+.PHONY: help create-pr sync-test-apps
 
 help: ## Show this help message
 	@echo "Available targets:"
-	@$(foreach subtree,$(SUBTREES), \
-		echo "  sync-$(word 1,$(subst |, ,$(subtree))) - Sync $(word 1,$(subst |, ,$(subtree))) subtree";)
-	@echo "  sync-test-apps - Sync all test app subtrees in src/test/apps"
-	@echo "  sync-all       - Sync all subtrees (main + test apps) and create a single PR"
-	@echo "  help - Show this help message"
+	@echo "  sync-test-apps - Sync all test app subtrees in src/test/apps and create a PR"
+	@echo "  tidy-all       - Run go mod tidy in all Go modules"
+	@echo "  help           - Show this help message"
 
 # =============================================================================
 # Reusable macros
@@ -86,18 +73,6 @@ define handle-conflicts
 	git add . && git commit --no-edit
 endef
 
-# Pull a single subtree (usage: $(call pull-subtree,name,prefix,repo-url,branch))
-define pull-subtree
-	echo ""; \
-	echo "Syncing $(1) subtree from $(3) ($(4))..."; \
-	git fetch $(3) $(4) && \
-	if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=$(2) $(3) $(4); then \
-		echo "OK: $(1) subtree synced successfully"; \
-	else \
-		$(handle-conflicts); \
-	fi;
-endef
-
 # Pull a single test app (usage: $(call pull-test-app,name,repo-url,branch))
 define pull-test-app
 	echo "Syncing test app $(1) from $(2) ($(3))..."; \
@@ -113,12 +88,6 @@ endef
 define pull-all-test-apps
 	@$(foreach app,$(TEST_APPS), \
 		$(call pull-test-app,$(word 1,$(subst |, ,$(app))),$(word 2,$(subst |, ,$(app))),$(word 3,$(subst |, ,$(app)))))
-endef
-
-# Pull all main subtrees
-define pull-all-subtrees
-	@$(foreach subtree,$(SUBTREES), \
-		$(call pull-subtree,$(word 1,$(subst |, ,$(subtree))),$(word 2,$(subst |, ,$(subtree))),$(word 3,$(subst |, ,$(subtree))),$(word 4,$(subst |, ,$(subtree)))))
 endef
 
 # =============================================================================
@@ -144,19 +113,6 @@ create-pr:
 		echo "Install GitHub CLI to enable automatic PR creation: https://cli.github.com/"; \
 	fi
 
-# Generate individual sync targets dynamically.
-# Each macro must live on its own recipe line (like sync-test-apps below); joining
-# them with backslash continuations collapses them into a single shell command,
-# which breaks command separation and the @-silenced recursive make call.
-define sync-target-template
-sync-$(word 1,$(subst |, ,$(1))):
-	$$(call create-sync-branch,$(word 1,$(subst |, ,$(1))))
-	$$(call pull-subtree,$(word 1,$(subst |, ,$(1))),$(word 2,$(subst |, ,$(1))),$(word 3,$(subst |, ,$(1))),$(word 4,$(subst |, ,$(1))))
-	@$$(MAKE) create-pr SUBTREE_NAME=$(word 1,$(subst |, ,$(1)))
-endef
-
-$(foreach subtree,$(SUBTREES),$(eval $(call sync-target-template,$(subtree))))
-
 # Sync all test apps
 sync-test-apps: ## Sync all test app subtrees
 	@echo "Syncing all test apps..."
@@ -166,17 +122,6 @@ sync-test-apps: ## Sync all test app subtrees
 	@echo ""
 	@echo "All test apps synced successfully!"
 	@$(MAKE) create-pr SUBTREE_NAME=test-apps
-
-# Sync all subtrees (main + test apps) in a single PR
-sync-all: ## Sync all subtrees and create a single PR
-	@echo "Syncing all subtrees..."
-	$(check-clean-working-tree)
-	$(call create-sync-branch,all)
-	$(pull-all-subtrees)
-	$(pull-all-test-apps)
-	@echo ""
-	@echo "All subtrees synced successfully!"
-	@$(MAKE) create-pr SUBTREE_NAME=all
 
 .PHONY: tidy-all
 tidy-all:

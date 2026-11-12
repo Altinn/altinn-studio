@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { KeyVerticalIcon } from '@studio/icons';
+import { KeyVerticalIcon } from '@designer/icons';
 import { StudioIconTextfield } from './StudioIconTextfield';
 
 const meta = {

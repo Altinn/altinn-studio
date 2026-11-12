@@ -6,7 +6,7 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';

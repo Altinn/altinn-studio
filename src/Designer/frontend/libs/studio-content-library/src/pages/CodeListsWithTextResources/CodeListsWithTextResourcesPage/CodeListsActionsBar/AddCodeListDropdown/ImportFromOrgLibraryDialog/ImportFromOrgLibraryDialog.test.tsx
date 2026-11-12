@@ -6,7 +6,7 @@ import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImportFromOrgLibraryDialog } from './';
 import type { ImportFromOrgLibraryDialogProps } from './ImportFromOrgLibraryDialog';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const onImportCodeListFromOrg = vi.fn();
 const codeListIds: string[] = ['codeList1', 'codeList2'];

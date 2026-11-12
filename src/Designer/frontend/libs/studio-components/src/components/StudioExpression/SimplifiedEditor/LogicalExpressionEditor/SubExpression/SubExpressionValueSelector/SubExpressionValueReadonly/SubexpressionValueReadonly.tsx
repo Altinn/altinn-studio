@@ -4,7 +4,7 @@ import { Tag } from '@digdir/designsystemet-react';
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import classes from './SubexpressionValueReadonly.module.css';
 import { StudioCodeFragment } from '../../../../../../StudioCodeFragment';
-import { LinkIcon } from '@studio/icons';
+import { LinkIcon } from '@designer/icons';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioParagraph } from '../../../../../../StudioParagraph';
 

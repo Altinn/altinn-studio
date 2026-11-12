@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 import type { EmptyThreadTexts } from '../../../types/AssistantTexts';
 import classes from './PlaceholderMessage.module.css';
 

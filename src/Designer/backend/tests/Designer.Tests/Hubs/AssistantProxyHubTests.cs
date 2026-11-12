@@ -55,7 +55,7 @@ public class AssistantProxyHubTests
 
         Assert.Contains("Access denied", exception.Message);
         _webSocketServiceMock.Verify(
-            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -71,7 +71,7 @@ public class AssistantProxyHubTests
 
         Assert.Contains("Invalid threadId format", exception.Message);
         _webSocketServiceMock.Verify(
-            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -120,7 +120,7 @@ public class AssistantProxyHubTests
 
         Assert.Contains("Access denied", exception.Message);
         _webSocketServiceMock.Verify(
-            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -143,16 +143,7 @@ public class AssistantProxyHubTests
 
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
-        _webSocketServiceMock.Verify(
-            ws =>
-                ws.RegisterSessionAsync(
-                    threadId.ToString(),
-                    It.Is<AltinnRepoEditingContext>(c =>
-                        c.Org == TestOrg && c.Repo == TestApp && c.Developer == TestDeveloper
-                    )
-                ),
-            Times.Once
-        );
+        _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(threadId.ToString(), TestDeveloper), Times.Once);
     }
 
     [Fact]
@@ -200,18 +191,13 @@ public class AssistantProxyHubTests
         var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
 
         Assert.Contains("Access denied", exception.Message);
-        _webSocketServiceMock.Verify(
-            ws =>
-                ws.RegisterSessionAsync(
-                    threadId.ToString(),
-                    It.Is<AltinnRepoEditingContext>(c => c.Org == "other-org")
-                ),
-            Times.Never
-        );
+        Assert.Empty(_agentHttpHandler.Requests);
+        // Only RegisterSession registered the session.
+        _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(threadId.ToString(), TestDeveloper), Times.Once);
     }
 
     [Fact]
-    public async Task StartWorkflow_ReRegistersSessionWithRequestContext_WhenDeveloperOwnsThread()
+    public async Task StartWorkflow_ReRegistersSession_WhenDeveloperOwnsThread()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
@@ -232,13 +218,7 @@ public class AssistantProxyHubTests
 
         // Once from RegisterSession, once re-registered by StartWorkflow.
         _webSocketServiceMock.Verify(
-            ws =>
-                ws.RegisterSessionAsync(
-                    threadId.ToString(),
-                    It.Is<AltinnRepoEditingContext>(c =>
-                        c.Org == TestOrg && c.Repo == TestApp && c.Developer == TestDeveloper
-                    )
-                ),
+            ws => ws.RegisterSessionAsync(threadId.ToString(), TestDeveloper),
             Times.Exactly(2)
         );
     }

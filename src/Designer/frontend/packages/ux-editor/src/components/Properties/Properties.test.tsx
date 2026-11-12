@@ -4,11 +4,11 @@ import { screen } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock, groupsPagesModelMock, layoutMock } from '../../testing/layoutMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { SelectedItem } from '../../AppContext';
 import { ItemType } from './ItemType';
 

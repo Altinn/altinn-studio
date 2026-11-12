@@ -3,13 +3,13 @@ import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-quer
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 export const useDiscardChangesMutation = (
   org: string,
   app: string,
-  options?: UseMutationOptions<RepoStatus, AxiosError, void>,
-): UseMutationResult<RepoStatus, AxiosError, void> => {
+  options?: UseMutationOptions<RepoStatus, HttpError, void>,
+): UseMutationResult<RepoStatus, HttpError, void> => {
   const { discardChanges } = useServicesContext();
   const queryClient = useQueryClient();
 

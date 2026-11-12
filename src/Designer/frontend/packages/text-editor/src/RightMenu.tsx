@@ -3,12 +3,12 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { StudioCheckbox, StudioFieldset, StudioHeading } from '@studio/components';
+import { StudioCheckbox, StudioFieldset, StudioHeading } from '@designer/components';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { deleteButtonId } from '@studio/testing/testids';
-import { ArrayUtils } from '@studio/pure-functions';
+import { deleteButtonId } from '@designer/testing/testids';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;

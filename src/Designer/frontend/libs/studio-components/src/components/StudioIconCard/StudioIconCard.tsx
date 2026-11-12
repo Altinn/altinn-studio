@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import type { ReactElement, ReactNode, Ref } from 'react';
 import { StudioPopoverTrigger } from '../StudioPopover/StudioPopover';
-import { MenuElipsisVerticalIcon } from '@studio/icons';
+import { MenuElipsisVerticalIcon } from '@designer/icons';
 import classes from './StudioIconCard.module.css';
 import { StudioPopover } from '../StudioPopover';
 import { StudioCard } from '../StudioCard';

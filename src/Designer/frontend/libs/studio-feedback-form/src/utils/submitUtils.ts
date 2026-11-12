@@ -8,7 +8,7 @@ import { post } from 'app-shared/utils/networking';
  */
 export const submitFeedback = async (answers: Record<string, string>, path: string) => {
   try {
-    // Using regular axios post rather than a mutation hook, since we are not storing
+    // Using a plain post rather than a mutation hook, since we are not storing
     // the feedback in the cache, nor are we updating any state.
     await post(path, { answers: { ...answers } });
   } catch (error) {

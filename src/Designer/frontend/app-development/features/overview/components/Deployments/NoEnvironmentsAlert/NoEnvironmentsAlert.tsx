@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import type { StudioAlertProps } from '@studio/components';
-import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
+import type { StudioAlertProps } from '@designer/components';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@designer/components';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

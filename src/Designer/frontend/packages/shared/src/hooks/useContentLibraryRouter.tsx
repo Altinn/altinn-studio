@@ -1,5 +1,5 @@
-import { PageName } from '@studio/content-library';
-import type { ContentLibraryRouter } from '@studio/content-library';
+import { PageName } from '@designer/content-library';
+import type { ContentLibraryRouter } from '@designer/content-library';
 import { useNavigate as useReactRouterNavigate, useParams, Link } from 'react-router-dom';
 import type { HTMLAttributes } from 'react';
 

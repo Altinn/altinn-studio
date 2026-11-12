@@ -9,12 +9,9 @@ namespace Altinn.App.Core.Internal.App;
 /// </summary>
 internal static class ApplicationMetadataParser
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true }
+    );
 
     /// <summary>
     /// Reads and deserializes the application metadata file.
