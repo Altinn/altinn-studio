@@ -16,6 +16,18 @@ spec:
         capacity: "64Gi"
         mode: layered
     initSystem: image
+    # The deployed apps, copied from the host when the Agent is created. See src/tools/altinn-fleet/README.md.
+    mounts:
+      - type: volume
+        volume: altinn-apps-prod
+        target: /home/agent/code/.reference/altinn-apps/prod
+        readOnly: true
+        optional: true
+      - type: volume
+        volume: altinn-apps-tt02
+        target: /home/agent/code/.reference/altinn-apps/tt02
+        readOnly: true
+        optional: true
   home:
     source: ../home
   instructions:
