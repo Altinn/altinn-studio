@@ -134,12 +134,13 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, diagnostics, collectionTypeSymbols)
+            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols)
         );
     }
 
     private static ModelPathNode[]? GetNodeProperties(
         ITypeSymbol typeSymbol,
+        Compilation compilation,
         List<Diagnostic> diagnostics,
         SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols
     )
@@ -156,9 +157,9 @@ public static class FormDataWrapperUtils
         }
 
         var nodeProperties = new List<ModelPathNode>();
-        foreach (var property in namedTypeSymbol.GetMembers().OfType<IPropertySymbol>())
+        foreach (var property in GetPropertiesIncludingInherited(namedTypeSymbol))
         {
-            if (PropertyShouldBeSkipped(property))
+            if (PropertyShouldBeSkipped(property, compilation))
             {
                 // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
                 continue;
@@ -168,7 +169,12 @@ public static class FormDataWrapperUtils
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
 
-            var subProperties = GetNodeProperties(propertyTypeInfo.PropertyType, diagnostics, collectionTypeSymbols);
+            var subProperties = GetNodeProperties(
+                propertyTypeInfo.PropertyType,
+                compilation,
+                diagnostics,
+                collectionTypeSymbols
+            );
 
             nodeProperties.Add(
                 new ModelPathNode(
@@ -184,6 +190,37 @@ public static class FormDataWrapperUtils
             );
         }
         return nodeProperties.ToArray();
+    }
+
+    /// <summary>
+    /// The properties of the type, then those of its base classes from the nearest one.
+    /// A property hides the base class properties with the same name, as in C# member lookup.
+    /// </summary>
+    /// <remarks>
+    /// Base classes in System are left out: with List&lt;T&gt;.Capacity as a model property, a class that derives
+    /// from List&lt;T&gt; would be copied without its items.
+    /// </remarks>
+    private static IEnumerable<IPropertySymbol> GetPropertiesIncludingInherited(INamedTypeSymbol typeSymbol)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        INamedTypeSymbol? type = typeSymbol;
+        do
+        {
+            foreach (var property in type.GetMembers().OfType<IPropertySymbol>())
+            {
+                if (names.Add(property.Name))
+                {
+                    yield return property;
+                }
+            }
+            type = type.BaseType;
+        } while (type is not null && !IsInSystemNamespace(type));
+    }
+
+    private static bool IsInSystemNamespace(INamedTypeSymbol type)
+    {
+        var ns = type.ContainingNamespace?.ToDisplayString();
+        return ns == "System" || ns?.StartsWith("System.", StringComparison.Ordinal) == true;
     }
 
     /// <summary>
@@ -223,7 +260,7 @@ public static class FormDataWrapperUtils
             _ => false,
         };
 
-    private static bool PropertyShouldBeSkipped(IPropertySymbol property)
+    private static bool PropertyShouldBeSkipped(IPropertySymbol property, Compilation compilation)
     {
         // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
         if (
@@ -237,6 +274,12 @@ public static class FormDataWrapperUtils
                 && property.DeclaredAccessibility is not Accessibility.Internal
             )
         )
+        {
+            return true;
+        }
+
+        // Skip properties the generated code cannot access, such as an internal one in another assembly
+        if (!compilation.IsSymbolAccessibleWithin(property, compilation.Assembly))
         {
             return true;
         }
