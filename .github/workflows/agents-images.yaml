@@ -3,7 +3,6 @@ name: Agents - build images
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
-    # No Markdown file is in the image: skills and instructions reach an Agent through its manifest.
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
