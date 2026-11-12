@@ -1528,6 +1528,41 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('sends no cancel when the start request fails while the message is deleted', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let finishDelete: () => void = () => {};
+    const deleteMessage = vi.fn(() => new Promise<void>((resolve) => (finishDelete = resolve)));
+    const { result, start, cancelWorkflow } = await renderWithPendingStart({
+      deleteMessage,
+      chatMessages: [
+        {
+          id: 'user-message-id',
+          role: MessageAuthor.User,
+          content: 'Lag et skjema',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    await waitFor(() => expect(deleteMessage).toHaveBeenCalled());
+    await act(async () => {
+      start.reject(new Error('start failed'));
+      await start.submit;
+    });
+    await act(async () => {
+      finishDelete();
+      await cancel;
+    });
+
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
   it('sends no cancel when the start request fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result, start, cancelWorkflow } = await renderWithPendingStart();
@@ -1547,8 +1582,8 @@ describe('useAssistantWorkflow', () => {
 });
 
 // Submits a message whose start request has not answered yet.
-const renderWithPendingStart = async () => {
-  const threads = createThreadState({ selectedThreadId: 'thread-1' });
+const renderWithPendingStart = async (threadOverrides: Partial<AssistantThreadState> = {}) => {
+  const threads = createThreadState({ selectedThreadId: 'thread-1', ...threadOverrides });
   let resolve: () => void;
   let reject: (error: Error) => void;
   const startRequest = new Promise<void>((resolveStart, rejectStart) => {

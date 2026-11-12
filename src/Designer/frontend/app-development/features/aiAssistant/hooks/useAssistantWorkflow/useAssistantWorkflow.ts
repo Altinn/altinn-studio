@@ -484,6 +484,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     if (!selectedThreadId) return;
 
     const statusBeforeCancel = workflowStatusByThread[threadId];
+    // The assistant service cannot cancel a run that has not started yet, and the start request
+    // answers when the run has started.
+    const pendingStart = pendingStartsByThreadRef.current[threadId];
     markThreadTerminated(threadId);
     setWorkflowStatus(threadId, { isActive: false });
 
@@ -502,9 +505,6 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       }
     }
 
-    // The assistant service cannot cancel a run that has not started yet, and the start request
-    // answers when the run has started.
-    const pendingStart = pendingStartsByThreadRef.current[threadId];
     if (pendingStart) {
       const started = await pendingStart.then(
         () => true,
