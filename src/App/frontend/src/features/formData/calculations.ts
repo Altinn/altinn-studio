@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -7,6 +8,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { convertData } from 'src/features/formData/convertData';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
@@ -91,6 +93,15 @@ function hasType(schema: JSONSchema7, type: string): boolean {
   return schema.type === type || (Array.isArray(schema.type) && schema.type.some((candidate) => candidate === type));
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isListOfObjects(value: unknown): value is Record<string, unknown>[] {
+  return Array.isArray(value) && value.length > 0 && value.every(isObject);
+}
+
+/** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
 function convertCalculationResult(
   result: unknown,
   target: string,
@@ -123,22 +134,85 @@ function convertCalculationResult(
     }
     return { value: values, error: false };
   }
-  if (typeof result === 'object' && hasType(schema, 'object')) {
-    const value: Record<string, FDValue> = {};
-    for (const [key, item] of Object.entries(result)) {
-      const converted = convertCalculationResult(item, `${target}.${key}`, lookupTool);
-      if (converted.error) {
-        return converted;
-      }
-      value[key] = converted.value;
-    }
-    return { value, error: false };
-  }
   if (typeof result === 'string' || typeof result === 'number' || typeof result === 'boolean') {
     const converted = convertData(result, schema);
     return converted.error ? { error: true } : { value: converted.newValue, error: false };
   }
   return { error: true };
+}
+
+interface CalculationTarget {
+  dataType: string;
+  model: FormStoreState['data']['models'][string];
+  lookupTool: SchemaLookupTool;
+}
+
+/**
+ * Writes a result the same way the backend does: an object sets the properties it contains and leaves the others
+ * alone, and a list of objects is merged row by row, so existing rows keep their row id and the properties the result
+ * leaves out. Other values replace the target.
+ */
+function writeCalculationResult(target: string, result: unknown, { dataType, model, lookupTool }: CalculationTarget) {
+  if (isObject(result)) {
+    mergeObject(target, result, { dataType, model, lookupTool });
+    return;
+  }
+  if (isListOfObjects(result)) {
+    mergeRows(target, result, { dataType, model, lookupTool });
+    return;
+  }
+  const converted = convertCalculationResult(result, target, lookupTool);
+  if (converted.error) {
+    window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
+    return;
+  }
+  if (converted.value === null) {
+    dot.delete(target, model.currentData);
+    dot.delete(target, model.invalidCurrentData);
+    return;
+  }
+  if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
+    dot.str(target, converted.value, model.currentData);
+  }
+  dot.delete(target, model.invalidCurrentData);
+}
+
+function mergeObject(target: string, result: Record<string, unknown>, context: CalculationTarget) {
+  for (const [key, value] of Object.entries(result)) {
+    // The row id belongs to the row, so a copied row never gets the id of the row it was copied from
+    if (key === ALTINN_ROW_ID) {
+      continue;
+    }
+    writeCalculationResult(`${target}.${key}`, value, context);
+  }
+}
+
+function mergeRows(target: string, rows: Record<string, unknown>[], context: CalculationTarget) {
+  const { dataType, model, lookupTool } = context;
+  const [schema] = lookupTool.getSchemaForPath(target);
+  const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);
+  if (!schema || !hasType(schema, 'array') || !itemSchema || !hasType(itemSchema, 'object')) {
+    window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
+    return;
+  }
+  if (!Array.isArray(dot.pick(target, model.currentData))) {
+    dot.str(target, [], model.currentData);
+  }
+  const current: unknown[] = dot.pick(target, model.currentData);
+  for (const [index, row] of rows.entries()) {
+    if (!isObject(current[index])) {
+      const newRow = { [ALTINN_ROW_ID]: uuidv4() };
+      if (index < current.length) {
+        current[index] = newRow;
+      } else {
+        current.push(newRow);
+      }
+    }
+    mergeObject(`${target}[${index}]`, row, context);
+  }
+  if (current.length > rows.length) {
+    current.splice(rows.length);
+  }
 }
 
 /** Calculations read and write the same draft so later expressions see earlier results. */
@@ -184,20 +258,11 @@ export function runCalculations(
         if (result === undefined) {
           continue;
         }
-        const converted = convertCalculationResult(result, target, bootstrap.schemaResult.lookupTool);
-        if (converted.error) {
-          window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
-          continue;
-        }
-        if (converted.value === null) {
-          dot.delete(target, model.currentData);
-          dot.delete(target, model.invalidCurrentData);
-          continue;
-        }
-        if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
-          dot.str(target, converted.value, model.currentData);
-        }
-        dot.delete(target, model.invalidCurrentData);
+        writeCalculationResult(target, result, {
+          dataType,
+          model,
+          lookupTool: bootstrap.schemaResult.lookupTool,
+        });
       }
     }
   }
