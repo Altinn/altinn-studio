@@ -36,7 +36,7 @@ _Support services. Langfuse is optional. Without it, the service records no trac
 
 ## Connect
 
-Each Designer replica opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload. The assistant service sends events on a socket only after the socket gets a session frame. For each command from the browser, the replica that handles the command sends a session frame on its socket.
+The browser connects to `AssistantProxyHub`, and Designer adds the connection to the SignalR group of the developer. The replica that gets a command from the browser opens a WebSocket to the assistant service for the developer, if it has none. It sends a session frame and waits for the confirmation before it sends the command. The assistant service sends the events of a developer only on the last socket that got a session frame. It closes the previous socket, and the new socket continues from the first event that the previous socket did not send. Thus each tab gets each event one time. The socket stays open when the user reloads the page, so a run continues to send events after a reload.
 
 ```mermaid
 sequenceDiagram
@@ -44,8 +44,11 @@ sequenceDiagram
   participant D as Designer backend
   participant A as Assistant service
   B->>D: Connect to AssistantProxyHub
-  D->>D: Add the connection to the developer's group
-  D->>A: Open WebSocket /ws, one for each developer
+  B->>D: A command, such as a start
+  D->>A: Open WebSocket /ws, if the replica has none for the developer
+  D->>A: Frame type=session with session_id and developer
+  A->>A: Close the developer's previous WebSocket
+  A-->>D: Frame type=session, status=registered
 ```
 
 _Connection setup. The assistant service sends events by developer, not by tab._
@@ -56,7 +59,7 @@ Designer makes a short-lived API key for each run. The key expires after 20 minu
 
 Designer also selects the organization that the model usage of the run is recorded on, and sends it as `cost_org`. In a repository of an organization, it is that organization. In the developer's own repository, it is the one organization with access to the assistant that the developer is a member of. If the developer is a member of more than one, it is `unattributed`.
 
-The browser sends the message and its attachments in one multipart request. Designer accepts PDF, Markdown, text and image files up to 20 MB each. The load balancer limits the full request to 50 MB. Designer sends the files as base64 in the start request. Designer keeps no data between requests, so any replica can handle a request.
+The browser sends the message and its attachments in one multipart request. Designer accepts PDF, Markdown, text and image files up to 20 MB each. The load balancer limits the full request to 50 MB, so the browser accepts up to 45 MB of attachments for a message. Designer sends the files as base64 in the start request. Designer keeps no data between requests, so any replica can handle a request.
 
 ```mermaid
 sequenceDiagram
@@ -66,7 +69,6 @@ sequenceDiagram
   participant G as Gitea proxy
   B->>D: POST .../assistant/threads/ID/workflow with the message and files
   D->>D: Check feature access and thread owner
-  D->>A: Frame type=session with session_id and developer
   D->>D: Make an API key that expires after 20 min
   D->>A: POST /api/agent/start with X-Api-Key and X-Developer
   A->>G: git clone with the X-Api-Key header
@@ -79,9 +81,7 @@ _The start request returns quickly. The real work happens after the response._
 
 ## Events come back
 
-The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer uses Redis as the SignalR backplane, so tabs on another replica also get the event. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
-
-Each Designer replica that has a WebSocket for the developer gets all the events, and each replica saves the answer. The database keeps one message for each event id, so the thread shows the answer one time. The browser does not save the answer. It gets the saved answer from Designer.
+The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, and the Redis backplane delivers it to tabs on other replicas. Designer also saves the final answer in its own database, so the answer is not lost when no tab is open. If the events move to the socket of another replica when an answer comes, both replicas can save the answer. The database keeps one message for each event id, so the thread shows the answer one time. The browser does not save the answer. It gets the saved answer from Designer.
 
 ```mermaid
 sequenceDiagram
@@ -104,7 +104,7 @@ _Event flow from the assistant service to the user._
 
 ## Permission prompt and cancel
 
-In chat mode, the first write tool call stops the loop and sends a `permission_request` event. The loop waits for the answer for a maximum of 300 seconds. No answer counts as "no". A cancel request sets a flag. The loop reads the flag at the start of each turn.
+In chat mode, the first write tool call stops the loop and sends a `permission_request` event. The loop waits for the answer for a maximum of 300 seconds. No answer counts as "no". A cancel request sets a flag. The loop reads the flag at the start of each turn. The assistant service cannot cancel a run that has not started, so the browser sends a cancel only after the start request has answered.
 
 ```mermaid
 sequenceDiagram

@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -18,17 +17,11 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<AssistantProxyHub> _logger;
-    private readonly IAssistantWebSocketService _webSocketService;
 
-    public AssistantProxyHub(
-        IHttpContextAccessor httpContextAccessor,
-        ILogger<AssistantProxyHub> logger,
-        IAssistantWebSocketService webSocketService
-    )
+    public AssistantProxyHub(IHttpContextAccessor httpContextAccessor, ILogger<AssistantProxyHub> logger)
     {
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
-        _webSocketService = webSocketService;
     }
 
     public override async Task OnConnectedAsync()
@@ -44,21 +37,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             connectionId
         );
 
-        try
-        {
-            await _webSocketService.EnsureConnectedAsync(developer);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to establish WebSocket to Assistant for developer {Developer}. Aborting connection.",
-                developer
-            );
-            Context.Abort();
-            return;
-        }
-
         await base.OnConnectedAsync();
     }
 
@@ -67,9 +45,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, developer);
-
-        // Don't close the developer WS — it persists across tab reconnects.
-        // It will be cleaned up by the service when the developer has no active sessions.
 
         _logger.LogInformation("Assistant hub disconnected for user: {Developer}", developer);
 

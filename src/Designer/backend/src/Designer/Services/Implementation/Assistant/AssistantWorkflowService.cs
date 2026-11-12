@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ internal sealed class AssistantWorkflowService(
     )
     {
         SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
-        if (access is not { Status: AssistantWorkflowStatus.Success, CostOrg: { } costOrg })
+        if (!access.IsGranted)
         {
             return access.Status;
         }
@@ -63,7 +64,7 @@ internal sealed class AssistantWorkflowService(
                 RepoUrl: GetRepoUrl(editingContext),
                 Branch: request.Branch,
                 AllowAppChanges: request.AllowAppChanges,
-                CostOrg: costOrg,
+                CostOrg: access.CostOrg,
                 Attachments: attachments
             ),
             editingContext.Developer,
@@ -80,7 +81,7 @@ internal sealed class AssistantWorkflowService(
     )
     {
         SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
-        if (access.Status != AssistantWorkflowStatus.Success)
+        if (!access.IsGranted)
         {
             return access.Status;
         }
@@ -100,7 +101,7 @@ internal sealed class AssistantWorkflowService(
     )
     {
         SessionAccess access = await OpenSession(editingContext, threadId, cancellationToken);
-        if (access.Status != AssistantWorkflowStatus.Success)
+        if (!access.IsGranted)
         {
             return access.Status;
         }
@@ -123,8 +124,9 @@ internal sealed class AssistantWorkflowService(
         return AssistantWorkflowStatus.Success;
     }
 
-    // The assistant service sends events only on a connection that has received a session frame. This replica's
-    // connection can have none, for example after the replica or the assistant service restarts.
+    // The assistant service sends the developer's events on the connection that registered a session last. After a
+    // restart of the assistant service or of the replica that had that connection, no connection gets the events
+    // until a command registers a session again.
     private async Task<SessionAccess> OpenSession(
         AltinnRepoEditingContext editingContext,
         Guid threadId,
@@ -139,16 +141,16 @@ internal sealed class AssistantWorkflowService(
                 editingContext.Developer,
                 editingContext.Org
             );
-            return new SessionAccess(AssistantWorkflowStatus.Forbidden);
+            return SessionAccess.Refused(AssistantWorkflowStatus.Forbidden);
         }
 
         if (!await chatService.ThreadBelongsToDeveloperAsync(threadId, editingContext, cancellationToken))
         {
-            return new SessionAccess(AssistantWorkflowStatus.NotFound);
+            return SessionAccess.Refused(AssistantWorkflowStatus.NotFound);
         }
 
         await webSocketService.RegisterSessionAsync(threadId.ToString(), editingContext.Developer);
-        return new SessionAccess(AssistantWorkflowStatus.Success, costOrg);
+        return SessionAccess.Granted(costOrg);
     }
 
     private static async Task<IReadOnlyList<AssistantWorkflowAttachment>> ReadAttachments(
@@ -188,6 +190,26 @@ internal sealed class AssistantWorkflowService(
             .Append(editingContext.Org, $"{editingContext.Repo}.git")
             .ToString();
 
-    // CostOrg is set when Status is Success.
-    private sealed record SessionAccess(AssistantWorkflowStatus Status, string? CostOrg = null);
+    private sealed class SessionAccess
+    {
+        private SessionAccess(AssistantWorkflowStatus status, string? costOrg)
+        {
+            Status = status;
+            CostOrg = costOrg;
+        }
+
+        public AssistantWorkflowStatus Status { get; }
+
+        public string? CostOrg { get; }
+
+        [MemberNotNullWhen(true, nameof(CostOrg))]
+        public bool IsGranted => CostOrg is not null;
+
+        public static SessionAccess Granted(string costOrg) => new(AssistantWorkflowStatus.Success, costOrg);
+
+        public static SessionAccess Refused(AssistantWorkflowStatus status) =>
+            status == AssistantWorkflowStatus.Success
+                ? throw new ArgumentOutOfRangeException(nameof(status), status, "A refusal needs a refused status.")
+                : new(status, null);
+    }
 }

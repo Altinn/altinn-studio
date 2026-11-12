@@ -115,6 +115,24 @@ public class AssistantWorkflowServiceTests
     }
 
     [Fact]
+    public async Task StartWorkflow_SendsTheResolvedCostOrg_ForADevelopersOwnRepository()
+    {
+        // In a developer's own repository, org is the username, which can contain a dot. The usage is recorded on
+        // the organization that the evaluator resolves.
+        const string OwnOrg = "test.user";
+        SetupCostOrg(OwnOrg, resolvedCostOrg: "nfk");
+        SetupThreadOwnership(OwnOrg, App, OwnOrg);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(OwnOrg, App, OwnOrg);
+
+        var status = await CreateService()
+            .StartWorkflow(editingContext, _threadId, CreateStartRequest(), CancellationToken.None);
+
+        Assert.Equal(AssistantWorkflowStatus.Success, status);
+        Assert.Equal("nfk", _sentStartRequest.CostOrg);
+        Assert.Equal($"http://test-repos/{OwnOrg}/{App}.git", _sentStartRequest.RepoUrl);
+    }
+
+    [Fact]
     public async Task StartWorkflow_GivesTheAssistantASystemKeyThatExpiresAfterTwentyMinutes()
     {
         await CreateService().StartWorkflow(EditingContext(), _threadId, CreateStartRequest(), CancellationToken.None);

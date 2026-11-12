@@ -197,22 +197,86 @@ public class AssistantWebSocketServiceTests
     [Fact]
     public async Task RegisterSession_OpensTheConnectionWhenItIsClosed()
     {
-        var firstFrame = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using WebApplication agent = await StartAgentAsync(async webSocket =>
-        {
-            byte[] buffer = new byte[1024];
-            WebSocketReceiveResult frame = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-            firstFrame.TrySetResult(Encoding.UTF8.GetString(buffer, 0, frame.Count));
-        });
+        var firstFrame = new TaskCompletionSource<JsonNode>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            ConfirmSessionsAsync(webSocket, frame => firstFrame.TrySetResult(frame))
+        );
         using AssistantWebSocketService service = CreateService(agent.Urls.First());
 
-        // No EnsureConnectedAsync first, as when the assistant service closed the connection after the hub connected.
         await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
 
-        JsonNode frame = JsonNode.Parse(await firstFrame.Task.WaitAsync(TimeSpan.FromSeconds(10)))!;
+        JsonNode frame = await firstFrame.Task.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("session", frame["type"]!.GetValue<string>());
         Assert.Equal(s_threadId.ToString(), frame["session_id"]!.GetValue<string>());
         Assert.Equal(Developer, frame["developer"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RegisterSession_ReturnsWhenTheAssistantConfirmsTheSession()
+    {
+        var frameReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var confirm = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            ConfirmSessionsAsync(webSocket, _ => frameReceived.TrySetResult(), confirm.Task)
+        );
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+
+        Task registration = service.RegisterSessionAsync(s_threadId.ToString(), Developer);
+        await frameReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await Task.Delay(200);
+        Assert.False(registration.IsCompleted);
+
+        confirm.SetResult();
+        await registration.WaitAsync(TimeSpan.FromSeconds(4));
+    }
+
+    [Fact]
+    public async Task RegisterSession_UsesANewConnectionWhenTheAssistantClosesTheOldOneWithoutAnAnswer()
+    {
+        int connections = 0;
+        await using WebApplication agent = await StartAgentAsync(async webSocket =>
+        {
+            if (Interlocked.Increment(ref connections) > 1)
+            {
+                await ConfirmSessionsAsync(webSocket, _ => { });
+                return;
+            }
+
+            await ConfirmSessionAsync(webSocket);
+            // Another replica takes over the developer's events before this frame is read.
+            await webSocket.ReceiveAsync(new byte[1024], CancellationToken.None);
+            await webSocket.CloseOutputAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "Another connection receives the events",
+                CancellationToken.None
+            );
+        });
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer);
+
+        // Faster than the wait for an answer, so the new connection did not wait for that.
+        await service.RegisterSessionAsync(s_threadId.ToString(), Developer).WaitAsync(TimeSpan.FromSeconds(4));
+
+        Assert.Equal(2, Volatile.Read(ref connections));
+    }
+
+    [Fact]
+    public async Task RegisterSession_SendsTheFramesOfSimultaneousCommandsOneAtATime()
+    {
+        int framesReceived = 0;
+        await using WebApplication agent = await StartAgentAsync(webSocket =>
+            ConfirmSessionsAsync(webSocket, _ => Interlocked.Increment(ref framesReceived))
+        );
+        using AssistantWebSocketService service = CreateService(agent.Urls.First());
+        await service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer);
+
+        await Task.WhenAll(
+            Enumerable
+                .Range(0, 20)
+                .Select(_ => Task.Run(() => service.RegisterSessionAsync(Guid.NewGuid().ToString(), Developer)))
+        );
+
+        Assert.Equal(21, Volatile.Read(ref framesReceived));
     }
 
     [Fact]
@@ -234,14 +298,16 @@ public class AssistantWebSocketServiceTests
     [Fact]
     public async Task ListenerForwardsEachMessageInARootSpanWithTheUser()
     {
-        await using WebApplication agent = await StartAgentAsync(webSocket =>
-            webSocket.SendAsync(
+        await using WebApplication agent = await StartAgentAsync(async webSocket =>
+        {
+            await ConfirmSessionAsync(webSocket);
+            await webSocket.SendAsync(
                 Encoding.UTF8.GetBytes("""{"type":"assistant_message","content":"hello"}"""),
                 WebSocketMessageType.Text,
                 true,
                 CancellationToken.None
-            )
-        );
+            );
+        });
         var assistantClient = new Mock<IAssistantClient>();
         var clients = new Mock<IHubClients<IAssistantClient>>();
         clients.Setup(c => c.Group(Developer)).Returns(assistantClient.Object);
@@ -265,10 +331,10 @@ public class AssistantWebSocketServiceTests
         ActivitySource.AddActivityListener(listener);
         using AssistantWebSocketService service = CreateService(agent.Urls.First(), hubContext.Object);
 
-        // The listener is started from a short-lived span, such as a hub's connect.
+        // The listener is started from a short-lived span, such as a command's request.
         using (Activity caller = new Activity("caller").SetIdFormat(ActivityIdFormat.W3C).Start())
         {
-            await service.EnsureConnectedAsync(Developer);
+            await service.RegisterSessionAsync(s_threadId.ToString(), Developer);
         }
 
         Activity forwarded = await ForwardedMessageSpanAsync(spans, Developer);
@@ -295,6 +361,50 @@ public class AssistantWebSocketServiceTests
             await Task.Delay(50);
         }
         throw new TimeoutException("The listener forwarded no message.");
+    }
+
+    /// <summary>
+    /// Confirms each session frame as the assistant service does, until the client closes the WebSocket.
+    /// </summary>
+    private static async Task ConfirmSessionsAsync(WebSocket webSocket, Action<JsonNode> onFrame, Task confirm = null)
+    {
+        while (await ConfirmSessionAsync(webSocket, onFrame, confirm)) { }
+    }
+
+    private static async Task<bool> ConfirmSessionAsync(
+        WebSocket webSocket,
+        Action<JsonNode> onFrame = null,
+        Task confirm = null
+    )
+    {
+        byte[] buffer = new byte[1024];
+        WebSocketReceiveResult result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+        if (result.MessageType == WebSocketMessageType.Close)
+        {
+            return false;
+        }
+
+        JsonNode frame = JsonNode.Parse(Encoding.UTF8.GetString(buffer, 0, result.Count))!;
+        onFrame?.Invoke(frame);
+        if (confirm is not null)
+        {
+            await confirm;
+        }
+
+        var answer = new JsonObject
+        {
+            ["type"] = "session",
+            ["status"] = "registered",
+            ["session_id"] = frame["session_id"]!.GetValue<string>(),
+            ["developer"] = frame["developer"]!.GetValue<string>(),
+        };
+        await webSocket.SendAsync(
+            Encoding.UTF8.GetBytes(answer.ToJsonString()),
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None
+        );
+        return true;
     }
 
     /// <summary>

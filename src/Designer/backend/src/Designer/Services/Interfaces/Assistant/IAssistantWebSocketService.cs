@@ -6,19 +6,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 /// Manages the per-developer WebSocket connection to the assistant service.
 /// The connection stays alive independently of browser tab lifecycle so that
 /// in-flight workflows can stream events back to any reconnected tab.
+/// Messages received from the agent are forwarded to the developer's SignalR group.
 /// </summary>
 public interface IAssistantWebSocketService
 {
     /// <summary>
-    /// Ensures a live WebSocket to the assistant service exists for this developer.
-    /// Idempotent — safe to call on every SignalR connection.
-    /// Messages received from the agent are forwarded to the developer's SignalR group.
-    /// </summary>
-    Task EnsureConnectedAsync(string developer);
-
-    /// <summary>
     /// Sends a session frame on the developer's connection, so that the assistant service
-    /// sends the events of the session on that connection. Opens the connection first if it is closed.
+    /// sends the developer's events on that connection. Opens the connection first if it is closed.
+    /// Returns when the assistant service confirms the session, or after a few seconds without an answer.
     /// </summary>
     Task RegisterSessionAsync(string sessionId, string developer);
 
