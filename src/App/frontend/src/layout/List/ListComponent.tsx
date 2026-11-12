@@ -9,9 +9,10 @@ import {
   Pagination as CustomPagination,
   RequiredIndicator,
   useIsMobile,
+  useIsMobileOrTablet,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Checkbox, Fieldset, Heading, Radio, useCheckboxGroup, useRadioGroup } from '@digdir/designsystemet-react';
+import { Checkbox, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
@@ -52,7 +53,7 @@ export function getSelectionMode(bindings: IDataModelBindingsForList | undefined
 type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponentId'> & { isSummary?: boolean };
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
-  const isMobile = useIsMobile();
+  const mobileView = useIsMobileOrTablet();
   const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
@@ -97,9 +98,6 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const isMultipleSelection = selectionMode === 'multiple';
   const { formData, setValues } = useDataModelBindings(bindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const { toggle, isChecked } = useSaveObjectToGroup(bindings);
-  const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
-    (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
-  );
   const selectedRow =
     !readOnly && !isMultipleSelection
       ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
@@ -160,20 +158,11 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       setSortDirection(sortColumn === key && sortDirection === 'descending' ? 'ascending' : 'descending');
     }
   };
-  const renderListItems = (
-    row: Row,
-    tableHeaders: {
-      [x: string]: string | undefined;
-    },
-  ) =>
-    tableHeadersToShowInMobile.map((key) => (
-      <div key={key}>
-        <strong>
-          <Lang id={tableHeaders[key]} />
-        </strong>
-        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
-      </div>
-    ));
+  // On small screens the header row only keeps the sortable columns, so that sorting is still possible
+  const headerKeys = Object.keys(config.tableHeaders).filter(
+    (key) => !mobileView || config.sortableColumns?.includes(key),
+  );
+  const renderValue = (value: Row[string] | undefined) => (typeof value === 'string' ? lang(value) : value);
   const indexedId = useIndexedId(baseComponentId);
   const componentId = isSummary ? `${indexedId}-summary` : indexedId;
   const getRowLabel = (row: Row): string =>
@@ -190,110 +179,6 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       })
       .filter(Boolean)
       .join(', ');
-  const { getRadioProps } = useRadioGroup({
-    name: indexedId,
-    value: JSON.stringify(selectedRow),
-    required,
-  });
-  const { getCheckboxProps } = useCheckboxGroup({
-    name: indexedId,
-    required,
-  });
-  if (isMobile && !readOnly) {
-    return (
-      <ListStructure
-        baseComponentId={baseComponentId}
-        isSummary={isSummary}
-      >
-        {isMultipleSelection ? (
-          <Fieldset>
-            <Fieldset.Legend>
-              {description && (
-                <Fieldset.Description className={classes.description}>
-                  <Lang id={description} />
-                </Fieldset.Description>
-              )}
-              <Heading
-                level={2}
-                data-size='sm'
-              >
-                <Lang id={title} />
-                <RequiredIndicator
-                  required={required}
-                  readOnly={readOnly}
-                />
-                <OptionalIndicator
-                  required={required}
-                  readOnly={readOnly}
-                  showOptionalMarking={showOptionalMarking}
-                />
-              </Heading>
-            </Fieldset.Legend>
-            <div>
-              {data?.listItems.map((row, idx) => (
-                <Checkbox
-                  key={idx}
-                  className={cn(classes.mobile)}
-                  {...getCheckboxProps({ value: JSON.stringify(row) })}
-                  onClick={() => handleRowClick(row)}
-                  value={JSON.stringify(row)}
-                  checked={isChecked(row)}
-                  readOnly={instanceLocked}
-                  label={renderListItems(row, config.tableHeaders)}
-                />
-              ))}
-            </div>
-          </Fieldset>
-        ) : (
-          <Fieldset className={classes.mobileGroup}>
-            <Fieldset.Legend>
-              <Heading
-                level={2}
-                data-size='sm'
-              >
-                <Lang id={title} />
-                <RequiredIndicator
-                  required={required}
-                  readOnly={readOnly}
-                />
-                <OptionalIndicator
-                  required={required}
-                  readOnly={readOnly}
-                  showOptionalMarking={showOptionalMarking}
-                />
-              </Heading>
-            </Fieldset.Legend>
-            {description && (
-              <Fieldset.Description className={classes.description}>
-                <Lang id={description} />
-              </Fieldset.Description>
-            )}
-
-            {data?.listItems.map((row, idx) => (
-              <Radio
-                key={idx}
-                {...getRadioProps({ value: JSON.stringify(row) })}
-                value={JSON.stringify(row)}
-                className={cn(classes.mobile, { [classes.selectedRow]: isRowSelected(row) })}
-                onClick={() => handleSelectedRadioRow({ selectedValue: row })}
-                readOnly={instanceLocked}
-                label={renderListItems(row, config.tableHeaders)}
-              />
-            ))}
-          </Fieldset>
-        )}
-        <Pagination
-          id={componentId}
-          pageSize={pageSize}
-          setPageSize={setPageSize}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          numberOfRows={data?._metaData.totaltItemsCount}
-          rowsPerPageOptions={config.pagination?.alternatives}
-        />
-      </ListStructure>
-    );
-  }
   return (
     <ListStructure
       baseComponentId={baseComponentId}
@@ -307,6 +192,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         className={cn(classes.listTable, {
           [classes.configuredColumns]: !!config.tableColumns,
           [classes.readOnly]: readOnly,
+          [classes.mobileTable]: mobileView,
         })}
       >
         {isSummary ? (
@@ -330,7 +216,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             )}
           </caption>
         ) : null}
-        {config.tableColumns && (
+        {config.tableColumns && !mobileView && (
           <colgroup>
             {!readOnly && <col className={classes.selectionColumn} />}
             {Object.keys(config.tableHeaders).map((key) => (
@@ -341,33 +227,35 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             ))}
           </colgroup>
         )}
-        <BaseTable.Head>
-          <BaseTable.Row>
-            {!readOnly && (
-              <BaseTable.HeaderCell>
-                <span className={utilClasses.visuallyHidden}>
-                  <Lang id='list_component.controlsHeader' />
-                </span>
-              </BaseTable.HeaderCell>
-            )}
-            {Object.entries(config.tableHeaders).map(([key, value]) => {
-              const isSortable = config.sortableColumns?.includes(key);
-              let sort: AriaAttributes['aria-sort'] = undefined;
-              if (isSortable) {
-                sort = sortColumn === key ? sortDirection : 'none';
-              }
-              return (
-                <BaseTable.HeaderCell
-                  key={key}
-                  sort={sort}
-                  onClick={isSortable ? () => handleSort(key) : undefined}
-                >
-                  <Lang id={value} />
+        {headerKeys.length > 0 && (
+          <BaseTable.Head>
+            <BaseTable.Row>
+              {!readOnly && (
+                <BaseTable.HeaderCell>
+                  <span className={utilClasses.visuallyHidden}>
+                    <Lang id='list_component.controlsHeader' />
+                  </span>
                 </BaseTable.HeaderCell>
-              );
-            })}
-          </BaseTable.Row>
-        </BaseTable.Head>
+              )}
+              {headerKeys.map((key) => {
+                const isSortable = config.sortableColumns?.includes(key);
+                let sort: AriaAttributes['aria-sort'] = undefined;
+                if (isSortable) {
+                  sort = sortColumn === key ? sortDirection : 'none';
+                }
+                return (
+                  <BaseTable.HeaderCell
+                    key={key}
+                    sort={sort}
+                    onClick={isSortable ? () => handleSort(key) : undefined}
+                  >
+                    <Lang id={config.tableHeaders[key]} />
+                  </BaseTable.HeaderCell>
+                );
+              })}
+            </BaseTable.Row>
+          </BaseTable.Head>
+        )}
         <BaseTable.Body>
           {data?.listItems.map((row) => (
             <BaseTable.Row
@@ -378,6 +266,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 <BaseTable.Cell
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
+                    [classes.mobileControlCell]: mobileView,
                   })}
                 >
                   {isMultipleSelection ? (
@@ -400,22 +289,36 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                       onClick={(e) => e.stopPropagation()}
                       value={JSON.stringify(row)}
                       checked={isRowSelected(row)}
+                      required={required}
                       name={indexedId}
                       readOnly={instanceLocked}
                     />
                   )}
                 </BaseTable.Cell>
               )}
-              {Object.keys(config.tableHeaders).map((key) => (
+              {mobileView ? (
                 <BaseTable.Cell
-                  key={key}
-                  className={cn({
-                    [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
-                  })}
+                  colSpan={headerKeys.length > 1 ? headerKeys.length : undefined}
+                  className={cn({ [classes.selectedRowCell]: isRowSelected(row) && !readOnly })}
                 >
-                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
+                  <ListMobileRowContent
+                    tableHeaders={config.tableHeaders}
+                    tableHeadersMobile={config.tableHeadersMobile}
+                    renderValue={(key) => renderValue(row[key])}
+                  />
                 </BaseTable.Cell>
-              ))}
+              ) : (
+                Object.keys(config.tableHeaders).map((key) => (
+                  <BaseTable.Cell
+                    key={key}
+                    className={cn({
+                      [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
+                    })}
+                  >
+                    {renderValue(row[key])}
+                  </BaseTable.Cell>
+                ))
+              )}
             </BaseTable.Row>
           ))}
         </BaseTable.Body>
@@ -434,6 +337,40 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     </ListStructure>
   );
 };
+
+type ListMobileRowContentProps = {
+  tableHeaders: Record<string, string | undefined>;
+  tableHeadersMobile: string[] | undefined;
+  renderValue: (key: string) => React.ReactNode;
+};
+
+/**
+ * On small screens, each row shows its columns as stacked 'Header: value' lines in a single cell, in the same way as
+ * RepeatingGroup does. Only the columns in tableHeadersMobile are shown, if set.
+ */
+export function ListMobileRowContent({ tableHeaders, tableHeadersMobile, renderValue }: ListMobileRowContentProps) {
+  const { langAsString } = useLanguage();
+  const keys = Object.keys(tableHeaders).filter((key) => !tableHeadersMobile || tableHeadersMobile.includes(key));
+  return (
+    <div className={classes.mobileRowContent}>
+      {keys.map((key) => {
+        const header = tableHeaders[key];
+        return (
+          <div key={key}>
+            {header && langAsString(header) && (
+              <>
+                <strong>
+                  <Lang id={header} />:
+                </strong>{' '}
+              </>
+            )}
+            {renderValue(key)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function ListStructure({ baseComponentId, isSummary, children }: PropsWithChildren<ListComponentProps>) {
   return isSummary ? (

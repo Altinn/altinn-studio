@@ -241,13 +241,13 @@ describe('ListComponent', () => {
 
   it('should save all field values when in mobile', async () => {
     vi.useFakeTimers();
-    vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+    vi.spyOn(useDeviceWidths, 'useIsMobileOrTablet').mockReturnValue(true);
 
     const user = userEvent.setup({ delay: null });
     const { formDataMethods } = await render({ component: { tableHeadersMobile: ['Name', 'FlagLink'] } });
 
     // Make sure test is not broken by changing mobile-view implementation
-    expect(useDeviceWidths.useIsMobile).toHaveBeenCalled();
+    expect(useDeviceWidths.useIsMobileOrTablet).toHaveBeenCalled();
 
     // There should be one radio for each country, but none of them should be checked
     await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
@@ -285,7 +285,7 @@ describe('ListComponent', () => {
       });
 
     it('should show the selection but not change it', async () => {
-      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(false);
+      vi.spyOn(useDeviceWidths, 'useIsMobileOrTablet').mockReturnValue(false);
       const user = userEvent.setup({ delay: null });
       const { formDataMethods } = await renderOnServiceTaskPage();
 
@@ -300,7 +300,7 @@ describe('ListComponent', () => {
     });
 
     it('should not change the selection in mobile', async () => {
-      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+      vi.spyOn(useDeviceWidths, 'useIsMobileOrTablet').mockReturnValue(true);
       const user = userEvent.setup({ delay: null });
       const { formDataMethods } = await renderOnServiceTaskPage();
 
@@ -348,7 +348,7 @@ describe('ListComponent', () => {
     });
 
     it('should not render controls in mobile view when no dataModelBindings exist', async () => {
-      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+      vi.spyOn(useDeviceWidths, 'useIsMobileOrTablet').mockReturnValue(true);
 
       await render({
         component: {
@@ -362,6 +362,10 @@ describe('ListComponent', () => {
 
       // No radio buttons should be present
       expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+
+      // Only the columns in tableHeadersMobile are shown, stacked in one cell per row
+      expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
+      expect(screen.getByRole('row', { name: /norway/i })).toHaveTextContent(/^Name: NorwayFlagLink: Norwegian flag$/);
     });
 
     it('should still display table data when no dataModelBindings exist', async () => {

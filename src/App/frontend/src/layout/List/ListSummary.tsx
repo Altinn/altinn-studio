@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { BaseTable } from '@app/form-component';
+import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
@@ -12,7 +12,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { getSelectionMode, ListComponent } from 'src/layout/List/ListComponent';
+import { getSelectionMode, ListComponent, ListMobileRowContent } from 'src/layout/List/ListComponent';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
@@ -46,6 +46,7 @@ export const ListSummary = (props: Summary2Props) => {
 const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
+  const mobileView = useIsMobileOrTablet();
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
@@ -104,7 +105,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 }
               />
             )}
-            {config.tableColumns && (
+            {config.tableColumns && !mobileView && (
               <colgroup>
                 {Object.keys(config.tableHeaders).map((key) => (
                   <col
@@ -114,41 +115,50 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 ))}
               </colgroup>
             )}
-            <BaseTable.Head>
-              <BaseTable.Row>
-                {Object.entries(config.tableHeaders).map(([key, value]) => (
-                  <BaseTable.HeaderCell key={key}>
-                    <Lang id={value} />
-                  </BaseTable.HeaderCell>
-                ))}
-              </BaseTable.Row>
-            </BaseTable.Head>
+            {!mobileView && (
+              <BaseTable.Head>
+                <BaseTable.Row>
+                  {Object.entries(config.tableHeaders).map(([key, value]) => (
+                    <BaseTable.HeaderCell key={key}>
+                      <Lang id={value} />
+                    </BaseTable.HeaderCell>
+                  ))}
+                </BaseTable.Row>
+              </BaseTable.Head>
+            )}
             <BaseTable.Body>
-              {displayRows?.map((row, rowIndex) => (
-                <BaseTable.Row key={rowIndex}>
-                  {Object.entries(config.tableHeaders).map(([key]) => {
-                    const binding = dataModelBindings?.[key];
-                    if (!binding || !dataModelBindings?.group) {
-                      return (
+              {displayRows?.map((row, rowIndex) => {
+                const getValue = (key: string) => {
+                  const binding = dataModelBindings?.[key];
+                  if (!binding || !dataModelBindings?.group) {
+                    return undefined;
+                  }
+                  const relativePath = binding.field.replace(`${dataModelBindings.group.field}.`, '');
+                  return dot.pick(relativePath, row);
+                };
+                return (
+                  <BaseTable.Row key={rowIndex}>
+                    {mobileView ? (
+                      <BaseTable.Cell align='left'>
+                        <ListMobileRowContent
+                          tableHeaders={config.tableHeaders}
+                          tableHeadersMobile={config.tableHeadersMobile}
+                          renderValue={getValue}
+                        />
+                      </BaseTable.Cell>
+                    ) : (
+                      Object.keys(config.tableHeaders).map((key) => (
                         <BaseTable.Cell
                           key={key}
                           align='left'
-                        />
-                      );
-                    }
-                    const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
-                    const data = dot.pick(relativePath, row);
-                    return (
-                      <BaseTable.Cell
-                        key={key}
-                        align='left'
-                      >
-                        {data}
-                      </BaseTable.Cell>
-                    );
-                  })}
-                </BaseTable.Row>
-              ))}
+                        >
+                          {getValue(key)}
+                        </BaseTable.Cell>
+                      ))
+                    )}
+                  </BaseTable.Row>
+                );
+              })}
             </BaseTable.Body>
           </BaseTable>
         </div>
