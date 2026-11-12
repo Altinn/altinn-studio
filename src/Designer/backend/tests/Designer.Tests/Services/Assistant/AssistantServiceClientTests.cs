@@ -145,6 +145,30 @@ public class AssistantServiceClientTests
         );
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task StartWorkflow_LeavesTheResponseBodyOutOfTheException(HttpStatusCode statusCode)
+    {
+        const string ResponseBody = """{"detail":[{"input":{"goal":"Lag et skjema"}}]}""";
+        AssistantServiceClient client = CreateClient(statusCode, responseBody: ResponseBody);
+        var request = new AssistantWorkflowStartRequest(
+            SessionId: "session-1",
+            Goal: "Lag et skjema",
+            RepoUrl: "http://repos/ttd/app.git",
+            Branch: "main",
+            AllowAppChanges: false,
+            CostOrg: "ttd",
+            Attachments: []
+        );
+
+        HttpRequestException exception = await Assert.ThrowsAnyAsync<HttpRequestException>(() =>
+            client.StartWorkflow(request, "testUser", "api-key", CancellationToken.None)
+        );
+
+        Assert.DoesNotContain("Lag et skjema", exception.Message);
+    }
+
     [Fact]
     public void Constructor_SetsTheTimeoutFromTheSettings()
     {
@@ -160,7 +184,8 @@ public class AssistantServiceClientTests
 
     private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
-        Action<HttpRequestMessage> onRequest = null
+        Action<HttpRequestMessage> onRequest = null,
+        string responseBody = ""
     )
     {
         Mock<HttpMessageHandler> mockHandler = new(MockBehavior.Strict);
@@ -172,7 +197,9 @@ public class AssistantServiceClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Callback<HttpRequestMessage, CancellationToken>((request, _) => onRequest?.Invoke(request))
-            .ReturnsAsync(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent("") });
+            .ReturnsAsync(
+                new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(responseBody) }
+            );
 
         HttpClient httpClient = new(mockHandler.Object);
         IOptions<AssistantSettings> settings = Options.Create(new AssistantSettings { AgentUrl = AgentUrl });

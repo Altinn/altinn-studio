@@ -122,9 +122,7 @@ public class AssistantServiceClient : IAssistantServiceClient
             return;
         }
 
-        string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-        string message =
-            $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}: {responseContent}";
+        string message = $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}";
 
         // A 401 means that Designer's own request was wrong.
         if (
