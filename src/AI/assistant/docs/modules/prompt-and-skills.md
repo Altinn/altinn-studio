@@ -1,6 +1,6 @@
 # Prompt and skills
 
-Code: `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/agents/prompts/`, `src/AI/assistant/scripts/sync_prompts.py`
+Code: `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/agents/core/skills.py`, `src/AI/assistant/agents/skills/`, `src/AI/assistant/agents/prompts/`, `src/AI/assistant/scripts/sync_prompts.py`
 
 ## The loop system prompt
 
@@ -17,6 +17,21 @@ flowchart LR
 _The parts of the loop system prompt. The final answer rules are different for chat mode and workflow mode._
 
 ## Skills
+
+Skills use progressive disclosure. The prompt has only the name and the description of each skill. The model calls the `skill` tool to get the body. The loader adds the text for the app version and the included files. A long body comes in parts, as [Tools](tools.md) describes.
+
+```mermaid
+sequenceDiagram
+  participant M as Model
+  participant T as skill tool
+  participant F as Skill files
+  M->>T: skill(name=altinn-datamodel)
+  T->>F: Read SKILL.md, v8.md or v9.md, and the included files
+  F-->>T: Body text
+  T-->>M: Body as tool result, plus a source
+```
+
+_A skill load. The source becomes a link chip under the final answer._
 
 [Assistant skills](../skills.md) says which skills load and how to add one.
 
