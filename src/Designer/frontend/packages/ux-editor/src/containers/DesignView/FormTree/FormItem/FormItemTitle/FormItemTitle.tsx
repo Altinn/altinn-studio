@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { StudioButton } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@designer/icons';
@@ -28,6 +28,11 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const { layoutSet } = useUxEditorParams();
   const layout = useSelectedFormLayout();
   const { formItemId: selectedItemId, handleDiscard } = useFormItemContext();
+  const selectedItemIdRef = useRef(selectedItemId);
+
+  useEffect(() => {
+    selectedItemIdRef.current = selectedItemId;
+  }, [selectedItemId]);
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -39,20 +44,11 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       deleteItem(formItem.id, {
         onSuccess: async () => {
           await updateLayoutsForPreview(layoutSet, true);
-          if (deletedItemIds.includes(selectedItemId)) handleDiscard();
+          if (deletedItemIds.includes(selectedItemIdRef.current)) handleDiscard();
         },
       });
     }
-  }, [
-    formItem,
-    t,
-    deleteItem,
-    layout,
-    updateLayoutsForPreview,
-    layoutSet,
-    selectedItemId,
-    handleDiscard,
-  ]);
+  }, [formItem, t, deleteItem, layout, updateLayoutsForPreview, layoutSet, handleDiscard]);
 
   return (
     <div

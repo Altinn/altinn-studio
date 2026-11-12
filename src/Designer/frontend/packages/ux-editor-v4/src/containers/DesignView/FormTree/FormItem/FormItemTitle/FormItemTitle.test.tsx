@@ -11,6 +11,7 @@ import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../FormItemContext';
 import { formItemContextProviderMock } from '../../../../../testing/formItemContextMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@designer/testing/testids';
@@ -152,6 +153,44 @@ describe('FormItemTitle', () => {
       await waitFor(() => expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1));
       expect(mockHandleDiscard).not.toHaveBeenCalled();
     });
+
+    it('Discards the selection when the deleted component is selected before the deletion completes', async () => {
+      const user = userEvent.setup();
+      const { saveFormLayout, completeSave } = pendingSave();
+      const { rerender } = render(componentWithOptionsMock, 'Test label', selectedComponentId, {
+        saveFormLayout,
+      });
+
+      await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+      rerender(
+        formItemTitleWithSelection(
+          componentWithOptionsMock,
+          'Test label',
+          componentWithOptionsMock.id,
+        ),
+      );
+      completeSave();
+
+      await waitFor(() => expect(mockHandleDiscard).toHaveBeenCalledTimes(1));
+    });
+
+    it('Keeps the selection when another component is selected before the deletion of the selected one completes', async () => {
+      const user = userEvent.setup();
+      const { saveFormLayout, completeSave } = pendingSave();
+      const deletedComponent = layoutMock.components[selectedComponentId];
+      const { rerender } = render(deletedComponent, 'Test label', selectedComponentId, {
+        saveFormLayout,
+      });
+
+      await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+      rerender(
+        formItemTitleWithSelection(deletedComponent, 'Test label', componentWithOptionsMock.id),
+      );
+      completeSave();
+
+      await waitFor(() => expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1));
+      expect(mockHandleDiscard).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -159,17 +198,32 @@ const render = (
   formItem: FormComponent | FormContainer,
   label: string,
   selectedItemId: string = null,
+  queries: Partial<ServicesContextProps> = {},
 ) =>
-  renderWithProviders(
-    <FormItemContext.Provider
-      value={{
-        ...formItemContextProviderMock,
-        ...{ formItemId: selectedItemId, handleDiscard: mockHandleDiscard },
-      }}
-    >
-      <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
-    </FormItemContext.Provider>,
-    {
-      appContextProps: {},
-    },
-  );
+  renderWithProviders(formItemTitleWithSelection(formItem, label, selectedItemId), {
+    appContextProps: {},
+    queries,
+  });
+
+const formItemTitleWithSelection = (
+  formItem: FormComponent | FormContainer,
+  label: string,
+  selectedItemId: string,
+) => (
+  <FormItemContext.Provider
+    value={{
+      ...formItemContextProviderMock,
+      ...{ formItemId: selectedItemId, handleDiscard: mockHandleDiscard },
+    }}
+  >
+    <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
+  </FormItemContext.Provider>
+);
+
+const pendingSave = () => {
+  let completeSave: () => void;
+  const save = new Promise<void>((resolve) => {
+    completeSave = resolve;
+  });
+  return { saveFormLayout: vi.fn(() => save), completeSave };
+};
