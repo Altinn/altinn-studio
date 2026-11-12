@@ -136,8 +136,8 @@ public class LayoutController(ILayoutService layoutService) : Controller
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
         PagesDto pagesDto = PagesDto.From(layoutSettings);
-        PageDto? page = pagesDto.Pages!.Find(p => p.Id == pageId);
-        if (page == null)
+        PageDto? page = pagesDto.Pages?.Find(p => p.Id == pageId);
+        if (page == null && pagesDto.PdfLayoutName != pageId)
         {
             return NotFound();
         }
