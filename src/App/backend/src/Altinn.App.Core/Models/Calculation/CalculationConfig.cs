@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Models.Calculation;
 
 /// <summary>
-/// Represents the schema for the calculation configuration
+/// The calculations in a data type's <c>models/{dataTypeId}.calculation.json</c>
 /// </summary>
-public class CalculationSchema : IJsonOnDeserialized
+public class CalculationConfig : IJsonOnDeserialized
 {
     /// <summary>
     /// The JSON schema that describes the calculation configuration file.

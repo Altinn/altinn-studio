@@ -258,11 +258,11 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetCalculationSchema_deserializes_file_from_disk()
+    public void GetCalculationConfig_deserializes_file_from_disk()
     {
         IAppResources appResources = GetAppResourcesForCalculation("default");
 
-        CalculationSchema? actual = appResources.GetCalculationSchema("default");
+        CalculationConfig? actual = appResources.GetCalculationConfig("default");
 
         Assert.NotNull(actual);
         Assert.Equal(2, actual.Calculations.Count);
@@ -276,21 +276,21 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetCalculationSchema_returns_null_when_file_is_missing()
+    public void GetCalculationConfig_returns_null_when_file_is_missing()
     {
         IAppResources appResources = GetAppResourcesForCalculation("default");
 
-        CalculationSchema? actual = appResources.GetCalculationSchema("does-not-exist");
+        CalculationConfig? actual = appResources.GetCalculationConfig("does-not-exist");
 
         Assert.Null(actual);
     }
 
     [Fact]
-    public void GetCalculationSchema_accepts_comments_in_file()
+    public void GetCalculationConfig_accepts_comments_in_file()
     {
         IAppResources appResources = GetAppResourcesForCalculation("comments");
 
-        CalculationSchema? actual = appResources.GetCalculationSchema("comments");
+        CalculationConfig? actual = appResources.GetCalculationConfig("comments");
 
         Assert.NotNull(actual);
         var calculation = Assert.Single(actual.Calculations);
@@ -301,20 +301,20 @@ public class AppResourcesSITests
     [Fact]
     public void Loading_app_throws_on_invalid_calculation_json()
     {
-        // The app files loader rejects invalid JSON before the app starts, so GetCalculationSchema never sees it
+        // The app files loader rejects invalid JSON before the app starts, so GetCalculationConfig never sees it
         var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation("invalid"));
 
         Assert.Contains("models/invalid.calculation.json", exception.Message);
     }
 
     [Fact]
-    public void GetCalculationSchema_throws_on_legacy_dictionary_format()
+    public void GetCalculationConfig_throws_on_legacy_dictionary_format()
     {
         // Before the "calculations" property became a list it was an object keyed by field name.
         // Such files are no longer supported and must be rejected rather than silently ignored.
         IAppResources appResources = GetAppResourcesForCalculation("legacy");
 
-        Assert.Throws<JsonException>(() => appResources.GetCalculationSchema("legacy"));
+        Assert.Throws<JsonException>(() => appResources.GetCalculationConfig("legacy"));
     }
 
     [Theory]
@@ -323,11 +323,11 @@ public class AppResourcesSITests
     [InlineData("null-item")]
     [InlineData("null-field")]
     [InlineData("empty-field")]
-    public void GetCalculationSchema_throws_with_file_name_on_null_values(string dataTypeId)
+    public void GetCalculationConfig_throws_with_file_name_on_null_values(string dataTypeId)
     {
         IAppResources appResources = GetAppResourcesForCalculation(dataTypeId);
 
-        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationSchema(dataTypeId));
+        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationConfig(dataTypeId));
 
         Assert.Contains($"{dataTypeId}.calculation.json", exception.Message);
     }

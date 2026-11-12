@@ -22,7 +22,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// what filename (if any) to pass, so this is reported rather than guessed.
 /// </item>
 /// <item>
-/// <c>IAppResources.GetCalculationConfiguration(dataTypeId)</c> is removed. <c>GetCalculationSchema(dataTypeId)</c>
+/// <c>IAppResources.GetCalculationConfiguration(dataTypeId)</c> is removed. <c>GetCalculationConfig(dataTypeId)</c>
 /// replaces it, but returns the parsed calculations instead of the file's text, so code that read the JSON itself
 /// has to be rewritten.
 /// </item>
@@ -80,7 +80,7 @@ internal sealed class RemovedAppResourcesApiDetector
 
     private const string CalculationConfigurationSummary =
         "IAppResources.GetCalculationConfiguration(dataTypeId) is removed in v9. Use "
-        + "GetCalculationSchema(dataTypeId), which returns the parsed calculations as a list of field and expression "
+        + "GetCalculationConfig(dataTypeId), which returns the parsed calculations as a list of field and expression "
         + "instead of the text of calculation.json, or null when the data type has none. Call sites found:";
 
     private readonly CSharpSourceScanner _scanner;

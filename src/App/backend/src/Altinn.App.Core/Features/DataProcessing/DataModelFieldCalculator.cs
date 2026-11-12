@@ -41,10 +41,10 @@ internal sealed class DataModelFieldCalculator
                 continue;
             }
 
-            var calculationSchema = _appResourceService.GetCalculationSchema(dataType.Id);
-            if (calculationSchema is not null)
+            var calculationConfig = _appResourceService.GetCalculationConfig(dataType.Id);
+            if (calculationConfig is not null)
             {
-                await CalculateFormData(dataAccessor, dataElement, calculationSchema);
+                await CalculateFormData(dataAccessor, dataElement, calculationConfig);
             }
         }
     }
@@ -52,13 +52,13 @@ internal sealed class DataModelFieldCalculator
     private async Task CalculateFormData(
         IInstanceDataAccessor dataAccessor,
         DataElement dataElement,
-        CalculationSchema calculationSchema
+        CalculationConfig calculationConfig
     )
     {
         DataElementIdentifier dataElementIdentifier = dataElement;
         var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElement);
 
-        foreach (var calculation in calculationSchema.Calculations)
+        foreach (var calculation in calculationConfig.Calculations)
         {
             var resolvedFields = formDataWrapper.GetResolvedKeys(calculation.Field);
             foreach (var resolvedField in resolvedFields)

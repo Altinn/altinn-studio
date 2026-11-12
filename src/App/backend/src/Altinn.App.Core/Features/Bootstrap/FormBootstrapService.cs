@@ -12,7 +12,6 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -286,7 +285,8 @@ internal sealed class FormBootstrapService
                         InitialData = formData,
                         DataElementId = dataElement.Id,
                         ExpressionValidationConfig = validationConfig,
-                        CalculationConfig = isPdf || dataElement.Locked ? null : GetCalculationConfig(dataType),
+                        CalculationConfig =
+                            isPdf || dataElement.Locked ? null : _appResources.GetCalculationConfig(dataType),
                     }
             );
         });
@@ -354,7 +354,7 @@ internal sealed class FormBootstrapService
                     InitialData = defaultData,
                     DataElementId = null,
                     ExpressionValidationConfig = validationConfig,
-                    CalculationConfig = GetCalculationConfig(dataType),
+                    CalculationConfig = _appResources.GetCalculationConfig(dataType),
                 };
             }
             catch (Exception ex)
@@ -653,18 +653,13 @@ internal sealed class FormBootstrapService
         return _appModel.Create(classRef);
     }
 
-    private CalculationSchema? GetCalculationConfig(string dataType)
-    {
-        return _appResources.GetCalculationSchema(dataType);
-    }
-
     private HashSet<string> IncludeCalculationDependencies(HashSet<string> dataTypes)
     {
         var result = new HashSet<string>(dataTypes);
         var pending = new Queue<string>(dataTypes);
         while (pending.TryDequeue(out var dataType))
         {
-            var config = GetCalculationConfig(dataType);
+            var config = _appResources.GetCalculationConfig(dataType);
             if (config is null)
             {
                 continue;

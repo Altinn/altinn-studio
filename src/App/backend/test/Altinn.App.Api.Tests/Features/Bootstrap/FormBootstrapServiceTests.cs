@@ -200,9 +200,9 @@ public class FormBootstrapServiceTests
     {
         SetupMocks(CreateAppMetadata("model"));
         _appResources
-            .Setup(x => x.GetCalculationSchema("model"))
+            .Setup(x => x.GetCalculationConfig("model"))
             .Returns(
-                ParseCalculationSchema(
+                ParseCalculationConfig(
                     """{ "calculations": [{ "field": "value", "expression": ["multiply", 4, 2] }] }"""
                 )
             );
@@ -230,8 +230,8 @@ public class FormBootstrapServiceTests
     {
         SetupStatelessMocks(CreateAppMetadata("model"));
         _appResources
-            .Setup(x => x.GetCalculationSchema("model"))
-            .Returns(configuration is null ? null : ParseCalculationSchema(configuration));
+            .Setup(x => x.GetCalculationConfig("model"))
+            .Returns(configuration is null ? null : ParseCalculationConfig(configuration));
 
         var result = await CreateService().GetStatelessFormBootstrap("stateless", "nb", ["model"]);
 
@@ -252,16 +252,16 @@ public class FormBootstrapServiceTests
             SetupMocks(CreateAppMetadata("model", "submodel"));
         }
         _appResources
-            .Setup(x => x.GetCalculationSchema("model"))
+            .Setup(x => x.GetCalculationConfig("model"))
             .Returns(
-                ParseCalculationSchema(
+                ParseCalculationConfig(
                     """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "submodel"] }] }"""
                 )
             );
         _appResources
-            .Setup(x => x.GetCalculationSchema("submodel"))
+            .Setup(x => x.GetCalculationConfig("submodel"))
             .Returns(
-                ParseCalculationSchema(
+                ParseCalculationConfig(
                     """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "model"] }] }"""
                 )
             );
@@ -1282,8 +1282,8 @@ public class FormBootstrapServiceTests
         };
     }
 
-    private static CalculationSchema ParseCalculationSchema(string json) =>
-        JsonSerializer.Deserialize<CalculationSchema>(json)
+    private static CalculationConfig ParseCalculationConfig(string json) =>
+        JsonSerializer.Deserialize<CalculationConfig>(json)
         ?? throw new InvalidOperationException("The calculation configuration is null");
 
     private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes) =>

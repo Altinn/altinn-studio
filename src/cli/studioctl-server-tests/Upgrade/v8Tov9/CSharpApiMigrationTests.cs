@@ -2138,7 +2138,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
 
-        Assert.Contains(result.Todos, t => t.Contains("GetCalculationSchema"));
+        Assert.Contains(result.Todos, t => t.Contains("GetCalculationConfig"));
         Assert.Contains(
             result.Warnings,
             w => w.Contains("Calculations.cs") && w.Contains("GetCalculationConfiguration")

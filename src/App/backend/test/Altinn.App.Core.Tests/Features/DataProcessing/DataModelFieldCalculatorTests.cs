@@ -178,7 +178,7 @@ public sealed class DataModelFieldCalculatorTests
                     ? null
                     : new TextResource { Language = "nb", Resources = testCase.TextResources }
             );
-        _appResources.Setup(ar => ar.GetCalculationSchema(It.IsAny<string>())).Returns(testCase.CalculationConfig);
+        _appResources.Setup(ar => ar.GetCalculationConfig(It.IsAny<string>())).Returns(testCase.CalculationConfig);
 
         if (testCase.DataModels is not null)
         {
@@ -237,7 +237,7 @@ public sealed class DataModelFieldCalculatorTests
         public required Expected[] Expects { get; set; }
 
         [JsonPropertyName("calculationConfig")]
-        public required CalculationSchema CalculationConfig { get; set; }
+        public required CalculationConfig CalculationConfig { get; set; }
 
         // A single data element. Either this or <see cref="DataModels"/> must be set.
         [JsonPropertyName("formData")]

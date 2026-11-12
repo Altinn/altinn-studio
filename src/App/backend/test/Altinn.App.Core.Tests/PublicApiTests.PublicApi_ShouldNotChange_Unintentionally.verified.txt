@@ -2893,7 +2893,7 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppResources
     {
-        Altinn.App.Core.Models.Calculation.CalculationSchema? GetCalculationSchema(string dataTypeId);
+        Altinn.App.Core.Models.Calculation.CalculationConfig? GetCalculationConfig(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
@@ -4500,6 +4500,14 @@ namespace Altinn.App.Core.Models
 }
 namespace Altinn.App.Core.Models.Calculation
 {
+    public class CalculationConfig : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public const string Schema = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calc" +
+            "ulation.schema.v1.json";
+        public CalculationConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("calculations")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.Calculation.CalculationItem> Calculations { get; init; }
+    }
     public class CalculationItem : System.Text.Json.Serialization.IJsonOnDeserialized
     {
         public CalculationItem() { }
@@ -4507,14 +4515,6 @@ namespace Altinn.App.Core.Models.Calculation
         public required Altinn.App.Core.Models.Expressions.Expression Expression { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("field")]
         public required string Field { get; init; }
-    }
-    public class CalculationSchema : System.Text.Json.Serialization.IJsonOnDeserialized
-    {
-        public const string Schema = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calc" +
-            "ulation.schema.v1.json";
-        public CalculationSchema() { }
-        [System.Text.Json.Serialization.JsonPropertyName("calculations")]
-        public required System.Collections.Generic.List<Altinn.App.Core.Models.Calculation.CalculationItem> Calculations { get; init; }
     }
 }
 namespace Altinn.App.Core.Models.Expressions

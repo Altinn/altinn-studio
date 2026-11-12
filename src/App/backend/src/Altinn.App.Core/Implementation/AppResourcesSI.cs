@@ -341,7 +341,7 @@ internal sealed class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public CalculationSchema? GetCalculationSchema(string dataTypeId)
+    public CalculationConfig? GetCalculationConfig(string dataTypeId)
     {
         if (_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration is not { } bytes)
         {
@@ -350,7 +350,7 @@ internal sealed class AppResourcesSI : IAppResources
 
         try
         {
-            return Deserialize<CalculationSchema>(bytes.Span, _jsonSerializerOptions)
+            return Deserialize<CalculationConfig>(bytes.Span, _jsonSerializerOptions)
                 ?? throw new System.Text.Json.JsonException("The calculation configuration is null");
         }
         catch (System.Text.Json.JsonException e)
