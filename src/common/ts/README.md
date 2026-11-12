@@ -3,7 +3,7 @@
 These libraries hold the form rendering, form logic and layout contracts of Altinn apps, and the HTTP client that the
 frontends share. The form libraries are moving here from the [App frontend](../../App/frontend/README.md) so that
 Designer and other products can reuse them. The form libraries keep the App frontend's `@app/` package scope while they
-are in active development. `http-client` came from Designer and has Designer's `@studio/` scope.
+are in active development. `http-client` has the `@studio/` scope.
 
 - [form-component](form-component/README.md) has the React components that render forms. It explains what belongs in
   it and what belongs in `form-engine`.
