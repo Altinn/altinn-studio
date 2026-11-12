@@ -48,6 +48,7 @@ from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
 from agents.services.llm.recent_turns import truncate_to_history_limit
+from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -335,6 +336,8 @@ async def _repair_render_failures(
     session branch, thus it runs only if that branch has all edits. Return the
     last loop result.
     """
+    if _PREVIEW_CHECK_TOOL not in registry:
+        return result
     if result.reason is TerminationReason.CANCELLED or not ctx.extras.get("session_pushed") or _unsaved_files(ctx):
         return result
 
@@ -405,15 +408,22 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
+_PREVIEW_CHECK_TOOL = "preview_render_check"
+
+
 def _build_registry(skills: list | None = None) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
+    # The render check works only with the local Designer stack.
+    preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
     for tool in _internal_tools(skills or []):
-        registry.register(tool)
+        if tool.name != _PREVIEW_CHECK_TOOL or preview_check:
+            registry.register(tool)
     return registry
 
 
 def _internal_tools(skills: list) -> list[Tool]:
+    """Every tool that exists.  `_build_registry` decides which ones the model gets."""
     return [
         ScanRepoTool(),
         ReadFileTool(),
