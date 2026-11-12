@@ -293,10 +293,10 @@ describe('calculations in the form store', () => {
   it('preserves explicit nulls without creating absent objects for empty calculations', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          nullableNumber: { expression: null },
-          'missingObject.label': { expression: null },
-        },
+        calculations: [
+          { field: 'nullableNumber', expression: null },
+          { field: 'missingObject.label', expression: null },
+        ],
       },
       { nullableNumber: null },
     );
