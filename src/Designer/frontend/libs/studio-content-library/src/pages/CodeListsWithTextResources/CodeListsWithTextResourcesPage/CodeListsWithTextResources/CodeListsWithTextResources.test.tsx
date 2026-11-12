@@ -152,6 +152,15 @@ describe('CodeListsWithTextResources', () => {
     );
   });
 
+  it('renders button to delete code list as disabled when the code list usages are unknown', () => {
+    renderCodeLists({ codeListsUsages: undefined, codeListsUsagesUnknown: true });
+    const deleteCodeListButton = getButton(
+      textMock('app_content_library.code_lists_with_text_resources.code_list_delete'),
+    );
+    expect(deleteCodeListButton).toBeDisabled();
+    expect(deleteCodeListButton.title).toBe(usagesUnknownMessage);
+  });
+
   it('renders the code list editor', () => {
     renderCodeLists();
     const codeListEditor = screen.getByText(textMock('code_list_editor.legend'));
@@ -227,6 +236,20 @@ describe('CodeListsWithTextResources', () => {
     );
     expect(codeListId).toBeInTheDocument();
     expect(codeListId).not.toHaveAttribute('role', 'button');
+  });
+
+  it('renders display tile instead of edit button when the code list usages are unknown', () => {
+    renderCodeLists({ codeListsUsages: undefined, codeListsUsagesUnknown: true });
+    const editCodeListIdButton = screen.queryByTitle(
+      textMock('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
+        codeListName,
+      }),
+    );
+    const codeListIdTile = screen
+      .getAllByTitle(usagesUnknownMessage)
+      .find((element) => element.tagName !== 'BUTTON');
+    expect(editCodeListIdButton).not.toBeInTheDocument();
+    expect(codeListIdTile).toHaveTextContent(codeListName);
   });
 
   it('shows error message when assigning an invalid id to the code list', async () => {
@@ -314,6 +337,10 @@ const changeCodeListId = async (
   await user.type(codeListIdInput, newCodeListId);
   await user.tab();
 };
+
+const usagesUnknownMessage = textMock(
+  'app_content_library.code_lists_with_text_resources.code_list_usages_unknown',
+);
 
 const defaultProps: CodeListsWithTextResourcesProps = {
   codeListDataList: codeListsDataMock,

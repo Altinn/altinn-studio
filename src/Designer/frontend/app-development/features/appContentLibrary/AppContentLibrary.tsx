@@ -29,7 +29,6 @@ import {
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListUsages } from './utils/mapToCodeListUsages';
 import type { OptionListData } from 'app-shared/types/OptionList';
-import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
@@ -54,12 +53,15 @@ export default function AppContentLibrary(): React.ReactElement {
   const { data: availableOrgResources, status: availableOrgResourcesStatus } =
     useGetAvailableOrgResourcesQuery(org);
 
+  // A failed usage lookup does not stop the library from loading. It locks deleting and renaming code lists instead.
   const status = mergeQueryStatuses(
     optionListDataListStatus,
-    optionListUsagesStatus,
+    optionListUsagesStatus === 'pending' ? 'pending' : 'success',
     textResourcesStatus,
     availableOrgResourcesStatus,
   );
+  const codeListsUsages: CodeListReference[] | undefined =
+    optionListUsagesStatus === 'success' ? mapToCodeListUsages(optionListUsages) : undefined;
 
   switch (status) {
     case 'pending':
@@ -70,7 +72,7 @@ export default function AppContentLibrary(): React.ReactElement {
       return (
         <AppContentLibraryWithData
           optionListDataList={optionListDataList}
-          optionListUsages={optionListUsages}
+          codeListsUsages={codeListsUsages}
           textResources={textResources}
           availableOrgResources={availableOrgResources}
         />
@@ -80,14 +82,14 @@ export default function AppContentLibrary(): React.ReactElement {
 
 type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
-  optionListUsages: OptionListReferences;
+  codeListsUsages: CodeListReference[] | undefined;
   textResources: ITextResources;
   availableOrgResources?: ExternalResource[];
 };
 
 function AppContentLibraryWithData({
   optionListDataList,
-  optionListUsages,
+  codeListsUsages,
   textResources,
   availableOrgResources = [],
 }: AppContentLibraryWithDataProps): ReactElement {
@@ -104,8 +106,6 @@ function AppContentLibraryWithData({
 
   const codeListDataList: CodeListDataWithTextResources[] =
     mapToCodeListDataList(optionListDataList);
-
-  const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string): void => {
     updateOptionListId({ optionListId, newOptionListId });
@@ -148,6 +148,7 @@ function AppContentLibraryWithData({
             onUpdateTextResource: handleUpdateTextResource,
             onUploadCodeList: handleUpload,
             codeListsUsages,
+            codeListsUsagesUnknown: !codeListsUsages,
             textResources,
             externalResources: availableOrgResources,
             onImportCodeListFromOrg: handleImportCodeListFromOrg,

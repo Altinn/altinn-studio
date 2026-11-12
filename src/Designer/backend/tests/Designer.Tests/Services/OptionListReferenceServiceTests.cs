@@ -6,6 +6,8 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
+using MediatR;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -15,6 +17,7 @@ public class OptionListReferenceServiceTests
 {
     private const string OrgName = "ttd";
     private const string DeveloperName = "testUser";
+    private const string V9RepoName = "app-with-options-v9";
 
     [Fact]
     public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenOptionsListExists()
@@ -30,27 +33,65 @@ public class OptionListReferenceServiceTests
 
         // Assert
         List<OptionListReference> expectedResponseList = OptionListReferenceTestData();
-        Assert.Equivalent(optionListsReferences, expectedResponseList);
+        Assert.Equivalent(expectedResponseList, optionListsReferences, strict: true);
     }
 
     [Fact]
-    public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenAppContainsASubform()
+    public async Task GetAllOptionListReferences_ShouldReturnReferencesInUiFolders_WhenAppIsV9()
     {
         // Arrange
-        const string RepoName = "app-with-groups-and-task-navigation";
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
         List<OptionListReference> expectedResponseList =
         [
             new()
             {
-                OptionListId = "yesNo",
+                OptionListId = "fruits",
                 OptionListIdSources =
                 [
                     new OptionListIdSource
                     {
-                        ComponentIds = ["brand"],
-                        LayoutName = "brand",
-                        LayoutSetId = "subform",
+                        ComponentIds = ["dropdown-using-fruits", "checkboxes-using-fruits"],
+                        LayoutName = "Side1",
+                        LayoutSetId = "Task_1",
+                        TaskId = "Task_1",
+                        TaskType = "data",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["dropdown-in-signing-task"],
+                        LayoutName = "Side1",
+                        LayoutSetId = "Task_2",
+                        TaskId = "Task_2",
+                        TaskType = "signing",
+                    },
+                ],
+            },
+            new()
+            {
+                OptionListId = "colors",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["radio-using-colors"],
+                        LayoutName = "Side2",
+                        LayoutSetId = "Task_1",
+                        TaskId = "Task_1",
+                        TaskType = "data",
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["dropdown-in-subform"],
+                        LayoutName = "Side1",
+                        LayoutSetId = "vehicleSubform",
+                        TaskId = null,
+                        TaskType = null,
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["dropdown-in-unused-folder"],
+                        LayoutName = "Side1",
+                        LayoutSetId = "unusedFolder",
                         TaskId = null,
                         TaskType = null,
                     },
@@ -60,11 +101,71 @@ public class OptionListReferenceServiceTests
 
         // Act
         List<OptionListReference> optionListReferences = await optionListReferenceService.GetAllOptionListReferences(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, V9RepoName, DeveloperName)
+        );
+
+        // Assert
+        Assert.Equivalent(expectedResponseList, optionListReferences, strict: true);
+    }
+
+    [Fact]
+    public async Task GetAllOptionListReferences_ShouldReturnEmptyList_WhenV8AppHasNoLayoutSets()
+    {
+        // Arrange
+        // The app has a component that uses its code list. The v8 code is frozen, and Designer has never searched
+        // a v8 app without layout sets, so the list stays empty, as before, but without an exception.
+        const string RepoName = "app-without-layoutsets-with-options";
+        var optionListReferenceService = GetOptionListReferenceServiceForTest();
+
+        // Act
+        List<OptionListReference> optionListReferences = await optionListReferenceService.GetAllOptionListReferences(
             AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName)
         );
 
         // Assert
-        Assert.Equivalent(optionListReferences, expectedResponseList);
+        Assert.Empty(optionListReferences);
+    }
+
+    [Fact]
+    public async Task GetAllOptionListReferences_ShouldReturnEmptyList_WhenAppHasNoOptionLists()
+    {
+        // Arrange
+        const string RepoName = "app-with-layoutsets-v9";
+        var optionListReferenceService = GetOptionListReferenceServiceForTest();
+
+        // Act
+        List<OptionListReference> optionListReferences = await optionListReferenceService.GetAllOptionListReferences(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName)
+        );
+
+        // Assert
+        Assert.Empty(optionListReferences);
+    }
+
+    [Theory]
+    [InlineData("app-with-options", "test-options", true)]
+    [InlineData("app-with-options", "options-with-null-fields", false)]
+    [InlineData(V9RepoName, "fruits", true)]
+    [InlineData(V9RepoName, "colors", true)]
+    [InlineData(V9RepoName, "unused-options", false)]
+    [InlineData(V9RepoName, "not-in-the-app", false)]
+    public async Task IsOptionListInUse_ShouldReturnWhetherAComponentUsesTheOptionList(
+        string repoName,
+        string optionListId,
+        bool expectedInUse
+    )
+    {
+        // Arrange
+        var optionListReferenceService = GetOptionListReferenceServiceForTest();
+
+        // Act
+        bool isInUse = await optionListReferenceService.IsOptionListInUse(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, repoName, DeveloperName),
+            optionListId
+        );
+
+        // Assert
+        Assert.Equal(expectedInUse, isInUse);
     }
 
     private static List<OptionListReference> OptionListReferenceTestData()
@@ -125,13 +226,24 @@ public class OptionListReferenceServiceTests
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
+        AppVersionService appVersionService = new(altinnGitRepositoryFactory);
         AppDevelopmentService appDevelopmentService = new(
             altinnGitRepositoryFactory,
             new Mock<ISchemaModelService>().Object,
-            new Mock<IAppVersionService>().Object
+            appVersionService
         );
-        OptionListReferenceService optionListReferenceService = new(altinnGitRepositoryFactory, appDevelopmentService);
+        UiFoldersService uiFoldersService = new(
+            altinnGitRepositoryFactory,
+            new Mock<IProcessModelingService>().Object,
+            new Mock<IPublisher>().Object,
+            NullLogger<UiFoldersService>.Instance
+        );
 
-        return optionListReferenceService;
+        return new OptionListReferenceService(
+            altinnGitRepositoryFactory,
+            appDevelopmentService,
+            appVersionService,
+            uiFoldersService
+        );
     }
 }

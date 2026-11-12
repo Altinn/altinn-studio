@@ -296,7 +296,26 @@ describe('CodeListsWithTextResourcesPage', () => {
     );
     expect(alert).not.toBeInTheDocument();
   });
+
+  it('explains why deleting and renaming are locked when the code list usages are unknown', () => {
+    renderCodeListsWithTextResourcesPage({
+      codeListsUsages: undefined,
+      codeListsUsagesUnknown: true,
+    });
+    const message = screen.getByText(usagesUnknownMessage);
+    expect(message).toBeInTheDocument();
+  });
+
+  it('does not render the message about unknown usages when the code list usages are known', () => {
+    renderCodeListsWithTextResourcesPage();
+    const message = screen.queryByText(usagesUnknownMessage);
+    expect(message).not.toBeInTheDocument();
+  });
 });
+
+const usagesUnknownMessage = textMock(
+  'app_content_library.code_lists_with_text_resources.code_list_usages_unknown',
+);
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
   const fileUploaderButton = screen.getByLabelText(

@@ -60,4 +60,21 @@ describe('useDeleteOptionListMutation', () => {
       queryClient.getQueryData([QueryKey.OptionList, org, app, optionsListId]),
     ).toBeUndefined();
   });
+
+  test('Invalidates the option list usage query cache when the deletion fails', async () => {
+    const queryClient = createQueryClientMock();
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const deleteOptionList = vi.fn().mockRejectedValue(new Error('Conflict'));
+    const renderDeleteOptionListMutationResult = renderHookWithProviders(
+      () => useDeleteOptionListMutation(org, app),
+      { queryClient, queries: { deleteOptionList } },
+    ).result;
+    await expect(
+      renderDeleteOptionListMutationResult.current.mutateAsync(optionsListId),
+    ).rejects.toThrow();
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.OptionListsUsage, org, app],
+    });
+  });
 });

@@ -1,4 +1,4 @@
-#nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
@@ -12,32 +12,15 @@ using Altinn.Studio.Designer.Services.Interfaces;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
-/// Service for handling option list references within layouts.
+/// Finds the components that use the app's code lists through <c>optionsId</c>.
 /// </summary>
-public class OptionListReferenceService : IOptionListReferenceService
+public class OptionListReferenceService(
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    IAppDevelopmentService appDevelopmentService,
+    IAppVersionService appVersionService,
+    IUiFoldersService uiFoldersService
+) : IOptionListReferenceService
 {
-    private readonly List<OptionListReference> _optionListReferences;
-    private readonly IAppDevelopmentService _appDevelopmentService;
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private AltinnAppGitRepository _altinnAppGitRepository;
-    private HashSet<string> _repoOptionListIds;
-    private LayoutSetsModel _layoutSetsModel;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OptionListReferenceService"/> class.
-    /// </summary>
-    /// <param name="altinnGitRepositoryFactory">The git repository factory.</param>
-    /// <param name="appDevelopmentService">The app development service.</param>
-    public OptionListReferenceService(
-        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IAppDevelopmentService appDevelopmentService
-    )
-    {
-        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _appDevelopmentService = appDevelopmentService;
-        _optionListReferences = [];
-    }
-
     /// <inheritdoc />
     public async Task<List<OptionListReference>> GetAllOptionListReferences(
         AltinnRepoEditingContext editingContext,
@@ -45,150 +28,169 @@ public class OptionListReferenceService : IOptionListReferenceService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+        AltinnAppGitRepository repository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             editingContext.Org,
             editingContext.Repo,
             editingContext.Developer
         );
-        _repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds().ToHashSet();
-        if (_repoOptionListIds.Count > 0)
+        HashSet<string> optionListIds = [.. repository.GetOptionsListIds()];
+        if (optionListIds.Count == 0)
         {
-            _layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
-            await AddReferences(cancellationToken);
+            return [];
         }
 
-        return _optionListReferences;
+        List<OptionListReference> references = [];
+        foreach (LayoutFolder folder in await GetLayoutFolders(editingContext, repository, cancellationToken))
+        {
+            foreach (string layoutName in repository.GetLayoutNames(folder.LayoutSetId))
+            {
+                JsonNode layout = await repository.GetLayout(folder.LayoutSetId, layoutName, cancellationToken);
+                AddReferences(references, optionListIds, folder, layoutName, layout);
+            }
+        }
+
+        return references;
     }
 
-    private async Task AddReferences(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<bool> IsOptionListInUse(
+        AltinnRepoEditingContext editingContext,
+        string optionListId,
+        CancellationToken cancellationToken = default
+    )
     {
-        string[] layoutSetNames = _altinnAppGitRepository.GetLayoutSetNames();
-        foreach (string layoutSetName in layoutSetNames)
-        {
-            await FindOptionListReferencesInLayoutSet(layoutSetName, cancellationToken);
-        }
+        List<OptionListReference> references = await GetAllOptionListReferences(editingContext, cancellationToken);
+        return references.Exists(reference => reference.OptionListId == optionListId);
     }
 
-    private async Task FindOptionListReferencesInLayoutSet(string layoutSetName, CancellationToken cancellationToken)
-    {
-        string[] layoutNames = _altinnAppGitRepository.GetLayoutNames(layoutSetName);
-        foreach (string layoutName in layoutNames)
-        {
-            await FindOptionListReferencesInLayout(layoutSetName, layoutName, cancellationToken);
-        }
-    }
-
-    private async Task FindOptionListReferencesInLayout(
-        string layoutSetName,
-        string layoutName,
+    private async Task<IEnumerable<LayoutFolder>> GetLayoutFolders(
+        AltinnRepoEditingContext editingContext,
+        AltinnAppGitRepository repository,
         CancellationToken cancellationToken
     )
     {
-        var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
-        var components = GetComponentArray(layout);
-        if (_repoOptionListIds.Count > 0 && components?.Count > 0)
+        if (appVersionService.IsV9App(editingContext))
         {
-            FindOptionListReferencesInComponents(layoutSetName, layoutName, components);
-        }
-    }
-
-    private void FindOptionListReferencesInComponents(string layoutSetName, string layoutName, JsonArray components)
-    {
-        foreach (var component in components)
-        {
-            bool componentReferencesOptionList = TryGetOptionsIdFromComponent(component, out string optionListId);
-            if (componentReferencesOptionList && OptionListIdExistsInRepo(optionListId))
-            {
-                string componentId = GetComponentId(component);
-                AddComponentReference(layoutSetName, layoutName, componentId, optionListId);
-            }
-        }
-    }
-
-    private void AddComponentReference(string layoutSetName, string layoutName, string componentId, string optionListId)
-    {
-        var existingReference = RetrieveOptionListReference(optionListId);
-        if (existingReference is null)
-        {
-            var newReference = CreateOptionListReference(optionListId, layoutSetName, layoutName, componentId);
-            _optionListReferences.Add(newReference);
-            return;
+            return await GetUiFolders(editingContext, repository, cancellationToken);
         }
 
-        var existingSource = RetrieveOptionListIdSource(existingReference, layoutSetName, layoutName);
-        if (existingSource is null)
-        {
-            var newSource = CreateOptionListIdSource(layoutSetName, layoutName, componentId);
-            existingReference.OptionListIdSources.Add(newSource);
-            return;
-        }
-
-        existingSource.ComponentIds.Add(componentId);
+        // The v8 code is frozen, and Designer has never searched a v8 app without layout sets.
+        return repository.AppUsesLayoutSets()
+            ? await GetLayoutSetFolders(editingContext, repository, cancellationToken)
+            : [];
     }
 
-    private static JsonArray GetComponentArray(JsonNode layout)
-    {
-        return layout["data"]?["layout"] as JsonArray;
-    }
-
-    private static string GetComponentId(JsonNode component)
-    {
-        return component["id"]?.ToString();
-    }
-
-    private static bool TryGetOptionsIdFromComponent(JsonNode component, out string optionsId)
-    {
-        optionsId = component["optionsId"]?.ToString();
-        return !string.IsNullOrEmpty(optionsId);
-    }
-
-    private bool OptionListIdExistsInRepo(string optionListId)
-    {
-        return _repoOptionListIds.Contains(optionListId);
-    }
-
-    private OptionListReference RetrieveOptionListReference(string optionListId)
-    {
-        return _optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
-    }
-
-    private static OptionListIdSource RetrieveOptionListIdSource(
-        OptionListReference existingReference,
-        string layoutSetName,
-        string layoutName
+    /// <summary>
+    /// A v9 app has no layout-sets.json. Its UI folders are named after their tasks, so a folder's name stands in
+    /// for both the layout set and the task, as in the other editors. A subform, or a folder that no task uses,
+    /// has no task. Every folder is searched, as every layout set folder is in a v8 app.
+    /// </summary>
+    private async Task<IEnumerable<LayoutFolder>> GetUiFolders(
+        AltinnRepoEditingContext editingContext,
+        AltinnAppGitRepository repository,
+        CancellationToken cancellationToken
     )
     {
-        return existingReference.OptionListIdSources.FirstOrDefault(optionListIdSource =>
-            optionListIdSource.LayoutSetId == layoutSetName && optionListIdSource.LayoutName == layoutName
+        IEnumerable<string> folderNames;
+        try
+        {
+            folderNames = await repository.GetUiFolders(cancellationToken);
+        }
+        catch (LibGit2Sharp.NotFoundException)
+        {
+            return [];
+        }
+
+        Dictionary<string, UiFolderLayoutSetDto> layoutSets = (
+            await uiFoldersService.GetLayoutSets(editingContext, cancellationToken)
+        ).ToDictionary(layoutSet => layoutSet.Id, StringComparer.Ordinal);
+
+        return folderNames.Select(folderName =>
+        {
+            UiFolderLayoutSetDto? layoutSet = layoutSets.GetValueOrDefault(folderName);
+            bool belongsToTask = layoutSet is not null && layoutSet.Type != Constants.General.SubformId;
+            return new LayoutFolder(folderName, belongsToTask ? folderName : null, layoutSet?.TaskType);
+        });
+    }
+
+    private async Task<IEnumerable<LayoutFolder>> GetLayoutSetFolders(
+        AltinnRepoEditingContext editingContext,
+        AltinnAppGitRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        LayoutSetsModel layoutSetsModel = await appDevelopmentService.GetLayoutSetsExtended(
+            editingContext,
+            cancellationToken
         );
+        return repository
+            .GetLayoutSetNames()
+            .Select(layoutSetName =>
+            {
+                TaskModel? task = layoutSetsModel.Sets.Find(set => set.Id == layoutSetName)?.Task;
+                return new LayoutFolder(layoutSetName, task?.Id, task?.Type);
+            });
     }
 
-    private OptionListReference CreateOptionListReference(
-        string optionListId,
-        string layoutSetName,
+    private static void AddReferences(
+        List<OptionListReference> references,
+        HashSet<string> optionListIds,
+        LayoutFolder folder,
         string layoutName,
-        string componentId
+        JsonNode layout
     )
     {
-        var newSource = CreateOptionListIdSource(layoutSetName, layoutName, componentId);
-        return new OptionListReference { OptionListId = optionListId, OptionListIdSources = [newSource] };
-    }
-
-    private OptionListIdSource CreateOptionListIdSource(string layoutSetName, string layoutName, string componentId)
-    {
-        var layoutSetModel = RetrieveLayoutSetModel(layoutSetName);
-        return new OptionListIdSource
+        if (layout["data"]?["layout"] is not JsonArray components)
         {
-            LayoutSetId = layoutSetName,
-            LayoutName = layoutName,
-            ComponentIds = [componentId],
-            TaskId = layoutSetModel?.Task?.Id,
-            TaskType = layoutSetModel?.Task?.Type,
-        };
+            return;
+        }
+
+        foreach (JsonNode? component in components)
+        {
+            string? optionListId = component?["optionsId"]?.ToString();
+            if (string.IsNullOrEmpty(optionListId) || !optionListIds.Contains(optionListId))
+            {
+                continue;
+            }
+
+            string? componentId = component?["id"]?.ToString();
+            AddComponentReference(references, optionListId, folder, layoutName, componentId);
+        }
     }
 
-    private LayoutSetModel RetrieveLayoutSetModel(string layoutSetId)
+    private static void AddComponentReference(
+        List<OptionListReference> references,
+        string optionListId,
+        LayoutFolder folder,
+        string layoutName,
+        string? componentId
+    )
     {
-        return _layoutSetsModel.Sets.FirstOrDefault(set => set.Id == layoutSetId);
+        OptionListReference? reference = references.Find(existing => existing.OptionListId == optionListId);
+        if (reference is null)
+        {
+            reference = new OptionListReference { OptionListId = optionListId, OptionListIdSources = [] };
+            references.Add(reference);
+        }
+
+        OptionListIdSource? source = reference.OptionListIdSources.Find(existing =>
+            existing.LayoutSetId == folder.LayoutSetId && existing.LayoutName == layoutName
+        );
+        if (source is null)
+        {
+            source = new OptionListIdSource
+            {
+                LayoutSetId = folder.LayoutSetId,
+                LayoutName = layoutName,
+                ComponentIds = [],
+                TaskId = folder.TaskId,
+                TaskType = folder.TaskType,
+            };
+            reference.OptionListIdSources.Add(source);
+        }
+
+        source.ComponentIds.Add(componentId);
     }
+
+    private sealed record LayoutFolder(string LayoutSetId, string? TaskId, string? TaskType);
 }

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { TextResource } from '@studio/pure-functions';
-import { StudioHeading } from '@studio/components';
+import { StudioAlert, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeListsWithTextResources } from './CodeListsWithTextResources';
@@ -31,6 +31,8 @@ export type CodeListsWithTextResourcesPageProps = {
   onUpdateTextResource: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
+  /** Whether it is unknown which code lists the components use. Deleting and renaming code lists is then locked. */
+  codeListsUsagesUnknown?: boolean;
   textResources?: TextResources;
   externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
@@ -46,6 +48,7 @@ export function CodeListsWithTextResourcesPage({
   onUpdateTextResource,
   onUploadCodeList,
   codeListsUsages,
+  codeListsUsagesUnknown,
   textResources,
   externalResources,
   onImportCodeListFromOrg,
@@ -114,6 +117,11 @@ export function CodeListsWithTextResourcesPage({
         externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
+      {codeListsUsagesUnknown && (
+        <StudioAlert data-color='warning'>
+          {t('app_content_library.code_lists_with_text_resources.code_list_usages_unknown')}
+        </StudioAlert>
+      )}
       <CodeListsWithTextResources
         codeListDataList={filteredCodeLists}
         onCreateTextResource={handleCreateTextResource}
@@ -124,6 +132,7 @@ export function CodeListsWithTextResourcesPage({
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
         codeListsUsages={codeListsUsages}
+        codeListsUsagesUnknown={codeListsUsagesUnknown}
         textResources={textResourcesForLanguage}
       />
       {codeListIsEmpty && <InfoBox pageName={PageName.CodeListsWithTextResources} />}

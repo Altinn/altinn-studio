@@ -10,12 +10,14 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type {
   CodeListDataWithTextResources,
+  CodeListIdSource,
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
   TextResourceWithLanguage,
 } from '@studio/content-library';
-import { PageName } from '@studio/content-library';
+import { CodeListUsageTaskType, PageName } from '@studio/content-library';
+import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
@@ -36,6 +38,12 @@ const resourceLibraryTestId = 'resource-library';
 // Test data:
 const org = 'test-org';
 const app = 'test-app';
+const codeListUsageSource: CodeListIdSource = {
+  taskId: 'Task_1',
+  taskType: CodeListUsageTaskType.Data,
+  layoutName: 'Side1',
+  componentIds: ['componentId'],
+};
 
 describe('AppContentLibrary', () => {
   it('Renders the content library', async () => {
@@ -77,6 +85,46 @@ describe('AppContentLibrary', () => {
     );
     const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('Passes the code list usages to the library when the usage lookup succeeds', () => {
+    const optionListUsages: OptionListReferences = [
+      { optionListId: optionList1Data.title, optionListIdSources: [codeListUsageSource] },
+    ];
+    const queryClient = createQueryClientWithData();
+    queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], optionListUsages);
+    renderAppContentLibrary({ queryClient });
+
+    const { codeListsUsages, codeListsUsagesUnknown } =
+      retrievePagesConfig().codeListsWithTextResources;
+    expect(codeListsUsages).toEqual([
+      { codeListId: optionList1Data.title, codeListIdSources: [codeListUsageSource] },
+    ]);
+    expect(codeListsUsagesUnknown).toBe(false);
+  });
+
+  it('Renders the library with unknown code list usages when the usage lookup fails', async () => {
+    const getOptionListsReferences = () => Promise.reject(new Error('Test error'));
+    const queryClient = createQueryClientWithData();
+    queryClient.removeQueries({ queryKey: [QueryKey.OptionListsUsage, org, app] });
+    renderAppContentLibrary({ queries: { getOptionListsReferences }, queryClient });
+
+    await screen.findByTestId(resourceLibraryTestId);
+    const { codeListsUsages, codeListsUsagesUnknown } =
+      retrievePagesConfig().codeListsWithTextResources;
+    expect(codeListsUsages).toBeUndefined();
+    expect(codeListsUsagesUnknown).toBe(true);
+  });
+
+  it('Renders the library with unknown code list usages when the usage lookup returns nothing', () => {
+    const queryClient = createQueryClientWithData();
+    queryClient.setQueryData([QueryKey.OptionListsUsage, org, app], null);
+    renderAppContentLibrary({ queryClient });
+
+    const { codeListsUsages, codeListsUsagesUnknown } =
+      retrievePagesConfig().codeListsWithTextResources;
+    expect(codeListsUsages).toBeUndefined();
+    expect(codeListsUsagesUnknown).toBe(true);
   });
 
   it('Renders with the given code lists', () => {
