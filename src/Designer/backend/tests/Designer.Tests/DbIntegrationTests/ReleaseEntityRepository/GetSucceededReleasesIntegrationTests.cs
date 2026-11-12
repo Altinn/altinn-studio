@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Domain.App;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -33,12 +34,7 @@ public class GetSucceededReleasesIntegrationTests : ReleaseEntityIntegrationTest
         var repository = new ReleaseRepository(DbFixture.DbContext);
 
         var result = await repository.GetSucceededReleases(
-            [
-                new ReleaseLookupKey(org, app, "1.0.0"),
-                new ReleaseLookupKey(org, app, "2.0.0"),
-                new ReleaseLookupKey(org, app, "3.0.0"),
-                new ReleaseLookupKey(org, otherApp, "9.9.9"),
-            ],
+            [Key(org, app, "1.0.0"), Key(org, app, "2.0.0"), Key(org, app, "3.0.0"), Key(org, otherApp, "9.9.9")],
             CancellationToken.None
         );
 
@@ -59,7 +55,7 @@ public class GetSucceededReleasesIntegrationTests : ReleaseEntityIntegrationTest
         var repository = new ReleaseRepository(DbFixture.DbContext);
 
         var result = await repository.GetSucceededReleases(
-            [new ReleaseLookupKey(org, app, "1.0.0"), new ReleaseLookupKey(org, app, "1.0.0")],
+            [Key(org, app, "1.0.0"), Key(org, app, "1.0.0")],
             CancellationToken.None
         );
 
@@ -78,7 +74,7 @@ public class GetSucceededReleasesIntegrationTests : ReleaseEntityIntegrationTest
         var repository = new ReleaseRepository(DbFixture.DbContext);
 
         var result = await repository.GetSucceededReleases(
-            releases.Select(r => new ReleaseLookupKey(r.Org, r.App, r.TagName)).ToList(),
+            releases.Select(r => Key(r.Org, r.App, r.TagName)).ToList(),
             CancellationToken.None
         );
 
@@ -104,5 +100,10 @@ public class GetSucceededReleasesIntegrationTests : ReleaseEntityIntegrationTest
             buildResult: buildResult
         );
 
-    private static string UniqueName(string prefix) => $"{prefix}-{Guid.NewGuid():N}";
+    private static ReleaseLookupKey Key(string org, string app, string version) =>
+        new(AppIdentifier.Parse(org, app), AppVersion.Parse(version));
+
+    // 30 characters, the longest an app name can be, and without a hyphen for an org, which is a service owner code.
+    private static string UniqueName(string prefix) =>
+        (prefix == "org" ? $"{prefix}{Guid.NewGuid():N}" : $"{prefix}-{Guid.NewGuid():N}")[..30];
 }
