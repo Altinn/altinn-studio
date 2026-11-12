@@ -638,6 +638,28 @@ describe('navigation', () => {
     cy.findByRole('button', { name: 'Neste' }).should('be.visible');
   });
 
+  it('preserves a linked-page return while rendering a full subform summary', () => {
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
+    cy.waitForLoad();
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
+    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('AB12345');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.dsSelect('#brand', 'Toyota');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
+    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+    cy.waitForLoad();
+
+    cy.gotoNavGroup(/Innsending/, 'desktop', /Samlet oversikt/);
+    cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).clickAndGone();
+    cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
+    cy.url().should('include', '/summary?backToPage=summary2');
+    cy.findByRole('button', { name: 'Tilbake til samlet oversikt' }).clickAndGone();
+    cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).should('be.visible');
+  });
+
   it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();

@@ -36,6 +36,11 @@
         "textResourceBindings": { "title": ["linkToPage", "Se informasjon med returknapp", "info2", true] }
       },
       {
+        "id": "view-summary-link",
+        "type": "Paragraph",
+        "textResourceBindings": { "title": ["linkToPage", "Se oppsummering med returknapp", "summary", true] }
+      },
+      {
         "id": "summary2-buttons",
         "type": "ButtonGroup",
         "children": ["summary2-navigation", "summary2-submit"]
