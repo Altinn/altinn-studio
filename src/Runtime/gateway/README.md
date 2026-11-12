@@ -28,7 +28,10 @@ to the failed requests in Application Insights, and forwards the alert to Design
 and the contact points that the service owner registered in Studio.
 
 The `ruleId` also names the rule's error count in the admin panel and in the periodic reports, so a new rule needs the
-same id in the gateway, in Designer's report and in the admin panel's texts.
+same id in the gateway, in Designer's report and in the admin panel's texts. The count is of failed requests, except
+for failed workflow callbacks, which count instances. The engine retries a failing step for a day, so the number of
+attempts says nothing a service owner can act on. A count of instances cannot be summed across time buckets, so the
+gateway sends the count for the whole period beside the buckets.
 
 ## Telemetry
 
