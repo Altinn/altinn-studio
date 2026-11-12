@@ -1,0 +1,14 @@
+{
+  "name": "@designer/assistant",
+  "packageManager": "yarn@4.18.0",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "yarn workspace studio-designer-frontend vitest run libs/designer-assistant/"
+  },
+  "dependencies": {
+    "@designer/components": "workspace:^",
+    "dompurify": "^3.4.17",
+    "marked": "^17.0.6"
+  }
+}

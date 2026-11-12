@@ -1860,9 +1860,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@designer/assistant@workspace:^, @designer/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
+"@designer/assistant@workspace:^, @designer/assistant@workspace:src/Designer/frontend/libs/designer-assistant":
   version: 0.0.0-use.local
-  resolution: "@designer/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
+  resolution: "@designer/assistant@workspace:src/Designer/frontend/libs/designer-assistant"
   dependencies:
     "@designer/components": "workspace:^"
     dompurify: "npm:^3.4.17"
@@ -1870,9 +1870,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/browser-storage@workspace:^, @designer/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
+"@designer/browser-storage@workspace:^, @designer/browser-storage@workspace:src/Designer/frontend/libs/designer-browser-storage":
   version: 0.0.0-use.local
-  resolution: "@designer/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
+  resolution: "@designer/browser-storage@workspace:src/Designer/frontend/libs/designer-browser-storage"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.8.1"
@@ -1880,9 +1880,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/components@workspace:^, @designer/components@workspace:src/Designer/frontend/libs/studio-components":
+"@designer/components@workspace:^, @designer/components@workspace:src/Designer/frontend/libs/designer-components":
   version: 0.0.0-use.local
-  resolution: "@designer/components@workspace:src/Designer/frontend/libs/studio-components"
+  resolution: "@designer/components@workspace:src/Designer/frontend/libs/designer-components"
   dependencies:
     "@app/layout-contract": "workspace:*"
     "@chromatic-com/storybook": "npm:^5.0.1"
@@ -1912,9 +1912,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/content-library@workspace:^, @designer/content-library@workspace:src/Designer/frontend/libs/studio-content-library":
+"@designer/content-library@workspace:^, @designer/content-library@workspace:src/Designer/frontend/libs/designer-content-library":
   version: 0.0.0-use.local
-  resolution: "@designer/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
+  resolution: "@designer/content-library@workspace:src/Designer/frontend/libs/designer-content-library"
   dependencies:
     "@designer/components": "workspace:^"
     "@designer/pure-functions": "workspace:^"
@@ -1926,9 +1926,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
+"@designer/feature-flags@workspace:src/Designer/frontend/libs/designer-feature-flags":
   version: 0.0.0-use.local
-  resolution: "@designer/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
+  resolution: "@designer/feature-flags@workspace:src/Designer/frontend/libs/designer-feature-flags"
   dependencies:
     "@designer/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -1942,18 +1942,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/feedback-form@workspace:^, @designer/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
+"@designer/feedback-form@workspace:^, @designer/feedback-form@workspace:src/Designer/frontend/libs/designer-feedback-form":
   version: 0.0.0-use.local
-  resolution: "@designer/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
+  resolution: "@designer/feedback-form@workspace:src/Designer/frontend/libs/designer-feedback-form"
   dependencies:
     "@designer/components": "workspace:^"
     "@designer/icons": "workspace:^"
   languageName: unknown
   linkType: soft
 
-"@designer/guard@workspace:src/Designer/frontend/libs/studio-guard":
+"@designer/guard@workspace:src/Designer/frontend/libs/designer-guard":
   version: 0.0.0-use.local
-  resolution: "@designer/guard@workspace:src/Designer/frontend/libs/studio-guard"
+  resolution: "@designer/guard@workspace:src/Designer/frontend/libs/designer-guard"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.8.1"
@@ -1961,9 +1961,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/hooks@workspace:^, @designer/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
+"@designer/hooks@workspace:^, @designer/hooks@workspace:src/Designer/frontend/libs/designer-hooks":
   version: 0.0.0-use.local
-  resolution: "@designer/hooks@workspace:src/Designer/frontend/libs/studio-hooks"
+  resolution: "@designer/hooks@workspace:src/Designer/frontend/libs/designer-hooks"
   dependencies:
     "@designer/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -1979,9 +1979,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/icons@workspace:^, @designer/icons@workspace:src/Designer/frontend/libs/studio-icons":
+"@designer/icons@workspace:^, @designer/icons@workspace:src/Designer/frontend/libs/designer-icons":
   version: 0.0.0-use.local
-  resolution: "@designer/icons@workspace:src/Designer/frontend/libs/studio-icons"
+  resolution: "@designer/icons@workspace:src/Designer/frontend/libs/designer-icons"
   dependencies:
     "@navikt/aksel-icons": "npm:^7.0.0"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -1993,9 +1993,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/pure-functions@workspace:^, @designer/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions":
+"@designer/pure-functions@workspace:^, @designer/pure-functions@workspace:src/Designer/frontend/libs/designer-pure-functions":
   version: 0.0.0-use.local
-  resolution: "@designer/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions"
+  resolution: "@designer/pure-functions@workspace:src/Designer/frontend/libs/designer-pure-functions"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.8.1"
@@ -2003,9 +2003,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@designer/ui-test@workspace:^, @designer/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
+"@designer/ui-test@workspace:^, @designer/ui-test@workspace:src/Designer/frontend/libs/designer-ui-test":
   version: 0.0.0-use.local
-  resolution: "@designer/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test"
+  resolution: "@designer/ui-test@workspace:src/Designer/frontend/libs/designer-ui-test"
   dependencies:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
