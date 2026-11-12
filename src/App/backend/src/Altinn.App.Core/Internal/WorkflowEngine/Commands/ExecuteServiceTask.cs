@@ -407,7 +407,8 @@ internal sealed class ExecuteServiceTask(
                 + "exchange advances, so a long exchange can outlive the code that sealed one of its "
                 + "messages. "
                 + ex.Message,
-            "MailboxDeliveryEnvelopeInvalid"
+            "MailboxDeliveryEnvelopeInvalid",
+            exception: ex
         );
 
     private static WorkflowEngineCommandResult MapStageResult(
