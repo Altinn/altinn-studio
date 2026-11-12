@@ -61,6 +61,9 @@
   Response: {
     property1: null,
     property2: null,
-    property3: null
+    property3: null,
+    price: null,
+    quantity: 1,
+    total: null
   }
 }

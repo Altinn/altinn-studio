@@ -4546,6 +4546,10 @@
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "calculated-fixed-value": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

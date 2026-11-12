@@ -326,14 +326,14 @@ public class TestFunctions
         }
 
         var positionalArguments = test
-            .PositionalArguments?.Select<JsonElement, object?>(e =>
+            .PositionalArguments?.Select(e =>
                 e.ValueKind switch
                 {
                     JsonValueKind.String => e.GetString(),
                     JsonValueKind.Number => e.GetDouble(),
-                    JsonValueKind.True => true,
-                    JsonValueKind.False => false,
-                    JsonValueKind.Null => null,
+                    JsonValueKind.True => ExpressionValue.True,
+                    JsonValueKind.False => ExpressionValue.False,
+                    JsonValueKind.Null => ExpressionValue.Null,
                     _ => throw new NotImplementedException($"JsonElement value kind {e.ValueKind} not implemented"),
                 }
             )
@@ -442,7 +442,7 @@ public class TestFunctions
                     Expression = (Expression)test.Expression,
                     ExpectsFailure = test.ExpectsFailure,
                 },
-                state,
+                dataAccessor,
                 context,
                 positionalArguments
             );
@@ -452,16 +452,16 @@ public class TestFunctions
         {
             foreach (var testCase in test.TestCases)
             {
-                await RunTestCaseItem(testCase, state, context, positionalArguments);
+                await RunTestCaseItem(testCase, dataAccessor, context, positionalArguments);
             }
         }
     }
 
     private async Task RunTestCaseItem(
         ExpressionTestCaseRoot.TestCaseItem test,
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         ComponentContext? context,
-        object?[]? positionalArguments
+        ExpressionValue[]? positionalArguments
     )
     {
         _output.WriteLine(test.Name ?? "");
@@ -472,8 +472,8 @@ public class TestFunctions
             _output.WriteLine("");
             Func<Task> act = async () =>
             {
-                var evaluationResult = await ExpressionEvaluator.EvaluateExpression(
-                    state,
+                var evaluationResult = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
+                    dataAccessor,
                     test.Expression,
                     context!,
                     positionalArguments
@@ -488,8 +488,8 @@ public class TestFunctions
         _output.WriteLine($"Expecting success: {test.Expects}");
         _output.WriteLine($"Expression: {test.Expression}");
         _output.WriteLine("");
-        var result = await ExpressionEvaluator.EvaluateExpression(
-            state,
+        var result = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
+            dataAccessor,
             test.Expression,
             context!,
             positionalArguments
@@ -498,25 +498,29 @@ public class TestFunctions
         switch (test.Expects.ValueKind)
         {
             case JsonValueKind.String:
-                Assert.Equal(test.Expects.GetString(), result);
+                Assert.Equal(test.Expects.GetString(), result.String);
                 break;
             case JsonValueKind.True:
-                Assert.True(result as bool?);
+                Assert.True(result.Bool);
                 break;
             case JsonValueKind.False:
-                Assert.False(result as bool?);
+                Assert.False(result.Bool);
                 break;
             case JsonValueKind.Null:
-                Assert.Null(result);
+                Assert.Equal(JsonValueKind.Null, result.ValueKind);
                 break;
             case JsonValueKind.Number:
-                Assert.Equal(test.Expects.GetDouble(), result);
+                Assert.Equal(test.Expects.GetDouble(), result.Number);
                 break;
             case JsonValueKind.Undefined:
-
+                Assert.Equal(JsonValueKind.Undefined, result.ValueKind);
+                break;
             default:
                 // Compare serialized json result for object and array
-                JsonSerializer.Serialize(result).Should().Be(JsonSerializer.Serialize(test.Expects));
+                Assert.Equal(
+                    JsonSerializer.Serialize(test.Expects, _jsonSerializerOptions),
+                    JsonSerializer.Serialize(result, _jsonSerializerOptions)
+                );
                 break;
         }
     }

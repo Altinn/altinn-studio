@@ -11,6 +11,9 @@
         <xs:element name="property1" type="xs:string" />
         <xs:element name="property2" type="xs:string" />
         <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element minOccurs="0" name="price" type="xs:decimal" />
+        <xs:element minOccurs="0" name="quantity" type="xs:decimal" />
+        <xs:element minOccurs="0" name="total" type="xs:decimal" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

@@ -26,6 +26,15 @@
     },
     "property3": {
       "type": "string"
+    },
+    "price": {
+        "type": "number"
+    },
+    "quantity": {
+        "type": "number"
+    },
+    "total": {
+        "type": "number"
     }
   },
   "required": [

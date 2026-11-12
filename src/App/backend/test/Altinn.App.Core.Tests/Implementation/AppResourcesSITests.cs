@@ -1,9 +1,12 @@
 using System.Text;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Tests.Internal.App;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -247,6 +250,104 @@ public class AppResourcesSITests
 
             using var document = System.Text.Json.JsonDocument.Parse(text.AsMemory());
             document.RootElement.GetProperty("language").GetString().Should().Be("nb");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetCalculationSchema_deserializes_file_from_disk()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        CalculationSchema? actual = appResources.GetCalculationSchema("default");
+
+        Assert.NotNull(actual);
+        Assert.Equal(2, actual.Calculations.Count);
+        Assert.Equal("skjema.calculated-fixed-value", actual.Calculations[0].Field);
+        Assert.Equal("skjema.children[].total", actual.Calculations[1].Field);
+        // The expression is a function call and must round-trip as such
+        Assert.Equal(
+            """["concat","Hello ",["dataModel","skjema.name"]]""",
+            JsonSerializer.Serialize(actual.Calculations[0].Expression)
+        );
+    }
+
+    [Fact]
+    public void GetCalculationSchema_returns_null_when_file_is_missing()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        CalculationSchema? actual = appResources.GetCalculationSchema("does-not-exist");
+
+        Assert.Null(actual);
+    }
+
+    [Fact]
+    public void GetCalculationSchema_accepts_comments_in_file()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        CalculationSchema? actual = appResources.GetCalculationSchema("comments");
+
+        Assert.NotNull(actual);
+        var calculation = Assert.Single(actual.Calculations);
+        Assert.Equal("skjema.name", calculation.Field);
+        Assert.Equal("\"fixed\"", JsonSerializer.Serialize(calculation.Expression));
+    }
+
+    [Fact]
+    public void GetCalculationSchema_throws_on_invalid_json()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        Assert.Throws<JsonException>(() => appResources.GetCalculationSchema("invalid"));
+    }
+
+    [Fact]
+    public void GetCalculationSchema_throws_on_legacy_dictionary_format()
+    {
+        // Before the "calculations" property became a list it was an object keyed by field name.
+        // Such files are no longer supported and must be rejected rather than silently ignored.
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        Assert.Throws<JsonException>(() => appResources.GetCalculationSchema("legacy"));
+    }
+
+    [Theory]
+    [InlineData("null-document")]
+    [InlineData("null-calculations")]
+    [InlineData("null-item")]
+    [InlineData("null-field")]
+    [InlineData("empty-field")]
+    public void GetCalculationSchema_throws_with_file_name_on_null_values(string dataTypeId)
+    {
+        IAppResources appResources = GetAppResourcesForCalculation();
+
+        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationSchema(dataTypeId));
+
+        Assert.Contains($"{dataTypeId}.calculation.json", exception.Message);
+    }
+
+    /// <summary>
+    /// Loads an app whose models folder holds the files in TestData/Calculation.
+    /// </summary>
+    private IAppResources GetAppResourcesForCalculation()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Calculation-");
+        try
+        {
+            var modelsDir = Path.Join(tempDir.FullName, "models");
+            Directory.CreateDirectory(modelsDir);
+            var sourceDir = Path.Join(PathUtils.GetCoreTestsPath(), "Implementation", "TestData", "Calculation");
+            foreach (var file in Directory.EnumerateFiles(sourceDir, "*.calculation.json"))
+            {
+                File.Copy(file, Path.Join(modelsDir, Path.GetFileName(file)));
+            }
+
+            return CreateAppResources(tempDir);
         }
         finally
         {

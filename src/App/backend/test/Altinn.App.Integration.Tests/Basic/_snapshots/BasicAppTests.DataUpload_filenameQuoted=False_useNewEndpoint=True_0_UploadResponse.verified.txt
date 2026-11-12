@@ -68,5 +68,5 @@
     },
     IsSuccessStatusCode: false
   },
-  Response: {"title":"File validation failed","status":400,"detail":"Common checks failed","uploadValidationIssues":[{"severity":1,"dataElementId":null,"field":null,"code":"MissingFileName","description":"Invalid data provided. Error: The Content-Disposition header must contain a valid filename","source":"DataRestrictionValidation"}]}
+  Response: {}
 }

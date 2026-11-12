@@ -26,5 +26,20 @@ namespace Altinn.App.Models.model
         [JsonProperty("property3")]
         [JsonPropertyName("property3")]
         public string property3 { get; set; }
+
+        [XmlElement("price", Order = 4)]
+        [JsonProperty("price")]
+        [JsonPropertyName("price")]
+        public decimal? price { get; set; }
+
+        [XmlElement("quantity", Order = 5)]
+        [JsonProperty("quantity")]
+        [JsonPropertyName("quantity")]
+        public decimal quantity { get; set; } = 1;
+
+        [XmlElement("total", Order = 6)]
+        [JsonProperty("total")]
+        [JsonPropertyName("total")]
+        public decimal? total { get; set; }
     }
 }

@@ -10,14 +10,16 @@
     ],
     "calculationConfig": {
         "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
-        "calculations": {
-            "form.fourTimesTwoString": {
+        "calculations": [
+            {
+                "field": "form.fourTimesTwoString",
                 "expression": ["multiply", 4, 2]
             },
-            "form.fourTimesTwoNumber": {
+            {
+                "field": "form.fourTimesTwoNumber",
                 "expression": ["multiply", 4, 2]
             }
-        }
+        ]
     },
     "formData": {
         "form": {
