@@ -42,6 +42,12 @@ from shared.config.base_config import BaseConfig
 from .git_repo import create_committed_repo, git, write_files
 
 
+@pytest.fixture(autouse=True)
+def _render_check_off(monkeypatch):
+    """A test that wants the render check turns it on.  The flag in `.env` does not count."""
+    monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
+
+
 def _state(**overrides: Any) -> AgentState:
     base = {
         "session_id": "sess-1",

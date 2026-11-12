@@ -114,7 +114,7 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 # Only when `PREVIEW_CHECK_ENABLED` is on.
 _PREVIEW_CHECK = """\
 ## Render check before you finish
-In this deployment, the good ending has one more step: after `commit_session_branch` succeeds, run `preview_render_check` once before the final assistant message.  Its description says what to do when a page fails."""
+In this deployment, the good ending has one more step: after `commit_session_branch` succeeds, run `preview_render_check` once before the final assistant message.  This replaces "you are done" after the commit in *When you are done*.  Its description says what to do when a page fails."""
 
 
 # A session that starts read-only and then gets permission keeps the
