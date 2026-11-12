@@ -1171,6 +1171,12 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterAddingADataElement_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, _) => mutator.AddBinaryDataElement(DataTypeId, ContentType, "added.json", "{}"u8.ToArray())
+        );
+
+    [Fact]
     public Task ExecuteCommand_ServiceTaskDefersAfterSettingADataValue_ReturnsNonRetryableProblem() =>
         AssertDeferralAfterStagingReturnsNonRetryableProblem((mutator, _) => mutator.SetDataValue("status", "sent"));
 

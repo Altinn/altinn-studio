@@ -438,9 +438,6 @@ public class ProcessControllerTests : ApiTestBase
             ),
             _jsonSerializerOptions
         )!;
-        Assert.Equal(["checked"], formElement.Tags);
-        Assert.Equal([("checkedBy", "hook")], formElement.Metadata?.Select(entry => (entry.Key, entry.Value)));
-        Assert.Equal([("TheKey", "42")], formElement.UserDefinedMetadata?.Select(entry => (entry.Key, entry.Value)));
         Assert.Equal("skjema.xml", formElement.Filename);
         Assert.Contains(
             "<name>Kari Nordmann</name>",
@@ -458,16 +455,7 @@ public class ProcessControllerTests : ApiTestBase
             IInstanceDataMutator mutator = context.InstanceDataMutator;
             DataElement formElement = mutator.Instance.Data.Single(dataElement => dataElement.DataType == "default");
             await mutator.ReplaceFormData(formElement, new Skjema { Melding = new Dummy { Name = "Kari Nordmann" } });
-            mutator.UpdateDataElementMetadata(
-                formElement,
-                new DataElementMetadataUpdate
-                {
-                    Tags = ["checked"],
-                    Metadata = [new KeyValueEntry { Key = "checkedBy", Value = "hook" }],
-                    UserDefinedMetadata = [new KeyValueEntry { Key = "TheKey", Value = "42" }],
-                    Filename = "skjema.xml",
-                }
-            );
+            mutator.UpdateDataElementMetadata(formElement, new DataElementMetadataUpdate { Filename = "skjema.xml" });
             mutator.SetDataValue("caseNumber", "2026-1");
             mutator.SetPresentationText("caseTitle", "Name change");
             return HandlerResult.Success();

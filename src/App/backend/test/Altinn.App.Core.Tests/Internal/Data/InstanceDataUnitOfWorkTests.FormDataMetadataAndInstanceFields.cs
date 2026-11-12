@@ -222,6 +222,22 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task UpdateDataElementMetadata_OnAnExistingElement_SavesWithTheDataTypesAuthenticationMethod()
+    {
+        AuthenticationResolutionSetup setup = CreateAuthenticationResolutionSetup(1);
+        StorageAuthenticationMethod method = StorageAuthenticationMethod.ServiceOwner("scope:a");
+        setup.UnitOfWork.OverrideAuthenticationMethod(setup.DataTypes[0], method);
+
+        setup.UnitOfWork.UpdateDataElementMetadata(
+            setup.DataElements[0],
+            new DataElementMetadataUpdate { Tags = ["signed"] }
+        );
+        await setup.UnitOfWork.SaveChanges(setup.UnitOfWork.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.Same(method, setup.AuthenticationMethod);
+    }
+
+    [Fact]
     public async Task UpdateDataElementMetadata_ShowsTheValuesOnTheInstanceBeforeTheSave()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
@@ -283,6 +299,8 @@ public sealed partial class InstanceDataUnitOfWorkTests
             new DataElementMetadataUpdate
             {
                 Tags = ["signed"],
+                Metadata = [new KeyValueEntry { Key = "archive", Value = "yes" }],
+                UserDefinedMetadata = [new KeyValueEntry { Key = "case", Value = "42" }],
                 Refs = [referencedId],
                 Filename = "renamed.json",
             }
@@ -292,6 +310,8 @@ public sealed partial class InstanceDataUnitOfWorkTests
         StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
         Assert.NotNull(update.ContentPartName);
         Assert.Equal(["signed"], update.Tags);
+        Assert.Equal([("archive", "yes")], update.Metadata?.Select(entry => (entry.Key, entry.Value)));
+        Assert.Equal([("case", "42")], update.UserDefinedMetadata?.Select(entry => (entry.Key, entry.Value)));
         Assert.Equal([referencedId], update.Refs);
         Assert.Equal("renamed.json", update.Filename);
     }
@@ -350,29 +370,45 @@ public sealed partial class InstanceDataUnitOfWorkTests
         Assert.Equal("named.json", create.Filename);
     }
 
-    [Fact]
-    public async Task UpdateDataElementMetadata_CalledTwice_KeepsTheLastValueOfEachProperty()
+    public static TheoryData<DataElementMetadataUpdate> SecondMetadataUpdates =>
+        new()
+        {
+            new DataElementMetadataUpdate { Tags = ["second"] },
+            new DataElementMetadataUpdate { Filename = "second.json" },
+        };
+
+    [Theory]
+    [MemberData(nameof(SecondMetadataUpdates))]
+    public async Task UpdateDataElementMetadata_CalledTwice_SendsTheLastValueOfEachProperty(
+        DataElementMetadataUpdate second
+    )
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        var first = new DataElementMetadataUpdate
+        {
+            Tags = ["first"],
+            Metadata = [new KeyValueEntry { Key = "archive", Value = "yes" }],
+            UserDefinedMetadata = [new KeyValueEntry { Key = "case", Value = "42" }],
+            Refs = [Guid.NewGuid()],
+            Filename = "first.json",
+        };
 
-        setup.DataMutator.UpdateDataElementMetadata(
-            setup.DataElement,
-            new DataElementMetadataUpdate { Tags = ["signed"], Filename = "first.json" }
-        );
-        setup.DataMutator.UpdateDataElementMetadata(
-            setup.DataElement,
-            new DataElementMetadataUpdate
-            {
-                Metadata = [new KeyValueEntry { Key = "archive", Value = "yes" }],
-                Filename = "second.json",
-            }
-        );
+        setup.DataMutator.UpdateDataElementMetadata(setup.DataElement, first);
+        setup.DataMutator.UpdateDataElementMetadata(setup.DataElement, second);
         await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
 
         StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
-        Assert.Equal(["signed"], update.Tags);
-        Assert.Equal([("archive", "yes")], update.Metadata?.Select(entry => (entry.Key, entry.Value)));
-        Assert.Equal("second.json", update.Filename);
+        Assert.Equal(second.Tags ?? first.Tags, update.Tags);
+        Assert.Equal(
+            (second.Metadata ?? first.Metadata)!.Select(entry => (entry.Key, entry.Value)),
+            update.Metadata?.Select(entry => (entry.Key, entry.Value))
+        );
+        Assert.Equal(
+            (second.UserDefinedMetadata ?? first.UserDefinedMetadata)!.Select(entry => (entry.Key, entry.Value)),
+            update.UserDefinedMetadata?.Select(entry => (entry.Key, entry.Value))
+        );
+        Assert.Equal(second.Refs ?? first.Refs, update.Refs);
+        Assert.Equal(second.Filename ?? first.Filename, update.Filename);
     }
 
     [Fact]
