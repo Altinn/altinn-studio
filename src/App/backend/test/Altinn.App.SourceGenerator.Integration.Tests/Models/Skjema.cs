@@ -75,6 +75,9 @@ public class SkjemaInnhold
 
 public class Adresse
 {
+    [JsonIgnore]
+    public string? NotInDataModel { get; set; }
+
     [JsonPropertyName("altinnRowId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid AltinnRowId { get; set; }

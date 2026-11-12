@@ -66,16 +66,21 @@ public class TestCopyFrom
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void CopyFrom_KeepsAMemberThatIsNotAFieldOfTheDataModel(bool reflection)
+    public void CopyFrom_AMemberThatIsNotAFieldOfTheDataModel_KeepsItsValueOnTheWrappedObject_AndIsNullInNestedObjects(
+        bool reflection
+    )
     {
         Skjema target = CreateSkjema("old");
-        target.NotInDataModel = "kept";
+        target.NotInDataModel = "old";
+        target.EierAdresse!.NotInDataModel = "old";
         Skjema source = CreateSkjema("new");
-        source.NotInDataModel = "not copied";
+        source.NotInDataModel = "new";
+        source.EierAdresse!.NotInDataModel = "new";
 
         CreateWrapper(target, reflection).CopyFrom(source);
 
-        Assert.Equal("kept", target.NotInDataModel);
+        Assert.Equal("old", target.NotInDataModel);
+        Assert.Null(target.EierAdresse!.NotInDataModel);
     }
 
     [Theory]

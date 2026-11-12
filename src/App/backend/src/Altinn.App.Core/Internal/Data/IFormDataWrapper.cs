@@ -83,10 +83,11 @@ public interface IFormDataWrapper
     IFormDataWrapper Copy();
 
     /// <summary>
-    /// Make the wrapped object a deep copy of <paramref name="dataModel"/>, which must be of the same type
+    /// Copy the fields of the data model from <paramref name="dataModel"/>, which must be of the same type,
+    /// into the wrapped object
     /// </summary>
     /// <remarks>
-    /// Members that are not fields of the data model keep their values.
+    /// Other members are not copied: the wrapped object keeps its own, and nested objects get their defaults.
     /// </remarks>
     void CopyFrom(object dataModel);
 
