@@ -24,6 +24,7 @@ public class ReportService(
 
     private const string FailedProcessNextMetric = "failed_process_next_requests";
     private const string FailedInstanceCreationMetric = "failed_instance_creation_requests";
+    private const string FailedWorkflowCallbackMetric = "failed_workflow_callback_requests";
     private const string ProcessesStartedMetric = "altinn_app_lib_processes_started";
     private const string ProcessesEndedMetric = "altinn_app_lib_processes_ended";
 
@@ -33,6 +34,7 @@ public class ReportService(
     private const string AppsWithFailuresLabel = "Apper med feil";
     private const string FailedProcessNextLabel = "Feilende process/next";
     private const string FailedInstanceCreationLabel = "Feilende instansieringer";
+    private const string FailedWorkflowCallbackLabel = "Feilende forsøk i arbeidsflyter";
     private const string ProcessesStartedLabel = "Påbegynte instanser";
     private const string ProcessesEndedLabel = "Fullførte instanser";
 
@@ -43,6 +45,7 @@ public class ReportService(
         "App-bibliotek",
         FailedProcessNextLabel,
         FailedInstanceCreationLabel,
+        FailedWorkflowCallbackLabel,
         ProcessesStartedLabel,
         ProcessesEndedLabel,
     ];
@@ -93,6 +96,7 @@ public class ReportService(
                     appLibVersions.GetValueOrDefault(app.Name),
                     SumCounts(errorMetricsByApp[app.Name], FailedProcessNextMetric),
                     SumCounts(errorMetricsByApp[app.Name], FailedInstanceCreationMetric),
+                    SumCounts(errorMetricsByApp[app.Name], FailedWorkflowCallbackMetric),
                     SumCounts(metricsByApp[app.Name], ProcessesStartedMetric),
                     SumCounts(metricsByApp[app.Name], ProcessesEndedMetric)
                 ))
@@ -230,6 +234,7 @@ public class ReportService(
             $"{AppsWithFailuresLabel}: {FormatCount(apps.Count(app => app.HasFailures))}",
             $"{FailedProcessNextLabel}: {FormatCount(apps.Sum(app => app.FailedProcessNextRequests))}",
             $"{FailedInstanceCreationLabel}: {FormatCount(apps.Sum(app => app.FailedInstanceCreationRequests))}",
+            $"{FailedWorkflowCallbackLabel}: {FormatCount(apps.Sum(app => app.FailedWorkflowCallbackRequests))}",
             $"{ProcessesStartedLabel}: {FormatCount(apps.Sum(app => app.ProcessesStarted))}",
             $"{ProcessesEndedLabel}: {FormatCount(apps.Sum(app => app.ProcessesEnded))}"
         );
@@ -250,11 +255,13 @@ public class ReportService(
         string? AppLibVersion,
         double FailedProcessNextRequests,
         double FailedInstanceCreationRequests,
+        double FailedWorkflowCallbackRequests,
         double ProcessesStarted,
         double ProcessesEnded
     )
     {
-        public bool HasFailures => FailedProcessNextRequests + FailedInstanceCreationRequests > 0;
+        public bool HasFailures =>
+            FailedProcessNextRequests + FailedInstanceCreationRequests + FailedWorkflowCallbackRequests > 0;
 
         public bool HasActivity => HasFailures || ProcessesStarted + ProcessesEnded > 0;
 
@@ -265,6 +272,7 @@ public class ReportService(
                 AppLibVersion,
                 FormatCount(FailedProcessNextRequests),
                 FormatCount(FailedInstanceCreationRequests),
+                FormatCount(FailedWorkflowCallbackRequests),
                 FormatCount(ProcessesStarted),
                 FormatCount(ProcessesEnded),
             ];

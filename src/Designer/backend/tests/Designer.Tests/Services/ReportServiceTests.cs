@@ -52,6 +52,7 @@ public class ReportServiceTests
                 [
                     new ReportApp { Name = "app-one", Version = "1.4.2" },
                     new ReportApp { Name = "app-two" },
+                    new ReportApp { Name = "app-three", Version = "2.0.0" },
                     new ReportApp { Name = "app-a-idle", Version = "0.1.0" },
                 ],
                 Metrics =
@@ -67,6 +68,8 @@ public class ReportServiceTests
                     BuildErrorMetric("app-one", "failed_process_next_requests", [1, 2.5]),
                     BuildErrorMetric("app-one", "failed_instance_creation_requests", [0.5]),
                     BuildErrorMetric("app-two", "failed_instance_creation_requests", [6]),
+                    BuildErrorMetric("app-two", "failed_workflow_callback_requests", [9, 3]),
+                    BuildErrorMetric("app-three", "failed_workflow_callback_requests", [1]),
                 ],
             }
         );
@@ -89,10 +92,11 @@ public class ReportServiceTests
         Assert.Contains(("Periode", "12.10.2026"), _sentPayload.Fields);
         Assert.Equal(
             $"""
-            Publiserte apper: 3
-            Apper med feil: 2
+            Publiserte apper: 4
+            Apper med feil: 3
             Feilende process/next: 3,5
             Feilende instansieringer: 6,5
+            Feilende forsøk i arbeidsflyter: 13
             Påbegynte instanser: {NorwegianNumber(2555)}
             Fullførte instanser: 11
             """,
@@ -106,6 +110,7 @@ public class ReportServiceTests
                 "App-bibliotek",
                 "Feilende process/next",
                 "Feilende instansieringer",
+                "Feilende forsøk i arbeidsflyter",
                 "Påbegynte instanser",
                 "Fullførte instanser",
             ],
@@ -113,9 +118,10 @@ public class ReportServiceTests
         );
         Assert.Collection(
             _sentPayload.Table.Rows,
-            row => Assert.Equal(["app-one", "1.4.2", "8.5.3", "3,5", "0,5", NorwegianNumber(2543), "7"], row),
-            row => Assert.Equal(["app-two", null, null, "0", "6", "12", "4"], row),
-            row => Assert.Equal(["app-a-idle", "0.1.0", null, "0", "0", "0", "0"], row)
+            row => Assert.Equal(["app-one", "1.4.2", "8.5.3", "3,5", "0,5", "0", NorwegianNumber(2543), "7"], row),
+            row => Assert.Equal(["app-three", "2.0.0", null, "0", "0", "1", "0", "0"], row),
+            row => Assert.Equal(["app-two", null, null, "0", "6", "12", "12", "4"], row),
+            row => Assert.Equal(["app-a-idle", "0.1.0", null, "0", "0", "0", "0", "0"], row)
         );
     }
 

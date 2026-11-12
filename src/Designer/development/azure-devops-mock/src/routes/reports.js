@@ -1,5 +1,9 @@
 const METRIC_NAMES = ['altinn_app_lib_processes_started', 'altinn_app_lib_processes_ended'];
-const ERROR_METRIC_NAMES = ['failed_process_next_requests', 'failed_instance_creation_requests'];
+const ERROR_METRIC_NAMES = [
+  'failed_process_next_requests',
+  'failed_instance_creation_requests',
+  'failed_workflow_callback_requests',
+];
 const APPS = [
   { name: 'mocked-app-one', version: '1.14.2' },
   { name: 'mocked-app-two', version: '3.0.1' },
