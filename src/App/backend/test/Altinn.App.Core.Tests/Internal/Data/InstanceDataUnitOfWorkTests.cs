@@ -1424,7 +1424,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_StagedCompleteConfirmationUnderUserAuthentication_ThrowsBeforeStorageMutation()
+    public async Task SaveWorkflowOwnedAggregate_StagedCompleteConfirmationUnderCustomAuthentication_ThrowsBeforeStorageMutation()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             "initial"u8.ToArray(),
@@ -1434,7 +1434,7 @@ public sealed class InstanceDataUnitOfWorkTests
         );
         setup.DataMutator.OverrideAuthenticationMethod(
             setup.DataMutator.DataTypes.Single(dataType => dataType.Id == setup.DataElement.DataType),
-            StorageAuthenticationMethod.CurrentUser()
+            StorageAuthenticationMethod.Custom(static () => Task.FromResult(default(JwtToken)))
         );
         setup.DataMutator.UpdateBinaryDataElement(
             setup.DataElement,
@@ -1446,7 +1446,7 @@ public sealed class InstanceDataUnitOfWorkTests
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             setup.DataMutator.SaveWorkflowOwnedAggregate(
                 setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-                "workflow-user-auth-key",
+                "workflow-custom-auth-key",
                 CancellationToken.None
             )
         );
@@ -2458,30 +2458,68 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_WhenCurrentUserAndServiceOwnerAreCombined_ThrowsBeforeStorageIo()
+    public async Task SaveWorkflowOwnedAggregate_WhenOneDataTypeHasAServiceOwnerOverride_SavesAllAsServiceOwnerWithItsScopes()
     {
         AuthenticationResolutionSetup setup = CreateAuthenticationResolutionSetup(
             2,
             new StorageVersionMetadata(InstanceVersion: 4, ProcessStateVersion: 2)
         );
-        setup.UnitOfWork.OverrideAuthenticationMethod(setup.DataTypes[1], StorageAuthenticationMethod.ServiceOwner());
+        setup.UnitOfWork.OverrideAuthenticationMethod(
+            setup.DataTypes[1],
+            StorageAuthenticationMethod.ServiceOwner("scope:a")
+        );
         foreach (DataElement dataElement in setup.DataElements)
         {
             setup.UnitOfWork.RemoveDataElement(dataElement);
         }
-        DataElementChanges changes = setup.UnitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
-        Assert.Equal(2, changes.AllChanges.Count);
-        Assert.All(changes.AllChanges, change => Assert.Equal(ChangeType.Deleted, change.Type));
+
+        WorkflowAggregateSaveOutcome outcome = await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
+            setup.UnitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-service-owner-override",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        AuthenticationMethod.AltinnToken request = Assert.IsType<AuthenticationMethod.AltinnToken>(
+            setup.AuthenticationMethod?.Request
+        );
+        Assert.Equal(
+            [
+                "altinn:serviceowner",
+                "altinn:serviceowner/instances.read",
+                "altinn:serviceowner/instances.write",
+                "scope:a",
+            ],
+            request.Scopes
+        );
+        VerifySingleAggregateMutation(setup);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WhenCustomAuthenticationIsMixedWithADataTypeWithoutOverride_ThrowsBeforeStorageIo()
+    {
+        AuthenticationResolutionSetup setup = CreateAuthenticationResolutionSetup(
+            2,
+            new StorageVersionMetadata(InstanceVersion: 4, ProcessStateVersion: 2)
+        );
+        setup.UnitOfWork.OverrideAuthenticationMethod(
+            setup.DataTypes[0],
+            StorageAuthenticationMethod.Custom(static () => Task.FromResult(default(JwtToken)))
+        );
+        foreach (DataElement dataElement in setup.DataElements)
+        {
+            setup.UnitOfWork.RemoveDataElement(dataElement);
+        }
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-                changes,
-                "workflow-mixed-authentication",
+                setup.UnitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
+                "workflow-custom-mixed",
                 CancellationToken.None
             )
         );
 
-        Assert.Contains("CurrentUser and ServiceOwner", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Custom authentication", exception.Message, StringComparison.Ordinal);
         VerifyNoStorageIo(setup);
     }
 
