@@ -3921,6 +3921,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public string? PlannerVersion { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("retryCount")]
         public int RetryCount { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("runnableFromVersion")]
+        public string? RunnableFromVersion { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string? State { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("stepId")]

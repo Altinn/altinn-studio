@@ -575,6 +575,7 @@ internal sealed class MailboxRelay
                 [receiveWorkflow]
             ),
             PlannerVersion = PlannerVersion.Current,
+            RunnableFromVersion = PlannerVersion.RunnableFrom,
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest
@@ -639,6 +640,7 @@ internal sealed class MailboxRelay
                 [continuationWorkflow]
             ),
             PlannerVersion = PlannerVersion.Current,
+            RunnableFromVersion = PlannerVersion.RunnableFrom,
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest

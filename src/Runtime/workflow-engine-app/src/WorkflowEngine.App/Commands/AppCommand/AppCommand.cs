@@ -134,6 +134,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             Actor = workflowContext.Actor,
             Payload = commandData.Payload,
             PlannerVersion = workflowContext.PlannerVersion,
+            RunnableFromVersion = workflowContext.RunnableFromVersion,
             WorkflowId = context.Workflow.DatabaseId,
             Mailbox = mailbox,
             StepId = context.Step.DatabaseId,

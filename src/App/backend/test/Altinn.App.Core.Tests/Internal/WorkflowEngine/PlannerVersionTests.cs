@@ -1,5 +1,7 @@
 using System.Reflection;
+using System.Text.Json;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
@@ -73,6 +75,118 @@ public class PlannerVersionTests
     public void IsNewerThan_UnparseablePodVersion_Throws()
     {
         Assert.Throws<ArgumentException>(() => PlannerVersion.IsNewerThan("9.0.0", "9.0.0.0"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Floor_NoDeclaredVersion_IsThePlannerVersion(string? runnableFromVersion)
+    {
+        Assert.Equal("9.1.0", PlannerVersion.Floor("9.1.0", runnableFromVersion));
+    }
+
+    [Theory]
+    [InlineData("9.1.0", "9.0.0")]
+    [InlineData("9.1.0", "9.1.0-preview.3")]
+    [InlineData("9.1.0", "9.1.0")]
+    [InlineData("9.1.0+0123456789ab", "8.12.7")]
+    public void Floor_DeclaredVersionAtOrBelowThePlanner_IsTheDeclaredVersion(
+        string plannerVersion,
+        string runnableFromVersion
+    )
+    {
+        Assert.Equal(runnableFromVersion, PlannerVersion.Floor(plannerVersion, runnableFromVersion));
+    }
+
+    /// <summary>
+    /// A declared version can only lower the floor. Above the planner's version it would hold back the planner's own
+    /// pods, so it counts as the planner's version.
+    /// </summary>
+    [Theory]
+    [InlineData("9.0.0", "9.1.0")]
+    [InlineData("9.0.0-preview.10", "9.0.0")]
+    public void Floor_DeclaredVersionAboveThePlanner_IsThePlannerVersion(
+        string plannerVersion,
+        string runnableFromVersion
+    )
+    {
+        Assert.Equal(plannerVersion, PlannerVersion.Floor(plannerVersion, runnableFromVersion));
+    }
+
+    [Theory]
+    [InlineData("not-a-version")]
+    [InlineData("9.0")]
+    [InlineData("v9.0.0")]
+    [InlineData("9.0.0-preview.01")]
+    public void Floor_UnparseableDeclaredVersion_IsThePlannerVersion(string runnableFromVersion)
+    {
+        Assert.Equal("9.1.0", PlannerVersion.Floor("9.1.0", runnableFromVersion));
+    }
+
+    /// <summary>
+    /// A planner version this pod cannot read comes from a version it does not know, so a declared version that it can
+    /// read is below it.
+    /// </summary>
+    [Fact]
+    public void Floor_UnparseablePlannerVersion_IsTheDeclaredVersion()
+    {
+        Assert.Equal("9.0.0", PlannerVersion.Floor("not-a-version", "9.0.0"));
+    }
+
+    /// <summary>
+    /// A workflow planned before the stamp existed runs on any version. A declared version cannot raise that.
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Floor_NoPlannerVersion_IsNone(string? plannerVersion)
+    {
+        Assert.False(PlannerVersion.IsNewerThan(PlannerVersion.Floor(plannerVersion, "999.0.0"), "9.0.0"));
+    }
+
+    [Theory]
+    [InlineData("9.0.0", false)]
+    [InlineData("9.0.1-preview.1", false)]
+    [InlineData("9.0.0-preview.10", true)]
+    public void Floor_LetsAPodAtOrAboveItRunWhatANewerVersionPlanned(string podVersion, bool mustWait)
+    {
+        string? floor = PlannerVersion.Floor("9.1.0", "9.0.0");
+
+        Assert.Equal(mustWait, PlannerVersion.IsNewerThan(floor, podVersion));
+    }
+
+    /// <summary>
+    /// A declared floor that does not parse, or one above <see cref="PlannerVersion.Current"/>, would quietly count as
+    /// none.
+    /// </summary>
+    [Fact]
+    public void RunnableFrom_TakesEffect()
+    {
+        string expected = PlannerVersion.RunnableFrom ?? PlannerVersion.Current;
+
+        Assert.Equal(expected, PlannerVersion.Floor(PlannerVersion.Current, PlannerVersion.RunnableFrom));
+    }
+
+    [Fact]
+    public void RunnableFromVersion_Unset_IsLeftOutOfTheContext()
+    {
+        var context = new AppWorkflowContext
+        {
+            Actor = new Actor { UserId = 42 },
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 500000,
+            InstanceGuid = Guid.NewGuid(),
+            CallbackToken = "test-callback-token",
+            PlannerVersion = PlannerVersion.Current,
+            RunnableFromVersion = null,
+        };
+
+        JsonElement json = JsonSerializer.SerializeToElement(context);
+
+        Assert.Equal(PlannerVersion.Current, json.GetProperty("plannerVersion").GetString());
+        Assert.False(json.TryGetProperty("runnableFromVersion", out _));
     }
 
     [Fact]

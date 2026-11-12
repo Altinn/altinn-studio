@@ -36,4 +36,12 @@ internal sealed record AppWorkflowContext
     /// </summary>
     [JsonPropertyName("plannerVersion")]
     public string? PlannerVersion { get; init; }
+
+    /// <summary>
+    /// The oldest app library version that may run the workflow, which the planner can declare next to
+    /// <see cref="PlannerVersion"/>. The engine never inspects it. It echoes it as
+    /// <see cref="AppCallbackPayload.RunnableFromVersion"/> on every callback. Absent unless the planner declared one.
+    /// </summary>
+    [JsonPropertyName("runnableFromVersion")]
+    public string? RunnableFromVersion { get; init; }
 }

@@ -188,6 +188,11 @@
         "Nullable": false
       },
       {
+        "Name": "runnableFromVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
         "Name": "state",
         "Kind": "string",
         "Nullable": true
@@ -274,6 +279,11 @@
       },
       {
         "Name": "plannerVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "runnableFromVersion",
         "Kind": "string",
         "Nullable": true
       }

@@ -35,6 +35,14 @@ public sealed record AppCallbackPayload
     public string? PlannerVersion { get; init; }
 
     /// <summary>
+    /// The oldest Altinn.App.Core version that may run this workflow's steps, echoed from its context. <c>null</c>
+    /// when the planner declared none, so only <see cref="PlannerVersion"/> and newer run them. It can only lower that
+    /// floor: a value that does not parse, or one above <see cref="PlannerVersion"/>, counts as <c>null</c>.
+    /// </summary>
+    [JsonPropertyName("runnableFromVersion")]
+    public string? RunnableFromVersion { get; init; }
+
+    /// <summary>
     /// The workflow ID assigned by the engine.
     /// </summary>
     [JsonPropertyName("workflowId")]

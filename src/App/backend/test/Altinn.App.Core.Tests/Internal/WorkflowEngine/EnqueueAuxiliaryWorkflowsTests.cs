@@ -42,6 +42,7 @@ public class EnqueueAuxiliaryWorkflowsTests
 
     // Not this pod's version, so the tests tell passing the primary workflow's version on from stamping this pod's.
     private const string PrimaryPlannerVersion = "9.0.0-preview.1";
+    private const string PrimaryRunnableFromVersion = "8.12.7";
 
     private static WorkflowEngineCommandContext CreateContext() =>
         new()
@@ -60,6 +61,7 @@ public class EnqueueAuxiliaryWorkflowsTests
                 State = SignedTestState,
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 PlannerVersion = PrimaryPlannerVersion,
+                RunnableFromVersion = PrimaryRunnableFromVersion,
             },
         };
 
@@ -121,6 +123,7 @@ public class EnqueueAuxiliaryWorkflowsTests
         Assert.Equal(_instanceId.InstanceGuid, context.InstanceGuid);
         // The primary workflow's planner assembled these steps.
         Assert.Equal(PrimaryPlannerVersion, context.PlannerVersion);
+        Assert.Equal(PrimaryRunnableFromVersion, context.RunnableFromVersion);
         tokens.AssertMintedFor(capturedRequest);
         Assert.Equal(2, capturedRequest.Workflows.Count);
         Assert.All(

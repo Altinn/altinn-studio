@@ -43,4 +43,19 @@ internal sealed record AppWorkflowContext
     /// </remarks>
     [JsonPropertyName("plannerVersion")]
     public required string? PlannerVersion { get; init; }
+
+    /// <summary>
+    /// The oldest Altinn.App.Core version that may run the workflow's steps, which the engine echoes as
+    /// <see cref="AppCallbackPayload.RunnableFromVersion"/>. Set from
+    /// <see cref="Altinn.App.Core.Internal.WorkflowEngine.PlannerVersion.RunnableFrom"/> wherever
+    /// <see cref="PlannerVersion"/> is, and left out of the JSON when <c>null</c>: then only
+    /// <see cref="PlannerVersion"/> and newer run them.
+    /// </summary>
+    /// <remarks>
+    /// Not <c>required</c>, unlike <see cref="PlannerVersion"/>: the serializer would then reject a context that leaves
+    /// it out.
+    /// </remarks>
+    [JsonPropertyName("runnableFromVersion")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? RunnableFromVersion { get; init; }
 }

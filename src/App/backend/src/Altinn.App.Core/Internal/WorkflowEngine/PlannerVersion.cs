@@ -9,10 +9,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// and the engine echoes it on every callback without reading it.
 /// </summary>
 /// <remarks>
-/// A pod never runs a step that a newer version planned. The newer version may have planned a command, a payload or a
-/// callback state field that the older one lacks, and the older one would fail the step permanently or drop the field
-/// for the steps after it. The callback controller answers such a step with a status the engine retries, so the step
-/// runs once it reaches a pod on the planner's version or newer.
+/// A pod never runs a step that a newer version planned, unless that version declared, in <see cref="RunnableFrom"/>,
+/// that the pod's version may. The newer version may have planned a command, a payload or a callback state field that
+/// the older one lacks, and the older one would fail the step permanently or drop the field for the steps after it.
+/// The callback controller answers such a step with a status the engine retries, so the step runs once it reaches a
+/// pod on the oldest version that may run it, or newer.
 /// </remarks>
 internal static class PlannerVersion
 {
@@ -24,29 +25,77 @@ internal static class PlannerVersion
     public static string Current { get; } = Resolve(typeof(PlannerVersion).Assembly);
 
     /// <summary>
-    /// Whether a step of a workflow that <paramref name="plannerVersion"/> planned must wait for a pod on that version
-    /// or newer, because it is newer than <paramref name="podVersion"/>. Versions are ordered by Semantic Versioning
-    /// 2.0.0 precedence, so <c>9.0.0-preview.10</c> is older than <c>9.0.0</c>.
+    /// The oldest Altinn.App.Core version that may run the workflows this version plans, written next to
+    /// <see cref="Current"/> in their context. <c>null</c> leaves it out, so only <see cref="Current"/> and newer run
+    /// them.
+    /// </summary>
+    /// <remarks>
+    /// Set it to an older version only when a test shows that the older version reads the plan, the payloads and the
+    /// callback state this version writes. Then a rollback to that version continues the workflows this version
+    /// started, which otherwise retry until a pod on this version runs them. A value that does not parse, or one above
+    /// <see cref="Current"/>, counts as <c>null</c>.
+    /// </remarks>
+    public const string? RunnableFrom = null;
+
+    /// <summary>
+    /// The oldest version that may run a step of a workflow, from the two versions its context carries: the
+    /// <paramref name="runnableFromVersion"/> its planner declared, or else the <paramref name="plannerVersion"/>.
+    /// The declared version can only lower the floor, so a declaration that is wrong leaves the planner's version.
     /// </summary>
     /// <param name="plannerVersion">
-    /// The version the callback carries. A workflow planned before the stamp existed has none, and runs as before. A
-    /// version that does not parse counts as newer: every version that stamps workflows writes one that parses, so a
-    /// stamp this pod cannot read comes from a version it does not know.
+    /// The version that planned the workflow. <c>null</c> for a workflow planned before the stamp existed, which has no
+    /// floor whatever else it carries.
+    /// </param>
+    /// <param name="runnableFromVersion">
+    /// The version the planner declared in <see cref="RunnableFrom"/>. It counts as missing when it does not parse, and
+    /// as <paramref name="plannerVersion"/> when it is above it.
+    /// </param>
+    /// <returns>
+    /// <paramref name="runnableFromVersion"/> when it takes effect, otherwise <paramref name="plannerVersion"/>. Pass
+    /// it to <see cref="IsNewerThan"/>.
+    /// </returns>
+    public static string? Floor(string? plannerVersion, string? runnableFromVersion)
+    {
+        if (
+            string.IsNullOrWhiteSpace(plannerVersion)
+            || string.IsNullOrWhiteSpace(runnableFromVersion)
+            || !TryParse(runnableFromVersion, out SemanticVersion? runnableFrom)
+        )
+        {
+            return plannerVersion;
+        }
+
+        // A planner version that does not parse comes from a version this pod does not know, so it counts as newer
+        // than the declared one.
+        return TryParse(plannerVersion, out SemanticVersion? planner) && runnableFrom.CompareTo(planner) > 0
+            ? plannerVersion
+            : runnableFromVersion;
+    }
+
+    /// <summary>
+    /// Whether a step must wait for a pod on <paramref name="floor"/> or newer, because it is newer than
+    /// <paramref name="podVersion"/>. Versions are ordered by Semantic Versioning 2.0.0 precedence, so
+    /// <c>9.0.0-preview.10</c> is older than <c>9.0.0</c>.
+    /// </summary>
+    /// <param name="floor">
+    /// The oldest version that may run the step, from <see cref="Floor"/>. A workflow planned before the stamp existed
+    /// has none, and runs as before. A version that does not parse counts as newer: every version that stamps workflows
+    /// writes one that parses, so a stamp this pod cannot read comes from a version it does not know.
     /// </param>
     /// <param name="podVersion">The version of the pod the callback reached, <see cref="Current"/> outside tests.</param>
-    public static bool IsNewerThan(string? plannerVersion, string podVersion)
+    public static bool IsNewerThan(string? floor, string podVersion)
     {
         if (!TryParse(podVersion, out SemanticVersion? pod))
         {
             throw new ArgumentException($"'{podVersion}' is not a semantic version.", nameof(podVersion));
         }
 
-        if (string.IsNullOrWhiteSpace(plannerVersion) || plannerVersion == podVersion)
+        if (string.IsNullOrWhiteSpace(floor) || floor == podVersion)
         {
             return false;
         }
 
-        return !TryParse(plannerVersion, out SemanticVersion? planner) || planner.CompareTo(pod) > 0;
+        return !TryParse(floor, out SemanticVersion? required) || required.CompareTo(pod) > 0;
     }
 
     private static string Resolve(Assembly assembly)

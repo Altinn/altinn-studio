@@ -606,6 +606,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(TestAuthentication.DefaultUserId, context.Actor.UserId);
         Assert.Equal("test-callback-token", context.CallbackToken);
         Assert.Equal(PlannerVersion.Current, context.PlannerVersion);
+        Assert.Equal(PlannerVersion.RunnableFrom, context.RunnableFromVersion);
 
         var dependent = await factory.CreateDependent(
             TestInstance,
@@ -1997,6 +1998,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal("12345678901", context.Actor.NationalIdentityNumber);
         Assert.Equal("nb", context.Actor.Language);
         Assert.Equal(PlannerVersion.Current, context.PlannerVersion);
+        Assert.Equal(PlannerVersion.RunnableFrom, context.RunnableFromVersion);
     }
 
     [Fact]
