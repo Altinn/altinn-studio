@@ -716,12 +716,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedCompleteConfirmation = true;
     }
 
-    internal void UpdateInstanceDataValue(string key, string? value)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        _stagedInstanceDataValues[key] = value;
-    }
-
     /// <inheritdoc />
     /// <remarks>
     /// Every save derives the keys in <c>dataFields</c> from the form data, which would overwrite a value set here.

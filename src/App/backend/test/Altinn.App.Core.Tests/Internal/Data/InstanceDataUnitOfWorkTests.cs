@@ -1378,7 +1378,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
             seedStorageVersions: true,
             blobVersionId: BlobVersion(1)
         );
-        setup.DataMutator.UpdateInstanceDataValue("eFormidlingShipmentStatus", "levert");
+        setup.DataMutator.SetDataValue("eFormidlingShipmentStatus", "levert");
         setup.DataMutator.AddCompleteConfirmation();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -2352,7 +2352,7 @@ public sealed partial class InstanceDataUnitOfWorkTests
             Encoding.UTF8.GetBytes("""{"status":"attempt-two"}""")
         );
         Guid stagedDataElementId = createdChange.DataElementIdentifier.Guid;
-        unitOfWork.UpdateInstanceDataValue("attempt", "two");
+        unitOfWork.SetDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
