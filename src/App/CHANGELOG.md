@@ -33,6 +33,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 - In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
 
+### Removed
+
+- Breaking: `IAppEvents` is removed. Version 9 never called it, so an implementation did nothing. Move the code in `OnEndAppEvent` to an `IOnProcessEndedHandler`. `studioctl app upgrade v9` reports each use. ([#21877](https://github.com/Altinn/altinn-studio/pull/21877))
+
 ## [9.0.0-preview.10] - 2026-11-09
 
 ### Added

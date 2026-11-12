@@ -182,7 +182,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BootstrapGlobalService>();
         services.AddTransient<LayoutAnalysisService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
-        services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
         services.TryAddTransient<DataModelFieldCalculator>();

@@ -2874,11 +2874,6 @@ namespace Altinn.App.Core.Internal.App
         public ApplicationConfigException(string? message) { }
         public ApplicationConfigException(string? message, System.Exception? innerException) { }
     }
-    public interface IAppEvents
-    {
-        System.Threading.Tasks.Task OnEndAppEvent(string endEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task OnStartAppEvent(string startEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
     public interface IAppMetadata
     {
         Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; }
