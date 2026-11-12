@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -254,6 +256,58 @@ public class PdfServiceTests
                 ),
             Times.Once
         );
+    }
+
+    // The frontend reads the trace cookies from document.cookie while the PDF browser renders the page,
+    // so only the token cookie is hidden from script.
+    [Fact]
+    public async Task GeneratePdf_sends_only_the_token_cookie_as_HttpOnly()
+    {
+        using var activity = new Activity("pdf-test").SetIdFormat(ActivityIdFormat.W3C).Start();
+        activity.TraceStateString = "vendor=value";
+
+        string userToken = TestAuthentication.GetUserToken();
+        string? requestBody = null;
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                requestBody = await request.Content!.ReadAsStringAsync(token);
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("PDF") };
+            }
+        );
+
+        var pdfGeneratorClient = new PdfGeneratorClient(
+            new Mock<ILogger<PdfGeneratorClient>>().Object,
+            new HttpClient(delegatingHandler),
+            _pdfGeneratorSettingsOptions,
+            _platformSettingsOptions,
+            CreateAuthenticationTokenResolver(userToken).Object
+        );
+
+        await pdfGeneratorClient.GeneratePdf(
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
+            CancellationToken.None
+        );
+
+        Assert.NotNull(requestBody);
+        using JsonDocument sentRequest = JsonDocument.Parse(requestBody);
+        var cookies = sentRequest
+            .RootElement.GetProperty("cookies")
+            .EnumerateArray()
+            .ToDictionary(cookie => cookie.GetProperty("name").GetString()!);
+
+        cookies
+            .ToDictionary(cookie => cookie.Key, cookie => cookie.Value.GetProperty("httpOnly").GetBoolean())
+            .Should()
+            .BeEquivalentTo(
+                new Dictionary<string, bool>
+                {
+                    ["AltinnStudioRuntime"] = true,
+                    ["altinn-telemetry-traceparent"] = false,
+                    ["altinn-telemetry-tracestate"] = false,
+                }
+            );
+        Assert.Equal(userToken, cookies["AltinnStudioRuntime"].GetProperty("value").GetString());
     }
 
     [Fact]
