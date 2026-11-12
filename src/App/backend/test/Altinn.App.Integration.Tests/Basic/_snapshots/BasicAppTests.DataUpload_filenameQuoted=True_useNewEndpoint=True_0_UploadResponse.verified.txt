@@ -151,9 +151,6 @@
       {
         DataElementId: Guid_2,
         Data: {
-          property1: null,
-          property2: null,
-          property3: null,
           price: 200,
           quantity: 1,
           total: 200

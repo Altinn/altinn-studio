@@ -70,12 +70,8 @@
           elementId: Task_Service,
           name: Feilende service task,
           altinnTaskType: failing-service,
-          ended: null,
-          validated: null,
           flowType: CompleteCurrentMoveToNext
-        },
-        ended: null,
-        endEvent: null
+        }
       },
       processStateChanged: true,
       workflowFailure: {
