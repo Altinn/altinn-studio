@@ -47,7 +47,6 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
     taskNavigation: settings.pages.taskNavigation?.map((g) => ({ ...g, id: uuidv4() })),
     navigationTitle: settings.pages.navigationTitle,
     validationOnNavigation: settings.pages.validationOnNavigation,
-    validateOnBackToSummary: settings.pages.validateOnBackToSummary,
     hideAppNameInPdf: settings.pages.hideAppNameInPdf,
   };
 
