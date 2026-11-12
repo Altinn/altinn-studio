@@ -16,17 +16,17 @@ COPY src/Designer/frontend/app-preview/package.json ./src/Designer/frontend/app-
 COPY src/Designer/frontend/dashboard/package.json ./src/Designer/frontend/dashboard/
 COPY src/Designer/frontend/admin/package.json ./src/Designer/frontend/admin/
 COPY src/Designer/frontend/language/package.json ./src/Designer/frontend/language/
-COPY src/Designer/frontend/libs/studio-assistant/package.json ./src/Designer/frontend/libs/studio-assistant/
-COPY src/Designer/frontend/libs/studio-browser-storage/package.json ./src/Designer/frontend/libs/studio-browser-storage/
-COPY src/Designer/frontend/libs/studio-components/package.json ./src/Designer/frontend/libs/studio-components/
-COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/
-COPY src/Designer/frontend/libs/studio-feature-flags/package.json ./src/Designer/frontend/libs/studio-feature-flags/
-COPY src/Designer/frontend/libs/studio-feedback-form/package.json ./src/Designer/frontend/libs/studio-feedback-form/
-COPY src/Designer/frontend/libs/studio-guard/package.json ./src/Designer/frontend/libs/studio-guard/
-COPY src/Designer/frontend/libs/studio-hooks/package.json ./src/Designer/frontend/libs/studio-hooks/
-COPY src/Designer/frontend/libs/studio-icons/package.json ./src/Designer/frontend/libs/studio-icons/
-COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designer/frontend/libs/studio-pure-functions/
-COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
+COPY src/Designer/frontend/libs/designer-assistant/package.json ./src/Designer/frontend/libs/designer-assistant/
+COPY src/Designer/frontend/libs/designer-browser-storage/package.json ./src/Designer/frontend/libs/designer-browser-storage/
+COPY src/Designer/frontend/libs/designer-components/package.json ./src/Designer/frontend/libs/designer-components/
+COPY src/Designer/frontend/libs/designer-content-library/package.json ./src/Designer/frontend/libs/designer-content-library/
+COPY src/Designer/frontend/libs/designer-feature-flags/package.json ./src/Designer/frontend/libs/designer-feature-flags/
+COPY src/Designer/frontend/libs/designer-feedback-form/package.json ./src/Designer/frontend/libs/designer-feedback-form/
+COPY src/Designer/frontend/libs/designer-guard/package.json ./src/Designer/frontend/libs/designer-guard/
+COPY src/Designer/frontend/libs/designer-hooks/package.json ./src/Designer/frontend/libs/designer-hooks/
+COPY src/Designer/frontend/libs/designer-icons/package.json ./src/Designer/frontend/libs/designer-icons/
+COPY src/Designer/frontend/libs/designer-pure-functions/package.json ./src/Designer/frontend/libs/designer-pure-functions/
+COPY src/Designer/frontend/libs/designer-ui-test/package.json ./src/Designer/frontend/libs/designer-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
@@ -71,10 +71,11 @@ WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
 COPY src/common/dotnet/Altinn.Studio.Common.Telemetry ./src/common/dotnet/Altinn.Studio.Common.Telemetry
 COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
-COPY src/cli/common/dotnet/.editorconfig src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
+COPY src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
 COPY src/cli/common/dotnet/Altinn.Studio.AppDist ./src/cli/common/dotnet/Altinn.Studio.AppDist
 COPY src/Designer/backend ./src/Designer/backend
 RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true \
+  /p:RunAnalyzers=false \
   "/p:InformationalVersion=${DESIGNER_VERSION:-dev}"
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
