@@ -205,7 +205,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
 
-        DataElement dataElement = GetDataElement(dataElementIdentifier);
         if (_changesForDeletion.Any(change => change.DataElementIdentifier == dataElementIdentifier))
         {
             throw new InvalidOperationException(
