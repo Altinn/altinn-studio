@@ -81,16 +81,16 @@ public class FileUploadTests
             }
         )
         {
-            _collection.AddDataType(new DataType { Id = id, TaskId = TaskId });
+            _collection.AddDataType(new DataType { Id = id, TaskIds = [TaskId] });
         }
         _collection.AddDataType(new DataType { Id = "noTask" });
-        _collection.AddDataType(new DataType { Id = "otherTask", TaskId = "Task_2" });
+        _collection.AddDataType(new DataType { Id = "otherTask", TaskIds = ["Task_2"] });
         _collection.AddDataType(new DataType { Id = "ref-data-as-pdf" });
         _collection.AddDataType(
             new DataType
             {
                 Id = "appOwned",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AllowedContributors = ["app:owned"],
             }
         );
@@ -99,7 +99,7 @@ public class FileUploadTests
             new DataType
             {
                 Id = "appOwnedOldSpelling",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AllowedContributers = ["app:owned"],
             }
         );
@@ -108,7 +108,7 @@ public class FileUploadTests
             new DataType
             {
                 Id = "actionRequiredToRead",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 ActionRequiredToRead = "approve",
             }
         );
@@ -116,7 +116,7 @@ public class FileUploadTests
             new DataType
             {
                 Id = "actionRequiredToWrite",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 ActionRequiredToWrite = "sign",
             }
         );
@@ -124,7 +124,7 @@ public class FileUploadTests
             new DataType
             {
                 Id = "disallowUserDelete",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new ApplicationLogic { DisallowUserDelete = true },
             }
         );
@@ -511,7 +511,7 @@ public class FileUploadTests
 
         var result = await CreateCommand(provider).Execute(CreateContext(dataMutator));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal(removeHiddenData ? SortedIds(dispensation, rowHidden) : [], GetDeletedIds(dataMutator));
 
         // The hidden row is removed with its binding, after the attachment in it was found
@@ -542,7 +542,7 @@ public class FileUploadTests
 
         var result = await CreateCommand(provider).Execute(CreateContext(dataMutator));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal(SortedIds(noTask), GetDeletedIds(dataMutator));
     }
 
@@ -570,7 +570,7 @@ public class FileUploadTests
         );
     }
 
-    private static ProcessEngineCommandContext CreateContext(InstanceDataUnitOfWork dataMutator) =>
+    private static WorkflowEngineCommandContext CreateContext(InstanceDataUnitOfWork dataMutator) =>
         new()
         {
             StateCarry = new(),

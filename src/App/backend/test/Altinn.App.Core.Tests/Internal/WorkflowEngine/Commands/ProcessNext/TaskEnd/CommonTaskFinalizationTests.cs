@@ -225,13 +225,13 @@ public class CommonTaskFinalizationTests
         var dataType = new DataType
         {
             Id = "model",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
         };
         var otherDataType = new DataType
         {
             Id = "otherModel",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AppLogic = new ApplicationLogic { ClassRef = "App.Models.OtherModel" },
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType, otherDataType] };
@@ -252,7 +252,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert: both data models are cleaned, with one evaluation of the layouts
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Exactly(2));
         appResourcesMock.Verify(x => x.GetLayoutModelForFolder("Task_1"), Times.Once);
     }
@@ -309,7 +309,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "restricted",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Restricted" },
                 },
             ],
@@ -330,7 +330,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         appResourcesMock.Verify(x => x.GetLayoutModelForFolder(It.IsAny<string>()), Times.Never);
     }
 

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Pdf;
@@ -202,7 +203,7 @@ public static class LayoutEvaluator
             dataType is null
             || dataType.AppLogic?.ClassRef is not null
             || dataType.Id == PdfService.PdfElementType
-            || (dataType.TaskId is not null && dataType.TaskId != taskId)
+            || (dataType.TaskIds is { Count: > 0 } && !dataType.IsBoundToTask(taskId))
         )
         {
             return [];
