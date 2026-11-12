@@ -129,19 +129,30 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
 
     private static PortListener? TryCreateListener(MibTcpRowOwnerPid row)
     {
-        if (row.State != TcpStateListen)
+        if (!IsListenerRow(row.State, row.OwningPid, row.RemoteAddress == 0 && row.RemotePort == 0))
             return null;
 
         return PortListener.FromAddress((int)row.OwningPid, ReadPort(row.LocalPort), ReadIpv4Address(row.LocalAddress));
     }
 
-    private static PortListener? TryCreateListener(MibTcp6RowOwnerPid row)
+    private static unsafe PortListener? TryCreateListener(MibTcp6RowOwnerPid row)
     {
-        if (row.State != TcpStateListen)
+        var remoteIsUnspecified = row.RemotePort == 0;
+        for (var i = 0; i < 16 && remoteIsUnspecified; i++)
+            remoteIsUnspecified = row.RemoteAddress[i] == 0;
+
+        if (!IsListenerRow(row.State, row.OwningPid, remoteIsUnspecified))
             return null;
 
         return PortListener.FromAddress((int)row.OwningPid, ReadPort(row.LocalPort), ReadIpv6Address(row));
     }
+
+    // Windows 11 build 26300 reports listening sockets with a State value outside MIB_TCP_STATE, so
+    // netstat and Get-NetTCPConnection show them without a state. A row with an owner and no remote
+    // endpoint is a listener whatever its State says. A row that matches but isn't listening fails the
+    // metadata probe like any other non-app port.
+    internal static bool IsListenerRow(uint state, uint owningPid, bool remoteIsUnspecified) =>
+        state == TcpStateListen || (owningPid != 0 && remoteIsUnspecified);
 
     private static int ReadPort(uint localPort)
     {

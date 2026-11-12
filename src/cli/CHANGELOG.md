@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- `studioctl app run` on Windows 11 build 26300 no longer times out with "no matching app metadata endpoint was discovered". Windows reports listening ports there without a valid state, and the app port discovery now finds them anyway.
+
 ## [0.1.0-preview.33] - 2026-11-09
 
 ### Changed
