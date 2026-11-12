@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import type { PolicyEditorDropdownMenuProps } from './PolicyEditorDropdownMenu';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('PolicyEditorDropdownMenu', () => {
   const mockHandleClone = vi.fn();

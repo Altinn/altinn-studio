@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioPageHeader } from '@studio/components';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import { StudioAvatar, StudioPageHeader } from '@designer/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import { useUserQuery } from 'app-shared/hooks/queries';
 
 export type LargeProfileMenuProps = {

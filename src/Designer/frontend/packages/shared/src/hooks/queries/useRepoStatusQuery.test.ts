@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { QueryClient } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';

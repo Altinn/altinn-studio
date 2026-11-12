@@ -3,7 +3,7 @@ import type { Expression, SubExpression } from '../../../../../../types/Expressi
 import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import { useText } from '../../../../../../hooks';
-import { StudioToggleGroup } from '@studio/components';
+import { StudioToggleGroup } from '@designer/components';
 
 export type SimpleExpressionProps = {
   expression: Expression;

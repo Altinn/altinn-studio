@@ -1,4 +1,4 @@
-import { StudioDropdown, StudioButton } from '@studio/components';
+import { StudioDropdown, StudioButton } from '@designer/components';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
 import {
@@ -7,7 +7,7 @@ import {
   GiteaIcon,
   MenuElipsisVerticalIcon,
   PencilIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { getRepositoryEditUrl } from 'app-shared/utils/repository';
 import type { Repository } from 'app-shared/types/Repository';

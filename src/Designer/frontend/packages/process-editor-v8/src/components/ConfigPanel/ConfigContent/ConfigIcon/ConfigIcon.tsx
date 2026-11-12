@@ -10,7 +10,7 @@ import {
   PaymentTaskIcon,
   PdfTaskIcon,
   SignTaskIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { BpmnTypeEnum } from '@altinn/process-editor-v8/enum/BpmnTypeEnum';
 
 export type ConfigIconProps = {

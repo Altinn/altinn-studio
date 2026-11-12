@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioParagraph, StudioSwitch, StudioFieldset } from '@studio/components';
+import { StudioParagraph, StudioSwitch, StudioFieldset } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {

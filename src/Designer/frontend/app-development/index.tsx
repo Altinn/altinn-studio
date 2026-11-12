@@ -10,7 +10,7 @@ import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';
 

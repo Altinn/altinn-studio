@@ -6,12 +6,7 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
   push:
     branches:
@@ -19,12 +14,7 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
 
 permissions:

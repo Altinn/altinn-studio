@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { ConsentForm } from 'app-shared/components/ConsentBanner/ConsentForm';
 import { toast } from 'react-toastify';
 import classes from './Privacy.module.css';

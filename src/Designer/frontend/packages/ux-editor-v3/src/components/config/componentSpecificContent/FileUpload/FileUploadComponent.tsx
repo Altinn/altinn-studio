@@ -7,7 +7,12 @@ import type {
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioFieldset, StudioRadio, StudioRadioGroup, StudioTextfield } from '@studio/components';
+import {
+  StudioFieldset,
+  StudioRadio,
+  StudioRadioGroup,
+  StudioTextfield,
+} from '@designer/components';
 
 export const FileUploadComponent = ({
   component,

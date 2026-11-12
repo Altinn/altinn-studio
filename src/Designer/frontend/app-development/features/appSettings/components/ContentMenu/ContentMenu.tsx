@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioContentMenu } from '@studio/components';
-import type { StudioContentMenuButtonTabProps } from '@studio/components';
+import { StudioContentMenu } from '@designer/components';
+import type { StudioContentMenuButtonTabProps } from '@designer/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';

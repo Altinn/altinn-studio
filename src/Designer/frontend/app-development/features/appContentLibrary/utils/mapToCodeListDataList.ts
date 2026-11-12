@@ -1,5 +1,5 @@
 import type { OptionListData } from 'app-shared/types/OptionList';
-import type { CodeListDataWithTextResources } from '@studio/content-library';
+import type { CodeListDataWithTextResources } from '@designer/content-library';
 
 export const mapToCodeListDataList = (
   optionListDataList: OptionListData[],

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ContactSection, type ContactSectionProps } from './ContactSection';
 import { render, screen } from '@testing-library/react';
-import { SlackIcon } from '@studio/icons';
+import { SlackIcon } from '@designer/icons';
 
 const defaultContactSectionProps: ContactSectionProps = {
   title: '',

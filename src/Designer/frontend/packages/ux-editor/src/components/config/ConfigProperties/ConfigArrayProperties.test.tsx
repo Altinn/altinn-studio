@@ -3,7 +3,7 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import {
   cancelConfigAndVerify,

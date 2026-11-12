@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformSection } from './CreateNewSubformSection';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import { layoutSets } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
@@ -9,7 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const setShowCreateSubformCardMock = vi.fn();

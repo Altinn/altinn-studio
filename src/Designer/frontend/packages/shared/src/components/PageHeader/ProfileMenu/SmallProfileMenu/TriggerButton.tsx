@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioParagraph } from '@studio/components';
+import { StudioAvatar, StudioParagraph } from '@designer/components';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import classes from './TriggerButton.module.css';
 

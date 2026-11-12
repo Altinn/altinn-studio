@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createNewTextResourceId, taskNavigationType } from '../Settings/SettingsUtils';
-import type { StudioTextResourceEditorTexts } from '@studio/components';
+import type { StudioTextResourceEditorTexts } from '@designer/components';
 import {
   StudioButton,
   StudioDialog,
   StudioFieldset,
   StudioTextResourceEditor,
-} from '@studio/components';
+} from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { CheckmarkIcon, PencilIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, PencilIcon, XMarkIcon } from '@designer/icons';
 import classes from './EditNameAction.module.css';
 import { defaultLangCode } from '@altinn/text-editor';
 import { useTranslation } from 'react-i18next';

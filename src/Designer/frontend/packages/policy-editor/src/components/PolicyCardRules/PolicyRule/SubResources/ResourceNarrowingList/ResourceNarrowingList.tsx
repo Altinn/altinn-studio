@@ -2,14 +2,14 @@ import React from 'react';
 import classes from './ResourceNarrowingList.module.css';
 import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../../ExpandablePolicyElement';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import type { PolicyRuleResource } from '../../../../../types';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../utils/PolicyRuleUtils';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 
 export type ResourceNarrowingListProps = {
   resources: PolicyRuleResource[];

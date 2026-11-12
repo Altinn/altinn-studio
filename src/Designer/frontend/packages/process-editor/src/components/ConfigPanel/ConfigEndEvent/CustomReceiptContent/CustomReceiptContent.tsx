@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './CustomReceiptContent.module.css';
-import { StudioProperty, StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@designer/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
 import { useTranslation } from 'react-i18next';

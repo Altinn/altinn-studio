@@ -4,7 +4,7 @@ import { useSelectedContext } from '../useSelectedContext';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { typedSessionStorage } from '@studio/pure-functions';
+import { typedSessionStorage } from '@designer/pure-functions';
 import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
 import { useSubroute } from '../useSubRoute';
 

@@ -4,14 +4,14 @@ import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader
 import userEvent from '@testing-library/user-event';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 

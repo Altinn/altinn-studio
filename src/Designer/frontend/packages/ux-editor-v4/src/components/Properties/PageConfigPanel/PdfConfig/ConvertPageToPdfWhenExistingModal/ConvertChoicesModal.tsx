@@ -1,6 +1,6 @@
 import { forwardRef, type JSX } from 'react';
-import { StudioDialog, StudioHeading } from '@studio/components';
-import { useForwardedRef } from '@studio/hooks';
+import { StudioDialog, StudioHeading } from '@designer/components';
+import { useForwardedRef } from '@designer/hooks';
 import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByConversionChoices';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '@altinn/ux-editor-v4/hooks/usePdf/usePdf';

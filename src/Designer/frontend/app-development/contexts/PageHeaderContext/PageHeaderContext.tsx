@@ -6,7 +6,7 @@ import {
   type StudioProfileMenuItem,
   type StudioPageHeaderProps,
   type StudioProfileMenuGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { useTopBarMenuItems } from 'app-development/hooks/useTopBarMenuItems';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';

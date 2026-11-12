@@ -8,7 +8,7 @@ import {
 } from './formLayoutUtils';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { generateComponentId } from './generateId';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { ObjectUtils, ArrayUtils } from '@designer/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { SerializedFormLayoutsResponse } from '../types/SerializedComponent';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';

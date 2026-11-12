@@ -4,7 +4,7 @@ import { render as rtlRender, screen, waitFor, within } from '@testing-library/r
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

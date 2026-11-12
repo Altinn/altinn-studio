@@ -6,7 +6,7 @@ import {
   StudioTextfield,
   StudioParagraph,
   StudioHeading,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './CreateBranchDialog.module.css';
 import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
 import { DEFAULT_APP_BRANCH } from 'app-shared/constants';

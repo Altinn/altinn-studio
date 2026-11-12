@@ -1,5 +1,5 @@
-import { StudioButton } from '@studio/components';
-import { CogIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { CogIcon } from '@designer/icons';
 
 export interface IRuleButtonProps {
   onClick: () => void;

@@ -6,7 +6,7 @@ import {
 } from './language';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
+import { mockUseTranslation } from '@designer/testing/mocks/i18nMock';
 import { componentCatalog } from '@app/layout-contract';
 import type { PropertyDefinition } from '@app/layout-contract';
 import nbTranslations from '../../../../language/src/nb.json';

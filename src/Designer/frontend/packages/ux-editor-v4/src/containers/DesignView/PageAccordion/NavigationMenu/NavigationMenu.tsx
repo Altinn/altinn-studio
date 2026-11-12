@@ -6,9 +6,9 @@ import {
   ArrowDownIcon,
   FolderPlusIcon,
   FolderIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 import { useChangePageGroupOrder } from '@altinn/ux-editor-v4/hooks/mutations/useChangePageGroupOrder';

@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import AiAssistant from './AiAssistant';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 

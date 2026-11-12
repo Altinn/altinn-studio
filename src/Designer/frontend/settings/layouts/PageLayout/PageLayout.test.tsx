@@ -4,13 +4,13 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { DISPLAY_NAME } from 'app-shared/constants';
-import { useMediaQuery } from '@studio/hooks';
-import { useFeatureFlag } from '@studio/feature-flags';
+import { useMediaQuery } from '@designer/hooks';
+import { useFeatureFlag } from '@designer/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { Route, Routes } from 'react-router-dom';
 
@@ -24,12 +24,12 @@ vi.mock('react-router-dom', async () => ({
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: vi.fn(() => ({ environment: {} })),
 }));
-vi.mock('@studio/hooks', async () => ({
-  ...(await vi.importActual('@studio/hooks')),
+vi.mock('@designer/hooks', async () => ({
+  ...(await vi.importActual('@designer/hooks')),
   useMediaQuery: vi.fn(),
 }));
-vi.mock('@studio/feature-flags', async () => ({
-  ...(await vi.importActual('@studio/feature-flags')),
+vi.mock('@designer/feature-flags', async () => ({
+  ...(await vi.importActual('@designer/feature-flags')),
   useFeatureFlag: vi.fn(),
 }));
 

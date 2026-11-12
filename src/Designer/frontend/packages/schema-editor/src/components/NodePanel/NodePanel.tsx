@@ -1,11 +1,11 @@
 import { SchemaTree } from '../SchemaTree';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
-import { ArrowLeftIcon } from '@studio/icons';
+import { ArrowLeftIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './NodePanel.module.css';
 import { HeadingRow } from './HeadingRow';
 import { isNodeValidParent } from '@altinn/schema-model';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 
 export interface NodePanelProps {
   schemaPointer?: string;

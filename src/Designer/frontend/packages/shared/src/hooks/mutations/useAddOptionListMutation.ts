@@ -2,7 +2,7 @@ import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { FileUtils } from '@studio/pure-functions';
+import { FileUtils } from '@designer/pure-functions';
 
 export const useAddOptionListMutation = (org: string, app: string, meta?: MutationMeta) => {
   const queryClient = useQueryClient();

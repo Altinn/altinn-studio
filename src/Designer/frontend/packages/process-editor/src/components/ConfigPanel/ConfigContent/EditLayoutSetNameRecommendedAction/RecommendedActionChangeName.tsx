@@ -3,8 +3,8 @@ import {
   StudioIconTextfield,
   StudioRecommendedNextAction,
   useStudioRecommendedNextActionContext,
-} from '@studio/components';
-import { KeyVerticalIcon } from '@studio/icons';
+} from '@designer/components';
+import { KeyVerticalIcon } from '@designer/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';

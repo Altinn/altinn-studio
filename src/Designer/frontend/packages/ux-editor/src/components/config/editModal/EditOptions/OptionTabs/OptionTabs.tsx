@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@designer/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { EditTab } from './EditTab';
 import type { IGenericEditComponent } from '../../../componentConfig';

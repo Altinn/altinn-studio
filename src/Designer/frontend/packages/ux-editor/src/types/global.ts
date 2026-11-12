@@ -4,7 +4,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
-import type { BooleanExpression } from '@studio/components';
+import type { BooleanExpression } from '@designer/components';
 import type React from 'react';
 import type {
   IDataModelReference,

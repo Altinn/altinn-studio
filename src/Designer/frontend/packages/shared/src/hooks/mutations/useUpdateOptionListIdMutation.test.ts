@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { UpdateOptionListIdMutationArgs } from './useUpdateOptionListIdMutation';
