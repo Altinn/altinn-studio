@@ -3087,6 +3087,7 @@ namespace Altinn.App.Core.Internal.Data
         Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
         Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
         System.ReadOnlySpan<char> AddIndexToPath(System.ReadOnlySpan<char> path, System.ReadOnlySpan<int> rowIndexes, System.Span<char> buffer);
+        bool AddRow(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();

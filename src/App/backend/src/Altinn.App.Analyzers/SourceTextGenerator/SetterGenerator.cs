@@ -70,13 +70,6 @@ internal static class SetterGenerator
 
                 """
             );
-            // Create list elements if index is out of bounds
-            // Activate if required
-            // if (model.Count == literalIndex)
-            // {
-            //    model.Add(new {{modelPathNode.TypeName}}());
-            // }
-
             builder.Append(
                 $$"""
                         if (model.Count <= literalIndex)
@@ -99,33 +92,9 @@ internal static class SetterGenerator
                         """
                     );
                 }
-                else if (modelPathNode.IsNullable || modelPathNode.IsCSharpValueType())
-                {
-                    builder.Append(
-                        $$"""
-                                if (value.TryDeserialize<{{modelPathNode.TypeNameWithNullable}}>(out var result))
-                                {
-                                    model[literalIndex] = result;
-                                    return true;
-                                }
-                                return false;
-
-                        """
-                    );
-                }
                 else
                 {
-                    builder.Append(
-                        $$"""
-                                if (value.TryDeserialize<{{modelPathNode.TypeNameWithNullable}}>(out var result) && result is not null)
-                                {
-                                    model[literalIndex] = result;
-                                    return true;
-                                }
-                                return false;
-
-                        """
-                    );
+                    AppendSetElement(builder, modelPathNode, indent: "        ");
                 }
             }
             else
@@ -133,22 +102,16 @@ internal static class SetterGenerator
                 if (modelPathNode.IsIndexableList)
                 {
                     // The path ends at the element, so replace the whole object
-                    var condition = TryDeserializeCondition(
-                        modelPathNode.TypeNameWithNullable,
-                        modelPathNode.IsNullable,
-                        "result"
-                    );
                     builder.Append(
-                        $$"""
+                        """
                                 if (offset == -1)
                                 {
-                                    // csharpier-ignore
-                                    if ({{condition}})
-                                    {
-                                        model[literalIndex] = result;
-                                        return true;
-                                    }
-                                    return false;
+
+                        """
+                    );
+                    AppendSetElement(builder, modelPathNode, indent: "            ");
+                    builder.Append(
+                        """
                                 }
 
                         """
@@ -336,16 +299,16 @@ internal static class SetterGenerator
     )
     {
         var resultName = $"result_{child.CSharpName}";
-        var condition = TryDeserializeCondition(typeName, isNullable, resultName);
+        var nullForgiving = NullForgiving(isNullable, isValueType: false);
         // The block lets csharpier-ignore apply, as type names can be longer than the line width
         builder.Append(
             $$"""
                         case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
                         {
                             // csharpier-ignore
-                            if ({{condition}})
+                            if (value.TryDeserialize<{{typeName}}>(out var {{resultName}}))
                             {
-                                model.{{child.CSharpName}} = {{resultName}};
+                                model.{{child.CSharpName}} = {{resultName}}{{nullForgiving}};
                                 return true;
                             }
                             return false;
@@ -356,10 +319,37 @@ internal static class SetterGenerator
     }
 
     /// <summary>
-    /// Deserializes the value into resultName, and rejects null unless the type is nullable.
+    /// Deserializes the value into the element at literalIndex of the list in "model".
     /// </summary>
-    private static string TryDeserializeCondition(string? typeName, bool isNullable, string resultName) =>
-        isNullable
-            ? $"value.TryDeserialize<{typeName}>(out var {resultName})"
-            : $"value.TryDeserialize<{typeName}>(out var {resultName}) && {resultName} is not null";
+    private static void AppendSetElement(StringBuilder builder, ModelPathNode element, string indent)
+    {
+        var nullForgiving = NullForgiving(element.IsNullable, element.IsCSharpValueType());
+        if (element.Properties.Count > 0)
+        {
+            // Type names of objects can be longer than the line width
+            builder.Append(
+                $$"""
+                {{indent}}// csharpier-ignore
+
+                """
+            );
+        }
+        builder.Append(
+            $$"""
+            {{indent}}if (value.TryDeserialize<{{element.TypeNameWithNullable}}>(out var result))
+            {{indent}}{
+            {{indent}}    model[literalIndex] = result{{nullForgiving}};
+            {{indent}}    return true;
+            {{indent}}}
+            {{indent}}return false;
+
+            """
+        );
+    }
+
+    /// <summary>
+    /// Null clears a reference type property or element, like it does in ReflectionFormDataWrapper, also when
+    /// the model does not annotate it as nullable (most models are compiled with nullable disabled).
+    /// </summary>
+    internal static string NullForgiving(bool isNullable, bool isValueType) => isNullable || isValueType ? "" : "!";
 }

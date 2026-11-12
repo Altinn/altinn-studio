@@ -500,6 +500,151 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     }
 
     #endregion Setters
+    #region AddRow
+
+    /// <inheritdoc />
+    public bool AddRow(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+
+        return AddRowRecursive(_dataModel, path, 0, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.Skjema? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "skjemainnhold" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold>?>(out var result_Skjemainnhold))
+                {
+                    model.Skjemainnhold ??= new();
+                    model.Skjemainnhold.Add(result_Skjemainnhold);
+                    return true;
+                }
+                return false;
+            }
+            case "skjemainnhold" when literalIndex is not -1:
+                return AddRowRecursive(model.Skjemainnhold, path, literalIndex, nextOffset, value);
+            case "eierAdresse" when literalIndex is -1 && nextOffset is not -1:
+                model.EierAdresse ??= new();
+                return AddRowRecursive(model.EierAdresse, path, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0 || offset == -1)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = model[literalIndex];
+        return AddRowRecursive(item, path, offset, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "adresse" when literalIndex is -1 && nextOffset is not -1:
+                model.Adresse ??= new();
+                return AddRowRecursive(model.Adresse, path, nextOffset, value);
+            case "tidligere-adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.Adresse>?>(out var result_TidligereAdresse))
+                {
+                    model.TidligereAdresse ??= new();
+                    model.TidligereAdresse.Add(result_TidligereAdresse);
+                    return true;
+                }
+                return false;
+            }
+            case "tidligere-adresse" when literalIndex is not -1:
+                return AddRowRecursive(model.TidligereAdresse, path, literalIndex, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.Adresse? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            default:
+                return false;
+        }
+    }
+
+    #endregion AddRow
     #region AddIndexToPath
 
     /// <inheritdoc />
