@@ -780,7 +780,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
 
     /// <summary>
-    /// Whether a save would write anything that a command or app code staged.
+    /// Whether a save would write a data element change, element metadata, a data value, a presentation text or a
+    /// complete confirmation. Lock statuses, instance deletion and process state are not checked.
     /// </summary>
     internal bool HasStagedChanges() =>
         GetDataElementChanges(false).AllChanges.Count > 0
