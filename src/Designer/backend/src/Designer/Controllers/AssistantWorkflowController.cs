@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
 /// The browser sends its commands for the assistant workflow to this controller.
-/// It receives the workflow events through <see cref="Hubs.Assistant.AssistantProxyHub"/>.
+/// The browser gets the events of the workflow through <see cref="Hubs.Assistant.AssistantProxyHub"/>.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -43,7 +43,8 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
     };
 
     /// <summary>
-    /// Sends the developer's message and its attachments to the assistant, which starts a workflow in the thread.
+    /// Sends the developer's message and its attachments to the assistant.
+    /// The assistant starts a workflow in the thread.
     /// </summary>
     [HttpPost]
     [RequestSizeLimit(MaxRequestBytes)]
@@ -97,7 +98,7 @@ public sealed class AssistantWorkflowController(IAssistantWorkflowService workfl
     }
 
     /// <summary>
-    /// Delivers the developer's answer when the workflow in the thread asks for permission to change the app.
+    /// Sends the developer's answer to a permission request from the workflow in the thread.
     /// </summary>
     [HttpPost("permission")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

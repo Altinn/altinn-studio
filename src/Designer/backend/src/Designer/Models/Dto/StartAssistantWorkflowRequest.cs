@@ -19,7 +19,7 @@ public sealed class StartAssistantWorkflowRequest
     public required string Branch { get; init; }
 
     /// <summary>
-    /// Whether the assistant may change the app, or only answer.
+    /// Whether the assistant can change the app, or only answer.
     /// </summary>
     public bool AllowAppChanges { get; init; }
 

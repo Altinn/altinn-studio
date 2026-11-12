@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Designer.Services.Models;
 
 /// <summary>
-/// How a command to the assistant's workflow in a chat thread ended.
+/// The result of a command for the assistant workflow in a chat thread.
 /// </summary>
 public enum AssistantWorkflowStatus
 {
@@ -11,7 +11,7 @@ public enum AssistantWorkflowStatus
     Success,
 
     /// <summary>
-    /// The developer may not use the assistant for the repository.
+    /// The developer cannot use the assistant for the repository.
     /// </summary>
     Forbidden,
 

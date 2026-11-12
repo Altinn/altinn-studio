@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Models.Assistant;
 /// <param name="Goal">What the developer asks the assistant to do.</param>
 /// <param name="RepoUrl">The app repository that the assistant clones.</param>
 /// <param name="Branch">The branch that the assistant works on.</param>
-/// <param name="AllowAppChanges">Whether the assistant may change the app, or only answer.</param>
+/// <param name="AllowAppChanges">Whether the assistant can change the app, or only answer.</param>
 /// <param name="CostOrg">The assistant service records the LLM usage of the workflow on this organization.</param>
 /// <param name="Attachments">The files attached to the message.</param>
 public sealed record AssistantWorkflowStartRequest(
@@ -29,7 +29,7 @@ public sealed record AssistantWorkflowStartRequest(
 /// <param name="Name">The file name.</param>
 /// <param name="MimeType">The media type that the browser gave the file.</param>
 /// <param name="Size">The size of the file in bytes.</param>
-/// <param name="Content">The content of the file. JSON writes it as base64 text.</param>
+/// <param name="Content">The content of the file. The serializer writes it as base64 text.</param>
 public sealed record AssistantWorkflowAttachment(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("mimeType")] string MimeType,

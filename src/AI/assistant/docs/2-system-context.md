@@ -10,7 +10,7 @@ Designer code:
 - `src/Designer/frontend/app-development/features/aiAssistant/`
 - `src/Designer/frontend/libs/designer-assistant/`
 
-The browser never calls the assistant service. The Designer backend is between them. Both hops use HTTP for commands and a WebSocket for events. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
+The browser never calls the assistant service. The Designer backend is between them. The browser sends its commands to `AssistantWorkflowController` and gets events through SignalR (`AssistantProxyHub`). Designer sends commands to the assistant service and gets events through one WebSocket for each developer. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
 
 ```mermaid
 flowchart LR
@@ -78,7 +78,7 @@ _The start request returns quickly. The real work happens after the response._
 
 ## Events come back
 
-The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Redis is SignalR's backplane, so the event also reaches tabs that are connected to another replica. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
+The assistant service pushes events on the WebSocket. Designer sends each event to the SignalR group of the developer, so all open tabs get it. Designer uses Redis as the SignalR backplane, so tabs on another replica also get the event. Designer also saves the final answer in its own database. This step makes sure that the answer is not lost when no tab is open.
 
 Each Designer replica that has a WebSocket for the developer gets all the events, and each replica saves the answer. The database keeps one message for each event id, so the thread shows the answer one time. The browser does not save the answer. It gets the saved answer from Designer.
 

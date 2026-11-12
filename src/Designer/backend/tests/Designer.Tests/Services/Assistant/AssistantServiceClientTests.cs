@@ -90,7 +90,7 @@ public class AssistantServiceClientTests
 
         Assert.Equal(HttpMethod.Post, capturedRequest.Method);
         Assert.Equal($"{AgentUrl}/api/agent/cancel/session-1", capturedRequest.RequestUri!.ToString());
-        // The assistant service rejects cancellation without the caller's identity.
+        // The assistant service rejects a cancel request that does not identify the developer.
         Assert.Equal("testUser", capturedRequest.Headers.GetValues("X-Developer").Single());
     }
 

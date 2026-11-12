@@ -659,7 +659,8 @@ describe('useAssistantWorkflow', () => {
       submission = result.current.onSubmitMessage(message);
     });
 
-    // The server orders messages by when it saves them, so the start waits for the message.
+    // The server sorts the messages in the order that it saves them.
+    // Thus the start waits until the server saves the message.
     expect(startWorkflow).not.toHaveBeenCalled();
     expect(createMessage).toHaveBeenCalledTimes(1);
     expect(createMessage).toHaveBeenCalledWith(

@@ -152,7 +152,7 @@ public class AssistantWorkflowServiceTests
             c => c.CancelWorkflow(Developer, _threadId.ToString(), It.IsAny<CancellationToken>()),
             Times.Once
         );
-        // The cancellation's event must reach this replica.
+        // This replica must get the event of the cancellation.
         _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer), Times.Once);
     }
 
@@ -174,7 +174,7 @@ public class AssistantWorkflowServiceTests
                 ),
             Times.Once
         );
-        // The run continues after the answer, so this replica must receive its events.
+        // The run continues after the answer, so this replica must get the events of the run.
         _webSocketServiceMock.Verify(ws => ws.RegisterSessionAsync(_threadId.ToString(), Developer), Times.Once);
     }
 
