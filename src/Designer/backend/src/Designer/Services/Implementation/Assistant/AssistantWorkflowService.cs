@@ -114,9 +114,10 @@ internal sealed class AssistantWorkflowService(
             cancellationToken
         );
 
+        // The request id comes from the request body, so it stays out of the log. The assistant service has one
+        // permission request for each session at a time, so the session id identifies it.
         logger.LogInformation(
-            "Permission request {RequestId} in session {SessionId} answered by {Developer}: granted={Granted}",
-            requestId,
+            "Permission request in session {SessionId} answered by {Developer}: granted={Granted}",
             threadId,
             editingContext.Developer,
             granted
