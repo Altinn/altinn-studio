@@ -3,7 +3,7 @@ import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { EditImage } from '../../../config/editModal/EditImage';
 import type { FormItem } from '../../../../types/FormItem';
 import classes from './ImageMainConfig.module.css';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type ImageMainConfigProps = {

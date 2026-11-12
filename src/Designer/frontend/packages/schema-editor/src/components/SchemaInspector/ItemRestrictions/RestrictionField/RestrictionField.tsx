@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@designer/components';
 
 export interface IRestrictionFieldProps {
   className?: string;

@@ -5,7 +5,7 @@ import {
   StudioCheckboxGroup,
   StudioValidationMessage,
   useStudioCheckboxGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';

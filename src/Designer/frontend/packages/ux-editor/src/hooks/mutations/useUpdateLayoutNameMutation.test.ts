@@ -8,7 +8,7 @@ import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const newName = 'newName';

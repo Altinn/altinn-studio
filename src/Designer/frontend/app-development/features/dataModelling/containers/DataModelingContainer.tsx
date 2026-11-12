@@ -1,6 +1,6 @@
 import { DataModeling } from '../DataModeling';
 import classes from './DataModelingContainer.module.css';
-import { dataModelingContainerId } from '@studio/testing/testids';
+import { dataModelingContainerId } from '@designer/testing/testids';
 
 // Todo: Is this component necessary?
 const DataModelingContainer = () => (

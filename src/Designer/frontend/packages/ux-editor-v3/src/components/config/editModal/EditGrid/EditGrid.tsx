@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@designer/components';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
+import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@designer/icons';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';

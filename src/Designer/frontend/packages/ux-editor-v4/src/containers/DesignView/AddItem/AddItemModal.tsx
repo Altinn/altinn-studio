@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
 import { getAvailableChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@designer/components';
 import type { AddedItem } from './types';
 import { AddItemContent } from './AddItemContent';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import classes from './AddItemModal.module.css';
 import { useTranslation } from 'react-i18next';

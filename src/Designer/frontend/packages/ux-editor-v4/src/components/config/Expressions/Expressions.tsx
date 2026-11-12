@@ -13,8 +13,8 @@ import {
 import type { FormItemProperty } from '../../../types/FormItemProperty';
 import { ExpressionHeading } from './ExpressionHeading';
 import type { FormItem } from '../../../types/FormItem';
-import type { BooleanExpression } from '@studio/components';
-import { StudioCodeFragment, StudioParagraph } from '@studio/components';
+import type { BooleanExpression } from '@designer/components';
+import { StudioCodeFragment, StudioParagraph } from '@designer/components';
 
 export const Expressions = () => {
   const { formItem, handleUpdate, debounceSave } = useContext(FormItemContext);

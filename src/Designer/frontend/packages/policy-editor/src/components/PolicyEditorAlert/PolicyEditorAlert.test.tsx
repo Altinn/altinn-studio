@@ -7,7 +7,7 @@ import {
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('PolicyEditorAlert', () => {
   it('only displays the alert title when the policy has no rules', async () => {

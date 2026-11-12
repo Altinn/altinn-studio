@@ -3,7 +3,7 @@ import classes from './MaskinportenTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabPageHeader } from '../../TabPageHeader';
 import { TabPageWrapper } from '../../TabPageWrapper';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 import { ScopeListContainer } from './ScopeListContainer';
 
 export function MaskinportenTab(): ReactElement {

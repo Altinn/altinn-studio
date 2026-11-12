@@ -6,7 +6,7 @@ import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
 import type { LanguageCode } from '../enum/LanguageCode';
-import { accordionHeaderId } from '@studio/testing/testids';
+import { accordionHeaderId } from '@designer/testing/testids';
 
 const dataModelBindingButtonTextMap: Record<string, TextKey> = {
   Input: 'ux_editor.component_title.Input',

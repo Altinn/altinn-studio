@@ -22,7 +22,7 @@ sandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7
 sandbox-microsandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
 serde = { version = "1.0.229", features = ["derive"] }
 tempfile = "3.27.0"
-tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+tokio = { version = "1.53.3", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

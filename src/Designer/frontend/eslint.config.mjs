@@ -25,7 +25,7 @@ const designsystemetRestriction = {
     '@digdir/designsystemet-css/**',
   ],
   message:
-    'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components.',
+    'Do not import from Designsystemet directly. Import components from @designer/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @designer/components.',
 };
 
 const restrictedImportsAllowingDesignsystemet = (patterns) => [
@@ -120,7 +120,7 @@ export default [
         {
           group: ['**/libs/**'],
           message:
-            'Use the package name, not the relative path, when importing from a @studio library.',
+            'Use the package name, not the relative path, when importing from a @designer library.',
         },
       ]),
     },
@@ -157,7 +157,7 @@ export default [
     },
   },
   {
-    files: ['libs/studio-components/.storybook/**/*.{ts,tsx}'],
+    files: ['libs/designer-components/.storybook/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
         project: false,
@@ -170,7 +170,7 @@ export default [
     },
   },
   {
-    files: ['libs/studio-assistant/**/*.{ts,tsx}'],
+    files: ['libs/designer-assistant/**/*.{ts,tsx}'],
     rules: {
       ...strictLibraryRules,
       'no-restricted-imports': restrictedImports([
@@ -190,24 +190,24 @@ export default [
     },
   },
   {
-    files: ['libs/studio-browser-storage/**/*.{ts,tsx}'],
+    files: ['libs/designer-browser-storage/**/*.{ts,tsx}'],
     rules: {
       ...strictLibraryRules,
       'no-restricted-imports': restrictedImports([
         {
           group: ['react'],
-          message: 'The @studio/browser-storage package should not depend on React.',
+          message: 'The @designer/browser-storage package should not depend on React.',
         },
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/browser-storage package should not depend on app-specific packages.',
+            'Files in the @designer/browser-storage package should not depend on app-specific packages.',
         },
       ]),
     },
   },
   {
-    files: ['libs/studio-components/**/*.{ts,tsx}'],
+    files: ['libs/designer-components/**/*.{ts,tsx}'],
     settings: {
       'testing-library/custom-renders': ['rowsToRender'],
     },
@@ -222,7 +222,7 @@ export default [
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/components package should not depend on app-specific packages.',
+            'Files in the @designer/components package should not depend on app-specific packages.',
         },
         {
           group: ['i18next', 'react-i18next'],
@@ -233,14 +233,14 @@ export default [
     },
   },
   {
-    files: ['libs/studio-components/**/*.test.tsx'],
+    files: ['libs/designer-components/**/*.test.tsx'],
     rules: {
       '@typescript-eslint/naming-convention': 'off',
     },
   },
-  ...storybookConfig(['libs/studio-components/**/*.{stories,story}.{ts,tsx,js,jsx}']),
+  ...storybookConfig(['libs/designer-components/**/*.{stories,story}.{ts,tsx,js,jsx}']),
   {
-    files: ['libs/studio-content-library/**/*.{ts,tsx}'],
+    files: ['libs/designer-content-library/**/*.{ts,tsx}'],
     rules: {
       ...strictLibraryRules,
       'no-restricted-imports': restrictedImports([
@@ -253,14 +253,14 @@ export default [
   },
   {
     files: [
-      'libs/studio-feature-flags/**/*.{ts,tsx}',
-      'libs/studio-guard/**/*.{ts,tsx}',
-      'libs/studio-ui-test/**/*.{ts,tsx}',
+      'libs/designer-feature-flags/**/*.{ts,tsx}',
+      'libs/designer-guard/**/*.{ts,tsx}',
+      'libs/designer-ui-test/**/*.{ts,tsx}',
     ],
     rules: strictLibraryRules,
   },
   {
-    files: ['libs/studio-feedback-form/**/*.{ts,tsx}'],
+    files: ['libs/designer-feedback-form/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports([
         {
@@ -271,7 +271,7 @@ export default [
     },
   },
   {
-    files: ['libs/studio-hooks/**/*.{ts,tsx}'],
+    files: ['libs/designer-hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports([
         {
@@ -281,7 +281,8 @@ export default [
         },
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @studio/hooks package should not depend on app-specific packages.',
+          message:
+            'Files in the @designer/hooks package should not depend on app-specific packages.',
         },
         {
           group: ['i18next', 'react-i18next'],
@@ -292,13 +293,13 @@ export default [
     },
   },
   {
-    files: ['libs/studio-hooks/**/*.test.ts', 'libs/studio-hooks/**/*.test.tsx'],
+    files: ['libs/designer-hooks/**/*.test.ts', 'libs/designer-hooks/**/*.test.tsx'],
     rules: {
       '@typescript-eslint/naming-convention': 'off',
     },
   },
   {
-    files: ['libs/studio-icons/**/*.tsx'],
+    files: ['libs/designer-icons/**/*.tsx'],
     rules: {
       '@typescript-eslint/naming-convention': [
         'error',
@@ -315,34 +316,35 @@ export default [
     },
   },
   {
-    files: ['libs/studio-icons/**/*.{ts,tsx}'],
+    files: ['libs/designer-icons/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports([
         {
           group: ['app-shared/*', '@altinn/*'],
-          message: 'Files in the @studio/icons package should not depend on app-specific packages.',
+          message:
+            'Files in the @designer/icons package should not depend on app-specific packages.',
         },
       ]),
     },
   },
   {
-    files: ['libs/studio-icons/**/*.test.tsx'],
+    files: ['libs/designer-icons/**/*.test.tsx'],
     rules: {
       '@typescript-eslint/naming-convention': 'off',
     },
   },
   {
-    files: ['libs/studio-pure-functions/**/*.{ts,tsx}'],
+    files: ['libs/designer-pure-functions/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports([
         {
           group: ['react'],
-          message: 'The @studio/pure-functions package should not depend on React.',
+          message: 'The @designer/pure-functions package should not depend on React.',
         },
         {
           group: ['app-shared/*', '@altinn/*'],
           message:
-            'Files in the @studio/pure-functions package should not depend on app-specific packages.',
+            'Files in the @designer/pure-functions package should not depend on app-specific packages.',
         },
       ]),
     },

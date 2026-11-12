@@ -5,7 +5,7 @@ import { get } from 'app-shared/utils/networking';
 import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { RunningApplicationMetadata } from 'admin/features/apps/types/RunningApplicationMetadata';

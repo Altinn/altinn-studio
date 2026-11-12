@@ -6,7 +6,7 @@ import {
   StudioLink,
   StudioPageSpinner,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { useCanUseFeatureQuery } from '../../hooks/queries/useCanUseFeatureQuery';

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
 import { SecurityLevelSelect, authLevelOptions } from './SecurityLevelSelect';
 import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockInitialAuthLevelValue: RequiredAuthLevel = '0';
 const mockLabel: string = textMock('policy_editor.select_auth_level_label');

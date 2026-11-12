@@ -1,4 +1,4 @@
-import { StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';

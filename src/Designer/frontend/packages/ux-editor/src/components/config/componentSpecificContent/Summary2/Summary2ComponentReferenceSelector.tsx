@@ -1,4 +1,4 @@
-import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './Summary2ComponentReferenceSelector.module.css';
 

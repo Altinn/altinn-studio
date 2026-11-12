@@ -7,7 +7,7 @@ import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutati
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 
 import type { JSX } from 'react';
 

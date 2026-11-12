@@ -6,7 +6,7 @@ import {
   StudioError,
   StudioHeading,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { useAppMetricsQuery } from 'admin/features/apps/hooks/queries/useAppMetricsQuery';
 import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';

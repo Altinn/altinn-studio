@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useCreateChatThreadMutation } from './useCreateChatThreadMutation';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

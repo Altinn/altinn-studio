@@ -7,7 +7,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { HttpError } from 'app-shared/utils/networking';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { type CustomTemplate } from 'app-shared/types/CustomTemplate';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import classes from './TemplateSelector.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';

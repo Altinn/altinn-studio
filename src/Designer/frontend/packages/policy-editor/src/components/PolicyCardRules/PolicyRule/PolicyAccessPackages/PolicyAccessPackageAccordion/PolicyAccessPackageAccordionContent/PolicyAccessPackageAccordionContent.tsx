@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
-import { StudioParagraph, StudioSelect, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSelect, StudioSpinner } from '@designer/components';
 import { PolicyAccessPackageServices } from '../PolicyAccessPackageServices';
 import classes from './PolicyAccessPackageAccordionContent.module.css';
 import type { CompetentAuthority } from 'app-shared/types/PolicyAccessPackages';

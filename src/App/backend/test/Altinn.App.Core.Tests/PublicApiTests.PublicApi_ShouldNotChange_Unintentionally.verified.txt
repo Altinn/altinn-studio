@@ -4166,6 +4166,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
         public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideOptionalIndicator")]
+        public bool HideOptionalIndicator { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("navigationTitle")]
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
@@ -4431,6 +4433,7 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         public bool? HideCloseButton { get; set; }
+        public bool? HideOptionalIndicator { get; set; }
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
         public string? PdfLayoutName { get; set; }

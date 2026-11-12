@@ -5,7 +5,7 @@ import { renderHookWithProviders } from 'app-development/test/mocks';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { type CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 
 const mockUseIsRepoOwnerOrg = vi.fn();
 

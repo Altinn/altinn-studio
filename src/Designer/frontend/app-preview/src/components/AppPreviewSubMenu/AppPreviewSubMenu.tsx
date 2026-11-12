@@ -1,8 +1,8 @@
 import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioLink } from '@studio/components';
-import { ArrowLeftIcon } from '@studio/icons';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioLink } from '@designer/components';
+import { ArrowLeftIcon } from '@designer/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useBackToEditingHref } from '../../hooks/useBackToEditingHref';
 

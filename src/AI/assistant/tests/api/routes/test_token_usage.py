@@ -22,7 +22,10 @@ def _make_raw_observation(obs_id, trace_id, start_time, input_tokens, output_tok
         "traceId": trace_id,
         "startTime": start_time,
         "model": "gpt-4o",
-        "usage": usage,
+        # The shape of the usage field group in Observations API v2
+        "inputUsage": usage["input"],
+        "outputUsage": usage["output"],
+        "totalUsage": usage["total"],
         "usageDetails": usage,
     }
 

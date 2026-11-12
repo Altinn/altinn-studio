@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioFieldset, StudioProperty, StudioTextResourceAction } from '@studio/components';
-import type { StudioTextResourceActionTexts } from '@studio/components';
+import { StudioFieldset, StudioProperty, StudioTextResourceAction } from '@designer/components';
+import type { StudioTextResourceActionTexts } from '@designer/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';

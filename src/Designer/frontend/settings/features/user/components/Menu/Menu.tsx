@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { StudioContentMenu } from '@studio/components';
+import { StudioContentMenu } from '@designer/components';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { KeyHorizontalIcon, PadlockLockedIcon } from '@studio/icons';
+import { KeyHorizontalIcon, PadlockLockedIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 

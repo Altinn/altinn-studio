@@ -1,0 +1,24 @@
+import { describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { LandingPage } from './LandingPage';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+
+describe('LandingPage', () => {
+  it('renders the title, description and image', () => {
+    renderLandingPage();
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('app_content_library.landing_page.title'),
+        level: 1,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_content_library.landing_page.description')),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('presentation')).toBeInTheDocument();
+  });
+});
+
+const renderLandingPage = (): void => {
+  render(<LandingPage />);
+};

@@ -7,8 +7,8 @@ import {
   StudioParagraph,
   StudioAlert,
   StudioCheckbox,
-} from '@studio/components';
-import { ExternalLinkIcon } from '@studio/icons';
+} from '@designer/components';
+import { ExternalLinkIcon } from '@designer/icons';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';

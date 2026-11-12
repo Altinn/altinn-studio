@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitFor, act } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ProviderData } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import type { QueryClient } from '@tanstack/react-query';
@@ -15,8 +15,8 @@ import type {
   PagesConfig,
   TextResources,
   TextResourceWithLanguage,
-} from '@studio/content-library';
-import { PageName } from '@studio/content-library';
+} from '@designer/content-library';
+import { PageName } from '@designer/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
@@ -34,7 +34,7 @@ import {
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import { sharedResourcesResponse } from './test-data/sharedResourcesResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
@@ -60,8 +60,8 @@ const publishedCodeListsQueryKey: string[] = [
 ];
 
 // Mocks:
-vi.mock('@studio/content-library', async () => ({
-  ...(await vi.importActual('@studio/content-library')),
+vi.mock('@designer/content-library', async () => ({
+  ...(await vi.importActual('@designer/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 

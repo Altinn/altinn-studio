@@ -3,10 +3,10 @@ import type { Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useUpdatePdfConfigTaskIds } from './useUpdatePdfConfigTaskIds';
 import { useBpmnContext } from '../contexts/BpmnContext';
-import { useDebounce } from '@studio/hooks';
+import { useDebounce } from '@designer/hooks';
 
 vi.mock('../contexts/BpmnContext');
-vi.mock('@studio/hooks');
+vi.mock('@designer/hooks');
 
 describe('useUpdatePdfConfigTaskIds', () => {
   beforeEach(() => {

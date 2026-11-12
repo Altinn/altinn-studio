@@ -1,9 +1,9 @@
 import classes from './ChooseFromLibrary.module.css';
 import { imagePath } from 'app-shared/api/paths';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { WWWROOT_FILE_PATH } from '../../../../../EditImage/constants';
-import { StudioCard, StudioHeading } from '@studio/components';
+import { StudioCard, StudioHeading } from '@designer/components';
 
 type ImageLibraryPreviewProps = {
   imagesFileNames: string[];

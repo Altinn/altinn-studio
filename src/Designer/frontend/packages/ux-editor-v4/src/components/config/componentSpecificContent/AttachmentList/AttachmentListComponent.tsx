@@ -5,7 +5,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@designer/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';

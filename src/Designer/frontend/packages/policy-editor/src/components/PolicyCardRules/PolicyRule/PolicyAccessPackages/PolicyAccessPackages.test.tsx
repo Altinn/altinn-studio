@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
 import { PolicyAccessPackages } from './PolicyAccessPackages';
 import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

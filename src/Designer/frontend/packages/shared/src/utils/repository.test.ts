@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import {
   APP_DEVELOPMENT_BASENAME,
   DASHBOARD_BASENAME,

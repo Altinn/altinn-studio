@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -93,6 +94,9 @@ func (e *Env) OnInstall(_ context.Context) error {
 
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+	if err := e.forgetPortOfAGoneEnvironment(ctx); err != nil {
+		return err
+	}
 	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
 		return err
 	}
@@ -105,7 +109,12 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	recorded, hasRecord, err := ReadState(e.cfg)
+	if err != nil {
+		return err
+	}
+	state := startState(opts.Port, recorded, hasRecord)
+	topology := state.Topology()
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
 	if err != nil {
@@ -114,6 +123,14 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
 
 	manifest := components.NewManifest(buildOpts)
+	if err := e.checkPort(ctx, manifest.Resources, topology.IngressPort()); err != nil {
+		return fmt.Errorf("%w; choose another --port", err)
+	}
+	// Recorded before anything starts, so that a start that fails half-way leaves every other command pointing at
+	// the containers it did create.
+	if err := WriteState(e.cfg, state); err != nil {
+		return err
+	}
 	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, manifest.Bindings); err != nil {
 		return fmt.Errorf("ensure bound topology: %w", err)
 	}
@@ -158,12 +175,18 @@ func (e *Env) Down(ctx context.Context) error {
 		return err
 	}
 	if !hasResources {
+		if err := RemoveState(e.cfg); err != nil {
+			return err
+		}
 		return envtypes.ErrAlreadyStopped
 	}
 
 	destroyManifest := components.NewManifest(e.buildDestroyOptions())
 	if err := e.destroyResources(ctx, destroyManifest.Resources, stoppingEnvironmentMessage); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
+	}
+	if err := RemoveState(e.cfg); err != nil {
+		return err
 	}
 
 	e.out.Success("Environment stopped")
@@ -192,6 +215,9 @@ func (e *Env) Reset(ctx context.Context) error {
 
 	e.out.Println("Deleting persisted localtest data...")
 	if err := e.deletePersistedData(ctx); err != nil {
+		return err
+	}
+	if err := RemoveState(e.cfg); err != nil {
 		return err
 	}
 
@@ -286,12 +312,24 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(
+	status := localtestStatus(
 		graph.All(),
 		snapshot,
 		e.containerImages(ctx, graph.All(), snapshot),
 		opts.RequireDesired,
-	), nil
+	)
+	if localtestServes(status) {
+		status.URL = resourceOpts.Topology.LocaltestURL()
+	}
+	return status, nil
+}
+
+// localtestServes reports whether the localtest container runs, so that the environment's URL answers.
+func localtestServes(status *Status) bool {
+	return slices.ContainsFunc(status.Containers, func(container ContainerStatus) bool {
+		return container.Name == components.ContainerLocaltest &&
+			container.Status == localtestStatusString(executor.StatusReady)
+	})
 }
 
 // containerImages resolves the image behind each container that exists, keyed by container
@@ -355,6 +393,20 @@ func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
 	return false
 }
 
+// forgetPortOfAGoneEnvironment forgets the recorded port when the environment is gone without env down, after a
+// machine reset or a container prune, so that env up starts a new one. It runs before the scheduled workflow-engine
+// data reset, which removes the containers of an environment that keeps its port.
+func (e *Env) forgetPortOfAGoneEnvironment(ctx context.Context) error {
+	if _, hasRecord, err := ReadState(e.cfg); err != nil || !hasRecord {
+		return err
+	}
+	exists, err := e.hasManagedResources(ctx)
+	if err != nil || exists {
+		return err
+	}
+	return RemoveState(e.cfg)
+}
+
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 	manifest := components.NewManifest(e.buildDestroyOptions())
 	graph, err := buildResourceGraph(manifest.Resources)
@@ -409,6 +461,9 @@ func (e *Env) runForeground(
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
 	if err := e.destroyResources(teardownCtx, destroyManifest.Resources, ""); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
+		return err
+	}
+	if err := RemoveState(e.cfg); err != nil {
 		return err
 	}
 	e.out.Println("Environment stopped.")
@@ -566,6 +621,7 @@ func localtestStatus(
 ) *Status {
 	status := Status{
 		Containers: []ContainerStatus{},
+		URL:        "",
 		Running:    false,
 		AnyRunning: false,
 	}
@@ -661,6 +717,17 @@ func isImageResource(res resource.Resource) bool {
 	return ok
 }
 
+// recordedTopology is the topology the environment was last started with. Status, logs and teardown find containers
+// by name, so an unreadable state file only costs them the recorded port: they fall back to the default.
+func (e *Env) recordedTopology() envtopology.Local {
+	topology, err := RecordedTopology(e.cfg)
+	if err != nil {
+		e.out.Verbosef("Using the default port: %v", err)
+		return envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	}
+	return topology
+}
+
 func (e *Env) buildDestroyOptions() *components.Options {
 	return e.releaseOptions(true, true, false) // include all for cleanup
 }
@@ -674,7 +741,7 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngin
 		RuntimeUser:       "",
 		RuntimeUsernsMode: "",
 		RelabelBinds:      false,
-		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
+		Topology:          e.recordedTopology(),
 		ImageMode:         components.ReleaseMode,
 		PrebuiltDevImages: false,
 		DevWorkflowEngine: devWorkflowEngine,

@@ -3,7 +3,7 @@ import {
   FeatureFlag,
   FeatureFlagsContextProvider,
   FeatureFlagMutationContextProvider,
-} from '@studio/feature-flags';
+} from '@designer/feature-flags';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { FlagsPage } from './FlagsPage';

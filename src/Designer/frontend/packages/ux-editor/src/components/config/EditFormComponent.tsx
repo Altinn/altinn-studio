@@ -3,7 +3,7 @@ import { FormComponentConfig } from './FormComponentConfig';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
-import { StudioFieldset } from '@studio/components';
+import { StudioFieldset } from '@designer/components';
 import { getComponentDefinition } from '../../data/componentCatalog';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {

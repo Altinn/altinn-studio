@@ -28,6 +28,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
@@ -41,7 +42,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     baseComponentId,
     overrideDisplay,
   });
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
@@ -177,7 +178,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               }
               description={
@@ -239,7 +240,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               }
               label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
