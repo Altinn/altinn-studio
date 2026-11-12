@@ -1,0 +1,51 @@
+name: altinn-fleet - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/tools/altinn-fleet/**'
+      # The tool compiles the app domain model from the shared project.
+      - 'src/common/dotnet/Altinn.Studio.Common/**'
+      # The tests check the release lookup client against Designer's contract files.
+      - 'src/Designer/backend/tests/Designer.Tests/_TestData/ReleaseLookup/**'
+      - '.github/workflows/altinn-fleet-build-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Check formatting, build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: src/tools/altinn-fleet
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/tools/altinn-fleet/global.json
+
+      - name: Formatting
+        run: make lint
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
