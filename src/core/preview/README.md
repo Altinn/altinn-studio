@@ -16,6 +16,20 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
 - A session ends 30 minutes after its last request, and 24 hours after it started at the latest. The session ID is
   in URLs and logs, so it must not stay valid long.
 
+## v9 apps
+
+Preview serves a v9 app as the app backend serves it, with a mock of the backend's API over the working copy.
+
+- Each of the app frontend's routes gets the page that starts the frontend. The frontend comes from Studio's app
+  frontend distributions (`/designer/app-dist/`), in the version of the app library the app references, as a real app
+  gets it from that package.
+- The frontend builds every URL from `/{window.org}/{window.app}`. The page sets `window.org` to `{sessionId}/{org}`,
+  so every request from the frontend carries the session ID, and published versions of the frontend work unchanged.
+- The user is a mock person who may do everything. The instances the app creates, and their form data, are the
+  session's state, which Redis keeps in the same key as the session, so they end together.
+- Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
+  runs them without the user.
+
 ## Security rules
 
 - Only Designer reaches the internal port, because it starts a session for whichever developer the caller names.

@@ -156,7 +156,7 @@ public sealed class AppFileTests : IDisposable
     [Fact]
     public async Task Error_HasThePreviewResponseHeaders()
     {
-        using var factory = new PreviewApplicationFactory(new UnavailableCache());
+        using var factory = new PreviewApplicationFactory(new UnavailableSessionStore());
 
         using HttpResponseMessage response = await factory
             .CreatePublicClient()
