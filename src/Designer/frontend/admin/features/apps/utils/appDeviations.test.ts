@@ -16,6 +16,11 @@ describe('noUseMonths', () => {
     expect(noUseMonths(null, '2026-10-01', '2026-11-10')).toBe(0);
   });
 
+  it('uses the given limit instead of 90 days', () => {
+    expect(noUseMonths('2026-07-01', '2026-01-01', '2026-11-10', 180)).toBe(0);
+    expect(noUseMonths('2026-04-03', '2026-01-01', '2026-11-10', 180)).toBe(7);
+  });
+
   it('is 0 without stored history', () => {
     expect(noUseMonths(null, null, '2026-11-10')).toBe(0);
     expect(noUseMonths('2026-01-01', '2026-01-01', null)).toBe(0);

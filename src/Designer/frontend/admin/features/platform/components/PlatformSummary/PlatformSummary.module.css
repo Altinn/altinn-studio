@@ -1,0 +1,37 @@
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--ds-size-3);
+  margin: 0;
+}
+
+.tile {
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  background: var(--ds-color-neutral-background-tinted);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-3) var(--ds-size-4);
+  display: grid;
+  gap: var(--ds-size-1);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  font-weight: 500;
+}
+
+.value {
+  margin: 0;
+  font-size: var(--ds-font-size-7);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail {
+  margin: 0;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  font-variant-numeric: tabular-nums;
+}

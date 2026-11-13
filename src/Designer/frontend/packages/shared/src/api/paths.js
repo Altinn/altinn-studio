@@ -21,6 +21,9 @@ export const appVersionPath = (org, app) => `${apiBasePath}/${org}/${app}/app-de
 // UserOrgPermissions
 export const userOrgPermissionsPath = (org) => `${apiBasePath}/user/org-permissions/${org}`;
 
+// UserPlatformPermissions
+export const userPlatformPermissionsPath = () => `${apiBasePath}/user/platform-permissions`; // Get
+
 // Config
 export const serviceConfigPath = (org, app) => `${apiBasePath}/${org}/${app}/config`; // Get, Post
 

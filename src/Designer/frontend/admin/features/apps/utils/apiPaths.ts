@@ -15,6 +15,8 @@ export const appDailyMetricsPath = (org: string, env: string, days: number) =>
   `${adminApiBasePath}/app-daily-metrics/${org}/${env}?days=${days}`; // Get
 export const appDailyMetricsDetailsPath = (org: string, env: string, app: string, days: number) =>
   `${adminApiBasePath}/app-daily-metrics/${org}/${env}/${app}?days=${days}`; // Get
+export const platformAppDailyMetricsPath = (env: string, days: number) =>
+  `/designer/api/v1/platform/app-daily-metrics?env=${env}&days=${days}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const appDetailsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}`; // Get

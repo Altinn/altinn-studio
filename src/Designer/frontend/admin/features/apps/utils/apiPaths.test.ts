@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   appDailyMetricsDetailsPath,
   appDailyMetricsPath,
+  platformAppDailyMetricsPath,
   resumeWorkflowPath,
   workflowCollectionsPath,
   workflowsListPath,
@@ -67,6 +68,14 @@ describe('appDailyMetricsPath', () => {
     );
     expect(appDailyMetricsDetailsPath(org, env, app, 7)).toBe(
       `/designer/api/v1/admin/app-daily-metrics/${org}/${env}/${app}?days=7`,
+    );
+  });
+});
+
+describe('platformAppDailyMetricsPath', () => {
+  it('asks for the environment and the period', () => {
+    expect(platformAppDailyMetricsPath('production', 30)).toBe(
+      '/designer/api/v1/platform/app-daily-metrics?env=production&days=30',
     );
   });
 });
