@@ -46,11 +46,17 @@ class PolicyOptionsError(Exception):
 class AccessPackage:
     code: str
     name: str
+    # Without the disclaimer, but otherwise whole, so that a search finds a word in any sentence.
     description: str
     area: str
     group: str
     group_type: str
     usable_in_policy: bool
+
+    @property
+    def summary(self) -> str:
+        """The first sentence of the description, which says what the package covers."""
+        return _SENTENCE_END.split(self.description, maxsplit=1)[0]
 
 
 @dataclass(frozen=True)
@@ -98,7 +104,7 @@ def parse_access_packages(data: Any) -> list[AccessPackage]:
         AccessPackage(
             code=_code(package, ACCESS_PACKAGE_ATTRIBUTE),
             name=_text(package, "name"),
-            description=_short_description(package.get("description")),
+            description=_without_disclaimer(package.get("description")),
             area=_text(area, "name"),
             group=_text(group, "name"),
             group_type=str(group.get("type") or ""),
@@ -135,9 +141,9 @@ def parse_roles(data: Any) -> list[Role]:
     return parsed
 
 
-def _short_description(description: Any) -> str:
-    sentences = [sentence for sentence in _SENTENCE_END.split(_squash(description)) if not _DISCLAIMER.match(sentence)]
-    return sentences[0] if sentences else ""
+def _without_disclaimer(description: Any) -> str:
+    sentences = _SENTENCE_END.split(_squash(description))
+    return " ".join(sentence for sentence in sentences if not _DISCLAIMER.match(sentence))
 
 
 def _squash(value: Any) -> str:
