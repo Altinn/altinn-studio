@@ -495,6 +495,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_at");
 
+                    b.Property<DateTimeOffset?>("StateClearedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("state_cleared_at");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
@@ -559,6 +563,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasIndex(new[] { "Namespace", "Status" }, "ix_workflows_namespace_status_incomplete")
                         .HasDatabaseName("ix_workflows_namespace_status_incomplete")
                         .HasFilter("status IN (0, 1, 2, 8, 9)");
+
+                    b.HasIndex(new[] { "UpdatedAt" }, "ix_workflows_updated_at_completed_state")
+                        .HasDatabaseName("ix_workflows_updated_at_completed_state")
+                        .HasFilter("status IN (3) AND state_cleared_at IS NULL");
 
                     b.ToTable("workflows", "engine");
                 });

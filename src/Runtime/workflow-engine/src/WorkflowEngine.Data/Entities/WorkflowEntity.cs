@@ -65,6 +65,13 @@ internal sealed class WorkflowEntity
 
     public string? InitialState { get; set; }
 
+    /// <summary>
+    /// When retention cleared the state of this completed workflow, its initial state and every step's state
+    /// out. Null until then. Marks the workflows the state sweep is done with, so the sweep does not scan
+    /// them again.
+    /// </summary>
+    public DateTimeOffset? StateClearedAt { get; set; }
+
     public bool? IsHead { get; set; }
 
     /// <summary>

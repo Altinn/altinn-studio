@@ -353,7 +353,8 @@ public sealed record MailboxBufferSettings
 }
 
 /// <summary>
-/// Settings for the background data retention job that purges terminal workflows.
+/// Settings for the background data retention job that clears the state of completed workflows and purges
+/// terminal workflows.
 /// </summary>
 public sealed record RetentionSettings
 {
@@ -364,7 +365,19 @@ public sealed record RetentionSettings
     public TimeSpan RetentionPeriod { get; set; }
 
     /// <summary>
-    /// Maximum number of workflows to delete per retention cycle.
+    /// How long a workflow that completed successfully keeps its state, the initial state and every step's
+    /// state out, before retention clears it. The workflow itself stays until <see cref="RetentionPeriod"/>.
+    /// Nothing reads a completed workflow's state except status reads and the dashboard, so the state is kept
+    /// only long enough to inspect a recent run. Workflows that did not complete keep their state, since a
+    /// resume runs from it. A value at or above <see cref="RetentionPeriod"/> keeps the state until the
+    /// workflow is deleted.
+    /// </summary>
+    [JsonPropertyName("completedStateRetentionPeriod")]
+    public TimeSpan CompletedStateRetentionPeriod { get; set; }
+
+    /// <summary>
+    /// Maximum number of workflows one retention batch deletes, or clears the state of. A sweep runs batches
+    /// until one comes back short.
     /// </summary>
     [JsonPropertyName("batchSize")]
     public int BatchSize { get; set; }
