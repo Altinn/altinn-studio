@@ -1,16 +1,20 @@
 # Running Designer locally
 
 The local stack runs Designer in containers with Gitea, PostgreSQL, Redis and mock services for the systems Designer
-calls, behind a load balancer at <http://studio.localhost>. [compose.yaml](../compose.yaml) defines it.
+calls, behind a load balancer at <http://studio.localhost>. The [preview service](../../core/preview/README.md) runs
+beside it at <http://preview.localhost>, on a site of its own as in the Studio clusters. [compose.yaml](../compose.yaml)
+defines it.
 
 ## Before you start
 
 - Docker or Podman with Compose, and Node.js with Yarn. To work on the backend, the .NET SDK that
   [global.json](../backend/global.json) names.
-- `studio.localhost` and `host.docker.internal` resolve to `127.0.0.1`. Add them to your hosts file if they don't:
+- `studio.localhost`, `preview.localhost` and `host.docker.internal` resolve to `127.0.0.1`. Add them to your hosts
+  file if they don't:
 
   ```plaintext
   127.0.0.1 studio.localhost
+  127.0.0.1 preview.localhost
   127.0.0.1 host.docker.internal
   ```
 

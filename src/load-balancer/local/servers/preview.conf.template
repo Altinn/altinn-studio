@@ -1,0 +1,47 @@
+# Preview, on a site of its own, so that the app content it serves can't act on Studio. Only paths that start with a
+# session ID reach the preview service; see src/core/preview/README.md.
+#
+# The session ID opens the session, so it stays out of the logs and the traces:
+# - The access log writes a placeholder in its place.
+# - The error log takes only critical errors, since nginx writes the whole request line into an error, such as a
+#   failed connection to preview. The access log still shows those requests' 502s.
+# - nginx doesn't trace preview's requests, since its spans would record the whole URI. The preview service traces
+#   them itself, without the ID. nginx also sends no trace context, since with tracing off it would send an
+#   unsampled one, and preview would then drop its spans too.
+#
+# nginx looks preview's address up on each request, so the load balancer starts without preview and follows preview
+# to a new address. PREVIEW_RESOLVER is the container runtime's DNS server, since nginx's resolver doesn't read
+# /etc/resolv.conf.
+
+map $request_uri $preview_logged_uri {
+  "~^/[0-9a-f]{32}(?<preview_rest>/.*)?$" "/{sessionId}$preview_rest";
+  default $request_uri;
+}
+
+log_format preview '$remote_addr - $remote_user [$time_local] "$request_method $preview_logged_uri $server_protocol" '
+                   '$status $body_bytes_sent "$http_user_agent"';
+
+server {
+  listen ${LISTEN_DIRECTIVE};
+  server_name ${PREVIEW_SERVER_NAME};
+
+  access_log /var/log/nginx/access.log preview;
+  error_log /var/log/nginx/error.log crit;
+  otel_trace off;
+  otel_trace_context ignore;
+
+  # Quoted, because nginx reads an unquoted brace as the start of a block.
+  location ~ "^/[0-9a-f]{32}/" {
+    resolver ${PREVIEW_RESOLVER} valid=10s ipv6=off;
+    resolver_timeout 5s;
+    set $preview_service ${PREVIEW_SERVICE_HOST};
+    proxy_pass http://$preview_service;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location / {
+    return 404;
+  }
+}

@@ -1,0 +1,140 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: altinn-preview-pdb
+spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      run: altinn-preview
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-preview
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/preview:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      run: altinn-preview
+  template:
+    metadata:
+      labels:
+        run: altinn-preview
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              run: altinn-preview
+      serviceAccountName: altinn-preview
+      # The service never talks to the API server.
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      # The app user of the .NET container images. No fsGroup: kubelet could then try to change the group of every file
+      # on the repository share, which the share's mount options already present as owned by this user.
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: preview
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http-public
+              protocol: TCP
+            - containerPort: 8081
+              name: http-internal
+              protocol: TCP
+          env:
+            # Where browsers reach preview, and the Studio origin that may show it in a frame. Each environment's
+            # overlay sets them, since they differ by environment.
+            - name: Preview__PublicBaseUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: altinn-preview-environment
+                  key: publicBaseUrl
+            - name: Preview__StudioOrigin
+              valueFrom:
+                configMapKeyRef:
+                  name: altinn-preview-environment
+                  key: studioOrigin
+            # The sessions' Redis and its password. See externalsecret.yaml.
+            - name: PREVIEW_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-preview-redis
+                  key: password
+            - name: Preview__RedisConnectionString
+              value: altinn-preview-redis:6379,password=$(PREVIEW_REDIS_PASSWORD)
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: preview
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-router.observability.svc.cluster.local:4317
+          volumeMounts:
+            # Read-only, so a flaw in preview can't change a working copy.
+            - name: repositories
+              mountPath: /AltinnCore/Repos
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+      volumes:
+        # Designer's working copies, the same share Designer mounts.
+        - name: repositories
+          persistentVolumeClaim:
+            claimName: altinn-storage-repo-premium-volume-claim
+            readOnly: true
