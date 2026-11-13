@@ -192,5 +192,24 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/app-components/Table/BaseTable.tsx'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table'],
+              message:
+                'Use BaseTable, so that every table differs from the designsystem in one place.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   ...storybook.configs['flat/recommended'],
 ]);

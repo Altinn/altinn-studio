@@ -234,6 +234,14 @@ export default defineConfig([
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
           patterns: [
             {
               regex: '^@tanstack/(react-query(?:-devtools)?|query-core)(/|$)',
