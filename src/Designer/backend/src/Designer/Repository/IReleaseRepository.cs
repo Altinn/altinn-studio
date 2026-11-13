@@ -1,5 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -43,6 +44,15 @@ public interface IReleaseRepository
     /// Calls a procedure to retrieve succeeded release entity
     /// </summary>
     Task<ReleaseEntity> GetSucceededReleaseFromDb(string org, string app, string tagName);
+
+    /// <summary>
+    /// Gets the succeeded release for each key that has one, in one query. When several succeeded releases share a
+    /// key, returns the newest.
+    /// </summary>
+    Task<IReadOnlyList<ReleaseEntity>> GetSucceededReleases(
+        IReadOnlyCollection<ReleaseLookupKey> keys,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Calls a function to update release entity
