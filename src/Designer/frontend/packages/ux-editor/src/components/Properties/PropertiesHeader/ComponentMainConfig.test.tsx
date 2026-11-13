@@ -64,6 +64,12 @@ describe('ComponentMainConfig', () => {
     },
   );
 
+  it('should render broker file transfer config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.BrokerFileTransfer));
+    const resourceIdText = screen.getByText(textMock('ux_editor.component_properties.resourceId'));
+    expect(resourceIdText).toBeInTheDocument();
+  });
+
   it('should render alert config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert));
     const alertTextSeverity = screen.getByText(textMock('ux_editor.component_properties.severity'));

@@ -8,6 +8,7 @@ import type { TypeConfig as AddToListTypeConfig } from '@app/layout-contract/gen
 import type { TypeConfig as AlertTypeConfig } from '@app/layout-contract/generated/components/Alert/config.generated';
 import type { TypeConfig as AttachmentListTypeConfig } from '@app/layout-contract/generated/components/AttachmentList/config.generated';
 import type { TypeConfig as AudioTypeConfig } from '@app/layout-contract/generated/components/Audio/config.generated';
+import type { TypeConfig as BrokerFileTransferTypeConfig } from '@app/layout-contract/generated/components/BrokerFileTransfer/config.generated';
 import type { TypeConfig as ButtonTypeConfig } from '@app/layout-contract/generated/components/Button/config.generated';
 import type { TypeConfig as ButtonGroupTypeConfig } from '@app/layout-contract/generated/components/ButtonGroup/config.generated';
 import type { TypeConfig as CardsTypeConfig } from '@app/layout-contract/generated/components/Cards/config.generated';
@@ -70,6 +71,7 @@ export type ComponentTypeConfigs = {
   Alert: AlertTypeConfig;
   AttachmentList: AttachmentListTypeConfig;
   Audio: AudioTypeConfig;
+  BrokerFileTransfer: BrokerFileTransferTypeConfig;
   Button: ButtonTypeConfig;
   ButtonGroup: ButtonGroupTypeConfig;
   Cards: CardsTypeConfig;
@@ -133,6 +135,7 @@ export type ConfigurableComponent =
   | AlertTypeConfig['layout']
   | AttachmentListTypeConfig['layout']
   | AudioTypeConfig['layout']
+  | BrokerFileTransferTypeConfig['layout']
   | ButtonTypeConfig['layout']
   | ButtonGroupTypeConfig['layout']
   | CardsTypeConfig['layout']
@@ -186,4 +189,4 @@ export type ConfigurableComponent =
   | VideoTypeConfig['layout'];
 export type CompExternal = ComponentTypeConfigs[keyof ComponentTypeConfigs]['layout'];
 
-// Source hash: 8387c0ffd6a5142ed797669605c6c2750d58fdb5db33d64c61f5936408d9c1f3
+// Source hash: 2108bee1419de7433b91e13d4687d9dd5a9ceccd2d85877c75228aabed686b86
