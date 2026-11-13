@@ -59,9 +59,21 @@ function RowValidationPopover({
   const { langAsString } = useLanguage();
   const getUniqueKey = useGetUniqueKeyFromObject();
   useEffect(() => {
-    if (open) {
-      popoverRef.current?.focus({ preventScroll: true });
+    if (!open) {
+      return;
     }
+    popoverRef.current?.focus({ preventScroll: true });
+    const closeOnOutsideFocus = (event: FocusEvent) => {
+      if (
+        event.target instanceof Node &&
+        !popoverRef.current?.contains(event.target) &&
+        !triggerRef.current?.contains(event.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('focusin', closeOnOutsideFocus);
+    return () => document.removeEventListener('focusin', closeOnOutsideFocus);
   }, [open]);
 
   const { Icon, color } = validationSeverityPresentation[severity];
