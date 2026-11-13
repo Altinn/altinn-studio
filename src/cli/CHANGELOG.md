@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
+- `studioctl app upgrade v9` keeps confirming instances as complete for apps that did so in v8: it sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for an app with an eFormidling task, or with a Fiks Arkiv task and `markInstanceComplete` on. v9 apps confirm when the process ends, and the eFormidling and Fiks Arkiv tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from the Fiks Arkiv settings in `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
 
 ### Fixed
 
