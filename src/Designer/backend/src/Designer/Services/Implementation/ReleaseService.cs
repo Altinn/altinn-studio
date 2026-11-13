@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -40,6 +41,7 @@ public class ReleaseService : IReleaseService
     private readonly IReleaseRepository _releaseRepository;
     private readonly IAppScopesService _appScopesService;
     private readonly IGiteaClient _giteaClient;
+    private readonly IApplicationMetadataService _applicationMetadataService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly GeneralSettings _generalSettings;
     private readonly IApiKeyService _apiKeyService;
@@ -55,6 +57,7 @@ public class ReleaseService : IReleaseService
         IReleaseRepository releaseRepository,
         IAppScopesService appScopesService,
         IGiteaClient giteaClient,
+        IApplicationMetadataService applicationMetadataService,
         AzureDevOpsSettings azureDevOpsOptions,
         GeneralSettings generalSettings,
         IApiKeyService apiKeyService,
@@ -67,6 +70,7 @@ public class ReleaseService : IReleaseService
         _releaseRepository = releaseRepository;
         _appScopesService = appScopesService;
         _giteaClient = giteaClient;
+        _applicationMetadataService = applicationMetadataService;
         _httpContextAccessor = httpContextAccessor;
         _generalSettings = generalSettings;
         _apiKeyService = apiKeyService;
@@ -75,7 +79,7 @@ public class ReleaseService : IReleaseService
     }
 
     /// <inheritdoc/>
-    public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
+    public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release, AppStatus? appStatus = null)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var cancellationToken = httpContext.RequestAborted;
@@ -83,6 +87,21 @@ public class ReleaseService : IReleaseService
         release.PopulateBaseProperties(release.Org, release.App, httpContext);
 
         await ValidateUniquenessOfRelease(release, cancellationToken);
+
+        if (appStatus is not null)
+        {
+            // The app serves applicationmetadata.json from its image, so the status must be committed before the build.
+            // The commit stays on master if queuing the build fails below. A retry then finds the status in place
+            // and makes no new commit. Gitea commits on top of the head of master when the update is made, and only
+            // checks that this file is unchanged, so a push to another file just before that ends up in the build.
+            release.TargetCommitish = await _applicationMetadataService.CommitAppStatusAsync(
+                release.Org,
+                release.App,
+                release.TargetCommitish,
+                appStatus.Value,
+                cancellationToken
+            );
+        }
 
         var (deployToken, authHeaderName) = await GetDeployTokenAsync(httpContext);
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContext);
