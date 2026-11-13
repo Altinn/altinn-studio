@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models.AppDailyMetrics;
@@ -78,5 +80,65 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
             ],
             cancellationToken
         );
+    }
+
+    public async Task<AppDailyMetricsCoverage?> GetCoverageAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext
+            .AppDailyMetrics.AsNoTracking()
+            .Where(m => m.Org == org && m.Environment == environment)
+            .GroupBy(m => 1)
+            .Select(g => new AppDailyMetricsCoverage
+            {
+                ObservedSince = g.Min(m => m.MetricDate),
+                LatestMetricDate = g.Max(m => m.MetricDate),
+                LatestComputedAt = g.Max(m => m.ComputedAt),
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AppDailyMetricsRecord>> GetRowsAsync(
+        string org,
+        string environment,
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext
+            .AppDailyMetrics.AsNoTracking()
+            .Where(m =>
+                m.Org == org && m.Environment == environment && m.MetricDate >= fromDate && m.MetricDate <= toDate
+            )
+            .OrderBy(m => m.MetricDate)
+            .ThenBy(m => m.App)
+            .Select(m => new AppDailyMetricsRecord
+            {
+                MetricDate = m.MetricDate,
+                App = m.App,
+                InstancesCreated = m.InstancesCreated,
+                InstancesCompleted = m.InstancesCompleted,
+                SecondsToCompleteP50 = m.SecondsToCompleteP50,
+                ComputedAt = m.ComputedAt,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<string, DateOnly>> GetLastInstanceCreatedOnAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext
+            .AppDailyMetrics.AsNoTracking()
+            .Where(m => m.Org == org && m.Environment == environment && m.InstancesCreated > 0)
+            .GroupBy(m => m.App)
+            .Select(g => new { App = g.Key, LastCreatedOn = g.Max(m => m.MetricDate) })
+            .ToDictionaryAsync(g => g.App, g => g.LastCreatedOn, StringComparer.Ordinal, cancellationToken);
     }
 }
