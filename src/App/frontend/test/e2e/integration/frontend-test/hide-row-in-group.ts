@@ -116,9 +116,9 @@ describe('Hide row in group', () => {
       cy.get(appFrontend.group.overflowGroup)
         .find('tr')
         .should('have.length', 3 + headerRow + rowsAfter);
-      cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').should('have.length', 3);
-      cy.get(appFrontend.group.overflowGroup).find('tr').eq(1).find('td').should('have.length', 3);
-      cy.get(appFrontend.group.overflowGroup).find('tr').last().find('td').should('have.length', 3);
+      cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').should('have.length', 4);
+      cy.get(appFrontend.group.overflowGroup).find('tr').eq(1).find('td').should('have.length', 4);
+      cy.get(appFrontend.group.overflowGroup).find('tr').last().find('td').should('have.length', 4);
     }
 
     cy.navPage('repeating (store endringer)').click();
@@ -186,7 +186,8 @@ describe('Hide row in group', () => {
     const numRows = headers + regularRows + sumRows;
     cy.get(appFrontend.group.overflowGroup).find('tr').should('have.length', numRows);
 
-    const columns = 3;
+    const dataColumns = 3;
+    const columns = dataColumns + 1; // Include the reserved validation action cell.
     for (const rowIdx of Array.from({ length: numRows }).keys()) {
       cy.get(appFrontend.group.overflowGroup).find('tr').eq(rowIdx).find('td,th').should('have.length', columns);
     }
@@ -200,9 +201,19 @@ describe('Hide row in group', () => {
     cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').eq(2).should('have.text', 'Disse endringene');
 
     // This prevents regressions like the one fixed in #2313. Even though the tr/th elements were correct, the last
-    // cell in the 'rowsAfter' was not aligned with the last cells of the rest of the table.
-    cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').last().as('firstCell');
-    cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').last().as('rowAfterCell');
+    // data cell in the 'rowsAfter' was not aligned with the last data cells of the rest of the table.
+    cy.get(appFrontend.group.overflowGroup)
+      .find('tr')
+      .eq(0)
+      .find('th')
+      .eq(dataColumns - 1)
+      .as('firstCell');
+    cy.get(appFrontend.group.overflowGroup)
+      .find('tr')
+      .eq(4)
+      .find('th')
+      .eq(dataColumns - 1)
+      .as('rowAfterCell');
     cy.get('@firstCell').then(($firstCell) => {
       cy.get('@rowAfterCell').then(($rowAfterCell) => {
         expect($firstCell.position().left).to.be.closeTo($rowAfterCell.position().left, 1);

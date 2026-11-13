@@ -1,0 +1,415 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "expandedWidth": true,
+    "layout": [
+      {
+        "id": "validation-showcase-nav",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "validation-showcase-heading",
+        "type": "Heading",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Validering i repeterende grupper"
+        }
+      },
+      {
+        "id": "validation-showcase-intro",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Sju kjæledyr vises i tre oppsett. Balder har feil i navn, Maja har en advarsel om dyreslag, Luna har informasjon om alder, Felix har en bekreftelse, Milo har meldinger på to felt, Saga har ingen og Nala har to feil på samme felt. Last eksempeldata og trykk Neste."
+        }
+      },
+      {
+        "id": "load-validation-examples",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Last eksempeldata"
+        },
+        "buttonStyle": "secondary",
+        "actions": [
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
+        ]
+      },
+      {
+        "id": "validation-default",
+        "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
+        "dataModelBindings": {
+          "group": "Pets"
+        },
+        "textResourceBindings": {
+          "title": "Standardvisning",
+          "description": "Alle feltene redigeres ved å åpne raden."
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "children": [
+          "validation-default-name",
+          "validation-default-species",
+          "validation-default-row"
+        ],
+        "tableHeaders": [
+          "validation-default-name",
+          "validation-default-species"
+        ]
+      },
+      {
+        "id": "validation-default-name",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Name"
+        },
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        }
+      },
+      {
+        "id": "validation-default-species",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Species"
+        },
+        "textResourceBindings": {
+          "title": "Dyreslag"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "optionsId": "pet-species"
+      },
+      {
+        "id": "validation-default-age",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Age"
+        },
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        }
+      },
+      {
+        "id": "validation-default-row",
+        "type": "Group",
+        "children": [
+          "validation-default-age"
+        ],
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Samlet kontroll: ",
+            [
+              "dataModel",
+              "Pets.Name"
+            ]
+          ]
+        },
+        "headingLevel": 3
+      },
+      {
+        "id": "validation-mixed",
+        "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
+        "dataModelBindings": {
+          "group": "Pets"
+        },
+        "textResourceBindings": {
+          "title": "Blandet redigering",
+          "description": "Navn redigeres bare i tabellen. Dyreslag kan redigeres begge steder. Alder vises bare når raden åpnes."
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "children": [
+          "validation-mixed-name",
+          "validation-mixed-species",
+          "validation-mixed-row"
+        ],
+        "tableHeaders": [
+          "validation-mixed-name",
+          "validation-mixed-species"
+        ],
+        "edit": {
+          "mode": "showTable"
+        },
+        "tableColumns": {
+          "validation-mixed-name": {
+            "editInTable": true,
+            "showInExpandedEdit": false
+          },
+          "validation-mixed-species": {
+            "editInTable": true,
+            "showInExpandedEdit": true
+          }
+        }
+      },
+      {
+        "id": "validation-mixed-name",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Name"
+        },
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        }
+      },
+      {
+        "id": "validation-mixed-species",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Species"
+        },
+        "textResourceBindings": {
+          "title": "Dyreslag"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "optionsId": "pet-species"
+      },
+      {
+        "id": "validation-mixed-age",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Age"
+        },
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        }
+      },
+      {
+        "id": "validation-mixed-row",
+        "type": "Group",
+        "children": [
+          "validation-mixed-age"
+        ],
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Samlet kontroll: ",
+            [
+              "dataModel",
+              "Pets.Name"
+            ]
+          ]
+        },
+        "headingLevel": 3
+      },
+      {
+        "id": "validation-table",
+        "type": "RepeatingGroup",
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ],
+        "dataModelBindings": {
+          "group": "Pets"
+        },
+        "textResourceBindings": {
+          "title": "Kun tabell",
+          "description": "Alle feltene redigeres direkte i tabellen."
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "children": [
+          "validation-table-name",
+          "validation-table-species",
+          "validation-table-age",
+          "validation-table-row"
+        ],
+        "tableHeaders": [
+          "validation-table-name",
+          "validation-table-species",
+          "validation-table-age"
+        ],
+        "edit": {
+          "mode": "onlyTable"
+        }
+      },
+      {
+        "id": "validation-table-name",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Name"
+        },
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        }
+      },
+      {
+        "id": "validation-table-species",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Species"
+        },
+        "textResourceBindings": {
+          "title": "Dyreslag"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "optionsId": "pet-species"
+      },
+      {
+        "id": "validation-table-age",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Age"
+        },
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        }
+      },
+      {
+        "id": "validation-table-row",
+        "type": "Group",
+        "children": [],
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Samlet kontroll: ",
+            [
+              "dataModel",
+              "Pets.Name"
+            ]
+          ]
+        },
+        "headingLevel": 3
+      },
+      {
+        "id": "validation-example-controls",
+        "type": "Group",
+        "children": [
+          "validation-controls"
+        ],
+        "hidden": [
+          "not",
+          [
+            "contains",
+            [
+              "_experimentalSelectAndMap",
+              "Pets",
+              "UniqueId",
+              "|"
+            ],
+            "|validation-showcase-"
+          ]
+        ]
+      },
+      {
+        "id": "validation-controls",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value"
+        },
+        "textResourceBindings": {
+          "title": "Valideringer som skal vises",
+          "description": "Velg hvor valideringene skal vises. Trykk Neste for å vise meldingene."
+        },
+        "options": [
+          {
+            "label": "På feltene",
+            "value": "fields"
+          },
+          {
+            "label": "På raden samlet",
+            "value": "rows"
+          },
+          {
+            "label": "På hele gruppen",
+            "value": "groups"
+          }
+        ],
+        "labelSettings": {
+          "optionalIndicator": false
+        }
+      },
+      {
+        "id": "validation-showcase-next",
+        "type": "NavigationButtons",
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

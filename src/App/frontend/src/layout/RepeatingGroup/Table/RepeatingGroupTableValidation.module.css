@@ -1,0 +1,82 @@
+.field {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--ds-size-1);
+}
+
+.control {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Keep compact table descriptions available to assistive technology. */
+.control [data-validation] {
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.indicator {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--ds-size-10);
+  height: var(--ds-size-12);
+  color: var(--ds-color-text-default);
+}
+
+.indicator > svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.messageRow > .messageCell {
+  padding-block-start: var(--ds-size-2);
+  padding-block-end: var(--ds-size-4);
+  vertical-align: top;
+}
+
+.messages {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: var(--ds-size-3) var(--ds-size-4);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-border-radius-md);
+  background: var(--ds-color-surface-tinted);
+  color: var(--ds-color-text-default);
+  overflow-wrap: anywhere;
+}
+
+:global(td):has(> div > .field) {
+  position: relative;
+}
+
+/* Horizontal static position comes from the field; vertical position comes from its cell. */
+.arrow {
+  position: absolute;
+  inset-block-start: calc(100% - 0.05rem);
+  width: 1rem;
+  height: 1rem;
+  background: var(--ds-color-surface-tinted);
+  border-inline-start: 1px solid var(--ds-color-border-default);
+  border-block-start: 1px solid var(--ds-color-border-default);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.messages > li {
+  margin: 0;
+}
+
+.messages > li + li {
+  margin-top: var(--ds-size-3);
+}

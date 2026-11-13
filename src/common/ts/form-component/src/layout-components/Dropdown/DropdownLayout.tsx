@@ -69,6 +69,8 @@ export interface DropdownProps {
    * messages in rather than this library reaching into app-specific validation state.
    */
   validationMessages?: ReactNode;
+  /** ID of the rendered validation messages, when present, for the input's accessible description. */
+  validationMessagesId?: string;
 }
 
 export function Dropdown({
@@ -91,6 +93,7 @@ export function Dropdown({
   innerGrid,
   validationGrid,
   validationMessages,
+  validationMessagesId,
 }: DropdownProps) {
   const { lang, langAsString } = useTranslation();
 
@@ -207,7 +210,14 @@ export function Dropdown({
             }}
             aria-label={renderedInTable ? langAsString(title) : undefined}
             aria-describedby={
-              !renderedInTable && title && description ? getDescriptionId(componentId) : undefined
+              [
+                !renderedInTable && title && description
+                  ? getDescriptionId(componentId)
+                  : undefined,
+                validationMessagesId,
+              ]
+                .filter(Boolean)
+                .join(' ') || undefined
             }
             readOnly={readOnly}
           />
