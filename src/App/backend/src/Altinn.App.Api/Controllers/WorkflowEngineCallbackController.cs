@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -157,17 +158,29 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-        WorkflowEngineCommandResult result = await command.Execute(
-            new WorkflowEngineCommandContext
-            {
-                AppId = appId,
-                InstanceId = instanceId,
-                InstanceDataMutator = instanceDataUnitOfWork,
-                CancellationToken = cancellationToken,
-                Payload = payload,
-                StateCarry = stateCarry,
-            }
-        );
+        WorkflowEngineCommandResult result;
+        try
+        {
+            result = await command.Execute(
+                new WorkflowEngineCommandContext
+                {
+                    AppId = appId,
+                    InstanceId = instanceId,
+                    InstanceDataMutator = instanceDataUnitOfWork,
+                    CancellationToken = cancellationToken,
+                    Payload = payload,
+                    StateCarry = stateCarry,
+                }
+            );
+        }
+        // A command that lets a 403 escape, such as from app code it runs, gets the same diagnosis as one that
+        // reports it. The exception still reaches the engine as a retryable 500, like any other a command throws.
+        catch (Exception ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
+        {
+            ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
 
         switch (result)
         {
@@ -235,6 +248,31 @@ public class WorkflowEngineCallbackController : ControllerBase
                         "StoragePreconditionFailedException",
                         "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
                         StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+                catch (PlatformHttpException ex) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(ex))
+                {
+                    const string rejection = "Storage rejected workflow callback save with 403 Forbidden.";
+                    _logger.LogError(
+                        ex,
+                        rejection + " CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        command.GetKey(),
+                        instanceId,
+                        currentTaskId
+                    );
+                    ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
+                    activity?.SetStatus(ActivityStatusCode.Error, rejection);
+
+                    // Retryable, like a 403 inside a command. Storage also answers 403 when Altinn Authorization
+                    // fails to reach a decision, and its response does not distinguish that from a missing grant, so
+                    // a permanent failure would fail every in-flight step during an Authorization outage. Storage
+                    // authorizes before it commits anything, so the same step saves once the cause is gone. The
+                    // answer is a 500 and not Storage's 403 because the engine's default retry strategy stops on
+                    // a 403.
+                    return Problem(
+                        title: ex.GetType().Name,
+                        detail: rejection,
+                        statusCode: StatusCodes.Status500InternalServerError
                     );
                 }
 
@@ -362,23 +400,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                     failed.ExceptionType
                 );
 
-                // A service-owner 403 reads as a platform failure but is a policy gap; logged and tagged
-                // separately so ops can tell a policy change from a redrive. The app's own metadata names the
-                // app — route values are caller-supplied.
                 if (failed.ServiceOwnerAuthorizationDenied)
                 {
-                    activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
-
-                    ApplicationMetadata appMetadata = _serviceProvider
-                        .GetRequiredService<IAppMetadata>()
-                        .ApplicationMetadata;
-
-                    _logger.LogError(
-                        "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                        ServiceOwnerAuthorizationDiagnostics.Describe(appMetadata),
-                        command.GetKey(),
-                        instanceId
-                    );
+                    ReportServiceOwnerDenial(command.GetKey(), instanceId, activity);
                 }
 
                 activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
@@ -407,6 +431,23 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
                 throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
         }
+    }
+
+    // A service-owner 403 reads as a platform failure but is usually a policy gap. It is logged and tagged separately so
+    // ops can tell a policy change from a redrive. The app's own metadata names the app, because route values are
+    // caller-supplied.
+    private void ReportServiceOwnerDenial(string commandKey, InstanceIdentifier instanceId, Activity? activity)
+    {
+        activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
+
+        ApplicationMetadata appMetadata = _serviceProvider.GetRequiredService<IAppMetadata>().ApplicationMetadata;
+
+        _logger.LogError(
+            "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
+            ServiceOwnerAuthorizationDiagnostics.Describe(appMetadata),
+            commandKey,
+            instanceId
+        );
     }
 
     private async Task<IActionResult> AcquireProcessingStatus(
@@ -445,6 +486,14 @@ public class WorkflowEngineCallbackController : ControllerBase
                 "Workflow callback state could not be restored for this instance.",
                 StatusCodes.Status422UnprocessableEntity
             );
+        }
+        // The acquire also saves to Storage as the service owner, so a 403 on it gets the same diagnosis before it
+        // reaches the engine as a retryable 500.
+        catch (Exception e) when (ServiceOwnerAuthorizationDiagnostics.IsForbidden(e))
+        {
+            ReportServiceOwnerDenial(ProcessingStatusAcquirer.Key, instanceId, activity);
+            activity?.SetStatus(ActivityStatusCode.Error, e.Message);
+            throw;
         }
 
         switch (acquisition)

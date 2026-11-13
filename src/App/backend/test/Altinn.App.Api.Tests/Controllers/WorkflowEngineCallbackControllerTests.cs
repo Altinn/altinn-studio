@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -30,6 +31,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
@@ -758,6 +760,78 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveIsForbidden_DiagnosesIt_AndTheSameStepSavesAfterAPolicyFix()
+    {
+        await using ControllerSetup setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new AddBinaryDataCommand());
+            services.Services.AddTelemetrySink();
+        });
+        setup.Services.Storage.ForbidMutations = true;
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult denied = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+
+        var objectResult = Assert.IsType<ObjectResult>(denied);
+        Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        AssertDenialReported(setup);
+
+        setup.Services.Storage.ForbidMutations = false;
+
+        IActionResult retried = await setup.Execute(AddBinaryDataCommand.Key, stepId);
+
+        Assert.IsType<OkObjectResult>(retried);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.Single(storedInstance.Data);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsAnotherStorageFailure_PropagatesWithoutTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
+        setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
+
+        await Assert.ThrowsAsync<PlatformHttpException>(() => setup.Execute(AddBinaryDataCommand.Key, Guid.NewGuid()));
+
+        Assert.False(LoggedDenialDiagnosis(setup));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenCommandThrowsAWrappedForbidden_PropagatesWithTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new ThrowWrappedForbiddenCommand());
+            services.Services.AddTelemetrySink();
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            setup.Execute(ThrowWrappedForbiddenCommand.Key, Guid.NewGuid())
+        );
+
+        AssertDenialReported(setup);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_WhenAcquireIsForbidden_PropagatesWithTheDiagnosis()
+    {
+        await using ControllerSetup setup = CreateSetup(services => services.Services.AddTelemetrySink());
+        setup.Services.Storage.ForbidMutations = true;
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid())
+        );
+
+        Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
+        AssertDenialReported(setup);
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenInitialProcessAcquireGetsStaleInstanceVersion_FailsPermanentlyWithoutMutation()
     {
         await using ControllerSetup setup = CreateSetup(_ => { });
@@ -1260,6 +1334,27 @@ public class WorkflowEngineCallbackControllerTests
 
     private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id!.Split('/')[1]);
 
+    // Needs AddTelemetrySink in the setup.
+    private static void AssertDenialReported(ControllerSetup setup)
+    {
+        Assert.True(LoggedDenialDiagnosis(setup));
+        Activity callback = Assert.Single(
+            setup.ServiceProvider.GetRequiredService<TelemetrySink>().CapturedActivities,
+            activity => activity.OperationName.EndsWith(".Callback", StringComparison.Ordinal)
+        );
+        Assert.Equal(true, callback.GetTagItem(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied));
+        Assert.Equal(ActivityStatusCode.Error, callback.Status);
+    }
+
+    private static bool LoggedDenialDiagnosis(ControllerSetup setup)
+    {
+        string diagnosis = ServiceOwnerAuthorizationDiagnostics.Describe(setup.Services.AppMetadata);
+        return setup.ServiceProvider.Logs.Exists(log =>
+            log.LogLevel == LogLevel.Error
+            && log.FormattedMessage?.Contains(diagnosis, StringComparison.Ordinal) == true
+        );
+    }
+
     private static List<Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.RequestResponse> GetMutationRequests(
         MockedServiceCollection services
     ) =>
@@ -1300,6 +1395,20 @@ public class WorkflowEngineCallbackControllerTests
             Language = context.InstanceDataMutator.Language;
             return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
+    }
+
+    // Like app code a command runs without catching, such as IInstantiationProcessor.DataCreation.
+    private sealed class ThrowWrappedForbiddenCommand : IWorkflowEngineCommand
+    {
+        public const string Key = "ThrowWrappedForbiddenForCallbackTest";
+
+        public string GetKey() => Key;
+
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context) =>
+            throw new InvalidOperationException(
+                "Data creation failed",
+                new PlatformHttpException(HttpStatusCode.Forbidden, "Storage refused the request")
+            );
     }
 
     private sealed class AddBinaryDataCommand : IWorkflowEngineCommand
