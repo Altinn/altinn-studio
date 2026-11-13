@@ -45,7 +45,7 @@ To add a skill, make `src/AI/assistant/agents/skills/studio-<topic>/SKILL.md` in
 
 Put the files that the body links to in `references/`. `references/v8.md` or `references/v9.md` holds text for apps of that version. The model loads these files with the `file` argument of the `skill` tool, because `read_file` reads only the app repository.
 
-The workflow `agents-skills-check.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
+The workflow `assistant-skill-links.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
 
 ## Prompts for the gates, intake and spec
 

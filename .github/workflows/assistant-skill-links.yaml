@@ -1,4 +1,4 @@
-name: Check skill links
+name: Assistant - Skill links
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     paths:
       - "src/AI/assistant/agents/skills/**"
       - ".github/scripts/link-check.mjs"
-      - ".github/workflows/agents-skills-check.yaml"
+      - ".github/workflows/assistant-skill-links.yaml"
   workflow_dispatch:
 
 concurrency:
