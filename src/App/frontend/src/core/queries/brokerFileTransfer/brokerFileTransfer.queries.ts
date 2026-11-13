@@ -37,6 +37,7 @@ export const brokerFileTransferOverviewQuery = (
   baseUrl: string | undefined,
   fileTransferId: string | undefined,
   api: Pick<AppQueries, 'fetchBrokerFileTransferOverview'>,
+  poll: boolean,
 ) =>
   queryOptions({
     queryKey: [...brokerFileTransferQueryKeys.all, 'fileTransferOverview', baseUrl, fileTransferId],
@@ -45,7 +46,7 @@ export const brokerFileTransferOverviewQuery = (
         ? ({ signal }) => api.fetchBrokerFileTransferOverview(baseUrl, fileTransferId, signal)
         : skipToken,
     refetchInterval: (query) =>
-      query.state.data && !isSettledStatus(query.state.data.fileTransferStatus)
+      poll && query.state.data && !isSettledStatus(query.state.data.fileTransferStatus)
         ? getPollingInterval(query.state.dataUpdateCount - 1, 5000, 2)
         : false,
   });

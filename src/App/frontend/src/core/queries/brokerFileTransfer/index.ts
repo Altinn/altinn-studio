@@ -32,11 +32,13 @@ export function useInterruptedBrokerTransferQuery(
   return { data, error };
 }
 
+// Only a reader that polls asks Broker again until it settles the transfer; the others get its answers from the cache
 export function useBrokerFileTransferOverviewQuery(
   baseUrl: string | undefined,
   fileTransferId: string | undefined,
+  { poll = false }: { poll?: boolean } = {},
 ): BrokerQueryResult<FileTransferOverview> {
   const api = useAppQueries();
-  const { data, error } = useQuery(brokerFileTransferOverviewQuery(baseUrl, fileTransferId, api));
+  const { data, error } = useQuery(brokerFileTransferOverviewQuery(baseUrl, fileTransferId, api, poll));
   return { data, error };
 }

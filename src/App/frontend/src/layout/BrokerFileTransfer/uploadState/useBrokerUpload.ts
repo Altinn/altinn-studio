@@ -165,6 +165,7 @@ export function useFollowReceivedTransfer(baseComponentId: string, enabled: bool
   const overview = useBrokerFileTransferOverviewQuery(
     getBrokerApiBaseUrl(),
     isChecking ? formData.fileTransferId : undefined,
+    { poll: true },
   );
   const status = overview.data?.fileTransferStatus;
 
