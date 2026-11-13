@@ -1,0 +1,149 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: operator-workflow-engine
+spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: operator-workflow-engine
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator-workflow-engine
+  labels:
+    app.kubernetes.io/name: operator-workflow-engine
+  annotations:
+    altinn.studio/image: operator-workflow-engine:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 120
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: operator-workflow-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: operator-workflow-engine
+        azure.workload.identity/use: "true"
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: operator-workflow-engine
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: operator-workflow-engine
+      serviceAccountName: operator-workflow-engine
+      # The engine calls no Kubernetes API.
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: operator-workflow-engine
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 9090
+              name: http
+              protocol: TCP
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "operator-workflow-engine"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.observability.svc.cluster.local:4317"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "9090"
+          volumeMounts:
+            - name: secrets
+              mountPath: /app/secrets
+              readOnly: true
+            # The operator's TokenReview accepts this token as the engine's identity on the callback port.
+            - name: core-operator-token
+              mountPath: /var/run/secrets/core-operator
+              readOnly: true
+            # readOnlyRootFilesystem is true, so give the runtime a writable /tmp. Without it .NET
+            # cannot create its diagnostic IPC socket, which makes dotnet-counters/gcdump impossible.
+            - name: tmp
+              mountPath: /tmp
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 9090
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 9090
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: secrets
+          projected:
+            sources:
+              - secret:
+                  name: operator-workflow-engine-secrets
+                  items:
+                    - key: secrets.json
+                      path: secrets.json
+        - name: core-operator-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: core-operator
+                  expirationSeconds: 3600
+                  path: token
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
