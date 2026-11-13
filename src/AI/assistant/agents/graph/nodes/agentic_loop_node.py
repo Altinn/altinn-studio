@@ -29,6 +29,7 @@ from agents.core import (
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
+    Skill,
     SkillTool,
     TerminationReason,
     TextBlock,
@@ -411,18 +412,18 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
 _PREVIEW_CHECK_TOOL = "preview_render_check"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
+def _build_registry(skills: list[Skill]) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
     # The render check works only with the local Designer stack.
     preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
+    for tool in _internal_tools(skills):
         if tool.name != _PREVIEW_CHECK_TOOL or preview_check:
             registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
+def _internal_tools(skills: list[Skill]) -> list[Tool]:
     """Every tool that exists.  `_build_registry` decides which ones the model gets."""
     return [
         ScanRepoTool(),
@@ -588,7 +589,7 @@ def _emit_workflow_completion(
         # The user reads this list as the files that changed in the app.
         # The tools record the path as the model wrote it, such as `./App/a.json`. Git gives `App/a.json`.
         "filesChanged": [path for path in state.changed_files if posixpath.normpath(path) not in unsaved_files],
-        "sources": ctx.extras.get("sources", []),
+        "sources": _sources_the_user_can_open(ctx),
     }
     if security_notice:
         log.warning(
@@ -667,6 +668,11 @@ def _extract_security_notice(text: str) -> tuple[str, str | None]:
     notice = " ".join(matches[0].split())[:MAX_SECURITY_NOTICE_LENGTH]
     cleaned = _SECURITY_NOTICE_RE.sub("", text)
     return cleaned.strip(), notice or None
+
+
+def _sources_the_user_can_open(ctx: LoopContext) -> list[dict]:
+    """The sources for the chat. A skill is the assistant's own text, so only the trace lists it."""
+    return [source for source in ctx.extras.get("sources", []) if source.get("kind") != "skill"]
 
 
 def _strip_sources_line(text: str) -> str:

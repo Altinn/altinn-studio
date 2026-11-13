@@ -23,6 +23,7 @@ from agents.core import (
     ToolRegistry,
     ToolResult,
     VerifyChangesTool,
+    discover_skills,
 )
 from agents.core.tools.utils.repo_files import mark_changed
 from agents.graph.nodes import agentic_loop_node as node
@@ -65,7 +66,7 @@ def _state(**overrides: Any) -> AgentState:
 
 class TestBuildRegistry:
     def test_internal_tools_always_present(self):
-        registry = _build_registry()
+        registry = _build_registry([])
         names = set(registry.names())
         assert {
             "scan_repo",
@@ -78,21 +79,22 @@ class TestBuildRegistry:
         }.issubset(names)
 
     def test_altinn_tools_registered(self):
-        registry = _build_registry()
+        registry = _build_registry([])
         assert "altinn_layout_props" in registry
         assert "altinn_datamodel_sync" in registry
         assert "web_fetch" in registry
 
     def test_skill_tool_registered_with_discovered_skills(self):
-        registry = _build_registry()
+        registry = _build_registry(discover_skills())
         assert "skill" in registry
+        assert "studio-policy" in registry.get("skill").description
 
     def test_render_check_registered_only_when_enabled(self, monkeypatch):
         monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
-        assert "preview_render_check" not in _build_registry()
+        assert "preview_render_check" not in _build_registry([])
 
         monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
-        assert "preview_render_check" in _build_registry()
+        assert "preview_render_check" in _build_registry([])
 
 
 class TestEventBridge:
@@ -116,9 +118,9 @@ class TestEventBridge:
             lambda evt: seen.append(evt),
         )
         bridge = _make_event_bridge("sess-1")
-        bridge("tool_call", {"id": "1", "name": "skill", "input": {"skill": "altinn-policy"}})
+        bridge("tool_call", {"id": "1", "name": "skill", "input": {"skill": "studio-policy"}})
         assert len(seen) == 1
-        assert "altinn-policy" in seen[0].data["message"]
+        assert "studio-policy" in seen[0].data["message"]
 
     def test_action_tool_call_emits_friendly_status(self, monkeypatch):
         seen: list = []
@@ -366,7 +368,7 @@ class _SinkStub:
 
 
 class TestEmitWorkflowCompletion:
-    def _emit(self, monkeypatch, trace_id, state_trace_id=None):
+    def _emit(self, monkeypatch, trace_id, state_trace_id=None, sources=None):
         stub = _SinkStub()
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
         monkeypatch.setattr(
@@ -380,10 +382,34 @@ class TestEmitWorkflowCompletion:
             turns=1,
         )
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        if sources is not None:
+            ctx.extras["sources"] = sources
         state = _state()
         state.trace_id = state_trace_id
         _emit_workflow_completion(state, result, ctx, unsaved_files=[])
         return next(e for e in stub.events if e.type == "assistant_message")
+
+    def test_the_chat_lists_no_skill_as_a_source(self, monkeypatch):
+        """A skill is the assistant's own text. A source in the chat must be one that the user can open."""
+        page = {"title": "Datamodeller", "url": "https://docs.altinn.studio/nb/altinn-studio/v8/", "kind": "docs"}
+        skill = {"title": "studio-data-model", "kind": "skill"}
+
+        message = self._emit(monkeypatch, trace_id=None, sources=[skill, page])
+
+        assert message.data["sources"] == [page]
+
+    def test_the_trace_lists_the_skill_as_a_source(self):
+        """The no_hallucination evaluator counts what a listed skill says as grounded."""
+        skill = {"title": "studio-data-model", "kind": "skill"}
+        ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        ctx.extras["sources"] = [skill]
+        state = _state()
+        result = LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
+
+        node._record_response(state, result, ctx)
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["sources"] == [skill]
 
     def test_assistant_message_carries_trace_id(self, monkeypatch):
         message = self._emit(monkeypatch, trace_id="trace-123")

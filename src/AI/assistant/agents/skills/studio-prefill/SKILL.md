@@ -1,7 +1,6 @@
 ---
-description: Prefill: mapping registry data (person/org) into form fields via prefill.json. Load before configuring any prefill.
-title: Preutfylling
-docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/concepts/prefill/
+name: studio-prefill
+description: 'Prefill: mapping registry data (person/org) into form fields via prefill.json. Load before configuring any prefill.'
 ---
 
 # PREFILL CONFIGURATION FOR ALTINN APPS

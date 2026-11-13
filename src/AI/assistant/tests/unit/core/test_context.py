@@ -213,7 +213,7 @@ class TestPreviewRenderCheck:
         for allow_app_changes in (True, False):
             prompt = build_system_prompt(_base_ctx(allow_app_changes=allow_app_changes))
             assert ("preview_render_check" in prompt) is enabled
-        assert ("preview_render_check" in _build_registry()) is enabled
+        assert ("preview_render_check" in _build_registry([])) is enabled
 
     def test_the_check_comes_after_the_tool_use_section(self, monkeypatch):
         from shared.config.base_config import BaseConfig

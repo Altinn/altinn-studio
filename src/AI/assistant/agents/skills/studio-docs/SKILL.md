@@ -1,20 +1,19 @@
 ---
-description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Contains a curated page index.
-include: llms.txt
-title: Altinn Studio-dokumentasjon
-docs_url: https://docs.altinn.studio/nb/altinn-studio/
+name: studio-docs
+description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Has a curated page index.
 ---
 
 # Altinn documentation navigation
 
+Also read [references/v9.md](references/v9.md) for a v9 app.
+
 The official docs live at https://docs.altinn.studio. A curated index
-of the most useful pages is included at the end of this skill (see
-"Included file: llms.txt") — one line per page:
-`[Title](URL): one-line description`.
+of the most useful pages is in [references/llms.txt](references/llms.txt) —
+one line per page: `[Title](https://…): one-line description`.
 
 ## How to find something
 
-1. Scan the included index below for the page(s) matching your
+1. Load the index and scan it for the page(s) matching your
    question.
 2. `web_fetch` the page URL **copied verbatim from the index**. Never
    construct or guess a docs URL — the site's paths don't follow a

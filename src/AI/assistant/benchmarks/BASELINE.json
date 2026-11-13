@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "d3684044618e",
-    "code": "1142d9c clean",
+    "actor_prompt": "55a1d094fc83",
+    "code": "ae360d4 clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "ffc193b2c371"
+    "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261113T071624Z-gpt-6-deployments-21937-1142d9cd12-0d6f",
-  "label": "gpt-6 deployments, #21937 1142d9cd12",
-  "recorded_at": "2026-11-13T07:24:09+00:00",
-  "why": "#21937 moves the assistant to the gpt-6 deployments. Its runner also writes the judge to Langfuse, so a machine without the local copy of this run can compare with it. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. Against the #21905 baseline on gpt-5.x, every scored behavior has the same score except two, each by one item that passed in an earlier run on the same agent code. In scope-lookup-keyword-overlap, gpt-6-luna declined a Norwegian question in English. In build-verifies-before-committing, gpt-6.1-terra read files before it called verify_changes. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
+  "check_id": "20261113T085949Z-agent-skills-format-21938-ae360d4d5c-6eac",
+  "label": "Agent Skills format, #21938 ae360d4d5c",
+  "recorded_at": "2026-11-13T09:07:19+00:00",
+  "why": "#21938 moves the skills to the Agent Skills format, which changes the actor prompt and the tool schemas. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. In each build the actor loaded the skills by their new names, and it loaded references/v8.md for each skill that has one before its first write. Against the #21937 baseline, every scored behavior has the same score except scope.declines-in-users-language, which went up by one item on gpt-6-luna. The scope prompt has no skills. The replay items of Loop/traces keep the system prompt that production recorded, with the old skill names, so they do not measure the new listing. The run before this one, on the same commit, lost simple-contact-one-page before the actor started, because the security gate returned details.fields as a list and SecurityCheckResult expects a string. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }

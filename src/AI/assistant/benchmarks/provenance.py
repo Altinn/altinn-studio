@@ -194,18 +194,16 @@ def _hash_actor_prompt() -> str:
 
 
 def _hash_tools() -> str:
-    """Hash each tool schema that the actor gets, and the skill text for each app version."""
-    from agents.altinn.app_version import APP_VERSION_PROFILES
+    """Hash each tool schema that the actor gets, and every file that the skill tool can return."""
     from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
 
     skills = discover_skills()
     schema = _build_registry(skills).to_schema()
-    skill_text = {
-        profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
-        for profile in APP_VERSION_PROFILES
+    skill_files = {
+        skill.name: {path: skill.load_file(path) for path in ("SKILL.md", *skill.linked_files())} for skill in skills
     }
-    payload = json.dumps({"schema": schema, "skills": skill_text}, sort_keys=True).encode()
+    payload = json.dumps({"schema": schema, "skills": skill_files}, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 
