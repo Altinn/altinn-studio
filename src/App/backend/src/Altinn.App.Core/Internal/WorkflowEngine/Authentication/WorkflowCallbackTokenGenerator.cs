@@ -18,8 +18,8 @@ internal interface IWorkflowCallbackTokenGenerator
     /// <summary>
     /// Generates a signed JWT bound to <paramref name="instanceGuid"/>, to <paramref name="actor"/>, and to
     /// the app commands in <paramref name="workflows"/>: the callbacks the enqueue it rides on can make.
-    /// The token is signed with the newest available <c>WorkflowEngineCallback</c> code and expires when
-    /// that code expires.
+    /// The token is signed with the <c>WorkflowEngineCallback</c> code that
+    /// <see cref="IWorkflowCallbackSecretProvider.GetSigningSecret"/> picks, and expires when that code expires.
     /// </summary>
     string GenerateToken(Guid instanceGuid, Actor actor, IEnumerable<WorkflowRequest> workflows);
 }

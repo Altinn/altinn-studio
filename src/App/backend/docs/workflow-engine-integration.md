@@ -136,17 +136,23 @@ same version reuses the key and joins the workflow if it exists.
 The engine stores the callback state and passes it to each callback, so a callback never reads the process from
 Storage. The app signs the state with an HMAC.
 
-A callback token, signed with the newest `WorkflowEngineCallback` app code from the
+A callback token, signed with a `WorkflowEngineCallback` app code from the
 [operator](../../../Runtime/operator/README.md), names the instance, a hash of the actor and the commands of the
 workflows in the enqueue. The state has its own signature, so a leaked token cannot be combined with forged state. The
 token for auxiliary workflows lists the commands in a step payload that the engine stores unsigned, so an engine that
 changed the payload could widen that list. The token stays bound to the verified actor and instance.
 
+The operator rotates the codes, and the app's pods read the rotated secret at different times. A callback can land on
+any pod, so a pod accepts every code it has read but signs with a new code only an hour after the operator issued it
+([`AppCodeRotation`](../src/Altinn.App.Core/Infrastructure/Clients/Secrets/AppCodeRotation.cs)). By then every pod
+has read it. A pod that signed with it at once would have its tokens and state rejected by pods that had not, and the
+engine fails a workflow on that 4xx. The notification and payment callback codes follow the same rule.
+
 Neither the token nor the state of a waiting workflow is refreshed, and both expire with the app code that signed
 them. A workflow still waiting then fails with a permanent 401, and so does a resume. Nothing checks this per
 workflow. Instead the engine's caps on wait budgets and mailbox timeouts stay well inside how long the operator keeps
-a code valid, as [`EngineSettings`](../../../Runtime/workflow-engine/src/WorkflowEngine.Models/EngineSettings.cs)
-describes.
+a code valid, less the hour a pod waits before it signs with a new code, as
+[`EngineSettings`](../../../Runtime/workflow-engine/src/WorkflowEngine.Models/EngineSettings.cs) describes.
 
 The actor carries the request's language, so hooks, service tasks and the PDFs they render follow what the user chose.
 

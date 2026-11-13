@@ -2,32 +2,44 @@ using Altinn.App.Core.Features.Notifications.Exceptions;
 using Altinn.App.Core.Features.Notifications.SecretProvider;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Notifications.SecretProvider;
 
 public class NotificationConditionSecretProviderTests
 {
+    private static readonly DateTimeOffset _now = new(2026, 6, 1, 12, 0, 0, TimeSpan.Zero);
+
     private readonly Mock<IOptionsMonitor<AppCodesSettings>> _optionsMonitorMock = new(MockBehavior.Strict);
+    private readonly FakeTimeProvider _time = new(_now);
 
-    private NotificationConditionSecretProvider CreateSut() => new(_optionsMonitorMock.Object);
+    private NotificationConditionSecretProvider CreateSut() => new(_optionsMonitorMock.Object, _time);
 
-    private static AppCode MakeCode(string id, string code) =>
+    private static AppCode MakeCode(
+        string id,
+        string code,
+        DateTimeOffset? issuedAt = null,
+        DateTimeOffset? expiresAt = null
+    ) =>
         new()
         {
             Id = id,
             Code = code,
-            IssuedAt = DateTimeOffset.UtcNow,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(62),
+            IssuedAt = issuedAt ?? _now.AddDays(-1),
+            ExpiresAt = expiresAt ?? _now.AddDays(62),
         };
 
     private void SetupCodes(List<AppCode> codes) =>
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(new AppCodesSettings { NotificationCallback = codes });
 
     [Fact]
-    public void GetSigningSecret_ReturnsFirstCode()
+    public void GetSigningSecret_ReturnsTheNewestCodePastTheGracePeriod()
     {
-        SetupCodes([MakeCode("id-1", "first-secret"), MakeCode("id-2", "second-secret")]);
+        SetupCodes([
+            MakeCode("id-1", "first-secret", issuedAt: _now.AddDays(-1)),
+            MakeCode("id-2", "second-secret", issuedAt: _now.AddDays(-25)),
+        ]);
 
         var result = CreateSut().GetSigningSecret();
 
@@ -36,13 +48,38 @@ public class NotificationConditionSecretProviderTests
     }
 
     [Fact]
-    public void GetSigningSecret_SingleCode_ReturnsIt()
+    public void GetSigningSecret_NewCodeInsideTheGracePeriod_ReturnsThePreviousCode()
     {
-        SetupCodes([MakeCode("id-1", "only-secret")]);
+        SetupCodes([
+            MakeCode("id-new", "new-secret", issuedAt: _now.AddMinutes(-10)),
+            MakeCode("id-old", "old-secret", issuedAt: _now.AddDays(-24)),
+        ]);
+        var sut = CreateSut();
+
+        Assert.Equal("id-old", sut.GetSigningSecret().Id);
+        Assert.Contains(sut.GetValidationSecrets(), c => c.Id == "id-new");
+
+        _time.Advance(AppCodeRotation.SigningGracePeriod);
+
+        Assert.Equal("id-new", sut.GetSigningSecret().Id);
+    }
+
+    [Fact]
+    public void GetSigningSecret_NoCodePastTheGracePeriod_ReturnsTheNewest()
+    {
+        SetupCodes([MakeCode("id-1", "only-secret", issuedAt: _now.AddMinutes(-1))]);
 
         var result = CreateSut().GetSigningSecret();
 
         Assert.Equal("only-secret", result.Code);
+    }
+
+    [Fact]
+    public void GetSigningSecret_OnlyExpiredCodes_Throws()
+    {
+        SetupCodes([MakeCode("id-expired", "expired-secret", expiresAt: _now.AddDays(-1))]);
+
+        Assert.Throws<NotificationConditionSecretNotFoundException>(() => CreateSut().GetSigningSecret());
     }
 
     [Fact]

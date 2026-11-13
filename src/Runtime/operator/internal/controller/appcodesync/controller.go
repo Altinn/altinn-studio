@@ -108,9 +108,12 @@ var codeTypeSpecs = []codeTypeSpec{
 	{
 		// Workflow-engine callback tokens are minted once at enqueue, bound to the signing code's
 		// expiry, and never refresh, so a code stays accepted for a year: a policy window, not a
-		// derived one, that the engine's limits must fit inside. Rotation keeps the base cadence, so
-		// a token holds >=341d of validity at enqueue; the engine's
-		// CallbackTokenLifetimeInvariantTests pin the other side of this invariant.
+		// derived one, that the engine's limits must fit inside. Rotation keeps the base cadence,
+		// and an app signs with a new code only an hour after it was issued, once all its pods
+		// have read it (AppCodeRotation in the app libraries). The code an app signs with is
+		// therefore up to 24d 1h old, and a token holds >=341d less that hour of validity at
+		// enqueue; the engine's CallbackTokenLifetimeInvariantTests pin the other side of this
+		// invariant.
 		PropertyName:     "WorkflowEngineCallback",
 		CodeLength:       defaultCodeLength,
 		IssueLifetime:    baseIssueLifetime,

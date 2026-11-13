@@ -97,9 +97,10 @@ public sealed record EngineSettings
     /// keep its instance pinned. Raising it also erodes a cross-component invariant: AppCommand
     /// callback tokens are minted once at enqueue and never refresh, valid until their signing
     /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 365d acceptance,
-    /// 24d rotation) a token has ≥341d of validity left at enqueue, and the worst-case workflow
-    /// lifetime — a full wait, a resume at the retention edge (90d), and a second full wait, each
-    /// resume replaying the original token — must stay below that floor.
+    /// 24d rotation) and the app's one-hour signing grace period, a token has at least 341d less an
+    /// hour of validity left at enqueue, and the worst-case workflow lifetime — a full wait, a resume
+    /// at the retention edge (90d), and a second full wait, each resume replaying the original token —
+    /// must stay below that floor.
     /// </remarks>
     [JsonPropertyName("maxStepWaitBudget")]
     public TimeSpan MaxStepWaitBudget { get; set; } = TimeSpan.FromDays(14);
