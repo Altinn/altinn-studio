@@ -1,4 +1,4 @@
-"""Reading and describing Access Management's lists, on a trimmed copy of its real responses."""
+"""Reading and describing the lists of Studio's policy editor, on a trimmed copy of Designer's responses."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ import pytest
 from agents.altinn.access_management import (
     AccessManagementError,
     AccessPackage,
+    Role,
     describe_access_packages,
     describe_roles,
     parse_access_packages,
@@ -19,16 +20,28 @@ from agents.altinn.access_management import (
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
+# What the tool passes with the loop's default limit on a tool result.
+MAX_CHARS = 23_000
 
 
 @pytest.fixture
 def export() -> list[dict[str, Any]]:
-    return json.loads((FIXTURES / "accesspackages-export.json").read_text(encoding="utf-8"))
+    return json.loads((FIXTURES / "accesspackageoptions.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture
 def roles_data() -> list[dict[str, Any]]:
-    return json.loads((FIXTURES / "roles.json").read_text(encoding="utf-8"))
+    return json.loads((FIXTURES / "subjectoptions.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def packages(export) -> list[AccessPackage]:
+    return parse_access_packages(export)
+
+
+@pytest.fixture
+def roles(roles_data) -> list[Role]:
+    return parse_roles(roles_data)
 
 
 def _codes(text: str) -> set[str]:
@@ -87,45 +100,45 @@ class TestParseAccessPackages:
 
 
 class TestDescribeAccessPackages:
-    def test_without_group_or_search_lists_groups_and_areas_but_no_codes(self, export):
-        text = describe_access_packages(parse_access_packages(export), search=None, group=None)
+    def test_without_group_or_search_lists_groups_and_areas_but_no_codes(self, packages):
+        text = describe_access_packages(packages, search=None, group=None, max_chars=MAX_CHARS)
 
         assert "## Allment (organisasjon)" in text
         assert "- Fullmakter for regnskapsfører: 3 packages" in text
         assert _codes(text) == set()
 
-    def test_lists_a_group_and_marks_what_service_owners_cannot_use(self, export):
-        text = describe_access_packages(parse_access_packages(export), search=None, group="Allment")
+    def test_lists_a_group_and_marks_what_service_owners_cannot_use(self, packages):
+        text = describe_access_packages(packages, search=None, group="Allment", max_chars=MAX_CHARS)
 
         assert _codes(text) == {"regnskap-okonomi-rapport", "tilgangsstyring-enkeltinstanser"}
         unusable = next(line for line in text.splitlines() if "tilgangsstyring-enkeltinstanser" in line)
         assert "**Not for service owners.**" in unusable
 
-    def test_finds_a_group_without_its_norwegian_letters(self, export):
-        text = describe_access_packages(parse_access_packages(export), search=None, group="saerskilt")
+    def test_finds_a_group_without_its_norwegian_letters(self, packages):
+        text = describe_access_packages(packages, search=None, group="saerskilt", max_chars=MAX_CHARS)
 
         assert "## Særskilt" in text
 
-    def test_refuses_a_group_that_does_not_exist_and_names_the_groups(self, export):
+    def test_refuses_a_group_that_does_not_exist_and_names_the_groups(self, packages):
         with pytest.raises(ValueError, match="Allment, Særskilt and Innbygger"):
-            describe_access_packages(parse_access_packages(export), search=None, group="Nope")
+            describe_access_packages(packages, search=None, group="Nope", max_chars=MAX_CHARS)
 
-    def test_search_needs_every_word_and_folds_norwegian_letters(self, export):
-        text = describe_access_packages(parse_access_packages(export), search="regnskapsforer LØNN", group=None)
+    def test_search_needs_every_word_and_folds_norwegian_letters(self, packages):
+        text = describe_access_packages(packages, search="regnskapsforer LØNN", group=None, max_chars=MAX_CHARS)
 
         assert _codes(text) == {"regnskapsforer-lonn"}
 
-    def test_search_within_a_group(self, export):
-        text = describe_access_packages(parse_access_packages(export), search="regnskap", group="Allment")
+    def test_search_within_a_group(self, packages):
+        text = describe_access_packages(packages, search="regnskap", group="Allment", max_chars=MAX_CHARS)
 
         assert _codes(text) == {"regnskap-okonomi-rapport"}
 
-    def test_says_so_when_nothing_matches(self, export):
-        text = describe_access_packages(parse_access_packages(export), search="xyzzy", group=None)
+    def test_says_so_when_nothing_matches(self, packages):
+        text = describe_access_packages(packages, search="xyzzy", group=None, max_chars=MAX_CHARS)
 
         assert text.startswith("No access package matches 'xyzzy'")
 
-    def test_stops_after_a_hundred_rows(self):
+    def test_stops_at_the_last_row_that_fits_and_says_how_many_are_left(self):
         packages = [
             AccessPackage(
                 f"pakke-{index:03}", f"Pakke {index:03}", "Beskrivelse.", "Område", "Allment", "Organisasjon", True
@@ -133,33 +146,41 @@ class TestDescribeAccessPackages:
             for index in range(130)
         ]
 
-        text = describe_access_packages(packages, search=None, group="Allment")
+        text = describe_access_packages(packages, search=None, group="Allment", max_chars=2_000)
 
-        assert len(_codes(text)) == 100
-        assert text.endswith("30 more rows. Narrow the search, or list one group.")
+        tables, _, note = text.rpartition("\n\n")
+        shown = len(_codes(text))
+        # One row of these is about 50 characters.
+        assert 1_900 < len(tables) <= 2_000
+        assert 0 < shown < 130
+        assert note == f"{130 - shown} more rows. Narrow the search, or list one group."
 
 
 class TestRoles:
-    def test_reads_the_role_code_from_the_legacy_urn(self, roles_data):
-        roles = {role.code: role for role in parse_roles(roles_data)}
+    def test_reads_the_attribute_and_the_code_from_the_legacy_urn_or_else_the_urn(self, roles_data):
+        changed = copy.deepcopy(roles_data)
+        changed.append({**changed[0], "legacyUrn": None, "urn": "urn:altinn:role:agent"})
+
+        roles = {role.code: role for role in parse_roles(changed)}
 
         assert roles["priv"].attribute == "urn:altinn:rolecode"
+        assert roles["utinn"].attribute == "urn:altinn:rolecode"
         assert roles["agent"].attribute == "urn:altinn:role"
 
-    def test_offers_what_studio_offers_with_enhetsregisteret_first(self, roles_data):
-        text = describe_roles(parse_roles(roles_data), search=None, altinn2=False)
+    def test_lists_the_roles_apart_from_altinn2_with_enhetsregisteret_first(self, roles):
+        text = describe_roles(roles, search=None, altinn2=False, max_chars=MAX_CHARS)
 
         assert _codes(text) == {"dagl", "priv"}
         assert text.index("## Enhetsregisteret") < text.index("| `priv`")
 
-    def test_lists_every_altinn2_role_even_those_studio_does_not_offer(self, roles_data):
-        text = describe_roles(parse_roles(roles_data), search=None, altinn2=True)
+    def test_lists_the_altinn2_roles_on_their_own(self, roles):
+        text = describe_roles(roles, search=None, altinn2=True, max_chars=MAX_CHARS)
 
-        assert _codes(text) == {"utinn", "eckeyrole"}
+        assert _codes(text) == {"utinn"}
         assert "31 December 2026" in text
 
-    def test_search(self, roles_data):
-        text = describe_roles(parse_roles(roles_data), search="daglig", altinn2=False)
+    def test_search(self, roles):
+        text = describe_roles(roles, search="daglig", altinn2=False, max_chars=MAX_CHARS)
 
         assert _codes(text) == {"dagl"}
 

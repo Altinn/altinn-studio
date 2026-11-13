@@ -55,20 +55,21 @@ Choose in this order:
 
 ## The lists of packages and roles
 
-Studio's policy editor offers the access packages and roles that Altinn Access Management lists. They change without
-a change to the app, so read them from Access Management each time, and never write a code you have not seen there.
+Use the access packages and roles that Studio's policy editor offers. Designer reads them from Altinn Access
+Management, and they change without a change to the app, so read them each time, and never write a code you have not
+seen there.
 
-- The access packages are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export`,
-  by group and area. A package's code is the last part of its `urn`. A policy can use a package only when its
+- Designer serves the access packages at `/designer/api/<org>/<app>/policy/accesspackageoptions`, by group and area.
+  A package's code is the last part of its `urn`. A policy can use a package only when its
   `isResourcePolicyAvailable` is `true`.
-- The roles are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/roles/`. A role's code is the last
-  part of its `legacyUrn`, such as `dagl` in `urn:altinn:rolecode:dagl`. Studio offers the roles whose
-  `isResourcePolicyAvailable` is `true`, except the Altinn 2 roles, whose provider code is `sys-altinn2`.
+- Designer serves the roles a policy can use at `/designer/api/<org>/<app>/policy/subjectoptions`. A role's code is
+  the last part of its `legacyUrn`, or of its `urn` when it has no `legacyUrn`, such as `dagl` in
+  `urn:altinn:rolecode:dagl`. The list has Altinn 2 roles too: those whose provider code is `sys-altinn2`.
 
-Where a shell is available, one way to search the packages is:
+Where a shell is available, one way to search the packages is, with the app's org and name:
 
 ```sh
-curl -s https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export \
+curl -s https://altinn.studio/designer/api/<org>/<app>/policy/accesspackageoptions \
   | jq -r '.[] | .name as $group | .areas[] | .packages[] | select(.isResourcePolicyAvailable)
       | [$group, (.urn | split(":") | last), .name] | @tsv' | grep -i 'regnskap'
 ```
@@ -200,7 +201,7 @@ task:
 
 - The file is well-formed XML. Every rule has the three AnyOf elements, and every `RuleId` is unique.
 - All rules come before `<xacml:ObligationExpressions>`, and the file has no comments.
-- Every package code you added is in Access Management's list, with `isResourcePolicyAvailable`. Every role code you
+- Every package code you added is in the editor's list, with `isResourcePolicyAvailable`. Every role code you
   added is one Studio offers, unless the user asked for that role.
 - Users get the action from the table above on every task they must complete.
 - Tell the user which subjects got which rights, and in which tasks.

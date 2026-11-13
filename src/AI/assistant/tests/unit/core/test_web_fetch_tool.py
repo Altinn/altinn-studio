@@ -13,29 +13,8 @@ from agents.core.tools.web_fetch_tool import MAX_REDIRECTS
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
-REAL_CLIENT = httpx.AsyncClient
 
 Handler = Callable[[httpx.Request], httpx.Response]
-
-
-@pytest.fixture
-def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
-    """Send the requests of the tool to `handler`, and return the list of requests that it got."""
-
-    def install(handler: Handler) -> list[httpx.Request]:
-        requests: list[httpx.Request] = []
-
-        def record(request: httpx.Request) -> httpx.Response:
-            requests.append(request)
-            return handler(request)
-
-        def make_client(**kwargs) -> httpx.AsyncClient:
-            return REAL_CLIENT(transport=httpx.MockTransport(record), **kwargs)
-
-        monkeypatch.setattr("agents.core.tools.web_fetch_tool.httpx.AsyncClient", make_client)
-        return requests
-
-    return install
 
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:

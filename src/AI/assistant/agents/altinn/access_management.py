@@ -1,8 +1,12 @@
-"""The access packages and roles that an app's authorization policy can name, read from Altinn Access Management.
+"""The access packages and roles that an app's authorization policy can name, as Studio's policy editor offers them.
 
-These are the lists Studio's policy editor offers, from the URLs Designer reads (`PlatformSettings.AccessPackagesUrl`
-and `PlatformSettings.RolesUrl` in `src/Designer/backend/src/Designer/appsettings.json`). Access Management changes them
-without a release of this service, so they are read when a tool needs them and kept for an hour.
+Designer serves the editor's lists at `policy/accesspackageoptions` and `policy/subjectoptions`. It reads them from
+Altinn Access Management in the environment that its `PlatformSettings` name, and keeps only the roles a policy can use.
+Reading the lists from Designer gives the assistant the same lists as the editor. Access Management changes them without
+a release of this service, so they are read when a tool needs them and kept for an hour.
+
+The requests carry no API key. Designer refuses an API key on an action without `[AllowApiKey]`, and these two actions
+answer without one. Designer ignores the org and the app in their path, so one copy of each list serves every app.
 
 The parsers fail on a response they cannot read, rather than return a partial list that would make the model pick a
 package or role that does not exist.
@@ -12,14 +16,21 @@ from __future__ import annotations
 
 import re
 import time
-from collections.abc import Callable
+from collections import Counter
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from operator import attrgetter
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
-ACCESS_PACKAGES_URL = "https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export"
-ROLES_URL = "https://platform.altinn.no/accessmanagement/api/v1/meta/info/roles/"
+from shared.config import get_config
+
+config = get_config()
+
+ACCESS_PACKAGE_OPTIONS = "accesspackageoptions"
+SUBJECT_OPTIONS = "subjectoptions"
 
 ACCESS_PACKAGE_ATTRIBUTE = "urn:altinn:accesspackage"
 ROLE_CODE_ATTRIBUTE = "urn:altinn:rolecode"
@@ -27,7 +38,6 @@ ALTINN2_PROVIDER = "sys-altinn2"
 
 # Enhetsregisteret first, since those are the roles a service for organizations uses.
 _PROVIDER_ORDER = {"sys-ccr": 0, "sys-altinn3": 1}
-_MAX_ROWS = 100
 _CACHE_TTL_SECONDS = 60 * 60
 _FETCH_TIMEOUT_SECONDS = 20.0
 _cache: dict[str, tuple[float, list[Any]]] = {}
@@ -42,7 +52,7 @@ _SORT_FOLD = str.maketrans({"æ": "{0", "ø": "{1", "å": "{2"})
 
 
 class AccessManagementError(Exception):
-    """Access Management did not answer, or answered with something this module cannot read."""
+    """Designer did not give the list, or gave something this module cannot read."""
 
 
 @dataclass(frozen=True)
@@ -64,26 +74,30 @@ class Role:
     description: str
     provider_code: str
     provider_name: str
-    usable_in_policy: bool
 
 
-async def access_packages() -> list[AccessPackage]:
-    return await _cached(ACCESS_PACKAGES_URL, parse_access_packages)
+async def access_packages(org: str, app: str) -> list[AccessPackage]:
+    return await _cached(ACCESS_PACKAGE_OPTIONS, org, app, parse_access_packages)
 
 
-async def roles() -> list[Role]:
-    return await _cached(ROLES_URL, parse_roles)
+async def roles(org: str, app: str) -> list[Role]:
+    return await _cached(SUBJECT_OPTIONS, org, app, parse_roles)
 
 
-async def _cached[T](url: str, parse: Callable[[Any], list[T]]) -> list[T]:
+async def _cached[T](options: str, org: str, app: str, parse: Callable[[Any], list[T]]) -> list[T]:
     """Keeps only a list that parsed, so that one bad answer does not last for the whole hour."""
     now = time.monotonic()
-    hit = _cache.get(url)
+    hit = _cache.get(options)
     if hit and now - hit[0] < _CACHE_TTL_SECONDS:
         return hit[1]
-    parsed = parse(await _fetch_json(url))
-    _cache[url] = (now, parsed)
+    parsed = parse(await _fetch_json(options_url(org, app, options)))
+    _cache[options] = (now, parsed)
     return parsed
+
+
+def options_url(org: str, app: str, options: str) -> str:
+    base = config.DESIGNER_BASE_URL.rstrip("/")
+    return f"{base}/designer/api/{quote(org, safe='')}/{quote(app, safe='')}/policy/{options}"
 
 
 async def _fetch_json(url: str) -> Any:
@@ -112,7 +126,7 @@ def parse_access_packages(data: Any) -> list[AccessPackage]:
         for package in _list(area.get("packages"), "access packages")
     ]
     if not packages:
-        raise AccessManagementError(f"{ACCESS_PACKAGES_URL} lists no access packages")
+        raise AccessManagementError("Designer lists no access packages")
     return packages
 
 
@@ -131,50 +145,54 @@ def parse_roles(data: Any) -> list[Role]:
                 description=_squash(role.get("description")),
                 provider_code=provider["code"],
                 provider_name=str(provider.get("name") or provider["code"]),
-                usable_in_policy=_flag(role, "isResourcePolicyAvailable"),
             )
         )
     if not parsed:
-        raise AccessManagementError(f"{ROLES_URL} lists no roles")
+        raise AccessManagementError("Designer lists no roles")
     return parsed
 
 
-def describe_access_packages(packages: list[AccessPackage], *, search: str | None, group: str | None) -> str:
+def describe_access_packages(
+    packages: list[AccessPackage], *, search: str | None, group: str | None, max_chars: int
+) -> str:
     """The packages in one group or matching a search, or, with neither, the groups and areas to narrow by."""
+    words = _words(search)
     if group:
         in_group = [package for package in packages if _fold(package.group) == _fold(group)]
         if not in_group:
-            raise ValueError(f"No group is called {group!r}. The groups are {_join(_groups(packages))}.")
+            groups = list(_group_by(packages, attrgetter("group")))
+            raise ValueError(f"No group is called {group!r}. The groups are {_join(groups)}.")
         packages = in_group
-    elif not _words(search):
+    elif not words:
         return _package_index(packages)
     matching = [
         package
         for package in packages
-        if _matches(search, package.code, package.name, package.description, package.area, package.group)
+        if _matches(words, package.code, package.name, package.description, package.area, package.group)
     ]
     if not matching:
         return f"No access package matches {search!r}. Search with fewer or other words, or list a group."
-    lines = [
+    intro = (
         f'Put the code in a subject match with `AttributeId="{ACCESS_PACKAGE_ATTRIBUTE}"`. A package marked '
-        "**Not for service owners** cannot be used in a policy, and Studio does not offer it.",
-    ]
-    for group_name in _groups(matching):
-        rows = sorted(
-            (package for package in matching if package.group == group_name),
-            key=lambda package: (_sort_key(package.area), _sort_key(package.name)),
+        "**Not for service owners** cannot be used in a policy, and Studio does not offer it."
+    )
+    sections = [
+        (
+            group_name,
+            [
+                f"| `{package.code}` | {_cell(package.name)} | {_cell(package.area)} | "
+                f"{'' if package.usable_in_policy else '**Not for service owners.** '}{_cell(package.description)} |"
+                for package in sorted(in_group, key=lambda package: (_sort_key(package.area), _sort_key(package.name)))
+            ],
         )
-        lines += ["", f"## {group_name}", "", "| Code | Name | Area | Description |", "|---|---|---|---|"]
-        lines += [
-            f"| `{package.code}` | {_cell(package.name)} | {_cell(package.area)} | "
-            f"{'' if package.usable_in_policy else '**Not for service owners.** '}{_cell(package.description)} |"
-            for package in rows
-        ]
-    return _capped(lines)
+        for group_name, in_group in _group_by(matching, attrgetter("group")).items()
+    ]
+    return _tables(intro, ("Code", "Name", "Area", "Description"), sections, max_chars=max_chars)
 
 
-def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool) -> str:
+def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool, max_chars: int) -> str:
     """The roles Studio's policy editor offers, or the Altinn 2 roles a policy may still name."""
+    words = _words(search)
     if altinn2:
         selected = [role for role in all_roles if role.provider_code == ALTINN2_PROVIDER]
         intro = (
@@ -182,58 +200,70 @@ def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool) 
             f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`, in any letter case.'
         )
     else:
-        selected = [role for role in all_roles if role.usable_in_policy and role.provider_code != ALTINN2_PROVIDER]
+        selected = [role for role in all_roles if role.provider_code != ALTINN2_PROVIDER]
         intro = (
             "The roles Studio's policy editor offers, without Altinn 2 roles. Put the code in a subject match with "
             f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`. A code with another AttributeId names it in brackets.'
         )
     matching = [
-        role for role in selected if _matches(search, role.code, role.name, role.description, role.provider_name)
+        role for role in selected if _matches(words, role.code, role.name, role.description, role.provider_name)
     ]
     if not matching:
         return f"No role matches {search!r}. Search with fewer or other words."
-    lines = [intro]
     providers = sorted(
-        {role.provider_code: role.provider_name for role in matching}.items(),
-        key=lambda provider: (_PROVIDER_ORDER.get(provider[0], 99), provider[1]),
+        _group_by(matching, attrgetter("provider_code")).values(),
+        key=lambda rows: (_PROVIDER_ORDER.get(rows[0].provider_code, 99), rows[0].provider_name),
     )
-    for provider_code, provider_name in providers:
-        rows = sorted(
-            (role for role in matching if role.provider_code == provider_code), key=lambda role: _sort_key(role.code)
-        )
-        lines += ["", f"## {provider_name}", "", "| Code | Name | Description |", "|---|---|---|"]
-        for role in rows:
-            code = f"`{role.code}`" if role.attribute == ROLE_CODE_ATTRIBUTE else f"`{role.code}` (`{role.attribute}`)"
-            lines.append(f"| {code} | {_cell(role.name)} | {_cell(role.description)} |")
-    return _capped(lines)
+    sections = [
+        (rows[0].provider_name, [_role_row(role) for role in sorted(rows, key=lambda role: _sort_key(role.code))])
+        for rows in providers
+    ]
+    return _tables(intro, ("Code", "Name", "Description"), sections, max_chars=max_chars)
+
+
+def _role_row(role: Role) -> str:
+    code = f"`{role.code}`" if role.attribute == ROLE_CODE_ATTRIBUTE else f"`{role.code}` (`{role.attribute}`)"
+    return f"| {code} | {_cell(role.name)} | {_cell(role.description)} |"
 
 
 def _package_index(packages: list[AccessPackage]) -> str:
     lines = ["Access packages, by group and area. List one group, or search, to get the codes."]
-    for group_name in _groups(packages):
-        in_group = [package for package in packages if package.group == group_name]
+    for group_name, in_group in _group_by(packages, attrgetter("group")).items():
         lines += ["", f"## {group_name} ({in_group[0].group_type.lower()})", ""]
-        for area in sorted({package.area for package in in_group}, key=_sort_key):
-            count = sum(package.area == area for package in in_group)
-            lines.append(f"- {area}: {count} packages")
+        counts = Counter(package.area for package in in_group)
+        lines += [f"- {area}: {counts[area]} packages" for area in sorted(counts, key=_sort_key)]
     return "\n".join(lines)
 
 
-def _groups(items: list[AccessPackage]) -> list[str]:
-    return list(dict.fromkeys(item.group for item in items))
+def _group_by[T](items: Iterable[T], key: Callable[[T], str]) -> dict[str, list[T]]:
+    """The items by key, with the keys in the order they first appear."""
+    groups: dict[str, list[T]] = {}
+    for item in items:
+        groups.setdefault(key(item), []).append(item)
+    return groups
 
 
-def _capped(lines: list[str]) -> str:
-    rows = [index for index, line in enumerate(lines) if line.startswith("| ") and not line.startswith("| Code ")]
-    if len(rows) <= _MAX_ROWS:
-        return "\n".join(lines)
-    kept = lines[: rows[_MAX_ROWS - 1] + 1]
-    return "\n".join([*kept, "", f"{len(rows) - _MAX_ROWS} more rows. Narrow the search, or list one group."])
+def _tables(intro: str, columns: tuple[str, ...], sections: list[tuple[str, list[str]]], *, max_chars: int) -> str:
+    """`intro`, then a heading and a table for each section, cut after the last row that fits in `max_chars`."""
+    lines = [intro]
+    size = len(intro)
+    left = sum(len(rows) for _, rows in sections)
+    for heading, rows in sections:
+        start = ["", f"## {heading}", "", f"| {' | '.join(columns)} |", "|" + "---|" * len(columns)]
+        for row in rows:
+            added = [*start, row]
+            size += sum(len(line) + 1 for line in added)
+            if size > max_chars:
+                return "\n".join([*lines, "", f"{left} more rows. Narrow the search, or list one group."])
+            lines += added
+            left -= 1
+            start = []
+    return "\n".join(lines)
 
 
-def _matches(search: str | None, *fields: str) -> bool:
+def _matches(words: list[str], *fields: str) -> bool:
     text = _fold(" ".join(fields))
-    return all(word in text for word in _words(search))
+    return all(word in text for word in words)
 
 
 def _words(search: str | None) -> list[str]:
@@ -289,7 +319,7 @@ def _flag(item: dict[str, Any], key: str) -> bool:
 def _role_attribute_and_code(role: dict[str, Any]) -> tuple[str, str]:
     """The AttributeId and the code of a role, from its `legacyUrn`, or from its `urn` when it has none."""
     urn = role.get("legacyUrn") or _text(role, "urn")
-    attribute, _, code = urn.rpartition(":") if isinstance(urn, str) else ("", "", "")
+    attribute, _, code = str(urn).rpartition(":")
     if not attribute.startswith("urn:") or not code:
         raise AccessManagementError(f"unexpected role URN {urn!r}, expected urn:<attribute>:<code>")
     return attribute, code

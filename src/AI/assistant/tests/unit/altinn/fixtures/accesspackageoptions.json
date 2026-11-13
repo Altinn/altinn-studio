@@ -1,0 +1,110 @@
+[
+  {
+    "id": "7e2a3af8-08cb-43a9-bdd7-7d5c7e377145",
+    "name": "Allment",
+    "description": "Standard gruppe",
+    "type": "Organisasjon",
+    "areas": [
+      {
+        "id": "7d32591d-34b7-4afc-8afa-013722f8c05d",
+        "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
+        "name": "Skatt, avgift, regnskap og toll",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til skatt, avgift, regnskap og toll.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Money_SackKroner.svg",
+        "packages": [
+          {
+            "id": "b4e69b54-895e-42c5-bf0d-861a571cd282",
+            "urn": "urn:altinn:accesspackage:regnskap-okonomi-rapport",
+            "name": "Regnskap og økonomirapportering",
+            "description": "Denne tilgangspakken gir fullmakter til tjenester knyttet til regnskap og øknomirapportering som ikke tilhører skatt og merverdiavgift. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isResourcePolicyAvailable": true
+          }
+        ]
+      },
+      {
+        "id": "e4ae823f-41db-46ed-873f-8a5d1378fff8",
+        "urn": "accesspackage:area:administrere_tilganger",
+        "name": "Administrere tilganger",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til administrere tilganger.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Altinn_Administrere-tilganger_PersonLock.svg",
+        "packages": [
+          {
+            "id": "019ce74f-7fc8-7032-b3ed-85af6492ea84",
+            "urn": "urn:altinn:accesspackage:tilgangsstyring-enkeltinstanser",
+            "name": "Tilgangsstyrer for enkeltmeldinger, -skjema og -dialoger",
+            "description": "Gir tilgang til brukergrensesnitt i meldingsboksen, for å kunne gi andre brukere tilgang til enkeltmeldinger, -skjema og -dialoger, som mottakeren selv har tilgang til.",
+            "isDelegable": false,
+            "isResourcePolicyAvailable": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "554f0321-53b8-4d97-be12-6a585c507159",
+    "name": "Særskilt",
+    "description": "For de sære tingene",
+    "type": "Organisasjon",
+    "areas": [
+      {
+        "id": "64cbcdc8-01c9-448c-b3d2-eb9582beb3c2",
+        "urn": "accesspackage:area:fullmakter_for_regnskapsforer",
+        "name": "Fullmakter for regnskapsfører",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til fullmakter for regnskapsfører.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Home_Calculator.svg",
+        "packages": [
+          {
+            "id": "43becc6a-8c6c-4e9e-bb2f-08fe588ada21",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-lonn",
+            "name": "Regnskapsfører lønn",
+            "description": "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isResourcePolicyAvailable": true
+          },
+          {
+            "id": "955d5779-3e2b-4098-b11d-0431dc41ddbe",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-med-signeringsrettighet",
+            "name": "Regnskapsfører med signeringsrettighet",
+            "description": "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isResourcePolicyAvailable": true
+          },
+          {
+            "id": "a5f7f72a-9b89-445d-85bb-06f678a3d4d1",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-uten-signeringsrettighet",
+            "name": "Regnskapsfører uten signeringsrettighet",
+            "description": "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isResourcePolicyAvailable": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "413f99ca-19ca-4124-8470-b0c1dba3d2ee",
+    "name": "Innbygger",
+    "description": "For innbyggere",
+    "type": "Person",
+    "areas": [
+      {
+        "id": "0995c7e3-d791-4797-9ceb-1c40eadf9c81",
+        "urn": "accesspackage:area:politi_og_rettsvesen",
+        "name": "Politi og rettsvesen",
+        "description": "Fullmaktsområde for tilgangspakker for tjenester som er relatert til politisaker og andre forhold til rettsvesenet. Ved innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/GavelSoundBlock.svg",
+        "packages": [
+          {
+            "id": "2e9a3f64-5395-4170-a8d7-8fcc8ff2ac36",
+            "urn": "urn:altinn:accesspackage:innbygger-vapen",
+            "name": "Våpen",
+            "description": "Denne tilgangspakken gir fullmakter til tjenester og korrespondanse knyttet til våpenhold. Ved innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmaktene gir.",
+            "isDelegable": true,
+            "isResourcePolicyAvailable": true
+          }
+        ]
+      }
+    ]
+  }
+]
