@@ -39,7 +39,7 @@ _ROLES_SOURCE = {
 ALTINN2_PROVIDER = "sys-altinn2"
 # Enhetsregisteret first, since those are the roles a service for organizations uses.
 _PROVIDER_ORDER = {"sys-ccr": 0, "sys-altinn3": 1}
-# Codes are ASCII, names are Norwegian. Folding both lets `regnskapsforer` find `Regnskapsfører`.
+# Most codes are ASCII, and names are Norwegian. Folding both lets `regnskapsforer` find `Regnskapsfører`.
 _ASCII_FOLD = str.maketrans({"æ": "ae", "ø": "o", "å": "a"})
 # Sorts æ, ø and å after z, in that order.
 _SORT_FOLD = str.maketrans({"æ": "{0", "ø": "{1", "å": "{2"})

@@ -30,12 +30,13 @@ Choose in this order:
    package from what the service is about. Access Management sorts the packages into groups:
    - Allment: general tasks of any organization, such as post, tax, accounts and staff
    - Bransje: one industry, such as construction, health or transport
-   - Særskilt: accountants, auditors, business managers and bankruptcy estates acting for a client
+   - Særskilt: accountants, auditors and business managers acting for a client, and the creditors and the trustee's
+     assistant of a bankruptcy estate
    - Innbygger: a person acting for themselves or someone they act for
    - Vergemål: guardianship
 
    The value is the package code, such as `regnskap-okonomi-rapport`, not the full URN. Daglig leder and the other
-   key roles in Enhetsregisteret hold most packages for organizations, so a package rule covers them too.
+   key roles in Enhetsregisteret hold most packages for organizations, so a package rule usually covers them too.
 2. **Role from Enhetsregisteret (ER role)**, `urn:altinn:rolecode` with the role code, such as `dagl` or `lede`. ER
    roles keep working after 2026. Use one when the service is for that role in particular.
 3. **Private person**, `urn:altinn:rolecode` = `priv`, for a person acting for themselves. A person also holds every
@@ -47,8 +48,8 @@ Choose in this order:
    the policy has them, or the user asks for one, read [references/altinn2-roles.md](references/altinn2-roles.md)
    first.
 
-- A system user matches access packages only, never roles. A service that businesses use from their own systems
-  needs a rule with a package.
+- A system user never matches a role. A service that businesses use from their own systems needs a rule with a
+  package.
 - `urn:altinn:org` in the subject category matches only the service owner. A role code such as `dagl` with
   `urn:altinn:org` matches nobody.
 - Each subject is one AllOf in the first AnyOf. Roles and packages share a rule when they get the same rights.
@@ -99,13 +100,14 @@ Notes:
   only while the instance is in that task. After the process ends, Altinn checks the end event instead of a task, so
   rules scoped to a task stop matching. Users who should read their submitted instances need a rule without a task,
   or one scoped to the end event.
+- Starting an instance has no task yet, so give `instantiate` in a rule without a task.
 - Events use `urn:altinn:appresource` = `events`. The docs pages on app authorization show `urn:altinn:event`, which
-  nothing reads.
+  nothing reads. Altinn checks events without a task or end event, so an events rule must not have one.
 - The authentication level is an obligation, not a rule. `urn:altinn:minimum-authenticationlevel` sets it for
-  users and `urn:altinn:minimum-authenticationlevel-org` for the service owner. Studio may also write
-  `urn:altinn:minimum-authenticationlevel-systemuser` for system users. Leave that one as it is. Change the others
-  only when the user asks.
-  When users need level 4, keep the service owner's level at 3, because Maskinporten gives level 3.
+  users and `urn:altinn:minimum-authenticationlevel-org` for the service owner. Change them only when the user asks.
+- When users need level 4, Studio can let system users in at level 3 with
+  `urn:altinn:minimum-authenticationlevel-systemuser` = `3`. Studio removes it whenever the users' level changes,
+  because it lets more users in. Do the same, and ask whether system users should still get in at level 3.
 
 ## A complete rule
 
@@ -161,7 +163,11 @@ To scope a rule to a task, add a third Match with `urn:altinn:task` to the AllOf
 - Put a new rule after the last rule and before `<xacml:ObligationExpressions>`.
 - Give a new rule a new `RuleId`: the prefix the other rules use, ending in the number after the highest one. Studio
   reads the number after the last colon.
-- Write only `Effect="Permit"` rules, as Studio does.
+- Write only `Effect="Permit"` rules, with no `<xacml:Condition>`. When Studio's policy editor saves, it makes every
+  rule Permit and drops conditions.
+- Studio's process editor adds a rule for each payment task, with no subjects and a `RuleId` that ends in the task ID.
+  It removes the rule by that `RuleId` when the task is removed, so keep it. A rule with no subjects matches everyone,
+  so add the subjects that should pay to it.
 - To remove an action, remove its whole `<xacml:AllOf>` from the actions AnyOf. Remove a subject the same way. Remove
   the rule when it has no action or no subject left.
 - When one subject in a rule needs other rights than the rest, remove its AllOf from that rule. Then add a new rule
@@ -185,15 +191,14 @@ task:
 | Service tasks `pdf`, `eFormidling`, `fiksArkiv`, `subformPdf` | `write` |
 | Any other user task type | An action named exactly like the task type. `write` does not grant it. |
 
+- The table covers only moving on. Signing needs `sign`, and a payment task needs more actions from users and the
+  service owner. The signing and payment guides that the version file links to list them.
 - A button that moves the process with an action, such as `reject` on a signing task, needs that action on the
-  task in the policy. `ActionButton`, `CustomButton` and the signing and confirm buttons check the user's rights, and
-  they know only `read`, `write` and the actions listed on the task in `process.bpmn`. So list the action there too.
-  The `Payment` component does not check. The app also skips validation on `reject` only when the task lists
-  `reject`. The `studio-process` skill covers the process side.
+  task in the policy. `ActionButton`, the server actions of `CustomButton`, and the signing and confirm buttons check
+  the user's rights, and they know only `read`, `write` and the actions listed on the task in `process.bpmn`. So list
+  the action there too. The app also skips validation on `reject` only when the task lists `reject`. The
+  `studio-process` skill covers the process side.
 - Users also need `instantiate` to start an instance and `read` to see it.
-- When the process has a payment task, give the service owner `confirm` on it. When Nets reports the payment, the
-  app moves the process on itself, as the service owner, with the action `confirm`. Without it, the instance waits
-  until the user comes back. The `studio-payment` skill covers the rest.
 - A user rule scoped to tasks must name every task the user acts on. The version file says what users need on
   service tasks.
 

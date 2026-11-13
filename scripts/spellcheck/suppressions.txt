@@ -221,8 +221,8 @@ foldes
 prosess
 som
 
-# The Studio Assistant's policy skill quotes the rule description that Studio's
-# policy editor writes, since agents must match it.
+# The Studio Assistant's policy skill gives an example rule description in
+# Norwegian, worded like the rules in the app template.
 @paths src/AI/assistant/agents/skills/studio-policy/SKILL.md
 Gir
 
