@@ -28,23 +28,25 @@ public sealed class AppFilesDITests : IDisposable
     }
 
     [Theory]
-    [InlineData("Production", false)]
-    [InlineData("Development", true)]
-    public async Task AddAppFiles_registers_the_loaded_files_and_polls_only_in_development(
-        string environment,
-        bool expectPoller
+    [InlineData("Production")]
+    [InlineData("Development")]
+    public async Task AddAppFiles_registers_the_loaded_files_and_the_hosted_service_in_every_environment(
+        string environment
     )
     {
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
         var services = new ServiceCollection();
         services.AddLogging();
+        var env = Environment(environment);
+        // The host registers the environment, which the hosted service reads
+        services.AddSingleton(env);
 
-        services.AddAppFiles(Environment(environment));
+        services.AddAppFiles(env);
 
         await using var provider = services.BuildServiceProvider();
         var accessor = provider.GetRequiredService<AppFilesAccessor>();
         Assert.Equal("""{ "id": "ttd/app" }""", Encoding.UTF8.GetString(accessor.Current.ApplicationMetadata.Span));
-        Assert.Equal(expectPoller, provider.GetServices<IHostedService>().Any(s => s is AppFilesPoller));
+        Assert.Single(provider.GetServices<IHostedService>().OfType<AppFilesHostedService>());
     }
 
     [Fact]
