@@ -39,7 +39,7 @@ describe('Map component', () => {
     cy.findByText('Click first point to close this shape.').should('exist');
     cy.get(selectors.map).find(selectors.drawVertex).first().should('be.visible').click();
     assertPath(4, true);
-    // Saving refreshes the Leaflet Draw control, so wait before entering deletion mode.
+    // Let the new geometry finish saving, so that saving the deletion does not race with it.
     cy.waitUntilSaved();
 
     cy.get('g>path').should('to.be.visible');
