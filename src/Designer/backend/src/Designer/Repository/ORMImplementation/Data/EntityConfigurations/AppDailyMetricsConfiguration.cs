@@ -44,11 +44,6 @@ public class AppDailyMetricsConfiguration : IEntityTypeConfiguration<AppDailyMet
 
         builder.Property(e => e.OpenOver90Days).HasColumnType("integer").HasColumnName("open_over_90_days");
 
-        builder
-            .Property(e => e.UnconfirmedOver90Days)
-            .HasColumnType("integer")
-            .HasColumnName("unconfirmed_over_90_days");
-
         builder.Property(e => e.ComputedAt).HasColumnType("timestamptz").HasColumnName("computed_at").IsRequired();
 
         builder

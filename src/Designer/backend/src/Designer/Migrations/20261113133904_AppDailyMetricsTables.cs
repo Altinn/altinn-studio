@@ -32,7 +32,6 @@ namespace Altinn.Studio.Designer.Migrations
                     seconds_to_complete_p50 = table.Column<int>(type: "integer", nullable: true),
                     open_instances = table.Column<int>(type: "integer", nullable: true),
                     open_over_90_days = table.Column<int>(type: "integer", nullable: true),
-                    unconfirmed_over_90_days = table.Column<int>(type: "integer", nullable: true),
                     computed_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
                 },
                 constraints: table =>

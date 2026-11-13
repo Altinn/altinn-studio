@@ -40,10 +40,9 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
                     p50: 600,
                     open: 5,
                     openOld: 1,
-                    unconfirmedOld: 4,
                     tasks: [("Task_1", 4), ("Task_2", 1)]
                 ),
-                Observation("kpi-b", created: 0, completed: 0, p50: null, open: 0, openOld: 0, unconfirmedOld: 7)
+                Observation("kpi-b", created: 0, completed: 0, p50: null, open: 0, openOld: 0)
             )
         );
 
@@ -54,14 +53,12 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(600, appA.SecondsToCompleteP50);
         Assert.Equal(5, appA.OpenInstances);
         Assert.Equal(1, appA.OpenOver90Days);
-        Assert.Equal(4, appA.UnconfirmedOver90Days);
         Assert.Equal(s_firstRun, appA.ComputedAt);
         Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 4, ["Task_2"] = 1 }, await GetTaskRows("kpi-a"));
 
         var appB = await GetRow("kpi-b");
         Assert.Null(appB.SecondsToCompleteP50);
         Assert.Equal(0, appB.OpenInstances);
-        Assert.Equal(7, appB.UnconfirmedOver90Days);
         Assert.Empty(await GetTaskRows("kpi-b"));
     }
 
@@ -74,16 +71,7 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
             CreateBatch(
                 s_firstRun,
                 includesSnapshot: false,
-                Observation(
-                    "kpi-a",
-                    created: 3,
-                    completed: 2,
-                    p50: 600,
-                    open: 5,
-                    openOld: 1,
-                    unconfirmedOld: 4,
-                    tasks: [("Task_1", 5)]
-                )
+                Observation("kpi-a", created: 3, completed: 2, p50: 600, open: 5, openOld: 1, tasks: [("Task_1", 5)])
             )
         );
 
@@ -92,7 +80,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(600, row.SecondsToCompleteP50);
         Assert.Null(row.OpenInstances);
         Assert.Null(row.OpenOver90Days);
-        Assert.Null(row.UnconfirmedOver90Days);
         Assert.Empty(await GetTaskRows("kpi-a"));
     }
 
@@ -111,7 +98,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
                     p50: 600,
                     open: 5,
                     openOld: 1,
-                    unconfirmedOld: 4,
                     tasks: [("Task_1", 4), ("Task_2", 1)]
                 )
             )
@@ -121,16 +107,7 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
             CreateBatch(
                 s_secondRun,
                 includesSnapshot: true,
-                Observation(
-                    "kpi-a",
-                    created: 4,
-                    completed: 3,
-                    p50: 500,
-                    open: 6,
-                    openOld: 2,
-                    unconfirmedOld: 5,
-                    tasks: [("Task_1", 6)]
-                )
+                Observation("kpi-a", created: 4, completed: 3, p50: 500, open: 6, openOld: 2, tasks: [("Task_1", 6)])
             )
         );
 
@@ -140,7 +117,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(500, row.SecondsToCompleteP50);
         Assert.Equal(6, row.OpenInstances);
         Assert.Equal(2, row.OpenOver90Days);
-        Assert.Equal(5, row.UnconfirmedOver90Days);
         Assert.Equal(s_secondRun, row.ComputedAt);
         Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 6 }, await GetTaskRows("kpi-a"));
         Assert.Equal(1, await CountRows());
@@ -154,16 +130,7 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
             CreateBatch(
                 s_firstRun,
                 includesSnapshot: true,
-                Observation(
-                    "kpi-a",
-                    created: 3,
-                    completed: 2,
-                    p50: 600,
-                    open: 5,
-                    openOld: 1,
-                    unconfirmedOld: 4,
-                    tasks: [("Task_1", 5)]
-                )
+                Observation("kpi-a", created: 3, completed: 2, p50: 600, open: 5, openOld: 1, tasks: [("Task_1", 5)])
             )
         );
 
@@ -171,16 +138,7 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
             CreateBatch(
                 s_secondRun,
                 includesSnapshot: false,
-                Observation(
-                    "kpi-a",
-                    created: 4,
-                    completed: 3,
-                    p50: 500,
-                    open: 99,
-                    openOld: 99,
-                    unconfirmedOld: 99,
-                    tasks: [("Task_9", 99)]
-                )
+                Observation("kpi-a", created: 4, completed: 3, p50: 500, open: 99, openOld: 99, tasks: [("Task_9", 99)])
             )
         );
 
@@ -189,7 +147,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(500, row.SecondsToCompleteP50);
         Assert.Equal(5, row.OpenInstances);
         Assert.Equal(1, row.OpenOver90Days);
-        Assert.Equal(4, row.UnconfirmedOver90Days);
         Assert.Equal(s_firstRun, row.ComputedAt);
         Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 5 }, await GetTaskRows("kpi-a"));
     }
@@ -273,7 +230,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
         int? p50 = null,
         int open = 0,
         int openOld = 0,
-        int unconfirmedOld = 0,
         (string TaskId, int Open)[] tasks = null
     )
     {
@@ -285,7 +241,6 @@ public class UpsertDayAsyncIntegrationTests : DbIntegrationTestsBase
             SecondsToCompleteP50 = p50,
             OpenInstances = open,
             OpenOver90Days = openOld,
-            UnconfirmedOver90Days = unconfirmedOld,
             OpenByTask = (tasks ?? []).ToDictionary(task => task.TaskId, task => task.Open),
         };
     }

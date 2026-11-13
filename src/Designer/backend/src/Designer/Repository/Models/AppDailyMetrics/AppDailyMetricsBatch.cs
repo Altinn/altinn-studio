@@ -14,7 +14,7 @@ public sealed record AppDailyMetricsBatch
     public required DateTimeOffset ComputedAt { get; init; }
 
     /// <summary>
-    /// Whether the open and unconfirmed counts in the observations describe the end of <see cref="MetricDate"/>.
+    /// Whether the open counts in the observations describe the end of <see cref="MetricDate"/>.
     /// They do only when the run collected yesterday. When false, the counts are not stored, so a day filled in
     /// later keeps whatever snapshot it already has.
     /// </summary>

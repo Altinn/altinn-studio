@@ -66,7 +66,7 @@ public class AppDailyMetricsCollectionJob : IJob
         {
             var yesterday = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime).AddDays(-1);
             var metricDate = ParseMetricDate(context.MergedJobDataMap) ?? yesterday;
-            // The open and unconfirmed counts describe the moment Storage computes them. They are a snapshot
+            // The open counts describe the moment Storage computes them. They are a snapshot
             // of the day's end only when the day has just ended.
             var includesSnapshot = metricDate == yesterday;
             activity?.SetTag(
@@ -240,7 +240,6 @@ public class AppDailyMetricsCollectionJob : IJob
                 SecondsToCompleteP50 = app.SecondsToCompleteP50,
                 OpenInstances = ToInt(app.OpenInstances),
                 OpenOver90Days = ToInt(app.OpenOver90Days),
-                UnconfirmedOver90Days = ToInt(app.UnconfirmedOver90Days),
                 OpenByTask = app.OpenByTask.ToDictionary(
                     task => task.TaskId,
                     task => ToInt(task.OpenInstances),

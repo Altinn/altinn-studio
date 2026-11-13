@@ -19,8 +19,7 @@ public static class AppDailyMetricsMapper
             observation.InstancesCompleted,
             observation.SecondsToCompleteP50,
             observation.OpenInstances,
-            observation.OpenOver90Days,
-            observation.UnconfirmedOver90Days
+            observation.OpenOver90Days
         ));
         return JsonSerializer.Serialize(rows);
     }
@@ -47,8 +46,7 @@ public static class AppDailyMetricsMapper
         [property: JsonPropertyName("instances_completed")] int InstancesCompleted,
         [property: JsonPropertyName("seconds_to_complete_p50")] int? SecondsToCompleteP50,
         [property: JsonPropertyName("open_instances")] int OpenInstances,
-        [property: JsonPropertyName("open_over_90_days")] int OpenOver90Days,
-        [property: JsonPropertyName("unconfirmed_over_90_days")] int UnconfirmedOver90Days
+        [property: JsonPropertyName("open_over_90_days")] int OpenOver90Days
     );
 
     private sealed record AppDailyTaskMetricsUpsertRow(

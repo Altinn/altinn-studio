@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20261111092315_AppDailyMetricsTables")]
+    [Migration("20261113133904_AppDailyMetricsTables")]
     partial class AppDailyMetricsTables
     {
         /// <inheritdoc />
@@ -267,10 +267,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<int?>("SecondsToCompleteP50")
                         .HasColumnType("integer")
                         .HasColumnName("seconds_to_complete_p50");
-
-                    b.Property<int?>("UnconfirmedOver90Days")
-                        .HasColumnType("integer")
-                        .HasColumnName("unconfirmed_over_90_days");
 
                     b.HasKey("Id")
                         .HasName("app_daily_metrics_pkey");

@@ -265,10 +265,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("seconds_to_complete_p50");
 
-                    b.Property<int?>("UnconfirmedOver90Days")
-                        .HasColumnType("integer")
-                        .HasColumnName("unconfirmed_over_90_days");
-
                     b.HasKey("Id")
                         .HasName("app_daily_metrics_pkey");
 

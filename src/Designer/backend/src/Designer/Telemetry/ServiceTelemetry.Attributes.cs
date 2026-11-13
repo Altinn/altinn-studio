@@ -82,7 +82,7 @@ internal static partial class ServiceTelemetry
             public const string EnvironmentSkippedCount = Prefix + "environment_skipped_count";
 
             /// <summary>
-            /// Whether the run stored the open and unconfirmed instance counts, which it does only for yesterday.
+            /// Whether the run stored the open instance counts, which it does only for yesterday.
             /// </summary>
             public const string IncludesSnapshot = Prefix + "includes_snapshot";
 

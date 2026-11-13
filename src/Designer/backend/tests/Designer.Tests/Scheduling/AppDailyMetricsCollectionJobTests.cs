@@ -50,16 +50,7 @@ public class AppDailyMetricsCollectionJobTests
         SetupMetrics(
             "tt02",
             s_yesterday,
-            App(
-                "kpi-a",
-                created: 3,
-                completed: 2,
-                p50: 600,
-                open: 5,
-                openOld: 1,
-                unconfirmedOld: 4,
-                tasks: [("Task_1", 4), ("Task_2", 1)]
-            )
+            App("kpi-a", created: 3, completed: 2, p50: 600, open: 5, openOld: 1, tasks: [("Task_1", 4), ("Task_2", 1)])
         );
 
         await CreateJob().Execute(CreateContext(OrgName));
@@ -76,7 +67,6 @@ public class AppDailyMetricsCollectionJobTests
         Assert.Equal(600, observation.SecondsToCompleteP50);
         Assert.Equal(5, observation.OpenInstances);
         Assert.Equal(1, observation.OpenOver90Days);
-        Assert.Equal(4, observation.UnconfirmedOver90Days);
         Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 4, ["Task_2"] = 1 }, observation.OpenByTask);
     }
 
@@ -85,11 +75,7 @@ public class AppDailyMetricsCollectionJobTests
     {
         var earlier = new DateOnly(2026, 10, 1);
         SetupEnvironments(OrgName, "tt02");
-        SetupMetrics(
-            "tt02",
-            earlier,
-            App("kpi-a", created: 1, completed: 0, p50: null, open: 9, openOld: 9, unconfirmedOld: 0)
-        );
+        SetupMetrics("tt02", earlier, App("kpi-a", created: 1, completed: 0, p50: null, open: 9, openOld: 9));
 
         await CreateJob().Execute(CreateContext(OrgName, "2026-10-01"));
 
@@ -329,7 +315,6 @@ public class AppDailyMetricsCollectionJobTests
         int? p50 = null,
         long open = 0,
         long openOld = 0,
-        long unconfirmedOld = 0,
         (string TaskId, long Open)[] tasks = null
     )
     {
@@ -341,7 +326,6 @@ public class AppDailyMetricsCollectionJobTests
             SecondsToCompleteP50 = p50,
             OpenInstances = open,
             OpenOver90Days = openOld,
-            UnconfirmedOver90Days = unconfirmedOld,
             OpenByTask = (tasks ?? [])
                 .Select(task => new StudioOpenTaskCount { TaskId = task.TaskId, OpenInstances = task.Open })
                 .ToList(),

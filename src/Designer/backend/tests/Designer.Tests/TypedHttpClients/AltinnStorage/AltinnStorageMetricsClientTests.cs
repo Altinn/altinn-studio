@@ -27,7 +27,6 @@ public class AltinnStorageMetricsClientTests
               "secondsToCompleteP50": 600,
               "openInstances": 5,
               "openOver90Days": 1,
-              "unconfirmedOver90Days": 4,
               "openByTask": [ { "taskId": "Task_1", "openInstances": 5 } ]
             },
             {
@@ -37,7 +36,6 @@ public class AltinnStorageMetricsClientTests
               "secondsToCompleteP50": null,
               "openInstances": 0,
               "openOver90Days": 0,
-              "unconfirmedOver90Days": 7,
               "openByTask": []
             }
           ]
@@ -67,13 +65,11 @@ public class AltinnStorageMetricsClientTests
         Assert.Equal(600, appA.SecondsToCompleteP50);
         Assert.Equal(5, appA.OpenInstances);
         Assert.Equal(1, appA.OpenOver90Days);
-        Assert.Equal(4, appA.UnconfirmedOver90Days);
         var task = Assert.Single(appA.OpenByTask);
         Assert.Equal("Task_1", task.TaskId);
         Assert.Equal(5, task.OpenInstances);
         var appB = metrics.Apps[1];
         Assert.Null(appB.SecondsToCompleteP50);
-        Assert.Equal(7, appB.UnconfirmedOver90Days);
         Assert.Empty(appB.OpenByTask);
     }
 

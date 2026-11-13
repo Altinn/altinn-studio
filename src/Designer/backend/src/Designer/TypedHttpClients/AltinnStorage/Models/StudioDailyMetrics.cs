@@ -19,13 +19,13 @@ public sealed record StudioDailyMetrics
     public required DateOnly Date { get; init; }
 
     /// <summary>
-    /// When Storage read the open and unconfirmed counts.
+    /// When Storage read the open counts.
     /// </summary>
     [JsonPropertyName("computedAt")]
     public required DateTimeOffset ComputedAt { get; init; }
 
     /// <summary>
-    /// Apps with instances on the day or with open or unconfirmed instances. Other apps are left out.
+    /// Apps with instances on the day or with open instances. Other apps are left out.
     /// </summary>
     [JsonPropertyName("apps")]
     public IReadOnlyList<StudioAppDailyMetrics> Apps { get; init; } = [];
@@ -56,9 +56,6 @@ public sealed record StudioAppDailyMetrics
 
     [JsonPropertyName("openOver90Days")]
     public long OpenOver90Days { get; init; }
-
-    [JsonPropertyName("unconfirmedOver90Days")]
-    public long UnconfirmedOver90Days { get; init; }
 
     [JsonPropertyName("openByTask")]
     public IReadOnlyList<StudioOpenTaskCount> OpenByTask { get; init; } = [];

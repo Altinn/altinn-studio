@@ -24,8 +24,7 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
                 instances_completed integer,
                 seconds_to_complete_p50 integer,
                 open_instances integer,
-                open_over_90_days integer,
-                unconfirmed_over_90_days integer
+                open_over_90_days integer
             )
         )
         INSERT INTO designer.app_daily_metrics AS existing (
@@ -38,7 +37,6 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
             seconds_to_complete_p50,
             open_instances,
             open_over_90_days,
-            unconfirmed_over_90_days,
             computed_at
         )
         SELECT
@@ -51,7 +49,6 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
             incoming.seconds_to_complete_p50,
             CASE WHEN @includes_snapshot THEN incoming.open_instances END,
             CASE WHEN @includes_snapshot THEN incoming.open_over_90_days END,
-            CASE WHEN @includes_snapshot THEN incoming.unconfirmed_over_90_days END,
             @computed_at
         FROM incoming
         ON CONFLICT (metric_date, org, environment, app) DO UPDATE SET
@@ -60,7 +57,6 @@ public class AppDailyMetricsRepository : IAppDailyMetricsRepository
             seconds_to_complete_p50 = EXCLUDED.seconds_to_complete_p50,
             open_instances = CASE WHEN @includes_snapshot THEN EXCLUDED.open_instances ELSE existing.open_instances END,
             open_over_90_days = CASE WHEN @includes_snapshot THEN EXCLUDED.open_over_90_days ELSE existing.open_over_90_days END,
-            unconfirmed_over_90_days = CASE WHEN @includes_snapshot THEN EXCLUDED.unconfirmed_over_90_days ELSE existing.unconfirmed_over_90_days END,
             computed_at = CASE WHEN @includes_snapshot THEN EXCLUDED.computed_at ELSE existing.computed_at END
         """;
 

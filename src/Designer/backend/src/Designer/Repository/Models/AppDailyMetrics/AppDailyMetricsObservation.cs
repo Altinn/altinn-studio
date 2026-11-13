@@ -10,7 +10,6 @@ public sealed record AppDailyMetricsObservation
     public int? SecondsToCompleteP50 { get; init; }
     public required int OpenInstances { get; init; }
     public required int OpenOver90Days { get; init; }
-    public required int UnconfirmedOver90Days { get; init; }
 
     /// <summary>
     /// Open instances per process task id.
