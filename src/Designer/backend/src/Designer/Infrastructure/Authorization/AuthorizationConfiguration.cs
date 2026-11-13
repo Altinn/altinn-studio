@@ -91,6 +91,15 @@ public static class AuthorizationConfiguration
             );
 
             options.AddPolicy(
+                AltinnPolicy.MustHaveStudioPlatformAccess,
+                policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new StudioPlatformAccessRequirement());
+                }
+            );
+
+            options.AddPolicy(
                 AltinnPolicy.MustBeOrgOwner,
                 policy =>
                 {
@@ -108,6 +117,7 @@ public static class AuthorizationConfiguration
         services.AddScoped<IAuthorizationHandler, MemberOfAnyOrganizationHandler>();
         services.AddScoped<IAuthorizationHandler, OrganizationPermissionHandler>();
         services.AddScoped<IAuthorizationHandler, AdminPermissionHandler>();
+        services.AddScoped<IAuthorizationHandler, StudioPlatformAccessHandler>();
         services.AddScoped<IAuthorizationHandler, OrgOwnerHandler>();
 
         return services;

@@ -42,4 +42,31 @@ public interface IAppDailyMetricsRepository
         string environment,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Gets which days the stored metrics cover, per org, for every org with metrics in the environment.
+    /// </summary>
+    Task<IReadOnlyDictionary<string, AppDailyMetricsCoverage>> GetCoverageByOrgAsync(
+        string environment,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets every stored row of every org in the environment from <paramref name="fromDate"/> to
+    /// <paramref name="toDate"/>, both inclusive.
+    /// </summary>
+    Task<IReadOnlyList<AppDailyMetricsRecord>> GetRowsForEnvironmentAsync(
+        string environment,
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets, per org and app, the last day on which at least one instance was created, over everything stored.
+    /// </summary>
+    Task<IReadOnlyDictionary<(string Org, string App), DateOnly>> GetLastInstanceCreatedOnForEnvironmentAsync(
+        string environment,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -51,6 +51,11 @@ public static class AltinnPolicy
     public const string MustHaveAdminPermission = "MustHaveAdminPermission";
 
     /// <summary>
+    /// MustHaveStudioPlatformAccess: member of the Gitea team in <see cref="Configuration.StudioPlatformAccessSettings"/>
+    /// </summary>
+    public const string MustHaveStudioPlatformAccess = "MustHaveStudioPlatformAccess";
+
+    /// <summary>
     /// MustBeOrgOwner
     /// User must be in the Owners team of the organization.
     /// </summary>
