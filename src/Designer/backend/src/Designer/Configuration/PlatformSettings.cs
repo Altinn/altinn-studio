@@ -21,6 +21,11 @@ public class PlatformSettings : ISettingsMarker
     public string ApiStorageInstancesUri { get; set; }
 
     /// <summary>
+    /// Uri for the Storage endpoint that returns the daily instance metrics per app for Altinn Studio.
+    /// </summary>
+    public string ApiStorageMetricsUri { get; set; }
+
+    /// <summary>
     /// Uniform resource locator for Platform.Authorization policies
     /// </summary>
     public string ApiAuthorizationPolicyUri { get; set; }
