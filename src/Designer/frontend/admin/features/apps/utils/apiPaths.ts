@@ -11,6 +11,10 @@ export const appErrorMetricsPath = (org: string, env: string, app: string, range
   `${adminApiBasePath}/metrics/${org}/${env}/app/errors?app=${app}&range=${range}`; // Get
 export const appHealthMetricsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/metrics/${org}/${env}/app/health?app=${app}`; // Get
+export const appDailyMetricsPath = (org: string, env: string, days: number) =>
+  `${adminApiBasePath}/app-daily-metrics/${org}/${env}?days=${days}`; // Get
+export const appDailyMetricsDetailsPath = (org: string, env: string, app: string, days: number) =>
+  `${adminApiBasePath}/app-daily-metrics/${org}/${env}/${app}?days=${days}`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const appDetailsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/applications/${org}/${env}/${app}`; // Get
