@@ -31,7 +31,7 @@ export type CompBrokerFileTransferSerialized = {
   hasCustomRecipients?: boolean;
   recipients?: ExprValToActualOrExpr<ExprVal.String>;
   metadata?: { [key: string]: ExprValToActualOrExpr<ExprVal.String> };
-  checksum?: 'optional' | 'required';
+  checksumField?: 'optional' | 'required';
   disableVirusScan?: boolean;
   maxFileTransferSizeInMB?: number;
   hasCustomFileEndings?: boolean;
@@ -40,4 +40,4 @@ export type CompBrokerFileTransferSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: 6c1eb08fb220cd45caea88c98e9c5fd02d1cc458bdb1147af326da615481037a
+// Source hash: 7c3f6d90801ae2c8d672a21d12cdd90e654921fa4a408b05efe5f0fb6a8506ae

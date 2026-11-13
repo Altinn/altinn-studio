@@ -41,7 +41,7 @@ export interface CompBrokerFileTransferExternal
   hasCustomRecipients?: boolean;
   recipients?: ExprValToActualOrExpr<ExprVal.String>;
   metadata?: { [key: string]: ExprValToActualOrExpr<ExprVal.String> };
-  checksum?: 'optional' | 'required';
+  checksumField?: 'optional' | 'required';
   disableVirusScan?: boolean;
   maxFileTransferSizeInMB?: number;
   hasCustomFileEndings?: boolean;
@@ -76,4 +76,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: BrokerFileTransferSummaryOverridesWithRef;
 };
 
-// Source hash: 0307e0b26688493a240b9e2494293e7fd537fb95cb7fbde6ba82e25ff2a72a20
+// Source hash: c192be682ee98c47ec9d3269b44ebb320a4184ed28d2fd5fd91030871f1bc6de

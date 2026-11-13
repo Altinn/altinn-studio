@@ -351,10 +351,10 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Metadata som sendes med formidlingen, som egenskapslisten i Altinn Formidling: høyst 10 oppføringer, og hver nøkkel høyst 50 tegn. En verdi er fast tekst eller et uttrykk, for eksempel ["dataModel", "sti.til.felt"] for noe brukeren har fylt ut. Oppføringer uten verdi når filen sendes, utelates. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="checksum">
+<details class="card adocs-expand adocs-expand-small component-property" id="checksumfield">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="checksum">checksum</span>
+    <span class="component-property-name" title="checksumField">checksumField</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
       <span class="component-property-type" title="&quot;optional&quot; | &quot;required&quot;">Type: <span class="component-property-value">&quot;optional&quot; | &quot;required&quot;</span></span>

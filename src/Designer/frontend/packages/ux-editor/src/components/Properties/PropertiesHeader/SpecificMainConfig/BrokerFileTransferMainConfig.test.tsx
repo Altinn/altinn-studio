@@ -19,10 +19,10 @@ const brokerFileTransferComponent: FormItem<ComponentType.BrokerFileTransfer> = 
 };
 
 const checksumSwitch = () =>
-  screen.getByRole('switch', { name: textMock('ux_editor.component_properties.checksum') });
+  screen.getByRole('switch', { name: textMock('ux_editor.component_properties.checksumField') });
 const checksumRequiredSwitch = () =>
   screen.queryByRole('switch', {
-    name: textMock('ux_editor.component_properties.checksum_required'),
+    name: textMock('ux_editor.component_properties.checksumField_required'),
   });
 
 const recipientsSwitch = () =>
@@ -103,7 +103,7 @@ describe('BrokerFileTransferMainConfig', () => {
     await user.click(checksumSwitch());
 
     expect(handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ checksum: 'optional' }),
+      expect.objectContaining({ checksumField: 'optional' }),
     );
   });
 
@@ -111,14 +111,14 @@ describe('BrokerFileTransferMainConfig', () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
     renderBrokerFileTransferMainConfig(
-      { ...brokerFileTransferComponent, checksum: 'optional' },
+      { ...brokerFileTransferComponent, checksumField: 'optional' },
       handleComponentChange,
     );
 
     await user.click(checksumRequiredSwitch());
 
     expect(handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ checksum: 'required' }),
+      expect.objectContaining({ checksumField: 'required' }),
     );
   });
 
@@ -126,14 +126,14 @@ describe('BrokerFileTransferMainConfig', () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
     renderBrokerFileTransferMainConfig(
-      { ...brokerFileTransferComponent, checksum: 'required' },
+      { ...brokerFileTransferComponent, checksumField: 'required' },
       handleComponentChange,
     );
 
     await user.click(checksumRequiredSwitch());
 
     expect(handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ checksum: 'optional' }),
+      expect.objectContaining({ checksumField: 'optional' }),
     );
   });
 
@@ -141,7 +141,7 @@ describe('BrokerFileTransferMainConfig', () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
     renderBrokerFileTransferMainConfig(
-      { ...brokerFileTransferComponent, checksum: 'required' },
+      { ...brokerFileTransferComponent, checksumField: 'required' },
       handleComponentChange,
     );
 
@@ -149,7 +149,7 @@ describe('BrokerFileTransferMainConfig', () => {
     await user.click(checksumSwitch());
 
     expect(handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ checksum: undefined }),
+      expect.objectContaining({ checksumField: undefined }),
     );
   });
 });

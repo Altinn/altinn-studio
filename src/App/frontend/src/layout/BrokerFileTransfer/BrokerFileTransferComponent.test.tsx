@@ -544,7 +544,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('sends the checksum the user enters in lower case, and says under the field that it is MD5', async () => {
-      await render({ checksum: 'optional' });
+      await render({ checksumField: 'optional' });
 
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       await userEvent.type(getChecksumField(), MD5.toUpperCase());
@@ -555,7 +555,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('sends without a checksum when the user leaves an optional checksum empty', async () => {
-      await render({ checksum: 'optional' });
+      await render({ checksumField: 'optional' });
 
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
@@ -564,7 +564,7 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('cannot send before the user enters a required checksum', async () => {
-      await render({ checksum: 'required' });
+      await render({ checksumField: 'required' });
 
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
@@ -577,7 +577,7 @@ describe('BrokerFileTransferComponent', () => {
 
     it('says what is wrong with the checksum once the user leaves the field', async () => {
       const invalid = 'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.';
-      await render({ checksum: 'optional' });
+      await render({ checksumField: 'optional' });
 
       await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
       await userEvent.type(getChecksumField(), 'abc123');
@@ -591,18 +591,18 @@ describe('BrokerFileTransferComponent', () => {
     });
 
     it('keeps the checksum when the user leaves the page and comes back', async () => {
-      const { unmount } = await render({ id: 'broker-file-transfer-checksum', checksum: 'optional' });
+      const { unmount } = await render({ id: 'broker-file-transfer-checksum', checksumField: 'optional' });
       await findFileInput();
       await userEvent.type(getChecksumField(), MD5);
       unmount();
 
-      await render({ id: 'broker-file-transfer-checksum', checksum: 'optional' });
+      await render({ id: 'broker-file-transfer-checksum', checksumField: 'optional' });
 
       expect(await screen.findByDisplayValue(MD5)).toBeInTheDocument();
     });
 
     it('shows the checksum read-only while the file uploads', async () => {
-      await render({ checksum: 'optional' });
+      await render({ checksumField: 'optional' });
       await findFileInput();
 
       fake.update({
@@ -632,7 +632,7 @@ describe('BrokerFileTransferComponent', () => {
         });
         await render({
           formData: { id: 'transfer-1', status: fileTransferStatus, name: 'rapport.pdf' },
-          checksum: 'optional',
+          checksumField: 'optional',
         });
 
         expect(await screen.findByDisplayValue(MD5)).toHaveAttribute('readonly');
@@ -908,7 +908,7 @@ describe('BrokerFileTransferComponent', () => {
 
     it('continues an interrupted upload with the checksum it was started with, read-only', async () => {
       fetchInterruptedBrokerTransfer.mockResolvedValue({ ...resumable, checksum: MD5 });
-      await render({ formData: interruptedFormData, checksum: 'required' });
+      await render({ formData: interruptedFormData, checksumField: 'required' });
 
       expect(await screen.findByDisplayValue(MD5)).toHaveAttribute('readonly');
       await userEvent.upload(await findFileInput(), new File(['rapporten'], 'rapport.pdf'));

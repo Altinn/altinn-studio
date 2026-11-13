@@ -351,10 +351,10 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Metadata sent with the file transfer, as Altinn Broker's property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as ["dataModel", "path.to.field"] for something the user filled in. Entries without a value when the file is sent are left out. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="checksum">
+<details class="card adocs-expand adocs-expand-small component-property" id="checksumfield">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="checksum">checksum</span>
+    <span class="component-property-name" title="checksumField">checksumField</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
       <span class="component-property-type" title="&quot;optional&quot; | &quot;required&quot;">Type: <span class="component-property-value">&quot;optional&quot; | &quot;required&quot;</span></span>

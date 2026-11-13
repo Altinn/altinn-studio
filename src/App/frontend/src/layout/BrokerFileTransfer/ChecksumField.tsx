@@ -34,11 +34,11 @@ export function ChecksumField({ baseComponentId, value, onChange }: ChecksumFiel
   const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const [hasLeft, setHasLeft] = useState(false);
 
-  if (!config.checksum) {
+  if (!config.checksumField) {
     return null;
   }
 
-  const required = config.checksum === 'required';
+  const required = config.checksumField === 'required';
   const readOnly = !onChange;
   const problem = value ? checksumProblem(value) : undefined;
   const shownProblem = hasLeft && !readOnly ? problem : undefined;

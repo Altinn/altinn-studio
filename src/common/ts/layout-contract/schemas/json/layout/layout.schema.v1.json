@@ -2727,8 +2727,8 @@
                 "$ref": "expression.schema.v1.json#/definitions/string"
               }
             },
-            "checksum": {
-              "title": "Checksum",
+            "checksumField": {
+              "title": "Checksum field",
               "description": "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
               "enum": [
                 "optional",
@@ -2805,7 +2805,7 @@
             "hasCustomRecipients": true,
             "recipients": true,
             "metadata": true,
-            "checksum": true,
+            "checksumField": true,
             "disableVirusScan": true,
             "maxFileTransferSizeInMB": true,
             "hasCustomFileEndings": true,

@@ -19,26 +19,26 @@ export const BrokerFileTransferChecksum = ({
   handleComponentChange,
   className,
 }: BrokerFileTransferChecksumProps): React.ReactElement => {
-  const { checksum } = component;
+  const { checksumField } = component;
 
-  const changeChecksum = (newChecksum: BrokerFileTransferComponent['checksum']) =>
-    handleComponentChange({ ...component, checksum: newChecksum });
+  const changeChecksumField = (newChecksumField: BrokerFileTransferComponent['checksumField']) =>
+    handleComponentChange({ ...component, checksumField: newChecksumField });
 
   return (
     <>
       <ChecksumSwitch
         component={component}
-        propertyKey='checksum'
-        checked={!!checksum}
-        onChange={(checked) => changeChecksum(checked ? 'optional' : undefined)}
+        propertyKey='checksumField'
+        checked={!!checksumField}
+        onChange={(checked) => changeChecksumField(checked ? 'optional' : undefined)}
         className={className}
       />
-      {checksum && (
+      {checksumField && (
         <ChecksumSwitch
           component={component}
-          propertyKey='checksum_required'
-          checked={checksum === 'required'}
-          onChange={(checked) => changeChecksum(checked ? 'required' : 'optional')}
+          propertyKey='checksumField_required'
+          checked={checksumField === 'required'}
+          onChange={(checked) => changeChecksumField(checked ? 'required' : 'optional')}
           className={className}
         />
       )}

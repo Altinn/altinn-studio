@@ -6349,10 +6349,10 @@ const generatedContract = {
           examples: [{ caseNumber: ['dataModel', 'case.number'], category: 'invoice' }],
           required: false,
         },
-        checksum: {
+        checksumField: {
           type: 'string',
           allowedValues: ['optional', 'required'],
-          title: { en: 'Checksum', nb: 'Sjekksum' },
+          title: { en: 'Checksum field', nb: 'Felt for sjekksum' },
           description: {
             en: "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
             nb: 'Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv.',

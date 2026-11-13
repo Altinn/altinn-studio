@@ -63,7 +63,7 @@ export function BrokerFileTransferComponent({ baseComponentId }: PropsFromGeneri
             fileTransferId={formData.fileTransferId}
             fileTransferStatus={formData.fileTransferStatus}
             fileName={formData.fileName}
-            showChecksum={!config.checksum}
+            showChecksum={!config.checksumField}
             onRemove={isFailed && !readOnly ? removeTransfer : undefined}
           />
           <SentChecksum

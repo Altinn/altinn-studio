@@ -43,7 +43,7 @@ export function ChooseFile({
   const language = useCurrentLanguage();
   const allowedFileEndings = useAllowedFileEndings(baseComponentId);
   const { file, pickError, checksum, pick, remove, setChecksum } = useFilePick(baseComponentId, allowedFileEndings);
-  const { checksum: checksumSetting } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
+  const { checksumField } = useComponentConfig(baseComponentId, 'BrokerFileTransfer');
 
   if (interrupted?.kind === 'checking') {
     return <AltinnSpinner />;
@@ -71,9 +71,9 @@ export function ChooseFile({
       : undefined;
   // An interrupted file transfer already has its recipients, checksum and metadata
   const transferProblem = interrupted ? undefined : (setup.recipientsProblem ?? setup.metadataProblem);
-  const checksumToSend = checksumSetting && checksum ? checksum : undefined;
+  const checksumToSend = checksumField && checksum ? checksum : undefined;
   // The checksum field says what is wrong with the checksum, so here it only holds back sending
-  const isChecksumReady = checksumToSend ? !checksumProblem(checksumToSend) : checksumSetting !== 'required';
+  const isChecksumReady = checksumToSend ? !checksumProblem(checksumToSend) : checksumField !== 'required';
   const problem =
     pickError ?? wrongFile ?? (file ? (fileProblem(file, setup.maxFileSize, language) ?? transferProblem) : undefined);
   const error = sendError !== null ? sendErrorMessage(sendError) : undefined;

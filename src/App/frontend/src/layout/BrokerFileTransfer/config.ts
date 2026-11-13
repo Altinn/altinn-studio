@@ -116,10 +116,10 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'checksum',
+      'checksumField',
       new CG.enum('optional', 'required')
         .optional()
-        .setTitle('Checksum', 'Sjekksum')
+        .setTitle('Checksum field', 'Felt for sjekksum')
         .setDescription(
           "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
           'Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv.',
