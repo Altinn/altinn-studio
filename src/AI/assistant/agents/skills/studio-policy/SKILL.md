@@ -196,8 +196,7 @@ task:
 - A button that moves the process with an action, such as `reject` on a signing task, needs that action on the
   task in the policy. `ActionButton`, the server actions of `CustomButton`, and the signing and confirm buttons check
   the user's rights, and they know only `read`, `write` and the actions listed on the task in `process.bpmn`. So list
-  the action there too. The app also skips validation on `reject` only when the task lists `reject`. The
-  `studio-process` skill covers the process side.
+  the action there too. The app also skips validation on `reject` only when the task lists `reject`.
 - Users also need `instantiate` to start an instance and `read` to see it.
 - A user rule scoped to tasks must name every task the user acts on. The version file says what users need on
   service tasks.
