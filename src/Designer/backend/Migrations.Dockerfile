@@ -20,7 +20,7 @@ RUN dotnet restore Designer/backend/src/Designer/Designer.csproj && \
     dotnet build Designer/backend/src/Designer/Designer.csproj --no-restore /p:RunAnalyzers=false && \
     dotnet ef migrations script --project Designer/backend/src/Designer/Designer.csproj --no-build --idempotent -o /app/migrations.sql
 
-FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS final
+FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS final
 COPY --from=build /app/migrations.sql migrations.sql
 RUN apk --no-cache add postgresql-client
 
