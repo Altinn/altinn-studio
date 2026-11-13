@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
@@ -16,6 +16,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
@@ -50,7 +51,13 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
   const geometryDataFieldName = geometryDataBinding?.field.split('.').pop();
   const isEditableFieldName = isEditableBinding?.field.split('.').pop();
   const allGeometries = useMapParsedGeometries(baseComponentId);
-  const editableGeometries = useMemo(() => allGeometries?.filter((g) => g.isEditable), [allGeometries]);
+  // Rebuilding the layers below throws away leaflet-draw's state, and a layer added during a zoom animation is drawn
+  // at the wrong scale until the animation ends. Saves often give the rows a new identity without changing what is
+  // drawn (the backend adds fields such as `"Label": null`), so only rebuild when the drawn geometries change.
+  const editableGeometries = useMemoDeepEqual(
+    () => allGeometries?.filter((g) => g.isEditable).map(({ altinnRowId, data }) => ({ altinnRowId, data })),
+    [allGeometries],
+  );
 
   const geometryDataPath = toRelativePath(geometryBinding, geometryDataBinding);
 
