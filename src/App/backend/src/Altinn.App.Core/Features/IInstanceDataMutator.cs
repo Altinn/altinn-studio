@@ -95,6 +95,34 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
+    /// Copies <paramref name="model"/> into the form data of an existing data element.
+    /// </summary>
+    /// <remarks>
+    /// The copy is taken at the call and holds only the fields of the data model.
+    /// Make later changes to the returned object.
+    /// </remarks>
+    /// <returns>The element's form data, the object that <see cref="IInstanceDataAccessor.GetFormData"/> returns</returns>
+    Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model)
+        where T : class;
+
+    /// <summary>
+    /// Sets tags, metadata, user-defined metadata, refs or the filename of a data element.
+    /// </summary>
+    void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update);
+
+    /// <summary>
+    /// Sets a data value on the instance; null or empty removes the key.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">when the key is derived from <c>dataFields</c> in applicationmetadata.json</exception>
+    void SetDataValue(string key, string? value);
+
+    /// <summary>
+    /// Sets a presentation text on the instance; null or empty removes the key.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">when the key is derived from <c>presentationFields</c> in applicationmetadata.json</exception>
+    void SetPresentationText(string key, string? value);
+
+    /// <summary>
     /// Stop processing the request with current changes and return a BadRequest with the following issues
     /// This is intended to be an alternative to a <see cref="IFileAnalyzer"/> <see cref="IFileValidator"/>
     /// pair to ensure that new binary data is not saved if the data is not valid.

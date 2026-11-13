@@ -644,6 +644,26 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
         );
     }
 
+    /// <inheritdoc />
+    public void CopyFrom(object dataModel)
+    {
+        if (dataModel is not global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint source)
+        {
+            throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+
+        if (ReferenceEquals(source, _dataModel))
+        {
+            return;
+        }
+
+        _dataModel.Claimants = CopyRecursive(source.Claimants);
+        _dataModel.Agent = CopyRecursive(source.Agent);
+        _dataModel.Reference = source.Reference;
+    }
+
     [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("data")]
     private static global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint? CopyRecursive(
         global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint? data

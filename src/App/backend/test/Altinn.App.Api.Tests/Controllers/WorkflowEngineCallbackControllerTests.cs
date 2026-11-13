@@ -1170,6 +1170,79 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterAddingADataElement_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, _) => mutator.AddBinaryDataElement(DataTypeId, ContentType, "added.json", "{}"u8.ToArray())
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingADataValue_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem((mutator, _) => mutator.SetDataValue("status", "sent"));
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingAPresentationText_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, _) => mutator.SetPresentationText("status", "Sent")
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterUpdatingElementMetadata_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            (mutator, dataElement) =>
+                mutator.UpdateDataElementMetadata(dataElement, new DataElementMetadataUpdate { Tags = ["sent"] })
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterStagingACompleteConfirmation_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(
+            // Built-in service tasks such as eFormidling stage the confirmation.
+            (mutator, _) => Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation()
+        );
+
+    private static async Task AssertDeferralAfterStagingReturnsNonRetryableProblem(
+        Action<IInstanceDataMutator, DataElement> stageChange
+    )
+    {
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = DataTypeId,
+            ContentType = ContentType,
+        };
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(new DeferringServiceTask(stageChange, dataElement));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                dataElement.InstanceGuid = GetInstanceGuid(instance).ToString();
+                instance.Data.Add(dataElement);
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = DeferringServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(DeferringServiceTask.ServiceTaskType, ItemIndex: 0)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        Assert.Equal("Deferral With Data Changes", Assert.IsType<ProblemDetails>(objectResult.Value).Title);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
 
@@ -1379,6 +1452,24 @@ public class WorkflowEngineCallbackControllerTests
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+        }
+    }
+
+    private sealed class DeferringServiceTask(
+        Action<IInstanceDataMutator, DataElement> stageChange,
+        DataElement dataElement
+    ) : IServiceTask
+    {
+        public const string ServiceTaskType = "DeferAfterStagingForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
+        {
+            stageChange(context.InstanceDataMutator, dataElement);
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)));
         }
     }
 

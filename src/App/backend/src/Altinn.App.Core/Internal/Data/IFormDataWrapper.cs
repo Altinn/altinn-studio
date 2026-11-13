@@ -83,6 +83,15 @@ public interface IFormDataWrapper
     IFormDataWrapper Copy();
 
     /// <summary>
+    /// Copy the fields of the data model from <paramref name="dataModel"/>, which must be of the same type,
+    /// into the wrapped object
+    /// </summary>
+    /// <remarks>
+    /// Other members are not copied: the wrapped object keeps its own, and nested objects get their defaults.
+    /// </remarks>
+    void CopyFrom(object dataModel);
+
+    /// <summary>
     /// Set all Guid AltinnRowId fields to Guid.Empty (so that they don't get serialized to xml or json)
     /// </summary>
     void RemoveAltinnRowIds();

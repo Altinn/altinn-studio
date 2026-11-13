@@ -1542,7 +1542,12 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task<T> ReplaceFormData<T>(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, T model)
+            where T :  class;
+        void SetDataValue(string key, string? value);
+        void SetPresentationText(string key, string? value);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+        void UpdateDataElementMetadata(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, Altinn.App.Core.Models.DataElementMetadataUpdate update);
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -3090,6 +3095,7 @@ namespace Altinn.App.Core.Internal.Data
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();
+        void CopyFrom(object dataModel);
         object? Get(System.ReadOnlySpan<char> path);
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
@@ -4116,6 +4122,15 @@ namespace Altinn.App.Core.Models
         public static Altinn.App.Core.Models.DataElementIdentifier? op_Implicit(Altinn.Platform.Storage.Interface.Models.DataElement? dataElement) { }
         public static bool operator !=(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
         public static bool operator ==(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
+    }
+    public sealed class DataElementMetadataUpdate : System.IEquatable<Altinn.App.Core.Models.DataElementMetadataUpdate>
+    {
+        public DataElementMetadataUpdate() { }
+        public string? Filename { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? Metadata { get; init; }
+        public System.Collections.Generic.IReadOnlyList<System.Guid>? Refs { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Tags { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? UserDefinedMetadata { get; init; }
     }
     public class DataList
     {

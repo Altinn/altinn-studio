@@ -112,9 +112,9 @@ is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 process on this step — no worker held, no error recorded, retry counter reset — and runs it again after
 `delay`.
 
-- A deferral is **stateless**: nothing is saved, and instance data changes made by a deferring attempt are
-  rejected as a contract violation. Work that produces something durable belongs before the wait, in its
-  own stage.
+- A deferral is **stateless**: nothing is saved, and any change staged by a deferring attempt, such as a data
+  value or element metadata, is rejected as a contract violation. Work that produces something durable belongs
+  before the wait, in its own stage.
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
   step. Declare a polling pipeline's wait budget on `Finally`, the step that waits.
 - Read `StageContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)

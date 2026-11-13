@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
@@ -25,7 +26,7 @@ using RequestResponse = Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.R
 
 namespace Altinn.App.Core.Tests.Internal.Data;
 
-public sealed class InstanceDataUnitOfWorkTests
+public sealed partial class InstanceDataUnitOfWorkTests
 {
     [Fact]
     public async Task UpdateBinaryDataElement_RegistersUpdatedBinaryChange_AndReturnsUpdatedBytes()
@@ -52,6 +53,22 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal(setup.DataElement.ContentType, change.ContentType);
         Assert.Equal(setup.DataElement.Filename, change.FileName);
         Assert.True(change.CurrentBinaryData.Span.SequenceEqual(updatedBytes));
+    }
+
+    [Fact]
+    public async Task UpdateBinaryDataElement_SendsTheElementsFilename()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
+        Assert.Equal("payment.json", update.Filename);
     }
 
     [Fact]
@@ -1361,7 +1378,7 @@ public sealed class InstanceDataUnitOfWorkTests
             seedStorageVersions: true,
             blobVersionId: BlobVersion(1)
         );
-        setup.DataMutator.UpdateInstanceDataValue("eFormidlingShipmentStatus", "levert");
+        setup.DataMutator.SetDataValue("eFormidlingShipmentStatus", "levert");
         setup.DataMutator.AddCompleteConfirmation();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -2335,7 +2352,7 @@ public sealed class InstanceDataUnitOfWorkTests
             Encoding.UTF8.GetBytes("""{"status":"attempt-two"}""")
         );
         Guid stagedDataElementId = createdChange.DataElementIdentifier.Guid;
-        unitOfWork.UpdateInstanceDataValue("attempt", "two");
+        unitOfWork.SetDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
@@ -3907,6 +3924,16 @@ public sealed class InstanceDataUnitOfWorkTests
         public string? Status { get; set; }
 
         public string? CustomerName { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<PaymentLine>? Lines { get; set; }
+    }
+
+    private sealed class PaymentLine
+    {
+        public Guid AltinnRowId { get; set; }
+
+        public string? Description { get; set; }
     }
 
     public enum CustomAuthenticationMixture
