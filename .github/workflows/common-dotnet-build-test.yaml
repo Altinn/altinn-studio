@@ -1,0 +1,53 @@
+name: common .NET - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/common/dotnet/**'
+      - '.github/workflows/common-dotnet-build-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+# The components that use the shared code build and test it with their own workflows. This one runs its own tests.
+jobs:
+  test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Check formatting, build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: src/common/dotnet/Altinn.Studio.Common.Tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/common/dotnet/global.json
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Formatting
+        run: |
+          dotnet csharpier check .
+          dotnet csharpier check ../Altinn.Studio.Common
+
+      - name: Test
+        run: dotnet test
+
+      # The app model must also compile where an analyzer runs.
+      - name: Build the app model for netstandard2.0
+        run: dotnet build ../Altinn.Studio.Common.NetStandard
