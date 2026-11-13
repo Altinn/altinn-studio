@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:altinn="http://altinn.no/process" id="Altinn_DataTask_Gateway_Confirmation_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="DataAndConfirmation" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_Start_Task1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start_Task1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task1_Gateway</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1">
+      <bpmn:incoming>Flow_Task1_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_Task2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_2" name="Bekreftelse">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>confirmation</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Gateway_Task2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task2_End</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_Task2_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Rejected">
+      <bpmn:incoming>Flow_Gateway_Rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Task1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_Task1_Gateway" sourceRef="Task_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_Gateway_Task2" sourceRef="Gateway_1" targetRef="Task_2">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "confirm"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Gateway_Rejected" sourceRef="Gateway_1" targetRef="EndEvent_Rejected">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Task2_End" sourceRef="Task_2" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

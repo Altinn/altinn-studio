@@ -1,0 +1,31 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "CloseSubformButton-3daca186",
+        "type": "CustomButton",
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "closeSubform"
+          }
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "property1",
+            "dataType": "SubformModel"
+          }
+        },
+        "id": "Input-bYOAVi",
+        "type": "Input",
+        "required": true,
+        "textResourceBindings": {
+          "title": "Side1.Input-bYOAVi.title"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "InstanceInformation-79ZTcw",
+        "type": "InstanceInformation"
+      },
+      {
+        "id": "SummaryTask1",
+        "type": "Summary2",
+        "target": {
+          "type": "layoutSet",
+          "taskId": "Task_Utfylling1"
+        },
+        "overrides": [
+          {
+            "componentId": "Subform-z8we7d",
+            "hidden": true
+          }
+        ]
+      },
+      {
+        "id": "SummaryTask2",
+        "type": "Summary2",
+        "target": {
+          "type": "layoutSet",
+          "taskId": "Task_Utfylling2"
+        }
+      }
+    ]
+  }
+}
