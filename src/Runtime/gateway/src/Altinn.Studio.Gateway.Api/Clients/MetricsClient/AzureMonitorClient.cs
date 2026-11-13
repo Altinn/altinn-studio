@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
@@ -27,31 +28,149 @@ internal sealed class AzureMonitorClient(
     internal static readonly TimeSpan MaxReportPeriod = TimeSpan.FromDays(31) + TimeSpan.FromHours(1);
     private const int MaxActivityWindowDays = 30;
 
-    private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
+    /// <summary>
+    /// The requests whose failures the gateway counts, and that Grafana's alert rules for apps fire on. Each key is
+    /// both a metric name and an alert rule's <c>ruleId</c>, so a new rule in <c>infra/runtime/grafana-manifests</c>
+    /// needs a kind here. Each kind lists the operation names that the Application Insights SDK, which apps use by
+    /// default, and OpenTelemetry report for the request.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, FailedRequestKind> _failedRequestKinds = new Dictionary<
+        string,
+        FailedRequestKind
+    >
     {
         {
             "failed_process_next_requests",
-            [
-                "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
-                "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
-            ]
+            new FailedRequestKind(
+                [
+                    "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]",
+                    "PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next",
+                ],
+                LowestFailedStatusCode: 500
+            )
         },
         {
             "failed_instance_creation_requests",
-            [
-                "POST Instances/Post [app/org]",
-                "POST Instances/PostSimplified [app/org]",
-                "POST {org}/{app}/instances",
-                "POST {org}/{app}/instances/create",
-            ]
+            new FailedRequestKind(
+                [
+                    "POST Instances/Post [app/org]",
+                    "POST Instances/PostSimplified [app/org]",
+                    "POST {org}/{app}/instances",
+                    "POST {org}/{app}/instances/create",
+                ],
+                LowestFailedStatusCode: 500
+            )
+        },
+        {
+            // The workflow engine's callbacks to a v9 app. The engine fails a step at once on most 4xx answers, so
+            // these count from 400. The engine retries a failing step for a day, so a count of attempts tells a
+            // service owner nothing they can act on, and these count instances instead.
+            "failed_workflow_callback_requests",
+            new FailedRequestKind(
+                [
+                    "POST WorkflowEngineCallback/ExecuteCommand [app/commandKey/instanceGuid/instanceOwnerPartyId/org]",
+                    "POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey}",
+                ],
+                LowestFailedStatusCode: 400,
+                CountsInstances: true
+            )
         },
     };
 
-    private static readonly IReadOnlyDictionary<string, string> _operationNameReverseMap = _operationNames
-        .SelectMany(kvp => kvp.Value.Select(v => (Key: kvp.Key, Value: v)))
-        .ToDictionary(t => t.Value, t => t.Key);
+    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _failedRequestKinds.Keys.ToArray();
 
-    internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
+    /// <summary>
+    /// The KQL condition that matches the failed requests of every kind, on the workspace's <c>AppRequests</c> table.
+    /// Both the Application Insights SDK and the OpenTelemetry exporter mark a response from 400 up as unsuccessful,
+    /// so a kind's lowest failed status code is the only difference between them.
+    /// </summary>
+    private static readonly string _failedRequestCondition = string.Join(
+        " or ",
+        _failedRequestKinds
+            .Values.GroupBy(kind => kind.LowestFailedStatusCode)
+            .Select(group =>
+                $"(toint(ResultCode) >= {group.Key} and OperationName in ({KqlStrings(group.SelectMany(kind => kind.OperationNames))}))"
+            )
+    );
+
+    /// <summary>
+    /// The KQL expression that names the kind of a failed request, so that a kind that several operation names report
+    /// counts once.
+    /// </summary>
+    private static readonly string _failedRequestName =
+        "case("
+        + string.Join(
+            ", ",
+            _failedRequestKinds.Select(kind =>
+                $"OperationName in ({KqlStrings(kind.Value.OperationNames)}), '{kind.Key}'"
+            )
+        )
+        + ", '')";
+
+    /// <summary>
+    /// A KQL statement that binds <c>failed</c> to the failed requests of every kind, with the kind in <c>Name</c> and
+    /// the instance the request was for in <c>InstanceId</c>.
+    /// </summary>
+    private static readonly string _letFailedRequests = $"""
+        let failed = AppRequests
+            | where Success == false
+            | where ClientType != 'Browser'
+            | where {_failedRequestCondition}
+            | extend Name = {_failedRequestName}, InstanceId = extract(@'/instances/\d+/([^/]+)', 1, Url);
+        """;
+
+    /// <summary>
+    /// The KQL aggregations that <see cref="_failedRequestCount"/> picks from.
+    /// </summary>
+    private const string FailedRequestAggregates = "Requests = count(), Instances = dcount(InstanceId)";
+
+    /// <summary>
+    /// The KQL expression for the count of a kind: its requests, or the instances they were for.
+    /// </summary>
+    private static readonly string _failedRequestCount = _failedRequestKinds.Any(kind => kind.Value.CountsInstances)
+        ? $"iff(Name in ({KqlStrings(_failedRequestKinds.Where(kind => kind.Value.CountsInstances).Select(kind => kind.Key))}), todouble(Instances), todouble(Requests))"
+        : "todouble(Requests)";
+
+    /// <summary>
+    /// A KQL query that counts the failed requests in <paramref name="source"/> per bin and for the whole time range,
+    /// where a row without a bin holds the count for the whole range. A kind that counts instances cannot sum its
+    /// bins instead, since one instance can fail in several of them.
+    /// </summary>
+    private static string CountPerBinAndInTotal(string source, string groupBy, string interval) =>
+        $"""
+            {source}
+            | summarize {FailedRequestAggregates} by {groupBy}, DateTimeOffset = bin(TimeGenerated, {interval})
+            | union ({source} | summarize {FailedRequestAggregates} by {groupBy})
+            | project {groupBy}, DateTimeOffset, Count = {_failedRequestCount}
+            | order by DateTimeOffset desc
+            """;
+
+    /// <summary>
+    /// Reads the rows that <see cref="CountPerBinAndInTotal"/> returns for one kind.
+    /// </summary>
+    private static (long[] Timestamps, double[] Counts, double Total) ReadBinsAndTotal(IEnumerable<LogsTableRow> rows)
+    {
+        List<long> timestamps = [];
+        List<double> counts = [];
+        double total = 0;
+        foreach (LogsTableRow row in rows)
+        {
+            double count = row.GetDouble("Count") ?? 0;
+            if (row.GetDateTimeOffset("DateTimeOffset") is { } bin)
+            {
+                timestamps.Add(bin.ToUnixTimeMilliseconds());
+                counts.Add(count);
+            }
+            else
+            {
+                total = count;
+            }
+        }
+        return (timestamps.ToArray(), counts.ToArray(), total);
+    }
+
+    private static string KqlStrings(IEnumerable<string> values) =>
+        string.Join(", ", values.Select(value => $"'{value.Replace("'", "''")}'"));
 
     internal static IReadOnlyCollection<string> MetricNames { get; } =
     ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
@@ -73,13 +192,6 @@ internal sealed class AzureMonitorClient(
         var bucketSize = GetBucketSize(range);
         return $"{bucketSize}m";
     }
-
-    // Several operation names map to the same metric, so a metric can have more than one row per bucket.
-    // Sum them so that each bucket appears once in the series.
-    private static (long Timestamp, double Count)[] SumCountsPerBucket(IEnumerable<LogsTableRow> rows) =>
-        rows.GroupBy(row => row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0)
-            .Select(bucket => (bucket.Key, bucket.Sum(row => row.GetDouble("Count") ?? 0)))
-            .ToArray();
 
     /// <summary>
     /// Runs a query in its own span, and records its duration and outcome.
@@ -137,14 +249,12 @@ internal sealed class AzureMonitorClient(
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-        var query =
-            $@"
-                AppRequests
-                | where Success == false
-                | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
-                | summarize Count = count() by AppRoleName, OperationName;";
+        var query = $"""
+            {_letFailedRequests}
+            failed
+            | summarize {FailedRequestAggregates} by AppRoleName, Name
+            | project AppRoleName, Name, Count = {_failedRequestCount}
+            """;
 
         Response<LogsQueryResult> response = await Query(
             "failed_requests",
@@ -154,26 +264,12 @@ internal sealed class AzureMonitorClient(
             cancellationToken
         );
 
-        return response
-            .Value.Table.Rows.Select(row =>
-            {
-                return new
-                {
-                    AppName = row.GetString("AppRoleName"),
-                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
-                    Count = row.GetDouble("Count") ?? 0,
-                };
-            })
-            .GroupBy(row => new { row.AppName, row.Name })
-            .Select(row =>
-            {
-                return new FailedRequest
-                {
-                    Name = row.Key.Name,
-                    AppName = row.Key.AppName,
-                    Count = row.Sum(value => value.Count),
-                };
-            });
+        return response.Value.Table.Rows.Select(row => new FailedRequest
+        {
+            Name = row.GetString("Name"),
+            AppName = row.GetString("AppRoleName"),
+            Count = row.GetDouble("Count") ?? 0,
+        });
     }
 
     public async Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken)
@@ -335,16 +431,11 @@ internal sealed class AzureMonitorClient(
 
         var interval = GetInterval(range);
 
-        var query =
-            $@"
-                AppRequests
-                | where Success == false
-                | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where AppRoleName == '{app.Replace("'", "''")}'
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
-                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
-                | order by DateTimeOffset desc";
+        var query = $"""
+            {_letFailedRequests}
+            let appFailed = failed | where AppRoleName == '{app.Replace("'", "''")}';
+            {CountPerBinAndInTotal("appFailed", "Name", interval)}
+            """;
 
         Response<LogsQueryResult> response = await Query(
             "app_failed_requests",
@@ -355,25 +446,28 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.GroupBy(row => _operationNameReverseMap[row.GetString("OperationName")])
+            .Value.Table.Rows.GroupBy(row => row.GetString("Name"))
             .Select(group =>
             {
-                var buckets = SumCountsPerBucket(group);
+                var (timestamps, counts, total) = ReadBinsAndTotal(group);
                 return new AppFailedRequest
                 {
                     Name = group.Key,
-                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
-                    Counts = buckets.Select(bucket => bucket.Count),
+                    Timestamps = timestamps,
+                    Counts = counts,
+                    Count = total,
                 };
-            });
+            })
+            .ToList();
 
-        return _operationNames.Select(name =>
+        return _failedRequestKinds.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name.Key)
             ?? new AppFailedRequest
             {
                 Name = name.Key,
                 Timestamps = [],
                 Counts = [],
+                Count = 0,
             }
         );
     }
@@ -432,15 +526,10 @@ internal sealed class AzureMonitorClient(
 
         var interval = GetInterval(GetPeriodMinutes(from, to));
 
-        var query =
-            $@"
-                AppRequests
-                | where Success == false
-                | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500
-                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
-                | summarize Count = count() by AppRoleName, OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
-                | order by DateTimeOffset desc";
+        var query = $"""
+            {_letFailedRequests}
+            {CountPerBinAndInTotal("failed", "AppRoleName, Name", interval)}
+            """;
 
         Response<LogsQueryResult> response = await Query(
             "all_apps_failed_requests",
@@ -451,21 +540,17 @@ internal sealed class AzureMonitorClient(
         );
 
         return response
-            .Value.Table.Rows.GroupBy(row =>
-                (
-                    AppName: row.GetString("AppRoleName"),
-                    OpName: _operationNameReverseMap[row.GetString("OperationName")]
-                )
-            )
+            .Value.Table.Rows.GroupBy(row => (AppName: row.GetString("AppRoleName"), Name: row.GetString("Name")))
             .Select(group =>
             {
-                var buckets = SumCountsPerBucket(group);
+                var (timestamps, counts, total) = ReadBinsAndTotal(group);
                 return new AllAppsFailedRequest
                 {
                     AppName = group.Key.AppName,
-                    Name = group.Key.OpName,
-                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
-                    Counts = buckets.Select(bucket => bucket.Count),
+                    Name = group.Key.Name,
+                    Timestamps = timestamps,
+                    Counts = counts,
+                    Count = total,
                 };
             });
     }
@@ -541,7 +626,7 @@ internal sealed class AzureMonitorClient(
         DateTimeOffset to
     )
     {
-        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+        if (!_failedRequestKinds.TryGetValue(metricName, out var kind))
             throw new ArgumentException(
                 $"Unknown metricName '{metricName}'. Valid values: {string.Join(", ", OperationNameKeys)}",
                 nameof(metricName)
@@ -557,9 +642,11 @@ internal sealed class AzureMonitorClient(
             .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
             .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
             .Replace("{app_Names}", string.Join(", ", apps.Select(n => $"'{n.Replace("'", "''")}'")))
-            .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace("{lowest_Failed_Status_Code}", kind.LowestFailedStatusCode.ToString(CultureInfo.InvariantCulture))
+            .Replace("{operation_Names}", KqlStrings(kind.OperationNames))
             .Replace("\"{appNames}\"", string.Join(", ", apps.Select(name => $"\"{JsonEncodedText.Encode(name)}\"")))
-            .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
+            .Replace("\"{operationNames}\"", string.Join(",", kind.OperationNames.Select(n => $"\"{n}\"")))
+            .Replace("\"{resultCodes}\"", string.Join(",", kind.FailedStatusCodes.Select(code => $"\"{code}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 
         string encodedLogsQuery = Uri.EscapeDataString(minifiedJson);
@@ -571,5 +658,28 @@ internal sealed class AzureMonitorClient(
             $"https://portal.azure.com/#blade/AppInsightsExtension/BladeRedirect/BladeName/searchV1/ResourceId/{encodedApplicationInsightsId}/BladeInputs/{encodedLogsQuery}";
 
         return new Uri(url);
+    }
+
+    /// <param name="OperationNames">The names apps report for the request in Application Insights.</param>
+    /// <param name="LowestFailedStatusCode">The lowest response status that counts as a failure.</param>
+    /// <param name="CountsInstances">
+    /// Whether the kind counts the instances its failed requests were for, rather than the requests.
+    /// </param>
+    private sealed record FailedRequestKind(
+        string[] OperationNames,
+        int LowestFailedStatusCode,
+        bool CountsInstances = false
+    )
+    {
+        /// <summary>
+        /// The status codes from <see cref="LowestFailedStatusCode"/> up, for the response code filter that the
+        /// Application Insights search shows.
+        /// </summary>
+        public IEnumerable<int> FailedStatusCodes =>
+            Enum.GetValues<HttpStatusCode>()
+                .Select(code => (int)code)
+                .Where(code => code >= LowestFailedStatusCode)
+                .Distinct()
+                .Order();
     }
 }

@@ -190,11 +190,30 @@ retention period, which bounds how long a resume is possible.
 - A failed primary workflow leaves the instance stuck until someone calls `process/resume`. It resumes the failed
   workflow with cascade, so the condemned workflows run too, and waits like `process/next`. The frontend offers the
   user a retry when a service task failed. Other failures show the support reference, and an operator resumes them.
-- A failed auxiliary workflow means lost events or a lost notification. Only the engine's
-  [failure alert](../../../Runtime/workflow-engine/docs/technical-guide.md#alerting-on-terminal-failures) shows it,
-  with `is_head="false"`. An operator resumes it with the engine's resume API, which is always valid since it carries
-  its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
-  auxiliary workflows until a resume.
+- A failed auxiliary workflow means lost events or a lost notification. The process never shows it. The
+  [alerts](#alerts) report it, and Studio's admin panel lists it among the app's instances with problems. The service
+  owner or an operator resumes it from the admin panel, which calls the engine's resume API. A resume is always valid,
+  since the workflow carries its own state. `process/resume` never targets it. A failure in the process-end steps
+  holds back that transition's auxiliary workflows until a resume.
+
+## Alerts
+
+Two alerts report failed workflows, to different people:
+
+- The engine's [failure alert](../../../Runtime/workflow-engine/docs/technical-guide.md#alerting-on-terminal-failures)
+  reaches the team that runs the engine. Its metrics name no app or instance, so it says that workflows fail, not
+  where. `is_head="false"` marks an auxiliary workflow.
+- The workflow alert, one of the [alerts for apps](../../../Runtime/gateway/README.md#alerts-for-apps), reaches the
+  service owner's contact points, with a link to the instance in Studio's admin panel. It reads the callbacks among
+  the app's own requests in Application Insights. It fires for an instance when a step gets a permanent failure, or
+  has had no successful callback for an hour since it first failed. The
+  [rule](../../../../infra/runtime/grafana-manifests/alert-rules/altinn-apps.yaml) explains the hour.
+
+A primary workflow that fails while a `process/next` request waits also fires the service owner's `process/next`
+alert. The workflow alert sees only the callbacks that reach the app, so it misses:
+
+- a step the engine cannot deliver, for example while the app is down
+- a step whose wait budget runs out, since the app answered each of its callbacks with a deferral
 
 ## Mailboxes
 
@@ -258,7 +277,7 @@ app does not guard against it. Names would not help either, since a redeploy can
   fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
   committed.
 - An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
-  therefore shows only in the failure alert.
+  therefore shows only in the [alerts](#alerts) and the admin panel.
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable

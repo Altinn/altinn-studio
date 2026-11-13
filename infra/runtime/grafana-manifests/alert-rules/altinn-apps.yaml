@@ -211,3 +211,132 @@ spec:
         Org: ${SERVICEOWNER_ID}
         Env: ${ENVIRONMENT}
       isPaused: false
+    # A workflow step in a v9 app has failed for good, or has kept failing for an hour. The engine calls the app back
+    # for every step, so the app's own requests show each attempt. A v8 app has no callback route, so it never matches.
+    # The first operation name is the Application Insights SDK's, which apps use by default, and the second is
+    # OpenTelemetry's.
+    #
+    # The engine's AppCommand ends a step at once on any 4xx except 408, 418 and 429, so one such answer fires. It
+    # retries a 5xx, 408, 418 and 429, and a 499 is an attempt it abandoned at its timeout and retries too.
+    #
+    # A retried failure fires once the step has had no successful callback for an hour since it first failed. The
+    # engine's default strategy waits from 1 s, doubling to 5 min, for a day. Its first ten attempts take 8.5 minutes,
+    # which is enough for a restart, a deploy or a short outage of a platform service to heal. A step that still fails
+    # after an hour, about twenty attempts, needs someone to fix it, and the engine keeps retrying it for most of a
+    # day. Measuring time rather than counting failures also catches a step whose own retry strategy gives up sooner.
+    #
+    # Command keys name a command, not a step, so a later success of the same command in the same instance restarts
+    # the hour. That can delay the alert but never fires it. A final failure therefore fires without looking at
+    # later successes. It counts for 15 minutes, so a request that reaches Application Insights late still fires.
+    - uid: failed_workflow_callback_requests
+      title: Feilende arbeidsflyter
+      condition: C
+      data:
+        - refId: A
+          queryType: Azure Log Analytics
+          relativeTimeRange:
+            from: 7200
+            to: 0
+          datasourceUid: azure-monitor-oob
+          model:
+            azureLogAnalytics:
+                dashboardTime: true
+                query: |-
+                    let callbacks = requests
+                        | where $__timeFilter(timestamp)
+                        | where operation_Name == 'POST WorkflowEngineCallback/ExecuteCommand [app/commandKey/instanceGuid/instanceOwnerPartyId/org]'
+                            or operation_Name == 'POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks/{commandKey}'
+                        | extend statusCode = toint(resultCode),
+                            instanceId = extract(@'/instances/\d+/([^/]+)', 1, url),
+                            commandKey = extract(@'/workflow-engine-callbacks/([^/?]+)', 1, url)
+                        | project timestamp, cloud_RoleName, instanceId, commandKey, statusCode;
+                    let failedForGood = callbacks
+                        | where timestamp > ago(15m)
+                        | where statusCode between (400 .. 499) and statusCode !in (408, 418, 429, 499)
+                        | distinct cloud_RoleName, instanceId;
+                    let failingForAnHour = callbacks
+                        | summarize lastSuccess = maxif(timestamp, statusCode < 400) by cloud_RoleName, instanceId, commandKey
+                        | join kind=inner (callbacks | where statusCode >= 400) on cloud_RoleName, instanceId, commandKey
+                        | where isnull(lastSuccess) or timestamp > lastSuccess
+                        | summarize firstFailure = min(timestamp) by cloud_RoleName, instanceId, commandKey
+                        | where firstFailure < ago(1h)
+                        | distinct cloud_RoleName, instanceId;
+                    union failedForGood, failingForAnHour
+                    | summarize count() by cloud_RoleName, instanceId
+                resources:
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                resultFormat: time_series
+                timeColumn: timestamp
+                workspace: ""
+            datasource:
+                type: grafana-azure-monitor-datasource
+                uid: azure-monitor-oob
+            instant: false
+            intervalMs: 1000
+            maxDataPoints: 43200
+            queryType: Azure Log Analytics
+            range: true
+            refId: A
+        - refId: B
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: A
+            intervalMs: 1000
+            maxDataPoints: 43200
+            reducer: last
+            refId: B
+            type: reduce
+        - refId: C
+          datasourceUid: __expr__
+          model:
+            conditions:
+                - evaluator:
+                    params:
+                        - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                        - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+            datasource:
+                type: __expr__
+                uid: __expr__
+            expression: B
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: C
+            type: threshold
+      noDataState: OK
+      execErrState: Error
+      annotations:
+        ruleId: failed_workflow_callback_requests
+        # The gateway's logs link covers this many minutes before the alert fired, the whole window the query reads.
+        intervalInMinutes: "120"
+      labels:
+        Type: Altinn
+        # Org and Env are included to ensure each deployment generates a unique fingerprint,
+        # which is used as the idempotency key for SMS/email notifications.
+        Org: ${SERVICEOWNER_ID}
+        Env: ${ENVIRONMENT}
+      isPaused: false

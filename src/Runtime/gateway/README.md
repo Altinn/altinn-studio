@@ -18,6 +18,21 @@ it counts a cluster as up only on a 200 whose body starts with `{"status":"healt
 The checks call services at the addresses apps get from [apps-config](../../../infra/runtime/apps-config), so a cluster
 fault that breaks apps also fails them, as in [altinn-platform#4358](https://github.com/Altinn/altinn-platform/issues/4358).
 
+## Alerts for apps
+
+Service owners get alerts about their own apps. Grafana in each runtime cluster runs the
+[rules for apps](../../../infra/runtime/grafana-manifests/alert-rules/altinn-apps.yaml) on the requests in the
+service owner's Application Insights, and sends what fires to the gateway. The gateway accepts a rule whose `ruleId`
+the [AzureMonitorClient](src/Altinn.Studio.Gateway.Api/Clients/MetricsClient/AzureMonitorClient.cs) knows, adds a link
+to the failed requests in Application Insights, and forwards the alert to Designer. Designer notifies Altinn's Slack
+and the contact points that the service owner registered in Studio.
+
+The `ruleId` also names the rule's error count in the admin panel and in the periodic reports, so a new rule needs the
+same id in the gateway, in Designer's report and in the admin panel's texts. The count is of failed requests, except
+for failed workflow callbacks, which count instances. The engine retries a failing step for a day, so the number of
+attempts says nothing a service owner can act on. A count of instances cannot be summed across time buckets, so the
+gateway sends the count for the whole period beside the buckets.
+
 ## Telemetry
 
 The gateway follows the observability standard. The gateway dashboard in
