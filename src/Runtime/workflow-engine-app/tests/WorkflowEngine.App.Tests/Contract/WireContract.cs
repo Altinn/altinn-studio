@@ -277,12 +277,17 @@ internal static class WireContract
 
         private static string EnumKind(Type type, string? converter)
         {
-            var asString = converter is "JsonStringEnumConverter" or "FlexibleEnumConverter";
+            // The app reads the engine's enums with TolerantEnumConverter, which reads a name it does not know as the
+            // enum's Unknown member. That member is the app's own and never on the wire, so it is left out. The app
+            // must still know every other value the engine has.
+            var tolerant = converter is "TolerantEnumConverter";
+            var asString = tolerant || converter is "JsonStringEnumConverter" or "FlexibleEnumConverter";
             var members = Enum.GetValues(type)
                 .Cast<object>()
                 .Select(value =>
                     (Name: Enum.GetName(type, value), Value: Convert.ToInt64(value, CultureInfo.InvariantCulture))
                 )
+                .Where(member => !(tolerant && member.Name == "Unknown"))
                 .OrderBy(member => member.Value)
                 .Select(member => $"{member.Name}={member.Value.ToString(CultureInfo.InvariantCulture)}");
             return $"enum<{(asString ? "string" : "int")}>{{{string.Join(",", members)}}}";

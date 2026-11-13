@@ -3879,6 +3879,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public AppCallbackMailbox() { }
         [System.Text.Json.Serialization.JsonPropertyName("delivery")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailboxDelivery? Delivery { get; init; }
+        [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.TolerantEnumConverter<Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason>?))]
         [System.Text.Json.Serialization.JsonPropertyName("disposedReason")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason? DisposedReason { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("id")]
@@ -3931,9 +3932,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
 }
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine
 {
-    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason>))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.TolerantEnumConverter<Altinn.App.Core.Internal.WorkflowEngine.Models.Engine.MailboxDisposedReason>))]
     public enum MailboxDisposedReason
     {
+        Unknown = -1,
         Request = 0,
         Deadline = 1,
     }

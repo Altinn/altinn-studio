@@ -6,12 +6,16 @@ keep the two sets of models from drifting apart without coupling the builds.
 
 [`wire-contract.verified.json`](wire-contract.verified.json) describes the contract's JSON shapes. `WireContract.cs`
 produces the description and ignores what does not change the JSON, such as namespaces and equivalent converters.
+It also leaves out the `Unknown` member that the app gives each enum it reads, since that member is never on the wire.
 `EngineWireContractTests` here checks the engine's types against the file. `AppWireContractTests` in
 `Altinn.App.Core.Tests` compiles in the same describer and checks the app's copies against it.
 
 The app's check is directional, since the app consumes the contract rather than mirroring it. Every field the app
 models must exist in the engine with the same shape, and the app must model every non-nullable engine field. The app
 may leave out optional fields and responses it does not use.
+
+The check compares the two at one commit, so it cannot see an app version that is already released.
+[Changing the wire contract](../../../README.md#changing-the-wire-contract) says what keeps those working.
 
 When you change an engine model, regenerate the file with
 `UPDATE_WIRE_CONTRACT=1 dotnet test --filter FullyQualifiedName~EngineWireContractTests`, review its diff, and update

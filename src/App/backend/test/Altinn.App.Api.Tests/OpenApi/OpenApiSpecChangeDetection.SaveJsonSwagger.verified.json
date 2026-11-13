@@ -10624,7 +10624,8 @@
       "MailboxDisposedReason": {
         "enum": [
           "Request",
-          "Deadline"
+          "Deadline",
+          "Unknown"
         ],
         "type": "string"
       },

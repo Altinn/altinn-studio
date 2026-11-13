@@ -128,7 +128,13 @@ public sealed record AppCallbackMailbox
     /// Why the mailbox closed, when no delivery is present. Wording only — both reasons demand the same
     /// response.
     /// </summary>
+    /// <remarks>
+    /// The converter is on the property as well as on the enum because the callback controller binds this payload
+    /// with the app's JSON options. A converter an app adds to those options takes precedence over the enum's own,
+    /// and would fail the callback on a reason this version does not know.
+    /// </remarks>
     [JsonPropertyName("disposedReason")]
+    [JsonConverter(typeof(TolerantEnumConverter<MailboxDisposedReason>))]
     public MailboxDisposedReason? DisposedReason { get; init; }
 }
 

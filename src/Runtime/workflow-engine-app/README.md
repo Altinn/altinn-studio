@@ -9,6 +9,18 @@ and how the app authenticates its callbacks.
 The engine owns the wire contract with the app backend. [The contract tests](tests/WorkflowEngine.App.Tests/Contract/README.md)
 keep the app's copies of the models from drifting.
 
+## Changing the wire contract
+
+Released versions of the app read the engine's responses and the callbacks of `AppCommand` with the models they
+shipped with, and the engine deploys ahead of them. The contract tests compare the models at one commit, so they cannot
+see a released app. A change to what apps read is therefore additive:
+
+- It adds fields and values, and removes or renames none that an app reads.
+- A field or value that a released app reads keeps its meaning.
+- A new enum value is safe for an app that reads it as unknown. The app counts a workflow or step with an unknown
+  status as still running, never as failed or finished, so a new status that means either leaves released apps
+  waiting on the workflow.
+
 ## Where it runs
 
 The runtime clusters of at23 and tt02 run it, from their syncroots in [`infra/runtime/syncroot`](../../../infra/runtime/syncroot).

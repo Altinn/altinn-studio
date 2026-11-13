@@ -256,6 +256,8 @@ internal sealed class ExecuteServiceTask(
             );
         }
 
+        // A reason this version does not know reads as Request. The mailbox closed all the same, and the task
+        // concludes the exchange the same way for either reason.
         return await onClosed(
             receipt.DisposedReason switch
             {
