@@ -37,13 +37,12 @@ internal static class ServiceOwnerPolicyUtils
         List<Diagnostic> diagnostics
     )
     {
-        var (metadataOrg, metadataApp, autoDeleteOnProcessEnd) = ReadMetadata(metadataFile, token);
+        var (metadataOrg, metadataApp, autoDeleteOnProcessEnd, confirmOnProcessEnd) = ReadMetadata(metadataFile, token);
 
-        // Without a process there is no way to tell whether a task marks the instance complete, but
-        // the baseline still applies - every app reads and writes instance data.
+        // The process only names the end events that a 'complete' grant may be scoped to.
         var processContent = processFile?.GetText(token)?.ToString();
         var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
-        var requirements = BuildRequirements(process, autoDeleteOnProcessEnd);
+        var requirements = BuildRequirements(autoDeleteOnProcessEnd, confirmOnProcessEnd);
 
         if (policyFile is null)
         {
@@ -90,15 +89,15 @@ internal static class ServiceOwnerPolicyUtils
             return;
         }
 
-        if (processFile is not null && process is null)
+        if (confirmOnProcessEnd && processFile is not null && process is null)
         {
             diagnostics.Add(
                 NotVerifiable(
                     location,
                     org,
                     app,
-                    AllActions(requirements),
-                    "process.bpmn could not be parsed, so the actions the process needs could not be determined"
+                    Format(ServiceOwnerActions.Complete),
+                    "process.bpmn could not be parsed, so a grant scoped to an end event could not be checked"
                 )
             );
         }
@@ -142,9 +141,9 @@ internal static class ServiceOwnerPolicyUtils
 
     /// <summary>
     /// The actions the app owner must hold, in a stable order: the unconditional baseline first,
-    /// then the ones the process and the app metadata add.
+    /// then the ones the app metadata adds.
     /// </summary>
-    private static List<Requirement> BuildRequirements(ProcessInfo? process, bool autoDeleteOnProcessEnd)
+    private static List<Requirement> BuildRequirements(bool autoDeleteOnProcessEnd, bool confirmOnProcessEnd)
     {
         var requirements = new List<Requirement>
         {
@@ -152,12 +151,12 @@ internal static class ServiceOwnerPolicyUtils
             new(ServiceOwnerActions.Write, "writes instance data"),
         };
 
-        if (process?.TaskTypes.Any(ServiceOwnerActions.MarksInstanceComplete) == true)
+        if (confirmOnProcessEnd)
         {
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
-                    "can mark the instance complete after shipping it to eFormidling or fiks arkiv"
+                    "confirms the instance as complete at process end (onProcessEnd.confirm)"
                 )
             );
         }
@@ -180,7 +179,7 @@ internal static class ServiceOwnerPolicyUtils
 
     private static string Format(IReadOnlyList<string> actions) => string.Join(", ", actions);
 
-    private static (string? Org, string? App, bool AutoDeleteOnProcessEnd) ReadMetadata(
+    private static (string? Org, string? App, bool AutoDeleteOnProcessEnd, bool ConfirmOnProcessEnd) ReadMetadata(
         AdditionalText? metadataFile,
         CancellationToken token
     )
@@ -188,7 +187,7 @@ internal static class ServiceOwnerPolicyUtils
         var content = metadataFile?.GetText(token)?.ToString();
         if (content is null)
         {
-            return (null, null, false);
+            return (null, null, false, false);
         }
 
         try
@@ -197,7 +196,7 @@ internal static class ServiceOwnerPolicyUtils
             if (metadata.Type != JsonType.Object)
             {
                 // Structural errors are reported by the FormDataWrapperAnalyzer (ALTINNAPP0002).
-                return (null, null, false);
+                return (null, null, false, false);
             }
 
             var orgProperty = metadata.GetProperty("org");
@@ -217,16 +216,19 @@ internal static class ServiceOwnerPolicyUtils
             }
 
             var autoDelete = metadata.GetProperty("autoDeleteOnProcessEnd");
+            var onProcessEnd = metadata.GetPropertyIgnoreCase("onProcessEnd");
+            var confirm = onProcessEnd?.Type == JsonType.Object ? onProcessEnd.GetPropertyIgnoreCase("confirm") : null;
             return (
                 string.IsNullOrWhiteSpace(org) ? null : org,
                 string.IsNullOrWhiteSpace(app) ? null : app,
-                autoDelete?.Type == JsonType.Boolean && autoDelete.GetBool()
+                autoDelete?.Type == JsonType.Boolean && autoDelete.GetBool(),
+                confirm?.Type == JsonType.Boolean && confirm.GetBool()
             );
         }
         catch (NanoJsonException)
         {
             // Malformed JSON is reported by the FormDataWrapperAnalyzer (ALTINNAPP0002).
-            return (null, null, false);
+            return (null, null, false, false);
         }
     }
 

@@ -36,44 +36,14 @@ public class ServiceOwnerPolicyUtilsTests
         await Verify(diagnostics);
     }
 
-    [Theory]
-    [InlineData("payment")]
-    [InlineData("signing")]
-    [InlineData("confirmation")]
-    [InlineData("pdfIfRequested")]
-    public void No_Task_Needs_A_Task_Specific_Action(string taskType)
-    {
-        // Storage always allows the app owner to commit a process transition, abandoning the task
-        // included. Demanding 'pay', 'sign', 'confirm', 'reject' or a custom task-type action would
-        // be a false positive.
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_1", taskType, Actions: ["reject"]))
-        );
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Theory]
-    [InlineData("eFormidling")]
-    [InlineData("fiksArkiv")]
-    public void Shipping_Task_Types_Need_Complete(string taskType)
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
-            ProcessFixtures.Process(new ProcessTask("Task_2", taskType))
-        );
-
-        Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
-    }
-
     [Fact]
-    public void An_End_Event_Scoped_Complete_Grant_Covers_A_Shipping_Task()
+    public void An_End_Event_Scoped_Complete_Grant_Covers_OnProcessEnd_Confirm()
     {
         // How the standard policy template grants it: 'complete' only happens at an end event.
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(confirmOnProcessEnd: true)
         );
 
         Assert.Empty(diagnostics);
@@ -87,7 +57,8 @@ public class ServiceOwnerPolicyUtilsTests
                 PolicyFixtures.OrgRule(["read", "write"]),
                 PolicyFixtures.OrgRule(["complete"], endEvent: "RenamedEndEvent")
             ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(confirmOnProcessEnd: true)
         );
 
         Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
@@ -273,7 +244,8 @@ public class ServiceOwnerPolicyUtilsTests
                     endEventMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
                 )
             ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(confirmOnProcessEnd: true)
         );
 
         Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
@@ -281,46 +253,45 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
-    public void Process_Elements_Outside_The_Altinn_And_Bpmn_Namespaces_Are_Ignored()
+    public void An_End_Event_Outside_The_Bpmn_Namespace_Is_Ignored()
     {
-        // Every element here has the right local name in the wrong namespace, so the app runtime
-        // (which binds to these namespaces) reads none of it. Honouring it would invent a 'complete'
-        // requirement for an eFormidling task and an end-event scope out of a vendor extension.
+        // The app runtime binds to the BPMN namespace, so it never reaches a vendor's end event, and a
+        // 'complete' grant scoped to one grants nothing.
         var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["read", "write"]),
+                PolicyFixtures.OrgRule(["complete"], endEvent: "VendorEnd_1")
+            ),
             """
             <?xml version="1.0" encoding="UTF-8"?>
             <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                              xmlns:altinn="http://altinn.no/process"
                               xmlns:foo="urn:example:vendor">
               <bpmn:process id="Process_1">
-                <bpmn:task id="Task_1">
-                  <bpmn:extensionElements>
-                    <altinn:taskExtension>
-                      <altinn:taskType>data</altinn:taskType>
-                    </altinn:taskExtension>
-                    <foo:taskExtension>
-                      <foo:taskType>eFormidling</foo:taskType>
-                      <foo:actions><foo:action>reject</foo:action></foo:actions>
-                    </foo:taskExtension>
-                  </bpmn:extensionElements>
-                </bpmn:task>
                 <foo:endEvent id="VendorEnd_1" />
               </bpmn:process>
             </bpmn:definitions>
-            """
+            """,
+            metadata: Metadata(confirmOnProcessEnd: true)
         );
 
-        Assert.Empty(diagnostics);
+        Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
     }
 
-    [Fact]
-    public void An_Unreadable_Process_Is_Reported_But_The_Baseline_Is_Still_Checked()
+    [Theory]
+    [InlineData(true, new[] { "complete" })]
+    [InlineData(false, new string[0])]
+    public void An_Unreadable_Process_Is_Reported_Only_When_Complete_Is_Needed(bool confirm, string[] notVerifiable)
     {
-        var diagnostics = Collect(PolicyFixtures.Policy(PolicyFixtures.RoleRule("read")), "<bpmn:definitions");
+        // The process only supplies the end events a 'complete' grant may be scoped to.
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.RoleRule("read")),
+            "<bpmn:definitions",
+            metadata: Metadata(confirmOnProcessEnd: confirm)
+        );
 
-        Assert.Contains(diagnostics, d => d.Id == NotVerifiable && d.GetMessage().Contains("process.bpmn"));
-        Assert.Equal(["read", "write"], Actions(diagnostics, MissingGrant));
+        Assert.Equal(notVerifiable, Actions(diagnostics, NotVerifiable));
+        Assert.All(diagnostics.Where(d => d.Id == NotVerifiable), d => Assert.Contains("process.bpmn", d.GetMessage()));
+        Assert.Equal(["read", "write"], Actions(diagnostics, MissingGrant)[..2]);
     }
 
     [Fact]
@@ -386,12 +357,17 @@ public class ServiceOwnerPolicyUtilsTests
             .ToArray();
     }
 
-    private static string Metadata(string id = "ttd/app", bool autoDeleteOnProcessEnd = false) =>
+    private static string Metadata(
+        string id = "ttd/app",
+        bool autoDeleteOnProcessEnd = false,
+        bool confirmOnProcessEnd = false
+    ) =>
         $$"""
             {
               "id": "{{id}}",
               "org": "{{id.Split('/')[0]}}",
               "autoDeleteOnProcessEnd": {{(autoDeleteOnProcessEnd ? "true" : "false")}},
+              {{(confirmOnProcessEnd ? "\"onProcessEnd\": { \"confirm\": true }," : "")}}
               "dataTypes": []
             }
             """;

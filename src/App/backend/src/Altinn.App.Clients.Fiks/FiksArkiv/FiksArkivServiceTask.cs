@@ -7,7 +7,6 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmeldingkvittering;
 using KS.Fiks.Arkiv.Models.V1.Feilmelding;
@@ -28,7 +27,6 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 {
     private readonly ILogger<FiksArkivServiceTask> _logger;
     private readonly IFiksArkivMessageSender _fiksArkivMessageSender;
-    private readonly IFiksArkivInstanceClient _fiksArkivInstanceClient;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly FiksArkivSettings _fiksArkivSettings;
 
@@ -43,14 +41,12 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
     public FiksArkivServiceTask(
         IFiksArkivMessageSender fiksArkivMessageSender,
-        IFiksArkivInstanceClient fiksArkivInstanceClient,
         AppImplementationFactory appImplementationFactory,
         IOptions<FiksArkivSettings> fiksArkivSettings,
         ILogger<FiksArkivServiceTask> logger
     )
     {
         _fiksArkivMessageSender = fiksArkivMessageSender;
-        _fiksArkivInstanceClient = fiksArkivInstanceClient;
         _appImplementationFactory = appImplementationFactory;
         _fiksArkivSettings = fiksArkivSettings.Value;
         _logger = logger;
@@ -202,7 +198,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
         if (message.IsReceipt)
         {
-            return await HandleArchiveReceipt(context, message);
+            return HandleArchiveReceipt(context, message);
         }
 
         if (message.IsAcknowledgement)
@@ -283,7 +279,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     private string ErrorAction() =>
         _fiksArkivSettings.ErrorHandling?.GetActionOrDefault() ?? FiksArkivErrorHandlingSettings.DefaultAction;
 
-    private async Task<ServiceTaskResult> HandleArchiveReceipt(StageContext context, FiksArkivReceivedMessage message)
+    private ServiceTaskResult HandleArchiveReceipt(StageContext context, FiksArkivReceivedMessage message)
     {
         if (message.Payloads.OfType<FiksArkivReceivedMessagePayload.Receipt>().FirstOrDefault() is not { } receipt)
         {
@@ -304,18 +300,6 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         }
 
         SaveArchiveReceipt(context, receipt);
-
-        // Before concluding: the conclusion advances the process, which may end it and take the instance along.
-        if (
-            _fiksArkivSettings.SuccessHandling?.MarkInstanceComplete
-            ?? FiksArkivSuccessHandlingSettings.DefaultMarkInstanceComplete
-        )
-        {
-            await _fiksArkivInstanceClient.MarkInstanceComplete(
-                new InstanceIdentifier(context.InstanceDataMutator.Instance),
-                context.CancellationToken
-            );
-        }
 
         return ServiceTaskResult.Success(action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault());
     }

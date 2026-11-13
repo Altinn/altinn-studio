@@ -17,11 +17,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
 - Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 - Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+- Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Changed
 
 - Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
+- Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Fixed
 

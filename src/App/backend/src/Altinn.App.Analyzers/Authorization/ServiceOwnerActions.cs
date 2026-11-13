@@ -19,18 +19,9 @@ internal static class ServiceOwnerActions
     /// </summary>
     internal static readonly string[] Write = ["write"];
 
-    /// <summary>Action required to mark an instance complete (<c>POST instances/{id}/complete</c>).</summary>
+    /// <summary>Action required to confirm an instance as complete for the service owner.</summary>
     internal static readonly string[] Complete = ["complete"];
 
     /// <summary>Action required to hard-delete an instance at process end.</summary>
     internal static readonly string[] Delete = ["delete"];
-
-    /// <summary>
-    /// Task types whose service task marks the instance complete as the service owner, which
-    /// requires the <c>complete</c> action. eFormidling always does this; fiks arkiv does it when
-    /// configured to (<c>FiksArkivSettings.SuccessHandling.MarkInstanceComplete</c>), and that
-    /// configuration is not visible at build time - it can come from appsettings, environment
-    /// variables or code - so the requirement is unconditional for both.
-    /// </summary>
-    internal static bool MarksInstanceComplete(string taskType) => taskType is "eFormidling" or "fiksArkiv";
 }

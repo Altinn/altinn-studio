@@ -24,8 +24,9 @@ these rules:
   steps, so each group runs while Storage holds the task it belongs to. Storage checks a data type's `taskIds` against
   the stored current task, with no exception for a process transition, so a task-end step can write the leaving task's
   data and a task-start step the entering task's, and neither can write data bound to another task.
-- The process-end steps run after the commit. The one write made with no current task is `DeleteDataOnProcessEnd`,
-  which Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
+- The process-end steps run after the commit, with no current task. `DeleteDataOnProcessEnd` deletes data, which
+  Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
+  `ConfirmCompleteOnProcessEnd` confirms the instance, which writes no data.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
 - A process hook gets a step only when one of the app's handlers runs for the task, or for the process end, so a
@@ -98,6 +99,9 @@ the same decision.
   separate keys. Values that other systems set, such as `dialog.id`, reach the callback state with the next save.
 - With `autoDeleteOnProcessEnd`, the release save also hard-deletes the instance. Storage accepts that only together
   with the ended state and the move to `idle`.
+- With `onProcessEnd.confirm`, a step after the process has ended confirms the instance as complete for the service
+  owner, so Storage checks the `complete` grant against the end event. It runs before the release, because Storage
+  refuses a confirmation in the save that hard-deletes the instance.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)

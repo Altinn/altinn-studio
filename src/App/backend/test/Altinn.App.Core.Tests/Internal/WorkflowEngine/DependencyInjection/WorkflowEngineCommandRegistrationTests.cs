@@ -121,7 +121,12 @@ public class WorkflowEngineCommandRegistrationTests
         );
         CollectCommandKeys(
             WorkflowStepSet.GetProcessEndSteps(
-                new ProcessEndContext { ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(), RegisterEvents = true }
+                new ProcessEndContext
+                {
+                    ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(),
+                    RegisterEvents = true,
+                    ConfirmComplete = true,
+                }
             ),
             keys
         );

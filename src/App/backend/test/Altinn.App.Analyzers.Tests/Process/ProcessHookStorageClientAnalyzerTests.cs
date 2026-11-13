@@ -28,6 +28,9 @@ public class ProcessHookStorageClientAnalyzerTests
     private const string Refused =
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
     private const string NotRefused = "The instance data mutator has no replacement for it";
+    private const string ConfirmOnProcessEnd =
+        "Storage refuses this call then. Set onProcessEnd.confirm in applicationmetadata.json to confirm the instance "
+        + "as complete when the process ends";
 
     public static TheoryData<string, string> Hooks =>
         new()
@@ -291,7 +294,7 @@ public class ProcessHookStorageClientAnalyzerTests
     [Theory]
     [InlineData("dataClient.LockDataElement(new InstanceIdentifier(instance), Guid.Empty)", Refused)]
     [InlineData("dataClient.UnlockDataElement(new InstanceIdentifier(instance), Guid.Empty)", Refused)]
-    [InlineData("instanceClient.AddCompleteConfirmation(1337, Guid.Empty)", Refused)]
+    [InlineData("instanceClient.AddCompleteConfirmation(1337, Guid.Empty)", ConfirmOnProcessEnd)]
     [InlineData("instanceClient.DeleteInstance(1337, Guid.Empty, false)", Refused)]
     [InlineData("instanceClient.UpdateProcess(instance)", Refused)]
     [InlineData("instanceClient.UpdateProcessAndEvents(instance, new List<InstanceEvent>())", Refused)]

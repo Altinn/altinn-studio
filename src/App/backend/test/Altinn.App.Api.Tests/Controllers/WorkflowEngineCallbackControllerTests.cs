@@ -736,6 +736,34 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_ConfirmCompleteOnProcessEnd_CommitsTheConfirmationAndKeepsProcessing()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            new ConfirmCompleteOnProcessEnd(),
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        IActionResult result = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        Assert.Null(mutation.DeleteInstance);
+        Instance confirmed = setup.DeserializeState(response.State!).Instance;
+        Assert.Equal(ProcessStatus.Processing, confirmed.Process?.Status);
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsStoragePreconditionFailed_ReturnsNonRetryableProblem()
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
@@ -1196,7 +1224,6 @@ public class WorkflowEngineCallbackControllerTests
     [Fact]
     public Task ExecuteCommand_ServiceTaskDefersAfterStagingACompleteConfirmation_ReturnsNonRetryableProblem() =>
         AssertDeferralAfterStagingReturnsNonRetryableProblem(
-            // Built-in service tasks such as eFormidling stage the confirmation.
             (mutator, _) => Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation()
         );
 

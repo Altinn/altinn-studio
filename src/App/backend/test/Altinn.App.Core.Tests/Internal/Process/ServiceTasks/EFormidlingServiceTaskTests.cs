@@ -666,7 +666,6 @@ public class EFormidlingServiceTaskTests
 
         // A deferring attempt records nothing - the wait is not what makes the shipment durable.
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Theory]
@@ -719,8 +718,8 @@ public class EFormidlingServiceTaskTests
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
         );
 
-        // Staged, not written: the confirmation commits with the callback's version-fenced save.
-        Assert.True(unitOfWork.StagedCompleteConfirmation);
+        // The task leaves the confirmation to onProcessEnd.confirm.
+        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
@@ -740,9 +739,6 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("feil", failed.ErrorMessage);
         Assert.Contains("Mottaker er ikke registrert", failed.ErrorMessage);
         Assert.Equal("feil", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
-
-        // A failed shipment is not something the service owner has harvested.
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
@@ -800,9 +796,8 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("Access denied due to invalid subscription key.", failed.ErrorMessage);
         Assert.Contains("may still be delivered", failed.ErrorMessage);
 
-        // No verdict was read, so none is recorded and nothing is confirmed.
+        // No verdict was read, so none is recorded.
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
@@ -816,7 +811,6 @@ public class EFormidlingServiceTaskTests
 
         await Assert.ThrowsAsync<PlatformHttpException>(() => AwaitDelivery(_serviceTask, CreateContext(unitOfWork)));
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]

@@ -24,6 +24,9 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
     private const string RefusedWithoutMutatorReplacement =
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
     private const string NoMutatorReplacement = "The instance data mutator has no replacement for it";
+    private const string ConfirmOnProcessEnd =
+        "Storage refuses this call then. Set onProcessEnd.confirm in applicationmetadata.json to confirm the instance "
+        + "as complete when the process ends";
 
     private static readonly string[] _instanceClientMethodsForOtherInstances = ["GetInstances", "CreateInstance"];
 
@@ -32,7 +35,7 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         {
             [(DataClientTypeName, "LockDataElement")] = RefusedWithoutMutatorReplacement,
             [(DataClientTypeName, "UnlockDataElement")] = RefusedWithoutMutatorReplacement,
-            [(InstanceClientTypeName, "AddCompleteConfirmation")] = RefusedWithoutMutatorReplacement,
+            [(InstanceClientTypeName, "AddCompleteConfirmation")] = ConfirmOnProcessEnd,
             [(InstanceClientTypeName, "DeleteInstance")] = RefusedWithoutMutatorReplacement,
             [(InstanceClientTypeName, "UpdateProcess")] = RefusedWithoutMutatorReplacement,
             [(InstanceClientTypeName, "UpdateProcessAndEvents")] = RefusedWithoutMutatorReplacement,
