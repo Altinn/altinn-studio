@@ -57,6 +57,7 @@ import type { Policy, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
   deploymentsResponse,
+  deployWarnings,
   appVersion,
   appReleasesResponse,
   applicationMetadata,
@@ -79,6 +80,7 @@ import {
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { DeployWarnings } from 'app-shared/types/api/DeployWarnings';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { OptionList } from 'app-shared/types/OptionList';
@@ -137,6 +139,9 @@ export const queriesMock: ServicesContextProps = {
   getDeployments: vi
     .fn()
     .mockImplementation(() => Promise.resolve<DeploymentsResponse>(deploymentsResponse)),
+  getDeployWarnings: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<DeployWarnings>(deployWarnings)),
   getRepoDiff: vi.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
   getEnvironments: vi.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),

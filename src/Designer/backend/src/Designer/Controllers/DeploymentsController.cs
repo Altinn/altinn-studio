@@ -36,6 +36,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class DeploymentsController : ControllerBase
 {
     private readonly IDeploymentService _deploymentService;
+    private readonly IDeployWarningsService _deployWarningsService;
     private readonly IGiteaClient _giteaClient;
     private readonly AppRuntime _appRuntime;
 
@@ -43,9 +44,15 @@ public class DeploymentsController : ControllerBase
     // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
     private const string OidcAuthTokenPlaceholder = "studio-oidc-auth";
 
-    public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, AppRuntime appRuntime)
+    public DeploymentsController(
+        IDeploymentService deploymentService,
+        IDeployWarningsService deployWarningsService,
+        IGiteaClient giteaClient,
+        AppRuntime appRuntime
+    )
     {
         _deploymentService = deploymentService;
+        _deployWarningsService = deployWarningsService;
         _giteaClient = giteaClient;
         _appRuntime = appRuntime;
     }
@@ -108,6 +115,31 @@ public class DeploymentsController : ControllerBase
             .ToList();
 
         return Ok(permittedEnvironments);
+    }
+
+    /// <summary>
+    /// Gets what the user should know before deploying a release to an environment, such as that the deploy crosses
+    /// from v8 to v9 of the app libraries. The deploy page asks for one release and one environment, since the
+    /// comparison reads the release's project file and asks the app that runs in the environment.
+    /// </summary>
+    /// <param name="org">Organization</param>
+    /// <param name="app">Application name</param>
+    /// <param name="tagName">The tag of the release to deploy</param>
+    /// <param name="envName">The environment to deploy to</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The warnings, or not found when the release or the environment does not exist</returns>
+    [HttpGet("warnings")]
+    public async Task<ActionResult<DeployWarnings>> GetWarnings(
+        string org,
+        string app,
+        [FromQuery] string tagName,
+        [FromQuery] string envName,
+        CancellationToken cancellationToken
+    )
+    {
+        Guard.AssertValidEnvironmentName(envName);
+        DeployWarnings? warnings = await _deployWarningsService.Get(org, app, tagName, envName, cancellationToken);
+        return warnings is null ? NotFound() : Ok(warnings);
     }
 
     /// <summary>

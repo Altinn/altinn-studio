@@ -29,6 +29,7 @@ import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { DeployWarnings } from 'app-shared/types/api/DeployWarnings';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 
 export const build: Build = {
@@ -80,6 +81,12 @@ export const dataModelMetadataResponse: DataModelMetadataResponse = {
 export const deploymentsResponse: DeploymentsResponse = {
   pipelineDeploymentList: [],
   environmentList: [],
+};
+
+export const deployWarnings: DeployWarnings = {
+  warnings: [],
+  releaseAppLibVersion: null,
+  environmentAppLibVersion: null,
 };
 
 export const pipelineDeployment: PipelineDeployment = {

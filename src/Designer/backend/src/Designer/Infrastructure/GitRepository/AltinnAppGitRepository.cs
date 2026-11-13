@@ -62,8 +62,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     public static readonly string InitialLayoutFileName = "Side1";
 
-    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
-
     private JsonNode _initialLayout;
     private JsonNode _initialLayoutSettings;
 
@@ -487,7 +485,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
             .Select(file =>
                 PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
                     file,
-                    s_appLibPackageNames,
+                    PackageVersionHelper.AppLibPackageNames,
                     out SemanticVersion version
                 )
                     ? version
