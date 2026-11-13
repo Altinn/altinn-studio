@@ -51,9 +51,6 @@ class BaseConfig:
 
     LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-6.1-terra")
 
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-6.1-sol")
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-6.1-sol")
-
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
     PREVIEW_STUDIO_USER = os.getenv("PREVIEW_STUDIO_USER", "localgiteaadmin")
@@ -83,8 +80,6 @@ def get_config() -> BaseConfig:
 ROLE_MODEL_CONFIG_KEYS = {
     "actor": "LLM_MODEL_ACTOR",
     "planner": "LLM_MODEL_PLANNER",
-    "reviewer": "LLM_MODEL_REVIEWER",
-    "assistant": "LLM_MODEL_ASSISTANT",
 }
 
 # The role LLMClient has no branch for, reached by get_llm_client() with no role.

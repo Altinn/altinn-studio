@@ -642,10 +642,6 @@ def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdap
         model = config.LLM_MODEL_ACTOR
     elif role == "planner":
         model = config.LLM_MODEL_PLANNER
-    elif role == "reviewer":
-        model = config.LLM_MODEL_REVIEWER
-    elif role == "assistant":
-        model = config.LLM_MODEL_ASSISTANT
     else:
         model = config.AZURE_DEPLOYMENT_NAME or config.LLM_MODEL
 
