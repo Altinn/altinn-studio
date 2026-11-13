@@ -140,10 +140,14 @@ python -m benchmarks.runner status                        # repo against Langfus
 Two different questions, with two different answers.
 
 **The runs live in Langfuse.** Every dataset run of one `check` carries the same `check_id`
-in its metadata, along with all ten axes. `remote.fetch()` rebuilds a whole invocation from
+in its metadata, along with the axes. `remote.fetch()` rebuilds a whole invocation from
 there, item scores and item outputs included, so a machine that has never run the harness
 still compares against the same baseline as everyone else. The files in `benchmarks/runs/`
 are a cache: instant, and gone with the machine.
+
+The dataset axis is not in the metadata, because Langfuse writes the metadata when the first
+eval starts, and the items are known only when the last one ends. `remote.fetch()` computes
+it from the items.
 
 **Which run is the baseline lives in git**, as `BASELINE.json`, and is committed.
 
