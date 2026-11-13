@@ -103,19 +103,6 @@ public class WorkflowStepSetTests
     }
 
     [Fact]
-    public void GetProcessEndSteps_WithConfirmComplete_ConfirmsAfterTheDataCleanup()
-    {
-        var stepSet = WorkflowStepSet.GetProcessEndSteps(
-            new ProcessEndContext { ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(), ConfirmComplete = true }
-        );
-
-        Assert.Equal(
-            [OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key, ConfirmCompleteOnProcessEnd.Key],
-            Keys(stepSet.PrimaryPostCommitSteps)
-        );
-    }
-
-    [Fact]
     public void GetTaskEndSteps_HasNoPostCommitSteps()
     {
         var stepSet = WorkflowStepSet.GetTaskEndSteps("Task_1", SingleStagePipeline(), Mock.Of<IOnTaskEndingHandler>());

@@ -547,29 +547,6 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     [Fact]
-    public async Task OpeningStageConclusion_ThatAsksToConfirmOnProcessEnd_CarriesTheRequest()
-    {
-        var task = new SendOnlyTask
-        {
-            OnSend = (_, _) =>
-                Task.FromResult(
-                    ServiceTaskOpeningStageResult.Conclude(
-                        ServiceTaskResult.Success() with
-                        {
-                            ConfirmCompleteOnProcessEnd = true,
-                        }
-                    )
-                ),
-        };
-
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
-
-        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.True(success.ProcessNextContinuation?.ConfirmCompleteOnProcessEnd);
-    }
-
-    [Fact]
     public async Task OpeningStageConclusion_WithPermanentFailure_ClosesEveryMailboxAndAdvancesNothing()
     {
         var task = new SendOnlyTask

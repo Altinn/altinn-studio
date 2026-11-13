@@ -106,10 +106,6 @@ process — that is reserved for the pipeline's conclusion, and for a mailbox-op
 the task and advances the process, using the optional action to select the next transition. Work that
 is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 
-A service task cannot confirm the instance as complete for the service owner. An app that delivers the instance
-in a service task of its own sets `autoConfirmCompleteOnProcessEnd` in `applicationmetadata.json`, which confirms
-when the process ends.
-
 ## Waiting: Defer and wait budgets
 
 `Defer(delay, reason?)` means "ran without error, the outcome has not arrived yet": the engine parks the

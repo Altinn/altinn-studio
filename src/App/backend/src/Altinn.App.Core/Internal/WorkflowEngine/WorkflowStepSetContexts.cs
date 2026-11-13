@@ -83,9 +83,7 @@ internal sealed record ProcessEndContext
     public bool RegisterEvents { get; init; }
 
     /// <summary>
-    /// Whether to confirm the instance as complete for the service owner: the app sets
-    /// <c>autoConfirmCompleteOnProcessEnd</c>, or the service task whose success ends the process delivered the
-    /// instance to the service owner.
+    /// Whether to confirm the instance as complete for the service owner (<c>onProcessEnd.confirm</c>).
     /// </summary>
     public bool ConfirmComplete { get; init; }
 }

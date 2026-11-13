@@ -3,14 +3,9 @@ using Altinn.App.Core.Internal.Data;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 
 /// <summary>
-/// Confirms the instance as complete for the service owner. Planned for an app that sets
-/// <c>autoConfirmCompleteOnProcessEnd</c>, and when the service task whose success ends the process delivered the
-/// instance to the service owner. It runs after <see cref="DeleteDataOnProcessEnd"/>, so the
-/// confirmation is the last change before the release: the process-ended hook and the data deletion can still
-/// change the instance, and a failure in either leaves it unconfirmed until resumed. A step of its own rather than
-/// part of the release, because Storage refuses a confirmation in the save that hard-deletes the instance: with the
-/// application's own <c>autoDeleteOnProcessEnd</c>, <see cref="ReleaseProcessingStatus"/> hard-deletes the confirmed
-/// instance in the next save.
+/// Confirms the instance as complete for the service owner, for an app that sets <c>onProcessEnd.confirm</c>. A step of
+/// its own before <see cref="ReleaseProcessingStatus"/>, because Storage refuses a confirmation in the save that
+/// hard-deletes the instance, as the release does with <c>autoDeleteOnProcessEnd</c>.
 /// </summary>
 internal sealed class ConfirmCompleteOnProcessEnd : IWorkflowEngineCommand
 {
@@ -40,7 +35,6 @@ internal sealed class ConfirmCompleteOnProcessEnd : IWorkflowEngineCommand
             );
         }
 
-        // Staged, so it commits with this step's workflow-owned save, the only kind Storage accepts it in.
         unitOfWork.AddCompleteConfirmation();
         return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
     }

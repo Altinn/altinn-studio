@@ -608,24 +608,6 @@ public class ExecuteServiceTaskReplyTests
     }
 
     [Fact]
-    public async Task OnMessage_ThatSucceedsAndAsksToConfirmOnProcessEnd_CarriesTheRequest()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningIndex, _mailboxId, DateTimeOffset.UnixEpoch.AddDays(3));
-        var task = new ArchivingTask
-        {
-            MessageVerdict = ServiceTaskResult.Success() with { ConfirmCompleteOnProcessEnd = true },
-        };
-
-        WorkflowEngineCommandResult result = await CreateCommand(task)
-            .Execute(CreateContext(Delivered(), carry), ReceiveStep());
-
-        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
-        Assert.True(success.ProcessNextContinuation?.ConfirmCompleteOnProcessEnd);
-    }
-
-    [Fact]
     public async Task OnClosed_ThatFailsPermanently_StillCarriesTheConclusion()
     {
         var task = new ArchivingTask

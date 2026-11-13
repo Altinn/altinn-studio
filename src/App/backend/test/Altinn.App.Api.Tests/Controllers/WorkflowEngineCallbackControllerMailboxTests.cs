@@ -292,7 +292,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                             It.IsAny<DateTimeOffset>(),
                             It.IsAny<string?>(),
                             It.IsAny<string?>(),
-                            It.IsAny<bool>(),
                             It.IsAny<CancellationToken>()
                         )
                     )
@@ -305,10 +304,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                         DateTimeOffset,
                         string?,
                         string?,
-                        bool,
                         CancellationToken
                     >(
-                        (_, _, _, _, state, _, action, idempotencyKey, _, _) =>
+                        (_, _, _, _, state, _, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
                             recorder.EnqueueKeys.Add(idempotencyKey!);

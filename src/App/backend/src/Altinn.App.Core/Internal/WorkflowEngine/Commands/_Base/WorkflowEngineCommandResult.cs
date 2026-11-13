@@ -2,11 +2,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 internal abstract class WorkflowEngineCommandResult { }
 
-/// <param name="Action">The action that selects the next transition.</param>
-/// <param name="ConfirmCompleteOnProcessEnd">
-/// Whether the transition confirms the instance as complete for the service owner, if it ends the process.
-/// </param>
-internal sealed record ProcessNextContinuation(string? Action, bool ConfirmCompleteOnProcessEnd = false);
+internal sealed record ProcessNextContinuation(string? Action);
 
 internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineCommandResult
 {

@@ -8920,8 +8920,8 @@
             },
             "nullable": true
           },
-          "autoConfirmCompleteOnProcessEnd": {
-            "type": "boolean"
+          "onProcessEnd": {
+            "$ref": "#/components/schemas/OnProcessEnd"
           }
         },
         "additionalProperties": {}
@@ -10682,6 +10682,15 @@
           "show": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OnProcessEnd": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

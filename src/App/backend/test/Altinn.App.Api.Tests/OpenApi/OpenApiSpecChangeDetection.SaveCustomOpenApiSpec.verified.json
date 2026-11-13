@@ -4212,6 +4212,15 @@
         },
         "additionalProperties": false
       },
+      "OnProcessEnd": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "ApplicationMetadata": {
         "required": [
           "id"
@@ -4380,8 +4389,8 @@
             },
             "nullable": true
           },
-          "autoConfirmCompleteOnProcessEnd": {
-            "type": "boolean"
+          "onProcessEnd": {
+            "$ref": "#/components/schemas/OnProcessEnd"
           }
         },
         "additionalProperties": {}

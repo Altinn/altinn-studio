@@ -498,45 +498,6 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(success.ProcessNextContinuation);
     }
 
-    [Fact]
-    public async Task Execute_WhenTheConclusionAsksToConfirmOnProcessEnd_CarriesTheRequestAndStagesNothing()
-    {
-        Instance instance = CreateInstance();
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(
-                ServiceTaskResult.Success("approve") with
-                {
-                    ConfirmCompleteOnProcessEnd = true,
-                }
-            )
-        );
-
-        var result = await ((IWorkflowEngineCommand)CreateCommand(serviceTask)).Execute(
-            CreateContext(instance, "myServiceTask", unitOfWork)
-        );
-
-        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.Equal(
-            new ProcessNextContinuation("approve", ConfirmCompleteOnProcessEnd: true),
-            success.ProcessNextContinuation
-        );
-
-        // The process end the transition leads to confirms, so Storage checks the grant against the end event.
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    [Fact]
-    public async Task Execute_WhenTheConclusionDoesNotAskToConfirm_CarriesNoRequest()
-    {
-        var result = await ((IWorkflowEngineCommand)CreateCommand(Succeeding())).Execute(
-            CreateContext(CreateInstance(), "myServiceTask")
-        );
-
-        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.False(success.ProcessNextContinuation?.ConfirmCompleteOnProcessEnd);
-    }
-
     private static InstanceDataUnitOfWork CreateUnitOfWork(
         Instance instance,
         IInstanceMutationClient? mutationClient = null

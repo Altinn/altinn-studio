@@ -99,12 +99,8 @@ public class ApplicationMetadata : Application
     public string[]? ExternalApiIds { get; set; }
 
     /// <summary>
-    /// Whether the app confirms the instance as complete for the service owner when the process reaches its end
-    /// event. The confirmation is saved after the process-ended hook and the deletion of the data types that set
-    /// <c>autoDeleteOnProcessEnd</c>, and before the instance is released or, with the application's own
-    /// <c>autoDeleteOnProcessEnd</c>, hard-deleted. The eFormidling task confirms without this setting, when the
-    /// delivery it has confirmed ends the process. The app owner's policy must grant the <c>complete</c> action.
+    /// Configure what happens when the process ends
     /// </summary>
-    [JsonProperty(PropertyName = "autoConfirmCompleteOnProcessEnd")]
-    public bool AutoConfirmCompleteOnProcessEnd { get; set; }
+    [JsonProperty(PropertyName = "onProcessEnd")]
+    public OnProcessEnd? OnProcessEnd { get; set; }
 }

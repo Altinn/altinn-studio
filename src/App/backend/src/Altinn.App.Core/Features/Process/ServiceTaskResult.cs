@@ -111,19 +111,6 @@ public sealed record SuccessfulServiceTaskResult : ServiceTaskResult
     /// When null, the default BPMN transition is used.
     /// </summary>
     public string? Action { get; init; }
-
-    /// <summary>
-    /// Whether the process end this success leads to confirms the instance as complete for the service owner. Set
-    /// by the built-in tasks that deliver the instance to the service owner, once the delivery has succeeded. The
-    /// process-end step that <c>autoConfirmCompleteOnProcessEnd</c> plans saves the confirmation, so Storage checks
-    /// the app owner's <c>complete</c> grant against the end event. A success that leads to another task confirms
-    /// nothing.
-    /// </summary>
-    /// <remarks>
-    /// Internal, because an app confirms with <c>autoConfirmCompleteOnProcessEnd</c>. A task needs this only when
-    /// one of its outcomes can end the process without a delivery, as a refused Fiks Arkiv archiving can.
-    /// </remarks>
-    internal bool ConfirmCompleteOnProcessEnd { get; init; }
 }
 
 /// <summary>

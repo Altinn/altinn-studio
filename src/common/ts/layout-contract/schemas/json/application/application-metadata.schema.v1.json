@@ -50,10 +50,8 @@
       "title": "Auto delete on process end",
       "description": "If true, the application data will be hard deleted when the process ends."
     },
-    "autoConfirmCompleteOnProcessEnd": {
-      "type": "boolean",
-      "title": "Auto confirm complete on process end",
-      "description": "If true, the app confirms the instance as complete for the service owner when the process ends. The app owner's policy must grant the complete action."
+    "onProcessEnd": {
+      "$ref": "#/definitions/onProcessEnd"
     },
     "partyTypesAllowed": {
       "$ref": "#/definitions/partyTypesAllowed"
@@ -169,6 +167,19 @@
     }
   },
   "definitions": {
+    "onProcessEnd": {
+      "type": "object",
+      "title": "On process end",
+      "description": "What the app does when the process ends.",
+      "additionalProperties": false,
+      "properties": {
+        "confirm": {
+          "type": "boolean",
+          "title": "Confirm",
+          "description": "If true, the app confirms the instance as complete for the service owner when the process ends. The app owner's policy must grant the complete action."
+        }
+      }
+    },
     "onEntry": {
       "type": "object",
       "title": "On entry",

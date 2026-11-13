@@ -4,16 +4,8 @@ namespace Altinn.App.Core.Features.Process;
 /// Hook interface for custom end task logic.
 /// </summary>
 /// <remarks>
-/// <para>
 /// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
 /// Use <see cref="OnTaskEndingContext.StepId"/> as the idempotency key for an outbound call it must not repeat.
-/// </para>
-/// <para>
-/// A hook cannot confirm the instance as complete for the service owner. An app that needs the confirmation sets
-/// <c>autoConfirmCompleteOnProcessEnd</c> in <c>applicationmetadata.json</c>, which confirms when the process ends.
-/// Delivering the instance to the service owner belongs in a service task: the engine records each completed
-/// stage, so a failure after the delivery does not deliver again.
-/// </para>
 /// </remarks>
 [ImplementableByApps]
 public interface IOnTaskEndingHandler : IProcessStepConfigurable

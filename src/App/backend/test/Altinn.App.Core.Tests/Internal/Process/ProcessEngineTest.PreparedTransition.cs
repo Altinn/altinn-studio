@@ -235,7 +235,6 @@ public sealed partial class ProcessEngineTest
                     "state",
                     actor,
                     "continuation-key",
-                    false,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -265,45 +264,6 @@ public sealed partial class ProcessEngineTest
             }
         );
         Assert.Equal(originalProcess, JsonSerializer.Serialize(instance.Process));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task EnqueueProcessNext_PassesOnTheRequestToConfirmOnProcessEnd(bool confirmCompleteOnProcessEnd)
-    {
-        await using var fixture = Fixture.Create();
-        Instance instance = CreateTask1Instance();
-        var dataAccessor = Mock.Of<IInstanceDataAccessor>(a => a.Instance == instance);
-        fixture
-            .Mock<IWorkflowEngineService>()
-            .Setup(s =>
-                s.EnqueueDependentProcessNext(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ProcessStateChange>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<Actor>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(Guid.NewGuid());
-
-        await fixture.ProcessEngine.EnqueueProcessNext(
-            dataAccessor,
-            new Actor { OrgId = "ttd", AuthenticationLevel = 3 },
-            Guid.NewGuid(),
-            "collection",
-            "state",
-            _executionTime,
-            confirmCompleteOnProcessEnd: confirmCompleteOnProcessEnd
-        );
-
-        IInvocation enqueue = Assert.Single(fixture.Mock<IWorkflowEngineService>().Invocations);
-        Assert.Equal(confirmCompleteOnProcessEnd, enqueue.Arguments[7]);
     }
 
     private static async Task<ProcessStateChange> PrepareProcessNext(

@@ -67,12 +67,11 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
                     null,
-                    false,
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, bool, CancellationToken>(
-                (instance, transition, dependency, _, state, actor, _, _, _) =>
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
+                (instance, transition, dependency, _, state, actor, _, _) =>
                 {
                     Assert.Equal(setup!.WorkflowId, dependency);
                     Assert.Equal(42, actor.UserId);
@@ -477,7 +476,6 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<DateTimeOffset>(),
                     null,
                     null,
-                    false,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -590,7 +588,6 @@ public class WorkflowEngineCallbackControllerTests
                     executionReferenceTime,
                     null,
                     null,
-                    false,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -667,7 +664,6 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<DateTimeOffset>(),
                     action,
                     It.IsAny<string?>(),
-                    false,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -680,10 +676,9 @@ public class WorkflowEngineCallbackControllerTests
                 DateTimeOffset,
                 string?,
                 string?,
-                bool,
                 CancellationToken
             >(
-                (dataAccessor, _, _, _, state, _, _, _, _, _) =>
+                (dataAccessor, _, _, _, state, _, _, _, _) =>
                 {
                     StorageClientInterceptor.RequestResponse request = Assert.Single(
                         GetMutationRequests(setup!.Services)
@@ -741,62 +736,6 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ServiceTaskAskingToConfirmOnProcessEnd_AsksTheNextTransitionAndConfirmsNothing()
-    {
-        var serviceTask = new SuccessfulServiceTask("approve", confirmCompleteOnProcessEnd: true);
-        var processEngine = new Mock<IProcessEngine>();
-        await using ControllerSetup setup = CreateSetup(
-            services =>
-            {
-                services.Services.AddSingleton<IServiceTask>(serviceTask);
-                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
-                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
-                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
-                ));
-                services.Services.AddSingleton(processEngine.Object);
-            },
-            (_, instance) =>
-            {
-                instance.Process!.Status = ProcessStatus.Processing;
-                instance.Process.CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = "ServiceTask_1",
-                    AltinnTaskType = SuccessfulServiceTask.ServiceTaskType,
-                };
-            }
-        );
-        string payload = CommandPayloadSerializer.Serialize(
-            new ExecuteServiceTaskPayload(SuccessfulServiceTask.ServiceTaskType, ItemIndex: 0)
-        )!;
-
-        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload, "chain");
-
-        Assert.IsType<OkObjectResult>(result);
-
-        // The process end the transition leads to confirms, so the save that concludes the task does not.
-        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
-        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
-        Assert.False(mutation.AddCompleteConfirmation);
-        Assert.Single(mutation.CreateDataElements);
-        processEngine.Verify(
-            engine =>
-                engine.EnqueueProcessNext(
-                    It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<Actor>(),
-                    It.IsAny<Guid>(),
-                    "chain",
-                    It.IsAny<string>(),
-                    It.IsAny<DateTimeOffset>(),
-                    "approve",
-                    It.IsAny<string?>(),
-                    true,
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
     public async Task ExecuteCommand_ConfirmCompleteOnProcessEnd_CommitsTheConfirmationAndKeepsProcessing()
     {
         var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
@@ -822,7 +761,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Null(mutation.DeleteInstance);
         Instance confirmed = setup.DeserializeState(response.State!).Instance;
         Assert.Equal(ProcessStatus.Processing, confirmed.Process?.Status);
-        Assert.Equal(MockedServiceCollection.Org, Assert.Single(confirmed.CompleteConfirmations).StakeholderId);
     }
 
     [Fact]
@@ -1286,7 +1224,6 @@ public class WorkflowEngineCallbackControllerTests
     [Fact]
     public Task ExecuteCommand_ServiceTaskDefersAfterStagingACompleteConfirmation_ReturnsNonRetryableProblem() =>
         AssertDeferralAfterStagingReturnsNonRetryableProblem(
-            // Built-in service tasks such as eFormidling stage the confirmation.
             (mutator, _) => Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation()
         );
 
@@ -1525,7 +1462,7 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class SuccessfulServiceTask(string action, bool confirmCompleteOnProcessEnd = false) : IServiceTask
+    private sealed class SuccessfulServiceTask(string action) : IServiceTask
     {
         public const string ServiceTaskType = "SuccessfulTaskForCallbackTest";
 
@@ -1541,12 +1478,7 @@ public class WorkflowEngineCallbackControllerTests
                 "service-task-output.json",
                 "{}"u8.ToArray()
             );
-            return Task.FromResult<ServiceTaskResult>(
-                ServiceTaskResult.Success(action) with
-                {
-                    ConfirmCompleteOnProcessEnd = confirmCompleteOnProcessEnd,
-                }
-            );
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
         }
     }
 

@@ -238,13 +238,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
                     LogSanitizer.Sanitize(taskId),
                     LogSanitizer.Sanitize(status.Status)
                 );
-
-                // The service owner has what it needed from this instance, so the process end this leads to
-                // confirms it as complete.
-                return ServiceTaskResult.Success() with
-                {
-                    ConfirmCompleteOnProcessEnd = true,
-                };
+                return ServiceTaskResult.Success();
 
             case EFormidlingDeliveryState.Failed:
                 RecordShipmentStatus(context, status);

@@ -4008,8 +4008,6 @@ namespace Altinn.App.Core.Models
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
         public Altinn.App.Core.Models.AppIdentifier AppIdentifier { get; }
-        [Newtonsoft.Json.JsonProperty(PropertyName="autoConfirmCompleteOnProcessEnd")]
-        public bool AutoConfirmCompleteOnProcessEnd { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="externalApiIds")]
         public string[]? ExternalApiIds { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="features")]
@@ -4019,6 +4017,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Logo? Logo { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="onEntry")]
         public new Altinn.App.Core.Models.OnEntry? OnEntry { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="onProcessEnd")]
+        public Altinn.App.Core.Models.OnProcessEnd? OnProcessEnd { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="promptForParty")]
         public string? PromptForParty { get; set; }
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -4337,6 +4337,12 @@ namespace Altinn.App.Core.Models
         public OnEntry() { }
         [Newtonsoft.Json.JsonProperty(PropertyName="instanceSelection")]
         public Altinn.App.Core.Models.InstanceSelection? InstanceSelection { get; set; }
+    }
+    public class OnProcessEnd
+    {
+        public OnProcessEnd() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="confirm")]
+        public bool Confirm { get; set; }
     }
     public readonly struct OrganizationNumber : System.IEquatable<Altinn.App.Core.Models.OrganizationNumber>
     {

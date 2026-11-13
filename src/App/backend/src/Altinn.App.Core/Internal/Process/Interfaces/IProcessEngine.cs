@@ -58,8 +58,6 @@ internal interface IProcessEngine
     /// makes from inside one callback keys off the same executing step.
     /// The callback's <c>executionReferenceTime</c> supplies event and process timestamps so retries
     /// reconstruct the same logical transition.
-    /// With <c>confirmCompleteOnProcessEnd</c>, a transition that ends the process also confirms the instance as
-    /// complete for the service owner. A transition to another task confirms nothing.
     /// </remarks>
     Task EnqueueProcessNext(
         IInstanceDataAccessor dataAccessor,
@@ -70,7 +68,6 @@ internal interface IProcessEngine
         DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
-        bool confirmCompleteOnProcessEnd = false,
         CancellationToken cancellationToken = default
     );
 }

@@ -78,9 +78,6 @@ public class MailboxRelayTests
             string? Action,
             string? IdempotencyKey
         )> AfterWorkflows { get; } = [];
-
-        /// <summary>Per after-workflow, whether it was asked to confirm if it ends the process.</summary>
-        public List<bool> AfterWorkflowsConfirmingComplete { get; } = [];
     }
 
     private sealed class RecordingEngineClient(RelayRecorder recorder) : IWorkflowEngineClient
@@ -184,7 +181,6 @@ public class MailboxRelayTests
                     It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -197,14 +193,12 @@ public class MailboxRelayTests
                 DateTimeOffset,
                 string?,
                 string?,
-                bool,
                 CancellationToken
             >(
-                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, confirmCompleteOnProcessEnd, _) =>
+                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
-                    recorder.AfterWorkflowsConfirmingComplete.Add(confirmCompleteOnProcessEnd);
                 }
             )
             .Returns(Task.CompletedTask);
@@ -337,8 +331,7 @@ public class MailboxRelayTests
         Guid? workflowId = null,
         string? state = "published-state",
         bool autoAdvance = true,
-        string? action = null,
-        bool confirmCompleteOnProcessEnd = false
+        string? action = null
     ) =>
         new()
         {
@@ -372,7 +365,6 @@ public class MailboxRelayTests
             State = state,
             AutoAdvanceProcess = autoAdvance,
             AutoAdvanceAction = action,
-            ConfirmCompleteOnProcessEnd = confirmCompleteOnProcessEnd,
         };
 
     private static AppCallbackMailbox Delivered(long seq = 0) =>
@@ -903,23 +895,6 @@ public class MailboxRelayTests
         Assert.Equal(_instanceGuid.ToString(), collectionKey);
         Assert.Equal("published-state", state);
         Assert.Equal("reject", action);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AfterWorkflow_CarriesTheRequestToConfirmOnProcessEnd(bool confirmCompleteOnProcessEnd)
-    {
-        var recorder = new RelayRecorder();
-
-        await CreateRelay(recorder)
-            .Continue(
-                new MailboxContinuation.Conclude([_mailboxId]),
-                CreateRequest(Guid.NewGuid(), confirmCompleteOnProcessEnd: confirmCompleteOnProcessEnd),
-                CancellationToken.None
-            );
-
-        Assert.Equal(confirmCompleteOnProcessEnd, Assert.Single(recorder.AfterWorkflowsConfirmingComplete));
     }
 
     /// <summary>

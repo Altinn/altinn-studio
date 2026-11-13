@@ -518,7 +518,7 @@ internal sealed class ExecuteServiceTask(
             },
             SuccessfulServiceTaskResult success => new SuccessfulWorkflowEngineCommandResult
             {
-                ProcessNextContinuation = new(success.Action, success.ConfirmCompleteOnProcessEnd),
+                ProcessNextContinuation = new(success.Action),
             },
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(

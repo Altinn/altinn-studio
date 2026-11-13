@@ -253,7 +253,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         updatedState,
-                        success.ProcessNextContinuation,
+                        success.ProcessNextContinuation is not null,
+                        success.ProcessNextContinuation?.Action,
                         cancellationToken
                     );
 
@@ -278,7 +279,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                             updatedState,
                             payload.ExecutionReferenceTime,
                             processNextContinuation.Action,
-                            confirmCompleteOnProcessEnd: processNextContinuation.ConfirmCompleteOnProcessEnd,
                             cancellationToken: cancellationToken
                         );
                 }
@@ -338,7 +338,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         state: null,
-                        processNextContinuation: null,
+                        autoAdvanceProcess: false,
+                        autoAdvanceAction: null,
                         cancellationToken
                     );
                 }
@@ -508,7 +509,8 @@ public class WorkflowEngineCallbackController : ControllerBase
         AppCallbackPayload payload,
         InstanceDataUnitOfWork unitOfWork,
         string? state,
-        ProcessNextContinuation? processNextContinuation,
+        bool autoAdvanceProcess,
+        string? autoAdvanceAction,
         CancellationToken cancellationToken
     )
     {
@@ -522,9 +524,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                 Payload = payload,
                 DataAccessor = unitOfWork,
                 State = state,
-                AutoAdvanceProcess = processNextContinuation is not null,
-                AutoAdvanceAction = processNextContinuation?.Action,
-                ConfirmCompleteOnProcessEnd = processNextContinuation?.ConfirmCompleteOnProcessEnd ?? false,
+                AutoAdvanceProcess = autoAdvanceProcess,
+                AutoAdvanceAction = autoAdvanceAction,
             },
             cancellationToken
         );

@@ -25,8 +25,8 @@ public sealed class ProcessHookStorageClientAnalyzer : DiagnosticAnalyzer
         "Storage refuses this call then, and the instance data mutator has no replacement for it";
     private const string NoMutatorReplacement = "The instance data mutator has no replacement for it";
     private const string ConfirmOnProcessEnd =
-        "Storage refuses this call then. Set autoConfirmCompleteOnProcessEnd in applicationmetadata.json to confirm "
-        + "the instance as complete when the process ends";
+        "Storage refuses this call then. Set onProcessEnd.confirm in applicationmetadata.json to confirm the instance "
+        + "as complete when the process ends";
 
     private static readonly string[] _instanceClientMethodsForOtherInstances = ["GetInstances", "CreateInstance"];
 

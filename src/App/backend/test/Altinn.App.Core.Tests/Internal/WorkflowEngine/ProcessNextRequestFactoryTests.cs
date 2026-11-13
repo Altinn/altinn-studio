@@ -58,7 +58,7 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
         IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
-        bool autoConfirmCompleteOnProcessEnd = false,
+        bool confirmOnProcessEnd = false,
         params IServiceTask[] serviceTasks
     )
     {
@@ -94,7 +94,7 @@ public class ProcessNextRequestFactoryTests
             .Returns(
                 new ApplicationMetadata(TestInstance.AppId)
                 {
-                    AutoConfirmCompleteOnProcessEnd = autoConfirmCompleteOnProcessEnd,
+                    OnProcessEnd = confirmOnProcessEnd ? new OnProcessEnd { Confirm = true } : null,
                 }
             );
 
@@ -1117,9 +1117,12 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_TaskToEndTransition_WithAutoConfirmComplete_ConfirmsAfterTheDataCleanupBeforeTheRelease()
+    public async Task Create_TaskToEndTransition_WithOnProcessEndConfirm_ConfirmsLastBeforeTheRelease()
     {
-        var factory = CreateFactory(autoConfirmCompleteOnProcessEnd: true);
+        var factory = CreateFactory(
+            configureServices: services => AddHookHandler(services, typeof(IOnProcessEndedHandler)),
+            confirmOnProcessEnd: true
+        );
 
         var bundle = await factory.CreateDependent(
             TestInstance,
@@ -1130,80 +1133,18 @@ public class ProcessNextRequestFactoryTests
             "test-process-next-idempotency-key"
         );
 
-        // No ended hook is registered, so none is planned.
         var keys = ExtractCommandKeys(bundle);
         Assert.Equal(
             [
                 CommitProcessState.Key,
+                OnProcessEndedHook.Key,
                 DeleteDataOnProcessEnd.Key,
                 ConfirmCompleteOnProcessEnd.Key,
                 ReleaseProcessingStatus.Key,
                 EnqueueAuxiliaryWorkflows.Key,
             ],
-            keys[^5..]
+            keys[^6..]
         );
-    }
-
-    [Fact]
-    public async Task Create_TaskToTaskTransition_WithAutoConfirmComplete_DoesNotConfirm()
-    {
-        var factory = CreateFactory(autoConfirmCompleteOnProcessEnd: true);
-
-        var bundle = await factory.CreateChainInitiating(
-            TestInstance,
-            CreateTaskToTaskTransition(),
-            "test-process-next-idempotency-key",
-            SignedTestState
-        );
-
-        Assert.DoesNotContain(ConfirmCompleteOnProcessEnd.Key, ExtractAllCommandKeys(bundle));
-    }
-
-    [Fact]
-    public async Task CreateDependent_TaskToEndTransition_AskedToConfirm_ConfirmsWithoutTheSetting()
-    {
-        var factory = CreateFactory();
-
-        var bundle = await factory.CreateDependent(
-            TestInstance,
-            CreateTaskToEndTransition(),
-            SignedTestState,
-            new Actor { UserId = 42 },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key",
-            confirmCompleteOnProcessEnd: true
-        );
-
-        // No ended hook is registered, so none is planned.
-        var keys = ExtractCommandKeys(bundle);
-        Assert.Equal(
-            [
-                CommitProcessState.Key,
-                DeleteDataOnProcessEnd.Key,
-                ConfirmCompleteOnProcessEnd.Key,
-                ReleaseProcessingStatus.Key,
-                EnqueueAuxiliaryWorkflows.Key,
-            ],
-            keys[^5..]
-        );
-    }
-
-    [Fact]
-    public async Task CreateDependent_TaskToTaskTransition_AskedToConfirm_DoesNotConfirm()
-    {
-        var factory = CreateFactory();
-
-        var bundle = await factory.CreateDependent(
-            TestInstance,
-            CreateTaskToTaskTransition(),
-            SignedTestState,
-            new Actor { UserId = 42 },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key",
-            confirmCompleteOnProcessEnd: true
-        );
-
-        Assert.DoesNotContain(ConfirmCompleteOnProcessEnd.Key, ExtractAllCommandKeys(bundle));
     }
 
     [Fact]

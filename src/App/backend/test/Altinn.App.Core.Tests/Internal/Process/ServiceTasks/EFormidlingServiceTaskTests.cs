@@ -636,9 +636,8 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        // Nothing was sent, so there is nothing to wait for, and nothing the service owner has received.
-        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
-        Assert.False(success.ConfirmCompleteOnProcessEnd);
+        // Nothing was sent, so there is nothing to wait for.
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.GetEFormidlingShipmentStatus(
@@ -667,7 +666,6 @@ public class EFormidlingServiceTaskTests
 
         // A deferring attempt records nothing - the wait is not what makes the shipment durable.
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Theory]
@@ -714,14 +712,13 @@ public class EFormidlingServiceTaskTests
 
         // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
         );
 
-        // Asked of the process end the success leads to; the task stages nothing itself.
-        Assert.True(success.ConfirmCompleteOnProcessEnd);
+        // The task leaves the confirmation to onProcessEnd.confirm.
         Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
@@ -742,9 +739,6 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("feil", failed.ErrorMessage);
         Assert.Contains("Mottaker er ikke registrert", failed.ErrorMessage);
         Assert.Equal("feil", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
-
-        // A failed shipment is not something the service owner has harvested.
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
@@ -802,9 +796,8 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("Access denied due to invalid subscription key.", failed.ErrorMessage);
         Assert.Contains("may still be delivered", failed.ErrorMessage);
 
-        // No verdict was read, so none is recorded and nothing is confirmed.
+        // No verdict was read, so none is recorded.
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]
@@ -818,7 +811,6 @@ public class EFormidlingServiceTaskTests
 
         await Assert.ThrowsAsync<PlatformHttpException>(() => AwaitDelivery(_serviceTask, CreateContext(unitOfWork)));
         Assert.Empty(unitOfWork.StagedInstanceDataValues);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
     [Fact]

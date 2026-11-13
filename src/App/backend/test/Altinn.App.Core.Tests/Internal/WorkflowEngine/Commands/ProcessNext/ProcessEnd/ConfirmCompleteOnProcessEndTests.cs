@@ -1,11 +1,18 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
@@ -29,6 +36,27 @@ public class ConfirmCompleteOnProcessEndTests
             Data = [],
         };
 
+    private static InstanceDataUnitOfWork CreateUnitOfWork(Instance instance)
+    {
+        var dataClient = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        // Before the first Object read, which fixes the interfaces the mock implements.
+        IInstanceMutationClient mutationClient = dataClient.As<IInstanceMutationClient>().Object;
+        return new InstanceDataUnitOfWork(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClient.Object,
+            mutationClient,
+            Mock.Of<IInstanceClientWithStorageMetadata>(MockBehavior.Strict),
+            new ApplicationMetadata(instance.AppId) { DataTypes = [] },
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: instance.Process?.CurrentTask?.ElementId,
+            language: null
+        );
+    }
+
     private static WorkflowEngineCommandContext CreateContext(IInstanceDataMutator mutator) =>
         new()
         {
@@ -51,33 +79,9 @@ public class ConfirmCompleteOnProcessEndTests
     private static readonly DateTime _ended = new(2026, 11, 3, 8, 59, 0, DateTimeKind.Utc);
 
     [Fact]
-    public async Task Execute_OnAnEndedProcess_StagesTheConfirmationForTheStepsSave()
-    {
-        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(CreateInstance(_ended));
-
-        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
-
-        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.True(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    [Fact]
-    public async Task Execute_WhenTheServiceOwnerHasAlreadyConfirmed_StagesNothingAndSucceeds()
-    {
-        Instance instance = CreateInstance(_ended);
-        instance.CompleteConfirmations = [new CompleteConfirmation { StakeholderId = "ttd", ConfirmedOn = _ended }];
-        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(instance);
-
-        WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
-
-        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
-        Assert.False(unitOfWork.StagedCompleteConfirmation);
-    }
-
-    [Fact]
     public async Task Execute_BeforeTheProcessHasEnded_FailsPermanentlyWithoutStaging()
     {
-        InstanceDataUnitOfWork unitOfWork = TestInstanceDataUnitOfWork.Create(CreateInstance(ended: null));
+        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(CreateInstance(ended: null));
 
         WorkflowEngineCommandResult result = await new ConfirmCompleteOnProcessEnd().Execute(CreateContext(unitOfWork));
 
