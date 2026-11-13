@@ -18,7 +18,7 @@ flowchart LR
   B["Browser: Designer frontend"] -->|HTTP and SignalR| D["Designer backend"]
   D -->|HTTP and WebSocket| A["Assistant service"]
   A -->|git clone and push| G["Gitea"]
-  A -->|generate data model files| D
+  A -->|data model files, access packages and roles| D
   A -->|model calls| L["Azure AI models"]
 ```
 

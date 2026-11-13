@@ -317,8 +317,6 @@ _NAME_PATTERN = re.compile(r"^studio-[a-z0-9]+(-[a-z0-9]+)*$")
 _ASSISTANT_TOOL_NAMES = (*(name for name in _build_registry([]).names() if name != "skill"), "skill(")
 _RELATIVE_LINK = re.compile(r"\]\((?!https?://|#|mailto:)([^)\s#]+)")
 _BUNDLED_SKILL_DIRS = sorted(path for path in _DEFAULT_SKILLS_DIR.iterdir() if path.is_dir())
-# These skills were written for the assistant alone and still name its tools. Rewrite a skill to drop it from here.
-_NAMES_THE_ASSISTANTS_TOOLS = {"studio-app-development", "studio-data-model", "studio-docs", "studio-expressions"}
 
 
 def _frontmatter(skill_dir: Path) -> dict:
@@ -363,14 +361,7 @@ class TestBundledSkills:
         assert files <= linked_from_skill_md, f"files not linked from SKILL.md: {sorted(files - linked_from_skill_md)}"
         assert all(path.startswith(("references/", "scripts/", "assets/")) for path in files)
 
-    def test_every_skill_that_may_name_the_tools_exists(self):
-        assert {path.name for path in _BUNDLED_SKILL_DIRS} >= _NAMES_THE_ASSISTANTS_TOOLS
-
-    @pytest.mark.parametrize(
-        "skill_dir",
-        [path for path in _BUNDLED_SKILL_DIRS if path.name not in _NAMES_THE_ASSISTANTS_TOOLS],
-        ids=lambda path: path.name,
-    )
+    @pytest.mark.parametrize("skill_dir", _BUNDLED_SKILL_DIRS, ids=lambda path: path.name)
     def test_does_not_name_the_assistants_tools(self, skill_dir):
         for path in skill_dir.rglob("*.md"):
             text = path.read_text(encoding="utf-8")
