@@ -120,7 +120,10 @@ function RowValidationPopover({
                 <li key={getUniqueKey(validation)}>
                   <RepeatingGroupValidationMessage
                     validation={validation}
-                    onNavigate={() => setOpen(false)}
+                    onNavigate={() => {
+                      triggerRef.current?.focus({ preventScroll: true });
+                      setOpen(false);
+                    }}
                   />
                 </li>
               ))}
