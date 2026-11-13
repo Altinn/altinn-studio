@@ -48,14 +48,14 @@ jobs:
               exit 0
             fi
           else
-            if ! permission=$(gh api repos/${{ github.repository }}/collaborators/"$ACTOR"/permission --jq '.permission' 2>/dev/null); then
+            if ! permission=$(gh api repos/${{ github.repository }}/collaborators/"$ACTOR"/permission --jq '.role_name' 2>/dev/null); then
               echo "should_approve=false" >> $GITHUB_OUTPUT
               echo "Could not determine permission for $ACTOR"
               exit 0
             fi
 
             case "$permission" in
-              admin|maintain|write)
+              admin|maintain)
                 ;;
               *)
                 echo "should_approve=false" >> $GITHUB_OUTPUT
