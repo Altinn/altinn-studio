@@ -16,6 +16,13 @@ describe('Map component', () => {
   });
 
   it('Is able to draw new geometries on a map using the toolbar and delete them after', () => {
+    // Hold the save response, so the drawn path can be captured before the response arrives
+    cy.intercept('PATCH', '**/data?*', (req) =>
+      req.continue((res) => {
+        res.setDelay(500);
+      }),
+    ).as('save');
+
     // Draw a polygon
     cy.findByRole('link', { name: 'Draw a polygon' }).click();
     cy.findByText('Click to start drawing shape.').should('exist');
@@ -39,8 +46,13 @@ describe('Map component', () => {
     cy.findByText('Click first point to close this shape.').should('exist');
     cy.get(selectors.map).find(selectors.drawVertex).first().should('be.visible').click();
     assertPath(4, true);
-    // Let the new geometry finish saving, so that saving the deletion does not race with it.
-    cy.waitUntilSaved();
+    // The save response must not redraw the path. A redraw during the map's zoom to fit the new geometry draws it at
+    // the wrong scale, which used to make the delete click below miss the path.
+    cy.get('@save.all').should('have.length', 1);
+    cy.get(selectors.path).then(($drawn) => {
+      cy.waitUntilSaved();
+      cy.get(selectors.path).should(($path) => expect($path[0]).to.equal($drawn[0]));
+    });
 
     cy.get('g>path').should('to.be.visible');
 
