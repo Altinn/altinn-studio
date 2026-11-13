@@ -1,10 +1,6 @@
 ---
 name: studio-layouts
 description: "Pages and components in an app's UI: App/ui folders, Settings.json and page order, layout files and their $schema, component IDs, navigation, hidden pages, repeating groups, Summary2 and subforms."
-metadata:
-  studio-title: Sider og komponenter
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/
 ---
 
 ## App version

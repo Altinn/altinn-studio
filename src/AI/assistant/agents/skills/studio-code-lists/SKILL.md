@@ -1,10 +1,6 @@
 ---
 name: studio-code-lists
 description: "Options and code lists for Dropdown, RadioButtons, Checkboxes and other selection components: optionsId, files in App/options, Altinn.Codelists, organization library code lists, options from a repeating group, and custom providers."
-metadata:
-  studio-title: Kodelister og svaralternativer
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/options/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/options/
 ---
 
 ## App version

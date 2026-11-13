@@ -1,10 +1,6 @@
 ---
 name: studio-integrations
 description: "How an Altinn app talks to other systems: Maskinporten, external APIs over HttpClient, Correspondence, email and SMS notifications, Altinn Events, eFormidling, Fiks Arkiv, and system users and API scopes for callers."
-metadata:
-  studio-title: Integrasjoner
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/integration/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/integration/
 ---
 
 The `studio-app-lib` skill says where custom code goes, the `studio-process` skill covers the service tasks for

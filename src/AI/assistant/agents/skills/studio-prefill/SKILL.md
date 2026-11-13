@@ -1,10 +1,6 @@
 ---
 name: studio-prefill
 description: "Prefill form data when the app creates it: the prefill.json file of a data type with the ER, DSF and UserProfile sources, query parameter prefill for stateless apps, data sent at instantiation, and when to write custom prefill code."
-metadata:
-  studio-title: Forhåndsutfylling
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/prefill/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/prefill/
 ---
 
 ## App version

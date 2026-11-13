@@ -1,10 +1,6 @@
 ---
 name: studio-process
 description: Change the app process in App/config/process/process.bpmn. Covers tasks and task types, service tasks such as PDF and eFormidling, exclusive gateways and their conditions, actions, and the files to update when you add, rename or remove a task.
-metadata:
-  studio-title: Prosess og oppgaver
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/process/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/
 ---
 
 Other files name tasks by their id, so a change to a task usually touches files outside the process too.

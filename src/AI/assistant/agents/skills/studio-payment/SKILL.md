@@ -1,10 +1,6 @@
 ---
 name: studio-payment
 description: "Set up payment in an Altinn app end to end: the payment task's paymentConfig and data types, pay, confirm and reject in the process and policy, IOrderDetailsCalculator, Nets Easy settings and secret key, and the Payment components."
-metadata:
-  studio-title: Betaling
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/payment/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/payment/
 ---
 
 A payment task takes the payment through Nets Easy, or through a payment processor you write. The process, the data

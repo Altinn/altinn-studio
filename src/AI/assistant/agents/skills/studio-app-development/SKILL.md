@@ -1,10 +1,6 @@
 ---
 name: studio-app-development
 description: "Start here to change an Altinn Studio app: how the files under App/ connect through task IDs, data type IDs, text keys and bindings, how to tell a v8 app from a v9 app, and which skill covers each job."
-metadata:
-  studio-title: Utvikle apper
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/
 ---
 
 ## App version

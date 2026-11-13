@@ -368,7 +368,7 @@ class _SinkStub:
 
 
 class TestEmitWorkflowCompletion:
-    def _emit(self, monkeypatch, trace_id, state_trace_id=None):
+    def _emit(self, monkeypatch, trace_id, state_trace_id=None, sources=None):
         stub = _SinkStub()
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink", stub)
         monkeypatch.setattr(
@@ -382,10 +382,34 @@ class TestEmitWorkflowCompletion:
             turns=1,
         )
         ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        if sources is not None:
+            ctx.extras["sources"] = sources
         state = _state()
         state.trace_id = state_trace_id
         _emit_workflow_completion(state, result, ctx, unsaved_files=[])
         return next(e for e in stub.events if e.type == "assistant_message")
+
+    def test_the_chat_lists_no_skill_as_a_source(self, monkeypatch):
+        """A skill is the assistant's own text. A source in the chat must be one that the user can open."""
+        page = {"title": "Datamodeller", "url": "https://docs.altinn.studio/nb/altinn-studio/v8/", "kind": "docs"}
+        skill = {"title": "studio-data-model", "kind": "skill"}
+
+        message = self._emit(monkeypatch, trace_id=None, sources=[skill, page])
+
+        assert message.data["sources"] == [page]
+
+    def test_the_trace_lists_the_skill_as_a_source(self):
+        """The no_hallucination evaluator counts what a listed skill says as grounded."""
+        skill = {"title": "studio-data-model", "kind": "skill"}
+        ctx = LoopContext(session_id="sess-1", repo_path="/repo", allow_app_changes=True)
+        ctx.extras["sources"] = [skill]
+        state = _state()
+        result = LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
+
+        node._record_response(state, result, ctx)
+
+        assert state.assistant_response is not None
+        assert state.assistant_response["sources"] == [skill]
 
     def test_assistant_message_carries_trace_id(self, monkeypatch):
         message = self._emit(monkeypatch, trace_id="trace-123")

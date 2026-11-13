@@ -1,10 +1,6 @@
 ---
 name: studio-data-model
 description: "Data models under App/models: the JSON schema that the C# class and XSD are generated from, the data type and classRef in applicationmetadata.json, binding paths, naming rules and the constraints Studio supports."
-metadata:
-  studio-title: Datamodeller
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/data/data-modeling/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/data/data-modeling/
 ---
 
 ## App version

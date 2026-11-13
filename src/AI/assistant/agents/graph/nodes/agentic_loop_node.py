@@ -589,7 +589,7 @@ def _emit_workflow_completion(
         # The user reads this list as the files that changed in the app.
         # The tools record the path as the model wrote it, such as `./App/a.json`. Git gives `App/a.json`.
         "filesChanged": [path for path in state.changed_files if posixpath.normpath(path) not in unsaved_files],
-        "sources": ctx.extras.get("sources", []),
+        "sources": _sources_the_user_can_open(ctx),
     }
     if security_notice:
         log.warning(
@@ -668,6 +668,11 @@ def _extract_security_notice(text: str) -> tuple[str, str | None]:
     notice = " ".join(matches[0].split())[:MAX_SECURITY_NOTICE_LENGTH]
     cleaned = _SECURITY_NOTICE_RE.sub("", text)
     return cleaned.strip(), notice or None
+
+
+def _sources_the_user_can_open(ctx: LoopContext) -> list[dict]:
+    """The sources for the chat. A skill is the assistant's own text, so only the trace lists it."""
+    return [source for source in ctx.extras.get("sources", []) if source.get("kind") != "skill"]
 
 
 def _strip_sources_line(text: str) -> str:

@@ -1,10 +1,6 @@
 ---
 name: studio-expressions
 description: Write dynamic expressions, the JSON arrays that set hidden, required, readOnly and texts in layouts and drive expression validation and gateway conditions. Covers types, comparisons, functions and common mistakes.
-metadata:
-  studio-title: Dynamiske uttrykk
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/
 ---
 
 ## App version

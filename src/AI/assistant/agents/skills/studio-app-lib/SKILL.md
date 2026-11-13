@@ -1,10 +1,6 @@
 ---
 name: studio-app-lib
 description: "Custom C# in an Altinn app through the Altinn.App.Core interfaces: which one to implement for instantiation, data processing, validation, options, actions, gateways, signing, payment, process tasks and hooks, and how to register it."
-metadata:
-  studio-title: Egen kode i appen (C#)
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/extension-points/
 ---
 
 ## App version

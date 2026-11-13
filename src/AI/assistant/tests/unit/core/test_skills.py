@@ -22,24 +22,17 @@ from agents.core.tool import LoopContext
 from agents.core.tools.skill_tool import SkillArgs, SkillTool
 from agents.graph.nodes.agentic_loop_node import _build_registry
 
-DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/"
-DOCS_URL_V9 = "https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/expressions/"
-METADATA = {"studio-title": "Dynamiske uttrykk", "studio-docs-url": DOCS_URL, "studio-docs-url-v9": DOCS_URL_V9}
-
 
 def _write_skill(
     root: Path,
     name: str,
     description: str = "Covers it.",
     body: str = "# Content",
-    metadata: dict[str, str] | None = None,
     frontmatter_name: str | None = None,
 ) -> Path:
     skill_dir = root / name
     skill_dir.mkdir(parents=True)
     fields: dict[str, object] = {"name": frontmatter_name or name, "description": description}
-    if metadata:
-        fields["metadata"] = metadata
     skill_file = skill_dir / "SKILL.md"
     skill_file.write_text(f"---\n{yaml.safe_dump(fields, allow_unicode=True)}---\n\n{body}\n", encoding="utf-8")
     return skill_file
@@ -117,27 +110,6 @@ class TestDiscoverSkills:
 
         skills = discover_skills(tmp_path)
         assert skills[0].description == "Topic: the details, see also: more."
-
-    def test_title_and_docs_urls_come_from_metadata(self, tmp_path):
-        _write_skill(tmp_path, "titled", metadata=METADATA)
-
-        skill = discover_skills(tmp_path)[0]
-
-        assert skill.title == "Dynamiske uttrykk"
-        assert skill.docs_url_for("v8") == DOCS_URL
-        assert skill.docs_url_for("v9") == DOCS_URL_V9
-
-    def test_v9_falls_back_to_the_main_docs_url(self, tmp_path):
-        _write_skill(tmp_path, "titled", metadata={"studio-docs-url": DOCS_URL})
-
-        assert discover_skills(tmp_path)[0].docs_url_for("v9") == DOCS_URL
-
-    def test_title_and_docs_url_default_to_empty(self, tmp_path):
-        _write_skill(tmp_path, "plain")
-
-        skill = discover_skills(tmp_path)[0]
-        assert skill.title == ""
-        assert skill.docs_url_for("v8") == ""
 
     def test_missing_root_returns_empty(self, tmp_path):
         assert discover_skills(tmp_path / "nonexistent") == []
@@ -326,21 +298,12 @@ class TestSkillTool:
         assert "beta" in tool.description
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize(("profile", "url"), [(V8_PROFILE, DOCS_URL), (V9_PROFILE, DOCS_URL_V9)])
-    async def test_source_record_uses_the_title_and_the_docs_url_for_the_app_version(self, tmp_path, profile, url):
-        _write_skill(tmp_path, "titled", metadata=METADATA)
-        tool = SkillTool(discover_skills(tmp_path))
-
-        result = await tool.run(SkillArgs(skill="titled"), _ctx(profile))
-
-        assert result.metadata["source"] == {"title": "Dynamiske uttrykk", "kind": "skill", "url": url}
-
-    @pytest.mark.asyncio
-    async def test_source_record_falls_back_to_name_without_url(self, tmp_path):
+    async def test_source_record_names_the_skill_without_a_link(self, tmp_path):
+        """The skill is the assistant's own text, so the source links no docs page that the user could take for it."""
         _write_skill(tmp_path, "plain")
         tool = SkillTool(discover_skills(tmp_path))
 
-        result = await tool.run(SkillArgs(skill="plain"), _ctx())
+        result = await tool.run(SkillArgs(skill="plain"), _ctx(V9_PROFILE))
 
         assert result.metadata["source"] == {"title": "plain", "kind": "skill"}
 
@@ -349,7 +312,6 @@ class TestSkillTool:
 # (https://agentskills.io/specification), so the same directories also work
 # for other coding agents, and must not depend on this assistant's tools.
 _SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
-_STUDIO_METADATA = {"studio-title", "studio-docs-url", "studio-docs-url-v9"}
 _NAME_PATTERN = re.compile(r"^studio-[a-z0-9]+(-[a-z0-9]+)*$")
 # "skill" is an ordinary word, so only a call to that tool counts.
 _ASSISTANT_TOOL_NAMES = (*(name for name in _build_registry([]).names() if name != "skill"), "skill(")
@@ -378,12 +340,6 @@ class TestBundledSkills:
         assert fields["name"] == skill_dir.name
         assert _NAME_PATTERN.match(fields["name"])
         assert 0 < len(fields["description"]) <= MAX_LISTING_DESCRIPTION_CHARS
-        metadata = fields.get("metadata", {})
-        assert set(metadata) <= _STUDIO_METADATA
-        assert all(isinstance(value, str) for value in metadata.values())
-        # The source chip in the chat UI shows the title and links the docs page.
-        assert metadata.get("studio-title")
-        assert metadata.get("studio-docs-url", "").startswith("https://docs.altinn.studio/")
 
     @pytest.mark.parametrize("skill_dir", _BUNDLED_SKILL_DIRS, ids=lambda path: path.name)
     def test_links_resolve_and_every_reference_is_linked(self, skill_dir):

@@ -1,10 +1,6 @@
 ---
 name: studio-validation
 description: Choose and set up validation of form data. Covers data model constraints, required fields, expression validation in validation.json, C# validators, when messages show, where their texts come from, and what the backend checks on process/next.
-metadata:
-  studio-title: Validering
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/validation/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/validation/
 ---
 
 The frontend shows messages while the user fills in the form. The backend runs the checks again on `process/next`, so

@@ -1,10 +1,6 @@
 ---
 name: studio-text-resources
 description: "Texts in the resource files in App/config/texts/, such as resource.nb.json: text keys and the files that use them, variables from the data model and other sources, translations, adding a language and the language selector."
-metadata:
-  studio-title: Tekstressurser
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/look-and-feel/tekster/
 ---
 
 Other files refer to a text by its key, so a change to a key reaches every file that uses it.

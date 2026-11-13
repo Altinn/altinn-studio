@@ -1,10 +1,6 @@
 ---
 name: studio-signing
 description: "Set up signing in an Altinn app end to end: choose the kind of signing, then make signatureConfig, the signature data types, the sign action and policy, ISigneeProvider, delegation, Correspondence and the signing components agree."
-metadata:
-  studio-title: Signering
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/signing/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/signing/
 ---
 
 The `studio-process` skill covers the process file in general.

@@ -1,10 +1,6 @@
 ---
 name: studio-app-settings
 description: "App-wide settings in applicationmetadata.json and appsettings*.json: data types and their limits, party types, onEntry, stateless apps and anonymous access, auto-delete, message box, copying, secrets, file scanning and events."
-metadata:
-  studio-title: Appinnstillinger
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/settings/
 ---
 
 Settings for Maskinporten, events, eFormidling, Fiks Arkiv and other integrations belong to the

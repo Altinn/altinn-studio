@@ -1,10 +1,6 @@
 ---
 name: studio-docs
 description: Find the right page on docs.altinn.studio for v8 and v9 Altinn Studio apps, Authorization, access packages and the other Altinn products. Use when you need the official docs on something no other skill covers.
-metadata:
-  studio-title: Altinn Studio-dokumentasjon
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/
 ---
 
 The docs on docs.altinn.studio are the source of truth for what a feature does and how to configure it.
