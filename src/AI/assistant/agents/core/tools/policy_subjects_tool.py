@@ -57,8 +57,8 @@ class PolicySubjectsArgs(BaseModel):
     search: str | None = Field(
         default=None,
         description=(
-            "Return only entries whose code, name, description or area contains every word, ignoring case. "
-            "Example: `regnskap`."
+            "Return only entries whose code, name, description or area contains every word, ignoring case. The "
+            "lists are in Norwegian bokmål, so search with one or two Norwegian words, such as `regnskap` or `lønn`."
         ),
     )
     group: str | None = Field(
