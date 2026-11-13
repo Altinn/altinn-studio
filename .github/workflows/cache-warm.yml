@@ -136,6 +136,7 @@ jobs:
         run: |
           make -C src/ci/github-runner/coordinator build
           make -C src/ci/sandbox-hosting build
+          make -C src/core/operator-runner build
 
   localtest-image-registry-cache:
     name: Warm LocalTest image registry cache

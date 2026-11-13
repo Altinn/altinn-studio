@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+# This patch allows four runs at the same time. Adjust these values after you measure how callers use the runs.
+patches:
+  - target:
+      kind: ResourceQuota
+      name: sandbox-runs
+    patch: |-
+      - op: replace
+        path: /spec/hard
+        value:
+          requests.devices.altinn.studio/kvm: "4"
+          requests.cpu: "12"
+          requests.memory: 22Gi
+          count/jobs.batch: "20"

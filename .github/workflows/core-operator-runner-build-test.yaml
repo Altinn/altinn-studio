@@ -1,0 +1,237 @@
+name: Core Operator Runner - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'clippy.toml'
+      - 'rust-toolchain.toml'
+      - 'rustfmt.toml'
+      - 'src/core/operator-runner/**'
+      - 'src/ci/sandbox-hosting/**'
+      - '.github/actions/setup-rust-cached/**'
+      - '.github/workflows/core-operator-runner-build-test.yaml'
+      - '!**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/core/operator-runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust-cached
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Build
+        run: make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Check dependencies
+        run: make deps-check
+
+  microvm:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Test the guest image and the operator runner
+    # A KVM run is slow. It starts only after the build job passes.
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      REGISTRY: localhost:5000
+      OPERATOR_RUNNER_IMAGE: operator-runner:ci
+      OPERATOR_RUNNER_URL: http://127.0.0.1:8080
+      # In a cluster, the PodTemplate sets these values. This job runs the container without a PodTemplate.
+      SANDBOX_CPUS: "2"
+      SANDBOX_MEMORY: 4Gi
+      SANDBOX_ROOT_FILESYSTEM: 20Gi
+      REQUEST_TIMEOUT_SECONDS: "120"
+      RESULT_RETENTION_SECONDS: "300"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      # The export of the prepared image reads from a registry. A registry on this runner uses no credentials and
+      # publishes nothing. Docker pushes to a registry on localhost with plain HTTP. The Microsandbox configuration of
+      # the export allows plain HTTP for this registry.
+      - name: Start a registry on this runner
+        run: |
+          docker run --detach --name registry --publish 127.0.0.1:5000:5000 \
+            registry:3.1.2@sha256:ddf754342cfc8acc51a56d5d0ab6af06826461864460636d8bd5c546dab2a7b8
+
+      - name: Build the guest image and push it to the registry
+        working-directory: src/core/operator-runner
+        run: |
+          docker build -t "${REGISTRY}/operator-runner-guest:ci" -f Dockerfile.guest .
+          docker push "${REGISTRY}/operator-runner-guest:ci"
+          image="$(docker inspect --format '{{index .RepoDigests 0}}' "${REGISTRY}/operator-runner-guest:ci")"
+          echo "SANDBOX_IMAGE=${image}" >> "${GITHUB_ENV}"
+
+      - name: Build the operator runner image
+        run: docker build -t "${OPERATOR_RUNNER_IMAGE}" -f src/core/operator-runner/Dockerfile .
+
+      # On a sandbox node, root owns the hostPath folders. The root user of the pod has no capabilities. This step uses
+      # the same conditions. The Microsandbox configuration in the Provider home of the export allows the registry.
+      - name: Export and import the prepared guest image, as the deploy and the init container do
+        run: |
+          mkdir -p "${RUNNER_TEMP}"/{prepared,export-cache,export-home/runtime,cache,home}
+          sudo chown 0:0 "${RUNNER_TEMP}"/{cache,home}
+          echo "{\"registries\":{\"hosts\":{\"${REGISTRY}\":{\"insecure\":true}}}}" > "${RUNNER_TEMP}/export-home/runtime/config.json"
+          docker run --rm --network host --entrypoint /usr/local/bin/sandbox-image \
+            --env SANDBOX_PROVIDER_HOME=/provider --env SANDBOX_CACHE_HOME=/cache \
+            --env PREPARED_IMAGE_DIRECTORY=/output --env SANDBOX_IMAGE \
+            --volume "${RUNNER_TEMP}/export-home:/provider" \
+            --volume "${RUNNER_TEMP}/export-cache:/cache" --volume "${RUNNER_TEMP}/prepared:/output" \
+            "${OPERATOR_RUNNER_IMAGE}" export
+          docker run --rm --entrypoint /usr/local/bin/sandbox-image \
+            --env SANDBOX_PROVIDER_HOME=/tmp/sandbox-provider --env SANDBOX_CACHE_HOME=/cache \
+            --env PREPARED_IMAGE_DIRECTORY=/prepared --env SANDBOX_IMAGE \
+            --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+            --volume "${RUNNER_TEMP}/cache:/cache" --volume "${RUNNER_TEMP}/prepared:/prepared:ro" \
+            "${OPERATOR_RUNNER_IMAGE}" import
+
+      # start-operator-runner.sh starts the operator runner with the restrictions of the pod: root without capabilities,
+      # a read-only root file system and /dev/kvm. The operator runner reads its settings from the environment of the
+      # step. start-run.sh sends an archive, as the operator does, and fetch-result.sh asks for the result until the run
+      # ends.
+      - name: Write the scripts
+        run: |
+          cat > "${RUNNER_TEMP}/start-operator-runner.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          docker run --detach --name operator-runner --publish 127.0.0.1:8080:8080 \
+            --device /dev/kvm --cap-drop ALL --security-opt no-new-privileges --read-only --tmpfs /tmp \
+            --volume "${RUNNER_TEMP}/home:/var/lib/altinn/sandbox-provider" \
+            --volume "${RUNNER_TEMP}/cache:/var/cache/altinn/sandbox" \
+            --env SANDBOX_IMAGE --env SANDBOX_CPUS --env SANDBOX_MEMORY --env SANDBOX_ROOT_FILESYSTEM \
+            --env REQUEST_TIMEOUT_SECONDS --env RESULT_RETENTION_SECONDS "${OPERATOR_RUNNER_IMAGE}"
+          for _ in $(seq 1 60); do
+            curl -fsS "${OPERATOR_RUNNER_URL}/health" && exit 0
+            sleep 1
+          done
+          exit 1
+          SCRIPT
+
+          # Usage: start-run.sh <run id> <archive>
+          cat > "${RUNNER_TEMP}/start-run.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          answer="$(mktemp)"
+          status="$(curl -sS --max-time 180 -o "${answer}" -w '%{http_code}' -X PUT \
+            -H 'Content-Type: application/gzip' --data-binary "@$2" \
+            "${OPERATOR_RUNNER_URL}/runs/$1?command=upgrade-v9")"
+          if [ "${status}" != 202 ] || ! jq -e --arg run_id "$1" '.runId == $run_id' "${answer}" > /dev/null; then
+            echo "The operator runner answered ${status}: $(cat "${answer}")" >&2
+            exit 1
+          fi
+          jq -r .status "${answer}"
+          SCRIPT
+
+          # Usage: fetch-result.sh <run id> <result file>
+          cat > "${RUNNER_TEMP}/fetch-result.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          deadline=$((SECONDS + 900))
+          while [ "${SECONDS}" -lt "${deadline}" ]; do
+            curl -sS --fail-with-body --max-time 60 "${OPERATOR_RUNNER_URL}/runs/$1/result?wait=30" > "$2"
+            if [ "$(jq -r .status "$2")" != running ]; then
+              exit 0
+            fi
+          done
+          echo "The run did not end in time." >&2
+          exit 1
+          SCRIPT
+
+          chmod +x "${RUNNER_TEMP}"/{start-operator-runner,start-run,fetch-result}.sh
+
+      - name: Upgrade the v8 template in a microVM, check the exit, and build the result
+        run: |
+          "${RUNNER_TEMP}/start-operator-runner.sh"
+          tar -czf "${RUNNER_TEMP}/app.tar.gz" -C src/App/template/v8/src .
+          run_id="$(cat /proc/sys/kernel/random/uuid)"
+          test "$("${RUNNER_TEMP}/start-run.sh" "${run_id}" "${RUNNER_TEMP}/app.tar.gz")" = running
+          # A repeat of the same run answers with its status, as after a restart of the operator.
+          "${RUNNER_TEMP}/start-run.sh" "${run_id}" "${RUNNER_TEMP}/app.tar.gz" > /dev/null
+          "${RUNNER_TEMP}/fetch-result.sh" "${run_id}" "${RUNNER_TEMP}/result.json"
+          jq -e '.status == "completed" and .exitCode == 0 and (.report | type) == "object" and .patch != null' "${RUNNER_TEMP}/result.json" > /dev/null \
+            || { jq 'del(.patch)' "${RUNNER_TEMP}/result.json"; exit 1; }
+          jq -r .patch "${RUNNER_TEMP}/result.json" | base64 -d > "${RUNNER_TEMP}/changes.patch"
+          # After the first fetch, the operator runner keeps the result for 30 seconds, and then exits with 0.
+          test "$(timeout 120 docker wait operator-runner)" = 0
+          docker rm operator-runner
+          cp -R src/App/template/v8/src "${RUNNER_TEMP}/app"
+          git -C "${RUNNER_TEMP}/app" apply "${RUNNER_TEMP}/changes.patch"
+          docker run --rm -v "${RUNNER_TEMP}/app:/upgraded:ro" "${REGISTRY}/operator-runner-guest:ci" sh -c '
+            set -eu
+            cp -R /upgraded app
+            cd app
+            dotnet build App/App.csproj -nologo -v:q --disable-build-servers
+          '
+
+      - name: Report an archive that does not extract as failed
+        run: |
+          "${RUNNER_TEMP}/start-operator-runner.sh"
+          echo 'not a tar file' | gzip > "${RUNNER_TEMP}/broken.tar.gz"
+          run_id="$(cat /proc/sys/kernel/random/uuid)"
+          "${RUNNER_TEMP}/start-run.sh" "${run_id}" "${RUNNER_TEMP}/broken.tar.gz" > /dev/null
+          "${RUNNER_TEMP}/fetch-result.sh" "${run_id}" "${RUNNER_TEMP}/broken.json"
+          jq -e '.status == "failed" and (.error | startswith("The archive does not extract"))' "${RUNNER_TEMP}/broken.json" > /dev/null \
+            || { cat "${RUNNER_TEMP}/broken.json"; exit 1; }
+          test "$(timeout 120 docker wait operator-runner)" = 0
+          docker rm operator-runner
+
+      - name: Exit when no run comes
+        env:
+          REQUEST_TIMEOUT_SECONDS: "5"
+        run: |
+          "${RUNNER_TEMP}/start-operator-runner.sh"
+          test "$(timeout 60 docker wait operator-runner)" = 0
+          docker rm operator-runner
+
+      - name: Exit with 143 on SIGTERM
+        run: |
+          "${RUNNER_TEMP}/start-operator-runner.sh"
+          docker stop --time 60 operator-runner
+          test "$(docker inspect --format '{{.State.ExitCode}}' operator-runner)" = 143
+          docker rm operator-runner
+
+      - name: Show the operator runner log
+        if: ${{ failure() }}
+        run: docker logs operator-runner || true
