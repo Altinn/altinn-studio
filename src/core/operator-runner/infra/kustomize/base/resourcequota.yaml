@@ -1,0 +1,14 @@
+# This quota limits the number of runs at the same time, so that the runs cannot take the sandbox nodes from CI. The
+# operator queues runs below this limit; the quota is the backstop. One run requests one KVM slot, 3 CPU and 5632Mi
+# memory. The quota counts a Job that stopped until the operator or its TTL removes the Job.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sandbox-runs
+  namespace: sandbox-runs
+spec:
+  hard:
+    requests.devices.altinn.studio/kvm: "2"
+    requests.cpu: "6"
+    requests.memory: 11Gi
+    count/jobs.batch: "10"

@@ -1,0 +1,18 @@
+{
+  "commandKey": "run.await-result",
+  "context": {
+    "domain": "runs",
+    "caller": "assistant",
+    "subjectId": "4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b"
+  },
+  "workflowId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+  "stepId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "executionReferenceTime": "2026-11-03T10:00:00+00:00",
+  "state": "{\"jobName\":\"run-4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b\"}",
+  "retryCount": 0,
+  "executionDeadline": "2026-11-03T10:05:40+00:00",
+  "deferCount": 3,
+  "firstDeferredAt": "2026-11-03T10:04:00+00:00",
+  "waitDeadline": "2026-11-03T10:17:00+00:00",
+  "isFinalWaitCheck": false
+}

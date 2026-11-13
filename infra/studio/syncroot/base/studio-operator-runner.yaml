@@ -1,0 +1,33 @@
+# The operator runner Jobs of the core operator: the sandbox-runs namespace, its PodTemplate, quota, network policy and
+# the admission policy that limits what the operator may create. See src/core/operator-runner/README.md. Only the
+# environments with sandbox nodes include this file.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: studio-operator-runner
+  namespace: default
+spec:
+  interval: 5m
+  # The deploy-core-operator-runner workflow pushes one artifact per build SHA and tags it with the environment name.
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/studio-operator-runner-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: studio-operator-runner
+  namespace: default
+spec:
+  # No targetNamespace: each namespaced object in the artifact sets its namespace, and the admission policy in the
+  # artifact is cluster-scoped.
+  interval: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: studio-operator-runner
+    namespace: default
+  path: ./${ENVIRONMENT}
+  prune: true
+  wait: true
+  timeout: 5m

@@ -1,0 +1,157 @@
+# This is the pod of each run Job. The core operator reads this template and creates a Job with exactly this pod spec.
+# The policy in admission-policy.yaml does not accept a different pod spec. The deploy workflow pins the images by
+# digest in the annotations. The replacements in kustomization.yaml copy the images into the pod spec.
+apiVersion: v1
+kind: PodTemplate
+metadata:
+  name: operator-runner
+  namespace: sandbox-runs
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner:latest
+    altinn.studio/image-tag: latest
+    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+    altinn.studio/guest-image-tag: latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-prepared:latest
+    altinn.studio/prepared-image-tag: latest
+template:
+  metadata:
+    labels:
+      app.kubernetes.io/name: operator-runner
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+  spec:
+    restartPolicy: Never
+    # The operator runner does not call the Kubernetes API.
+    automountServiceAccountToken: false
+    enableServiceLinks: false
+    nodeSelector:
+      purpose: sandbox
+      kubernetes.io/arch: amd64
+    tolerations:
+      - key: purpose
+        operator: Equal
+        value: sandbox
+        effect: NoSchedule
+    # On SIGTERM, the operator runner stops a run and deletes its VM. The maximum time for this is one minute.
+    terminationGracePeriodSeconds: 90
+    # To start a VM, the operator runner must have root and /dev/kvm. The app code runs in the VM, not in this pod.
+    securityContext:
+      runAsNonRoot: false
+      runAsUser: 0
+      runAsGroup: 0
+      seccompProfile:
+        type: RuntimeDefault
+    initContainers:
+      # This init container imports the guest image into the image cache, so that registry credentials are not necessary
+      # for the pod.
+      - name: prepare-image
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-prepared:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        env:
+          - name: SANDBOX_PROVIDER_HOME
+            value: /tmp/sandbox-provider
+          - name: SANDBOX_CACHE_HOME
+            value: /var/cache/altinn/sandbox
+          - name: PREPARED_IMAGE_DIRECTORY
+            value: /opt/altinn/prepared-image
+          - name: SANDBOX_IMAGE
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+        resources:
+          requests:
+            cpu: "1"
+            memory: 2Gi
+          limits:
+            memory: 2Gi
+        volumeMounts:
+          - name: provider-cache
+            mountPath: /var/cache/altinn/sandbox
+            subPath: operator-runner
+          - name: tmp
+            mountPath: /tmp
+    containers:
+      - name: operator-runner
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: SANDBOX_PROVIDER_HOME
+            value: /var/lib/altinn/sandbox-provider
+          - name: SANDBOX_CACHE_HOME
+            value: /var/cache/altinn/sandbox
+          - name: SANDBOX_IMAGE
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+          - name: SANDBOX_CPUS
+            value: "2"
+          - name: SANDBOX_MEMORY
+            value: 4Gi
+          - name: SANDBOX_ROOT_FILESYSTEM
+            value: 20Gi
+          # The operator gives its caller 5 minutes to upload the archive, from when the operator sees that the pod is
+          # ready. The extra minute covers the time that the operator takes to see that.
+          - name: REQUEST_TIMEOUT_SECONDS
+            value: "360"
+          # The operator gives its caller as much time to fetch the result after the run.
+          - name: RESULT_RETENTION_SECONDS
+            value: "300"
+        # When the pod is Ready, the operator lets its caller upload the archive. The pod has no liveness probe,
+        # because it is for one run only.
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 1
+        # The requests include the VM size and the operator runner, because the VM and its runtime are processes of this
+        # container.
+        resources:
+          requests:
+            cpu: "3"
+            memory: 5632Mi
+            ephemeral-storage: 1Gi
+            devices.altinn.studio/kvm: "1"
+          limits:
+            memory: 6Gi
+            ephemeral-storage: 2Gi
+            devices.altinn.studio/kvm: "1"
+        volumeMounts:
+          - name: provider-home
+            mountPath: /var/lib/altinn/sandbox-provider
+            subPathExpr: $(POD_UID)
+          - name: provider-cache
+            mountPath: /var/cache/altinn/sandbox
+            subPath: operator-runner
+          - name: tmp
+            mountPath: /tmp
+    # The sandbox node keeps the VM disks on its local NVMe disk.
+    volumes:
+      - name: provider-home
+        hostPath:
+          path: /var/lib/altinn/sandbox/homes
+          type: Directory
+      - name: provider-cache
+        hostPath:
+          path: /var/lib/altinn/sandbox/cache
+          type: Directory
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi

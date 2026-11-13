@@ -41,6 +41,7 @@
 !src/common/ts
 !src/common/ts/**
 !src/common/ts/layout-contract/schemas/json
+!src/core/operator-runner/**
 !yarn.lock
 **/.DS_Store
 **/.cache

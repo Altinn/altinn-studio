@@ -1,0 +1,6 @@
+; https://editorconfig.org/
+; Go uses tabs. Everything else follows the repository's .editorconfig.
+
+[{Makefile,go.mod,go.sum,*.go}]
+indent_style = tab
+indent_size = 4
