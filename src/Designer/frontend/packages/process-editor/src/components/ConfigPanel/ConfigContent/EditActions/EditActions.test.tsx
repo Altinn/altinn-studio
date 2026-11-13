@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
 import { EditActions } from './EditActions';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
-import { useUniqueKeys } from '@studio/hooks';
+import { useUniqueKeys } from '@designer/hooks';
 
 vi.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
-vi.mock('@studio/hooks/src/hooks/useUniqueKeys');
+vi.mock('@designer/hooks/src/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',

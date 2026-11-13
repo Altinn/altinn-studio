@@ -8,6 +8,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from shared.config.base_config import DEFAULT_ROLE, ROLE_MODEL_CONFIG_KEYS
+
 from . import impact, manifest, preview_check, runstore
 from .lf_api import LangfuseApi
 from .rubric import build_rubric_from_dir
@@ -576,7 +578,8 @@ def _parser() -> argparse.ArgumentParser:
     )
     check_parser.add_argument("--out")
     check_parser.add_argument("--max-concurrency", type=int, default=5)
-    check_parser.add_argument("--role", default="actor")
+    # An unknown role would run on the default model without saying so.
+    check_parser.add_argument("--role", default="actor", choices=(*ROLE_MODEL_CONFIG_KEYS, DEFAULT_ROLE))
     check_parser.add_argument("--model", default=None)
     check_parser.add_argument("--max-tokens", type=int, default=None)
     check_parser.add_argument("--assets-dir", help="where the e2e PDFs live, default benchmarks/assets")

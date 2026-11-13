@@ -122,8 +122,8 @@ const common = {
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
           .setDescription(
-            'Show the optional indicator on the label of non-required fields. Enabled by default.',
-            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+            'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
           )
           .optional({ default: true }),
       ),
@@ -977,6 +977,16 @@ const common = {
           .setDescription(
             'Enables a progress indicator in the upper right corner of the app (when on data tasks/forms)',
             'Viser en fremdriftsindikator øverst til høyre i appen under dataoppgaver og skjemaer.',
+          ),
+      ),
+      new CG.prop(
+        'hideOptionalIndicator',
+        new CG.bool()
+          .optional({ default: false })
+          .setTitle('Hide optional indicator', 'Skjul markering av valgfrie felt')
+          .setDescription(
+            "Hides the marking that says a field is optional. Defaults to false, which we recommend because the marking makes it explicit which fields are optional. A component's own labelSettings.optionalIndicator overrides it.",
+            'Skjuler markeringen som viser at et felt er valgfritt. Standard er false, som vi anbefaler fordi markeringen gjør det tydelig hvilke felt som er valgfrie. En komponents egen labelSettings.optionalIndicator overstyrer den.',
           ),
       ),
       new CG.prop(

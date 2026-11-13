@@ -1,4 +1,5 @@
 export type * from './AddLanguagePayload';
+export type * from './AssistantWorkflow';
 export type * from './ChatFeedbackPayload';
 export * from './ChatMessage';
 export type * from './ChatThread';

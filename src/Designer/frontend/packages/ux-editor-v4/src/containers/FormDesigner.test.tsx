@@ -6,7 +6,7 @@ import {
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -17,7 +17,7 @@ import { externalLayoutsMock, layout1NameMock, pagesModelMock } from '../testing
 import { FormItemContext } from './FormItemContext';
 import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { user as userMock } from 'app-shared/mocks/mocks';
 

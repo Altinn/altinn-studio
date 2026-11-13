@@ -1,12 +1,12 @@
 import React, { type JSX } from 'react';
-import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
+import { PlusCircleIcon, XMarkIcon } from '@designer/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioProperty, StudioTextfield } from '@designer/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import cn from 'classnames';
 

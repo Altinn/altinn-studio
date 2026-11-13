@@ -6,7 +6,7 @@ its own path. The apps call the [backend](../backend/README.md) API.
 
 - `packages/` holds the editors that `app-development` shows for one app, such as the UI editor and the process
   editor.
-- `libs/` holds shared libraries. `@studio/components` wraps the components of
+- `libs/` holds shared libraries. `@designer/components` wraps the components of
   [Designsystemet](https://designsystemet.no), and the rest of the frontend imports them from there. ESLint enforces
   this.
 

@@ -7,6 +7,7 @@ import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
 import { ActionButtonMainConfig } from './SpecificMainConfig/ActionButtonMainConfig';
 import { FileUploadMainConfig } from './SpecificMainConfig/FileUploadMainConfig';
+import { BrokerFileTransferMainConfig } from './SpecificMainConfig/BrokerFileTransferMainConfig';
 import { AlertMainConfig } from './SpecificMainConfig/AlertMainConfig';
 import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
 import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
@@ -64,6 +65,14 @@ export const ComponentMainConfig = ({
     case ComponentType.FileUpload:
       return (
         <FileUploadMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.BrokerFileTransfer:
+      return (
+        <BrokerFileTransferMainConfig
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}

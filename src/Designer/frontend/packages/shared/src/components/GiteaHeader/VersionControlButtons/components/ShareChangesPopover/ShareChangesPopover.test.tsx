@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ShareChangesPopover } from './ShareChangesPopover';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
@@ -13,13 +13,13 @@ import {
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 const mockGetRepoStatus = vi.fn();
 

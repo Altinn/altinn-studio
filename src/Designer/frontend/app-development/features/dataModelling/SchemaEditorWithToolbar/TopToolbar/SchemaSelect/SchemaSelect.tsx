@@ -7,7 +7,7 @@ import type { MetadataOption } from '../../../../../types/MetadataOption';
 import classes from './SchemaSelect.module.css';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 export interface ISchemaSelectProps {
   dataModels: DataModelMetadata[];

@@ -3,6 +3,8 @@
 from contextlib import contextmanager
 
 from langfuse import Langfuse, get_client
+from opentelemetry import context as otel_context
+from opentelemetry.sdk.trace import SpanProcessor
 
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
@@ -12,6 +14,36 @@ config = get_config()
 
 _client = None
 _initialized = False
+
+_PROPAGATED_SPAN_ATTRIBUTES = otel_context.create_key("assistant.propagated_span_attributes")
+
+
+class _PropagatedAttributesProcessor(SpanProcessor):
+    """Copies the attributes of an enclosing `propagate_span_attributes` to each span as it starts."""
+
+    def on_start(self, span, parent_context=None):
+        attributes = otel_context.get_value(_PROPAGATED_SPAN_ATTRIBUTES, parent_context)
+        if isinstance(attributes, dict):
+            span.set_attributes(attributes)
+
+
+@contextmanager
+def propagate_span_attributes(attributes: dict[str, str]):
+    """Put `attributes` on every span that starts inside this block.
+
+    Langfuse reads each observation on its own, so its filters and aggregations
+    miss a child span when only the root span has an attribute.
+    `langfuse.propagate_attributes` copies the attributes it knows about. Use
+    this for the others.
+    """
+    if not attributes:
+        yield
+        return
+    token = otel_context.attach(otel_context.set_value(_PROPAGATED_SPAN_ATTRIBUTES, attributes))
+    try:
+        yield
+    finally:
+        otel_context.detach(token)
 
 
 def init_langfuse():
@@ -33,11 +65,12 @@ def init_langfuse():
         # Give Langfuse its own dedicated TracerProvider so it is isolated from
         # the global OTel provider that third-party libraries share.
         langfuse_provider = _OtelTracerProvider()
+        langfuse_provider.add_span_processor(_PropagatedAttributesProcessor())
 
         _client = Langfuse(
             secret_key=config.LANGFUSE_SECRET_KEY,
             public_key=config.LANGFUSE_PUBLIC_KEY,
-            host=config.LANGFUSE_HOST,
+            base_url=config.LANGFUSE_HOST,
             release=config.LANGFUSE_RELEASE,
             environment=config.LANGFUSE_ENVIRONMENT,
             tracer_provider=langfuse_provider,
@@ -163,7 +196,7 @@ def delete_score(score_id: str) -> None:
     if not client or not score_id:
         return
     try:
-        client.api.legacy.score_v1.delete(score_id)
+        client.api.scores.delete(score_id)
         log.debug("Langfuse score %s deleted", score_id)
     except Exception as e:
         log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
@@ -175,19 +208,19 @@ def get_trace_developer(trace_id: str) -> str | None:
     if not client or not trace_id:
         return None
     try:
-        trace = client.api.trace.get(trace_id)
+        root_observations = client.api.observations.get_many(
+            trace_id=trace_id,
+            is_root_observation=True,
+            fields="core,metadata",
+            limit=1,
+        ).data
     except Exception as exc:
         log.debug("Langfuse trace lookup failed for %s: %s", trace_id, exc)
         return None
 
-    observations = getattr(trace, "observations", None) or []
-    root_observation = next(
-        (obs for obs in observations if not getattr(obs, "parent_observation_id", None)),
-        None,
-    )
-    if root_observation is None:
+    if not root_observations:
         return None
-    metadata = getattr(root_observation, "metadata", None) or {}
+    metadata = root_observations[0].metadata or {}
     return metadata.get("developer")
 
 

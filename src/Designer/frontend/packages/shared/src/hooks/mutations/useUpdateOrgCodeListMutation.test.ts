@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
 import { useUpdateOrgCodeListMutation } from './useUpdateOrgCodeListMutation';

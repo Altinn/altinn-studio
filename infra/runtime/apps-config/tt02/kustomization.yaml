@@ -33,6 +33,7 @@ patches:
         PlatformFrontendSettings__AccessManagementUrl: https://am.ui.tt02.altinn.no/accessmanagement/ui
         PlatformFrontendSettings__RolesAndRightsHelpUrl: https://tt02.altinn.no/hjelp/profil/enkelttjenester-og-roller/
         PlatformFrontendSettings__ArbeidsflatePartiesUrl: https://af.tt02.altinn.no/profile/parties
+        PlatformFrontendSettings__BrokerApiBaseUrl: https://platform.tt02.altinn.no
         AppSettings__OpenIdWellKnownEndpoint: https://platform.tt02.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging
         AppSettings__EFormidlingSender: "991825827"
@@ -70,7 +71,8 @@ patches:
               "AccessManagementChangeAndRedirectUrl": "https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}",
               "AccessManagementUrl": "https://am.ui.tt02.altinn.no/accessmanagement/ui",
               "RolesAndRightsHelpUrl": "https://tt02.altinn.no/hjelp/profil/enkelttjenester-og-roller/",
-              "ArbeidsflatePartiesUrl": "https://af.tt02.altinn.no/profile/parties"
+              "ArbeidsflatePartiesUrl": "https://af.tt02.altinn.no/profile/parties",
+              "BrokerApiBaseUrl": "https://platform.tt02.altinn.no"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.tt02.altinn.no/authentication/api/v1/openid/",

@@ -29,7 +29,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
@@ -41,7 +41,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor-v8@workspace:src/Designer/frontend/packages/process-editor-v8"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
@@ -56,7 +56,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
@@ -71,7 +71,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   peerDependencies:
     classnames: 2.5.1
     react: 18.3.1
@@ -103,9 +103,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/ux-editor-v3@workspace:src/Designer/frontend/packages/ux-editor-v3"
   dependencies:
+    "@designer/icons": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@reduxjs/toolkit": "npm:1.9.7"
-    "@studio/icons": "workspace:^"
-    "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     react: "npm:19.2.8"
@@ -122,8 +122,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/ux-editor-v4@workspace:src/Designer/frontend/packages/ux-editor-v4"
   dependencies:
-    "@studio/icons": "workspace:^"
-    "@studio/ui-test": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     react: "npm:19.2.8"
@@ -188,7 +188,7 @@ __metadata:
     storybook: "npm:10.6.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
     typescript-plugin-css-modules: "npm:5.2.0"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:5.0.1"
   peerDependencies:
@@ -217,7 +217,7 @@ __metadata:
     globals: "npm:17.9.0"
     jsdom: "npm:30.1.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
   peerDependencies:
     react: ^19.0.0
@@ -236,7 +236,7 @@ __metadata:
     eslint: "npm:10.8.1"
     globals: "npm:17.9.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
   languageName: unknown
   linkType: soft
@@ -256,7 +256,7 @@ __metadata:
     globals: "npm:17.9.0"
     prettier: "npm:3.9.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
   languageName: unknown
   linkType: soft
@@ -1859,6 +1859,165 @@ __metadata:
   checksum: 10/062097590005cce3da4c7d9880f9c77d386cff5b4dd58fa3dde3c346a8b2e4f4a8025a613306351a7cad8eb71178a0f67b4840d5884f73aa4c759085fac92063
   languageName: node
   linkType: hard
+
+"@designer/assistant@workspace:^, @designer/assistant@workspace:src/Designer/frontend/libs/designer-assistant":
+  version: 0.0.0-use.local
+  resolution: "@designer/assistant@workspace:src/Designer/frontend/libs/designer-assistant"
+  dependencies:
+    "@designer/components": "workspace:^"
+    dompurify: "npm:^3.4.17"
+    marked: "npm:^17.0.6"
+  languageName: unknown
+  linkType: soft
+
+"@designer/browser-storage@workspace:^, @designer/browser-storage@workspace:src/Designer/frontend/libs/designer-browser-storage":
+  version: 0.0.0-use.local
+  resolution: "@designer/browser-storage@workspace:src/Designer/frontend/libs/designer-browser-storage"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/components@workspace:^, @designer/components@workspace:src/Designer/frontend/libs/designer-components":
+  version: 0.0.0-use.local
+  resolution: "@designer/components@workspace:src/Designer/frontend/libs/designer-components"
+  dependencies:
+    "@app/layout-contract": "workspace:*"
+    "@chromatic-com/storybook": "npm:^5.0.1"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@designer/ui-test": "workspace:^"
+    "@digdir/designsystemet-css": "npm:1.23.0"
+    "@digdir/designsystemet-react": "npm:1.23.0"
+    "@storybook/addon-docs": "npm:10.5.7"
+    "@storybook/addon-links": "npm:10.5.7"
+    "@storybook/builder-vite": "npm:10.5.7"
+    "@storybook/react-vite": "npm:10.5.7"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    eslint-plugin-storybook: "npm:10.5.7"
+    highlight.js: "npm:11.12.0"
+    react-dnd: "npm:16.0.1"
+    react-dnd-html5-backend: "npm:16.0.1"
+    storybook: "npm:10.6.2"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: 18.2.0 || 19.0.0 || 19.1 || 19.2
+    react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
+  languageName: unknown
+  linkType: soft
+
+"@designer/content-library@workspace:^, @designer/content-library@workspace:src/Designer/frontend/libs/designer-content-library":
+  version: 0.0.0-use.local
+  resolution: "@designer/content-library@workspace:src/Designer/frontend/libs/designer-content-library"
+  dependencies:
+    "@designer/components": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/feature-flags@workspace:src/Designer/frontend/libs/designer-feature-flags":
+  version: 0.0.0-use.local
+  resolution: "@designer/feature-flags@workspace:src/Designer/frontend/libs/designer-feature-flags"
+  dependencies:
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
+"@designer/feedback-form@workspace:^, @designer/feedback-form@workspace:src/Designer/frontend/libs/designer-feedback-form":
+  version: 0.0.0-use.local
+  resolution: "@designer/feedback-form@workspace:src/Designer/frontend/libs/designer-feedback-form"
+  dependencies:
+    "@designer/components": "workspace:^"
+    "@designer/icons": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@designer/guard@workspace:src/Designer/frontend/libs/designer-guard":
+  version: 0.0.0-use.local
+  resolution: "@designer/guard@workspace:src/Designer/frontend/libs/designer-guard"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/hooks@workspace:^, @designer/hooks@workspace:src/Designer/frontend/libs/designer-hooks":
+  version: 0.0.0-use.local
+  resolution: "@designer/hooks@workspace:src/Designer/frontend/libs/designer-hooks"
+  dependencies:
+    "@designer/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+    uuid: "npm:13.0.2"
+  peerDependencies:
+    react-router-dom: ">=6.0.0"
+  languageName: unknown
+  linkType: soft
+
+"@designer/icons@workspace:^, @designer/icons@workspace:src/Designer/frontend/libs/designer-icons":
+  version: 0.0.0-use.local
+  resolution: "@designer/icons@workspace:src/Designer/frontend/libs/designer-icons"
+  dependencies:
+    "@navikt/aksel-icons": "npm:^7.0.0"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@typescript/native": "npm:typescript@7.0.2"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/pure-functions@workspace:^, @designer/pure-functions@workspace:src/Designer/frontend/libs/designer-pure-functions":
+  version: 0.0.0-use.local
+  resolution: "@designer/pure-functions@workspace:src/Designer/frontend/libs/designer-pure-functions"
+  dependencies:
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@designer/ui-test@workspace:^, @designer/ui-test@workspace:src/Designer/frontend/libs/designer-ui-test":
+  version: 0.0.0-use.local
+  resolution: "@designer/ui-test@workspace:src/Designer/frontend/libs/designer-ui-test"
+  dependencies:
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:16.3.2"
+    "@testing-library/user-event": "npm:14.6.3"
+    "@typescript/native": "npm:typescript@7.0.2"
+    eslint: "npm:10.8.1"
+    typescript: "npm:@typescript/typescript6@6.0.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
 
 "@digdir/designsystemet-css@npm:1.23.0":
   version: 1.23.0
@@ -4755,172 +4914,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/assistant@workspace:^, @studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
-  version: 0.0.0-use.local
-  resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
-  dependencies:
-    "@studio/components": "workspace:^"
-    dompurify: "npm:^3.4.17"
-    marked: "npm:^17.0.6"
-  languageName: unknown
-  linkType: soft
-
-"@studio/browser-storage@workspace:^, @studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
-  version: 0.0.0-use.local
-  resolution: "@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
 "@studio/common-typescript@workspace:src/common/ts":
   version: 0.0.0-use.local
   resolution: "@studio/common-typescript@workspace:src/common/ts"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
-  languageName: unknown
-  linkType: soft
-
-"@studio/components@workspace:^, @studio/components@workspace:src/Designer/frontend/libs/studio-components":
-  version: 0.0.0-use.local
-  resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
-  dependencies:
-    "@app/layout-contract": "workspace:*"
-    "@chromatic-com/storybook": "npm:^5.0.1"
-    "@digdir/designsystemet-css": "npm:1.23.0"
-    "@digdir/designsystemet-react": "npm:1.23.0"
-    "@storybook/addon-docs": "npm:10.5.7"
-    "@storybook/addon-links": "npm:10.5.7"
-    "@storybook/builder-vite": "npm:10.5.7"
-    "@storybook/react-vite": "npm:10.5.7"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@studio/ui-test": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    eslint-plugin-storybook: "npm:10.5.7"
-    highlight.js: "npm:11.12.0"
-    react-dnd: "npm:16.0.1"
-    react-dnd-html5-backend: "npm:16.0.1"
-    storybook: "npm:10.6.2"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: 18.2.0 || 19.0.0 || 19.1 || 19.2
-    react-dom: 18.2.0 || 19.0.0 || 19.1 || 19.2
-  languageName: unknown
-  linkType: soft
-
-"@studio/content-library@workspace:^, @studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library":
-  version: 0.0.0-use.local
-  resolution: "@studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
-  dependencies:
-    "@studio/components": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
-  version: 0.0.0-use.local
-  resolution: "@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
-  dependencies:
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
-  languageName: unknown
-  linkType: soft
-
-"@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
-  version: 0.0.0-use.local
-  resolution: "@studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
-  dependencies:
-    "@studio/components": "workspace:^"
-    "@studio/icons": "workspace:^"
-  languageName: unknown
-  linkType: soft
-
-"@studio/guard@workspace:src/Designer/frontend/libs/studio-guard":
-  version: 0.0.0-use.local
-  resolution: "@studio/guard@workspace:src/Designer/frontend/libs/studio-guard"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/hooks@workspace:^, @studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
-  version: 0.0.0-use.local
-  resolution: "@studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks"
-  dependencies:
-    "@studio/pure-functions": "workspace:^"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    react: "npm:19.2.8"
-    react-dom: "npm:19.2.8"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-    uuid: "npm:13.0.2"
-  peerDependencies:
-    react-router-dom: ">=6.0.0"
-  languageName: unknown
-  linkType: soft
-
-"@studio/icons@workspace:^, @studio/icons@workspace:src/Designer/frontend/libs/studio-icons":
-  version: 0.0.0-use.local
-  resolution: "@studio/icons@workspace:src/Designer/frontend/libs/studio-icons"
-  dependencies:
-    "@navikt/aksel-icons": "npm:^7.0.0"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@typescript/native": "npm:typescript@7.0.2"
-    react: "npm:19.2.8"
-    react-dom: "npm:19.2.8"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions":
-  version: 0.0.0-use.local
-  resolution: "@studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions"
-  dependencies:
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  languageName: unknown
-  linkType: soft
-
-"@studio/ui-test@workspace:^, @studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
-  version: 0.0.0-use.local
-  resolution: "@studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test"
-  dependencies:
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.2"
-    "@testing-library/user-event": "npm:14.6.3"
-    "@typescript/native": "npm:typescript@7.0.2"
-    eslint: "npm:10.8.1"
-    typescript: "npm:@typescript/typescript6@6.0.2"
-  peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -6320,12 +6320,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "admin@workspace:src/Designer/frontend/admin"
   dependencies:
+    "@designer/content-library": "workspace:^"
+    "@designer/feedback-form": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
     "@posthog/react": "npm:1.10.3"
-    "@studio/content-library": "workspace:^"
-    "@studio/feedback-form": "workspace:^"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
@@ -6335,7 +6335,7 @@ __metadata:
     react-i18next: "npm:17.0.11"
     react-router-dom: "npm:7.18.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -6540,15 +6540,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@designer/assistant": "workspace:^"
+    "@designer/browser-storage": "workspace:^"
+    "@designer/content-library": "workspace:^"
+    "@designer/feedback-form": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/icons": "workspace:^"
+    "@designer/pure-functions": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@posthog/react": "npm:1.10.3"
-    "@studio/assistant": "workspace:^"
-    "@studio/browser-storage": "workspace:^"
-    "@studio/content-library": "workspace:^"
-    "@studio/feedback-form": "workspace:^"
-    "@studio/hooks": "workspace:^"
-    "@studio/icons": "workspace:^"
-    "@studio/pure-functions": "workspace:^"
-    "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
@@ -6558,7 +6558,7 @@ __metadata:
     react-i18next: "npm:17.0.11"
     react-router-dom: "npm:7.18.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -6675,14 +6675,15 @@ __metadata:
     resize-observer-polyfill: "npm:1.5.1"
     tinybench: "npm:6.1.6"
     tsx: "npm:4.23.15"
+    tus-js-client: "npm:4.3.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
     typescript-eslint: "npm:8.66.0"
     typescript-plugin-css-modules: "npm:5.2.0"
     utility-types: "npm:3.11.0"
     uuid: "npm:14.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
-    zod: "npm:4.4.3"
+    zod: "npm:4.6.6"
     zustand: "npm:5.0.15"
   languageName: unknown
   linkType: soft
@@ -6691,13 +6692,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
-    "@studio/hooks": "workspace:^"
+    "@designer/hooks": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.18.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -6705,13 +6706,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.1"
     "@types/react": "npm:19.2.18"
     "@typescript/native": "npm:typescript@7.0.2"
     bpmn-moddle: "npm:9.0.4"
     classnames: "npm:2.5.1"
-    qs: "npm:6.16.0"
+    qs: "npm:6.16.1"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.18.2"
@@ -7285,25 +7286,25 @@ __metadata:
   linkType: hard
 
 "body-parser@npm:^2.2.1":
-  version: 2.3.0
-  resolution: "body-parser@npm:2.3.0"
+  version: 2.4.0
+  resolution: "body-parser@npm:2.4.0"
   dependencies:
     bytes: "npm:^3.1.2"
-    content-type: "npm:^2.0.0"
+    content-type: "npm:^2.1.0"
     debug: "npm:^4.4.3"
     http-errors: "npm:^2.0.1"
-    iconv-lite: "npm:^0.7.2"
+    iconv-lite: "npm:^0.7.3"
     on-finished: "npm:^2.4.1"
-    qs: "npm:^6.15.2"
+    qs: "npm:^6.16.1"
     raw-body: "npm:^3.0.2"
     type-is: "npm:^2.1.0"
-  checksum: 10/94f741ff525358dd0d47f0a042936dc61b9d2e348ff1228c5ffd79f1902c673a317bbb9495b3f7d1db4483befe6ffed1c42bc4cdd8da8f41690530810cfe4dad
+  checksum: 10/e34971abf7051529d4fae37d3714382e7fa8198bc969f1ec4932af48aef53bba71523545c034ce04fa808d3b15e0d63849e6e93b4f1131d65227e1f414437f68
   languageName: node
   linkType: hard
 
 "body-parser@npm:~1.20.3":
-  version: 1.20.4
-  resolution: "body-parser@npm:1.20.4"
+  version: 1.20.9
+  resolution: "body-parser@npm:1.20.9"
   dependencies:
     bytes: "npm:~3.1.2"
     content-type: "npm:~1.0.5"
@@ -7313,11 +7314,11 @@ __metadata:
     http-errors: "npm:~2.0.1"
     iconv-lite: "npm:~0.4.24"
     on-finished: "npm:~2.4.1"
-    qs: "npm:~6.14.0"
+    qs: "npm:~6.16.0"
     raw-body: "npm:~2.5.3"
     type-is: "npm:~1.6.18"
     unpipe: "npm:~1.0.0"
-  checksum: 10/ff67e28d3f426707be8697a75fdf8d564dc50c341b41f054264d8ab6e2924e519c7ce8acc9d0de05328fdc41e1d9f3f200aec9c1cfb1867d6b676a410d97c689
+  checksum: 10/e9ccf7a920205d674a83cdfae0e83ed3cfe32af668706034e9832a8bf3b80f06fbc18a7c26759611f72d334311683a4b1ff73661690038a352e8c3b4a424b709
   languageName: node
   linkType: hard
 
@@ -7422,6 +7423,13 @@ __metadata:
   version: 0.2.13
   resolution: "buffer-crc32@npm:0.2.13"
   checksum: 10/06252347ae6daca3453b94e4b2f1d3754a3b146a111d81c68924c22d91889a40623264e95e67955b1cb4a68cbedf317abeabb5140a9766ed248973096db5ce1c
+  languageName: node
+  linkType: hard
+
+"buffer-from@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "buffer-from@npm:1.1.2"
+  checksum: 10/0448524a562b37d4d7ed9efd91685a5b77a50672c556ea254ac9a6d30e3403a517d8981f10e565db24e8339413b43c97ca2951f10e399c6125a0d8911f5679bb
   languageName: node
   linkType: hard
 
@@ -7986,6 +7994,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"combine-errors@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "combine-errors@npm:3.0.3"
+  dependencies:
+    custom-error-instance: "npm:2.1.1"
+    lodash.uniqby: "npm:4.5.0"
+  checksum: 10/a86ecc3e9259b5090bb78481ef363a9c3e5f7a70c637f8ac52848d4420b5f94afc03eab512555a2ae77a522a59cd1675ec70190327acf86850012be64a6666c0
+  languageName: node
+  linkType: hard
+
 "combined-stream@npm:^1.0.8, combined-stream@npm:~1.0.6":
   version: 1.0.8
   resolution: "combined-stream@npm:1.0.8"
@@ -8096,6 +8114,13 @@ __metadata:
   version: 2.0.0
   resolution: "content-type@npm:2.0.0"
   checksum: 10/0bbb276b790ba7e86c479c7d69fae1861b2e908ff3ce2cb01975b516f93eede2216d242902ed6c5b15cd554014611ce9dfdcf51cd35b16569e45a979e50d0cef
+  languageName: node
+  linkType: hard
+
+"content-type@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "content-type@npm:2.1.0"
+  checksum: 10/8aac907922538f430d8bfab1d8fe2fbdc1eb890a0fa7a619f712db4bfefe24be951ba464f972007df64840c775bf2db284ca8223547ac5317ad9ab2ee8e6501b
   languageName: node
   linkType: hard
 
@@ -8279,6 +8304,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"custom-error-instance@npm:2.1.1":
+  version: 2.1.1
+  resolution: "custom-error-instance@npm:2.1.1"
+  checksum: 10/2898b8aa595cbe0d9d916405b708757408f5f54dc787512c7dd160a5f011d42cb62cdab9e3e6a9a92a1e05c676f51869c297e3c76ff9b669ffd1a1594ee11156
+  languageName: node
+  linkType: hard
+
 "cypress-axe@npm:1.7.0":
   version: 1.7.0
   resolution: "cypress-axe@npm:1.7.0"
@@ -8442,14 +8474,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
-    "@studio/hooks": "workspace:^"
-    "@studio/ui-test": "workspace:^"
+    "@designer/hooks": "workspace:^"
+    "@designer/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
     react-router-dom: "npm:7.18.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -10263,9 +10295,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.1":
-  version: 3.1.8
-  resolution: "fast-uri@npm:3.1.8"
-  checksum: 10/d3dfa29fd2e5fa2371833699f3f78c975b79f65e52e0ce37604db10dffb85b5b448b5075e93453272cb95fb1c6a759495164e60649ffd69e59ec43f20d44f791
+  version: 3.1.9
+  resolution: "fast-uri@npm:3.1.9"
+  checksum: 10/4276cf58661e68b4fefcbc3308a2c8429e5664d2a77b393a79c1cdbe9e5ba80617d27c7ce6685194ae40e4816df73dbd72a0324e5012d94a7e9cf85ee711f658
   languageName: node
   linkType: hard
 
@@ -10895,7 +10927,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.6":
+"graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10/bf152d0ed1dc159239db1ba1f74fdbc40cb02f626770dcd5815c427ce0688c2635a06ed69af364396da4636d0408fcf7d4afdf7881724c3307e46aff30ca49e2
@@ -11298,7 +11330,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.7.2, iconv-lite@npm:~0.7.0":
+"iconv-lite@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "iconv-lite@npm:0.7.3"
+  dependencies:
+    safer-buffer: "npm:>= 2.1.2 < 3.0.0"
+  checksum: 10/b88a3f4527795c96854743bcdcdd03e0083ff5f1c072cb13d3e27c67cd276efd9a2a364922cb836538e976456f82323d645f7ea91d5bc8da1f000dc16742a0aa
+  languageName: node
+  linkType: hard
+
+"iconv-lite@npm:~0.7.0":
   version: 0.7.2
   resolution: "iconv-lite@npm:0.7.2"
   dependencies:
@@ -11511,9 +11552,9 @@ __metadata:
   linkType: hard
 
 "ip-address@npm:^10.1.1":
-  version: 10.7.2
-  resolution: "ip-address@npm:10.7.2"
-  checksum: 10/3a051cb5234cff142bb527e8b40bf0f9dd895b0334161b1ffe0256700a50a49f4d3b94ef72a809f086b2bd6489d4f7a4a52025b03db9c2e9e83a5f9e4d4bdb60
+  version: 10.7.6
+  resolution: "ip-address@npm:10.7.6"
+  checksum: 10/16b2604753400f8eedb17d482f9cdbb6e8ca6dac31bcb6fa6984e6098091ac58acd92990cc4d09a9ee96936b6ab19fd60e5622f4add52bd7d2465969a04e2ca9
   languageName: node
   linkType: hard
 
@@ -12015,6 +12056,13 @@ __metadata:
   version: 0.4.4
   resolution: "jpeg-js@npm:0.4.4"
   checksum: 10/30bb6e16e79db4bd6edbecf1140039bbab326de876f2d20685f04a38d03f70ef9fada1886f0bf58832a4dba4aa179311fc4be7df3d756cab8f1c74d745542f38
+  languageName: node
+  linkType: hard
+
+"js-base64@npm:^3.7.2":
+  version: 3.9.4
+  resolution: "js-base64@npm:3.9.4"
+  checksum: 10/7ae007f4536a4738024f09f34cbc146090fb5e231a48e71a94268a29ba290ff93c56b591c308556dc7dabaf5c04d38483a26adbc2a833cfad17ae618b8557b8b
   languageName: node
   linkType: hard
 
@@ -12755,6 +12803,55 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash._baseiteratee@npm:~4.7.0":
+  version: 4.7.0
+  resolution: "lodash._baseiteratee@npm:4.7.0"
+  dependencies:
+    lodash._stringtopath: "npm:~4.8.0"
+  checksum: 10/acc155e7d1fdffb3e83cededef8b5f6b4a23989c7abb4fd56638da044e15687dd6cc22f9f96bdcea3db85569a2605c903c8824efdbfd759cde0ff77dfed294be
+  languageName: node
+  linkType: hard
+
+"lodash._basetostring@npm:~4.12.0":
+  version: 4.12.0
+  resolution: "lodash._basetostring@npm:4.12.0"
+  checksum: 10/ccaf83827f86be5c9daeb7b939f761d6a43f0de0781bc3b6772fcb8568fbcbfa1e1082c66e5e12dd23e00ac40a18349c5a793a6a552e3574cbbcb3e1545fcb4c
+  languageName: node
+  linkType: hard
+
+"lodash._baseuniq@npm:~4.6.0":
+  version: 4.6.0
+  resolution: "lodash._baseuniq@npm:4.6.0"
+  dependencies:
+    lodash._createset: "npm:~4.0.0"
+    lodash._root: "npm:~3.0.0"
+  checksum: 10/255b36dd2d6e990d2aece65e40b4d31304e37df3da84ed0194dacbfcc44f537b7ce3a935155f729ac571a14c6ae4737b5f6b6e6b1cc97948067e66fd3c2d4510
+  languageName: node
+  linkType: hard
+
+"lodash._createset@npm:~4.0.0":
+  version: 4.0.3
+  resolution: "lodash._createset@npm:4.0.3"
+  checksum: 10/a16234cc1ab861e91719dbcd4a0dfe293ddf613c415b2d8963254ef9599bb6313c98eeba35a95daa7e2ae6ca9f0013b47dad7b8616ca247e7296a75f567a42a6
+  languageName: node
+  linkType: hard
+
+"lodash._root@npm:~3.0.0":
+  version: 3.0.1
+  resolution: "lodash._root@npm:3.0.1"
+  checksum: 10/3e12c6f409ae13164a8db358f44a691f1e038dad4e25463802980d0ed641ed118c147b65657501c51778c885422b913264dfbe33ec0c5d676443dd630a7e685a
+  languageName: node
+  linkType: hard
+
+"lodash._stringtopath@npm:~4.8.0":
+  version: 4.8.0
+  resolution: "lodash._stringtopath@npm:4.8.0"
+  dependencies:
+    lodash._basetostring: "npm:~4.12.0"
+  checksum: 10/fe8829dae5ac15764b7a3ca8c45f13baa3a5c2922d86eacbd65d79b6b51842b91a226bf050a88ff5146f9ab7ffcd7966233ba3a51ac5cfcb70220c7675a82749
+  languageName: node
+  linkType: hard
+
 "lodash.camelcase@npm:^4.3.0":
   version: 4.3.0
   resolution: "lodash.camelcase@npm:4.3.0"
@@ -12895,6 +12992,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.throttle@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "lodash.throttle@npm:4.1.1"
+  checksum: 10/9be9fb2ffd686c20543167883305542f4564062a5f712a40e8c6f2f0d9fd8254a6e9d801c2470b1b24e0cdf2ae83c1277b55aa0fb4799a2db6daf545f53820e1
+  languageName: node
+  linkType: hard
+
 "lodash.topairs@npm:^4.3.0":
   version: 4.3.0
   resolution: "lodash.topairs@npm:4.3.0"
@@ -12913,6 +13017,16 @@ __metadata:
   version: 4.6.0
   resolution: "lodash.union@npm:4.6.0"
   checksum: 10/175f5786efc527238c1350ce561c28e5ba527b5957605f9e5b8a804fce78801d09ced7b72de0302325e5b14c711f94690b1a733c13ad3674cc1a76e1172db1f8
+  languageName: node
+  linkType: hard
+
+"lodash.uniqby@npm:4.5.0":
+  version: 4.5.0
+  resolution: "lodash.uniqby@npm:4.5.0"
+  dependencies:
+    lodash._baseiteratee: "npm:~4.7.0"
+    lodash._baseuniq: "npm:~4.6.0"
+  checksum: 10/40a4fdd4c31323fcb6db91ec3124020333212ca1f13e75cc9939decdd33e8b176d204fb277be36a51a855c2c90e14d67932b3b130b2f0eedc729e4cb9cdcaed1
   languageName: node
   linkType: hard
 
@@ -14870,6 +14984,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"proper-lockfile@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "proper-lockfile@npm:4.1.2"
+  dependencies:
+    graceful-fs: "npm:^4.2.4"
+    retry: "npm:^0.12.0"
+    signal-exit: "npm:^3.0.2"
+  checksum: 10/000a4875f543f591872b36ca94531af8a6463ddb0174f41c0b004d19e231d7445268b422ff1ea595e43d238655c702250cd3d27f408e7b9d97b56f1533ba26bf
+  languageName: node
+  linkType: hard
+
 "protobufjs@npm:^7.5.5":
   version: 7.6.5
   resolution: "protobufjs@npm:7.6.5"
@@ -15021,13 +15146,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.16.0":
-  version: 6.16.0
-  resolution: "qs@npm:6.16.0"
+"qs@npm:6.16.1":
+  version: 6.16.1
+  resolution: "qs@npm:6.16.1"
   dependencies:
     es-define-property: "npm:^1.0.1"
     side-channel: "npm:^1.1.1"
-  checksum: 10/7fbf9c2eb9c9bbd8997700caecc4b057ac259635873deefd5027fb26d06d79426cf468da55da87ffd147a24e93d3641352d8ac6664bd84688ad5b2f0b8d04828
+  checksum: 10/e33e0a5ceecb7bef81ea1f855365482045f55ba55278f40b8dbf9ee18eae8ef82d44246fe4e4009d6b6f102cbf2885a34b88c4272536cd628cde40b4ac9912c2
   languageName: node
   linkType: hard
 
@@ -15733,7 +15858,7 @@ __metadata:
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -16247,8 +16372,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "settings@workspace:src/Designer/frontend/settings"
   dependencies:
-    "@studio/ui-test": "workspace:^"
-    vite: "npm:8.2.2"
+    "@designer/ui-test": "workspace:^"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -16926,7 +17051,7 @@ __metadata:
     react-toastify: "npm:11.1.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
     typescript-plugin-css-modules: "npm:5.2.0"
-    vite: "npm:8.2.2"
+    vite: "npm:8.2.4"
     vitest: "npm:5.0.1"
     vitest-fail-on-console: "npm:0.10.1"
   languageName: unknown
@@ -16936,8 +17061,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "studio-root@workspace:src/Designer/frontend/studio-root"
   dependencies:
-    "@studio/ui-test": "workspace:^"
-    vite: "npm:8.2.2"
+    "@designer/ui-test": "workspace:^"
+    vite: "npm:8.2.4"
   languageName: unknown
   linkType: soft
 
@@ -17025,11 +17150,11 @@ __metadata:
   linkType: hard
 
 "systeminformation@npm:^5.25.11, systeminformation@npm:^5.31.1":
-  version: 5.33.1
-  resolution: "systeminformation@npm:5.33.1"
+  version: 5.33.19
+  resolution: "systeminformation@npm:5.33.19"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10/54e8749be385a91b32cd5de0a7dbd16478e60c7b679b173a58f9f447b1785d2f4820f4c642b25de1bc0e71611a38fad9905a75477fcb60cd36e7a389e6b56162
+  checksum: 10/d952b30f39fd8902f67fa6cc3ba97fec7d01877247fa86a11bea59c30b93986e04a9cbbd44a54b6893631210de7c8bf484966bcbfad5c4bfa00e979400265067
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
@@ -17498,6 +17623,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tus-js-client@npm:4.3.1":
+  version: 4.3.1
+  resolution: "tus-js-client@npm:4.3.1"
+  dependencies:
+    buffer-from: "npm:^1.1.2"
+    combine-errors: "npm:^3.0.3"
+    is-stream: "npm:^2.0.0"
+    js-base64: "npm:^3.7.2"
+    lodash.throttle: "npm:^4.1.1"
+    proper-lockfile: "npm:^4.1.2"
+    url-parse: "npm:^1.5.7"
+  checksum: 10/69955612962dd04973410b8c0602cdc3a2112f403be9d60e11c1fed5a80f6c5989bbfc510ef32eb598ccc0808c29bc5af90021cb523e94cbf16be810f20dc193
+  languageName: node
+  linkType: hard
+
 "tweetnacl@npm:^0.14.3, tweetnacl@npm:~0.14.0":
   version: 0.14.5
   resolution: "tweetnacl@npm:0.14.5"
@@ -17749,9 +17889,9 @@ __metadata:
   linkType: hard
 
 "undici@npm:^8.10.2":
-  version: 8.11.0
-  resolution: "undici@npm:8.11.0"
-  checksum: 10/340ef9eab46b3361aef0ac6f90949d192c819e30208f2382ea011404cb731960a6ce12fccbfe4614b3a2a9710a0b34075acf6dd2b5a889daa3c4cbc89611c5bc
+  version: 8.12.4
+  resolution: "undici@npm:8.12.4"
+  checksum: 10/f99eb6c2351b933bf9d6e95aa34361af9be9edc6bfe34e25fca1f1cd8aeae5e547850cd317d6e0d7189267bb9dbfd6e3400869156e43e095d151b0d66471bf97
   languageName: node
   linkType: hard
 
@@ -17892,7 +18032,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"url-parse@npm:^1.5.3":
+"url-parse@npm:^1.5.3, url-parse@npm:^1.5.7":
   version: 1.5.10
   resolution: "url-parse@npm:1.5.10"
   dependencies:
@@ -18006,9 +18146,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:8.2.2":
-  version: 8.2.2
-  resolution: "vite@npm:8.2.2"
+"vite@npm:8.2.4":
+  version: 8.2.4
+  resolution: "vite@npm:8.2.4"
   dependencies:
     fsevents: "npm:~2.3.3"
     lightningcss: "npm:^1.33.0"
@@ -18059,7 +18199,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/65cd73267ea2fd49736e51e91681ddc5cbee3af880f20ce5c8df3d4c97d811a11e3ca62d3899fc8ac98ec442b5bc6f55a5d7625ac574ab68c7e3e541e543f264
+  checksum: 10/7b82d1d22a186006aaae83e9c7cd1d8271cc1dc09d85422aa129b14f5ddb4c476ed4445f2ba61b053d4b7cfeaaf4753a70dbb8eccbc2121128310e667ed15d3f
   languageName: node
   linkType: hard
 
@@ -18720,10 +18860,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:4.4.3, zod@npm:^3.25.0 || ^4.0.0":
-  version: 4.4.3
-  resolution: "zod@npm:4.4.3"
-  checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
+"zod@npm:4.6.6, zod@npm:^3.25.0 || ^4.0.0":
+  version: 4.6.6
+  resolution: "zod@npm:4.6.6"
+  checksum: 10/ce628fb33400b531f48b63ad1bd9b5ab95ec3ac60d4e8025892d90af9ca5d03b168aaaf74071928345ad1b1bcd735a7d5cf33230ece7de885240bb0f2b7bb492
   languageName: node
   linkType: hard
 

@@ -6,6 +6,9 @@ namespace Altinn.App.Analyzers;
 
 public static class FormDataWrapperUtils
 {
+    // System.Text.Json reads and writes no deeper than this by default
+    private const int MaxDepth = 64;
+
     public static bool IsApplicationMetadataFile(AdditionalText text)
     {
         return text.Path.Replace('\\', '/').EndsWith("config/applicationmetadata.json");
@@ -134,14 +137,16 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, diagnostics, collectionTypeSymbols)
+            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols, depth: 1)
         );
     }
 
     private static ModelPathNode[]? GetNodeProperties(
         ITypeSymbol typeSymbol,
+        Compilation compilation,
         List<Diagnostic> diagnostics,
-        SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols
+        SourceReaderUtils.CollectionTypeSymbols? collectionTypeSymbols,
+        int depth
     )
     {
         if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
@@ -155,20 +160,43 @@ public static class FormDataWrapperUtils
             return null;
         }
 
-        var nodeProperties = new List<ModelPathNode>();
-        foreach (var property in namedTypeSymbol.GetMembers().OfType<IPropertySymbol>())
+        // Reading a type that contains itself would not end, and the stack overflow takes the compiler down with it.
+        // The type need not repeat on the way: a generic one can come back with a larger type argument each time.
+        if (depth > MaxDepth)
         {
-            if (PropertyShouldBeSkipped(property))
+            throw new NotSupportedException(
+                $"Types nested more than {MaxDepth} levels deep are not supported, as when a type contains itself. Type: {SourceReaderUtils.TypeSymbolToString(namedTypeSymbol.OriginalDefinition)}"
+            );
+        }
+
+        var nodeProperties = new List<ModelPathNode>();
+        foreach (var property in GetPropertiesIncludingInherited(namedTypeSymbol, compilation))
+        {
+            if (PropertyShouldBeSkipped(property, compilation))
             {
                 // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
                 continue;
+            }
+
+            // The generated Get, Set and RemoveField read and assign the property outside an object initializer
+            if (property.SetMethod is { IsInitOnly: true } || HasInaccessibleAccessor(property, compilation))
+            {
+                throw new NotSupportedException(
+                    $"Properties with an init or non-public accessor are not supported. Property: {property.ToDisplayString()}"
+                );
             }
             var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type, collectionTypeSymbols);
 
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
 
-            var subProperties = GetNodeProperties(propertyTypeInfo.PropertyType, diagnostics, collectionTypeSymbols);
+            var subProperties = GetNodeProperties(
+                propertyTypeInfo.PropertyType,
+                compilation,
+                diagnostics,
+                collectionTypeSymbols,
+                depth + 1
+            );
 
             nodeProperties.Add(
                 new ModelPathNode(
@@ -184,6 +212,45 @@ public static class FormDataWrapperUtils
             );
         }
         return nodeProperties.ToArray();
+    }
+
+    /// <summary>
+    /// The properties of the type, then those of its base classes from the nearest one.
+    /// A member that the generated code can access hides the base class properties with the same name, as in C#
+    /// member lookup.
+    /// </summary>
+    /// <remarks>
+    /// Base classes in System are left out: with List&lt;T&gt;.Capacity as a model property, a class that derives
+    /// from List&lt;T&gt; would be copied without its items.
+    /// </remarks>
+    private static IEnumerable<IPropertySymbol> GetPropertiesIncludingInherited(
+        INamedTypeSymbol typeSymbol,
+        Compilation compilation
+    )
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        INamedTypeSymbol? type = typeSymbol;
+        do
+        {
+            foreach (var member in type.GetMembers())
+            {
+                if (
+                    compilation.IsSymbolAccessibleWithin(member, compilation.Assembly)
+                    && names.Add(member.Name)
+                    && member is IPropertySymbol property
+                )
+                {
+                    yield return property;
+                }
+            }
+            type = type.BaseType;
+        } while (type is not null && !IsInSystemNamespace(type));
+    }
+
+    private static bool IsInSystemNamespace(INamedTypeSymbol type)
+    {
+        var ns = type.ContainingNamespace?.ToDisplayString();
+        return ns == "System" || ns?.StartsWith("System.", StringComparison.Ordinal) == true;
     }
 
     /// <summary>
@@ -223,7 +290,11 @@ public static class FormDataWrapperUtils
             _ => false,
         };
 
-    private static bool PropertyShouldBeSkipped(IPropertySymbol property)
+    private static bool HasInaccessibleAccessor(IPropertySymbol property, Compilation compilation) =>
+        (property.GetMethod is { } getter && !compilation.IsSymbolAccessibleWithin(getter, compilation.Assembly))
+        || (property.SetMethod is { } setter && !compilation.IsSymbolAccessibleWithin(setter, compilation.Assembly));
+
+    private static bool PropertyShouldBeSkipped(IPropertySymbol property, Compilation compilation)
     {
         // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
         if (
@@ -237,6 +308,13 @@ public static class FormDataWrapperUtils
                 && property.DeclaredAccessibility is not Accessibility.Internal
             )
         )
+        {
+            return true;
+        }
+
+        // Skip properties with an accessor the generated code cannot call, such as a private setter, like read-only ones.
+        // With [JsonInclude], System.Text.Json fills the property through that accessor, so it is form data.
+        if (HasInaccessibleAccessor(property, compilation) && !SourceReaderUtils.HasJsonIncludeAttribute(property))
         {
             return true;
         }

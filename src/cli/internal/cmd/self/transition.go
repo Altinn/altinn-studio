@@ -10,9 +10,9 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/migrations"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
@@ -273,7 +273,10 @@ func (t *Transition) stopStudioctlServer(ctx context.Context) (bool, error) {
 }
 
 func (t *Transition) restartStudioctlServer(ctx context.Context, studioctlPath string) error {
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(t.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	start := t.start
 	if start == nil {
 		start = func(ctx context.Context, cfg *config.Config, ingressPort, studioctlPath string) error {

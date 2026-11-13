@@ -13,11 +13,16 @@ export const ConfigCustomFileEnding = ({
   handleComponentUpdate,
   className,
 }: ConfigCustomFileEndingProps) => {
-  if (component.type !== ComponentType.FileUpload) {
+  if (
+    component.type !== ComponentType.FileUpload &&
+    component.type !== ComponentType.BrokerFileTransfer
+  ) {
     return null;
   }
 
-  type FileUploadComponent = FormComponent<ComponentType.FileUpload>;
+  type FileUploadComponent = FormComponent<
+    ComponentType.FileUpload | ComponentType.BrokerFileTransfer
+  >;
   const fileUploadComponent: FileUploadComponent = component;
   const handleChange = (updatedComponent: FileUploadComponent) => {
     if (!updatedComponent.hasCustomFileEndings) {

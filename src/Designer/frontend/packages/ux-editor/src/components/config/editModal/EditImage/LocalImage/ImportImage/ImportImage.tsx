@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import classes from './ImportImage.module.css';
 import { AddImageFromLibraryModal } from './AddImageFromLibrary/AddImageFromLibraryModal';
 import { useTranslation } from 'react-i18next';

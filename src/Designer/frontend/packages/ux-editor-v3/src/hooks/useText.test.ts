@@ -3,7 +3,7 @@ import { renderHookWithMockStore } from '../testing/mocks';
 import { appDataMock } from '../testing/stateMocks';
 import { useText } from './useText';
 import type { IAppDataState } from '../features/appData/appDataReducers';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data:
 const textKey = 'test';

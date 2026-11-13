@@ -8,6 +8,7 @@ import type { CompAddToListSerialized } from '@app/layout-contract/generated/com
 import type { CompAlertSerialized } from '@app/layout-contract/generated/components/Alert/serialized.generated';
 import type { CompAttachmentListSerialized } from '@app/layout-contract/generated/components/AttachmentList/serialized.generated';
 import type { CompAudioSerialized } from '@app/layout-contract/generated/components/Audio/serialized.generated';
+import type { CompBrokerFileTransferSerialized } from '@app/layout-contract/generated/components/BrokerFileTransfer/serialized.generated';
 import type { CompButtonSerialized } from '@app/layout-contract/generated/components/Button/serialized.generated';
 import type { CompButtonGroupSerialized } from '@app/layout-contract/generated/components/ButtonGroup/serialized.generated';
 import type { CompCardsSerialized } from '@app/layout-contract/generated/components/Cards/serialized.generated';
@@ -69,6 +70,7 @@ export enum ComponentType {
   Alert = 'Alert',
   AttachmentList = 'AttachmentList',
   Audio = 'Audio',
+  BrokerFileTransfer = 'BrokerFileTransfer',
   Button = 'Button',
   ButtonGroup = 'ButtonGroup',
   Cards = 'Cards',
@@ -131,6 +133,7 @@ export type SerializedComponent =
   | CompAlertSerialized
   | CompAttachmentListSerialized
   | CompAudioSerialized
+  | CompBrokerFileTransferSerialized
   | CompButtonSerialized
   | CompButtonGroupSerialized
   | CompCardsSerialized
@@ -183,4 +186,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: b2e8d5fcbbde3565ee47ac2caa9ffc14a58ac0908459334dd3c7046230a032d0
+// Source hash: 70b778c90847862de0ae054509c759340d4dab975d11951bd17b1f3406bd0e96

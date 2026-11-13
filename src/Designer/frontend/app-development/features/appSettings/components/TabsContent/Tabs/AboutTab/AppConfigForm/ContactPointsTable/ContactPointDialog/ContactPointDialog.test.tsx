@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointDialog, type ContactPointDialogProps } from './ContactPointDialog';
 import { ContactPointField } from 'app-shared/types/AppConfig';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 
 const contactPointFieldTestConfig: {

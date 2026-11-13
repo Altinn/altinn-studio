@@ -13,6 +13,11 @@ import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api'
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
+import {
+  fetchBrokerFileTransferOverview,
+  fetchBrokerResourceConfiguration,
+  fetchInterruptedBrokerTransfer,
+} from 'src/layout/BrokerFileTransfer/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
@@ -225,6 +230,7 @@ export const {
 export const { getPartiesAllowedToInstantiateHierarchical, setSelectedParty } = partyApi;
 export const { fetchTextResources } = textResourcesApi;
 export { fetchPerson, fetchOrg };
+export { fetchBrokerResourceConfiguration, fetchBrokerFileTransferOverview, fetchInterruptedBrokerTransfer };
 export { fetchSigneeList, fetchSigningDocuments, fetchAuthorizedOrganizationDetails };
 
 export { doPerformAction };

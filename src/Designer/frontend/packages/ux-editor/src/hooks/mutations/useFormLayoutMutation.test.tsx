@@ -7,7 +7,7 @@ import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { baseContainerIdMock, layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutName = layout1NameMock;

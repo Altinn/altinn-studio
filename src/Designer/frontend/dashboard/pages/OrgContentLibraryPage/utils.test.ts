@@ -13,7 +13,7 @@ import type {
   CodeList,
   CodeListData,
   CodeListFile,
-} from '@studio/content-library';
+} from '@designer/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import {

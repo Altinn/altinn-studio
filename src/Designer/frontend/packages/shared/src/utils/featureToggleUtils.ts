@@ -1,10 +1,10 @@
-import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
+import { typedLocalStorage, typedSessionStorage } from '@designer/pure-functions';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
 
 /**
- * @deprecated Use FeatureFlag from @studio/feature-flags instead.
+ * @deprecated Use FeatureFlag from @designer/feature-flags instead.
  */
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
@@ -13,6 +13,7 @@ export enum FeatureFlag {
   ImageUpload = 'imageUpload',
   HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',
   SkipJsonParseJsonInResourceList = 'skipJsonParseJsonInResourceList',
+  BrokerFileTransfer = 'brokerFileTransfer',
 }
 
 /*

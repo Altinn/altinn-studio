@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import classes from './ResourceDeployEnvCard.module.css';
-import { ArrowRightIcon } from '@studio/icons';
+import { ArrowRightIcon } from '@designer/icons';
 import {
   StudioAlert,
   StudioButton,
   StudioParagraph,
   StudioSpinner,
   StudioTag,
-} from '@studio/components';
+} from '@designer/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { getEnvLabel, type EnvId } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';

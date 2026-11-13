@@ -13,7 +13,7 @@ import {
   StudioHeading,
   StudioFieldset,
   useStudioCheckboxGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
 import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';

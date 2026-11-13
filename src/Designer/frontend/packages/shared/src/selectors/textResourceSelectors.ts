@@ -1,5 +1,5 @@
 import type { TextResourcesSelector, ITextResource } from 'app-shared/types/global';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export const textResourcesByLanguageSelector =
   (language: string): TextResourcesSelector<ITextResource[]> =>

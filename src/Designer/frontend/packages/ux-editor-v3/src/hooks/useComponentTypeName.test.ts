@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { renderHook } from '@testing-library/react';
 import { useComponentTypeName } from './useComponentTypeName';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data:
 const inputText = textMock(`ux_editor.component_title.${ComponentTypeV3.Input}`);

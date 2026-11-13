@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import classes from './BPMNViewerErrorAlert.module.css';
 import type { BpmnViewerError } from '../../../../types/BpmnViewerError';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@designer/components';
 
 interface ErrorMessage {
   heading: string;

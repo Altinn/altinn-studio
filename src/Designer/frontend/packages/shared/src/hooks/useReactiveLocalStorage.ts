@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { useLocalStorage } from '@studio/hooks';
+import { typedLocalStorage } from '@designer/pure-functions';
+import { useLocalStorage } from '@designer/hooks';
 import { useEventListener } from './useEventListener';
 
 export const useReactiveLocalStorage = <T>(

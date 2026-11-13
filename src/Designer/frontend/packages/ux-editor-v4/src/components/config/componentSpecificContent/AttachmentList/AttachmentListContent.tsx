@@ -1,4 +1,4 @@
-import { StudioCheckbox, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioCheckbox, StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type IAttachmentListContent = {

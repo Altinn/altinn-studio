@@ -59,14 +59,15 @@ _One run, as the user sees it._
 Some requests do not give changes:
 
 - A question that is not about Altinn app development gets a polite decline.
-- In workflow mode, an unsafe request is rejected, with suggestions for a safer request. An unclear request goes to the agent. If the agent cannot tell what to change, its reply says what it needs.
+- In workflow mode, an unsafe request gets a rejection, with suggestions for a safer request.
+- If the assistant cannot tell what to change, its answer says what it needs.
 - If an uploaded document contains instructions to the assistant, the user gets a warning. The assistant does not obey these instructions.
 
 ## A second user: the assistant developer
 
 The developers of the assistant use a different interface: the benchmark workbench in a terminal. They run it after they change a prompt, a tool, a model or the loop code. One command runs the evals, compares the result with the accepted baseline and writes a report page, `src/AI/assistant/benchmarks/reports/workbench.html`.
 
-The command `python -m benchmarks.runner` without arguments shows a menu of all commands. The usual command is `python -m benchmarks.runner check --label "what changed"`. The slow end to end builds run only with `--include-e2e`.
+The usual command is `python -m benchmarks.runner check --label "what changed"`. The slow end to end builds run only with `--include-e2e`.
 
 ```mermaid
 flowchart LR

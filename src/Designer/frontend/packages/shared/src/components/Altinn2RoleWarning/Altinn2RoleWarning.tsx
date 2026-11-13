@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import classes from './Altinn2RoleWarning.module.css';
 
 interface Altinn2RoleWarningProps {
