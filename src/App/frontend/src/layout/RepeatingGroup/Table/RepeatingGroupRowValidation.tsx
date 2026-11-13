@@ -90,7 +90,6 @@ function RowValidationPopover({
           aria-label={label}
           aria-expanded={open}
           aria-haspopup='dialog'
-          onClick={() => setOpen(!open)}
           data-testid='row-validation-indicator'
         >
           <Icon aria-hidden />
@@ -102,6 +101,7 @@ function RowValidationPopover({
         role='dialog'
         aria-label={langAsString('group.row_validation_messages')}
         open={open}
+        onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
         placement='bottom'
         className={classes.popover}
