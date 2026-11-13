@@ -655,6 +655,44 @@ describe('navigation', () => {
     cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).should('be.visible');
   });
 
+  it('keeps the summary return after editing a subform entry', () => {
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
+    cy.waitForLoad();
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
+    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('AB12345');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.dsSelect('#brand', 'Toyota');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
+    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+    cy.waitForLoad();
+
+    cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
+    cy.findByTestId('summary-Summary-subform').findByRole('button', { name: /Endre/ }).clickAndGone();
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+    cy.findByRole('button', { name: 'Endre' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Årsmodell/ }).clear();
+    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1999');
+    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
+    cy.findByTestId('summary-Summary-subform').should('be.visible');
+
+    // An entry on another page than the one being edited does not inherit its return.
+    cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
+    cy.openNavGroup(/Utfylling/, /Kjøretøy/, /Biler/);
+    cy.findByRole('button', { name: 'En fet Toyota fra 1999' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
+  });
+
   it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();
