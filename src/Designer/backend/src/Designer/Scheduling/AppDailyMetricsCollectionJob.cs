@@ -19,8 +19,8 @@ using Quartz;
 namespace Altinn.Studio.Designer.Scheduling;
 
 /// <summary>
-/// Collects the per-app instance metrics of one UTC day from Storage, for all orgs or the org in the job data,
-/// in the org's production and TT02 environments, and stores them in the daily metrics table. Read-only towards
+/// Collects what happened to each app's instances on one UTC day from Storage, for all orgs or the org in the job
+/// data, in the org's production and TT02 environments, and stores it in the daily metrics table. Read-only towards
 /// Storage.
 /// </summary>
 [DisallowConcurrentExecution]
@@ -66,14 +66,10 @@ public class AppDailyMetricsCollectionJob : IJob
         {
             var yesterday = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime).AddDays(-1);
             var metricDate = ParseMetricDate(context.MergedJobDataMap) ?? yesterday;
-            // The open counts describe the moment Storage computes them. They are a snapshot
-            // of the day's end only when the day has just ended.
-            var includesSnapshot = metricDate == yesterday;
             activity?.SetTag(
                 ServiceTelemetry.Attributes.AppDailyMetrics.MetricDate,
                 metricDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             );
-            activity?.SetTag(ServiceTelemetry.Attributes.AppDailyMetrics.IncludesSnapshot, includesSnapshot);
 
             var org = context.MergedJobDataMap.GetOptionalString(AppDailyMetricsCollectionJobConstants.JobDataOrgKey);
             IReadOnlyList<string> orgs;
@@ -117,7 +113,6 @@ public class AppDailyMetricsCollectionJob : IJob
                             orgName,
                             environment,
                             metricDate,
-                            includesSnapshot,
                             setServiceOwnerPerEnvironment,
                             cancellationToken
                         )
@@ -151,7 +146,6 @@ public class AppDailyMetricsCollectionJob : IJob
         string org,
         string environment,
         DateOnly metricDate,
-        bool includesSnapshot,
         bool setServiceOwner,
         CancellationToken cancellationToken
     )
@@ -185,7 +179,6 @@ public class AppDailyMetricsCollectionJob : IJob
                     Environment = environment,
                     MetricDate = metricDate,
                     ComputedAt = metrics.ComputedAt,
-                    IncludesSnapshot = includesSnapshot,
                     Observations = observations,
                 },
                 cancellationToken
@@ -238,13 +231,6 @@ public class AppDailyMetricsCollectionJob : IJob
                 InstancesCreated = ToInt(app.InstancesCreated),
                 InstancesCompleted = ToInt(app.InstancesCompleted),
                 SecondsToCompleteP50 = app.SecondsToCompleteP50,
-                OpenInstances = ToInt(app.OpenInstances),
-                OpenOver90Days = ToInt(app.OpenOver90Days),
-                OpenByTask = app.OpenByTask.ToDictionary(
-                    task => task.TaskId,
-                    task => ToInt(task.OpenInstances),
-                    StringComparer.Ordinal
-                ),
             })
             .ToList();
     }

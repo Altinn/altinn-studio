@@ -44,14 +44,10 @@ public class AppDailyMetricsCollectionJobTests
     }
 
     [Fact]
-    public async Task Execute_WithoutDate_ShouldCollectYesterdayWithSnapshot()
+    public async Task Execute_WithoutDate_ShouldCollectYesterday()
     {
         SetupEnvironments(OrgName, "tt02");
-        SetupMetrics(
-            "tt02",
-            s_yesterday,
-            App("kpi-a", created: 3, completed: 2, p50: 600, open: 5, openOld: 1, tasks: [("Task_1", 4), ("Task_2", 1)])
-        );
+        SetupMetrics("tt02", s_yesterday, App("kpi-a", created: 3, completed: 2, p50: 600));
 
         await CreateJob().Execute(CreateContext(OrgName));
 
@@ -59,41 +55,26 @@ public class AppDailyMetricsCollectionJobTests
         Assert.Equal(OrgName, batch.Org);
         Assert.Equal("tt02", batch.Environment);
         Assert.Equal(s_yesterday, batch.MetricDate);
-        Assert.True(batch.IncludesSnapshot);
+        Assert.Equal(s_now, batch.ComputedAt);
         var observation = Assert.Single(batch.Observations);
         Assert.Equal("kpi-a", observation.App);
         Assert.Equal(3, observation.InstancesCreated);
         Assert.Equal(2, observation.InstancesCompleted);
         Assert.Equal(600, observation.SecondsToCompleteP50);
-        Assert.Equal(5, observation.OpenInstances);
-        Assert.Equal(1, observation.OpenOver90Days);
-        Assert.Equal(new Dictionary<string, int> { ["Task_1"] = 4, ["Task_2"] = 1 }, observation.OpenByTask);
     }
 
     [Fact]
-    public async Task Execute_WithEarlierDate_ShouldCollectThatDayWithoutSnapshot()
+    public async Task Execute_WithEarlierDate_ShouldCollectThatDay()
     {
         var earlier = new DateOnly(2026, 10, 1);
         SetupEnvironments(OrgName, "tt02");
-        SetupMetrics("tt02", earlier, App("kpi-a", created: 1, completed: 0, p50: null, open: 9, openOld: 9));
+        SetupMetrics("tt02", earlier, App("kpi-a", created: 1));
 
         await CreateJob().Execute(CreateContext(OrgName, "2026-10-01"));
 
         var batch = Assert.Single(_upsertedBatches);
         Assert.Equal(earlier, batch.MetricDate);
-        Assert.False(batch.IncludesSnapshot);
         Assert.Null(Assert.Single(batch.Observations).SecondsToCompleteP50);
-    }
-
-    [Fact]
-    public async Task Execute_WithYesterdayAsDate_ShouldIncludeSnapshot()
-    {
-        SetupEnvironments(OrgName, "tt02");
-        SetupMetrics("tt02", s_yesterday);
-
-        await CreateJob().Execute(CreateContext(OrgName, "2026-11-10"));
-
-        Assert.True(Assert.Single(_upsertedBatches).IncludesSnapshot);
     }
 
     [Fact]
@@ -201,7 +182,6 @@ public class AppDailyMetricsCollectionJobTests
         Assert.Equal("always", root.GetTagItem(ServiceTelemetry.Attributes.Sampling));
         Assert.Null(root.GetTagItem(ServiceTelemetry.Attributes.ServiceOwner));
         Assert.Equal("2026-11-10", root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.MetricDate));
-        Assert.Equal(true, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.IncludesSnapshot));
         Assert.Equal(3, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.ServiceOwnerCount));
         Assert.Equal(1, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.ServiceOwnerFailedCount));
         Assert.Equal(2, root.GetTagItem(ServiceTelemetry.Attributes.AppDailyMetrics.EnvironmentCollectedCount));
@@ -308,15 +288,7 @@ public class AppDailyMetricsCollectionJobTests
             );
     }
 
-    private static StudioAppDailyMetrics App(
-        string app,
-        long created = 0,
-        long completed = 0,
-        int? p50 = null,
-        long open = 0,
-        long openOld = 0,
-        (string TaskId, long Open)[] tasks = null
-    )
+    private static StudioAppDailyMetrics App(string app, long created = 0, long completed = 0, int? p50 = null)
     {
         return new StudioAppDailyMetrics
         {
@@ -324,11 +296,6 @@ public class AppDailyMetricsCollectionJobTests
             InstancesCreated = created,
             InstancesCompleted = completed,
             SecondsToCompleteP50 = p50,
-            OpenInstances = open,
-            OpenOver90Days = openOld,
-            OpenByTask = (tasks ?? [])
-                .Select(task => new StudioOpenTaskCount { TaskId = task.TaskId, OpenInstances = task.Open })
-                .ToList(),
         };
     }
 }

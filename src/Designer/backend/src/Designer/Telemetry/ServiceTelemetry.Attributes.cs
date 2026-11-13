@@ -82,11 +82,6 @@ internal static partial class ServiceTelemetry
             public const string EnvironmentSkippedCount = Prefix + "environment_skipped_count";
 
             /// <summary>
-            /// Whether the run stored the open instance counts, which it does only for yesterday.
-            /// </summary>
-            public const string IncludesSnapshot = Prefix + "includes_snapshot";
-
-            /// <summary>
             /// The UTC day the run collected, as yyyy-MM-dd.
             /// </summary>
             public const string MetricDate = Prefix + "metric_date";

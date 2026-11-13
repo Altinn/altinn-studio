@@ -3,9 +3,7 @@ using System;
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
 /// <summary>
-/// One app's instance metrics for one UTC day in one environment. The created, completed and time to complete
-/// columns describe the day. The open columns are a snapshot taken when the day had just ended,
-/// and are null when the row was filled in later.
+/// What happened to one app's instances on one UTC day in one environment.
 /// </summary>
 public class AppDailyMetricsDbModel
 {
@@ -17,12 +15,9 @@ public class AppDailyMetricsDbModel
     public int InstancesCreated { get; set; }
     public int InstancesCompleted { get; set; }
     public int? SecondsToCompleteP50 { get; set; }
-    public int? OpenInstances { get; set; }
-    public int? OpenOver90Days { get; set; }
 
     /// <summary>
-    /// When Storage computed the snapshot the row holds. For a row without a snapshot, when Storage computed
-    /// the flow numbers.
+    /// When Storage computed the row.
     /// </summary>
     public DateTimeOffset ComputedAt { get; set; }
 }

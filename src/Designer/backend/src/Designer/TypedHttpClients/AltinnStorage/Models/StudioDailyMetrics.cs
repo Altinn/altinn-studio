@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
 
 /// <summary>
-/// Instance metrics for one service owner and one UTC day, one entry per app, as Storage returns them to Studio.
+/// What happened to one service owner's instances on one UTC day, one entry per app, as Storage returns it to Studio.
 /// </summary>
 public sealed record StudioDailyMetrics
 {
@@ -13,19 +13,19 @@ public sealed record StudioDailyMetrics
     public required string Org { get; init; }
 
     /// <summary>
-    /// The UTC day that the created, completed and time to complete numbers describe.
+    /// The UTC day the metrics describe.
     /// </summary>
     [JsonPropertyName("date")]
     public required DateOnly Date { get; init; }
 
     /// <summary>
-    /// When Storage read the open counts.
+    /// When Storage computed the metrics.
     /// </summary>
     [JsonPropertyName("computedAt")]
     public required DateTimeOffset ComputedAt { get; init; }
 
     /// <summary>
-    /// Apps with instances on the day or with open instances. Other apps are left out.
+    /// Apps with instances created or completed on the day. Other apps are left out.
     /// </summary>
     [JsonPropertyName("apps")]
     public IReadOnlyList<StudioAppDailyMetrics> Apps { get; init; } = [];
@@ -50,22 +50,4 @@ public sealed record StudioAppDailyMetrics
     /// </summary>
     [JsonPropertyName("secondsToCompleteP50")]
     public int? SecondsToCompleteP50 { get; init; }
-
-    [JsonPropertyName("openInstances")]
-    public long OpenInstances { get; init; }
-
-    [JsonPropertyName("openOver90Days")]
-    public long OpenOver90Days { get; init; }
-
-    [JsonPropertyName("openByTask")]
-    public IReadOnlyList<StudioOpenTaskCount> OpenByTask { get; init; } = [];
-}
-
-public sealed record StudioOpenTaskCount
-{
-    [JsonPropertyName("taskId")]
-    public required string TaskId { get; init; }
-
-    [JsonPropertyName("openInstances")]
-    public long OpenInstances { get; init; }
 }

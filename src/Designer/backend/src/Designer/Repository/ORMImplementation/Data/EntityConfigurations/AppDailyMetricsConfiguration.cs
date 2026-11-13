@@ -40,10 +40,6 @@ public class AppDailyMetricsConfiguration : IEntityTypeConfiguration<AppDailyMet
 
         builder.Property(e => e.SecondsToCompleteP50).HasColumnType("integer").HasColumnName("seconds_to_complete_p50");
 
-        builder.Property(e => e.OpenInstances).HasColumnType("integer").HasColumnName("open_instances");
-
-        builder.Property(e => e.OpenOver90Days).HasColumnType("integer").HasColumnName("open_over_90_days");
-
         builder.Property(e => e.ComputedAt).HasColumnType("timestamptz").HasColumnName("computed_at").IsRequired();
 
         builder
