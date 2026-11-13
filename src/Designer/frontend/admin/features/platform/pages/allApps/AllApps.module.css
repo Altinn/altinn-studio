@@ -1,0 +1,31 @@
+.page {
+  display: grid;
+  gap: var(--ds-size-4);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.search {
+  max-width: 400px;
+}
+
+.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.subtle {
+  color: var(--ds-color-neutral-text-subtle);
+}

@@ -37,10 +37,13 @@ vi.mock('@studio/hooks', async () => ({
   useMediaQuery: vi.fn(),
 }));
 
+const mockPlatformPermissions = { hasPlatformAccess: false };
+
 vi.mock('app-shared/hooks/queries', async () => ({
   ...(await vi.importActual('app-shared/hooks/queries')),
   useOrganizationsQuery: () => ({ data: organizationsMock }),
   useUserQuery: () => ({ data: mockUser }),
+  useUserPlatformPermissionsQuery: () => ({ data: mockPlatformPermissions }),
 }));
 
 const triggerButtonName = textMock('shared.header_user_for_org', {
@@ -115,6 +118,23 @@ describe('PageHeader', () => {
     expect(
       screen.queryByRole('link', { name: textMock('dashboard.header_item_library') }),
     ).not.toBeInTheDocument();
+  });
+
+  it('hides the platform nav link from users without platform access', () => {
+    mockPlatformPermissions.hasPlatformAccess = false;
+    renderPageHeader();
+    expect(
+      screen.queryByRole('link', { name: textMock('admin.platform.header_item') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the platform nav link for users with platform access', () => {
+    mockPlatformPermissions.hasPlatformAccess = true;
+    renderPageHeader();
+    expect(
+      screen.getByRole('link', { name: textMock('admin.platform.header_item') }),
+    ).toHaveAttribute('href', `${ADMIN_BASENAME}/platform`);
+    mockPlatformPermissions.hasPlatformAccess = false;
   });
 
   it('renders the dashboard nav link with correct href', () => {

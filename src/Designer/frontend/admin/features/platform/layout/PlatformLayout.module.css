@@ -1,0 +1,15 @@
+.page {
+  display: grid;
+  gap: var(--ds-size-4);
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.select {
+  width: fit-content;
+}

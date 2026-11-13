@@ -15,6 +15,7 @@ export { useUserQuery } from './useUserQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
 export { useResourceAccessPackagesQuery } from './useResourceAccessPackagesQuery';
 export { useUserOrgPermissionsQuery } from './useUserOrgPermissionsQuery';
+export { useUserPlatformPermissionsQuery } from './useUserPlatformPermissionsQuery';
 export { useOrganizationsQuery } from './useOrganizationsQuery';
 export { useChatMessagesQuery } from './useChatMessagesQuery';
 export { useChatThreadsQuery } from './useChatThreadsQuery';

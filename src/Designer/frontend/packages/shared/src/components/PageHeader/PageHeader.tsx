@@ -8,13 +8,14 @@ import {
   DISPLAY_NAME,
   MEDIA_QUERY_MAX_WIDTH,
   ADMIN_BASENAME,
+  PLATFORM_ADMIN_PATH,
 } from 'app-shared/constants';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { NavigationMenu } from './NavigationMenu/NavigationMenu';
 import type { NavigationMenuItem } from './NavigationMenu/NavigationMenuItem';
 import { ProfileMenu } from './ProfileMenu/ProfileMenu';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { useUserPlatformPermissionsQuery, useUserQuery } from 'app-shared/hooks/queries';
 
 const isPathActive = (pathname: string, basePath: string): boolean =>
   pathname === basePath || pathname.startsWith(`${basePath}/`);
@@ -28,11 +29,14 @@ type PageHeaderProps = {
 export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps): ReactElement => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { data: currentUser } = useUserQuery();
+  const { data: platformPermissions } = useUserPlatformPermissionsQuery();
   const ownerInPath = currentUser?.login === owner ? 'self' : (owner ?? '');
 
   const appDashboardBasePath = `${DASHBOARD_BASENAME}/${APP_DASHBOARD_BASENAME}`;
   const orgLibraryBasePath = `${DASHBOARD_BASENAME}/${ORG_LIBRARY_BASENAME}`;
+  const platformBasePath = `${ADMIN_BASENAME}/${PLATFORM_ADMIN_PATH}`;
   const { pathname } = window.location;
+  const isPlatformActive = isPathActive(pathname, platformBasePath);
   const navigationMenuItems: NavigationMenuItem[] = [
     {
       href: `${appDashboardBasePath}/${ownerInPath}`,
@@ -42,7 +46,7 @@ export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps
     {
       href: `${ADMIN_BASENAME}/${owner ?? ''}`,
       textKey: 'admin.apps.title',
-      isActive: isPathActive(pathname, ADMIN_BASENAME),
+      isActive: isPathActive(pathname, ADMIN_BASENAME) && !isPlatformActive,
       isBeta: true,
     },
     {
@@ -51,6 +55,18 @@ export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps
       isActive: isPathActive(pathname, orgLibraryBasePath),
       isBeta: true,
     },
+    // The platform pages are for the Studio team only. The policy on their endpoints is the real
+    // protection; this just keeps the menu item away from everyone else.
+    ...(platformPermissions?.hasPlatformAccess
+      ? [
+          {
+            href: platformBasePath,
+            textKey: 'admin.platform.header_item',
+            isActive: isPlatformActive,
+            isBeta: true,
+          },
+        ]
+      : []),
   ];
 
   return (

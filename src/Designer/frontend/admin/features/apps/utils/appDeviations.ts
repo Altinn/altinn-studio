@@ -18,6 +18,7 @@ export function noUseMonths(
   lastInstanceCreatedOn: string | null,
   observedSince: string | null,
   metricDate: string | null,
+  limitDays: number = NO_USE_LIMIT_DAYS,
 ): number {
   if (!metricDate) {
     return 0;
@@ -27,7 +28,7 @@ export function noUseMonths(
     return 0;
   }
   const days = daysBetween(since, metricDate);
-  return days > NO_USE_LIMIT_DAYS ? Math.floor(days / DAYS_PER_MONTH) : 0;
+  return days > limitDays ? Math.floor(days / DAYS_PER_MONTH) : 0;
 }
 
 /**

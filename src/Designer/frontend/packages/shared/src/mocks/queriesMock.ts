@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
 import { vi } from 'vitest';
+import type { UserPlatformPermission } from 'app-shared/types/UserPlatformPermission';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
@@ -232,6 +233,11 @@ export const queriesMock: ServicesContextProps = {
       canCreateOrgRepo: true,
     }),
   ),
+  getUserPlatformPermissions: vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<UserPlatformPermission>({ hasPlatformAccess: false }),
+    ),
   getPages: vi.fn().mockImplementation(() => Promise.resolve([])),
   canUseFeature: vi
     .fn()

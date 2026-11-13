@@ -71,6 +71,7 @@ import {
   optionListPath,
   optionListReferencesPath,
   userOrgPermissionsPath,
+  userPlatformPermissionsPath,
   dataTypePath,
   orgCodeListsPath,
   layoutPagesPath,
@@ -95,6 +96,7 @@ import {
   taskNavigationGroupPath,
 } from './paths';
 
+import type { UserPlatformPermission } from 'app-shared/types/UserPlatformPermission';
 import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -207,6 +209,7 @@ export const getTextResources = (owner: string, app: string, lang: string) => ge
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
+export const getUserPlatformPermissions = () => get<UserPlatformPermission>(userPlatformPermissionsPath());
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
 export const canUseFeature = (org: string, app: string, featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(org, app, featureName));
