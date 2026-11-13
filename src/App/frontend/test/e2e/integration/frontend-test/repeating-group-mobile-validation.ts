@@ -136,7 +136,8 @@ describe('Repeating-group validation on mobile', () => {
     cy.get('[data-testid="NavigationButtons"]').find('button').should('not.be.disabled');
     openRow('table', 0);
     dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
-    dialog().findByRole('button', { name: 'Lukk' }).click();
+    dialog().find('button[data-target-node="validation-table-row-0"]').focus().click();
+    dialog().should('not.exist');
     cy.get(row('table', 0)).find(indicator).should('have.focus');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();

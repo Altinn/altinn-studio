@@ -351,6 +351,10 @@ describe('Repeating group validation showcase', () => {
       dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
       dialog().type('{esc}');
     }
+    openRow('table', 0);
+    dialog().find('button[data-target-node="validation-table-row-0"]').focus().click();
+    dialog().should('not.exist');
+    cy.get(row('table', 0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();
