@@ -2,9 +2,9 @@
 
 # Altinn 2 roles
 
-Altinn 2 roles stop giving access by 31 December 2026 at the latest, and some services lose them earlier. After that,
-a subject with an Altinn 2 role matches nobody. That includes a daglig leder who reaches the service through `utinn`
-today: roles from Enhetsregisteret bring Altinn 2 roles with them now, and that link ends too.
+Altinn 2 roles stop giving access by 31 December 2026 at the latest. After that, a subject with an Altinn 2 role
+matches nobody. That includes a daglig leder who reaches the service through `utinn` today: roles from
+Enhetsregisteret bring Altinn 2 roles with them now, and that link ends too.
 
 There is no official mapping from Altinn 2 roles to access packages. Digdir asks service owners to choose packages
 for each service from what the service is about.
@@ -15,8 +15,8 @@ for each service from what the service is about.
 2. Suggest access packages from the list that `SKILL.md` names, that fit what the service is about.
    Read the app's texts and data model to find out. Do not choose a package from the role's name alone: a broad role
    such as `utinn` or `regna` covered many unrelated services.
-3. If accountants, auditors or bankruptcy estates used the service for their clients through a role such as `a0239`
-   or `a0237`, also suggest the matching package from the Særskilt group.
+3. If accountants or auditors used the service for their clients through a role such as `a0239` or `a0237`, also
+   suggest the matching package from the Særskilt group.
 4. Let the user confirm or change the packages before you change the policy.
 5. Add each confirmed package as a subject AllOf in the rule that has the Altinn 2 role, so the package gets the same
    rights. Ask whether to remove the Altinn 2 roles now or leave them until they stop working.
