@@ -97,8 +97,9 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isListOfObjects(value: unknown): value is Record<string, unknown>[] {
-  return Array.isArray(value) && value.length > 0 && value.every(isObject);
+/** A list with an object in it is merged as rows, and every row must then be an object (checked in mergeRows). */
+function isListOfObjects(value: unknown): value is unknown[] {
+  return Array.isArray(value) && value.some(isObject);
 }
 
 /** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
@@ -190,8 +191,14 @@ function mergeObject(target: string, result: Record<string, unknown>, context: C
   }
 }
 
-function mergeRows(target: string, rows: Record<string, unknown>[], context: CalculationTarget) {
+function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {
   const { dataType, model, lookupTool } = context;
+  for (const [index, row] of rows.entries()) {
+    if (!isObject(row)) {
+      // A row that is not an object cannot be shown, so the calculation fails instead
+      throw new Error(`The calculation for ${dataType}.${target} gives a list where row ${index} is not an object`);
+    }
+  }
   const [schema] = lookupTool.getSchemaForPath(target);
   const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);
   if (!schema || !hasType(schema, 'array') || !itemSchema || !hasType(itemSchema, 'object')) {
@@ -211,7 +218,7 @@ function mergeRows(target: string, rows: Record<string, unknown>[], context: Cal
         current.push(newRow);
       }
     }
-    mergeObject(`${target}[${index}]`, row, context);
+    mergeObject(`${target}[${index}]`, row as Record<string, unknown>, context);
   }
   if (current.length > rows.length) {
     current.splice(rows.length);

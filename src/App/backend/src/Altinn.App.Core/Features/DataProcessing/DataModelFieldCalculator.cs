@@ -166,6 +166,14 @@ internal sealed class DataModelFieldCalculator
         var rowCount = 0;
         foreach (var row in rows.EnumerateArray())
         {
+            if (row.ValueKind != JsonValueKind.Object)
+            {
+                // The frontend cannot show a row that is not an object, so the calculation fails instead
+                throw new InvalidOperationException(
+                    $"The calculation for {field.Field} gives a list where row {rowCount} in {path} is {row.ValueKind}, not an object"
+                );
+            }
+
             var rowPath = $"{path}[{rowCount}]";
             rowCount++;
             // A new row is added as an empty object, and a null row replaced by one, before the properties are set.
@@ -238,21 +246,20 @@ internal sealed class DataModelFieldCalculator
         );
     }
 
+    /// <summary>
+    /// A list with an object in it is merged as rows, and every row must then be an object. A list of primitives,
+    /// or an empty one, replaces the field instead.
+    /// </summary>
     private static bool IsListOfObjects(JsonElement list)
     {
-        if (list.GetArrayLength() == 0)
-        {
-            return false;
-        }
-
         foreach (var item in list.EnumerateArray())
         {
-            if (item.ValueKind != JsonValueKind.Object)
+            if (item.ValueKind == JsonValueKind.Object)
             {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 }

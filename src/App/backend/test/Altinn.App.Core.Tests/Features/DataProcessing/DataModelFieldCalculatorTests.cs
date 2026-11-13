@@ -259,21 +259,29 @@ public sealed class DataModelFieldCalculatorTests
         }
     }
 
-    [Fact]
-    public async Task ListOfObjectsWithTheSameRowIdTwiceFails()
+    [Theory]
+    [InlineData(
+        """
+            [
+                "list",
+                ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 1],
+                ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 2]
+            ]
+            """,
+        "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11"
+    )]
+    [InlineData("""["list", ["object", "quantity", 1], null]""", "row 1 in rows is Null")]
+    [InlineData("""["list", 3, ["object", "quantity", 1]]""", "row 0 in rows is Number")]
+    public async Task ListOfObjectsWithDuplicateIdsOrRowsThatAreNotObjectsFails(string expression, string message)
     {
         var model = new ListModel();
         var calculationConfig = JsonSerializer.Deserialize<CalculationConfig>(
-            """
+            $$"""
             {
                 "calculations": [
                     {
                         "field": "rows",
-                        "expression": [
-                            "list",
-                            ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 1],
-                            ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 2]
-                        ]
+                        "expression": {{expression}}
                     }
                 ]
             }
@@ -308,7 +316,7 @@ public sealed class DataModelFieldCalculatorTests
             _dataModelFieldCalculator.Calculate(dataAccessor, TaskId)
         );
 
-        Assert.Contains("7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", exception.Message);
+        Assert.Contains(message, exception.Message);
         Assert.Contains("rows", exception.Message);
     }
 

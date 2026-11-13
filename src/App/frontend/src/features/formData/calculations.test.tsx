@@ -438,6 +438,15 @@ describe('calculations in the form store', () => {
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(previous);
   });
 
+  it('fails when a row in a list result is not an object', async () => {
+    await expect(
+      renderCalculations(
+        { calculations: [{ field: 'rows', expression: ['list', ['object', 'price', 1], null] }] },
+        { rows: [] },
+      ),
+    ).rejects.toThrow('row 1 is not an object');
+  });
+
   it('fails when two rows in a list result have the same id', async () => {
     await expect(
       renderCalculations(

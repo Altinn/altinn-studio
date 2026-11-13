@@ -22,8 +22,8 @@ public class CalculationItem : IJsonOnDeserialized
     /// <remarks>
     /// An object result sets the properties it contains and leaves the others untouched. A list of objects is merged
     /// row by row: the field gets as many rows as the result, and existing rows keep the properties the result
-    /// leaves out, and their <c>altinnRowId</c> unless the result row has one. Two rows with the same id fail the
-    /// calculation. Other values replace the field.
+    /// leaves out, and their <c>altinnRowId</c> unless the result row has one. A row that is not an object, or two
+    /// rows with the same id, fail the calculation. Other values replace the field.
     /// </remarks>
     [JsonPropertyName("expression")]
     public required Expression Expression { get; init; }
