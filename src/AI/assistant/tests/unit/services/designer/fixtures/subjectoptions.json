@@ -1,0 +1,47 @@
+[
+  {
+    "id": "55bd7d4d-08dd-46ee-ac8e-3a44d800d752",
+    "name": "Daglig leder",
+    "description": "Fysisk- eller juridisk person som har ansvaret for den daglige driften i en virksomhet",
+    "urn": "urn:altinn:external-role:ccr:daglig-leder",
+    "code": "daglig-leder",
+    "legacyRoleCode": "dagl",
+    "legacyUrn": "urn:altinn:rolecode:dagl",
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-758b-89db-7735c4f68320",
+      "name": "Enhetsregisteret",
+      "code": "sys-ccr"
+    }
+  },
+  {
+    "id": "1c6eeec1-fe70-4fc5-8b45-df4a2255dea6",
+    "name": "Privatperson",
+    "description": "Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.",
+    "urn": "urn:altinn:role:privatperson",
+    "code": "privatperson",
+    "legacyRoleCode": "priv",
+    "legacyUrn": "urn:altinn:rolecode:priv",
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+      "name": "Altinn 3",
+      "code": "sys-altinn3"
+    }
+  },
+  {
+    "id": "dbaae9f8-107a-4222-9afd-d9f95cd5319c",
+    "name": "Utfyller/Innsender",
+    "description": "Denne rollen gir rettighet til et bredt utvalg skjema og tjenester som ikke har så strenge krav til autorisasjon. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.",
+    "urn": "urn:altinn:rolecode:utinn",
+    "code": "utinn",
+    "legacyRoleCode": null,
+    "legacyUrn": null,
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-777d-8626-69c91ea2a05d",
+      "name": "Altinn 2",
+      "code": "sys-altinn2"
+    }
+  }
+]
