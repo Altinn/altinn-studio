@@ -6,8 +6,8 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-} from '@studio/icons';
-import { StudioPopover, StudioButton, StudioDivider } from '@studio/components';
+} from '@designer/icons';
+import { StudioPopover, StudioButton, StudioDivider } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

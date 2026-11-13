@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';

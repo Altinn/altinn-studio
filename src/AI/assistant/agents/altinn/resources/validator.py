@@ -1,225 +1,100 @@
-"""Resource validator tool with schema validation and business rules."""
+"""Validation of text resource files. Errors are findings. Warnings do not make a file invalid."""
 
 import json
-from pathlib import Path
+from collections import Counter
 from typing import Any
 
-from .base_validator import BaseValidator
+from agents.altinn.findings import Finding
+
+from .base_validator import BaseValidator, SchemaPath
 
 
 class ResourceValidator(BaseValidator):
     """Validator for Altinn text resource files"""
 
-    def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
-        """
-        Validate resource-specific business rules
-
-        Context keys:
-            - language: Language code (nb, nn, en)
-            - layout_files: List of layout file paths to check usage
-            - repo_path: Path to repository root
-        """
-        errors = []
-        warnings = []
-        suggestions = {}
-
-        # Extract resources
-        resources = data.get("resources", [])
-        if not resources:
-            return {"errors": ["No resources found in file"], "warnings": [], "suggestions": {}}
-
-        resource_ids = [r.get("id") for r in resources if r.get("id")]
-
-        # Rule 1: Check for duplicate resource IDs
-        duplicate_ids = [id for id in resource_ids if resource_ids.count(id) > 1]
-        if duplicate_ids:
-            errors.append(f"Duplicate resource IDs: {list(set(duplicate_ids))}")
-
-        # Rule 2: Check if resources are actually used in layouts
-        layout_files = context.get("layout_files", [])
-        if layout_files:
-            used_refs = set()
-            for layout_file in layout_files:
-                used_refs.update(self._extract_text_refs_from_layout(layout_file))
-
-            unused = set(resource_ids) - used_refs
-            if unused:
-                warnings.append(f"Unused resources (not referenced in layouts): {list(unused)[:5]}")
-                if len(unused) > 5:
-                    warnings.append(f"... and {len(unused) - 5} more unused resources")
-
-            # Check for missing resources (referenced in layout but not defined)
-            missing = used_refs - set(resource_ids)
-            if missing:
-                errors.append(f"Resources referenced in layouts but not defined: {list(missing)}")
-
-        # Rule 3: Check for missing translations
-        language = context.get("language", "nb")
-        repo_path = context.get("repo_path")
-
-        if repo_path:
-            other_resources = self._get_other_language_resources(repo_path, language)
-
-            for lang, other_ids in other_resources.items():
-                missing_in_current = set(other_ids) - set(resource_ids)
-                missing_in_other = set(resource_ids) - set(other_ids)
-
-                if missing_in_current:
-                    warnings.append(f"Missing translations from {lang}: {list(missing_in_current)[:3]}")
-                    if len(missing_in_current) > 3:
-                        warnings.append(f"... and {len(missing_in_current) - 3} more")
-
-                if missing_in_other:
-                    suggestions[f"add_to_{lang}_file"] = list(missing_in_other)[:5]
-
-        # Rule 4: Check for empty values
-        empty_values = [r.get("id") for r in resources if not r.get("value", "").strip()]
-        if empty_values:
-            warnings.append(f"Resources with empty values: {empty_values}")
-
-        # Rule 5: Suggest next ID based on pattern
-        if resource_ids:
-            suggestions["id_pattern_detected"] = self._detect_resource_id_pattern(resource_ids)
-            suggestions["next_suggested_id"] = self._suggest_next_id(resource_ids)
-
-        return {"errors": errors, "warnings": warnings, "suggestions": suggestions}
-
-    def _extract_text_refs_from_layout(self, layout_path: str) -> list[str]:
-        """Extract all textResourceBindings references from a layout file"""
-        try:
-            with open(layout_path, encoding="utf-8") as f:
-                data = json.load(f)
-
-            # Extract components
-            if "data" in data and "layout" in data["data"]:
-                components = data["data"]["layout"]
-            elif isinstance(data, list):
-                components = data
-            else:
-                return []
-
-            refs = []
-            for comp in components:
-                text_bindings = comp.get("textResourceBindings", {})
-                for value in text_bindings.values():
-                    if value:
-                        refs.append(value)
-
-            return refs
-        except Exception:
-            return []
-
-    def _get_other_language_resources(self, repo_path: str, current_lang: str) -> dict[str, list[str]]:
-        """Get resource IDs from other language files"""
-        try:
-            resource_dir = Path(repo_path) / "App" / "config" / "texts"
-            if not resource_dir.exists():
-                return {}
-
-            other_resources = {}
-            for resource_file in resource_dir.glob("resource.*.json"):
-                # Extract language code (e.g., 'nb' from 'resource.nb.json')
-                lang = resource_file.stem.split(".")[-1]
-
-                if lang != current_lang:
-                    try:
-                        with open(resource_file, encoding="utf-8") as f:
-                            data = json.load(f)
-                        resources = data.get("resources", [])
-                        other_resources[lang] = [r.get("id") for r in resources if r.get("id")]
-                    except Exception:
-                        continue
-
-            return other_resources
-        except Exception:
-            return {}
-
-    def _detect_resource_id_pattern(self, resource_ids: list[str]) -> str:
-        """Detect common resource ID pattern"""
-        if not resource_ids:
-            return "unknown"
-
-        # Check for common patterns
-        patterns = {
-            "dotted": 0,  # label.field.name
-            "underscored": 0,  # label_field_name
-            "simple": 0,  # fieldname
-        }
-
-        for rid in resource_ids:
-            if "." in rid:
-                patterns["dotted"] += 1
-            elif "_" in rid:
-                patterns["underscored"] += 1
-            else:
-                patterns["simple"] += 1
-
-        # Return most common pattern
-        return max(patterns, key=lambda pattern: patterns[pattern])
-
-    def _suggest_next_id(self, resource_ids: list[str]) -> str:
-        """Suggest next resource ID based on pattern"""
-        if not resource_ids:
-            return "label.new.field"
-
-        pattern = self._detect_resource_id_pattern(resource_ids)
-
-        if pattern == "dotted":
-            # Try to find common prefix
-            if all("." in rid for rid in resource_ids):
-                prefixes = [rid.split(".")[0] for rid in resource_ids]
-                most_common_prefix = max(set(prefixes), key=prefixes.count)
-                return f"{most_common_prefix}.new.field"
-
-        elif pattern == "underscored":
-            return "label_new_field"
-
-        return "new_field"
+    def find_errors(self, data: Any) -> list[Finding]:
+        """The schema errors and the duplicate text resource IDs in a parsed file."""
+        entries = _entries(data)
+        findings = [_schema_finding(path, message, entries) for path, message in self.iter_schema_errors(data)]
+        if not entries:
+            findings.append(Finding("no-resources", "", "No resources found in file"))
+        return findings + _duplicate_id_findings(entries)
 
 
-def resource_validator_tool(
-    user_goal: str,
-    resource_json: str,
-    schema: dict[str, Any],
-    language: str = "nb",
-    layout_files: list[str] | None = None,
-    repo_path: str | None = None,
-) -> dict[str, Any]:
+def text_resource_warnings(data: Any, ids_in_other_languages: dict[str, set[str]]) -> list[str]:
+    """The missing translations and the empty texts in a parsed file."""
+    warnings: list[str] = []
+    entries = _entries(data)
+    resource_ids = set(_resource_ids(entries))
+
+    for language, other_ids in sorted(ids_in_other_languages.items()):
+        missing = sorted(other_ids - resource_ids)
+        if missing:
+            warnings.append(f"Missing translations from {language}: {missing[:3]}")
+            if len(missing) > 3:
+                warnings.append(f"... and {len(missing) - 3} more")
+
+    empty_values = [entry.get("id") for entry in _objects(entries) if _is_blank(entry.get("value", ""))]
+    if empty_values:
+        warnings.append(f"Resources with empty values: {empty_values}")
+
+    return warnings
+
+
+def text_resource_ids(data: Any) -> list[str]:
+    """The IDs in a parsed file, in file order. An entry that has no valid ID gives no ID."""
+    return _resource_ids(_entries(data))
+
+
+def _entries(data: Any) -> list[Any]:
+    """The `resources` array as it is in the file. Thus the indexes agree with the schema error paths."""
+    resources = data.get("resources") if isinstance(data, dict) else None
+    return resources if isinstance(resources, list) else []
+
+
+def _objects(entries: list[Any]) -> list[dict[str, Any]]:
+    """The entries that the business rules can read. The schema finds the errors in the other entries."""
+    return [entry for entry in entries if isinstance(entry, dict)]
+
+
+def _resource_ids(entries: list[Any]) -> list[str]:
+    return [entry["id"] for entry in _objects(entries) if _is_id(entry.get("id"))]
+
+
+def _is_id(value: Any) -> bool:
+    return isinstance(value, str) and value != ""
+
+
+def _is_blank(value: Any) -> bool:
+    return isinstance(value, str) and not value.strip()
+
+
+def _schema_finding(path: SchemaPath, message: str, entries: list[Any]) -> Finding:
+    """The location of an error at `resources.3.value` is the ID of the text resource in entry 3.
+
+    The location of any other error is its path in the file.
     """
-    Validate text resource JSON against the schema and the business rules
-    """
-    try:
-        # Parse input
-        try:
-            data = json.loads(resource_json)
-        except json.JSONDecodeError as e:
-            return {
-                "valid": False,
-                "error_code": "INVALID_JSON",
-                "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {e!s}"],
-                "warnings": [],
-                "suggestions": {},
-                "hint": "Check for: missing quotes, trailing commas, unescaped characters in the JSON.",
-                "retry_allowed": False,
-            }
+    if len(path) >= 2 and path[0] == "resources" and isinstance(path[1], int):
+        inside = path[2:]
+        return Finding("schema", _name(entries[path[1]]), f"{_dotted(inside)}: {message}" if inside else message)
+    return Finding("schema", _dotted(path), message)
 
-        # Create validator and run validation
-        validator = ResourceValidator(schema)
 
-        context: dict[str, Any] = {"language": language}
-        if layout_files:
-            context["layout_files"] = layout_files
-        if repo_path:
-            context["repo_path"] = repo_path
+def _name(entry: Any) -> str:
+    """The ID of a text resource, or its content when it has no ID."""
+    if isinstance(entry, dict) and _is_id(entry.get("id")):
+        return entry["id"]
+    return json.dumps(entry, ensure_ascii=False, sort_keys=True)
 
-        result = validator.validate(data, context)
 
-        return result
+def _dotted(path: SchemaPath) -> str:
+    return ".".join(str(part) for part in path)
 
-    except Exception as e:
-        return {
-            "valid": False,
-            "errors": [f"Validation error: {e!s}"],
-            "warnings": [],
-            "suggestions": {},
-        }
+
+def _duplicate_id_findings(entries: list[Any]) -> list[Finding]:
+    """One finding for each text resource that repeats an ID. Thus a third copy of an ID is a new finding."""
+    return [
+        Finding("duplicate-id", resource_id, "more than one text resource has this ID")
+        for resource_id, count in Counter(_resource_ids(entries)).items()
+        for _ in range(count - 1)
+    ]

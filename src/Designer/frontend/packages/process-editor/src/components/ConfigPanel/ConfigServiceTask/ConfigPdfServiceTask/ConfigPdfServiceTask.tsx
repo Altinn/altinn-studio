@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import { StudioList, StudioRadio, StudioRadioGroup } from '@studio/components';
+import { StudioList, StudioRadio, StudioRadioGroup } from '@designer/components';
 import classes from './ConfigPdfServiceTask.module.css';
 import sharedClasses from '../ConfigServiceTask.module.css';
 import { useCurrentLayoutSet } from '../../../../hooks/useCurrentLayoutSet';

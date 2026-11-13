@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import { setRequired } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 
 export interface RequiredSwitchProps {
   schemaPointer: string;

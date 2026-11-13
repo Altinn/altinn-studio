@@ -1,4 +1,4 @@
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 
 export const formatDateAndTime = (timestamp: number, locale: string = 'nb-NO') => {
   const date = new Date(timestamp);

@@ -1,7 +1,7 @@
 import React, { useId } from 'react';
 import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';

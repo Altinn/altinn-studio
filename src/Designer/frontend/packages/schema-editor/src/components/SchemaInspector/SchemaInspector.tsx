@@ -1,4 +1,4 @@
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@designer/components';
 import { ROOT_POINTER, type UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';

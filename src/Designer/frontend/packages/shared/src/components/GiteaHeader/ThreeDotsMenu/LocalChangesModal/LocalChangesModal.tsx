@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { useRef } from 'react';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
-import { MonitorIcon } from '@studio/icons';
+import { MonitorIcon } from '@designer/icons';
 import classes from './LocalChangesModal.module.css';
 
 export const LocalChangesModal = (): ReactNode => {

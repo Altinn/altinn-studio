@@ -239,8 +239,10 @@ fail.
 The agent can use the same engine as the `preview_render_check` loop tool. Thus, a run can verify
 its own work after `commit_session_branch`. The tool is off unless `PREVIEW_CHECK_ENABLED=true` is
 set **in the environment of the agent container**. Set it in `.env.docker`, then run
-`docker compose up -d altinity-agents`. It has no effect in `benchmarks/.env`, because the tool
-runs in the agent, not in the runner.
+`docker compose up -d altinity-agents`. When it is off, the agent does not register the tool, and
+its system prompt does not mention the check. Do not set it in `benchmarks/.env`. The runner
+computes the `actor_prompt` and `tools` digests in its own environment, so the flag there gives
+digests that are not equal to the digests in `BASELINE.json`.
 
 This setting changes what the benchmark measures. `bench_pages_render` gives a score to the app
 in the state that the agent left it. When the tool is on, the agent can see its render failures

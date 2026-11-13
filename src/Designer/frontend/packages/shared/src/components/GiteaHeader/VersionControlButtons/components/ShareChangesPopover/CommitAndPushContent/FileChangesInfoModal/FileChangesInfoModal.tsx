@@ -1,9 +1,9 @@
 import React from 'react';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
-import { ClockDashedIcon } from '@studio/icons';
+import { ClockDashedIcon } from '@designer/icons';
 import { FileChangesTable } from '../../../FileChangesTable';
 
 export interface FileChangesInfoModalProps {

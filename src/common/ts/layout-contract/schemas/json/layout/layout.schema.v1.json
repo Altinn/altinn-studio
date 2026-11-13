@@ -9889,7 +9889,7 @@
       "properties": {
         "optionalIndicator": {
           "title": "Optional indicator",
-          "description": "Show the optional indicator on the label of non-required fields. Enabled by default.",
+          "description": "Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.",
           "default": true,
           "type": "boolean"
         }

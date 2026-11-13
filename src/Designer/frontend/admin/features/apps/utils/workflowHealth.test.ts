@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AxiosError } from 'axios';
-import type { AxiosResponse } from 'axios';
+import { HttpError } from 'app-shared/utils/networking';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
   deriveWorkflowHealth,
@@ -123,9 +122,7 @@ describe('extractInstanceGuid', () => {
 
 describe('isEngineUnavailableError', () => {
   const problemError = (type: string, status = 502) => {
-    const error = new AxiosError();
-    error.response = { status, data: { type } } as AxiosResponse;
-    return error;
+    return new HttpError({ status, data: { type } });
   };
 
   it('recognizes the gateway problem for an unreachable engine', () => {
@@ -155,21 +152,18 @@ describe('isEngineUnavailableError', () => {
   it.each([502, 503, 504])(
     'recognizes a %i with no problem type, which is what an ingress answers with',
     (status) => {
-      const error = new AxiosError();
-      error.response = { status, data: '<html>502 Bad Gateway</html>' } as AxiosResponse;
+      const error = new HttpError({ status, data: '<html>502 Bad Gateway</html>' });
       expect(isEngineUnavailableError(error)).toBe(true);
     },
   );
 
   it('does not treat other server errors as an unreachable engine', () => {
-    const error = new AxiosError();
-    error.response = { status: 500, data: '' } as AxiosResponse;
+    const error = new HttpError({ status: 500, data: '' });
     expect(isEngineUnavailableError(error)).toBe(false);
   });
 
   it('recognizes a status-only response with no body at all', () => {
-    const error = new AxiosError();
-    error.response = { status: 502 } as AxiosResponse;
+    const error = new HttpError({ status: 502, data: undefined });
     expect(isEngineUnavailableError(error)).toBe(true);
   });
 });
@@ -311,20 +305,15 @@ describe('mergeWorkflowHealth', () => {
   });
 });
 
-const unavailableError = () => {
-  const error = new AxiosError();
-  error.response = {
+const unavailableError = () =>
+  new HttpError({
     status: 502,
     data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
-  } as AxiosResponse;
-  return error;
-};
+  });
 
 describe('isShownInPlaceError', () => {
   const statusError = (status: number) => {
-    const error = new AxiosError();
-    error.response = { status, data: {} } as AxiosResponse;
-    return error;
+    return new HttpError({ status, data: {} });
   };
 
   it('covers missing rights and an unreachable engine, which the views explain themselves', () => {

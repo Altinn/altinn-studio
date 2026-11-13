@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import { componentCatalog } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 

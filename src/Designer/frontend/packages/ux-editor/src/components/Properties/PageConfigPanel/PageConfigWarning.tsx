@@ -3,8 +3,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
-import { StudioLink, StudioList, StudioSectionHeader, StudioHeading } from '@studio/components';
-import { SectionHeaderWarningIcon } from '@studio/icons';
+import { StudioLink, StudioList, StudioSectionHeader, StudioHeading } from '@designer/components';
+import { SectionHeaderWarningIcon } from '@designer/icons';
 import classes from './PageConfigWarning.module.css';
 
 type PageConfigWarningProps = {

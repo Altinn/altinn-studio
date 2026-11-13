@@ -1,0 +1,172 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { CompleteInterfaceProps } from './CompleteInterface';
+import { CompleteInterface } from './CompleteInterface';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockTexts } from '../../mocks/mockTexts';
+import type { Message } from '../../types/ChatThread';
+import { MessageAuthor } from '../../types/MessageAuthor';
+import { mockChatThreads } from '../../mocks/mockChatThreads';
+
+// Test data
+const onSubmitMessage = vi.fn();
+const onSelectThread = vi.fn();
+
+const threadTitle1 = mockChatThreads[0].title;
+const threadTitle2 = mockChatThreads[1].title;
+
+const mockMessages: Message[] = [
+  {
+    role: MessageAuthor.User,
+    content: 'User message',
+    createdAt: new Date().toISOString(),
+    allowAppChanges: false,
+  },
+];
+
+describe('CompleteInterface', () => {
+  it('should render the heading', () => {
+    renderCompleteInterface();
+    const heading = screen.getByRole('heading', { name: mockTexts.heading });
+
+    expect(heading).toBeInTheDocument();
+  });
+
+  it('should render the tool mode toggle group', () => {
+    renderCompleteInterface();
+    const previewToggle = screen.getByRole('radio', { name: mockTexts.preview });
+    const fileBrowserToggle = screen.getByRole('radio', { name: mockTexts.fileBrowser });
+
+    expect(previewToggle).toBeInTheDocument();
+    expect(fileBrowserToggle).toBeInTheDocument();
+  });
+
+  it('should render the hide threads button', () => {
+    renderCompleteInterface();
+    const hideThreadsButton = screen.getByRole('button', { name: mockTexts.hideThreads });
+
+    expect(hideThreadsButton).toBeInTheDocument();
+  });
+
+  it('should render the new thread button', () => {
+    renderCompleteInterface();
+    const newThreadButton = screen.getByRole('button', { name: mockTexts.newThread });
+
+    expect(newThreadButton).toBeInTheDocument();
+  });
+
+  it('should render chat threads', () => {
+    renderCompleteInterface({ chatThreads: mockChatThreads });
+    const thread1 = screen.getByRole('button', { name: threadTitle1 });
+    const thread2 = screen.getByRole('button', { name: threadTitle2 });
+
+    expect(thread1).toBeInTheDocument();
+    expect(thread2).toBeInTheDocument();
+  });
+
+  it('should render messages from the first thread by default', () => {
+    renderCompleteInterface({ messages: mockMessages });
+    const userMessage = screen.getByText('User message');
+
+    expect(userMessage).toBeInTheDocument();
+  });
+
+  it('should call onSelectThread when a different thread is selected', async () => {
+    const user = userEvent.setup();
+    const mockOnSelectThread = vi.fn();
+    renderCompleteInterface({ chatThreads: mockChatThreads, onSelectThread: mockOnSelectThread });
+
+    const thread2Button = screen.getByRole('button', { name: threadTitle2 });
+    await user.click(thread2Button);
+
+    expect(mockOnSelectThread).toHaveBeenCalledWith('2');
+  });
+
+  it('should render the chat input', () => {
+    renderCompleteInterface();
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
+
+    expect(textarea).toBeInTheDocument();
+  });
+
+  it('should render attachment button', () => {
+    renderCompleteInterface();
+    const attachmentButton = screen.getByRole('button', { name: mockTexts.addAttachment });
+
+    expect(attachmentButton).toBeInTheDocument();
+  });
+
+  it('should render "allow app changes" switch', () => {
+    renderCompleteInterface();
+    const allowAppChangesSwitch = screen.getByLabelText(mockTexts.allowAppChangesSwitch);
+
+    expect(allowAppChangesSwitch).toBeInTheDocument();
+  });
+
+  it('should render the send button', () => {
+    renderCompleteInterface();
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+
+    expect(sendButton).toBeInTheDocument();
+  });
+
+  it.each(['disconnected', 'connecting', 'error'] as const)(
+    'should disable the send button when the connection status is %s',
+    async (connectionStatus) => {
+      const user = userEvent.setup();
+      renderCompleteInterface({ connectionStatus });
+
+      await user.type(screen.getByPlaceholderText(mockTexts.textarea.placeholder), 'Test message');
+
+      expect(screen.getByRole('button', { name: mockTexts.send })).toBeDisabled();
+    },
+  );
+
+  it('should render tool column with preview placeholder', () => {
+    renderCompleteInterface();
+    const previewPlaceholder = screen.getByText('Preview placeholder');
+
+    expect(previewPlaceholder).toBeInTheDocument();
+  });
+
+  it('should render the assistant loading bubble for the active thread when its workflow is running', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      messages: mockMessages,
+      activeThreadId: '1',
+      workflowStatusByThread: {
+        '1': { isActive: true, sessionId: '1', message: loadingBubbleMessage },
+      },
+    });
+
+    expect(screen.getByText(loadingBubbleMessage)).toBeInTheDocument();
+  });
+
+  it('should not render the assistant loading bubble when only another thread has a running workflow', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      messages: mockMessages,
+      activeThreadId: '1',
+      workflowStatusByThread: {
+        '2': { isActive: true, sessionId: '2', message: loadingBubbleMessage },
+      },
+    });
+
+    expect(screen.queryByText(loadingBubbleMessage)).not.toBeInTheDocument();
+  });
+});
+
+const defaultProps: CompleteInterfaceProps = {
+  texts: mockTexts,
+  onSubmitMessage,
+  onSelectThread,
+  chatThreads: mockChatThreads,
+  activeThreadId: '1',
+  connectionStatus: 'connected',
+  workflowStatusByThread: {},
+  previewContent: <p>Preview placeholder</p>,
+};
+
+const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {
+  render(<CompleteInterface {...defaultProps} {...props} />);
+};

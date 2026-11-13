@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useComponentPropertyEnumValue, useComponentPropertyLabel } from '../../../hooks';
 
 vi.mock('@altinn/ux-editor/hooks');

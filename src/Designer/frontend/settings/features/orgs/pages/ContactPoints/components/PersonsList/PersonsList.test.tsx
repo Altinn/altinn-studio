@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { PersonsList } from './PersonsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';

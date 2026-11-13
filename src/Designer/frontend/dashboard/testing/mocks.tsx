@@ -10,9 +10,9 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
-import type { FeatureFlag } from '@studio/feature-flags';
-import { renderAndRunTimers } from '@studio/ui-test';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
+import type { FeatureFlag } from '@designer/feature-flags';
+import { renderAndRunTimers } from '@designer/ui-test';
 
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;

@@ -5,12 +5,12 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ITextResource } from 'app-shared/types/global';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 const textValue = 'Some text';

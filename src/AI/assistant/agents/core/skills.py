@@ -1,8 +1,8 @@
 """Skill discovery and loading for the agentic loop.
 
 A skill uses the Agent Skills format (https://agentskills.io/specification),
-so the same directory also works for other coding agents.  docs/skills.md
-describes the frontmatter and files.
+so the same directory also works for other coding agents.
+docs/modules/prompt-and-skills.md describes the frontmatter and files.
 
 Only each skill's name and description enter the context, through a
 compact listing in the system prompt.  The body stays on disk until the

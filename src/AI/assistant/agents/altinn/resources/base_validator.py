@@ -1,7 +1,7 @@
-"""Base validator class for schema-driven validation with business rules"""
+"""Base validator class for schema-driven validation"""
 
 import warnings
-from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from typing import Any
 
 import regex
@@ -15,6 +15,8 @@ with warnings.catch_warnings():
         message="jsonschema.RefResolver is deprecated*",
     )
     from jsonschema import Draft7Validator, RefResolver, ValidationError, validators
+
+SchemaPath = tuple[str | int, ...]
 
 
 def _check_ecma_pattern(validator, pattern, instance, _schema):
@@ -30,66 +32,19 @@ def _check_ecma_pattern(validator, pattern, instance, _schema):
 _SchemaValidator = validators.extend(Draft7Validator, {"pattern": _check_ecma_pattern})
 
 
-class BaseValidator(ABC):
-    """Base class for validators that check data against a JSON schema, and custom business rules"""
+class BaseValidator:
+    """Base class for validators that check data against a JSON schema"""
 
     def __init__(self, schema: dict[str, Any]):
         self.schema = schema
 
-    def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
+    def iter_schema_errors(self, data: Any) -> Iterator[tuple[SchemaPath, str]]:
+        """Yield the path and the message of each schema error in the data.
+
+        If the validator cannot use the schema, it raises an exception. That is not an error in the data,
+        so it must not become an old error.
         """
-        Validate data against JSON schema
-
-        Returns:
-            Tuple of (is_valid, error_messages)
-        """
-        errors = []
-        try:
-            resolver = RefResolver.from_schema(self.schema)
-            validator = _SchemaValidator(self.schema, resolver=resolver)
-
-            for error in validator.iter_errors(data):
-                path = ".".join(str(p) for p in error.absolute_path) if error.absolute_path else "root"
-                errors.append(f"[{path}] {error.message}")
-
-        except Exception as e:
-            errors.append(f"Schema validation error: {e!s}")
-
-        return len(errors) == 0, errors
-
-    @abstractmethod
-    def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
-        """
-        Override in subclass to implement custom business rules
-
-        Returns:
-            Dict with 'errors', 'warnings', 'suggestions' keys
-        """
-
-    def validate(self, data: dict[str, Any], context: dict[str, Any] | None = None) -> dict[str, Any]:
-        """
-        Full validation: schema + business rules
-
-        Args:
-            data: Data to validate
-            context: Additional context (existing files, repo info, etc.)
-
-        Returns:
-            Dict with validation results
-        """
-        context = context or {}
-
-        # Step 1: Schema validation
-        _schema_valid, schema_errors = self.validate_against_schema(data)
-
-        # Step 2: Business rules validation
-        business_result = self.validate_business_rules(data, context)
-
-        all_errors = schema_errors + business_result.get("errors", [])
-
-        return {
-            "valid": len(all_errors) == 0,
-            "errors": all_errors,
-            "warnings": business_result.get("warnings", []),
-            "suggestions": business_result.get("suggestions", {}),
-        }
+        resolver = RefResolver.from_schema(self.schema)
+        validator = _SchemaValidator(self.schema, resolver=resolver)
+        for error in validator.iter_errors(data):
+            yield tuple(error.absolute_path), error.message

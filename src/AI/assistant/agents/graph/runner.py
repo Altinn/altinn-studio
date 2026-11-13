@@ -19,6 +19,7 @@ from shared.utils.langfuse_utils import (
     get_current_trace_id,
     init_langfuse,
     is_langfuse_enabled,
+    propagate_span_attributes,
 )
 from shared.utils.logging_utils import get_logger
 
@@ -124,6 +125,8 @@ graph = build_graph()
 
 _log = _logging.getLogger(__name__)
 
+WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
+
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
@@ -194,7 +197,6 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
         "content": decline_text,
         "filesChanged": [],
         "sources": [],
-        "no_branch_operations": True,
     }
     # Same event identity as a real answer: lets the frontend dedupe
     # redelivered events and submit feedback on the decline.
@@ -256,15 +258,18 @@ async def _check_security(state: AgentState):
     )
 
 
-def _mark_as_experiment_item(state: AgentState, root_span) -> None:
-    """Declare this trace one item of a dataset run."""
+def _mark_as_experiment_item(state: AgentState, root_span) -> dict[str, str]:
+    """Declare this trace one item of a dataset run.
+
+    Returns the attributes that the child spans must carry too.
+    """
     if not state.experiment:
-        return
+        return {}
     span = otel_trace.get_current_span()
-    if not span.is_recording():
-        return
-    for key, value in state.experiment.span_attributes(root_span.id).items():
-        span.set_attribute(key, value)
+    if span.is_recording():
+        for key, value in state.experiment.root_span_attributes(root_span.id).items():
+            span.set_attribute(key, value)
+    return state.experiment.span_attributes(root_span.id)
 
 
 async def run_once(state: AgentState, event_sink: EventSink | None = None):
@@ -282,7 +287,7 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
         history_for_trace = [{"role": m.role, "content": m.content[:300]} for m in state.conversation_history]
         with langfuse.start_as_current_observation(
             as_type="span",
-            name="Altinity Agent Workflow",
+            name=WORKFLOW_TRACE_NAME,
             input={
                 "user_goal": str(state.user_goal)[:500],
                 "repo_path": str(state.repo_path),
@@ -299,8 +304,15 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
             },
         ) as root_span:
             state.trace_id = get_current_trace_id()
-            _mark_as_experiment_item(state, root_span)
-            with propagate_attributes(user_id=state.cost_org):
+            experiment_attributes = _mark_as_experiment_item(state, root_span)
+            with (
+                propagate_span_attributes(experiment_attributes),
+                propagate_attributes(
+                    user_id=state.cost_org,
+                    session_id=str(state.session_id),
+                    trace_name=WORKFLOW_TRACE_NAME,
+                ),
+            ):
                 try:
                     decline_text = await _gate_goal(state, event_sink)
                     if decline_text is not None:

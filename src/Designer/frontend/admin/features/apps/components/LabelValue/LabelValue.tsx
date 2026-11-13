@@ -1,4 +1,4 @@
-import { StudioField, StudioLabel } from '@studio/components';
+import { StudioField, StudioLabel } from '@designer/components';
 import { useId, type PropsWithChildren } from 'react';
 import classes from './LabelValue.module.css';
 

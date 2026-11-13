@@ -7,7 +7,7 @@ import {
   setCustomProperties,
   setProperty,
 } from '@altinn/schema-model';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
@@ -18,7 +18,7 @@ import {
   StudioHelpText,
   StudioSwitch,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 
 export interface CustomPropertiesProps {
   path: string;

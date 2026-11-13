@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { NewAccessListModalProps } from './NewAccessListModal';
 import { NewAccessListModal } from './NewAccessListModal';

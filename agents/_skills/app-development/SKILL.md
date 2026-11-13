@@ -77,6 +77,16 @@ Altinn Studio platform developers may use `dev` or `staging`.
 `studioctl app upgrade v9` migrates the app and reports what it will not change for you. Read its output before
 changing anything yourself; it names every file and configuration path it found.
 
+For navigation validation TODOs, keep the reported settings until you have reviewed the intended behavior. In v9,
+explicit component settings take priority over page, task and app validation. Keep a component setting if its
+validation is intended, or remove the reported forward setting to inherit validation again. Removing the reported
+backward setting leaves backward navigation without that validation. Test both directions before deploying.
+For `CustomButton`, the reported setting is `actions[index].validation`, for both client and server actions declared
+in the layout. Removing it restores inherited validation, except for a `previousPage` client action, which then runs
+without validation. The upgrade does not inspect actions returned by backend code.
+An empty `show` list still checks errors configured to appear immediately. See the
+[navigation validation upgrade guidance](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger).
+
 Maskinporten needs deliberate handling. A v9 app has **one** Maskinporten identity and never configures its own
 credentials: it reads whatever the platform provisions for it. Deployed, that is the client Studio provisions. On a
 local run studioctl is the platform, and it cannot yet hand over the credentials Studio issues - so to test against a
@@ -123,8 +133,8 @@ If local hostnames do not resolve, inspect `studioctl env hosts status`. `studio
 hosts file, so explain that effect before running it with the host's normal privilege mechanism.
 
 Open the `url` from the `run` result; `logPath` identifies its log file. `app ps` reports status in `running` and
-`apps[]`, but does not return the app URL. The `http://local.altinn.cloud:8000` root page contains the login form,
-not the app.
+`apps[]`, but does not return the app URL. Localtest's root page, the `url` in `studioctl env status --json`
+(`http://local.altinn.cloud:8000` unless `env up --port` chose another), contains the login form, not the app.
 
 ### Test changes to Altinn Studio itself
 

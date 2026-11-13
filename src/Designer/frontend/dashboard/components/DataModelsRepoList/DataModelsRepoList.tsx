@@ -7,7 +7,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';

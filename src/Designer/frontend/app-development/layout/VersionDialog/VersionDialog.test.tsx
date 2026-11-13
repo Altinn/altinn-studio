@@ -2,13 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { VersionDialog } from './VersionDialog';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   APP_DEVELOPMENT_BASENAME,
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,
 } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

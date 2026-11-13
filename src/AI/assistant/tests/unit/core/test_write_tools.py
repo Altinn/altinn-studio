@@ -19,7 +19,7 @@ from typing import Any
 
 import pytest
 
-from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import (
     CommitSessionBranchTool,
     DatamodelSyncTool,
@@ -31,7 +31,7 @@ from agents.core import (
     WriteFileTool,
 )
 
-from .git_repo import create_committed_repo, write_files
+from .git_repo import commit_all, create_committed_repo, git, write_files
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -136,28 +136,22 @@ class TestVerifyChanges:
         assert requested_locations == ["other-version/layout.schema.v1.json"]
 
     async def test_text_resource_validated_in_process(self, tmp_path: Path, monkeypatch):
-        resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"
-        resource_path.parent.mkdir(parents=True)
-        resource_path.write_text('{"resources": []}', encoding="utf-8")
-
+        write_files(
+            tmp_path,
+            {
+                f"App/config/texts/resource.{language}.json": json.dumps(
+                    {"language": language, "resources": [{"id": resource_id, "value": "Tekst"}]}
+                )
+                for language, resource_id in (("nb", "title"), ("en", "subtitle"))
+            },
+        )
         requested_locations: list[str] = []
-        schema = {"$id": "text-resources"}
-        seen: dict[str, Any] = {}
 
         def load_schema(schema_location: str) -> dict:
             requested_locations.append(schema_location)
-            return schema
-
-        def fake_resource_validator(*, user_goal, resource_json, schema, language, repo_path):
-            seen.update(schema=schema, language=language, repo_path=repo_path)
-            return {"valid": True, "errors": [], "warnings": []}
+            return {"$id": "text-resources"}
 
         monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", load_schema)
-        monkeypatch.setattr(
-            "agents.core.tools.verify_changes_tool.resource_validator_tool",
-            fake_resource_validator,
-        )
-
         ctx = _write_ctx(
             repo_path=str(tmp_path),
             changed={"App/config/texts/resource.nb.json"},
@@ -169,10 +163,11 @@ class TestVerifyChanges:
 
         assert not result.is_error
         assert requested_locations == ["other-version/text-resources.schema.v1.json"]
-        assert seen["schema"] is schema
-        # Language was inferred from the filename.
-        assert seen["language"] == "nb"
-        assert seen["repo_path"] == str(tmp_path)
+        # The warning compares the file with the other languages in the repo, so it knows the file is `nb`.
+        assert (
+            "App/config/texts/resource.nb.json: warning: Missing translations from en: ['subtitle']"
+            in json.loads(result.content)["notes"]
+        )
 
     async def test_a_text_resource_schema_that_cannot_load_is_not_blamed_on_the_file(self, tmp_path: Path, monkeypatch):
         resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"
@@ -429,6 +424,26 @@ async def _verify(ctx: LoopContext):
     return await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
 
 
+async def _verify_notes(
+    repo: Path,
+    changed: set[str],
+    profile: AppVersionProfile = V8_PROFILE,
+    *,
+    start_commit: str | None = None,
+):
+    ctx = _write_ctx(repo_path=str(repo), changed=changed)
+    ctx.app_version_profile = profile
+    ctx.start_commit = start_commit
+    result = await _verify(ctx)
+    return result, json.loads(result.content)
+
+
+def _start_session(repo: Path, files: dict[str, str]) -> str:
+    """Commit the files as the app that the session starts from, and return that commit."""
+    create_committed_repo(repo, files)
+    return git(repo, "rev-parse", "HEAD")
+
+
 class TestVerifyChangesInAV9App:
     async def test_accepts_a_heading(self, tmp_path: Path):
         _write_v9_layout(tmp_path, _heading())
@@ -513,6 +528,13 @@ class TestVerifyChangesInAV9App:
 
 
 class TestCommitSessionBranch:
+    @pytest.fixture(autouse=True)
+    def clean_clone(self, monkeypatch):
+        """These tests replace git. The clone has no file to commit and no commit to push."""
+        git_ops = "agents.core.tools.commit_session_branch_tool.git_ops."
+        monkeypatch.setattr(git_ops + "uncommitted_files", lambda repo_path: [])
+        monkeypatch.setattr(git_ops + "unpushed_files", lambda repo_path: [])
+
     async def test_commits_pushes_and_reuses_branch(self, monkeypatch):
         seen: dict[str, Any] = {}
 
@@ -539,8 +561,8 @@ class TestCommitSessionBranch:
         assert not result.is_error
         # Cached branch name persists across the session.
         assert ctx.extras["session_branch"].startswith("assistant_")
-        # The auto-commit safety net keys off this flag.
-        assert ctx.extras.get("session_committed") is True
+        # The render check runs only after a push that succeeded.
+        assert ctx.extras.get("session_pushed") is True
 
         # Second commit should reuse the cached branch.
         args2 = tool.input_schema.model_validate({"message": "second"})
@@ -718,55 +740,175 @@ class TestTextKeysResolveInEveryLanguage:
     """A key present in nb and missing in en renders as the key for English users,
     and removing it from a resource file leaves every layout still pointing at it."""
 
-    def _app(self, tmp_path: Path, *, en_has_key: bool):
-        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
-        layouts.mkdir(parents=True)
-        page = {
-            "data": {
-                "layout": [
-                    {
-                        "id": "submit",
-                        "type": "Button",
-                        "textResourceBindings": {"title": "app.button.submit"},
-                    }
-                ]
-            }
-        }
-        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
-        texts = tmp_path / "App" / "config" / "texts"
-        texts.mkdir(parents=True)
-        for language, has in (("nb", True), ("en", en_has_key)):
-            ids = ["app.button.submit"] if has else ["appName"]
-            (texts / f"resource.{language}.json").write_text(
-                json.dumps({"language": language, "resources": [{"id": i, "value": i} for i in ids]}),
-                encoding="utf-8",
-            )
+    EN = "App/config/texts/resource.en.json"
+    SIDE1 = "App/ui/form/layouts/Side1.json"
 
-    async def _verify(self, tmp_path: Path, changed: set[str]):
-        ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
-        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
-        return result, json.loads(result.content)
+    def _missing_key_note(self, component_id: str) -> str:
+        return (
+            f"{self.SIDE1}: {component_id}: `title` uses text key `app.button.submit`, which has no entry "
+            f"in `{self.EN}`, so the page shows the key instead of the text in that language."
+        )
+
+    def _files(self, *, en_ids: list[str], button_ids: tuple[str, ...] = ("submit",)) -> dict[str, str]:
+        buttons = [
+            {"id": button_id, "type": "Button", "textResourceBindings": {"title": "app.button.submit"}}
+            for button_id in button_ids
+        ]
+        files = {self.SIDE1: json.dumps({"data": {"layout": buttons}})}
+        for language, ids in (("nb", ["app.button.submit"]), ("en", en_ids)):
+            files[f"App/config/texts/resource.{language}.json"] = json.dumps(
+                {"language": language, "resources": [{"id": i, "value": i} for i in ids]}
+            )
+        return files
 
     async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
-        self._app(tmp_path, en_has_key=False)
+        write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        result, body = await _verify_notes(tmp_path, {self.SIDE1})
 
         assert result.is_error
         assert any("resource.en.json" in note for note in body["notes"])
 
     async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
-        self._app(tmp_path, en_has_key=True)
+        write_files(tmp_path, self._files(en_ids=["app.button.submit"]))
 
-        _, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+        _, body = await _verify_notes(tmp_path, {self.SIDE1})
 
         assert body["passed"]
 
     async def test_changing_a_resource_file_rechecks_untouched_layouts(self, tmp_path: Path, permissive_schema):
         """The layout is unchanged, so a per-file check would never look at it."""
-        self._app(tmp_path, en_has_key=False)
+        write_files(tmp_path, self._files(en_ids=["appName"]))
 
-        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+        result, body = await _verify_notes(tmp_path, {self.EN})
 
         assert result.is_error
         assert any("Side1.json" in note for note in body["notes"])
+
+    async def test_removing_a_key_that_a_layout_uses_fails(self, tmp_path: Path, permissive_schema):
+        start_commit = _start_session(tmp_path, self._files(en_ids=["app.button.submit"]))
+        write_files(tmp_path, self._files(en_ids=["appName"]))
+
+        result, body = await _verify_notes(tmp_path, {self.EN}, start_commit=start_commit)
+
+        assert result.is_error
+        assert any("Side1.json" in note and "`app.button.submit`" in note for note in body["notes"])
+
+    async def test_a_key_that_was_missing_when_the_session_started_is_old(self, tmp_path: Path, permissive_schema):
+        start_commit = _start_session(tmp_path, self._files(en_ids=["appName"]))
+        write_files(tmp_path, self._files(en_ids=["appName", "app.title"]))
+
+        result, body = await _verify_notes(tmp_path, {self.EN}, start_commit=start_commit)
+
+        assert not result.is_error, body["notes"]
+        assert not any("has no entry" in note for note in body["notes"])
+        assert body["old_errors"] == [self._missing_key_note("submit")]
+
+    async def test_a_new_component_fails_for_a_key_its_page_was_missing_before(self, tmp_path: Path, permissive_schema):
+        """The page already showed the key on one button. A second button that shows it is the session's error."""
+        start_commit = _start_session(tmp_path, self._files(en_ids=["appName"]))
+        write_files(tmp_path, self._files(en_ids=["appName"], button_ids=("submit", "send")))
+
+        result, body = await _verify_notes(tmp_path, {self.SIDE1}, start_commit=start_commit)
+
+        assert result.is_error
+        assert [note for note in body["notes"] if "app.button.submit" in note] == [self._missing_key_note("send")]
+        assert len(body["old_errors"]) == 1
+
+    async def test_a_page_the_session_added_fails_for_a_key_that_was_missing_before(
+        self, tmp_path: Path, permissive_schema
+    ):
+        """Side1 missed the key at the start too, but Side2 is new, so its missing key is new."""
+        files = self._files(en_ids=["appName"])
+        start_commit = _start_session(tmp_path, files)
+        side2 = "App/ui/form/layouts/Side2.json"
+        write_files(tmp_path, {side2: files[self.SIDE1]})
+
+        result, body = await _verify_notes(tmp_path, {side2}, start_commit=start_commit)
+
+        assert result.is_error
+        assert any(note.startswith(f"{side2}: submit: `title` uses text key") for note in body["notes"])
+
+
+class TestTextResourceErrorsBeforeTheSession:
+    """The errors that a text resource file had at the start of the session must not stop a correct change to it."""
+
+    RESOURCE_PATH = "App/config/texts/resource.nb.json"
+    # The v9 profile reads the text resource schema from disk.
+    PROFILE = V9_PROFILE
+    OLD_ERROR = {
+        "id": "greeting",
+        "value": "Hei {0}",
+        "variables": [{"key": "Person Navn", "dataSource": "dataModel.default"}],
+    }
+    TITLE = {"id": "title", "value": "Tittel"}
+
+    def _resource_file(self, *resources: dict[str, Any]) -> dict[str, str]:
+        return {self.RESOURCE_PATH: json.dumps({"language": "nb", "resources": list(resources)})}
+
+    async def _verify(self, repo: Path, start_commit: str | None):
+        return await _verify_notes(repo, {self.RESOURCE_PATH}, self.PROFILE, start_commit=start_commit)
+
+    async def test_a_correct_change_passes_despite_an_old_error(self, tmp_path: Path):
+        start_commit = _start_session(tmp_path, self._resource_file(self.OLD_ERROR))
+        # The new text goes above the old error, so the error moves from `resources.0` to `resources.1`.
+        write_files(tmp_path, self._resource_file(self.TITLE, self.OLD_ERROR))
+
+        result, body = await self._verify(tmp_path, start_commit)
+
+        assert not result.is_error, body["notes"]
+        assert not any("Person Navn" in note for note in body["notes"])
+        assert len(body["old_errors"]) == 1
+        assert body["old_errors"][0].startswith(f"{self.RESOURCE_PATH}: greeting: variables.0.key: 'Person Navn'")
+
+    async def test_an_error_in_the_change_fails(self, tmp_path: Path):
+        start_commit = _start_session(tmp_path, self._resource_file(self.OLD_ERROR))
+        new_error = {**self.OLD_ERROR, "id": "farewell", "variables": [{"key": "Ny Nøkkel", "dataSource": "x"}]}
+        write_files(tmp_path, self._resource_file(self.OLD_ERROR, new_error))
+
+        result, body = await self._verify(tmp_path, start_commit)
+
+        assert result.is_error
+        assert any("farewell: variables.0" in note for note in body["notes"])
+        assert not any("greeting" in note for note in body["notes"])
+        assert any("greeting" in error for error in body["old_errors"])
+
+    async def test_an_error_the_session_committed_still_fails(self, tmp_path: Path):
+        """After the session's own commit, HEAD has the error too. The start commit does not."""
+        start_commit = _start_session(tmp_path, self._resource_file(self.TITLE))
+        write_files(tmp_path, self._resource_file(self.TITLE, self.OLD_ERROR))
+        commit_all(tmp_path, "the session's commit")
+
+        result, body = await self._verify(tmp_path, start_commit)
+
+        assert result.is_error
+        assert body["old_errors"] == []
+
+    async def test_a_file_that_does_not_parse_fails_with_the_parse_error_it_had_at_the_start(self, tmp_path: Path):
+        """The parser stops where it stopped at the start, so no check sees the broken text that the session added."""
+        start_commit = _start_session(tmp_path, {self.RESOURCE_PATH: '{"language": "nb" "resources": []}'})
+        broken_text = '{"language": "nb" "resources": [{"id": "title", "value": 42}]}'
+        write_files(tmp_path, {self.RESOURCE_PATH: broken_text})
+
+        result, body = await self._verify(tmp_path, start_commit)
+
+        assert result.is_error
+        assert body["notes"][0].startswith(f"{self.RESOURCE_PATH}: invalid JSON — Expecting ',' delimiter")
+        assert body["old_errors"] == []
+
+    async def test_a_file_the_session_added_has_only_new_errors(self, tmp_path: Path):
+        start_commit = _start_session(tmp_path, self._resource_file(self.OLD_ERROR))
+        en_path = "App/config/texts/resource.en.json"
+        write_files(tmp_path, {en_path: json.dumps({"language": "en", "resources": [self.OLD_ERROR]})})
+
+        result, _ = await _verify_notes(tmp_path, {en_path}, self.PROFILE, start_commit=start_commit)
+
+        assert result.is_error
+
+    async def test_every_error_fails_without_a_start_commit(self, tmp_path: Path):
+        create_committed_repo(tmp_path, self._resource_file(self.OLD_ERROR))
+        write_files(tmp_path, self._resource_file(self.TITLE, self.OLD_ERROR))
+
+        result, _ = await self._verify(tmp_path, start_commit=None)
+
+        assert result.is_error

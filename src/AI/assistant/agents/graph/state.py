@@ -143,6 +143,7 @@ class AgentState(BaseModel):
     repo_owner: str  # An organization, or the developer for the developer's own repository
     cost_org: str  # The organization that the LLM usage is recorded on. This is the Langfuse user_id.
     designer_api_key: str | None = None  # Designer API key for git operations through Gitea proxy
+    start_commit: str | None = None  # The commit that the session started from
     trace_id: str | None = None  # Langfuse trace id, captured once at the root span
     # Hard permission gate: when False the loop runs read-only (write tools
     # denied) — the "chat mode" of the unified path. Fail closed: write

@@ -3,14 +3,14 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
-import { InformationSquareFillIcon } from '@studio/icons';
+import { InformationSquareFillIcon } from '@designer/icons';
 import {
   StudioButton,
   StudioLabelAsParagraph,
   StudioTextfield,
   StudioParagraph,
   StudioLink,
-} from '@studio/components';
+} from '@designer/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 

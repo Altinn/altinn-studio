@@ -186,6 +186,7 @@ export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
+export const resourceEnvironmentsPath = (org) => `${apiBasePath}/${org}/resources/environments`; // Get
 export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
 export const altinn2ResourcePoliciesPath = (org, env) => `${apiBasePath}/${org}/resources/altinn2resourcepolicies/${env}`; // Get
 export const publishResourcePolicyPath = (org, repo, id, env) => `${apiBasePath}/${org}/resources/publish/${repo}/${id}/${env}/policy`; // Post
@@ -228,7 +229,6 @@ export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
 export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 export const assistantWebSocketHub = () => '/hubs/assistant';
-export const assistantAttachmentsUploadPath = () => `/designer/api/assistant/attachments`;
 
 // Assistant Chat
 export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post
@@ -236,6 +236,9 @@ export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${a
 export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
 export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
 export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put, Delete
+export const assistantWorkflowPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow`; // Post
+export const assistantWorkflowCancelPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow/cancel`; // Post
+export const assistantWorkflowPermissionPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow/permission`; // Post
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;

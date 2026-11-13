@@ -11,7 +11,7 @@ import { AddApiKey } from '../../../../../../components/ApiKeys/AddApiKey';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import classes from './BotAccountApiKeys.module.css';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type BotAccountApiKeysProps = {

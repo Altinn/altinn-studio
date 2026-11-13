@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../mocks/renderWithProviders';
 
 const defaultProps: ThreeDotsMenuProps = {

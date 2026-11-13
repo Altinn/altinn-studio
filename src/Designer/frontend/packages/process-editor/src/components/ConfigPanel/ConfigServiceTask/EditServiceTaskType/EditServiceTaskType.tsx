@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioToggleableTextfield } from '@studio/components';
+import { StudioToggleableTextfield } from '@designer/components';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type { Moddle } from 'bpmn-js/lib/model/Types';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';

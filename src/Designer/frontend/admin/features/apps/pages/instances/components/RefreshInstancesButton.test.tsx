@@ -5,8 +5,8 @@ import type { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { RefreshInstancesButton, type RefreshInstancesButtonProps } from './RefreshInstancesButton';
 
 const environment = 'at23';

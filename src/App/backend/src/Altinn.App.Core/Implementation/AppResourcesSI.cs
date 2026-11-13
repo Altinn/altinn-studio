@@ -19,18 +19,9 @@ namespace Altinn.App.Core.Implementation;
 /// </remarks>
 internal sealed class AppResourcesSI : IAppResources
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNameCaseInsensitive = true,
-    };
-
-    private static readonly JsonDocumentOptions _jsonDocumentOptions = new()
-    {
-        AllowTrailingCommas = true,
-        CommentHandling = JsonCommentHandling.Skip,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNameCaseInsensitive = true }
+    );
 
     private const string TextResourcePrefix = "resource.";
     private const string JsonExtension = ".json";
@@ -290,7 +281,7 @@ internal sealed class AppResourcesSI : IAppResources
                 );
             }
 
-            using var document = JsonDocument.Parse(pageBytes, _jsonDocumentOptions);
+            using var document = JsonDocument.Parse(pageBytes, AppFileJson.DocumentOptions);
             pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
         }
 

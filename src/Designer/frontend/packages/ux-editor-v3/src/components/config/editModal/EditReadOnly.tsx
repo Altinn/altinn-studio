@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 
 export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();

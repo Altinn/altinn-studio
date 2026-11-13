@@ -5,7 +5,7 @@ import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
@@ -17,7 +17,7 @@ import {
   layoutMock,
 } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
 const defaultModel = 'testModelField';

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CreateCustomReceipt } from './CreateCustomReceipt';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';

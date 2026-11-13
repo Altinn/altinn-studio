@@ -10,7 +10,7 @@ public sealed class DotnetRestoreTests
     private const string FirstRunBanner = """
         Welcome to .NET 11.0!
         ---------------------
-        SDK Version: 11.0.100-rc.2.26504.105
+        SDK Version: 11.0.100
 
         Telemetry
         ---------

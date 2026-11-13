@@ -14,6 +14,8 @@ LOOP_CALL_NAME = "agentic_loop_llm_call"
 # One entry per trace.
 SYSTEM_PROMPTS_FILE = "loop_traces.prompts.json"
 TOOL_SPAN_PREFIX = "tool_"
+# The field groups that hold what the harvester reads: name and level, input and output, model, prompt name.
+OBSERVATION_FIELDS = "core,basic,io,model,prompt"
 
 VERIFICATION_LEVELS = {
     "app-verified": "a person opened the produced app and confirmed it",
@@ -67,7 +69,7 @@ class TraceReader:
             params: dict[str, Any] = {
                 "traceId": trace_id,
                 "limit": 100,
-                "fields": "core",
+                "fields": OBSERVATION_FIELDS,
             }
             if cursor:
                 params["cursor"] = cursor
@@ -76,11 +78,27 @@ class TraceReader:
             cursor = (page.get("meta") or {}).get("cursor")
             if not cursor:
                 break
-        rows = [self._get(f"/api/public/observations/{row['id']}") for row in found]
+        rows = [{**row, "input": _parsed(row.get("input")), "output": _parsed(row.get("output"))} for row in found]
         return sorted(rows, key=lambda row: row.get("startTime") or "")
 
-    def trace(self, trace_id: str) -> dict:
-        return self._get(f"/api/public/traces/{trace_id}")
+
+def _parsed(value: Any) -> Any:
+    """The API returns input and output as the raw string the span carried."""
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except ValueError:
+        return value
+
+
+def _goal(rows: list[dict]) -> str:
+    """The goal is in the input of the root span, since a trace has no input of its own."""
+    for row in rows:
+        if row.get("isRootObservation") or not row.get("parentObservationId"):
+            root_input = row.get("input")
+            return ((root_input if isinstance(root_input, dict) else {}).get("user_goal") or "").strip()
+    return ""
 
 
 def _tool_result(span: dict) -> dict[str, Any]:
@@ -100,9 +118,8 @@ def _tool_result(span: dict) -> dict[str, Any]:
 
 
 def read_trace(reader: TraceReader, trace_id: str) -> HarvestedTrace:
-    trace = reader.trace(trace_id)
-    goal = ((trace.get("input") or {}).get("user_goal") or "").strip()
     rows = reader.observations(trace_id)
+    goal = _goal(rows)
 
     turns: list[Turn] = []
     available: list[str] = []

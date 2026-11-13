@@ -13,8 +13,8 @@ import {
   StudioParagraph,
   StudioSwitch,
   StudioToggleGroup,
-} from '@studio/components';
-import { CheckmarkIcon } from '@studio/icons';
+} from '@designer/components';
+import { CheckmarkIcon } from '@designer/icons';
 import type {
   ConsentMetadata,
   ConsentTemplate,
@@ -22,7 +22,7 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
-import { resourceAdmConsentPreview } from '@studio/testing/testids';
+import { resourceAdmConsentPreview } from '@designer/testing/testids';
 
 const buttonText = {
   nb: {

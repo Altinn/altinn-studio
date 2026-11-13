@@ -4151,6 +4151,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
         public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideOptionalIndicator")]
+        public bool HideOptionalIndicator { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("navigationTitle")]
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
@@ -4383,6 +4385,7 @@ namespace Altinn.App.Core.Models
     public class PageGroup
     {
         public PageGroup() { }
+        public bool? ExpandedByDefault { get; set; }
         public bool? MarkWhenCompleted { get; set; }
         public string? Name { get; set; }
         public required System.Collections.Generic.List<string> Order { get; set; }
@@ -4413,13 +4416,17 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<string>? ExcludeFromPdf { get; set; }
         public bool? ExpandedWidth { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         public bool? HideCloseButton { get; set; }
+        public bool? HideOptionalIndicator { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
         public string? PdfLayoutName { get; set; }
         public bool? ShowExpandWidthButton { get; set; }
         public bool? ShowLanguageSelector { get; set; }
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public class QueryResponse<T>
     {
@@ -4489,6 +4496,8 @@ namespace Altinn.App.Core.Models
         AllExceptRequired = 5,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("All")]
         All = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
+        Invalid = 7,
     }
 }
 namespace Altinn.App.Core.Models.Expressions

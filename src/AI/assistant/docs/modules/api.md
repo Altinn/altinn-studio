@@ -14,7 +14,7 @@ flowchart TD
 
 _The steps in `POST /api/agent/start`._
 
-The WebSocket handler does not use callbacks. It pulls events from a buffer with a cursor. It waits on an `asyncio.Event` for new events, for a maximum of 30 seconds each time.
+The WebSocket handler does not use callbacks. It pulls events from a buffer with a cursor. It waits on an `asyncio.Event` for new events, for a maximum of 30 seconds each time. Only the last socket that registered for a developer streams the events of that developer. A new socket stops the stream of the previous socket and closes it.
 
 ```mermaid
 sequenceDiagram
@@ -32,4 +32,4 @@ sequenceDiagram
   end
 ```
 
-_The `/ws` handler. The cursor starts at the end of the buffer, so old events are not sent again._
+_The `/ws` handler. The cursor continues from the previous socket of the developer. Without a previous socket, it starts at the end of the buffer, so old events are not sent again._

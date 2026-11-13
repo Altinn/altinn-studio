@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioError, StudioHeading, StudioParagraph, StudioSpinner } from '@designer/components';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useGetBotAccountsQuery } from './hooks/useGetBotAccountsQuery';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';

@@ -2,8 +2,8 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { deleteButtonId } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { deleteButtonId } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 
