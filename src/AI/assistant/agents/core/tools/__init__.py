@@ -10,6 +10,7 @@ from .datamodel_sync_tool import DatamodelSyncTool
 from .discard_file_changes_tool import DiscardFileChangesTool
 from .edit_file_tool import EditFileTool
 from .layout_props_tool import LayoutPropsTool
+from .policy_subjects_tool import PolicySubjectsTool
 from .preview_render_check_tool import PreviewRenderCheckTool
 from .read_file_tool import ReadFileTool
 from .scan_repo_tool import ScanRepoTool
@@ -24,6 +25,7 @@ __all__ = [
     "DiscardFileChangesTool",
     "EditFileTool",
     "LayoutPropsTool",
+    "PolicySubjectsTool",
     "PreviewRenderCheckTool",
     "ReadFileTool",
     "ScanRepoTool",

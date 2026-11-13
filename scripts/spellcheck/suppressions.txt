@@ -250,6 +250,11 @@ foldes
 prosess
 som
 
+# The Studio Assistant's policy skill gives an example rule description in
+# Norwegian, worded like the rules in the app template.
+@paths src/AI/assistant/agents/skills/studio-policy/SKILL.md
+Gir
+
 # The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
 # so the old spellings are its working data: the rename map, the rewrite
 # reporting, the orchestration step, and the user-facing changelog entry
