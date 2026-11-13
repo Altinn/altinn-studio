@@ -6,7 +6,7 @@ import json
 from datetime import UTC, datetime, timedelta
 
 from benchmarks import manifest
-from benchmarks.check import _kept_metadata
+from benchmarks.check import _kept_metadata, item_set_digest
 from benchmarks.experiment import SCORES_KEY
 from benchmarks.lf_api import LangfuseApi
 from benchmarks.provenance import Code, Provenance
@@ -82,7 +82,7 @@ def check_ids(api: LangfuseApi | None = None, *, experiments: list[dict] | None 
     return dict(sorted(found.items(), key=lambda kv: kv[1]["recorded_at"] or "", reverse=True))
 
 
-def _provenance_from(metadata: dict) -> Provenance:
+def _provenance_from(metadata: dict, items_by_eval: dict[str, dict[str, ItemResult]]) -> Provenance:
     def decode(key: str) -> dict:
         raw = metadata.get(key)
         if not raw or raw == "unknown":
@@ -103,7 +103,9 @@ def _provenance_from(metadata: dict) -> Provenance:
         prompts=decode("prompts"),
         actor_prompt=metadata.get("actor_prompt") if metadata.get("actor_prompt") != "unknown" else None,
         tools=metadata.get("tools") if metadata.get("tools") != "unknown" else None,
-        dataset=metadata.get("dataset") if metadata.get("dataset") != "unknown" else None,
+        dataset=metadata.get("dataset")
+        if metadata.get("dataset") not in ("unknown", None)
+        else item_set_digest(items_by_eval),
         evaluators=decode("evaluators"),
         judge=metadata.get("judge") if metadata.get("judge") not in ("none", None) else None,
         notes=("reconstructed from Langfuse, so the code axis carries no branch",),
@@ -241,6 +243,6 @@ def fetch(check_id: str, *, api: LangfuseApi | None = None) -> Run:
     return Run(
         name=check_id,
         label=entry["label"],
-        provenance=_provenance_from(entry["metadata"]),
+        provenance=_provenance_from(entry["metadata"], per_eval),
         behaviors=tuple(behaviors),
     )
