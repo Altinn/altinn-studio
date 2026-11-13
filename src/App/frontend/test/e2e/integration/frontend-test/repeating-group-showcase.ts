@@ -266,7 +266,10 @@ describe('Repeating group validation showcase', () => {
     cy.checkA11y('[data-testid="row-validation-messages"]:popover-open');
     dialog().findByRole('link', { name: 'Se beløp' }).click();
     cy.location('pathname').should('include', '/repeating');
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
     cy.gotoNavPage('Validering i grupper');
+    cy.location('pathname').should('include', '/validation-showcase');
     openRow('default', 4);
     dialog().type('{esc}');
     cy.get(row('default', 4)).find(indicator).should('be.focused').and('have.attr', 'aria-expanded', 'false');
