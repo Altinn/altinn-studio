@@ -1,217 +1,374 @@
 ---
 name: studio-policy
-description: "Authorization policy of an Altinn app (App/config/authorization/policy.xml): who gets which rights, access packages, roles, service owner rights, actions each process task needs. Use before reading or changing the policy."
+description: 'Altinn authorization policy (policy.xml): rule structure, roles, actions, subjects, and common pitfalls. Load before reading or editing App/config/authorization/.'
 metadata:
   studio-title: Tilgangsstyring (policy)
   studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/authorization/
-  studio-docs-url-v9: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/configuration/authorization/
 ---
 
-`App/config/authorization/policy.xml` is the XACML 3.0 policy that decides who may do what with the app's instances.
+# ALTINN POLICY STRUCTURE AND RULES
 
-## App version
+Also read [references/v9.md](references/v9.md) for a v9 app.
 
-The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the
-app's version. Before you change
-anything, read [references/v8.md](references/v8.md) for a v8 app or [references/v9.md](references/v9.md) for a v9 app.
+## CRITICAL REQUIREMENT
 
-## How a rule works
+Important that the roles and access controls are only added if they are specified in the query.
+Only roles or access controls specified can be used.
+Add requirements for one role at a time
 
-- The policy holds `<xacml:Rule Effect="Permit">` elements and then one `<xacml:ObligationExpressions>` element.
-- A rule's `<xacml:Target>` has three `<xacml:AnyOf>` elements, in this order: subjects (who), resource (which app,
-  and maybe which task), actions (what).
-- Each `<xacml:AllOf>` in an AnyOf is one alternative. A rule applies when one AllOf in every AnyOf matches. All
-  `<xacml:Match>` elements in one AllOf must match, which is how org, app and task combine.
-- `[ORG]`, `[APP]` and `[org]` are placeholders. Studio replaces them with the app's org and name when it deploys,
-  and LocalTest does the same. Keep them.
-- Studio matches subjects and actions with `string-equal-ignore-case` and resources with `string-equal`.
+- **Important:** Only add the access control that is required in the prompt. Nothing else!!!
 
-## Which subject to use
+## FILE STRUCTURE
 
-Choose in this order:
+policy.xml is written as eXtensible Access Control Markup Language (XACML) Version 3.0
+The container policy (Policy: `<xacml:Policy></xacml:Policy>`) has two major subcontainers:
 
-1. **Access package**, `urn:altinn:accesspackage`. This is the default for services for organizations. Choose the
-   package from what the service is about. Access Management sorts the packages into groups:
-   - Allment: general tasks of any organization, such as post, tax, accounts and staff
-   - Bransje: one industry, such as construction, health or transport
-   - Særskilt: accountants, auditors, business managers and bankruptcy estates acting for a client
-   - Innbygger: a person acting for themselves or someone they act for
-   - Vergemål: guardianship
+- Rule: `<xacml:Rule></xacml:Rule>` can be more than one rule in a policy
+- ObligationExpressions: `<xacml:ObligationExpressions></xacml:ObligationExpressions>`
 
-   The value is the package code, such as `regnskap-okonomi-rapport`, not the full URN. Daglig leder and the other
-   key roles in Enhetsregisteret hold most packages for organizations, so a package rule covers them too.
-2. **Role from Enhetsregisteret (ER role)**, `urn:altinn:rolecode` with the role code, such as `dagl` or `lede`. ER
-   roles keep working after 2026. Use one when the service is for that role in particular.
-3. **Private person**, `urn:altinn:rolecode` = `priv`, for a person acting for themselves. A person also holds every
-   `innbygger-` package for themselves, so a rule with such a package covers the person and anyone they delegate it
-   to.
-4. **Service owner**, `urn:altinn:org` = `[org]` in the subject category. The version file says which rights the
-   service owner needs.
-5. **Altinn 2 roles**, such as `utinn`, `regna` or `a0239`, last. They stop giving access by the end of 2026. When
-   the policy has them, or the user asks for one, read [references/altinn2-roles.md](references/altinn2-roles.md)
-   first.
+**Important:** The policy.xml file should not contain any XML comments (<!-- comment -->). All comments and documentation should be kept outside the file.
 
-- A system user matches access packages only, never roles. A service that businesses use from their own systems
-  needs a rule with a package.
-- `urn:altinn:org` in the subject category matches only the service owner. A role code such as `dagl` with
-  `urn:altinn:org` matches nobody.
-- Each subject is one AllOf in the first AnyOf. Roles and packages share a rule when they get the same rights.
+### Overall XACML Policy Structure
 
-## The lists of packages and roles
+In a XACML policy file, the structure must follow a specific order:
 
-Studio's policy editor offers the access packages and roles that Altinn Access Management lists. They change without
-a change to the app, so read them from Access Management each time, and never write a code you have not seen there.
+1. The policy begins with the `<xacml:Policy>` root element containing policy metadata (PolicyId, Version, RuleCombiningAlgId)
+2. All rules (`<xacml:Rule>` elements) must be grouped together in the first part of the policy
+3. The obligation expressions (`<xacml:ObligationExpressions>` element) must come after all the rules
+4. The policy ends with the closing `</xacml:Policy>` tag
 
-- The access packages are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export`,
-  by group and area. A package's code is the last part of its `urn`. A policy can use a package only when its
-  `isResourcePolicyAvailable` is `true`.
-- The roles are at `https://platform.altinn.no/accessmanagement/api/v1/meta/info/roles/`. A role's code is the last
-  part of its `legacyUrn`, such as `dagl` in `urn:altinn:rolecode:dagl`. Studio offers the roles whose
-  `isResourcePolicyAvailable` is `true`, except the Altinn 2 roles, whose provider code is `sys-altinn2`.
-
-Where a shell is available, one way to search the packages is:
-
-```sh
-curl -s https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export \
-  | jq -r '.[] | .name as $group | .areas[] | .packages[] | select(.isResourcePolicyAvailable)
-      | [$group, (.urn | split(":") | last), .name] | @tsv' | grep -i 'regnskap'
-```
-
-## Attributes
-
-| Part | AttributeId | Category | Value |
-|---|---|---|---|
-| Access package | `urn:altinn:accesspackage` | subject | Package code |
-| Role | `urn:altinn:rolecode` | subject | Role code, such as `dagl` or `priv` |
-| Service owner | `urn:altinn:org` | subject | `[org]` |
-| App | `urn:altinn:org` and `urn:altinn:app`, in one AllOf | resource | `[ORG]` and `[APP]` |
-| Task | `urn:altinn:task`, in the AllOf with org and app | resource | Task ID from `process.bpmn` |
-| Ended process | `urn:altinn:end-event`, in the AllOf with org and app | resource | End event ID, such as `EndEvent_1` |
-| Events | `urn:altinn:appresource`, in the AllOf with org and app | resource | `events`, with the action `read` |
-| Action | `urn:oasis:names:tc:xacml:1.0:action:action-id` | action | `read`, `write` and so on |
-
-The categories in full:
-
-- subject: `urn:oasis:names:tc:xacml:1.0:subject-category:access-subject`
-- resource: `urn:oasis:names:tc:xacml:3.0:attribute-category:resource`
-- action: `urn:oasis:names:tc:xacml:3.0:attribute-category:action`
-
-Notes:
-
-- A rule without a task or end event applies in every state of the instance. A rule with `urn:altinn:task` applies
-  only while the instance is in that task. After the process ends, Altinn checks the end event instead of a task, so
-  rules scoped to a task stop matching. Users who should read their submitted instances need a rule without a task,
-  or one scoped to the end event.
-- Events use `urn:altinn:appresource` = `events`. The docs pages on app authorization show `urn:altinn:event`, which
-  nothing reads.
-- The authentication level is an obligation, not a rule. `urn:altinn:minimum-authenticationlevel` sets it for
-  users and `urn:altinn:minimum-authenticationlevel-org` for the service owner. Studio may also write
-  `urn:altinn:minimum-authenticationlevel-systemuser` for system users. Leave that one as it is. Change the others
-  only when the user asks.
-  When users need level 4, keep the service owner's level at 3, because Maskinporten gives level 3.
-
-## A complete rule
-
-This is the form Studio's policy editor writes. It gives the access package `regnskap-okonomi-rapport` the rights
-`read` and `write` in every task.
+**Example of proper structure:**
 
 ```xml
-<xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
-  <xacml:Description>Regel for sluttbruker: Gir rettighetene Les og Skriv til brukere med tilgangspakken Regnskap og økonomirapportering, for hele tjenesten.</xacml:Description>
+<xacml:Policy xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:example:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides">
+  <!-- All rules are grouped together first -->
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:1" Effect="Permit">
+    <!-- Rule 1 content -->
+  </xacml:Rule>
+
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:2" Effect="Permit">
+    <!-- Rule 2 content -->
+  </xacml:Rule>
+
+  <!-- Additional rules... -->
+
+  <!-- ObligationExpressions come after all rules -->
+  <xacml:ObligationExpressions>
+    <!-- Obligation expressions content -->
+  </xacml:ObligationExpressions>
+</xacml:Policy>
+```
+
+This structure is critical for proper policy evaluation. Placing rules after obligation expressions or mixing them throughout the policy file can lead to parsing errors or incorrect policy evaluation.
+
+### 1. Rule
+
+Each rule has a description and a target. The rule ID (`RuleId`) should be a unique number (preferably the next number in sequence) and not text. For example, use `"urn:altinn:example:ruleid:5"` instead of `"urn:altinn:example:ruleid:new_rule"`.
+
+The target consists of anyOf and allOf subcontainers that specify the role the rule affects, the access control the rule affects, and which resources the rules give access to.
+
+**Structure:**
+
+A rule in XACML has the following hierarchical structure:
+
+```xml
+<xacml:Rule>
+  <xacml:Description> <!-- Human-readable description of the rule --> </xacml:Description>
   <xacml:Target>
-    <xacml:AnyOf>
-      <xacml:AllOf>
-        <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-          <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regnskap-okonomi-rapport</xacml:AttributeValue>
-          <xacml:AttributeDesignator AttributeId="urn:altinn:accesspackage" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+    <!-- Section 1: Role definitions (Who) -->
+    <xacml:AnyOf> <!-- First AnyOf block is for roles -->
+      <xacml:AllOf> <!-- Each AllOf block represents one role -->
+        <xacml:Match> <!-- Match element contains the role code -->
+          <!-- Role code and attributes -->
+        </xacml:Match>
+      </xacml:AllOf>
+      <!-- Additional AllOf blocks for other roles if needed -->
+    </xacml:AnyOf>
+
+    <!-- Section 2: Resource definitions (What) -->
+    <xacml:AnyOf> <!-- Second AnyOf block is for resources -->
+      <xacml:AllOf> <!-- Each AllOf block represents one resource -->
+        <xacml:Match> <!-- Match elements for the resource -->
+          <!-- Resource attributes -->
         </xacml:Match>
       </xacml:AllOf>
     </xacml:AnyOf>
-    <xacml:AnyOf>
-      <xacml:AllOf>
-        <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-          <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
-          <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-        </xacml:Match>
-        <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-          <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
-          <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+
+    <!-- Section 3: Action definitions (How) -->
+    <xacml:AnyOf> <!-- Third AnyOf block is for actions/permissions -->
+      <xacml:AllOf> <!-- Each AllOf block represents one action/permission -->
+        <xacml:Match> <!-- Match element for the action -->
+          <!-- Action attributes (read, write, etc.) -->
         </xacml:Match>
       </xacml:AllOf>
-    </xacml:AnyOf>
-    <xacml:AnyOf>
-      <xacml:AllOf>
-        <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-          <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
-          <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-        </xacml:Match>
-      </xacml:AllOf>
-      <xacml:AllOf>
-        <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-          <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
-          <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
-        </xacml:Match>
-      </xacml:AllOf>
+      <!-- Additional AllOf blocks for other actions -->
     </xacml:AnyOf>
   </xacml:Target>
 </xacml:Rule>
 ```
 
-To scope a rule to a task, add a third Match with `urn:altinn:task` to the AllOf that holds org and app.
+This structure defines:
 
-## Editing rules
+1. **Who** - The roles that have permissions (First AnyOf block)
+2. **What** - The resources they have access to (Second AnyOf block)
+3. **How** - The actions they can perform (Third AnyOf block)
 
-- Put a new rule after the last rule and before `<xacml:ObligationExpressions>`.
-- Give a new rule a new `RuleId`: the prefix the other rules use, ending in the number after the highest one. Studio
-  reads the number after the last colon.
-- Write only `Effect="Permit"` rules, as Studio does.
-- To remove an action, remove its whole `<xacml:AllOf>` from the actions AnyOf. Remove a subject the same way. Remove
-  the rule when it has no action or no subject left.
-- When one subject in a rule needs other rights than the rest, remove its AllOf from that rule. Then add a new rule
-  for it with the rights it should have. The other subjects keep their rights.
-- Add only the subjects and rights the user asked for. If the request leaves out a right the process needs, say so and
-  ask.
-- Write no XML comments. Studio's policy editor writes the whole file again from its own model when it saves, and
-  drops them. Put the reason for a rule in its `<xacml:Description>`.
+**Example:**
 
-## Rights the process needs
+```xml
+<xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
+    <xacml:Description>Daglig leder har tilgang til å lese, starte og fulleføre skjema</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DAGL</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">instantiate</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">complete</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+</xacml:Rule>
+```
 
-When a user moves an instance on from a task without naming an action, the app accepts one of these actions on that
-task:
+### 2. ObligationExpressions
 
-| Task type | Action |
-|---|---|
-| `data`, `feedback` | `write` |
-| `confirmation` | `confirm` |
-| `signing` | `sign` or `write` |
-| `payment` | `pay` or `write` |
-| Service tasks `pdf`, `eFormidling`, `fiksArkiv`, `subformPdf` | `write` |
-| Any other user task type | An action named exactly like the task type. `write` does not grant it. |
+ObligationExpressions consists of one or more ObligationExpression
 
-- A button that moves the process with an action, such as `reject` on a signing task, needs that action on the
-  task in the policy. `ActionButton`, `CustomButton` and the signing and confirm buttons check the user's rights, and
-  they know only `read`, `write` and the actions listed on the task in `process.bpmn`. So list the action there too.
-  The `Payment` component does not check. The app also skips validation on `reject` only when the task lists
-  `reject`. The `studio-process` skill covers the process side.
-- Users also need `instantiate` to start an instance and `read` to see it.
-- When the process has a payment task, give the service owner `confirm` on it. When Nets reports the payment, the
-  app moves the process on itself, as the service owner, with the action `confirm`. Without it, the instance waits
-  until the user comes back. The `studio-payment` skill covers the rest.
-- A user rule scoped to tasks must name every task the user acts on. The version file says what users need on
-  service tasks.
+**Example:**
 
-## Before you finish
+```xml
+<xacml:ObligationExpressions>
+    <xacml:ObligationExpression ObligationId="urn:altinn:obligation:authenticationLevel1" FulfillOn="Permit">
+        <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation1-assignment1" Category="urn:altinn:minimum-authenticationlevel">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">4</xacml:AttributeValue>
+        </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+    <xacml:ObligationExpression ObligationId="urn:altinn:obligation:authenticationLevel2" FulfillOn="Permit">
+        <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation2-assignment2" Category="urn:altinn:minimum-authenticationlevel-org">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">3</xacml:AttributeValue>
+        </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+</xacml:ObligationExpressions>
+```
 
-- The file is well-formed XML. Every rule has the three AnyOf elements, and every `RuleId` is unique.
-- All rules come before `<xacml:ObligationExpressions>`, and the file has no comments.
-- Every package code you added is in Access Management's list, with `isResourcePolicyAvailable`. Every role code you
-  added is one Studio offers, unless the user asked for that role.
-- Users get the action from the table above on every task they must complete.
-- Tell the user which subjects got which rights, and in which tasks.
+## VARIABLES
 
-## Docs
+### Roles
 
-- [Tilgangspakker og roller](https://docs.altinn.studio/nb/authorization/what-do-you-get/accesspackages/): what an
-  access package gives, and who decides what it covers.
-- [Altinn Autorisasjon - Detaljert konsept](https://docs.altinn.studio/nb/authorization/about/detailed/): key roles,
-  inherited rights and the end of Altinn 2 roles.
+Roles is who has authorization, and is specified first in each rule.
+All possible roles are defined in [all_roles](#list-of-all-possible-roles).
+Relevant keys to focus on in roles are:
+
+- RoleName : string , used to find best match from user prompt
+- RoleDescription : string , used to find best match from user prompt
+- RoleDefinitionCode : string , this is the code used in the policy.xml file
+  When getting a prompt, find the role that best matches the user prompt, based on RoleName and RoleDescription
+
+### Access control
+
+Access control is what the role has authorization to do.
+It is **important** that the rule only includes the access controls **specified** in the user prompt.
+The access control are chosen based on best match from the user prompt.
+The list of all access_controls are:
+access_controls = ["access", "complete", "confirm", "delete", "instantiate", "pay", "publish", "reject", "scopeaccess", "sign", "subscribe", "write"]
+
+### Resources
+
+Resources is what the role has authorization to access.
+Resources are specified in the rule.
+The list of all resources are:
+{"attribute": "urn:altinn:org", "description": "The org part of the resource attribute defines which org that owns the app.", "code":"[ORG]"},
+{"attribute": "urn:altinn:app", "description": "The app part that identifies the app itself.", "code":"[APP]"},
+{"attribute": "urn:altinn:task", "description": "The task part of the resource makes it possible to have separate rules for the different tasks.", "code":"taskname"},
+{"attribute": "urn:altinn:event", "description": "The event part of the resource makes it possible to have separate rules for reading events.", "code":"eventname"}
+
+## EDITING GUIDELINES
+
+### Creating New Rules
+
+When creating a new rule, always ensure you include both the opening and closing tags for the rule element. A rule must always start with `<xacml:Rule>` and end with `</xacml:Rule>`. Missing either tag will break the XML structure of the policy file.
+
+**Important:**
+
+- Always create the complete rule structure with all required elements
+- Ensure proper nesting of all XML elements
+- Include both opening and closing tags for every element
+- Place new rules before the ObligationExpressions section
+- Assign a unique numeric RuleId (e.g., `"urn:altinn:example:ruleid:5"`)
+
+### Modifying Rules with Multiple Roles
+
+When a rule affects multiple roles and you need to modify permissions for only some of those roles:
+
+1. **Remove role from original rule** that contains multiple roles
+2. **Create a new rule** specifically for the role(s) that need different permissions
+3. Ensure the new rule has:
+   - A unique RuleId
+   - Only the specific role(s) that need different permissions
+   - The exact resources and actions needed for those roles
+
+**Example scenario:**
+If a rule gives read and write access to both DAGL (Daglig leder) and REGNA (Regnskapsmedarbeider), and you need to add delete access only for DAGL, you should:
+
+1. Remove DAGL (Daglig leder) from the original rule
+2. Create a new rule that gives original accesses + delete access to DAGL (Daglig leder)
+
+**Important:** Do not remove a role from the original rule, only remove the role that you want to modify.
+
+### Adding new authorization rule
+
+1. Use keys RoleName and RoleDescription in [all_roles](#list-of-all-possible-roles) to find the best role match to the user prompt
+2. Get relevant authorization (rettigheter) **from access_controls** based on prompt
+3. Add new authorization to the role - Only add the authorization specified in the prompt - If the prompt states that authorization is supposed to only be for one specific role, [remove authorization from other roles](#removing-access-control-from-role)
+   NB: Do not create a new policy file, use the existing policy.xml file
+
+### Removing access control from role
+
+When removing a specific access control from a role, you must remove the entire `<xacml:AllOf>` block that contains that access control. Each access control is contained within its own `<xacml:AllOf>` block inside the actions `<xacml:AnyOf>` section.
+
+**Important:** Do not just remove the `<xacml:Match>` element, as this will break the XML structure. You must remove the complete `<xacml:AllOf>` block that contains the access control you want to remove.
+
+**Steps for removing access:**
+
+1. Find the rule in policy.xml that contains the relevant role (in the first `<xacml:AnyOf>` section)
+2. Locate the specific access control to remove in the third `<xacml:AnyOf>` section (the actions section)
+3. Remove the entire `<xacml:AllOf>` block containing that access control
+4. If all access controls are removed (all `<xacml:AllOf>` blocks in the actions section), remove the entire rule from the policy
+
+**Example:**
+Before removing "delete" access:
+
+```xml
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
+    <xacml:Description>priv has access to read, write and delete</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">priv</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">delete</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+  </xacml:Rule>
+```
+
+after removing "delete" access:
+
+```xml
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
+    <xacml:Description>priv has access to read, write and delete</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">priv</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[ORG]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[APP]</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+  </xacml:Rule>
+```
+
+## MANDATORY VALIDATION CHECKLIST
+
+- [ ] Only add the authorization / access control specified in the prompt
+- [ ] Add only one role / authorization at a time
+- [ ] If the prompt states that authorization is supposed to only be for one specific role, remove authorization from other roles
+
+## LIST OF ALL POSSIBLE ROLES
+
+The list is in [references/roles.md](references/roles.md).

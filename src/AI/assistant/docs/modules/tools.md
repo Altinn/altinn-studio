@@ -4,21 +4,20 @@ Code: `src/AI/assistant/agents/core/tool.py`, `src/AI/assistant/agents/core/regi
 
 Each tool is a class with a name, a description, a Pydantic input schema and a `run` method. A tool that changes the app inherits `WriteTool`. This base class refuses the call when the session is read-only, and marks the refusal as one the user can lift. The loop node registers the tools in `_internal_tools()` in `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`.
 
-| Tool                     | Job                                                           | Parallel | Needs write mode |
-| ------------------------ | ------------------------------------------------------------- | -------- | ---------------- |
-| `scan_repo`              | List layouts, models, text resources and locales              | Yes      | No               |
-| `read_file`              | Read one file, or one part of a long file                     | Yes      | No               |
-| `edit_file`              | Replace one string in one file                                | No       | Yes              |
-| `write_file`             | Make or replace a whole file                                  | No       | Yes              |
-| `discard_file_changes`   | Reset one file to HEAD, or delete a new file                  | No       | Yes              |
-| `verify_changes`         | Validate all changed files                                    | Yes      | Yes              |
-| `commit_session_branch`  | Commit and push to the session branch                         | No       | Yes              |
-| `preview_render_check`   | Render each page in a headless browser, if on                 | No       | Yes              |
-| `skill`                  | Load the full text of one skill                               | Yes      | No               |
-| `altinn_layout_props`    | Get the allowed properties of a component type                | Yes      | No               |
-| `altinn_policy_subjects` | Look up access packages and roles in Altinn Access Management | Yes      | No               |
-| `altinn_datamodel_sync`  | Make XSD and C# from a JSON Schema model                      | No       | Yes              |
-| `web_fetch`              | Get a page from the Altinn docs hosts only                    | Yes      | No               |
+| Tool                    | Job                                              | Parallel | Needs write mode |
+| ----------------------- | ------------------------------------------------ | -------- | ---------------- |
+| `scan_repo`             | List layouts, models, text resources and locales | Yes      | No               |
+| `read_file`             | Read one file, or one part of a long file        | Yes      | No               |
+| `edit_file`             | Replace one string in one file                   | No       | Yes              |
+| `write_file`            | Make or replace a whole file                     | No       | Yes              |
+| `discard_file_changes`  | Reset one file to HEAD, or delete a new file     | No       | Yes              |
+| `verify_changes`        | Validate all changed files                       | Yes      | Yes              |
+| `commit_session_branch` | Commit and push to the session branch            | No       | Yes              |
+| `preview_render_check`  | Render each page in a headless browser, if on    | No       | Yes              |
+| `skill`                 | Load the full text of one skill                  | Yes      | No               |
+| `altinn_layout_props`   | Get the allowed properties of a component type   | Yes      | No               |
+| `altinn_datamodel_sync` | Make XSD and C# from a JSON Schema model         | No       | Yes              |
+| `web_fetch`             | Get a page from the Altinn docs hosts only       | Yes      | No               |
 
 The loop cuts every tool result at a fixed size, and the model cannot get the cut text back. So `read_file`, `web_fetch` and `skill` return long text in parts. Each part ends with a note that tells the model which lines it has not read, and how to read them. `write_file` refuses to replace a file that the model has read only part of. [`text_parts.py`](../../agents/core/tools/utils/text_parts.py) explains why.
 

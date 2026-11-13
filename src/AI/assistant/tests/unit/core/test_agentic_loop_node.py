@@ -81,7 +81,6 @@ class TestBuildRegistry:
     def test_altinn_tools_registered(self):
         registry = _build_registry([])
         assert "altinn_layout_props" in registry
-        assert "altinn_policy_subjects" in registry
         assert "altinn_datamodel_sync" in registry
         assert "web_fetch" in registry
 
