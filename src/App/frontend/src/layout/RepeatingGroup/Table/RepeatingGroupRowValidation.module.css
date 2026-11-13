@@ -45,3 +45,7 @@
 .messages > li + li {
   margin-top: var(--ds-size-4);
 }
+
+.messages [role='link'][data-target-node] {
+  outline-offset: -3px;
+}
