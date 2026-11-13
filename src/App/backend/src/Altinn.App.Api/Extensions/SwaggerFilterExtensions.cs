@@ -22,33 +22,16 @@ internal static class SwaggerFilterExtensions
             c.SupportNonNullableReferenceTypes();
             // JsonPatchOperation has a custom converter, so describe its wire format instead of its properties.
             c.MapType<JsonPatchOperation>(JsonPatchOperation.OpenApiSchema);
-            // Expression has a custom converter too: a literal or an array, never the properties of the class.
-            c.MapType<Expression>(ExpressionOpenApiSchema);
+            // Expression has a custom converter too: a literal or an array, never the properties of the class. It is
+            // recursive, so it is a named component that DocumentFilter adds, and every use is a reference to it.
+            c.MapType<Expression>(() =>
+                new OpenApiSchemaReference(DocumentFilter.ExpressionSchemaId, hostDocument: null)
+            );
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();
         });
     }
-
-    private static OpenApiSchema ExpressionOpenApiSchema() =>
-        new()
-        {
-            Title = "Expression",
-            Description =
-                "A literal (string, number, boolean or null), or an array with a function name followed by its "
-                + "arguments, which are expressions, such as [\"dataModel\", \"skjema.price\"]",
-            OneOf =
-            [
-                new OpenApiSchema { Type = JsonSchemaType.String },
-                new OpenApiSchema { Type = JsonSchemaType.Number },
-                new OpenApiSchema { Type = JsonSchemaType.Boolean },
-                new OpenApiSchema
-                {
-                    Type = JsonSchemaType.Array,
-                    Items = new OpenApiSchema { Description = "The function name, then one expression per argument" },
-                },
-            ],
-        };
 }
 
 internal sealed class ExplicitProblemDetailsResponseOperationFilter : IOperationFilter
@@ -132,9 +115,12 @@ internal sealed class ActionsPerformConflictResponseOperationFilter : IOperation
 
 internal class DocumentFilter : IDocumentFilter
 {
+    internal const string ExpressionSchemaId = "Expression";
+
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
         swaggerDoc.Info.Description = CustomOpenApiController.InfoDescriptionWarningText;
+        swaggerDoc.AddComponent(ExpressionSchemaId, ExpressionSchema(swaggerDoc));
         // Remove path from swagger that is used only for backwards compatibility.
         swaggerDoc.Paths.Remove("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataType}");
 
@@ -144,6 +130,31 @@ internal class DocumentFilter : IDocumentFilter
 
         RemovePathParametersMissingFromTemplate(swaggerDoc);
     }
+
+    /// <summary>
+    /// The wire format of <see cref="Expression"/>: a literal, or a function name followed by its arguments, which
+    /// are expressions themselves.
+    /// </summary>
+    private static OpenApiSchema ExpressionSchema(OpenApiDocument document) =>
+        new()
+        {
+            Title = "Expression",
+            Description =
+                "A literal (string, number, boolean or null), or an array with a function name followed by its "
+                + "arguments, which are expressions, such as [\"dataModel\", \"skjema.price\"]",
+            OneOf =
+            [
+                new OpenApiSchema { Type = JsonSchemaType.String },
+                new OpenApiSchema { Type = JsonSchemaType.Number },
+                new OpenApiSchema { Type = JsonSchemaType.Boolean },
+                new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Array,
+                    Description = "The function name, then one expression per argument",
+                    Items = new OpenApiSchemaReference(ExpressionSchemaId, document),
+                },
+            ],
+        };
 
     /// <summary>
     /// Swashbuckle emits every [FromRoute] action parameter as a path parameter on all route templates of the action,
