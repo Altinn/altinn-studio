@@ -327,6 +327,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
 
         // All source writers must finish first, including generated data processors and their Program.cs
@@ -2216,6 +2219,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error adding content types for generated files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 16: convert calculations keyed by field in models/*.calculation.json to the list v9 reads. A file whose
+    /// conversion would not load in v9 is left as written and reported as a to-do.
+    /// </summary>
+    static async Task<int> MigrateCalculationLists(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Calculations");
+        try
+        {
+            var result = await CalculationListMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No calculations keyed by field",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error converting calculations to a list", ex);
         }
     }
 

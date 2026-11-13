@@ -36,9 +36,7 @@ public class Utf8JsonReaderExtensionsTests
             + nl
             + @"  ""data"": ["
             + nl
-            + @"    /* a comment too */"
-            + nl
-            + @"    23"
+            + @"    /* a comment too */23"
             + nl
             + @"    /* a comment too */"
             + nl

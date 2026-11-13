@@ -61,6 +61,15 @@
   Response: {
     property1: 2,
     property2: 2,
-    property3: null
+    property3: null,
+    price: 200,
+    quantity: 1,
+    total: 200,
+    lines: [
+      {
+        label: total,
+        amount: 200
+      }
+    ]
   }
 }

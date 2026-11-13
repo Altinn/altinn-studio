@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using Altinn.App.Core.Models.Calculation;
 
 namespace Altinn.App.Core.Internal.App;
 
@@ -119,8 +120,8 @@ internal static class AppFilesLoader
     }
 
     /// <summary>
-    /// Reads the contents of the scanned files, validates that every json file parses and that the application
-    /// metadata file exists, and builds the snapshot. The files are read on the calling thread, as the host reads
+    /// Reads the contents of the scanned files, validates that every json file parses, that every calculation file
+    /// is a valid calculation configuration and that the application metadata file exists, and builds the snapshot. The files are read on the calling thread, as the host reads
     /// its configuration files: an app has at most a few hundred small files, read once at startup.
     /// </summary>
     /// <exception cref="ApplicationConfigException">With every problem found, when the app files cannot be loaded.</exception>
@@ -158,6 +159,20 @@ internal static class AppFilesLoader
                 catch (JsonException e)
                 {
                     errors.Add($"{file.Stamp.RelativePath}: {e.Message}");
+                    continue;
+                }
+            }
+
+            if (file.Kind == AppFileKind.ModelCalculation)
+            {
+                // The parser names the file in its message
+                try
+                {
+                    CalculationConfig.Parse(bytes, file.Stamp.RelativePath);
+                }
+                catch (JsonException e)
+                {
+                    errors.Add(e.Message);
                     continue;
                 }
             }

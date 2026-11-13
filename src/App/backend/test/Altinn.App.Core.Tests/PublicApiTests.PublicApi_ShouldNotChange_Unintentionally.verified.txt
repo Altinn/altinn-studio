@@ -769,7 +769,7 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
-        public object? CalculationConfig { get; init; }
+        public Altinn.App.Core.Models.Calculation.CalculationConfig? CalculationConfig { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
@@ -2893,7 +2893,7 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppResources
     {
-        string? GetCalculationConfiguration(string dataTypeId);
+        Altinn.App.Core.Models.Calculation.CalculationConfig? GetCalculationConfig(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
@@ -3087,6 +3087,7 @@ namespace Altinn.App.Core.Internal.Data
         Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
         Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
         System.ReadOnlySpan<char> AddIndexToPath(System.ReadOnlySpan<char> path, System.ReadOnlySpan<int> rowIndexes, System.Span<char> buffer);
+        bool AddRow(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();
@@ -3118,7 +3119,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public ExpressionEvaluatorTypeErrorException(string msg) { }
         public ExpressionEvaluatorTypeErrorException(string msg, System.Exception innerException) { }
     }
-    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    [System.Diagnostics.DebuggerDisplay("{ToStringForText(),nq}")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.Expressions.ExpressionTypeUnionConverter))]
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
@@ -4100,6 +4101,7 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.BinaryDataChange> BinaryDataChanges { get; }
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.FormDataChange> FormDataChanges { get; }
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.DataElementIdentifier.DataElementIdentifierConverter))]
     public readonly struct DataElementIdentifier : System.IEquatable<Altinn.App.Core.Models.DataElementIdentifier>
     {
         public DataElementIdentifier(Altinn.Platform.Storage.Interface.Models.DataElement dataElement) { }
@@ -4498,6 +4500,25 @@ namespace Altinn.App.Core.Models
         All = 6,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
         Invalid = 7,
+    }
+}
+namespace Altinn.App.Core.Models.Calculation
+{
+    public class CalculationConfig : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public const string Schema = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calc" +
+            "ulation.schema.v1.json";
+        public CalculationConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("calculations")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.Calculation.CalculationItem> Calculations { get; init; }
+    }
+    public class CalculationItem : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public CalculationItem() { }
+        [System.Text.Json.Serialization.JsonPropertyName("expression")]
+        public required Altinn.App.Core.Models.Expressions.Expression Expression { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("field")]
+        public required string Field { get; init; }
     }
 }
 namespace Altinn.App.Core.Models.Expressions

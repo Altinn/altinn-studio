@@ -356,6 +356,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     return true;
                 }
                 return false;
+            case "skjemainnhold" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold?>?>(out var result_Skjemainnhold))
+                {
+                    model.Skjemainnhold = result_Skjemainnhold;
+                    return true;
+                }
+                return false;
+            }
             case "skjemainnhold":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_Skjema_Skjemainnhold(
                     model,
@@ -364,6 +374,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "eierAdresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.Adresse?>(out var result_EierAdresse))
+                {
+                    model.EierAdresse = result_EierAdresse;
+                    return true;
+                }
+                return false;
+            }
             case "eierAdresse" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Tests_Skjema_EierAdresse(
                     model,
@@ -413,6 +433,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
         if (model.Count <= literalIndex)
         {
+            return false;
+        }
+        if (offset == -1)
+        {
+            // csharpier-ignore
+            if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold?>(out var result))
+            {
+                model[literalIndex] = result;
+                return true;
+            }
             return false;
         }
         var item = model[literalIndex];
@@ -468,6 +498,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     return true;
                 }
                 return false;
+            case "adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.Adresse?>(out var result_Adresse))
+                {
+                    model.Adresse = result_Adresse;
+                    return true;
+                }
+                return false;
+            }
             case "adresse" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_Adresse(
                     model,
@@ -475,6 +515,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "tidligere-adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.Adresse>?>(out var result_TidligereAdresse))
+                {
+                    model.TidligereAdresse = result_TidligereAdresse;
+                    return true;
+                }
+                return false;
+            }
             case "tidligere-adresse":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_TidligereAdresse(
                     model,
@@ -483,6 +533,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "oldXmlValue" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.OldXmlValue?>(out var result_OldXmlValue))
+                {
+                    model.OldXmlValue = result_OldXmlValue;
+                    return true;
+                }
+                return false;
+            }
             case "oldXmlValue" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_OldXmlValue(
                     model,
@@ -490,6 +550,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withListOfString" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<string>>(out var result_WithListOfString))
+                {
+                    model.WithListOfString = result_WithListOfString!;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfString":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithListOfString(
                     model,
@@ -498,6 +568,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withListOfInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<int>>(out var result_WithListOfInt))
+                {
+                    model.WithListOfInt = result_WithListOfInt!;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfInt":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithListOfInt(
                     model,
@@ -506,6 +586,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withListOfNullableInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<int?>>(out var result_ListNullableInt))
+                {
+                    model.ListNullableInt = result_ListNullableInt!;
+                    return true;
+                }
+                return false;
+            }
             case "withListOfNullableInt":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_ListNullableInt(
                     model,
@@ -514,6 +604,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withHashSetOfString" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.HashSet<string>?>(out var result_WithHashSetOfString))
+                {
+                    model.WithHashSetOfString = result_WithHashSetOfString;
+                    return true;
+                }
+                return false;
+            }
             case "withHashSetOfString":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfString(
                     model,
@@ -522,6 +622,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "withHashSetOfInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.HashSet<int>?>(out var result_WithHashSetOfInt))
+                {
+                    model.WithHashSetOfInt = result_WithHashSetOfInt;
+                    return true;
+                }
+                return false;
+            }
             case "withHashSetOfInt":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_WithHashSetOfInt(
                     model,
@@ -530,6 +640,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     nextOffset,
                     value
                 );
+            case "hashSetAdresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>?>(out var result_HashSetAdresse))
+                {
+                    model.HashSetAdresse = result_HashSetAdresse;
+                    return true;
+                }
+                return false;
+            }
             case "hashSetAdresse":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_SkjemaInnhold_HashSetAdresse(
                     model,
@@ -703,6 +823,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                     return true;
                 }
                 return false;
+            case "tags" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<string>?>(out var result_Tags))
+                {
+                    model.Tags = result_Tags;
+                    return true;
+                }
+                return false;
+            }
             case "tags":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Tests_Adresse_Tags(
                     model,
@@ -744,9 +874,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
-        if (value.TryDeserialize<string>(out var result) && result is not null)
+        if (value.TryDeserialize<string>(out var result))
         {
-            model[literalIndex] = result;
+            model[literalIndex] = result!;
             return true;
         }
         return false;
@@ -766,6 +896,16 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         }
         if (model.Count <= literalIndex)
         {
+            return false;
+        }
+        if (offset == -1)
+        {
+            // csharpier-ignore
+            if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.Adresse>(out var result))
+            {
+                model[literalIndex] = result!;
+                return true;
+            }
             return false;
         }
         var item = model[literalIndex];
@@ -905,6 +1045,240 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     }
 
     #endregion Setters
+    #region AddRow
+
+    /// <inheritdoc />
+    public bool AddRow(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+
+        return AddRowRecursive(_dataModel, path, 0, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.Skjema? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "skjemainnhold" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold?>(out var result_Skjemainnhold))
+                {
+                    model.Skjemainnhold ??= new();
+                    model.Skjemainnhold.Add(result_Skjemainnhold);
+                    return true;
+                }
+                return false;
+            }
+            case "skjemainnhold" when literalIndex is not -1:
+                return AddRowRecursive(model.Skjemainnhold, path, literalIndex, nextOffset, value);
+            case "eierAdresse" when literalIndex is -1 && nextOffset is not -1:
+                model.EierAdresse ??= new();
+                return AddRowRecursive(model.EierAdresse, path, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold?>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0 || offset == -1)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = model[literalIndex];
+        return AddRowRecursive(item, path, offset, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "adresse" when literalIndex is -1 && nextOffset is not -1:
+                model.Adresse ??= new();
+                return AddRowRecursive(model.Adresse, path, nextOffset, value);
+            case "tidligere-adresse" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Tests.Adresse>(out var result_TidligereAdresse))
+                {
+                    model.TidligereAdresse ??= new();
+                    model.TidligereAdresse.Add(result_TidligereAdresse!);
+                    return true;
+                }
+                return false;
+            }
+            case "tidligere-adresse" when literalIndex is not -1:
+                return AddRowRecursive(model.TidligereAdresse, path, literalIndex, nextOffset, value);
+            case "oldXmlValue" when literalIndex is -1 && nextOffset is not -1:
+                model.OldXmlValue ??= new();
+                return AddRowRecursive(model.OldXmlValue, path, nextOffset, value);
+            case "withListOfString" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<string>(out var result_WithListOfString))
+                {
+                    model.WithListOfString ??= new();
+                    model.WithListOfString.Add(result_WithListOfString!);
+                    return true;
+                }
+                return false;
+            }
+            case "withListOfInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<int>(out var result_WithListOfInt))
+                {
+                    model.WithListOfInt ??= new();
+                    model.WithListOfInt.Add(result_WithListOfInt);
+                    return true;
+                }
+                return false;
+            }
+            case "withListOfNullableInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<int?>(out var result_ListNullableInt))
+                {
+                    model.ListNullableInt ??= new();
+                    model.ListNullableInt.Add(result_ListNullableInt);
+                    return true;
+                }
+                return false;
+            }
+            case "hashSetAdresse" when literalIndex is not -1:
+                return AddRowRecursive(model.HashSetAdresse, path, literalIndex, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.Adresse? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "tags" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<string>(out var result_Tags))
+                {
+                    model.Tags ??= new();
+                    model.Tags.Add(result_Tags!);
+                    return true;
+                }
+                return false;
+            }
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0 || offset == -1)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = model[literalIndex];
+        return AddRowRecursive(item, path, offset, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Tests.OldXmlValue? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.HashSet<global::Altinn.App.SourceGenerator.Tests.Adresse>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0 || offset == -1)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = global::System.Linq.Enumerable.ElementAt(model, literalIndex);
+        return AddRowRecursive(item, path, offset, value);
+    }
+
+    #endregion AddRow
     #region AddIndexToPath
 
     /// <inheritdoc />

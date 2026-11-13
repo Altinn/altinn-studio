@@ -91,7 +91,16 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase
             updateDataElementContent
         );
         var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
-        changes.ChangedFields.Should().HaveCount(2);
+        changes.ChangedFields.Should().HaveCount(3);
+        // default.calculation.json runs on every write
+        changes
+            .ChangedFields.Should()
+            .ContainKey("melding.calculated-fixed-value")
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetString()
+            .Should()
+            .Be("Hello Ola Nielsen");
         changes
             .ChangedFields.Should()
             .ContainKey("melding.toggle")

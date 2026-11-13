@@ -183,6 +183,26 @@
         "PetSortOrder": {
           "type": "string"
         },
+        "ChangeList": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "ChangeSummary": {
+          "type": "object",
+          "properties": {
+            "Total": { "type": "number" },
+            "Rows": { "type": "integer" }
+          }
+        },
+        "ChangeRows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Change": { "type": "number" }
+            }
+          }
+        },
         "PetsUseOptionComponent": {
           "type": "boolean"
         }

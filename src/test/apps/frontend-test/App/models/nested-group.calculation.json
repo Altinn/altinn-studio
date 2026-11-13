@@ -1,7 +1,8 @@
 {
   // App files support comments and trailing commas together.
-  "calculations": {
-    "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange": {
+  "calculations": [
+    {
+      "field": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange",
       "expression": [
         "minus",
         [
@@ -40,7 +41,8 @@
         ],
       ],
     },
-    "sumAll": {
+    {
+      "field": "sumAll",
       "expression": [
         "sum",
         [
@@ -53,7 +55,8 @@
         ]
       ]
     },
-    "sumAboveLimit": {
+    {
+      "field": "sumAboveLimit",
       "expression": [
         "sum",
         [
@@ -78,7 +81,8 @@
         ]
       ]
     },
-    "numAboveLimit": {
+    {
+      "field": "numAboveLimit",
       "expression": [
         "count",
         [
@@ -102,6 +106,41 @@
           "not_null(@, `[]`)[]"
         ]
       ]
+    },
+    {
+      // A list result: the calculated change of every row
+      "field": "ChangeList",
+      "expression": [
+        "jmespath",
+        [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        ],
+        "not_null(@, `[]`)[].CalculatedChange"
+      ]
+    },
+    {
+      // An object result, reading the list calculated above
+      "field": "ChangeSummary",
+      "expression": [
+        "object",
+        "Total",
+        ["dataModel", "sumAll"],
+        "Rows",
+        ["count", ["dataModel", "ChangeList"]]
+      ]
+    },
+    {
+      // A list of objects: rows are merged by position, so they keep their altinnRowId between saves
+      "field": "ChangeRows",
+      "expression": [
+        "jmespath",
+        [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        ],
+        "not_null(@, `[]`)[].{Change: CalculatedChange}"
+      ]
     }
-  },
+  ],
 }

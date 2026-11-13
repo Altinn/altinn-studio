@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -7,6 +8,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { convertData } from 'src/features/formData/convertData';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
@@ -14,28 +16,31 @@ import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDValue } from 'src/features/formData/FormDataWrite';
 
 export interface CalculationConfig {
-  calculations: Record<string, { expression: ExprValToActualOrExpr<ExprVal.Any> }>;
+  calculations: { field: string; expression: ExprValToActualOrExpr<ExprVal.Any> }[];
 }
 
 export function resolveCalculationConfig(config: unknown): CalculationConfig | null {
   if (!config || typeof config !== 'object' || !('calculations' in config)) {
     return null;
   }
-  if (!config.calculations || typeof config.calculations !== 'object' || Array.isArray(config.calculations)) {
+  if (!Array.isArray(config.calculations)) {
     return null;
   }
-  const calculations: CalculationConfig['calculations'] = {};
-  for (const [field, definition] of Object.entries(config.calculations)) {
+  const calculations: CalculationConfig['calculations'] = [];
+  for (const [index, definition] of (config.calculations as unknown[]).entries()) {
+    const isObject = !!definition && typeof definition === 'object';
+    const field = isObject && 'field' in definition ? definition.field : undefined;
+    const expression = isObject && 'expression' in definition ? definition.expression : undefined;
+    const name = typeof field === 'string' ? field : `calculations[${index}]`;
     if (
-      definition &&
-      typeof definition === 'object' &&
-      'expression' in definition &&
-      definition.expression !== undefined &&
-      ExprValidation.isValidOrScalar(definition.expression, ExprVal.Any, `Invalid calculation for ${field}`)
+      typeof field === 'string' &&
+      field.trim() !== '' &&
+      expression !== undefined &&
+      ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)
     ) {
-      calculations[field] = { expression: definition.expression };
+      calculations.push({ field, expression });
     } else {
-      window.logWarn(`Skipping invalid calculation for ${field}`);
+      window.logWarn(`Skipping invalid calculation for ${name}`);
     }
   }
   return { calculations };
@@ -88,6 +93,16 @@ function hasType(schema: JSONSchema7, type: string): boolean {
   return schema.type === type || (Array.isArray(schema.type) && schema.type.some((candidate) => candidate === type));
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/** A list with an object in it is merged as rows, and every row must then be an object (checked in mergeRows). */
+function isListOfObjects(value: unknown): value is unknown[] {
+  return Array.isArray(value) && value.some(isObject);
+}
+
+/** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
 function convertCalculationResult(
   result: unknown,
   target: string,
@@ -120,22 +135,107 @@ function convertCalculationResult(
     }
     return { value: values, error: false };
   }
-  if (typeof result === 'object' && hasType(schema, 'object')) {
-    const value: Record<string, FDValue> = {};
-    for (const [key, item] of Object.entries(result)) {
-      const converted = convertCalculationResult(item, `${target}.${key}`, lookupTool);
-      if (converted.error) {
-        return converted;
-      }
-      value[key] = converted.value;
-    }
-    return { value, error: false };
-  }
   if (typeof result === 'string' || typeof result === 'number' || typeof result === 'boolean') {
     const converted = convertData(result, schema);
     return converted.error ? { error: true } : { value: converted.newValue, error: false };
   }
   return { error: true };
+}
+
+interface CalculationTarget {
+  dataType: string;
+  model: FormStoreState['data']['models'][string];
+  lookupTool: SchemaLookupTool;
+}
+
+/**
+ * Writes a result the same way the backend does: an object sets the properties it contains and leaves the others
+ * alone, and a list of objects is merged row by row, so existing rows keep their row id and the properties the result
+ * leaves out. Other values replace the target.
+ */
+function writeCalculationResult(target: string, result: unknown, { dataType, model, lookupTool }: CalculationTarget) {
+  if (isObject(result)) {
+    mergeObject(target, result, { dataType, model, lookupTool });
+    return;
+  }
+  if (isListOfObjects(result)) {
+    mergeRows(target, result, { dataType, model, lookupTool });
+    return;
+  }
+  const converted = convertCalculationResult(result, target, lookupTool);
+  if (converted.error) {
+    window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
+    return;
+  }
+  if (converted.value === null) {
+    dot.delete(target, model.currentData);
+    dot.delete(target, model.invalidCurrentData);
+    return;
+  }
+  if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
+    dot.str(target, converted.value, model.currentData);
+  }
+  dot.delete(target, model.invalidCurrentData);
+}
+
+function mergeObject(target: string, result: Record<string, unknown>, context: CalculationTarget) {
+  for (const [key, value] of Object.entries(result)) {
+    // The row id is not in the schema. A row copied from another group brings its own, and keeps it.
+    if (key === ALTINN_ROW_ID) {
+      if (typeof value === 'string' && value.length > 0) {
+        dot.str(`${target}.${key}`, value, context.model.currentData);
+      }
+      continue;
+    }
+    writeCalculationResult(`${target}.${key}`, value, context);
+  }
+}
+
+function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {
+  const { dataType, model, lookupTool } = context;
+  for (const [index, row] of rows.entries()) {
+    if (!isObject(row)) {
+      // A row that is not an object cannot be shown, so the calculation fails instead
+      throw new Error(`The calculation for ${dataType}.${target} gives a list where row ${index} is not an object`);
+    }
+  }
+  const [schema] = lookupTool.getSchemaForPath(target);
+  const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);
+  if (!schema || !hasType(schema, 'array') || !itemSchema || !hasType(itemSchema, 'object')) {
+    window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
+    return;
+  }
+  if (!Array.isArray(dot.pick(target, model.currentData))) {
+    dot.str(target, [], model.currentData);
+  }
+  const current: unknown[] = dot.pick(target, model.currentData);
+  for (const [index, row] of rows.entries()) {
+    if (!isObject(current[index])) {
+      const newRow = { [ALTINN_ROW_ID]: uuidv4() };
+      if (index < current.length) {
+        current[index] = newRow;
+      } else {
+        current.push(newRow);
+      }
+    }
+    mergeObject(`${target}[${index}]`, row as Record<string, unknown>, context);
+  }
+  if (current.length > rows.length) {
+    current.splice(rows.length);
+  }
+
+  // Rows that bring their own id can collide, such as a row listed twice. Rows are matched by id when saving, so
+  // the calculation fails rather than produce a list that cannot be told apart.
+  const rowIds = new Set<string>();
+  for (const row of current) {
+    const rowId = isObject(row) ? row[ALTINN_ROW_ID] : undefined;
+    if (typeof rowId === 'string' && rowId.length > 0) {
+      if (rowIds.has(rowId)) {
+        throw new Error(`The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`);
+      }
+      rowIds.add(rowId);
+    }
+  }
 }
 
 /** Calculations read and write the same draft so later expressions see earlier results. */
@@ -152,8 +252,12 @@ export function runCalculations(
     if (!bootstrap.calculationConfig || !isWritable(model.dataElementId)) {
       continue;
     }
-    for (const [field, calculation] of Object.entries(bootstrap.calculationConfig.calculations)) {
-      for (const target of resolveCalculationTargets(field, model.currentData, bootstrap.schemaResult.lookupTool)) {
+    for (const calculation of bootstrap.calculationConfig.calculations) {
+      for (const target of resolveCalculationTargets(
+        calculation.field,
+        model.currentData,
+        bootstrap.schemaResult.lookupTool,
+      )) {
         const reference: IDataModelReference = { dataType, field: target };
         const runtime: ExpressionDataSources = {
           ...dataSources,
@@ -177,20 +281,11 @@ export function runCalculations(
         if (result === undefined) {
           continue;
         }
-        const converted = convertCalculationResult(result, target, bootstrap.schemaResult.lookupTool);
-        if (converted.error) {
-          window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
-          continue;
-        }
-        if (converted.value === null) {
-          dot.delete(target, model.currentData);
-          dot.delete(target, model.invalidCurrentData);
-          continue;
-        }
-        if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
-          dot.str(target, converted.value, model.currentData);
-        }
-        dot.delete(target, model.invalidCurrentData);
+        writeCalculationResult(target, result, {
+          dataType,
+          model,
+          lookupTool: bootstrap.schemaResult.lookupTool,
+        });
       }
     }
   }

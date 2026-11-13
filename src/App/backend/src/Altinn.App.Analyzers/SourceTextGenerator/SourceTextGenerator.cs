@@ -66,6 +66,9 @@ public static class SourceTextGenerator
         builder.Append("    #region Setters\n");
         SetterGenerator.Generate(builder, rootNode);
         builder.Append("\n    #endregion Setters\n");
+        builder.Append("    #region AddRow\n");
+        AddRowGenerator.Generate(builder, rootNode);
+        builder.Append("\n    #endregion AddRow\n");
         builder.Append("    #region AddIndexToPath\n");
         AddIndexToPathGenerator.Generate(builder, rootNode);
         builder.Append("\n    #endregion AddIndexToPath\n");

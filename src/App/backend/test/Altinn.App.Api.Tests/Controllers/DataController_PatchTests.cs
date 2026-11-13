@@ -332,6 +332,38 @@ public class DataControllerPatchTests : ApiTestBase
     }
 
     [Fact]
+    public async Task ValidName_RunsCalculation()
+    {
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        // default.calculation.json sets melding.calculated-fixed-value from melding.name
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola" }
+            ]
+            """
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var newModelElement = parsedResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var newModel = newModelElement.Deserialize<Skjema>()!;
+        newModel.Melding!.Name.Should().Be("Ola");
+        newModel.Melding.CalculatedFixedValue.Should().Be("Hello Ola");
+    }
+
+    [Fact]
     public async Task MultiplePatches_AppliesCorrectly()
     {
         const string prefillDataType = "prefill-data-type";

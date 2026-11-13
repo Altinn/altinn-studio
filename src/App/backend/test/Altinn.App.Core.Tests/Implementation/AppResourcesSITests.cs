@@ -1,9 +1,13 @@
+using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Tests.Internal.App;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -247,6 +251,139 @@ public class AppResourcesSITests
 
             using var document = System.Text.Json.JsonDocument.Parse(text.AsMemory());
             document.RootElement.GetProperty("language").GetString().Should().Be("nb");
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetCalculationConfig_deserializes_file_from_disk()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation("default");
+
+        CalculationConfig? actual = appResources.GetCalculationConfig("default");
+
+        Assert.NotNull(actual);
+        Assert.Equal(2, actual.Calculations.Count);
+        Assert.Equal("skjema.calculated-fixed-value", actual.Calculations[0].Field);
+        Assert.Equal("skjema.children[].total", actual.Calculations[1].Field);
+        // The expression is a function call and must round-trip as such
+        Assert.Equal(
+            """["concat","Hello ",["dataModel","skjema.name"]]""",
+            JsonSerializer.Serialize(actual.Calculations[0].Expression)
+        );
+    }
+
+    [Fact]
+    public void GetCalculationConfig_returns_null_when_file_is_missing()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation("default");
+
+        CalculationConfig? actual = appResources.GetCalculationConfig("does-not-exist");
+
+        Assert.Null(actual);
+    }
+
+    [Fact]
+    public void GetCalculationConfig_accepts_comments_in_file()
+    {
+        IAppResources appResources = GetAppResourcesForCalculation("comments");
+
+        CalculationConfig? actual = appResources.GetCalculationConfig("comments");
+
+        Assert.NotNull(actual);
+        var calculation = Assert.Single(actual.Calculations);
+        Assert.Equal("skjema.name", calculation.Field);
+        Assert.Equal("\"fixed\"", JsonSerializer.Serialize(calculation.Expression));
+    }
+
+    [Fact]
+    public void Loading_app_throws_on_invalid_calculation_json()
+    {
+        // The app files loader rejects invalid JSON before the app starts, so GetCalculationConfig never sees it
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation("invalid"));
+
+        Assert.Contains("models/invalid.calculation.json", exception.Message);
+    }
+
+    [Fact]
+    public void Loading_app_throws_on_legacy_dictionary_format()
+    {
+        // Before the "calculations" property became a list it was an object keyed by field name.
+        // The loader rejects such files before the app starts, and the message says how to convert them.
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation("legacy"));
+
+        Assert.Contains("models/legacy.calculation.json", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
+    }
+
+    [Fact]
+    public void GetCalculationConfig_throws_on_legacy_dictionary_format_in_a_snapshot()
+    {
+        // A snapshot that did not go through the loader gets the same message from GetCalculationConfig
+        var legacyFile = File.ReadAllBytes(
+            Path.Join(
+                PathUtils.GetCoreTestsPath(),
+                "Implementation",
+                "TestData",
+                "Calculation",
+                "legacy.calculation.json"
+            )
+        );
+        var appFiles = new AppFilesAccessor(
+            new AppFiles(
+                applicationMetadata: Encoding.UTF8.GetBytes(ApplicationMetadataJson),
+                models: ImmutableSortedDictionary.CreateRange(
+                    StringComparer.Ordinal,
+                    [KeyValuePair.Create("legacy", new AppModelFiles(calculationConfiguration: legacyFile))]
+                )
+            )
+        );
+        var frontendFeatures = new Mock<IFrontendFeatures>();
+        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
+        IAppResources appResources = new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
+
+        var exception = Assert.Throws<JsonException>(() => appResources.GetCalculationConfig("legacy"));
+
+        Assert.StartsWith("models/legacy.calculation.json: ", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("null-document")]
+    [InlineData("null-calculations")]
+    [InlineData("null-item")]
+    [InlineData("null-field")]
+    [InlineData("empty-field")]
+    [InlineData("missing-expression")]
+    [InlineData("null-expression")]
+    public void Loading_app_throws_with_file_name_on_invalid_calculation_values(string dataTypeId)
+    {
+        // The app files loader rejects the file before the app starts, so GetCalculationConfig never sees it
+        var exception = Assert.Throws<ApplicationConfigException>(() => GetAppResourcesForCalculation(dataTypeId));
+
+        Assert.Contains($"models/{dataTypeId}.calculation.json: ", exception.Message);
+    }
+
+    /// <summary>
+    /// Loads an app whose models folder holds <c>TestData/Calculation/{dataTypeId}.calculation.json</c>.
+    /// </summary>
+    private IAppResources GetAppResourcesForCalculation(string dataTypeId)
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Calculation-");
+        try
+        {
+            var modelsDir = Path.Join(tempDir.FullName, "models");
+            Directory.CreateDirectory(modelsDir);
+            var sourceDir = Path.Join(PathUtils.GetCoreTestsPath(), "Implementation", "TestData", "Calculation");
+            var fileName = $"{dataTypeId}.calculation.json";
+            File.Copy(Path.Join(sourceDir, fileName), Path.Join(modelsDir, fileName));
+
+            return CreateAppResources(tempDir);
         }
         finally
         {

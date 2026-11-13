@@ -17,6 +17,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Verify.Xunit" />
     <PackageReference Include="Verify.AspNetCore" />
+    <PackageReference Include="Verify.SystemJson" />
   </ItemGroup>
 
   <ItemGroup>

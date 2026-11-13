@@ -2124,6 +2124,31 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void AppResourcesDetector_FlagsGetCalculationConfigurationCall()
+    {
+        _app.Write(
+            "logic/Calculations.cs",
+            """
+            public class Calculations
+            {
+                public string? Read(IAppResources resources) => resources.GetCalculationConfiguration("model");
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        // The replacement's name is a prefix of the removed one, so assert the call form, which only the
+        // replacement is written as.
+        var todo = Assert.Single(result.Todos, t => t.Contains("GetCalculationConfiguration(dataTypeId) is removed"));
+        Assert.Contains("Use GetCalculationConfig(dataTypeId), which returns a CalculationConfig", todo);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Calculations.cs") && w.Contains("GetCalculationConfiguration")
+        );
+    }
+
+    [Fact]
     public void AppResourcesDetector_SyntaxOnly_DoesNotFlagAmbiguousXacmlOrBpmnNames()
     {
         // Without a semantic model these share their exact name and arity with the still-current
