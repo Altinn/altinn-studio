@@ -108,8 +108,8 @@ def parse_access_packages(data: Any) -> list[AccessPackage]:
             usable_in_policy=_flag(package, "isResourcePolicyAvailable"),
         )
         for group in _list(data, "access package groups")
-        for area in group.get("areas") or []
-        for package in area.get("packages") or []
+        for area in _list(group.get("areas"), "areas")
+        for package in _list(area.get("packages"), "access packages")
     ]
     if not packages:
         raise AccessManagementError(f"{ACCESS_PACKAGES_URL} lists no access packages")
@@ -119,7 +119,7 @@ def parse_access_packages(data: Any) -> list[AccessPackage]:
 def parse_roles(data: Any) -> list[Role]:
     parsed = []
     for role in _list(data, "roles"):
-        attribute, _, code = (role.get("legacyUrn") or _text(role, "urn")).rpartition(":")
+        attribute, code = _role_attribute_and_code(role)
         provider = role.get("provider")
         if not isinstance(provider, dict) or not provider.get("code"):
             raise AccessManagementError(f"the role {role.get('urn')!r} has no provider")
@@ -284,6 +284,15 @@ def _flag(item: dict[str, Any], key: str) -> bool:
     if not isinstance(value, bool):
         raise AccessManagementError(f"{item.get('urn')!r} has no {key!r}")
     return value
+
+
+def _role_attribute_and_code(role: dict[str, Any]) -> tuple[str, str]:
+    """The AttributeId and the code of a role, from its `legacyUrn`, or from its `urn` when it has none."""
+    urn = role.get("legacyUrn") or _text(role, "urn")
+    attribute, _, code = urn.rpartition(":") if isinstance(urn, str) else ("", "", "")
+    if not attribute.startswith("urn:") or not code:
+        raise AccessManagementError(f"unexpected role URN {urn!r}, expected urn:<attribute>:<code>")
+    return attribute, code
 
 
 def _code(item: dict[str, Any], attribute: str) -> str:

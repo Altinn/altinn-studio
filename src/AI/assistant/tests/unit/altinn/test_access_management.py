@@ -70,6 +70,21 @@ class TestParseAccessPackages:
         with pytest.raises(AccessManagementError, match="no access packages"):
             parse_access_packages([])
 
+    def test_fails_when_a_group_has_no_list_of_areas(self, export):
+        """Skipping the group would cache a list without its packages, as if it were the whole list."""
+        changed = copy.deepcopy(export)
+        del changed[-1]["areas"]
+
+        with pytest.raises(AccessManagementError, match="list of areas"):
+            parse_access_packages(changed)
+
+    def test_fails_on_a_package_that_is_not_an_object(self, export):
+        changed = copy.deepcopy(export)
+        changed[0]["areas"][0]["packages"].append("regnskap")
+
+        with pytest.raises(AccessManagementError, match="list of access packages"):
+            parse_access_packages(changed)
+
 
 class TestDescribeAccessPackages:
     def test_without_group_or_search_lists_groups_and_areas_but_no_codes(self, export):
@@ -153,4 +168,12 @@ class TestRoles:
         changed[0]["provider"] = None
 
         with pytest.raises(AccessManagementError, match="no provider"):
+            parse_roles(changed)
+
+    @pytest.mark.parametrize("legacy_urn", ["dagl", "urn:altinn:rolecode:", 5])
+    def test_fails_on_a_role_urn_without_an_attribute_and_a_code(self, roles_data, legacy_urn):
+        changed = copy.deepcopy(roles_data)
+        changed[0]["legacyUrn"] = legacy_urn
+
+        with pytest.raises(AccessManagementError, match="unexpected role URN"):
             parse_roles(changed)
