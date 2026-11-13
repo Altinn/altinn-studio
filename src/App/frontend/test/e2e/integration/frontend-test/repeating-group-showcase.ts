@@ -146,10 +146,10 @@ describe('Repeating group validation showcase', () => {
     dialog().findAllByRole('listitem').should('have.length', 2);
     dialog().findByRole('button', { name: 'Navn' }).should('not.exist');
     dialog().findByRole('button', { name: 'Alder' }).should('not.exist');
-    dialog().find('button[data-target-node="validation-default-age-4"]').click();
+    dialog().find('[role="link"][data-target-node="validation-default-age-4"]').click();
     cy.get('#validation-default-age-4').should('have.focus');
     openRow('default', 3);
-    dialog().find('button[data-target-node="validation-default-age-3"]').click();
+    dialog().find('[role="link"][data-target-node="validation-default-age-3"]').click();
     cy.get('#validation-default-age-3').should('have.focus');
 
     cy.get('#group-validation-table-table-body > [data-for-row="1"]').should(
@@ -180,7 +180,7 @@ describe('Repeating group validation showcase', () => {
     );
 
     openRow('mixed', 2);
-    dialog().find('button[data-target-node="validation-mixed-age-2"]').click();
+    dialog().find('[role="link"][data-target-node="validation-mixed-age-2"]').click();
     cy.get('#validation-mixed-age-2').should('have.focus');
     cy.get('#group-validation-mixed').find(appFrontend.group.editContainer).as('mixedEditor');
     cy.get('@mixedEditor').find('#validation-mixed-name-2').should('not.exist');
@@ -189,7 +189,7 @@ describe('Repeating group validation showcase', () => {
 
     openRow('table', 4);
     dialog().findAllByRole('listitem').should('have.length', 2);
-    dialog().find('button[data-target-node="validation-table-name-4"]').click();
+    dialog().find('[role="link"][data-target-node="validation-table-name-4"]').click();
     cy.get('#validation-table-name-4').should('have.focus');
     cy.viewport(1050, 1000);
     assertTableArrows();
@@ -242,20 +242,21 @@ describe('Repeating group validation showcase', () => {
     dialog().should('be.focused').children('ul').children('li').should('have.length', 2);
     dialog().find('li > [data-field="validation"]').first().should('have.attr', 'data-color', 'danger');
     dialog().find('li > [data-field="validation"]').last().should('have.attr', 'data-color', 'warning');
-    dialog().findAllByRole('button', { name: 'Vis i skjemaet' }).should('have.length', 2);
+    dialog().find('[role="link"][data-target-node]').should('have.length', 2);
+    dialog().should('not.contain.text', 'Vis i skjemaet');
     dialog().find('strong').should('have.text', 'alderen 12');
     dialog().find('li li').should('have.length', 2);
     dialog()
-      .find('button[data-target-node="validation-default-age-4"]')
-      .should(($action) => {
-        const messageId = $action.attr('aria-describedby')!;
-        expect($action[0].ownerDocument.getElementById(messageId)?.textContent).to.contain('Kontroller alderen 12.');
-      });
+      .find('[role="link"][data-target-node="validation-default-age-4"]')
+      .should('contain.text', 'Kontroller alderen 12.');
     dialog().contains('p', 'Kontroller').click();
-    dialog().should('be.visible');
+    cy.get('#validation-default-age-4').should('have.focus');
+    dialog().should('not.exist');
+    openRow('default', 4);
     dialog()
       .findByRole('link', { name: 'Les mer' })
       .should('have.attr', 'href', 'https://www.altinn.no/')
+      .and('have.prop', 'tagName', 'A')
       .then(($link) => {
         expect($link.closest('button')).to.have.length(0);
         $link[0].addEventListener('click', (event) => event.preventDefault(), { once: true });
@@ -264,7 +265,8 @@ describe('Repeating group validation showcase', () => {
     dialog().should('be.visible');
     cy.injectAxe();
     cy.checkA11y('[data-testid="row-validation-messages"]:popover-open');
-    dialog().findByRole('link', { name: 'Se beløp' }).click();
+    dialog().findByRole('link', { name: 'Se beløp' }).should('have.prop', 'tagName', 'A').focus();
+    cy.press('Enter');
     cy.location('pathname').should('include', '/repeating');
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
@@ -280,14 +282,14 @@ describe('Repeating group validation showcase', () => {
     cy.press('Space');
     cy.get(row('default', 4)).find(indicator).should('be.focused');
     cy.press('Space');
-    dialog().find('button[data-target-node="validation-default-name-4"]').click();
+    dialog().find('[role="link"][data-target-node="validation-default-name-4"]').click();
     cy.get('#validation-default-name-4').should('have.focus');
     cy.get('#validation-default-name-4')
       .closest('[data-componentid]')
       .should('contain.text', 'Oppgi navnet slik det står i registeret.');
     cy.get(row('default', 4)).findByRole('button', { name: 'Lukk raden Milo' }).should('be.visible');
     openRow('default', 4);
-    dialog().find('button[data-target-node="validation-default-name-4"]').focus();
+    dialog().find('[role="link"][data-target-node="validation-default-name-4"]').focus();
     for (const type of ['keyDown', 'keyUp']) {
       cy.then(() =>
         Cypress.automation('remote:debugger:protocol', {
@@ -328,7 +330,7 @@ describe('Repeating group validation showcase', () => {
       cy.get(row('default')).find(indicator).should('have.attr', 'data-color', 'danger');
       cy.get(row('default', 1)).find(indicator).should('have.attr', 'data-color', 'warning');
       openRow('default', 0);
-      dialog().find('button[data-target-node="validation-default-name-0"]').click();
+      dialog().find('[role="link"][data-target-node="validation-default-name-0"]').click();
       cy.get(row('default')).find(indicator).should('have.attr', 'aria-expanded', 'false');
       if (mode !== 'hidden-actions') {
         cy.get('#validation-default-name-0').should('have.focus');
@@ -355,7 +357,7 @@ describe('Repeating group validation showcase', () => {
       dialog().type('{esc}');
     }
     openRow('table', 0);
-    dialog().find('button[data-target-node="validation-table-row-0"]').focus().click();
+    dialog().find('[role="link"][data-target-node="validation-table-row-0"]').focus().click();
     dialog().should('not.exist');
     cy.get(row('table', 0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();

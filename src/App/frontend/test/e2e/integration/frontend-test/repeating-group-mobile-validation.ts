@@ -96,13 +96,13 @@ describe('Repeating-group validation on mobile', () => {
         expect(bounds.left).to.be.at.least(0);
         expect(bounds.right).to.be.at.most(width);
       });
-      dialog().find('button[data-target-node="validation-default-age-4"]').click();
+      dialog().find('[role="link"][data-target-node="validation-default-age-4"]').click();
       cy.get('#validation-default-age-4').should('have.focus');
       cy.get('#validation-default-name-4').should('be.visible');
       cy.get('#group-validation-default').should('contain.text', 'Oppgi navnet slik det står i registeret.');
 
       openRow('mixed', 4);
-      dialog().find('button[data-target-node="validation-mixed-age-4"]').click();
+      dialog().find('[role="link"][data-target-node="validation-mixed-age-4"]').click();
       cy.get('#validation-mixed-age-4').should('have.focus');
       cy.get('#validation-mixed-name-4').should('be.visible');
       cy.get(row('mixed', 4)).find('#validation-mixed-name-4').should('exist');
@@ -111,7 +111,7 @@ describe('Repeating-group validation on mobile', () => {
         .find('#validation-mixed-name-4')
         .should('not.exist');
       openRow('mixed', 4);
-      dialog().find('button[data-target-node="validation-mixed-name-4"]').click();
+      dialog().find('[role="link"][data-target-node="validation-mixed-name-4"]').click();
       cy.get('#validation-mixed-name-4').should('have.focus');
       cy.get('#validation-mixed-age-4').should('be.visible');
 
@@ -149,11 +149,9 @@ describe('Repeating-group validation on mobile', () => {
     cy.waitUntilSaved();
     cy.get(appFrontend.errorReport).should('have.focus');
     openRow('mixed', 4);
-    dialog().find('button[data-target-node="validation-mixed-age-4"]').click();
+    dialog().find('[role="link"][data-target-node="validation-mixed-age-4"]').click();
     cy.get('#validation-mixed-age-4').should('have.focus');
     openRow('mixed', 4);
-    dialog().find('li').first().find('[data-field="validation"] > div[id]').click();
-    dialog().should('be.visible');
     dialog().focus();
     for (let index = 0; index < 3; index++) {
       cy.tab();
@@ -195,7 +193,7 @@ describe('Repeating-group validation on mobile', () => {
       expect(bounds.bottom).to.be.at.most(390);
     });
     dialog().findByRole('button', { name: 'Lukk' }).should('be.visible');
-    dialog().find('button[data-target-node="validation-table-age-4"]').scrollIntoView().click();
+    dialog().find('[role="link"][data-target-node="validation-table-age-4"]').scrollIntoView().click();
     cy.get('#validation-table-age-4').should('have.focus');
   });
 
@@ -209,7 +207,7 @@ describe('Repeating-group validation on mobile', () => {
     cy.get('[data-testid="NavigationButtons"]').find('button').should('not.be.disabled');
     openRow('table', 0);
     dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
-    dialog().find('button[data-target-node="validation-table-row-0"]').focus().click();
+    dialog().find('[role="link"][data-target-node="validation-table-row-0"]').focus().click();
     dialog().should('not.exist');
     cy.get(row('table', 0)).find(indicator).should('have.focus');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();

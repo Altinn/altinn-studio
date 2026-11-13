@@ -141,7 +141,9 @@ describe('Repeating group nested validation and visibility', () => {
     cy.get(row(1)).find(indicator).should('have.attr', 'data-color', 'warning');
     cy.get(row(1)).find(indicator).click();
     cy.findByRole('dialog', { name: 'Meldinger' }).should('contain.text', 'Kontroller: Andre kommentar');
-    cy.findByRole('dialog', { name: 'Meldinger' }).find('button[data-target-node="validationComment-1-1"]').click();
+    cy.findByRole('dialog', { name: 'Meldinger' })
+      .find('[role="link"][data-target-node="validationComment-1-1"]')
+      .click();
     cy.get('#validationComment-1-1').should('be.visible').and('have.focus');
     cy.get('#group-validationNested-1-table-body > tr[data-row-num="1"]').find(indicator).should('be.visible');
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
@@ -155,7 +157,9 @@ describe('Repeating group nested validation and visibility', () => {
       }
     });
     cy.get(row(1)).find(indicator).click();
-    cy.findByRole('dialog', { name: 'Meldinger' }).find('button[data-target-node="validationComment-1-1"]').click();
+    cy.findByRole('dialog', { name: 'Meldinger' })
+      .find('[role="link"][data-target-node="validationComment-1-1"]')
+      .click();
     const nestedRow = '#group-validationNested-1-table-body > tr[data-row-num="1"]';
     const messages = '#group-validationNested-1-table-body > tr[data-for-row="1"]';
     cy.get(nestedRow).findByTestId('repeating-group-edit-button').click();
