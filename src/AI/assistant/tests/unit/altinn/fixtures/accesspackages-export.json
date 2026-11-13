@@ -1,0 +1,219 @@
+[
+  {
+    "id": "7e2a3af8-08cb-43a9-bdd7-7d5c7e377145",
+    "name": "Allment",
+    "urn": null,
+    "description": "Standard gruppe",
+    "type": "Organisasjon",
+    "areas": [
+      {
+        "id": "7d32591d-34b7-4afc-8afa-013722f8c05d",
+        "name": "Skatt, avgift, regnskap og toll",
+        "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til skatt, avgift, regnskap og toll.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Money_SackKroner.svg",
+        "packages": [
+          {
+            "id": "b4e69b54-895e-42c5-bf0d-861a571cd282",
+            "name": "Regnskap og økonomirapportering",
+            "urn": "urn:altinn:accesspackage:regnskap-okonomi-rapport",
+            "description": "Denne tilgangspakken gir fullmakter til tjenester knyttet til regnskap og øknomirapportering som ikke tilhører skatt og merverdiavgift. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isAssignable": true,
+            "isResourcePolicyAvailable": true,
+            "area": {
+              "id": "7d32591d-34b7-4afc-8afa-013722f8c05d",
+              "name": "Skatt, avgift, regnskap og toll",
+              "urn": "accesspackage:area:skatt_avgift_regnskap_og_toll",
+              "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til skatt, avgift, regnskap og toll.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Money_SackKroner.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "8c216e2f-afdd-4234-9ba2-691c727bb33d",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Organisasjon",
+              "provider": null
+            },
+            "resources": null
+          }
+        ],
+        "group": null
+      },
+      {
+        "id": "e4ae823f-41db-46ed-873f-8a5d1378fff8",
+        "name": "Administrere tilganger",
+        "urn": "accesspackage:area:administrere_tilganger",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til administrere tilganger.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Altinn_Administrere-tilganger_PersonLock.svg",
+        "packages": [
+          {
+            "id": "019ce74f-7fc8-7032-b3ed-85af6492ea84",
+            "name": "Tilgangsstyrer for enkeltmeldinger, -skjema og -dialoger",
+            "urn": "urn:altinn:accesspackage:tilgangsstyring-enkeltinstanser",
+            "description": "Gir tilgang til brukergrensesnitt i meldingsboksen, for å kunne gi andre brukere tilgang til enkeltmeldinger, -skjema og -dialoger, som mottakeren selv har tilgang til.",
+            "isDelegable": false,
+            "isAssignable": true,
+            "isResourcePolicyAvailable": false,
+            "area": {
+              "id": "e4ae823f-41db-46ed-873f-8a5d1378fff8",
+              "name": "Administrere tilganger",
+              "urn": "accesspackage:area:administrere_tilganger",
+              "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til administrere tilganger.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Altinn_Administrere-tilganger_PersonLock.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "8c216e2f-afdd-4234-9ba2-691c727bb33d",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Organisasjon",
+              "provider": null
+            },
+            "resources": null
+          }
+        ],
+        "group": null
+      }
+    ]
+  },
+  {
+    "id": "554f0321-53b8-4d97-be12-6a585c507159",
+    "name": "Særskilt",
+    "urn": null,
+    "description": "For de sære tingene",
+    "type": "Organisasjon",
+    "areas": [
+      {
+        "id": "64cbcdc8-01c9-448c-b3d2-eb9582beb3c2",
+        "name": "Fullmakter for regnskapsfører",
+        "urn": "accesspackage:area:fullmakter_for_regnskapsforer",
+        "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til fullmakter for regnskapsfører.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Home_Calculator.svg",
+        "packages": [
+          {
+            "id": "43becc6a-8c6c-4e9e-bb2f-08fe588ada21",
+            "name": "Regnskapsfører lønn",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-lonn",
+            "description": "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isAssignable": false,
+            "isResourcePolicyAvailable": true,
+            "area": {
+              "id": "64cbcdc8-01c9-448c-b3d2-eb9582beb3c2",
+              "name": "Fullmakter for regnskapsfører",
+              "urn": "accesspackage:area:fullmakter_for_regnskapsforer",
+              "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til fullmakter for regnskapsfører.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Home_Calculator.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "8c216e2f-afdd-4234-9ba2-691c727bb33d",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Organisasjon",
+              "provider": null
+            },
+            "resources": null
+          },
+          {
+            "id": "955d5779-3e2b-4098-b11d-0431dc41ddbe",
+            "name": "Regnskapsfører med signeringsrettighet",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-med-signeringsrettighet",
+            "description": "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isAssignable": false,
+            "isResourcePolicyAvailable": true,
+            "area": {
+              "id": "64cbcdc8-01c9-448c-b3d2-eb9582beb3c2",
+              "name": "Fullmakter for regnskapsfører",
+              "urn": "accesspackage:area:fullmakter_for_regnskapsforer",
+              "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til fullmakter for regnskapsfører.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Home_Calculator.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "8c216e2f-afdd-4234-9ba2-691c727bb33d",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Organisasjon",
+              "provider": null
+            },
+            "resources": null
+          },
+          {
+            "id": "a5f7f72a-9b89-445d-85bb-06f678a3d4d1",
+            "name": "Regnskapsfører uten signeringsrettighet",
+            "urn": "urn:altinn:accesspackage:regnskapsforer-uten-signeringsrettighet",
+            "description": "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+            "isDelegable": true,
+            "isAssignable": false,
+            "isResourcePolicyAvailable": true,
+            "area": {
+              "id": "64cbcdc8-01c9-448c-b3d2-eb9582beb3c2",
+              "name": "Fullmakter for regnskapsfører",
+              "urn": "accesspackage:area:fullmakter_for_regnskapsforer",
+              "description": "Dette fullmaktsområdet omfatter tilgangspakker knyttet til fullmakter for regnskapsfører.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/Aksel_Home_Calculator.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "8c216e2f-afdd-4234-9ba2-691c727bb33d",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Organisasjon",
+              "provider": null
+            },
+            "resources": null
+          }
+        ],
+        "group": null
+      }
+    ]
+  },
+  {
+    "id": "413f99ca-19ca-4124-8470-b0c1dba3d2ee",
+    "name": "Innbygger",
+    "urn": null,
+    "description": "For innbyggere",
+    "type": "Person",
+    "areas": [
+      {
+        "id": "0995c7e3-d791-4797-9ceb-1c40eadf9c81",
+        "name": "Politi og rettsvesen",
+        "urn": "accesspackage:area:politi_og_rettsvesen",
+        "description": "Fullmaktsområde for tilgangspakker for tjenester som er relatert til politisaker og andre forhold til rettsvesenet. Ved innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+        "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/GavelSoundBlock.svg",
+        "packages": [
+          {
+            "id": "2e9a3f64-5395-4170-a8d7-8fcc8ff2ac36",
+            "name": "Våpen",
+            "urn": "urn:altinn:accesspackage:innbygger-vapen",
+            "description": "Denne tilgangspakken gir fullmakter til tjenester og korrespondanse knyttet til våpenhold. Ved innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmaktene gir.",
+            "isDelegable": true,
+            "isAssignable": true,
+            "isResourcePolicyAvailable": true,
+            "area": {
+              "id": "0995c7e3-d791-4797-9ceb-1c40eadf9c81",
+              "name": "Politi og rettsvesen",
+              "urn": "accesspackage:area:politi_og_rettsvesen",
+              "description": "Fullmaktsområde for tilgangspakker for tjenester som er relatert til politisaker og andre forhold til rettsvesenet. Ved innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+              "iconUrl": "https://altinncdn.no/authorization/accesspackageicons/GavelSoundBlock.svg",
+              "packages": [],
+              "group": null
+            },
+            "type": {
+              "id": "bfe09e70-e868-44b3-8d81-dfe0e13e058a",
+              "providerId": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+              "name": "Person",
+              "provider": null
+            },
+            "resources": null
+          }
+        ],
+        "group": null
+      }
+    ]
+  }
+]

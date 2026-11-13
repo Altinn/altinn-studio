@@ -1,0 +1,142 @@
+[
+  {
+    "id": "ff4c33f5-03f7-4445-85ed-1e60b8aafb30",
+    "name": "Agent",
+    "code": "agent",
+    "description": "Gir mulighet til å motta delegerte fullmakter for virksomheten",
+    "isKeyRole": false,
+    "urn": "urn:altinn:role:agent",
+    "legacyRoleCode": null,
+    "legacyUrn": null,
+    "isResourcePolicyAvailable": false,
+    "provider": {
+      "id": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+      "name": "Altinn 3",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-altinn3",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "55bd7d4d-08dd-46ee-ac8e-3a44d800d752",
+    "name": "Daglig leder",
+    "code": "daglig-leder",
+    "description": "Fysisk- eller juridisk person som har ansvaret for den daglige driften i en virksomhet",
+    "isKeyRole": true,
+    "urn": "urn:altinn:external-role:ccr:daglig-leder",
+    "legacyRoleCode": "dagl",
+    "legacyUrn": "urn:altinn:rolecode:dagl",
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-758b-89db-7735c4f68320",
+      "name": "Enhetsregisteret",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-ccr",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "dbaae9f8-107a-4222-9afd-d9f95cd5319c",
+    "name": "Utfyller/Innsender",
+    "code": "utinn",
+    "description": "Denne rollen gir rettighet til et bredt utvalg skjema og tjenester som ikke har så strenge krav til autorisasjon. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.",
+    "isKeyRole": false,
+    "urn": "urn:altinn:rolecode:utinn",
+    "legacyRoleCode": null,
+    "legacyUrn": null,
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-777d-8626-69c91ea2a05d",
+      "name": "Altinn 2",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-altinn2",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "1c6eeec1-fe70-4fc5-8b45-df4a2255dea6",
+    "name": "Privatperson",
+    "code": "privatperson",
+    "description": "Denne rollen er hentet fra Folkeregisteret og gir rettighet til flere tjenester.",
+    "isKeyRole": false,
+    "urn": "urn:altinn:role:privatperson",
+    "legacyRoleCode": "priv",
+    "legacyUrn": "urn:altinn:rolecode:priv",
+    "isResourcePolicyAvailable": true,
+    "provider": {
+      "id": "0195ea92-2080-7e7c-bbe3-bb0521c1e51a",
+      "name": "Altinn 3",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-altinn3",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "e0684f66-a46e-4706-a754-8889b532509c",
+    "name": "ECKEYROLE",
+    "code": "eckeyrole",
+    "description": "Nøkkelrolle for virksomhetsertifikatbrukere",
+    "isKeyRole": true,
+    "urn": "urn:altinn:rolecode:eckeyrole",
+    "legacyRoleCode": null,
+    "legacyUrn": null,
+    "isResourcePolicyAvailable": false,
+    "provider": {
+      "id": "0195ea92-2080-777d-8626-69c91ea2a05d",
+      "name": "Altinn 2",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-altinn2",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "17cb6a9e-5d27-4a8e-9647-f3a53c7a09c6",
+    "name": "Er regnskapsføreradresse for",
+    "code": "regnskapsforeradressat",
+    "description": "Er regnskapsføreradresse for",
+    "isKeyRole": false,
+    "urn": "urn:altinn:external-role:ccr:regnskapsforeradressat",
+    "legacyRoleCode": "rfad",
+    "legacyUrn": "urn:altinn:rolecode:rfad",
+    "isResourcePolicyAvailable": false,
+    "provider": {
+      "id": "0195ea92-2080-758b-89db-7735c4f68320",
+      "name": "Enhetsregisteret",
+      "refId": null,
+      "logoUrl": null,
+      "code": "sys-ccr",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  },
+  {
+    "id": "0ba386bd-cb47-44ac-8416-21ded26f09d4",
+    "name": "Namsmannen - Gjeldsordning",
+    "code": "namsmannen-gjeldsordning",
+    "description": "Gjelder søknad om og/eller forvaltning av eksisterende gjeldsordninger",
+    "isKeyRole": false,
+    "urn": "urn:altinn:external-role:cra:namsmannen-gjeldsordning",
+    "legacyRoleCode": null,
+    "legacyUrn": null,
+    "isResourcePolicyAvailable": false,
+    "provider": {
+      "id": "019bbcab-449f-749a-bc13-4218549b8e93",
+      "name": "Sivilrettsforvaltningen",
+      "refId": "",
+      "logoUrl": null,
+      "code": "sys-cra",
+      "typeId": "0195efb8-7c80-7bb5-a35c-11d58ea36695",
+      "type": null
+    }
+  }
+]
