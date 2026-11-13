@@ -26,6 +26,38 @@ function openRow(variant: string, index: number) {
   dialog().should('be.visible').and('have.css', 'opacity', '1');
 }
 
+function clickIndicatorWithPointer(variant: string, index: number) {
+  cy.get(row(variant, index))
+    .find(indicator)
+    .scrollIntoView({ offset: { top: -200, left: 0 } });
+  cy.get(row(variant, index))
+    .find(indicator)
+    .then(($button) => {
+      const button = $button[0];
+      const view = button.ownerDocument.defaultView!;
+      const iframe = Array.from(view.parent.document.querySelectorAll('iframe')).find(
+        (element) => element.contentWindow === view,
+      )!;
+      const frame = iframe.getBoundingClientRect();
+      const bounds = button.getBoundingClientRect();
+      const scale = frame.width / view.innerWidth;
+      for (const type of ['mousePressed', 'mouseReleased']) {
+        cy.then(() =>
+          Cypress.automation('remote:debugger:protocol', {
+            command: 'Input.dispatchMouseEvent',
+            params: {
+              type,
+              x: frame.left + (bounds.left + bounds.width / 2) * scale,
+              y: frame.top + (bounds.top + bounds.height / 2) * scale,
+              button: 'left',
+              clickCount: 1,
+            },
+          }),
+        );
+      }
+    });
+}
+
 function assertWithinViewport(width: number) {
   cy.document().should((document) => {
     expect(document.documentElement.scrollWidth).to.be.at.most(width);
@@ -133,6 +165,24 @@ describe('Repeating-group validation on mobile', () => {
     cy.tab();
     cy.tab();
     cy.get('#validation-mixed-species-4').should('have.focus').and('be.visible');
+  });
+
+  it('toggles the popup once per native trigger click after cycling keyboard focus', () => {
+    setup(390);
+    cy.waitUntilSaved();
+    cy.get(appFrontend.errorReport).should('have.focus');
+    clickIndicatorWithPointer('default', 0);
+    dialog().should('be.visible');
+    cy.tab({ shift: true });
+    cy.get(row('default', 0)).find(indicator).should('have.focus');
+    cy.tab();
+    dialog().findByRole('button', { name: 'Lukk' }).should('have.focus');
+    clickIndicatorWithPointer('default', 0);
+    dialog().should('not.exist');
+    clickIndicatorWithPointer('default', 0);
+    dialog().should('be.visible');
+    clickIndicatorWithPointer('default', 0);
+    dialog().should('not.exist');
   });
 
   it('keeps the popup and its close control inside a short landscape viewport', () => {
