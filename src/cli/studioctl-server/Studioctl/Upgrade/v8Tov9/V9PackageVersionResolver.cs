@@ -27,25 +27,49 @@ internal static class V9PackageVersionResolver
     )
     {
         var coreVersionSet = coreVersions.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var minimum = NuGetVersion.Parse(minimumVersion);
-        var latest = apiVersions
-            .Where(coreVersionSet.Contains)
+        return SelectLatestVersion(
+                apiVersions.Where(coreVersionSet.Contains),
+                targetMajorVersion,
+                NuGetVersion.Parse(minimumVersion)
+            )
+            ?? throw new InvalidOperationException(
+                $"Could not find a common Altinn.App.Api/Altinn.App.Core version with major version {targetMajorVersion} "
+                    + $"at least {minimumVersion} in the configured NuGet package sources."
+            );
+    }
+
+    /// <summary>
+    /// The latest version of <paramref name="packageId"/> in the app's NuGet sources with major version
+    /// <paramref name="targetMajorVersion"/> and at least <paramref name="minimumVersion"/>, or null when there is none.
+    /// </summary>
+    public static async Task<string?> ResolveLatestVersion(
+        string packageId,
+        string projectFolder,
+        int targetMajorVersion,
+        NuGetVersion minimumVersion,
+        CancellationToken cancellationToken
+    )
+    {
+        var versions = await SearchPackageVersions(packageId, projectFolder, cancellationToken);
+        return SelectLatestVersion(versions, targetMajorVersion, minimumVersion);
+    }
+
+    /// <summary>Prefers a stable version over a prerelease, then the highest.</summary>
+    internal static string? SelectLatestVersion(
+        IEnumerable<string> versions,
+        int targetMajorVersion,
+        NuGetVersion minimumVersion
+    )
+    {
+        var latest = versions
             .Select(value => NuGetVersion.TryParse(value, out var version) ? version : null)
             .OfType<NuGetVersion>()
-            .Where(v => v.Major == targetMajorVersion && v >= minimum)
+            .Where(v => v.Major == targetMajorVersion && v >= minimumVersion)
             .OrderBy(v => v.IsPrerelease)
             .ThenByDescending(v => v)
             .FirstOrDefault();
 
-        if (latest is null)
-        {
-            throw new InvalidOperationException(
-                $"Could not find a common Altinn.App.Api/Altinn.App.Core version with major version {targetMajorVersion} "
-                    + $"at least {minimumVersion} in the configured NuGet package sources."
-            );
-        }
-
-        return latest.OriginalVersion ?? latest.ToNormalizedString();
+        return latest is null ? null : latest.OriginalVersion ?? latest.ToNormalizedString();
     }
 
     private static async Task<IReadOnlyList<string>> SearchPackageVersions(

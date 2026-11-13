@@ -362,6 +362,57 @@ public sealed class V8Tov9UpgradeTargetFrameworkTests : IDisposable
     }
 
     [Fact]
+    public async Task DefaultUpgrade_MovesCodelistsAndFileAnalyzersToTheirLatestV9ReleaseOnce()
+    {
+        WritePackageApp("net10.0", "9.0.0-preview.10");
+        foreach (var version in new[] { "8.0.3", "9.0.0-preview.1", "9.0.0-preview.2" })
+            WritePackage("Altinn.Codelists", version);
+        foreach (var version in new[] { "8.0.0", "9.0.0-preview.1" })
+            WritePackage("Altinn.FileAnalyzers", version);
+        var projectPath = Path.Combine(_app.Root, "App", "App.csproj");
+        var project = XDocument.Load(projectPath);
+        project
+            .Descendants("ItemGroup")
+            .First()
+            .Add(
+                new XElement(
+                    "PackageReference",
+                    new XAttribute("Include", "Altinn.Codelists"),
+                    new XAttribute("Version", "8.0.3")
+                ),
+                new XElement(
+                    "PackageReference",
+                    new XAttribute("Include", "Altinn.FileAnalyzers"),
+                    new XAttribute("Version", "8.0.0")
+                )
+            );
+        project.Save(projectPath);
+
+        var result = await RunDefault();
+        var upgraded = FrameworkAndReferences();
+        var second = await RunDefault();
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(0, second.ExitCode);
+        Assert.Equal(upgraded, FrameworkAndReferences());
+        var versions = XDocument
+            .Load(projectPath)
+            .Descendants("PackageReference")
+            .ToDictionary(
+                reference => reference.Attribute("Include")?.Value ?? "",
+                reference => reference.Attribute("Version")?.Value
+            );
+        Assert.Equal("9.0.0-preview.2", versions["Altinn.Codelists"]);
+        Assert.Equal("9.0.0-preview.1", versions["Altinn.FileAnalyzers"]);
+        Assert.Contains(
+            "Altinn.Codelists moved from 8.0.3 to 9.0.0-preview.2",
+            Report(result),
+            StringComparison.Ordinal
+        );
+        Assert.Contains("Altinn.Codelists is already on 9.0.0-preview.2", Report(second), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task DefaultUpgrade_AmbiguousVersionRefusalPreservesProjectAndCompanionFiles()
     {
         WritePackageApp("net10.0", "9.0.0-preview.9");

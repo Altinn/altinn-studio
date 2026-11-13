@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 - System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
+- An app that uses a version 8 release of `Altinn.Codelists` or `Altinn.FileAnalyzers` now fails to build with `ALTINNAPP0605` instead of failing at startup. Use their latest 9.x release; `studioctl app upgrade v9` moves them. ([#21871](https://github.com/Altinn/altinn-studio/issues/21871))
 
 ### Changed
 

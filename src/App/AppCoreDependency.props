@@ -18,8 +18,8 @@
 
   So the reference is a ProjectReference by default, and only a release pack builds against the
   pinned package. The version the nuspec declares is then, by construction, the version the shipped
-  assembly was compiled against - and it comes from Directory.Packages.props, which is what Renovate
-  bumps.
+  assembly was compiled against - and it comes from Directory.Packages.props, which Renovate bumps in
+  one pull request for both packages when Altinn.App.Core is released (see renovate.json).
 
   Callers that pack for release pass:
     UseAppLibsFromSource=false

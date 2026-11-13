@@ -110,9 +110,20 @@ internal static class V8Tov9Upgrade
         var returnCode = projectResult;
         string? appPackageVersion = null;
 
-        // Runs on resumed upgrades too. A companion failure does not suppress package downgrade repair.
+        // Runs on resumed upgrades too, so an app an earlier studioctl moved to v9 gets its Codelists and FileAnalyzers
+        // moved as well. A failure in these steps does not suppress package downgrade repair.
         if (!options.SkipCsprojUpgrade && projectResult == ExitSuccess)
         {
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(
+                returnCode,
+                await MigrateCompanionPackages(
+                    projectFolder,
+                    projectFile,
+                    options.TargetMajorVersion,
+                    options.CancellationToken
+                )
+            );
             options.CancellationToken.ThrowIfCancellationRequested();
             returnCode = CombineExitCodes(
                 returnCode,
@@ -582,6 +593,44 @@ internal static class V8Tov9Upgrade
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return Fail("Error upgrading project file", ex);
+        }
+    }
+
+    static async Task<int> MigrateCompanionPackages(
+        string projectFolder,
+        string projectFile,
+        int targetMajorVersion,
+        CancellationToken cancellationToken
+    )
+    {
+        UpgradeConsole.BeginStep("Codelists and FileAnalyzers");
+        try
+        {
+            var migration = new CompanionPackageMigration(
+                projectFile,
+                targetMajorVersion,
+                (packageId, minimum, token) =>
+                    V9PackageVersionResolver.ResolveLatestVersion(
+                        packageId,
+                        projectFolder,
+                        targetMajorVersion,
+                        minimum,
+                        token
+                    )
+            );
+            return ReportMigrationResult(
+                await migration.MigrateAsync(cancellationToken),
+                cleanText: "The app references neither Altinn.Codelists nor Altinn.FileAnalyzers",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving Altinn.Codelists and Altinn.FileAnalyzers to v9", ex);
         }
     }
 
