@@ -126,26 +126,29 @@ public sealed class OnProcessEndConfirmMigrationTests : IDisposable
         Assert.Single(result.Messages);
     }
 
-    [Fact]
-    public async Task MarkInstanceCompleteOffInAnEnvironment_StillConfirmsAndWarns()
+    [Theory]
+    [InlineData("true", "false", "off in appsettings.Staging.json")]
+    [InlineData(null, "true", "off in appsettings.json (not set, off by default)")]
+    public async Task MarkInstanceCompleteOffInAnEnvironment_StillConfirmsAndWarns(
+        string? inBase,
+        string inStaging,
+        string offWhere
+    )
     {
         _app.Write(MetadataPath, MetadataWithoutOnProcessEnd);
         _app.Write(ProcessPath, Process(ServiceTask("Task_Fiks", "fiksArkiv")));
-        _app.Write(
-            "appsettings.json",
-            """{ "FiksArkivSettings": { "SuccessHandling": { "MarkInstanceComplete": true } } }"""
-        );
-        _app.Write(
-            "appsettings.Staging.json",
-            """{ "FiksArkivSettings": { "SuccessHandling": { "MarkInstanceComplete": false } } }"""
-        );
+        _app.Write("appsettings.json", inBase is null ? "{}" : FiksSettings(inBase));
+        _app.Write("appsettings.Staging.json", FiksSettings(inStaging));
 
         var result = await Migrate();
 
         Assert.Contains("\"onProcessEnd\"", _app.Read(MetadataPath), StringComparison.Ordinal);
         var warning = Assert.Single(result.Warnings);
-        Assert.Contains("off in appsettings.Staging.json", warning, StringComparison.Ordinal);
+        Assert.Contains(offWhere, warning, StringComparison.Ordinal);
     }
+
+    private static string FiksSettings(string markInstanceComplete) =>
+        $$"""{ "FiksArkivSettings": { "SuccessHandling": { "MarkInstanceComplete": {{markInstanceComplete}} } } }""";
 
     [Fact]
     public async Task AddsThePropertyLastKeepingIndentationLineEndingsAndBom()

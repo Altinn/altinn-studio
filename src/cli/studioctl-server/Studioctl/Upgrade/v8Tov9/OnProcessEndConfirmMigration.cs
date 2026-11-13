@@ -17,6 +17,7 @@ internal static class OnProcessEndConfirmMigration
     private const string MetadataPath = "config/applicationmetadata.json";
     private const string PropertyName = "onProcessEnd";
     private const string ConfirmName = "confirm";
+    private const string BaseSettings = "appsettings.json";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
     private static readonly JsonDocumentOptions _settingsOptions = new()
@@ -200,6 +201,9 @@ internal static class OnProcessEndConfirmMigration
                             + $"the record, with MarkInstanceComplete on in {string.Join(", ", on)}"
                     );
                 }
+                // Where appsettings.json leaves it unset, v8's default (off) applied to every other environment.
+                if (!on.Contains(BaseSettings) && !off.Contains(BaseSettings))
+                    off.Insert(0, $"{BaseSettings} (not set, off by default)");
                 if (off.Count > 0)
                 {
                     messages.Warn(
