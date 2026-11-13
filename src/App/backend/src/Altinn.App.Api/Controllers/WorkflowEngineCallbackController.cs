@@ -71,6 +71,14 @@ public class WorkflowEngineCallbackController : ControllerBase
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
+        // First, since a newer version may have changed anything after it: the actor, the state, the command. It reads
+        // only the stamps and changes nothing.
+        string? floor = PlannerVersion.Floor(payload.PlannerVersion, payload.RunnableFromVersion);
+        if (PlannerVersion.IsNewerThan(floor, PlannerVersion.Current))
+        {
+            return PlannedByNewerVersion(commandKey, instanceId, payload, floor, activity);
+        }
+
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
         if (
             payload.Actor is not { } actor
@@ -480,6 +488,60 @@ public class WorkflowEngineCallbackController : ControllerBase
             default:
                 throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Refuses a step that a newer app version planned, without the <c>nonRetryable</c> marker, so the engine retries
+    /// it. During a rolling deploy a retry reaches a pod on the new version. After a rollback the step retries until
+    /// the app is rolled forward or its retry strategy runs out. <c>floor</c> is the oldest version that may run the
+    /// step, from <see cref="PlannerVersion.Floor"/>, and the messages name it when the planner declared it.
+    /// </summary>
+    private ObjectResult PlannedByNewerVersion(
+        string commandKey,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        string? floor,
+        Activity? activity
+    )
+    {
+        string detail;
+        if (floor == payload.PlannerVersion)
+        {
+            _logger.LogWarning(
+                "Workflow step was planned by app library version {PlannerVersion}, newer than this pod's {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod on that version or newer. RunnableFromVersion: {RunnableFromVersion}, CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+                payload.PlannerVersion,
+                PlannerVersion.Current,
+                payload.RunnableFromVersion,
+                commandKey,
+                instanceId,
+                payload.WorkflowId,
+                payload.StepId
+            );
+            detail =
+                $"This step was planned by app library version {payload.PlannerVersion}, newer than this pod's {PlannerVersion.Current}. It runs once a retry reaches a pod on that version or newer.";
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Workflow step was planned by app library version {PlannerVersion}, which lets version {RunnableFromVersion} and newer run it, but this pod runs the older {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod that may run it. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+                payload.PlannerVersion,
+                floor,
+                PlannerVersion.Current,
+                commandKey,
+                instanceId,
+                payload.WorkflowId,
+                payload.StepId
+            );
+            detail =
+                $"This step was planned by app library version {payload.PlannerVersion}, which lets version {floor} and newer run it, but this pod runs the older {PlannerVersion.Current}. It runs once a retry reaches a pod on {floor} or newer.";
+        }
+
+        activity?.SetStatus(ActivityStatusCode.Error, "Planned by a newer app version");
+        return Problem(
+            title: "Planned By Newer Version",
+            detail: detail,
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        );
     }
 
     private string? GetCollectionKey()

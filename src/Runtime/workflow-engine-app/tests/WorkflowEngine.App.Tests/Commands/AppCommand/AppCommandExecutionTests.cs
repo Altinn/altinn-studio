@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Tests.Fixtures;
 using WorkflowEngine.Models;
@@ -231,6 +232,43 @@ public class AppCommandExecutionTests
         Assert.Equal("310702641", payload.Actor.SystemUserOwnerOrgNo);
         Assert.Equal("Test system user", payload.Actor.SystemUserName);
         Assert.Equal("nb", payload.Actor.Language);
+    }
+
+    [Theory]
+    [InlineData("9.1.0-preview.2", "9.0.0")]
+    [InlineData("9.1.0-preview.2", null)]
+    [InlineData(null, null)]
+    public async Task Execute_EchoesTheVersionStampsFromTheStoredContext(
+        string? plannerVersion,
+        string? runnableFromVersion
+    )
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+
+        // As the engine reads a stored context: the JSON the app enqueued, without a stamp the app left out.
+        var stored = JsonNode.Parse(AppCommandTestFixture.DefaultWorkflowContext.GetRawText())!.AsObject();
+        if (plannerVersion is not null)
+        {
+            stored["plannerVersion"] = plannerVersion;
+        }
+        if (runnableFromVersion is not null)
+        {
+            stored["runnableFromVersion"] = runnableFromVersion;
+        }
+        var workflowContext = stored.Deserialize<AppWorkflowContext>(CommandDefinition.SerializerOptions);
+
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data, workflowContext);
+
+        await command.Execute(context, TestContext.Current.CancellationToken);
+
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(fixture.HttpHandler.Requests[0].Body!);
+        Assert.NotNull(payload);
+        Assert.Equal(plannerVersion, payload.PlannerVersion);
+        Assert.Equal(runnableFromVersion, payload.RunnableFromVersion);
     }
 
     [Fact]

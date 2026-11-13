@@ -178,9 +178,19 @@
         "Nullable": true
       },
       {
+        "Name": "plannerVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
         "Name": "retryCount",
         "Kind": "int",
         "Nullable": false
+      },
+      {
+        "Name": "runnableFromVersion",
+        "Kind": "string",
+        "Nullable": true
       },
       {
         "Name": "state",
@@ -266,6 +276,16 @@
         "Name": "org",
         "Kind": "string",
         "Nullable": false
+      },
+      {
+        "Name": "plannerVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "runnableFromVersion",
+        "Kind": "string",
+        "Nullable": true
       }
     ]
   },

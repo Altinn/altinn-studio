@@ -776,6 +776,8 @@ public class MailboxRelayTests
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal(_instanceGuid, context.InstanceGuid);
         Assert.Equal(new Actor { UserId = 1337 }, context.Actor);
+        Assert.Equal(PlannerVersion.Current, context.PlannerVersion);
+        Assert.Equal(PlannerVersion.RunnableFrom, context.RunnableFromVersion);
         recorder.Tokens.AssertMintedFor(request);
     }
 
@@ -1552,6 +1554,8 @@ public class MailboxRelayTests
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal(_instanceGuid, context.InstanceGuid);
+        Assert.Equal(PlannerVersion.Current, context.PlannerVersion);
+        Assert.Equal(PlannerVersion.RunnableFrom, context.RunnableFromVersion);
         recorder.Tokens.AssertMintedFor(request);
     }
 

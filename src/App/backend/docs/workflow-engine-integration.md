@@ -228,6 +228,32 @@ A workflow runs its later steps on whatever app version is running then, with th
 payloads and step lists that the enqueueing version wrote. A change to any of them decides whether those workflows
 keep working or fail with a permanent error that names the problem.
 
+A pod never runs a step that a newer version of the app libraries planned, unless that version declared that the
+pod's version may. The newer version may have planned a command, a payload or a state field that the older one lacks,
+and the older one would fail the workflow permanently or drop the field for the steps after it. Every workflow
+therefore carries the version that planned it in its context, and the engine hands it back with each callback. A pod on
+an older version answers 503 without the `nonRetryable` marker before it checks the actor, restores the callback state
+or looks up the command, and logs a warning that names the versions. The engine retries the step under its retry
+strategy, which gives up after a day by default.
+
+- A rolling deploy heals by itself, since a retry reaches a pod on the new version.
+- After a rollback, the step retries until the app is rolled forward or its retry strategy runs out. A workflow that
+  ran out can be resumed once the newer version runs again.
+- Versions follow Semantic Versioning, so `9.0.0-preview.10` is older than `9.0.0`. A version that does not parse
+  counts as newer, since every version that stamps a workflow writes one that parses.
+- A workflow planned before the stamp existed has none, and runs on any version.
+- A version can declare the oldest version that may run its workflows in `PlannerVersion.RunnableFrom`, which the
+  context carries as `runnableFromVersion`. Set it only when a test shows that the older version reads the plan, the
+  payloads and the callback state the newer one writes. A rollback to the older version then continues the newer one's
+  workflows. The declaration can only lower the bar: one that does not parse counts as missing, and one above the
+  planner's version counts as the planner's. Versions from before the field existed ignore it.
+- The engine leaves the context out of its enqueue fingerprint, so a replay from another version matches the first
+  enqueue when it plans the same steps. The workflow keeps the first enqueue's version. When that was the newer one,
+  older pods leave even the steps they could run to a newer pod.
+
+The rest of this section is about a pod on the planner's version or a newer one, or on the version the planner
+declared or a newer one. It runs every step, and a command it does not have fails permanently.
+
 A step names its pipeline item by position, so reshaping a pipeline in flight is the same problem. The
 [authoring guide](service-task-pipelines.md#redeploys-and-in-flight-workflows) leaves it to the app developer, and the
 app does not guard against it. Names would not help either, since a redeploy can change what a stage does.

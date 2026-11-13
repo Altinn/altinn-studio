@@ -8358,6 +8358,14 @@
             "type": "string",
             "nullable": true
           },
+          "plannerVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "runnableFromVersion": {
+            "type": "string",
+            "nullable": true
+          },
           "workflowId": {
             "type": "string",
             "format": "uuid"

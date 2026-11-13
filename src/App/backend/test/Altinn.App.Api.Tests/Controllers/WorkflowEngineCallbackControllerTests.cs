@@ -420,6 +420,187 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
+    /// <summary>
+    /// A newer planner without a floor that takes effect: none declared, one that does not parse, or one above the
+    /// planner's version, which counts as the planner's.
+    /// </summary>
+    public static TheoryData<string, string?> RefusedStamps =>
+        new()
+        {
+            { "999.0.0", null },
+            { "not-a-version", null },
+            { "999.0.0", "not-a-version" },
+            { "999.0.0", "1000.0.0" },
+        };
+
+    [Theory]
+    [MemberData(nameof(RefusedStamps))]
+    public async Task ExecuteCommand_PlannedByNewerVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
+        string plannerVersion,
+        string? runnableFromVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion,
+            runnableFromVersion: runnableFromVersion
+        );
+
+        ProblemDetails problem = AssertPlannedByNewerVersion(result);
+        Assert.Contains($"newer than this pod's {PlannerVersion.Current}", problem.Detail, StringComparison.Ordinal);
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains(plannerVersion, StringComparison.Ordinal) == true
+                && log.FormattedMessage.Contains(PlannerVersion.Current, StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_PodBelowTheDeclaredFloor_AnswersRetryableNamingTheFloor()
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            plannerVersion: "999.0.0",
+            runnableFromVersion: "998.0.0"
+        );
+
+        ProblemDetails problem = AssertPlannedByNewerVersion(result);
+        Assert.Contains("lets version 998.0.0 and newer run it", problem.Detail, StringComparison.Ordinal);
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains("999.0.0", StringComparison.Ordinal) == true
+                && log.FormattedMessage.Contains("lets version 998.0.0 and newer run it", StringComparison.Ordinal)
+                && log.FormattedMessage.Contains(PlannerVersion.Current, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The case the stamp exists for: a newer version planned a command this pod does not have. Without the stamp
+    /// this pod would fail the workflow permanently.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteCommand_CommandThisPodLacks_PlannedByNewerVersion_AnswersRetryable()
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "CommandFromANewerVersion",
+            stepId: Guid.NewGuid(),
+            plannerVersion: "999.0.0"
+        );
+
+        AssertPlannedByNewerVersion(result);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquirePlannedByNewerVersion_AnswersRetryableWithoutClaimingTheInstance()
+    {
+        await using ControllerSetup setup = CreateSetup(_ => { });
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            setup.CreateAcquirePayload(),
+            collectionKey: "acquire-chain",
+            plannerVersion: "999.0.0"
+        );
+
+        AssertPlannedByNewerVersion(result);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+    }
+
+    /// <summary>
+    /// Stamps this pod may run: planned by its version, an older one or before the stamp existed, or by a newer
+    /// version whose floor this pod reaches. A floor can only lower the planner's version, so one above it or one that
+    /// does not parse changes nothing, and without a planner version there is no floor at all.
+    /// </summary>
+    public static TheoryData<string?, string?> RunnableStamps =>
+        new()
+        {
+            { PlannerVersion.Current, null },
+            { "8.12.7", null },
+            { null, null },
+            { "999.0.0", PlannerVersion.Current },
+            { "999.0.0", "8.12.7" },
+            { PlannerVersion.Current, "999.0.0" },
+            { PlannerVersion.Current, "not-a-version" },
+            { null, "999.0.0" },
+        };
+
+    [Theory]
+    [MemberData(nameof(RunnableStamps))]
+    public async Task ExecuteCommand_PodAtOrAboveTheFloor_RunsTheStep(
+        string? plannerVersion,
+        string? runnableFromVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion,
+            runnableFromVersion: runnableFromVersion
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.True(command.Executed);
+    }
+
+    /// <summary>
+    /// A pod at or above the floor treats the plan as its own, so a command it lacks fails the step, as it does for a
+    /// pod on the planner's version.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(RunnableStamps))]
+    public async Task ExecuteCommand_CommandThisPodLacks_PodAtOrAboveTheFloor_FailsPermanently(
+        string? plannerVersion,
+        string? runnableFromVersion
+    )
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "RemovedCommand",
+            stepId: Guid.NewGuid(),
+            plannerVersion: plannerVersion,
+            runnableFromVersion: runnableFromVersion
+        );
+
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status404NotFound, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+    }
+
+    private static ProblemDetails AssertPlannedByNewerVersion(IActionResult result)
+    {
+        // 503 is retryable for the engine, as long as the nonRetryable marker is absent.
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.Equal("Planned By Newer Version", problem.Title);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        return problem;
+    }
+
     [Fact]
     public async Task ExecuteCommand_RestoresTheDataMutatorInTheActorsLanguage()
     {
@@ -1475,8 +1656,20 @@ public class WorkflowEngineCallbackControllerTests
             Guid stepId,
             string? commandPayload = null,
             string? collectionKey = null,
-            Actor? actor = null
-        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
+            Actor? actor = null,
+            string? plannerVersion = null,
+            string? runnableFromVersion = null
+        ) =>
+            Execute(
+                commandKey,
+                stepId,
+                commandPayload,
+                FixtureExecutionReferenceTime,
+                collectionKey,
+                actor,
+                plannerVersion,
+                runnableFromVersion
+            );
 
         public async Task<IActionResult> Execute(
             string commandKey,
@@ -1484,7 +1677,9 @@ public class WorkflowEngineCallbackControllerTests
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
             string? collectionKey = null,
-            Actor? actor = null
+            Actor? actor = null,
+            string? plannerVersion = null,
+            string? runnableFromVersion = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1502,6 +1697,8 @@ public class WorkflowEngineCallbackControllerTests
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
+                PlannerVersion = plannerVersion,
+                RunnableFromVersion = runnableFromVersion,
             };
             // What the callback scheme would authenticate for a token minted for this actor.
             Controller.HttpContext.User = new ClaimsPrincipal(
