@@ -12,6 +12,7 @@ from typing import Any
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
+from shared.utils.models import is_claude_model, is_reasoning_model
 
 from .messages import (
     AssistantMessage,
@@ -296,8 +297,9 @@ class AnthropicAdapter(LLMAdapter):
             usage = {
                 "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
-                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) if usage_obj else 0,
-                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
+                # The SDK leaves these None when the endpoint omits them.
+                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) or 0,
+                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) or 0,
             }
 
             assistant = AssistantMessage(
@@ -381,7 +383,9 @@ def _block_to_anthropic(block: ContentBlock) -> dict[str, Any]:
 
 
 def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0) -> dict[str, int]:
-    """Token kinds as the provider reports them, and a total counting all of them.
+    """A call's token kinds under the names Langfuse prices, and a total counting all of them.
+
+    Langfuse prices each key on its own and counts a key it has no price for as free.
 
     Anthropic excludes cache reads from `input_tokens` and Azure includes them, so
     a total built from each provider's own input figure is not comparable.
@@ -389,8 +393,8 @@ def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creati
     return {
         "input": fresh,
         "output": output,
-        "cache_read_input": cache_read,
-        "cache_creation_input": cache_creation,
+        "input_cache_read": cache_read,
+        "input_cache_creation": cache_creation,
         "total": fresh + output + cache_read + cache_creation,
     }
 
@@ -453,7 +457,7 @@ class OpenAIAdapter(LLMAdapter):
         else:
             raise ValueError("OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY.")
         self.model = model
-        self._is_reasoning = _is_reasoning_model(model)
+        self._is_reasoning = is_reasoning_model(model)
         if max_tokens is not None:
             self.max_tokens = max_tokens
         else:
@@ -564,7 +568,7 @@ def _message_to_openai(message: Message) -> list[dict[str, Any]]:
             elif isinstance(block, TextBlock):
                 text_parts.append(block.text)
         if text_parts:
-            results.insert(0, {"role": "user", "content": "\n".join(text_parts)})
+            results.append({"role": "user", "content": "\n".join(text_parts)})
         return results
 
     # AssistantMessage
@@ -631,20 +635,6 @@ def _normalize_openai_stop(reason: str | None) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _is_claude_model(model: str | None) -> bool:
-    if not model:
-        return False
-    m = model.lower()
-    return m.startswith("claude") or "anthropic" in m
-
-
-def _is_reasoning_model(model: str | None) -> bool:
-    if not model:
-        return False
-    m = model.lower()
-    return m.startswith(("o1", "o3", "gpt-5"))
-
-
 def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdapter:
     """Return the adapter configured for the given role."""
     config = get_config()
@@ -652,14 +642,10 @@ def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdap
         model = config.LLM_MODEL_ACTOR
     elif role == "planner":
         model = config.LLM_MODEL_PLANNER
-    elif role == "reviewer":
-        model = config.LLM_MODEL_REVIEWER
-    elif role == "assistant":
-        model = config.LLM_MODEL_ASSISTANT
     else:
         model = config.AZURE_DEPLOYMENT_NAME or config.LLM_MODEL
 
-    if _is_claude_model(model):
+    if is_claude_model(model):
         # Anthropic models don't have a reasoning-token concept here; default
         # max_tokens is fine.  (Claude's extended-thinking is opt-in and
         # billed differently.)

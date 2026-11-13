@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "57a1d5950b2b",
-    "code": "8a44cb0 clean",
+    "actor_prompt": "55a1d094fc83",
+    "code": "ae360d4 clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "94a7e1f25959"
+    "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261107T084056Z-21426-data-model-files-from-designer-8a44cb068c-e59c",
-  "label": "#21426 data model files from Designer, 8a44cb068c",
-  "recorded_at": "2026-11-07T08:47:01+00:00",
-  "why": "#21426 changes the description of the altinn_datamodel_sync tool, which moves the tool schema digest. Full check with e2e: every scored behavior holds against the previous baseline. The four apps that the e2e items build compile, and their C# classes and XSDs are the files Designer generates from their schemas. Studio's preview is turned off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force."
+  "check_id": "20261113T085949Z-agent-skills-format-21938-ae360d4d5c-6eac",
+  "label": "Agent Skills format, #21938 ae360d4d5c",
+  "recorded_at": "2026-11-13T09:07:19+00:00",
+  "why": "#21938 moves the skills to the Agent Skills format, which changes the actor prompt and the tool schemas. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. In each build the actor loaded the skills by their new names, and it loaded references/v8.md for each skill that has one before its first write. Against the #21937 baseline, every scored behavior has the same score except scope.declines-in-users-language, which went up by one item on gpt-6-luna. The scope prompt has no skills. The replay items of Loop/traces keep the system prompt that production recorded, with the old skill names, so they do not measure the new listing. The run before this one, on the same commit, lost simple-contact-one-page before the actor started, because the security gate returned details.fields as a list and SecurityCheckResult expects a string. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }

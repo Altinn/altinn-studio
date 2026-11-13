@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio|admin|dis)-/, '')
+    .replace(/^deploy-(runtime|studio|admin)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -106,7 +106,7 @@ const STUDIO_WORKFLOWS = [
   'deploy-studio-observability.yaml',
   'deploy-lhci-server.yaml',
   'deploy-runner-org-sync.yaml',
-  'deploy-studio-ai-agents.yaml',
+  'deploy-studio-assistant.yaml',
   'deploy-studio-external-secrets-operator.yaml',
   'deploy-studio-keyvault-secret-store.yaml',
   'deploy-studio-ssl-cert.yaml',
@@ -145,6 +145,7 @@ const SERVICES = [
     ['dis-core', DIS_CORE_ENVS],
   ]),
   service('deploy-runtime-pdf3-edge.yaml', [['dis-edge', DIS_EDGE_ENVS]]),
+  service('deploy-dis-core-observability.yaml', [['dis-core', DIS_CORE_ENVS]]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),

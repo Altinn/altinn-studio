@@ -8,7 +8,7 @@ import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabPageHeader } from '../../TabPageHeader';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioValidationMessage } from '@designer/components';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import {

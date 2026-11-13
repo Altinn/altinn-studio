@@ -38,6 +38,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { Filter } from 'src/core/queries/dataLists';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -59,7 +60,7 @@ type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponent
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
   const isMobile = useIsMobile();
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
@@ -77,7 +78,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   );
   const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.List.textResourceBindings.help);
 
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const [pageSize, setPageSize] = useState<number>(config.pagination?.default ?? 0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -106,9 +107,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
     (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
   );
-  const selectedRow = !isMultipleSelection
-    ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
-    : '';
+  const selectedRow =
+    !readOnly && !isMultipleSelection
+      ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
+      : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
     if (instanceLocked) {
       return;
@@ -120,6 +122,9 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     setValues(next);
   }
   function isRowSelected(row: Row): boolean {
+    if (readOnly) {
+      return false;
+    }
     if (isMultipleSelection) {
       return isChecked(row);
     }
@@ -139,7 +144,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       <OptionalIndicator
         required={required}
         readOnly={readOnly}
-        showOptionalMarking={labelSettings?.optionalIndicator !== false}
+        showOptionalMarking={showOptionalMarking}
       />
     </Heading>
   ) : undefined;
@@ -173,7 +178,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         <strong>
           <Lang id={tableHeaders[key]} />
         </strong>
-        <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
+        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
@@ -227,7 +232,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>
@@ -261,7 +266,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>
@@ -301,7 +306,12 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       baseComponentId={baseComponentId}
       isSummary={isSummary}
     >
-      <Table className={classes.listTable}>
+      <Table
+        className={cn(classes.listTable, {
+          [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
+        })}
+      >
         {isSummary ? (
           (title || description || help) && (
             <Caption
@@ -323,6 +333,17 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             )}
           </caption>
         ) : null}
+        {config.tableColumns && (
+          <colgroup>
+            {!readOnly && <col className={classes.selectionColumn} />}
+            {Object.keys(config.tableHeaders).map((key) => (
+              <col
+                key={key}
+                style={{ width: config.tableColumns?.[key]?.width }}
+              />
+            ))}
+          </colgroup>
+        )}
         <Table.Head>
           <Table.Row>
             {!readOnly && (
@@ -395,7 +416,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
-                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>

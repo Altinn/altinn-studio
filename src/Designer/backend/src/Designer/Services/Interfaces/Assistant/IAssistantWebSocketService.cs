@@ -1,5 +1,5 @@
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 
@@ -7,23 +7,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 /// Manages the per-developer WebSocket connection to the assistant service.
 /// The connection stays alive independently of browser tab lifecycle so that
 /// in-flight workflows can stream events back to any reconnected tab.
+/// Messages received from the agent are forwarded to the developer's SignalR group.
 /// </summary>
 public interface IAssistantWebSocketService
 {
     /// <summary>
-    /// Ensures a live WebSocket to the assistant service exists for this developer.
-    /// Idempotent — safe to call on every SignalR connection.
-    /// Messages received from the agent are forwarded to the developer's SignalR group.
+    /// Sends a session frame on the developer's connection, so that the assistant service
+    /// sends the developer's events on that connection. Opens the connection first if it is closed.
+    /// Returns when the assistant service confirms the session, or after a few seconds without an answer.
+    /// Throws a <see cref="System.TimeoutException"/> when the connection cannot be opened in time.
     /// </summary>
-    Task EnsureConnectedAsync(string developer);
-
-    /// <summary>
-    /// Sends a session-registration frame so the assistant service starts streaming
-    /// events for the given session over the shared connection, and records the
-    /// session's editing context so assistant messages can be persisted
-    /// server-side into the right app's chat thread.
-    /// </summary>
-    Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext);
+    Task RegisterSessionAsync(string sessionId, string developer, CancellationToken cancellationToken);
 
     /// <summary>
     /// Closes the agents WebSocket for this developer.

@@ -21,7 +21,7 @@ import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
@@ -297,6 +297,7 @@ describe('useUpdateFormComponentMutation', () => {
     const newId = 'newId';
     const oldDataType = {
       id: oldId,
+      taskIds: ['Task_1', 'Task_2'],
       allowedContentTypes: ['application/pdf'],
       validationErrorOnPendingFileScan: true,
       enableFileScan: false,
@@ -330,7 +331,7 @@ describe('useUpdateFormComponentMutation', () => {
     };
     const imageUploadDataType = {
       id: oldId,
-      taskId: 'Task_1',
+      taskIds: ['Task_1', 'Task_2'],
       maxCount: 1,
       minCount: 0,
       maxSize: 5,

@@ -4,7 +4,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { InputfieldsWithTranslationProps } from './InputfieldsWithTranslation';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 

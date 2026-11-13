@@ -4,10 +4,10 @@ import { TaskCard } from './TaskCard';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('taskCard', () => {
   let confirmSpy: MockInstance;

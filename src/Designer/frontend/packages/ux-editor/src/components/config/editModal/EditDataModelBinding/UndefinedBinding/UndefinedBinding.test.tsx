@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { UndefinedBinding, type UndefinedBindingProps } from './UndefinedBinding';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const label = 'kort svar';
 const dataModelField = 'field';

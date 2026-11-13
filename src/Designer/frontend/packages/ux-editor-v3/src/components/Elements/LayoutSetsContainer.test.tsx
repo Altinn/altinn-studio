@@ -12,7 +12,7 @@ import {
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 vi.mock('react-redux', async () => ({
   ...(await vi.importActual('react-redux')),

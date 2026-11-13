@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useGetAvailableOrgResourcesQuery } from './useGetAvailableOrgResourcesQuery';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';

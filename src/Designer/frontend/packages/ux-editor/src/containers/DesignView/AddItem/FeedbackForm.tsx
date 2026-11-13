@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FeedbackFormImpl } from '@studio/feedback-form';
+import { FeedbackFormImpl } from '@designer/feedback-form';
 
 /**
  * This is a feedback form to gather feedback on the new design for adding components.
- * It uses the FeedbackForm component from the @studio/feedback-form package.
+ * It uses the FeedbackForm component from the @designer/feedback-form package.
  * The form is temporary, and will be removed once the new design is fully tested, or we decide to go in a different direction.
  * As such, all texts are hardcoded in Norwegian, to avoid adding unnecessary translations.
  * @returns The FeedbackForm component.

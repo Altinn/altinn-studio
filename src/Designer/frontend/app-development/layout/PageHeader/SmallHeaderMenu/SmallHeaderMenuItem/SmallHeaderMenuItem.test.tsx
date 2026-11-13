@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import { SmallHeaderMenuItem, type SmallHeaderMenuItemProps } from './SmallHeaderMenuItem';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 
 const menuItemName: string = 'testMenuItem';
 const menuItemLink: string = '/test-path';

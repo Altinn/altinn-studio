@@ -13,7 +13,7 @@ import {
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';

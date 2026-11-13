@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 import { getPredefinedActions, isActionAvailable } from '../../../../../../utils/processActions';

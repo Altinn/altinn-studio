@@ -17,13 +17,20 @@ that after a page refresh (which creates a new connection-level session ID),
 the WS still delivers all events for any workflow session belonging to that
 developer. The session_id on each event lets the frontend route it correctly.
 
+One WebSocket streams a developer's events: the last one that registered.
+Designer runs several replicas, and the replica that handles a command registers
+the session on its own WebSocket. Designer forwards each event to all the
+developer's browser tabs, so a second streaming WebSocket would deliver each
+event twice. The new WebSocket continues from where the previous one stopped,
+and the previous one is closed.
+
 No callbacks are used — the WebSocket handler *pulls* from the buffer.
-Reconnection after a page reload simply replays all buffered events.
 """
 
 import asyncio
 import contextlib
 import logging
+from dataclasses import dataclass
 
 from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketState
@@ -31,6 +38,20 @@ from starlette.websockets import WebSocketState
 from agents.services.events import sink
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class _DeveloperStream:
+    """The WebSocket that streams a developer's events, and the index of the next event to send."""
+
+    websocket: WebSocket
+    cursor: int
+    task: asyncio.Task[None] | None = None
+
+
+_streams: dict[str, _DeveloperStream] = {}
+# Two replicas can register a session for the same developer at the same time.
+_takeover_locks: dict[str, asyncio.Lock] = {}
 
 
 async def _safe_send_json(ws: WebSocket, data: dict) -> bool:
@@ -44,20 +65,20 @@ async def _safe_send_json(ws: WebSocket, data: dict) -> bool:
         return False
 
 
-async def _stream_developer_events(ws: WebSocket, developer: str):
-    """Read all events for *developer* and push them over *ws*.
+async def _stream_developer_events(stream: _DeveloperStream, developer: str):
+    """Read all events for *developer* and push them over the stream's WebSocket.
 
     Streams indefinitely — new workflow sessions for the same developer
     are automatically included because events fan out to the developer buffer.
-    Only stops when the WebSocket disconnects.
+    Stops when the WebSocket disconnects or another WebSocket takes over.
     """
-    cursor = sink.developer_event_count(developer)  # start from current tail (skip already-sent history)
-    logger.info(f"🎬 _stream_developer_events started for developer {developer} (cursor={cursor})")
+    ws = stream.websocket
+    logger.info(f"🎬 _stream_developer_events started for developer {developer} (cursor={stream.cursor})")
 
     while True:
-        new_events = sink.get_developer_events_since(developer, cursor)
+        new_events = sink.get_developer_events_since(developer, stream.cursor)
         if new_events:
-            logger.info(f"📦 Found {len(new_events)} new events (cursor={cursor}) for developer {developer}")
+            logger.info(f"📦 Found {len(new_events)} new events (cursor={stream.cursor}) for developer {developer}")
 
         for event in new_events:
             ok = await _safe_send_json(ws, event.model_dump())
@@ -67,15 +88,48 @@ async def _stream_developer_events(ws: WebSocket, developer: str):
                 )
                 return
             logger.info(f"✅ WS sent: type={event.type}, session={event.session_id}, developer={developer}")
-            cursor += 1
+            stream.cursor += 1
 
         try:
-            logger.debug(f"⏳ Waiting for developer events (cursor={cursor}) developer={developer}")
-            got_new = await sink.wait_for_developer_events(developer, known_count=cursor, timeout=30.0)
+            logger.debug(f"⏳ Waiting for developer events (cursor={stream.cursor}) developer={developer}")
+            got_new = await sink.wait_for_developer_events(developer, known_count=stream.cursor, timeout=30.0)
             if not got_new:
-                logger.debug(f"⏰ Wait timed out (cursor={cursor}) developer={developer}, looping")
+                logger.debug(f"⏰ Wait timed out (cursor={stream.cursor}) developer={developer}, looping")
         except Exception as e:
             logger.warning(f"Wait error for developer {developer}: {e}")
+
+
+async def _take_over_stream(ws: WebSocket, developer: str) -> _DeveloperStream:
+    """Make *ws* the WebSocket that streams *developer*'s events.
+
+    The new stream starts where the previous one stopped, so no event is lost.
+    Without a previous stream, it starts at the current tail.
+    """
+    async with _takeover_locks.setdefault(developer, asyncio.Lock()):
+        previous = _streams.get(developer)
+        if previous is not None and previous.task is not None:
+            previous.task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await previous.task
+
+        cursor = previous.cursor if previous is not None else sink.developer_event_count(developer)
+        stream = _DeveloperStream(websocket=ws, cursor=cursor)
+        stream.task = asyncio.create_task(_stream_developer_events(stream, developer))
+        _streams[developer] = stream
+
+        if previous is not None and previous.websocket is not ws:
+            logger.info(f"🔁 Another WebSocket streams the events of developer {developer}; closing the previous one")
+            with contextlib.suppress(Exception):
+                await previous.websocket.close(code=1000, reason="Another connection receives the events")
+        return stream
+
+
+def _release_stream(stream: _DeveloperStream | None, developer: str | None):
+    """Forget *stream*, unless another WebSocket has taken over."""
+    if stream is None or developer is None:
+        return
+    if _streams.get(developer) is stream:
+        del _streams[developer]
 
 
 async def _receive_initial_registration(ws: WebSocket):
@@ -108,7 +162,7 @@ def register_websocket_routes(app: FastAPI):
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
         developer = None
-        stream_task = None
+        stream = None
 
         try:
             await websocket.accept()
@@ -131,6 +185,13 @@ def register_websocket_routes(app: FastAPI):
 
             sink.register_developer_session(developer, session_id or "")
             logger.info(f"📋 Developer registered: {developer}, initial session: {session_id}")
+
+            # --- Phase 2: stream ALL developer events + keep reading ----------
+            # The stream never restarts on new session registrations — it delivers
+            # events for any session belonging to this developer.
+            stream = await _take_over_stream(websocket, developer)
+            # Designer sends the command after this answer, so the events of the
+            # command come after the stream has started.
             await _safe_send_json(
                 websocket,
                 {
@@ -140,11 +201,6 @@ def register_websocket_routes(app: FastAPI):
                     "developer": developer,
                 },
             )
-
-            # --- Phase 2: stream ALL developer events + keep reading ----------
-            # The stream never restarts on new session registrations — it delivers
-            # events for any session belonging to this developer.
-            stream_task = asyncio.create_task(_stream_developer_events(websocket, developer))
 
             try:
                 while True:
@@ -183,10 +239,11 @@ def register_websocket_routes(app: FastAPI):
             logger.error(f"WebSocket error: {e}")
 
         finally:
-            if stream_task and not stream_task.done():
-                stream_task.cancel()
+            _release_stream(stream, developer)
+            if stream is not None and stream.task is not None and not stream.task.done():
+                stream.task.cancel()
                 with contextlib.suppress(asyncio.CancelledError, Exception):
-                    await stream_task
+                    await stream.task
             logger.info(f"🔌 WebSocket disconnected (developer={developer})")
 
     @app.get("/api/ws/status")

@@ -1,0 +1,88 @@
+import type {
+  AboutAssistantDialogTexts,
+  AssistantTexts,
+  MessageFeedbackTexts,
+  EmptyThreadTexts,
+  CriticalFileAlertTexts,
+  SecurityNoticeAlertTexts,
+  TextAreaTexts,
+  PermissionPromptTexts,
+  ThreadSelectorTexts,
+} from '../types/AssistantTexts';
+
+const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
+  heading: 'aboutAssistantHeading',
+  intro: 'aboutAssistantIntro',
+  assistantDocsInfo: 'aboutAssistantDocsInfo',
+  assistantDocsLink: 'aboutAssistantDocsLink',
+  disclaimer: 'aboutAssistantDisclaimer',
+  privacyDataHandling: 'aboutAssistantPrivacyDataHandling',
+};
+
+export const threadSelectorTexts: ThreadSelectorTexts = {
+  deleteThread: 'deleteThread',
+  deleteThreadConfirm: 'deleteThreadConfirm',
+};
+
+const emptyThreadTexts: EmptyThreadTexts = {
+  welcome: 'emptyThreadWelcome',
+  instruction: 'emptyThreadInstruction',
+};
+
+const textAreaTexts: TextAreaTexts = {
+  placeholder: 'placeholder',
+};
+
+export const messageFeedbackTexts: MessageFeedbackTexts = {
+  thumbsUp: 'feedbackThumbsUp',
+  thumbsDown: 'feedbackThumbsDown',
+  heading: 'feedbackHeading',
+  detailsLabel: 'feedbackDetailsLabel',
+  detailsOptionalTag: 'feedbackDetailsOptionalTag',
+  submit: 'feedbackSubmit',
+  clear: 'feedbackClear',
+  cancel: 'feedbackCancel',
+};
+
+export const securityNoticeAlertTexts: SecurityNoticeAlertTexts = {
+  heading: 'securityNoticeAlertHeading',
+  description: 'securityNoticeAlertDescription',
+};
+
+export const criticalFileAlertTexts: CriticalFileAlertTexts = {
+  heading: 'criticalFileAlertHeading',
+  description: 'criticalFileAlertDescription',
+};
+
+export const permissionPromptTexts: PermissionPromptTexts = {
+  heading: 'permissionPromptHeading',
+  allow: 'permissionPromptAllow',
+  deny: 'permissionPromptDeny',
+};
+
+export const mockTexts: AssistantTexts = {
+  heading: 'heading',
+  preview: 'preview',
+  fileBrowser: 'fileBrowser',
+  toolColumnMode: 'toolColumnMode',
+  hideThreads: 'hideThreads',
+  showThreads: 'showThreads',
+  newThread: 'newThread',
+  previousThreads: 'previousThreads',
+  threadSelector: threadSelectorTexts,
+  aboutAssistantDialog: aboutAssistantDialogTexts,
+  emptyThread: emptyThreadTexts,
+  textarea: textAreaTexts,
+  addAttachment: 'addAttachment',
+  attachmentsTooLarge: 'attachmentsTooLarge',
+  allowAppChangesSwitch: 'allowAppChangesSwitch',
+  send: 'send',
+  cancel: 'cancel',
+  assistantFirstMessage: 'Hva kan jeg hjelpe med?',
+  feedback: messageFeedbackTexts,
+  criticalFileAlert: criticalFileAlertTexts,
+  securityNoticeAlert: securityNoticeAlertTexts,
+  permissionPrompt: permissionPromptTexts,
+  sourcesLabel: 'sourcesLabel',
+  filesChangedLabel: 'filesChangedLabel',
+};

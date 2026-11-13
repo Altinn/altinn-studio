@@ -7,7 +7,7 @@ import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext
 import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
 import { NodePanel } from '../NodePanel';
-import { StudioDragAndDropTree, StudioResizableLayout } from '@studio/components';
+import { StudioDragAndDropTree, StudioResizableLayout } from '@designer/components';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 

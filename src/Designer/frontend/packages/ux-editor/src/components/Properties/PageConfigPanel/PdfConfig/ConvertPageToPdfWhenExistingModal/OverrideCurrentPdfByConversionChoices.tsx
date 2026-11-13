@@ -1,4 +1,4 @@
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './OverrideCurrentPdfByConversionChoices.module.css';
 

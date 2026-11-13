@@ -11,6 +11,8 @@ from pathlib import Path
 
 from agents.core.tool import LoopContext
 
+from .text_parts import forget_reads
+
 
 class PathError(Exception):
     """Raised when a repo-relative path is unsafe or invalid."""
@@ -39,6 +41,11 @@ def resolve_repo_path(repo_path: str, rel_path: str) -> Path:
     return full
 
 
+def file_key(rel_path: str) -> str:
+    """The key of a repository file in the record of read lines (`text_parts`)."""
+    return f"file:{rel_path}"
+
+
 def mark_read(ctx: LoopContext, rel_path: str) -> None:
     read_set: set[str] = ctx.extras.setdefault("read_set", set())
     read_set.add(rel_path)
@@ -48,6 +55,7 @@ def mark_unread(ctx: LoopContext, rel_path: str) -> None:
     read_set = ctx.extras.get("read_set")
     if read_set is not None:
         read_set.discard(rel_path)
+    forget_reads(ctx, file_key(rel_path))
 
 
 def mark_changed(ctx: LoopContext, rel_path: str) -> None:
@@ -56,9 +64,7 @@ def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     # A re-edited file needs to be re-verified before commit.  Drop any
     # prior verification badge so commit_session_branch's gate triggers
     # again after this write.
-    verified = ctx.extras.get("verified_files")
-    if verified is not None:
-        verified.discard(rel_path)
+    (ctx.extras.get("verified_files") or set()).discard(rel_path)
 
 
 def is_read(ctx: LoopContext, rel_path: str) -> bool:

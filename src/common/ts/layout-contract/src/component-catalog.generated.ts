@@ -228,8 +228,8 @@ const ILabelSettings = {
       type: 'boolean',
       title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
       description: {
-        en: 'Show the optional indicator on the label of non-required fields. Enabled by default.',
-        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+        en: 'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
       },
       default: true,
       required: false,
@@ -2121,6 +2121,21 @@ const IDataModelBindingsForList = {
     en: 'Connects component values to fields in the data model.',
     nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
   },
+} as const;
+
+const ITableColumnWidth = {
+  type: 'object',
+  properties: {
+    width: {
+      type: 'string',
+      pattern: '^([0-9]{1,2}%|100%|auto)$',
+      title: ITableColumnProperties['properties']['width']['title'],
+      description: ITableColumnProperties['properties']['width']['description'],
+      default: 'auto',
+      required: false,
+    },
+  },
+  additionalProperties: false,
 } as const;
 
 const IPagination = {
@@ -9078,6 +9093,21 @@ const generatedContract = {
           },
           examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
           required: true,
+        },
+        tableColumns: {
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'object',
+            properties: ITableColumnWidth['properties'],
+            additionalProperties: false,
+          },
+          title: { en: 'Table columns', nb: 'Tabellkolonner' },
+          description: {
+            en: 'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+            nb: 'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+          },
+          required: false,
         },
         sortableColumns: {
           type: 'array',

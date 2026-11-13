@@ -646,8 +646,50 @@ describe('SummaryComponent', () => {
     expect(container).toHaveTextContent(emptyFieldText);
   });
 
+  test.each([undefined, { name: { width: '55%' }, profession: { width: '25%' } }])(
+    'List: preserves an unbound middle column in the summary (tableColumns: %j)',
+    async (tableColumns) => {
+      await render({
+        layout: {
+          FormLayout: {
+            data: {
+              layout: [
+                {
+                  id: 'List',
+                  type: 'List',
+                  dataListId: 'people',
+                  tableHeaders: { name: 'Name', age: 'Age', profession: 'Profession' },
+                  tableColumns,
+                  dataModelBindings: {
+                    group: { dataType: defaultDataTypeMock, field: 'people' },
+                    name: { dataType: defaultDataTypeMock, field: 'people.name' },
+                    profession: { dataType: defaultDataTypeMock, field: 'people.profession' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        initialData: { people: [{ name: 'Kari', profession: 'Snekker' }] },
+        summary2Config: {
+          type: 'Summary2',
+          id: 'Summary2',
+          target: { type: 'component', id: 'List' },
+        },
+      });
+
+      expect(screen.getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
+        'Name',
+        'Age',
+        'Profession',
+      ]);
+      expect(screen.getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['Kari', '', 'Snekker']);
+    },
+  );
+
   type IRenderProps = {
     currentPageId?: string;
+    initialData?: Record<string, unknown>;
     layout?: ILayoutCollection;
     validationIssues?: BackendValidationIssue[];
     summary2Config: CompSummary2External;
@@ -655,6 +697,7 @@ describe('SummaryComponent', () => {
 
   const render = async ({
     currentPageId,
+    initialData = {},
     layout = layoutMock(),
     validationIssues = [],
     summary2Config,
@@ -678,6 +721,7 @@ describe('SummaryComponent', () => {
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = initialData;
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
       },

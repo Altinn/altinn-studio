@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { User } from 'app-shared/types/Repository';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

@@ -1,5 +1,5 @@
-import type { StudioAlertProps } from '@studio/components';
-import { StudioAlert } from '@studio/components';
+import type { StudioAlertProps } from '@designer/components';
+import { StudioAlert } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 import type { JSX } from 'react';

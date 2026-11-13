@@ -241,6 +241,12 @@ class TestTheToolCatalog:
 
         assert {"read_file", "edit_file", "commit_session_branch"} <= names
 
+    def test_the_skill_tool_lists_the_skills(self):
+        """The catalog once offered a skill tool with no skills, which is not the schema the tools digest records."""
+        skill_tool = next(schema for schema in tool_catalog() if schema["name"] == "skill")
+
+        assert "studio-policy" in skill_tool["description"]
+
     def test_narrowing_keeps_only_what_was_asked_for(self):
         """Narrowing is how an item makes a decision unambiguous."""
         schemas = tool_catalog(["read_file", "edit_file"])
@@ -315,6 +321,7 @@ class TestTheTaskEndToEnd:
 
         assert "fornavn" in fake_adapter["system_prompt"]
         assert len(fake_adapter["system_prompt"]) > 5000
+        assert "studio-policy" in fake_adapter["system_prompt"], "the skill listing is part of the prompt"
 
     @pytest.mark.asyncio
     async def test_the_item_narrows_the_catalog(self, fake_adapter):

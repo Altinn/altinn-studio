@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

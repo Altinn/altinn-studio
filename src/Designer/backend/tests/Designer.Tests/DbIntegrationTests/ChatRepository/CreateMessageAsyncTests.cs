@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Designer.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -151,5 +152,94 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         await Assert.ThrowsAsync<DbUpdateException>(() => repository.CreateMessageAsync(messageEntity));
 
         DbFixture.DbContext.ChangeTracker.Clear();
+    }
+
+    [Fact]
+    public async Task CreateMessageAsync_WithAnEventIdAlreadySaved_ShouldReturnTheSavedMessage()
+    {
+        var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
+        await DbFixture.PrepareThreadInDatabase(threadEntity);
+        string eventId = Guid.NewGuid().ToString("N");
+
+        // Each Designer replica makes its own copy of the same answer.
+        var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant,
+            eventId: eventId
+        );
+        var secondCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant,
+            eventId: eventId
+        );
+
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
+        var firstSaved = await repository.CreateMessageAsync(firstCopy);
+        var secondSaved = await repository.CreateMessageAsync(secondCopy);
+
+        Assert.Equal(firstSaved.Id, secondSaved.Id);
+        int savedCount = await DbFixture
+            .DbContext.ChatMessages.AsNoTracking()
+            .CountAsync(m => m.ThreadId == threadEntity.Id);
+        Assert.Equal(1, savedCount);
+    }
+
+    [Fact]
+    public async Task CreateMessageAsync_WhenAnotherReplicaSavesTheEventAtTheSameTime_ShouldReturnItsMessage()
+    {
+        var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
+        await DbFixture.PrepareThreadInDatabase(threadEntity);
+        string eventId = Guid.NewGuid().ToString("N");
+        var firstCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant,
+            eventId: eventId
+        );
+        var secondCopy = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant,
+            eventId: eventId
+        );
+
+        var options = new DbContextOptionsBuilder<DesignerdbContext>().UseNpgsql(DbFixture.ConnectionString).Options;
+        await using var firstReplica = new DesignerdbContext(options);
+        await using var secondReplica = new DesignerdbContext(options);
+
+        // The first replica has not committed its copy, so the second replica finds no message with the event id
+        // and inserts its own copy. That insert waits for the commit and then breaks the unique index.
+        await using var transaction = await firstReplica.Database.BeginTransactionAsync();
+        var firstSaved = await new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(
+            firstReplica
+        ).CreateMessageAsync(firstCopy);
+        Task<ChatMessageEntity> secondSave = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(
+            secondReplica
+        ).CreateMessageAsync(secondCopy);
+        await WaitForAnInsertThatWaitsForACommitAsync();
+        await transaction.CommitAsync();
+        var secondSaved = await secondSave;
+
+        Assert.Equal(firstSaved.Id, secondSaved.Id);
+        int savedCount = await DbFixture
+            .DbContext.ChatMessages.AsNoTracking()
+            .CountAsync(m => m.ThreadId == threadEntity.Id);
+        Assert.Equal(1, savedCount);
+    }
+
+    private async Task WaitForAnInsertThatWaitsForACommitAsync()
+    {
+        for (int attempt = 0; attempt < 200; attempt++)
+        {
+            int waiting = await DbFixture
+                .DbContext.Database.SqlQuery<int>(
+                    $"SELECT count(*)::int AS \"Value\" FROM pg_stat_activity WHERE wait_event_type = 'Lock'"
+                )
+                .SingleAsync();
+            if (waiting > 0)
+            {
+                return;
+            }
+            await Task.Delay(50);
+        }
+        throw new TimeoutException("The second save did not wait for the first transaction.");
     }
 }

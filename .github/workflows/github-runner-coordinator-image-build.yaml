@@ -1,0 +1,45 @@
+name: github-runner - Build coordinator image
+
+# deploy-github-runners.yaml publishes the image only after merge. This builds it on the pull requests that change what
+# the image is built from, such as a workspace member that the image's context leaves out. Changes to the crates' code
+# alone are built and tested by their own workflows.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'Cargo.toml'
+      - 'rust-toolchain.toml'
+      - 'src/ci/github-runner/Dockerfile.coordinator'
+      - 'src/ci/github-runner/Dockerfile.coordinator.dockerignore'
+      - '.github/workflows/deploy-github-runners.yaml'
+      - '.github/workflows/github-runner-coordinator-image-build.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build image
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # No --cache-from: the image's build cache lives in ACR, which a pull
+      # request job has no credentials for.
+      - name: Build image
+        run: |
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --file src/ci/github-runner/Dockerfile.coordinator \
+            --platform linux/amd64 \
+            .

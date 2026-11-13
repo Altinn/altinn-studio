@@ -16,14 +16,14 @@ import type {
 } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
-import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
+import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@designer/icons';
 import type { FormContainer } from '../../types/FormContainer';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@designer/components';
 import { withTranslation } from 'react-i18next';
 import {
   conditionalRenderingDeleteButtonId,
   conditionalRenderingOutputFieldId,
-} from '@studio/testing/testids';
+} from '@designer/testing/testids';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;

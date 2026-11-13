@@ -28,10 +28,9 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const { getPageValidation } = usePageValidation(baseComponentId);
-  // Use component-level validation if set, otherwise fall back to page-level
-  // When page-level validation is set, only validate forward navigation
-  const validationOnForward = getPageValidation() ?? config.validateOnForward;
-  const validationOnBackward = getPageValidation() ? undefined : config.validateOnBackward;
+  // Inherited validation applies only to forward navigation.
+  const validationOnForward = config.validateOnForward ?? getPageValidation();
+  const validationOnBackward = config.validateOnBackward;
 
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
 

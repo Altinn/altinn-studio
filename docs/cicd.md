@@ -29,14 +29,18 @@ An image's build context holds only what the image needs.
   Podman matches `**/` re-includes differently, and re-including a parent directory sends all of it.
 - The `.dockerignore` of `src/` and of the root allows what any of their images needs, for Compose and plain
   `podman build`, which use it instead of an image's own. Regenerate both with `check-image-contexts.sh --write`.
+- An image that compiles the shared .NET projects publishes with `/p:RunAnalyzers=false`, so its context needs no
+  `.editorconfig` for analyzer rules. The build and test workflows run the analyzers. An `.editorconfig` that changes
+  what the compiler reports, such as the severity of a `CS` warning, still has to be in the context.
 
 [check-image-contexts.sh](../.github/scripts/check-image-contexts.sh) checks this in CI, for each allowlist with that first line.
 
 ## Workflow names
 
 - `deploy-<target>-<name>.yaml` deploys a service or resource when a change to it reaches `main`. The target is the
-  kind of cluster it belongs to: `runtime`, `studio` or `admin` (adminservices). Older Studio deployments, such as
-  `deploy-designer.yaml`, have no target in the name.
+  kind of cluster it belongs to: `runtime`, `studio`, `admin` (adminservices) or `dis-core`. A service built once for
+  several kinds of cluster, such as pdf3, deploys from one workflow named after where it started. Older Studio
+  deployments, such as `deploy-designer.yaml`, have no target in the name.
 - `release-<product>.yaml` publishes a release of a product.
 - `template-*.yaml` are reusable workflows that other workflows call.
 - Other workflows are named after the area and component they check, such as `runtime-pdf3-build.yml`.

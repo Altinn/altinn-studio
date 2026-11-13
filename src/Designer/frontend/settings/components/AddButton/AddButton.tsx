@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import classes from './AddButton.module.css';
 
 type AddButtonProps = {

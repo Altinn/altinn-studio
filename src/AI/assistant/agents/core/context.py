@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
+from shared.config.base_config import get_config
 from shared.utils.spotlight import FORM_SPEC_TAG, wrap_untrusted
 
 _IDENTITY = """\
@@ -86,10 +87,10 @@ Every tool_use block you emit in the same assistant turn runs together — reads
 - **Navigation** — `scan_repo` once early.
 - **Inspection** — `read_file` before any edit/overwrite.  Read every file you'll need in one batch.
 - **Modification** — `edit_file` (literal string replace) and `write_file` (create or wholesale-rewrite).  Your only ways to change files.  `altinn_datamodel_sync` regenerates XSD + C# after data-model changes.
-- **Knowledge** — `skill(name)` loads curated instructions for a topic (see the skill listing below).  Load the relevant skill BEFORE working on data models, policy, text resources, prefill, or dynamic expressions.  For anything the skills don't cover, load `altinn-docs` and use `web_fetch` on pages from its index.
+- **Knowledge** — `skill(name)` loads curated instructions for a topic (see the skill listing below).  Load the relevant skill BEFORE working on data models, policy, text resources, prefill, or dynamic expressions.  A skill links files under `references/`, such as the file for this app's version; load one with `skill(name, file=...)`.  For anything the skills don't cover, load `studio-docs` and use `web_fetch` on pages from its index.
 - **Schema truth** — `altinn_layout_props(component_type=…)` for the canonical component property list.  Live lookup; batch it with reads.
 - **Recovery** — `discard_file_changes(path)` resets one file to HEAD.  Surgical, single-file.
-- **Finalize** — `verify_changes`, then `commit_session_branch`, then `preview_render_check` (renders the pushed branch page by page — catches runtime errors the validators can't).
+- **Finalize** — `verify_changes`, then `commit_session_branch`.
 
 ### Required check before layout edits
 Before adding or modifying any component in a layout, call `altinn_layout_props(component_type='<Type>')` — schemas drift and `verify_changes` will reject unknown properties.  Trust the tool, not memory.
@@ -100,8 +101,7 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 3. **One turn**: every `edit_file` / `write_file` for the change — different paths batch.
 4. `verify_changes`; on failure, targeted `edit_file` for the specific rule it flagged, then `verify_changes` again.
 5. `commit_session_branch`.
-6. `preview_render_check`.  If a page fails, the detail names the runtime error: fix it, then `verify_changes` → `commit_session_branch` → `preview_render_check` again.  If the check reports itself unavailable, treat it as skipped and move on — never retry an unavailable check.
-7. Final assistant message (no more tool calls).
+6. Final assistant message (no more tool calls).
 
 ### Failure recovery
 - `File has not been read yet` → `read_file` first.
@@ -111,7 +111,32 @@ Before adding or modifying any component in a layout, call `altinn_layout_props(
 - A file went wrong → `discard_file_changes(path)`; other files stay."""
 
 
-_FINAL_ANSWER_READ_ONLY = """\
+# Only when `PREVIEW_CHECK_ENABLED` is on.
+_PREVIEW_CHECK = """\
+## Render check before you finish
+In this deployment, the good ending has one more step: after `commit_session_branch` succeeds, run `preview_render_check` once before the final assistant message.  This replaces "you are done" after the commit in *When you are done*.  Its description says what to do when a page fails."""
+
+
+# A session that starts read-only and then gets permission keeps the
+# read-only contract.  Thus the two contracts have this rule.
+_OLD_ERRORS_RULE = (
+    "If `verify_changes` listed `old_errors`, errors that were in the app before this session, name them after the "
+    "files and offer to fix them.  Don't fix them unasked: the user didn't ask for those changes, and some need their "
+    "judgment, such as which of two texts with the same id to keep."
+)
+
+
+# The user reads the final message as the state of the app.  A session that
+# starts read-only can get permission to write, thus the two contracts have
+# this rule.
+_SAVED_RULE = (
+    "The user's app gets a change only when `commit_session_branch` has pushed it.  A change that is not pushed "
+    "when you finish is dropped.  Never write that a change is done or in the app before that.  If a change is not "
+    "saved when you finish, name the file and say so."
+)
+
+
+_FINAL_ANSWER_READ_ONLY = f"""\
 ## When you are done (read-only mode)
 
 This session started WITHOUT write permission.  Read tools all work: scan
@@ -134,23 +159,26 @@ and read the repo, load skills, look up component schemas, fetch docs.
   and finish.  Never claim you cannot change the app without having tried: the
   permission prompt is the user's to answer, not yours to assume.
 - Match the user's language.  If the goal was written in Norwegian, answer in
-  Norwegian."""
+  Norwegian.
+- {_OLD_ERRORS_RULE}
+- {_SAVED_RULE}"""
 
 
-_FINAL_ANSWER = """\
+_FINAL_ANSWER = f"""\
 ## When you are done
 
-Your loop has one good ending: edits land → `verify_changes` passes → `commit_session_branch` succeeds → `preview_render_check` passes (or reports itself unavailable) → a final assistant message.  Anything else is the wrong path.
+Your loop has one good ending: edits land → `verify_changes` passes → `commit_session_branch` succeeds → a final assistant message.  Anything else is the wrong path.
 
 Specifically:
 - After `verify_changes` returns `passed: true`, the next action is `commit_session_branch` — not another lookup, not another edit.
-- After `commit_session_branch` returns successfully, run `preview_render_check` once.  If a page fails to render, fix it and go back through verify → commit → check.  When it passes — or says it is unavailable in this deployment — you are done.  Send a final assistant message describing what changed.  Do not propose further work the user didn't ask for.
+- After `commit_session_branch` returns successfully, you are done.  Send a final assistant message describing what changed.  Do not propose further work the user didn't ask for, except fixing errors that were in the app before this session (see the final response format).
 - If you genuinely cannot finish (ambiguous request, missing context, repeated verification failure), send a final message explaining what's blocking and what you'd need.
+- {_SAVED_RULE}
 
 ## Final response format
 Send a final assistant message with no tool calls.  Format depends on what you did:
 
-- **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.
+- **You made changes**: name the commit hash (if you committed), list the files you touched with a one-line rationale each.  Use Conventional Commit style for the commit message: `feat|fix|chore: short summary`.  {_OLD_ERRORS_RULE}
 - **You answered a question**: keep it conversational, short paragraphs, minimal markdown.  You may link a docs page inline as `[tittel](url)`, but ONLY with a URL that appears verbatim in content you fetched this session (a `web_fetch` result or a skill's page index) — never write a docs URL from memory; guessed URLs 404.  Do NOT append a `SOURCES:` line — the chat UI attaches the sources you consulted automatically, with working links.
 - **You stopped without finishing**: lead with what did land — the commit hash and the files you touched, same as above — and only then what blocked you and what you'd need to continue.  Anything you committed is already on the user's session branch, so a message naming only the blocker reads as though nothing happened and leaves them hunting for changes you never mentioned.  Don't pretend the partial progress is complete either: say which part is unfinished.
 
@@ -197,13 +225,16 @@ class SessionContext:
 
 def stable_prefix_sections(profile: AppVersionProfile) -> tuple[str, ...]:
     """The deployment-static part of the actor's system prompt, for one app version."""
-    return (
+    sections = (
         _IDENTITY,
         _OPERATING_PRINCIPLES,
         _altinn_anatomy(profile),
         _critical_rules(profile),
         _TOOL_USE,
     )
+    if get_config().PREVIEW_CHECK_ENABLED:
+        sections += (_PREVIEW_CHECK,)
+    return sections
 
 
 def _altinn_anatomy(profile: AppVersionProfile) -> str:

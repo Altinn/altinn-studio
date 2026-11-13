@@ -51,9 +51,7 @@ internal static class V8Tov9Upgrade
     // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
     private const string FeaturesNamespace = "Altinn.App.Core.Features";
 
-    // Keep the release floor aligned with the app template. This release carries the .NET 11
-    // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
-    private const string MinimumPackageVersion = "9.0.0-preview.8";
+    private const string MinimumPackageVersion = "9.0.0-preview.10";
 
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
@@ -298,6 +296,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckNavigationValidation(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -533,10 +534,7 @@ internal static class V8Tov9Upgrade
             string? targetVersion = null;
             if (options.ConvertPackageReferences)
                 sourceRoot = ValidateConversionRoot(options.ProjectFolder, options.StudioRoot);
-            else if (
-                !projectChecks.HasAltinnProjectReferences()
-                && !projectChecks.HasPackageVersionsAtLeast(MinimumPackageVersion)
-            )
+            else if (!projectChecks.HasAltinnProjectReferences())
             {
                 targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
                     options.ProjectFolder,
@@ -2131,6 +2129,24 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    private static async Task<int> CheckNavigationValidation(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Navigation validation");
+        try
+        {
+            var result = await new NavigationValidationAdvisor(projectFolder).Analyze();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No navigation validation changes need review",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception exception)
+        {
+            return Fail("Error checking navigation validation", exception);
         }
     }
 

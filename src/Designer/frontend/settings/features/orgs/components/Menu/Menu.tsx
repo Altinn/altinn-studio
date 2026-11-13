@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { StudioContentMenu } from '@studio/components';
+import { StudioContentMenu } from '@designer/components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RobotSmileIcon, BellIcon } from '@studio/icons';
+import { RobotSmileIcon, BellIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 

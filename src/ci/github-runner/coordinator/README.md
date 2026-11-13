@@ -1,14 +1,15 @@
 # GitHub runner coordinator
 
-The coordinator runs one ephemeral GitHub Actions runner in a Sandbox, through the Sandbox SDK. The package also
-builds `sandbox-image`, which exports and imports prepared images. The [runner README](../README.md) describes how it
-fits with the rest, and the constraints it keeps.
+The coordinator runs one ephemeral GitHub Actions runner in a Sandbox, through the Sandbox SDK. The Provider setup and
+`sandbox-image`, which exports and imports prepared images, are in the shared
+[sandbox-hosting](../../sandbox-hosting/README.md) crate. The [runner README](../README.md) describes how it fits with
+the rest, and the constraints it keeps.
 
 The Sandbox SDK crates, `sandbox` and `sandbox-microsandbox`, come from
 [digdir/digdir-agents](https://github.com/digdir/digdir-agents), pinned by `rev` in the root `Cargo.toml`. Fix bugs in
-them there. A pin bump moves that `rev`, `Cargo.lock` and `MICROSANDBOX_RUNTIME_VERSION` in
-[Dockerfile.coordinator](../Dockerfile.coordinator) together, and `github-runner-build.yaml` checks that the
-Microsandbox versions match.
+them there. A pin bump moves that `rev` and `Cargo.lock` together, and
+[Dockerfile.coordinator](../Dockerfile.coordinator) then downloads the Microsandbox runtime of the version in
+`Cargo.lock`.
 
 The two images build with different contexts. Build the coordinator image from the repository root:
 

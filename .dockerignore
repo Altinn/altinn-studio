@@ -27,10 +27,10 @@
 !src/Designer/frontend
 !src/Designer/frontend/**
 !src/ci/github-runner/coordinator/**
+!src/ci/sandbox-hosting/**
 !src/cli/.editorconfig
 !src/cli/Directory.Build.props
 !src/cli/Directory.Packages.props
-!src/cli/common/dotnet/.editorconfig
 !src/cli/common/dotnet/Altinn.Studio.AppDist
 !src/cli/common/dotnet/Altinn.Studio.AppDist/**
 !src/cli/common/dotnet/Directory.Build.props
@@ -40,7 +40,7 @@
 !src/common/dotnet/Altinn.Studio.Common/**
 !src/common/ts
 !src/common/ts/**
-!src/common/ts/layout-contract/schemas/json/layout
+!src/common/ts/layout-contract/schemas/json
 !yarn.lock
 **/.DS_Store
 **/.cache
@@ -58,3 +58,4 @@
 **/.pytest_cache
 **/dist
 !src/ci/github-runner/coordinator/src/bin/**
+!src/ci/sandbox-hosting/src/bin/**

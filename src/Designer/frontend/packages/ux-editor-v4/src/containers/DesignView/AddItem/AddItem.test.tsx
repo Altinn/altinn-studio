@@ -3,14 +3,14 @@ import { screen } from '@testing-library/react';
 import { AddItem, type AddItemProps, InlineItemAdder, type InlineItemAdderProps } from './AddItem';
 import { renderWithProviders } from '../../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { IInternalLayout } from '../../../types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { app, layoutSet as layoutSetId, org } from '@studio/testing/testids';
+import { app, layoutSet as layoutSetId, org } from '@designer/testing/testids';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 
 vi.mock('./hooks/useAddComponentHandlerSilent', () => ({

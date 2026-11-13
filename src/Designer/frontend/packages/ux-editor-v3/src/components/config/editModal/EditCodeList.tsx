@@ -8,7 +8,7 @@ import {
   StudioSpinner,
   StudioTextfield,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -3,7 +3,7 @@ import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import { isLayoutSetNamedAfterTask } from '../utils/processEditorUtils';
 

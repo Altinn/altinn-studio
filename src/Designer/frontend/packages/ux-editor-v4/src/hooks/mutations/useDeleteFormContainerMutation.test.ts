@@ -12,7 +12,7 @@ import {
   layout1NameMock,
 } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';

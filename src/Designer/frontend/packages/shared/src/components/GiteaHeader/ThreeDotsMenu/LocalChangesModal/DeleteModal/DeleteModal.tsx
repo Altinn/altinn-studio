@@ -8,9 +8,9 @@ import {
   StudioSpinner,
   StudioTextfield,
   StudioParagraph,
-} from '@studio/components';
-import { useForwardedRef } from '@studio/hooks';
-import { TrashIcon } from '@studio/icons';
+} from '@designer/components';
+import { useForwardedRef } from '@designer/hooks';
+import { TrashIcon } from '@designer/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 
 export type DeleteModalProps = {

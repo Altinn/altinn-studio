@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
-import { FileNameErrorResult } from '@studio/pure-functions';
+import { FileNameErrorResult } from '@designer/pure-functions';
 
 export const useValidationAlert = () => {
   const { t } = useTranslation();

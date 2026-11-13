@@ -2,11 +2,11 @@ import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
 import { getChildIds, getItem, hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioAlert } from '@designer/components';
 import { FormLayoutWarning } from './FormLayoutWarning';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItem } from './AddItem';
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import { ComponentType } from '../../types/ComponentType';
 
 export interface FormLayoutProps {

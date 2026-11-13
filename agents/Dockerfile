@@ -3,8 +3,9 @@
 # Neovim, shellcheck, actionlint and the common build and archive tools, and the boot settings a
 # Sandbox needs, and offers the browser, containers and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
-# Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:2ee51d4619a9e13b1d1e6037b48c76fcc6bbed46ef6203aadde1270c1a2fb790 AS minimal
+# The tag names the agentctl release the Agents are written for; Renovate moves it to later releases,
+# and with it the harness versions. Bring the manifests along, as the release notes say.
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04-v0.1.0-preview.14@sha256:4de3acc36600c2fba8e7e73c0de0ca812cbd32ae2286f1d7750f5394d5e90e72 AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
@@ -33,7 +34,7 @@ ARG TARGETARCH
 # major: rollForward latestFeature never crosses a major, so an SDK 10 cannot build a project pinned
 # to SDK 8 or 11. App v8 and its template are on 8, Designer and the Runtime services on 10, and App
 # v9 with its libraries and test apps on 11. Move a version together with its global.json pins.
-ARG DOTNET_SDK_VERSIONS="8.0.426 10.0.402 11.0.100-rc.2.26504.105"
+ARG DOTNET_SDK_VERSIONS="8.0.426 10.0.402 11.0.100"
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
 ARG GO_VERSION=1.27.3
@@ -411,7 +412,7 @@ RUN case "${TARGETARCH}" in \
 
 # agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
 # nested-build variants build their images with. Renovate moves it to new agentctl releases.
-COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4544f0bf2e6d0912cd274b878515224cd05896a286b28f \
+COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.14@sha256:8f2334590d1363c1ae2041cf1e7983a2c81aa57f0d4956f2a27e97a0a3536a7d \
     /agentctl /agentd /usr/local/bin/
 
 # devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in

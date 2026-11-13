@@ -12,7 +12,7 @@ import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { PageRoutes } from './routes/PageRoutes';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 import { ConsentProvider } from 'app-shared/utils/consent';
 
 const loggerConfig: LoggerConfig = {

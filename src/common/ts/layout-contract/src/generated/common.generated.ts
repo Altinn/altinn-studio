@@ -117,6 +117,7 @@ export interface GlobalPageSettingsFromSchema {
   showExpandWidthButton?: boolean;
   expandedWidth?: boolean;
   showProgress?: boolean;
+  hideOptionalIndicator?: boolean;
   autoSaveBehavior?: 'onChangeFormData' | 'onChangePage';
   navigationTitle?: ExprValToActualOrExpr<ExprVal.String>;
   taskNavigation?: (NavigationTaskFromSchema | NavigationReceiptFromSchema)[];
@@ -578,6 +579,10 @@ export interface ITableColumnsTextOverflow {
   maxHeight?: number;
 }
 
+export interface ITableColumnWidth {
+  width?: string;
+}
+
 export interface LabeledComponentProps {
   labelSettings?: ILabelSettings;
 }
@@ -660,4 +665,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 8b4c7bf297813722fa08ec48aed29a539054f8183db680793b256eebffcfd26d
+// Source hash: 03d366bb86f15445fb1faa383e6983a95ae31b58b287a6ab0ff22dfdb9a8c8b0

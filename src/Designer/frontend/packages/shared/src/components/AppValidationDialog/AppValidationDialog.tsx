@@ -9,12 +9,12 @@ import {
   StudioLink,
   StudioParagraph,
   StudioTag,
-} from '@studio/components';
+} from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
-import { appValidationAreaId } from '@studio/testing/testids';
+import { appValidationAreaId } from '@designer/testing/testids';
 import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
 import {
