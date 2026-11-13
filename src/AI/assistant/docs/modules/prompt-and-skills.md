@@ -35,13 +35,12 @@ sequenceDiagram
   T-->>M: Text for v8 apps
 ```
 
-_A skill load. The source becomes a link chip under the final answer._
+_A skill load. The trace lists the skill as a source for the evaluators. The chat does not show it, because the user cannot open it._
 
 To add a skill, make `src/AI/assistant/agents/skills/studio-<topic>/SKILL.md` in the [Agent Skills](https://agentskills.io/specification) format. The loader reads these fields:
 
 - `name`, which is the same as the folder name.
 - `description`, which is necessary. The listing cuts it at 250 characters.
-- `metadata.studio-title` and `metadata.studio-docs-url`, which the chat UI shows as the source chip of the answer. `metadata.studio-docs-url-v9` is the URL for v9 apps, if the page is different. Use only a URL that you know is available.
 
 Put the files that the body links to in `references/`. `references/v8.md` or `references/v9.md` holds text for apps of that version. The model loads these files with the `file` argument of the `skill` tool, because `read_file` reads only the app repository.
 

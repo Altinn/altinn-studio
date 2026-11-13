@@ -1,9 +1,6 @@
 ---
 name: studio-prefill
 description: 'Prefill: mapping registry data (person/org) into form fields via prefill.json. Load before configuring any prefill.'
-metadata:
-  studio-title: Preutfylling
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/concepts/prefill/
 ---
 
 # PREFILL CONFIGURATION FOR ALTINN APPS

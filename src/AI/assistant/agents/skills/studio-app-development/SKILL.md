@@ -1,9 +1,6 @@
 ---
 name: studio-app-development
 description: 'How to plan an Altinn app change: which files are involved per task type, ordering, and validation strategy. Load first on unfamiliar or multi-file tasks.'
-metadata:
-  studio-title: Planlegging av app-endringer
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/
 ---
 
 # Altinn App Development Instructions

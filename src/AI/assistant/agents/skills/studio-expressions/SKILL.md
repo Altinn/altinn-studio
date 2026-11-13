@@ -1,9 +1,6 @@
 ---
 name: studio-expressions
 description: 'Dynamic expressions: the array-shaped expression language for hidden/required/readOnly logic in layouts. Load before writing any dynamic behavior.'
-metadata:
-  studio-title: Dynamiske uttrykk
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/
 ---
 
 # ALTINN DYNAMIC EXPRESSIONS USAGE GUIDELINES

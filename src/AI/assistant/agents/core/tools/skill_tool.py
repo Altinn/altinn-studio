@@ -64,7 +64,6 @@ class SkillTool(Tool[SkillArgs]):
                 content=f"Unknown skill {args.skill!r}. Available skills: {known}.",
                 is_error=True,
             )
-        version_label = ctx.app_version_profile.version_label
         try:
             content = skill.load_file(args.file) if args.file else skill.load_body()
         except SkillFileError as exc:
@@ -95,11 +94,9 @@ class SkillTool(Tool[SkillArgs]):
         )
         if result.is_error:
             return result
-        source: dict[str, str] = {"title": skill.title or skill.name, "kind": "skill"}
-        docs_url = skill.docs_url_for(version_label)
-        if docs_url:
-            source["url"] = docs_url
-        result.metadata.update({"skill": skill.name, "source": source})
+        # The trace lists the skill as a source, so the evaluators count what it says as grounded. It has no link:
+        # the skill is the assistant's own text, not a page that the user can open.
+        result.metadata.update({"skill": skill.name, "source": {"title": skill.name, "kind": "skill"}})
         if args.file:
             result.metadata["file"] = args.file
         return result

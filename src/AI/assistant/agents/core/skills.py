@@ -48,22 +48,10 @@ class Skill:
     name: str
     description: str
     path: Path  # the SKILL.md file
-    # Display title for the chat UI's source chip.  The skill name
-    # (`studio-expressions`) means nothing to end users.
-    title: str = ""
-    # Canonical docs page for the topic, shown as the chip's link.  Must
-    # be a URL verified to resolve, so the model never needs to invent one.
-    docs_url: str = ""
-    docs_url_v9: str = ""
 
     @property
     def directory(self) -> Path:
         return self.path.parent
-
-    def docs_url_for(self, version_label: str) -> str:
-        if version_label == "v9" and self.docs_url_v9:
-            return self.docs_url_v9
-        return self.docs_url
 
     def load_body(self) -> str:
         """The body of SKILL.md, without the frontmatter."""
@@ -104,13 +92,6 @@ def _parse_frontmatter(raw: str) -> dict[str, object]:
     return fields if isinstance(fields, dict) else {}
 
 
-def _metadata_text(metadata: object, key: str) -> str:
-    if not isinstance(metadata, dict):
-        return ""
-    value = metadata.get(key, "")
-    return value if isinstance(value, str) else ""
-
-
 def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
     """Scan the skills directory and return all valid skills, sorted by name.
 
@@ -143,17 +124,7 @@ def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
         if not isinstance(description, str) or not description.strip():
             log.warning("Skipping skill %s: no description in frontmatter", entry.name)
             continue
-        metadata = fields.get("metadata")
-        skills.append(
-            Skill(
-                name=entry.name,
-                description=description.strip(),
-                path=skill_file,
-                title=_metadata_text(metadata, "studio-title"),
-                docs_url=_metadata_text(metadata, "studio-docs-url"),
-                docs_url_v9=_metadata_text(metadata, "studio-docs-url-v9"),
-            )
-        )
+        skills.append(Skill(name=entry.name, description=description.strip(), path=skill_file))
     return skills
 
 

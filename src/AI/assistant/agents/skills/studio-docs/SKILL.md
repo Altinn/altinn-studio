@@ -1,9 +1,6 @@
 ---
 name: studio-docs
 description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Has a curated page index.
-metadata:
-  studio-title: Altinn Studio-dokumentasjon
-  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/
 ---
 
 # Altinn documentation navigation
