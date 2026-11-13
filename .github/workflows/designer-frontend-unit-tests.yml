@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Designer/frontend/**'
       - 'src/common/ts/layout-contract/**'
+      - 'src/common/ts/http-client/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'

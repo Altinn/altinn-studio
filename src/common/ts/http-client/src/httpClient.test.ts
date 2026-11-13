@@ -7,7 +7,9 @@ const testUrl = '/api/test';
 type FetchCall = { url: string; init: RequestInit; headers: Headers };
 
 const lastCall = (fetchSpy: MockInstance<typeof fetch>): FetchCall => {
-  const [url, init] = fetchSpy.mock.lastCall;
+  const call = fetchSpy.mock.lastCall;
+  if (!call?.[1]) throw new Error('fetch was not called with request options');
+  const [url, init] = call;
   return { url: url as string, init, headers: init.headers as Headers };
 };
 

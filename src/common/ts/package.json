@@ -6,9 +6,9 @@
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
-    "typecheck": "yarn workspaces foreach -A --include '@app/*' run typecheck",
-    "lint": "yarn workspaces foreach -A --include '@app/*' run lint",
-    "format:check": "yarn workspaces foreach -A --include '@app/*' run format:check"
+    "typecheck": "yarn workspaces foreach -A --include '@app/*' --include '@studio/*' --exclude '@studio/common-typescript' run typecheck",
+    "lint": "yarn workspaces foreach -A --include '@app/*' --include '@studio/*' --exclude '@studio/common-typescript' run lint",
+    "format:check": "yarn workspaces foreach -A --include '@app/*' --include '@studio/*' --exclude '@studio/common-typescript' run format:check"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",
