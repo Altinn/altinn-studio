@@ -27,6 +27,7 @@
 !src/Designer/frontend
 !src/Designer/frontend/**
 !src/ci/github-runner/coordinator/**
+!src/ci/sandbox-hosting/**
 !src/cli/.editorconfig
 !src/cli/Directory.Build.props
 !src/cli/Directory.Packages.props
@@ -57,3 +58,4 @@
 **/.pytest_cache
 **/dist
 !src/ci/github-runner/coordinator/src/bin/**
+!src/ci/sandbox-hosting/src/bin/**

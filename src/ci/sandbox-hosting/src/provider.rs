@@ -40,18 +40,25 @@ pub struct ProviderArguments {
 }
 
 impl ProviderArguments {
-    /// Opens the configured Sandbox service.
+    /// Opens the configured Sandbox service and passes it to `run`. Then it empties the Provider home, also when the
+    /// Provider cannot open or the run fails, so that the folder the pod leaves on the node holds nothing.
     ///
     /// # Errors
     ///
-    /// Returns an error when the runtime bundle cannot be validated or the Provider cannot open.
-    pub async fn open(
+    /// Returns the error of opening the Provider, of `run` or of emptying the Provider home. When emptying the home
+    /// also fails, the error has both messages.
+    pub async fn run_with_service<T>(
         &self,
-        registry_authentication: Option<RegistryAuthentication>,
-    ) -> Result<SandboxService, AnyError> {
+        run: impl AsyncFnOnce(SandboxService) -> Result<T, AnyError>,
+    ) -> Result<T, AnyError> {
+        let result = async { run(self.open().await?).await }.await;
+        self.clear_home_after(result).await
+    }
+
+    async fn open(&self) -> Result<SandboxService, AnyError> {
         let runtime_bundle_sha256 = read_runtime_bundle_sha256(&self.runtime_bundle, &self.runtime_bundle_checksums)?;
         let builder = self
-            .provider_builder(registry_authentication)
+            .provider_builder(None)
             .runtime_bundle(&self.runtime_bundle, runtime_bundle_sha256);
         self.open_builder(builder).await
     }
@@ -69,11 +76,7 @@ impl ProviderArguments {
     }
 
     /// Removes all state inside the per-process Provider home while preserving its mount point.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the directory cannot be read or one of its entries cannot be removed.
-    pub async fn clear_home(&self) -> Result<(), io::Error> {
+    async fn clear_home(&self) -> Result<(), io::Error> {
         let mut entries = match tokio::fs::read_dir(&self.provider_home).await {
             Ok(entries) => entries,
             Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
@@ -87,6 +90,19 @@ impl ProviderArguments {
             }
         }
         Ok(())
+    }
+
+    /// Clears the Provider home after a run, also when the run failed, and returns the run's `result`.
+    async fn clear_home_after<T>(&self, result: Result<T, AnyError>) -> Result<T, AnyError> {
+        let cleared = self.clear_home().await.map_err(AnyError::from);
+        match (result, cleared) {
+            (Ok(value), Ok(())) => Ok(value),
+            (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
+            (Err(error), Err(clear_error)) => Err(io::Error::other(format!(
+                "{error}; clearing the Sandbox Provider home also failed: {clear_error}"
+            ))
+            .into()),
+        }
     }
 
     fn provider_builder(
@@ -158,7 +174,17 @@ fn parse_runtime_bundle_sha256(contents: &str, filename: &str) -> Result<String,
 #[cfg(test)]
 mod tests {
     use super::{ProviderArguments, parse_runtime_bundle_sha256};
-    use std::path::PathBuf;
+    use crate::AnyError;
+    use std::{io, path::Path, path::PathBuf};
+
+    fn arguments(provider_home: &Path) -> ProviderArguments {
+        ProviderArguments {
+            provider_home: provider_home.to_path_buf(),
+            cache_directory: PathBuf::from("/cache"),
+            runtime_bundle: PathBuf::from("/runtime"),
+            runtime_bundle_checksums: PathBuf::from("/checksums"),
+        }
+    }
 
     #[test]
     fn selects_the_runtime_bundle_published_checksum() {
@@ -180,22 +206,75 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn clears_provider_home_contents_without_removing_mount_point() -> Result<(), Box<dyn std::error::Error>> {
+    async fn clears_provider_home_contents_without_removing_mount_point() -> Result<(), AnyError> {
         let directory = tempfile::tempdir()?;
         std::fs::create_dir(directory.path().join("nested"))?;
         std::fs::write(directory.path().join("nested/file"), "state")?;
         std::fs::write(directory.path().join(".hidden"), "state")?;
-        let arguments = ProviderArguments {
-            provider_home: directory.path().to_path_buf(),
-            cache_directory: PathBuf::from("/cache"),
-            runtime_bundle: PathBuf::from("/runtime"),
-            runtime_bundle_checksums: PathBuf::from("/checksums"),
-        };
 
-        arguments.clear_home().await?;
+        arguments(directory.path()).clear_home().await?;
 
         assert!(directory.path().is_dir());
         assert_eq!(std::fs::read_dir(directory.path())?.count(), 0);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn clears_provider_home_also_when_the_run_fails() -> Result<(), AnyError> {
+        let directory = tempfile::tempdir()?;
+        let home = directory.path();
+        std::fs::write(home.join("state"), "state")?;
+        let run: Result<(), AnyError> = Err(io::Error::other("the run failed").into());
+
+        let result = arguments(home).clear_home_after(run).await;
+
+        assert_eq!(
+            result.map_err(|error| error.to_string()),
+            Err("the run failed".to_string())
+        );
+        assert_eq!(std::fs::read_dir(home)?.count(), 0);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn clears_provider_home_when_the_provider_cannot_open() -> Result<(), AnyError> {
+        let directory = tempfile::tempdir()?;
+        let home = directory.path();
+        std::fs::write(home.join("state"), "state")?;
+        let mut ran = false;
+
+        let result = arguments(home)
+            .run_with_service(async |_service| {
+                ran = true;
+                Ok(())
+            })
+            .await;
+
+        assert!(result.is_err_and(|error| error.to_string().contains("cannot read /checksums")));
+        assert!(!ran);
+        assert_eq!(std::fs::read_dir(home)?.count(), 0);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn reports_a_provider_home_that_cannot_be_cleared() -> Result<(), AnyError> {
+        let directory = tempfile::tempdir()?;
+        let home = directory.path().join("not-a-directory");
+        std::fs::write(&home, "state")?;
+        let arguments = arguments(&home);
+
+        assert!(arguments.clear_home_after(Ok(())).await.is_err());
+        let Err(error) = arguments
+            .clear_home_after::<()>(Err(io::Error::other("the run failed").into()))
+            .await
+        else {
+            return Err("clearing a file as the Provider home succeeded".into());
+        };
+        assert!(
+            error
+                .to_string()
+                .starts_with("the run failed; clearing the Sandbox Provider home also failed: ")
+        );
         Ok(())
     }
 }

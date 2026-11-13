@@ -1,14 +1,11 @@
 use std::{io, path::PathBuf, time::Instant};
 
 use clap::{Parser, Subcommand};
-use github_runner_coordinator::{
-    AnyError,
-    provider::{ProviderArguments, native_linux_platform},
-};
 use sandbox::{
     RootFilesystemMode,
     image::{ImageSource, RegistryAuthentication, ResolveRequest},
 };
+use sandbox_hosting::{AnyError, ProviderArguments, native_linux_platform, validate_immutable_image_reference};
 
 #[derive(Parser)]
 #[command(about = "Export or import a prepared Sandbox image")]
@@ -71,7 +68,7 @@ async fn main() -> Result<(), AnyError> {
 
 async fn export(service: &sandbox::SandboxService, image: String, destination: PathBuf) -> Result<(), AnyError> {
     let started = Instant::now();
-    let request = prepared_image_request(image);
+    let request = prepared_image_request(image)?;
     let prepared = service.export_prepared_image(&request, &destination).await?;
     println!(
         "prepared image exported; manifest={}; artifact={}; virtual_size_bytes={}; total_ms={}",
@@ -85,7 +82,7 @@ async fn export(service: &sandbox::SandboxService, image: String, destination: P
 
 async fn import(service: &sandbox::SandboxService, image: String, source: PathBuf) -> Result<(), AnyError> {
     let started = Instant::now();
-    let request = prepared_image_request(image);
+    let request = prepared_image_request(image)?;
     let prepared = service.import_prepared_image(&request, &source).await?;
     println!(
         "prepared image imported; manifest={}; artifact={}; elapsed_ms={}",
@@ -96,12 +93,13 @@ async fn import(service: &sandbox::SandboxService, image: String, source: PathBu
     Ok(())
 }
 
-fn prepared_image_request(reference: String) -> ResolveRequest {
-    ResolveRequest {
+fn prepared_image_request(reference: String) -> Result<ResolveRequest, io::Error> {
+    validate_immutable_image_reference(&reference)?;
+    Ok(ResolveRequest {
         source: ImageSource::Reference { reference },
         platform: native_linux_platform(),
         root_filesystem_mode: RootFilesystemMode::Direct,
-    }
+    })
 }
 
 fn registry_authentication(
