@@ -10,6 +10,9 @@ permissions:
 
 jobs:
   approve:
+    # Only the event that adds the approve label counts, so that someone adding another label
+    # doesn't approve on behalf of whoever added approve
+    if: github.event.action != 'labeled' || github.event.label.name == 'approve'
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
