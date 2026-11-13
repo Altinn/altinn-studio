@@ -36,7 +36,14 @@ internal static class OnProcessEndConfirmMigration
         var messages = new List<UpgradeMessage>();
         var reasons = ReasonsToConfirm(projectFolder, messages);
         if (reasons.Count == 0)
+        {
+            // A rerun finds no reason once the Fiks Arkiv step has removed MarkInstanceComplete.
+            if (await AlreadyConfirms(projectFolder))
+                messages.Ok(
+                    $"{MetadataPath} already sets onProcessEnd.confirm, so the app keeps confirming instances."
+                );
             return new MigrationResult(messages);
+        }
 
         var inV8 = $"in v8 {string.Join("; and ", reasons)}";
         var metadataFile = AppFiles.Resolve(projectFolder, MetadataPath);
@@ -111,6 +118,23 @@ internal static class OnProcessEndConfirmMigration
                 + "the instance as complete when the process ends instead."
         );
         return new MigrationResult(messages);
+    }
+
+    private static async Task<bool> AlreadyConfirms(string projectFolder)
+    {
+        var metadataFile = AppFiles.Resolve(projectFolder, MetadataPath);
+        if (metadataFile is null)
+            return false;
+        try
+        {
+            var (text, _) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(metadataFile));
+            var root = ReadRoot(Encoding.UTF8.GetBytes(text));
+            return root.Find(PropertyName)?.Object?.Find(ConfirmName)?.Kind == JsonTokenType.True;
+        }
+        catch (Exception ex) when (ex is DecoderFallbackException or JsonException or InvalidOperationException)
+        {
+            return false;
+        }
     }
 
     /// <summary>What confirmed the app's instances in v8, one phrase per task; empty when nothing did.</summary>
