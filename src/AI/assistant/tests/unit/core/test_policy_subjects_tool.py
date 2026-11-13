@@ -77,6 +77,16 @@ class TestDescribeAccessPackages:
 
         assert _codes(text) == {"regnskap-okonomi-rapport"}
 
+    def test_search_finds_a_word_in_a_later_sentence_but_shows_only_the_first(self, packages):
+        text = describe_access_packages(packages, search="autoriserte", group=None, max_chars=MAX_CHARS)
+
+        assert _codes(text) == {
+            "regnskapsforer-lonn",
+            "regnskapsforer-med-signeringsrettighet",
+            "regnskapsforer-uten-signeringsrettighet",
+        }
+        assert "autoriserte" not in text
+
     def test_says_so_when_nothing_matches(self, packages):
         text = describe_access_packages(packages, search="xyzzy", group=None, max_chars=MAX_CHARS)
 
@@ -97,7 +107,24 @@ class TestDescribeAccessPackages:
         # One row of these is about 50 characters.
         assert 1_900 < len(tables) <= 2_000
         assert 0 < shown < 130
-        assert note == f"{130 - shown} more rows. Narrow the search, or list one group."
+        assert note == f"{130 - shown} more rows. Add a search to narrow the group."
+
+    @pytest.mark.parametrize(
+        ("search", "group", "advice"),
+        [
+            ("pakke", None, "Narrow the search, or add a group."),
+            ("pakke", "Allment", "Narrow the search."),
+        ],
+    )
+    def test_a_cut_list_says_how_to_narrow_what_was_asked(self, search, group, advice):
+        packages = [
+            AccessPackage(f"pakke-{index:03}", f"Pakke {index:03}", "", "Område", "Allment", "Organisasjon", True)
+            for index in range(130)
+        ]
+
+        text = describe_access_packages(packages, search=search, group=group, max_chars=2_000)
+
+        assert text.endswith(f"more rows. {advice}")
 
 
 class TestDescribeRoles:
@@ -117,6 +144,24 @@ class TestDescribeRoles:
         text = describe_roles(roles, search="daglig", altinn2=False, max_chars=MAX_CHARS)
 
         assert _codes(text) == {"dagl"}
+
+    def test_says_designer_lists_no_altinn2_roles_once_they_are_gone(self, roles):
+        current = [role for role in roles if role.provider_code != "sys-altinn2"]
+
+        text = describe_roles(current, search=None, altinn2=True, max_chars=MAX_CHARS)
+
+        assert text.startswith("Designer lists no Altinn 2 roles any more")
+        assert "None" not in text
+
+    def test_a_cut_list_does_not_offer_a_group(self):
+        roles = [
+            Role(f"r{index:03}", "urn:altinn:rolecode", f"Rolle {index:03}", "", "sys-ccr", "Enhetsregisteret")
+            for index in range(130)
+        ]
+
+        text = describe_roles(roles, search=None, altinn2=False, max_chars=2_000)
+
+        assert text.endswith("more rows. Add a search to narrow the list.")
 
 
 class TestTool:
@@ -142,7 +187,16 @@ class TestTool:
         assert not result.is_error
         assert "`regnskapsforer-med-signeringsrettighet`" in result.content
         assert result.metadata["source"]["kind"] == "docs"
-        assert result.metadata["source"]["url"].startswith("https://docs.altinn.studio/")
+        assert result.metadata["source"]["url"].endswith("/authorization/what-do-you-get/accesspackages/")
+
+    @pytest.mark.parametrize("kind", ["roles", "altinn2_roles"])
+    async def test_names_the_docs_on_roles_as_the_source_of_roles(self, serve, run, kind):
+        serve(_recorded)
+
+        result = await run(kind=kind)
+
+        assert result.metadata["source"]["title"] == "Roller fra Altinn Autorisasjon"
+        assert result.metadata["source"]["url"].endswith("/authorization/about/detailed/")
 
     async def test_reads_each_list_from_designer_once_within_the_hour_for_every_app(self, serve, run, ctx):
         requests = serve(_recorded)

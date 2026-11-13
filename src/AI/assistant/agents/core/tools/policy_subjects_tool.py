@@ -24,7 +24,17 @@ from agents.services.designer.policy_options import (
 
 from .utils.text_parts import part_chars
 
-_DOCS_URL = "https://docs.altinn.studio/nb/authorization/what-do-you-get/accesspackages/"
+_PACKAGES_SOURCE = {
+    "title": "Tilgangspakker fra Altinn Autorisasjon",
+    "url": "https://docs.altinn.studio/nb/authorization/what-do-you-get/accesspackages/",
+    "kind": "docs",
+}
+# The concept page has a section on roles. The access package page only mentions them.
+_ROLES_SOURCE = {
+    "title": "Roller fra Altinn Autorisasjon",
+    "url": "https://docs.altinn.studio/nb/authorization/about/detailed/",
+    "kind": "docs",
+}
 
 ALTINN2_PROVIDER = "sys-altinn2"
 # Enhetsregisteret first, since those are the roles a service for organizations uses.
@@ -88,7 +98,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                     group=args.group,
                     max_chars=max_chars,
                 )
-                title = "Tilgangspakker fra Altinn Autorisasjon"
+                source = _PACKAGES_SOURCE
             else:
                 content = describe_roles(
                     await policy_options.roles(org, app),
@@ -96,7 +106,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                     altinn2=args.kind == "altinn2_roles",
                     max_chars=max_chars,
                 )
-                title = "Roller fra Altinn Autorisasjon"
+                source = _ROLES_SOURCE
         except PolicyOptionsError as exc:
             return ToolResult(
                 content=(
@@ -107,7 +117,8 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
             )
         except UnknownGroupError as exc:
             return ToolResult(content=str(exc), is_error=True)
-        return ToolResult(content=content, metadata={"source": {"title": title, "url": _DOCS_URL, "kind": "docs"}})
+        # A copy, so that no session can change the dict that every session shares.
+        return ToolResult(content=content, metadata={"source": dict(source)})
 
 
 class UnknownGroupError(Exception):
@@ -142,7 +153,13 @@ def describe_access_packages(
         (group_name, [_package_row(package) for package in sorted(rows, key=_area_and_name)])
         for group_name, rows in _group_by(matching, attrgetter("group")).items()
     ]
-    return _tables(intro, ("Code", "Name", "Area", "Description"), sections, max_chars=max_chars)
+    if not group:
+        narrow = "Narrow the search, or add a group."
+    elif words:
+        narrow = "Narrow the search."
+    else:
+        narrow = "Add a search to narrow the group."
+    return _tables(intro, ("Code", "Name", "Area", "Description"), sections, narrow=narrow, max_chars=max_chars)
 
 
 def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool, max_chars: int) -> str:
@@ -161,6 +178,12 @@ def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool, 
             "The roles Studio's policy editor offers, without Altinn 2 roles. Put the code in a subject match with "
             f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`. A code with another AttributeId names it in brackets.'
         )
+    if not selected:
+        return (
+            "Designer lists no Altinn 2 roles any more, so a policy cannot use them. Use an access package instead."
+            if altinn2
+            else "Designer lists no roles apart from Altinn 2 roles."
+        )
     matching = [
         role for role in selected if _matches(words, role.code, role.name, role.description, role.provider_name)
     ]
@@ -173,11 +196,12 @@ def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool, 
         (provider_name, [_role_row(role) for role in rows])
         for provider_name, rows in _group_by(matching, attrgetter("provider_name")).items()
     ]
-    return _tables(intro, ("Code", "Name", "Description"), sections, max_chars=max_chars)
+    narrow = "Narrow the search." if words else "Add a search to narrow the list."
+    return _tables(intro, ("Code", "Name", "Description"), sections, narrow=narrow, max_chars=max_chars)
 
 
 def _package_row(package: AccessPackage) -> str:
-    description = ("" if package.usable_in_policy else "**Not for service owners.** ") + _cell(package.description)
+    description = ("" if package.usable_in_policy else "**Not for service owners.** ") + _cell(package.summary)
     return f"| `{package.code}` | {_cell(package.name)} | {_cell(package.area)} | {description} |"
 
 
@@ -207,8 +231,13 @@ def _group_by[T](items: Iterable[T], key: Callable[[T], str]) -> dict[str, list[
     return groups
 
 
-def _tables(intro: str, columns: tuple[str, ...], sections: list[tuple[str, list[str]]], *, max_chars: int) -> str:
-    """`intro`, then a heading and a table for each section, cut after the last row that fits in `max_chars`."""
+def _tables(
+    intro: str, columns: tuple[str, ...], sections: list[tuple[str, list[str]]], *, narrow: str, max_chars: int
+) -> str:
+    """`intro`, then a heading and a table for each section, cut after the last row that fits in `max_chars`.
+
+    A cut list ends with `narrow`, which tells the model how to get the rest, since the tool cannot return it in parts.
+    """
     lines = [intro]
     size = len(intro)
     left = sum(len(rows) for _, rows in sections)
@@ -218,7 +247,7 @@ def _tables(intro: str, columns: tuple[str, ...], sections: list[tuple[str, list
             added = [*start, row]
             size += sum(len(line) + 1 for line in added)
             if size > max_chars:
-                return "\n".join([*lines, "", f"{left} more rows. Narrow the search, or list one group."])
+                return "\n".join([*lines, "", f"{left} more rows. {narrow}"])
             lines += added
             left -= 1
             start = []

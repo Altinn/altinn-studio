@@ -36,10 +36,15 @@ class TestParseAccessPackages:
         )
         assert packages["tilgangsstyring-enkeltinstanser"].usable_in_policy is False
 
-    def test_keeps_the_first_sentence_and_drops_the_disclaimer(self, packages_data):
-        for package in parse_access_packages(packages_data):
+    def test_drops_the_disclaimer_and_keeps_the_rest_of_the_description(self, packages_data):
+        packages = {package.code: package for package in parse_access_packages(packages_data)}
+
+        for package in packages.values():
             assert "regelverksendringer" not in package.description
             assert package.description.endswith(".")
+        lonn = packages["regnskapsforer-lonn"]
+        assert "Fullmakten gis kun til autoriserte regnskapsførere." in lonn.description
+        assert lonn.summary == "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde."
 
     def test_fails_when_the_flag_for_policies_is_gone(self, packages_data):
         changed = copy.deepcopy(packages_data)
