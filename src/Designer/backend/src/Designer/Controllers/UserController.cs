@@ -23,6 +23,7 @@ public class UserController : ControllerBase
     private readonly IGiteaClient _giteaClient;
     private readonly IAntiforgery _antiforgery;
     private readonly IUserService _userService;
+    private readonly IStudioPlatformAccessService _platformAccessService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserController"/> class.
@@ -30,11 +31,18 @@ public class UserController : ControllerBase
     /// <param name="giteaClient">the gitea client</param>
     /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
     /// <param name="userService">User service</param>
-    public UserController(IGiteaClient giteaClient, IAntiforgery antiforgery, IUserService userService)
+    /// <param name="platformAccessService">Tells whether the user may see the platform-wide admin pages</param>
+    public UserController(
+        IGiteaClient giteaClient,
+        IAntiforgery antiforgery,
+        IUserService userService,
+        IStudioPlatformAccessService platformAccessService
+    )
     {
         _giteaClient = giteaClient;
         _antiforgery = antiforgery;
         _userService = userService;
+        _platformAccessService = platformAccessService;
     }
 
     /// <summary>
@@ -90,6 +98,16 @@ public class UserController : ControllerBase
     {
         var success = await _giteaClient.PutStarred(org, repository);
         return success ? NoContent() : StatusCode(418);
+    }
+
+    /// <summary>
+    /// Tells whether the current user may see the platform-wide admin pages.
+    /// </summary>
+    [HttpGet]
+    [Route("platform-permissions")]
+    public async Task<ActionResult<UserPlatformPermission>> GetUserPlatformPermissions()
+    {
+        return new UserPlatformPermission { HasPlatformAccess = await _platformAccessService.HasPlatformAccessAsync() };
     }
 
     [HttpGet]

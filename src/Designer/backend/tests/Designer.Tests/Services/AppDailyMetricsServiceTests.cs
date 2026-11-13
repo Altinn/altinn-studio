@@ -173,6 +173,7 @@ public class AppDailyMetricsServiceTests
             new AppDailyMetricsRecord
             {
                 MetricDate = date,
+                Org = Org,
                 App = app,
                 InstancesCreated = created,
                 InstancesCompleted = completed,
