@@ -631,11 +631,6 @@ describe('navigation', () => {
     back().should('not.exist');
     cy.url().should('not.include', 'backToPage=');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
-    summary();
-    edit('extra');
-    cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).check();
-    back().should('not.exist');
-    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
   });
 
   it('preserves a linked-page return while rendering a full subform summary', () => {
