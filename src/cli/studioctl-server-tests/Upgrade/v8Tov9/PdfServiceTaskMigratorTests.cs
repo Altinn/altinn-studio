@@ -186,15 +186,40 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
     }
 
-    [Fact]
-    public async Task DownstreamGatewayWithConditions_GetsConnectedDataTypeIdPinned()
+    private const string FromUiSettings = "the data model of the task's UI settings";
+
+    /// <summary>
+    /// v8 evaluated a gateway after the task against the data model of the task's layout set, which the layout-set
+    /// migration moves to defaultDataType in the task folder, and against none when the set names none, not against
+    /// the data type the PDF is created from ("pdfModel", bound to the task after "form").
+    /// </summary>
+    [Theory]
+    [InlineData("""{ "defaultDataType": "form" }""", null, "form", FromUiSettings)]
+    [InlineData(
+        null,
+        """{ "sets": [{ "id": "form", "dataType": "form", "tasks": ["Task_1"] }] }""",
+        "form",
+        FromUiSettings
+    )]
+    [InlineData(null, null, null, "so nothing was pinned")]
+    public async Task Gateway_IsPinnedOnlyToTheDataModelOfTheTasksUiSettings(
+        string? taskFolderSettings,
+        string? layoutSets,
+        string? pinned,
+        string warning
+    )
     {
-        // Gateways used to infer their data model from the current task; with the pdf task inserted
-        // in front, the data task's form model must be pinned explicitly.
         _app.Write(
             "config/applicationmetadata.json",
-            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+            Metadata(
+                FormDataType("form", "Task_1", enablePdfCreation: false),
+                FormDataType("pdfModel", "Task_1", enablePdfCreation: true)
+            )
         );
+        if (taskFolderSettings is not null)
+            _app.Write("ui/Task_1/Settings.json", taskFolderSettings);
+        if (layoutSets is not null)
+            _app.Write("ui/layout-sets.json", layoutSets);
         _app.Write(
             "config/process/process.bpmn",
             Process(
@@ -221,8 +246,15 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var warnings = await Migrate();
 
         var gateway = ElementById(ProcessAfter(), "Gateway_1");
-        Assert.Equal("model", gateway?.Descendants().Single(e => e.Name.LocalName == "connectedDataTypeId").Value);
-        Assert.Contains(warnings, w => w.Contains("connectedDataTypeId", StringComparison.Ordinal));
+        Assert.Equal(
+            pinned,
+            gateway?.Descendants().SingleOrDefault(e => e.Name.LocalName == "connectedDataTypeId")?.Value
+        );
+        Assert.Contains(
+            warning,
+            Assert.Single(warnings, w => w.StartsWith("Gateway 'Gateway_1'", StringComparison.Ordinal)),
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
