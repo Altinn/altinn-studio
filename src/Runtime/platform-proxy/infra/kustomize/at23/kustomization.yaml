@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: platform-proxy
+        namespace: runtime-platform-proxy
+      spec:
+        template:
+          spec:
+            containers:
+              - name: platform-proxy
+                env:
+                  - name: PLATFORM_PROXY_UPSTREAM_URL
+                    value: https://platform.at23.altinn.cloud

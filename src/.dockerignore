@@ -34,6 +34,10 @@
 !Runtime/pdf3/go.mod
 !Runtime/pdf3/go.sum
 !Runtime/pdf3/internal/**
+!Runtime/platform-proxy/cmd/**
+!Runtime/platform-proxy/go.mod
+!Runtime/platform-proxy/go.sum
+!Runtime/platform-proxy/internal/**
 !Runtime/workflow-engine-app/**
 !Runtime/workflow-engine-app/Directory.Packages.props
 !Runtime/workflow-engine/**

@@ -273,6 +273,66 @@ public sealed class RuntimeHealthTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.OK, HealthStatus.Healthy)]
+    // The platform proxy can't sign tokens, or the platform didn't answer it.
+    [InlineData(HttpStatusCode.BadGateway, HealthStatus.Unhealthy)]
+    // What Linkerd answers when the platform proxy has no ready pods.
+    [InlineData(HttpStatusCode.GatewayTimeout, HealthStatus.Unhealthy)]
+    public async Task PlatformAccessCheck_CallsTheHostAppsGetForStorage(HttpStatusCode answer, HealthStatus expected)
+    {
+        using var platform = new FakeWorkflowEngineHandler { ResponseFactory = _ => new HttpResponseMessage(answer) };
+
+        var result = await RunPlatformAccessCheck(
+            """{"PlatformSettings__ApiStorageEndpoint":"http://platform-proxy.example/storage/api/v1/"}""",
+            platform
+        );
+
+        Assert.Equal(expected, result.Status);
+        var request = Assert.Single(platform.Requests);
+        Assert.Equal(
+            new Uri("http://platform-proxy.example/authentication/api/v1/openid/.well-known/openid-configuration"),
+            request.Uri
+        );
+    }
+
+    [Fact]
+    public async Task PlatformAccessCheck_IsUnhealthyWhenAppsConfigHasNoStorageAddress()
+    {
+        using var platform = new FakeWorkflowEngineHandler();
+
+        var result = await RunPlatformAccessCheck("{}", platform);
+
+        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        Assert.Empty(platform.Requests);
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("false", false)]
+    public void PlatformAccessCheck_IsARuntimeCheckUnlessTurnedOff(string? checkPlatformAccess, bool registered)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?> { ["RuntimeHealth:CheckPlatformAccess"] = checkPlatformAccess }
+            )
+            .Build();
+        var services = new ServiceCollection();
+
+        services.AddRuntimeHealth(configuration);
+        using var provider = services.BuildServiceProvider();
+        var registrations = provider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value.Registrations;
+
+        var platformAccess = registrations.SingleOrDefault(registration =>
+            registration.Name == PlatformAccessHealthCheck.Name
+        );
+        Assert.Equal(registered, platformAccess is not null);
+        if (platformAccess is not null)
+        {
+            Assert.Contains(RuntimeHealthRegistration.RuntimeTag, platformAccess.Tags);
+        }
+    }
+
     private Task Publish(HealthStatus status, HealthReportEntry? pdf3 = null) =>
         _factory
             .Services.GetRequiredService<RuntimeHealthReport>()
@@ -297,6 +357,28 @@ public sealed class RuntimeHealthTests : IDisposable
             new FakeConfigMapHandler(appsConfigData)
         );
         var check = new Pdf3HealthCheck(
+            provider.GetRequiredService<IHttpClientFactory>(),
+            new AppsConfigClient(kubernetes)
+        );
+
+        return await check.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<HealthCheckResult> RunPlatformAccessCheck(
+        string appsConfigData,
+        HttpMessageHandler platform
+    )
+    {
+        var services = new ServiceCollection();
+        services
+            .AddHttpClient(PlatformAccessHealthCheck.HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(() => platform);
+        using var provider = services.BuildServiceProvider();
+        using var kubernetes = new Kubernetes(
+            new KubernetesClientConfiguration { Host = "http://kubernetes.example" },
+            new FakeConfigMapHandler(appsConfigData)
+        );
+        var check = new PlatformAccessHealthCheck(
             provider.GetRequiredService<IHttpClientFactory>(),
             new AppsConfigClient(kubernetes)
         );
