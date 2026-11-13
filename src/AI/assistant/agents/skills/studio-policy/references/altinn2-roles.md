@@ -12,7 +12,7 @@ for each service from what the service is about.
 ## When the policy has rules with Altinn 2 roles
 
 1. List the rules whose subjects include an Altinn 2 role code, with the role names and the rights each rule gives.
-2. Suggest access packages from Access Management's list, as `SKILL.md` describes, that fit what the service is about.
+2. Suggest access packages from the list that `SKILL.md` names, that fit what the service is about.
    Read the app's texts and data model to find out. Do not choose a package from the role's name alone: a broad role
    such as `utinn` or `regna` covered many unrelated services.
 3. If accountants, auditors or bankruptcy estates used the service for their clients through a role such as `a0239`
@@ -28,6 +28,7 @@ Add a rule with an Altinn 2 role only when the user asks for that role. Warn tha
 
 ## Role codes
 
-Access Management's list of roles, which `SKILL.md` names, has the Altinn 2 roles: those whose provider code is
+The list of roles that `SKILL.md` names has the Altinn 2 roles that Studio offers: those whose provider code is
 `sys-altinn2`. In a policy they appear as `urn:altinn:rolecode`, in any letter case. Studio's policy editor also
-treats `sens` and `sens01` as Altinn 2 roles. Treat them the same way.
+treats `kladm`, `gkbht`, `boadm`, `pasig`, `admai`, `hadm`, `eckeyrole`, `sens` and `sens01` as Altinn 2 roles,
+though it does not offer them. Treat them the same way.
