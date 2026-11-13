@@ -63,9 +63,24 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
 
             object data = _appModel.Create(dataType.AppLogic.ClassRef);
 
-            await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data, payload.Prefill);
+            await _prefillService.PrefillDataModel(
+                instance.InstanceOwner.PartyId,
+                dataType.Id,
+                data,
+                payload.Prefill,
+                context.Payload.Actor
+            );
             var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-            await instantiationProcessor.DataCreation(instanceDataMutator, data, payload.Prefill);
+            await instantiationProcessor.DataCreation(
+                new DataCreationContext
+                {
+                    InstanceDataMutator = instanceDataMutator,
+                    Data = data,
+                    Prefill = payload.Prefill,
+                    Actor = context.Payload.Actor,
+                    CancellationToken = context.CancellationToken,
+                }
+            );
 
             instanceDataMutator.AddFormDataElement(dataType.Id, data);
         }
