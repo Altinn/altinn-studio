@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../../../testing/mocks';
 import { BrokerFileTransferMainConfig } from './BrokerFileTransferMainConfig';
 import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const brokerFileTransferComponent: FormItem<ComponentType.BrokerFileTransfer> = {

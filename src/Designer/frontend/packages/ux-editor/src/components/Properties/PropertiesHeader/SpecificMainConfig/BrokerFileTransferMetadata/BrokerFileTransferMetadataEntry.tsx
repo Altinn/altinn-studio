@@ -9,8 +9,8 @@ import {
   StudioRadioGroup,
   StudioSelect,
   StudioTextfield,
-} from '@studio/components';
-import { CheckmarkIcon } from '@studio/icons';
+} from '@designer/components';
+import { CheckmarkIcon } from '@designer/icons';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
 import { getDataModelFields } from '../../../../../utils/dataModelUtils';

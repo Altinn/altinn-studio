@@ -1,5 +1,5 @@
 import type { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { DataLookupFuncName } from '@studio/components';
+import { DataLookupFuncName } from '@designer/components';
 
 export type MetadataValue = ExprValToActualOrExpr<ExprVal.String>;
 export type BrokerMetadata = Record<string, MetadataValue>;

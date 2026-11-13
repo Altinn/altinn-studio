@@ -6,7 +6,7 @@ import {
   StudioFieldset,
   StudioRadio,
   StudioSelect,
-} from '@studio/components';
+} from '@designer/components';
 import type { PropertyDefinition } from '@app/layout-contract';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';

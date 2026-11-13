@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 import { FormField } from 'app-shared/components/FormField';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';

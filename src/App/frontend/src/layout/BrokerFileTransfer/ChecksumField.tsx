@@ -11,6 +11,7 @@ import { checksumProblem } from 'src/layout/BrokerFileTransfer/messages';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 
 type ChecksumFieldProps = {
   baseComponentId: string;
@@ -30,6 +31,7 @@ export function ChecksumField({ baseComponentId, value, onChange }: ChecksumFiel
     Expressions.BrokerFileTransfer.textResourceBindings.checksumHelp,
   );
   const id = `${useIndexedId(baseComponentId)}-checksum`;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const [hasLeft, setHasLeft] = useState(false);
 
   if (!config.checksum) {
@@ -54,7 +56,7 @@ export function ChecksumField({ baseComponentId, value, onChange }: ChecksumFiel
         help={help || 'broker_file_transfer.checksum_help'}
         required={required}
         readOnly={readOnly}
-        showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+        showOptionalMarking={showOptionalMarking}
       >
         <Flex
           item
