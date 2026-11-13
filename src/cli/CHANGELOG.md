@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` keeps confirming instances as complete for apps that did so in v8: it sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for an app with an eFormidling task, or with a Fiks Arkiv task and `markInstanceComplete` on. v9 apps confirm when the process ends, and the eFormidling and Fiks Arkiv tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from the Fiks Arkiv settings in `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added
