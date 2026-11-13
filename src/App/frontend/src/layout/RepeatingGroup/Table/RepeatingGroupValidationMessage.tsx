@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React from 'react';
 
 import { Link, ValidationMessage } from '@digdir/designsystemet-react';
 
@@ -15,8 +15,25 @@ export function RepeatingGroupValidationMessage({
   validation: NodeRefValidation;
   onNavigate?: () => void;
 }) {
-  const messageId = useId();
   const navigate = useNavigateToComponent();
+
+  function handleNavigation(event: React.MouseEvent | React.KeyboardEvent) {
+    if (event.target instanceof Element && event.target.closest('a')) {
+      return;
+    }
+    if ('key' in event && event.key !== 'Enter') {
+      return;
+    }
+    event.preventDefault();
+    onNavigate?.();
+    void navigate(validation.nodeId, validation.baseComponentId, { error: validation }).catch(() => undefined);
+  }
+
+  const message = (
+    <DataModelLocationProviderFromNode nodeId={validation.nodeId}>
+      <LangReference reference={validation.message} />
+    </DataModelLocationProviderFromNode>
+  );
 
   return (
     <ValidationMessage
@@ -28,30 +45,23 @@ export function RepeatingGroupValidationMessage({
         <span className={utilClasses.visuallyHidden}>
           <Lang id={`group.validation_severity_${validation.severity}`} />
         </span>
-        <DataModelLocationProviderFromNode nodeId={validation.nodeId}>
-          <div id={messageId}>
-            <LangReference reference={validation.message} />
-          </div>
-        </DataModelLocationProviderFromNode>
-        {onNavigate && (
+        {onNavigate ? (
           <Link
             asChild
             data-color='neutral'
           >
-            <button
-              type='button'
-              aria-describedby={messageId}
+            <div
+              role='link'
+              tabIndex={0}
               data-target-node={validation.nodeId}
-              onClick={() => {
-                onNavigate();
-                void navigate(validation.nodeId, validation.baseComponentId, { error: validation }).catch(
-                  () => undefined,
-                );
-              }}
+              onClick={handleNavigation}
+              onKeyDown={handleNavigation}
             >
-              <Lang id='group.show_in_form' />
-            </button>
+              {message}
+            </div>
           </Link>
+        ) : (
+          message
         )}
       </div>
     </ValidationMessage>
