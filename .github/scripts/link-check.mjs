@@ -17,7 +17,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 // A fence closes on a line of the same character, at least as long as the one that opened it, with nothing after it.
 const FENCED_CODE = /^[ \t]*((`|~)\2{2,})[^\n]*\n[\s\S]*?^[ \t]*\1\2*[ \t]*$/gm;
 const INLINE_CODE = /`[^`\n]+`/g;
-const WEB_URL = /https?:\/\/[^\s<>"'`)\]]+/g;
+// A URL can hold balanced parentheses, such as https://host/topic_(detail). A `)` without its `(` ends the URL.
+const WEB_URL = /https?:\/\/(?:[^\s<>"'`()\]]|\([^\s<>"'`()\]]*\))+/g;
 // URLs with these are templates or examples, such as https://{org}.apps.altinn.no/<path>.
 const PLACEHOLDER = /[{}<>*]|\.\.\.|…/;
 const SKIPPED_HOSTS = new Set(['localhost', '127.0.0.1', 'local.altinn.cloud']);

@@ -27,11 +27,11 @@ sequenceDiagram
   participant M as Model
   participant T as skill tool
   participant F as Skill files
-  M->>T: skill(skill=studio-data-model)
+  M->>T: skill(skill=studio-text-resources)
   T->>F: Read SKILL.md
   F-->>T: Body text
   T-->>M: Body as tool result, plus a source
-  M->>T: skill(skill=studio-data-model, file=references/v8.md)
+  M->>T: skill(skill=studio-text-resources, file=references/v8.md)
   T-->>M: Text for v8 apps
 ```
 
