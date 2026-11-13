@@ -14,7 +14,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 // Relative links are checked elsewhere: in the Studio Assistant's skills by its unit tests, and in the docs by
 // agents-docs-validate.mjs.
 
-const FENCED_CODE = /^[ \t]*(```|~~~)[^\n]*\n[\s\S]*?^[ \t]*\1[^\n]*$/gm;
+// A fence closes on a line of the same character, at least as long as the one that opened it, with nothing after it.
+const FENCED_CODE = /^[ \t]*((`|~)\2{2,})[^\n]*\n[\s\S]*?^[ \t]*\1\2*[ \t]*$/gm;
 const INLINE_CODE = /`[^`\n]+`/g;
 const WEB_URL = /https?:\/\/[^\s<>"'`)\]]+/g;
 // URLs with these are templates or examples, such as https://{org}.apps.altinn.no/<path>.
