@@ -158,7 +158,7 @@ public sealed class DataModelFieldCalculatorTests
     }
 
     [Fact]
-    public async Task ListOfObjectsKeepsRowIdsByPositionAndCopiedRowsGetTheirOwn()
+    public async Task ListOfObjectsKeepsRowIdsByPositionAndCopiedRowsKeepTheirSourceId()
     {
         var existingRowId = Guid.NewGuid();
         var existingCopyId = Guid.NewGuid();
@@ -232,10 +232,11 @@ public sealed class DataModelFieldCalculatorTests
         Assert.Equal(Guid.Empty, rows[1].AltinnRowId);
         Assert.Equal(20, rows[1].Quantity);
 
-        // Copied rows keep the id of the row they are merged into, never the id of the row they are copied from
+        // Copied rows bring the id of the row they are copied from, so both sides compute the same ids
         var copies = Assert.IsType<List<RowModel>>(model.Copies);
         Assert.Equal(2, copies.Count);
-        Assert.Equal(existingCopyId, copies[0].AltinnRowId);
+        Assert.Equal(existingRowId, copies[0].AltinnRowId);
+        Assert.NotEqual(existingCopyId, copies[0].AltinnRowId);
         Assert.Equal(Guid.Empty, copies[1].AltinnRowId);
         Assert.Equal([5, 0], copies.Select(copy => copy.Price));
         Assert.Equal([10, 20], copies.Select(copy => copy.Quantity));
@@ -248,10 +249,67 @@ public sealed class DataModelFieldCalculatorTests
         var formDataWrapper = await dataAccessor.GetFormDataWrapper(_defaultSingleDataElement);
         formDataWrapper.InitializeAltinnRowIds();
         Assert.Equal(existingRowId, rows[0].AltinnRowId);
-        Assert.Equal(existingCopyId, copies[0].AltinnRowId);
-        var ids = rows.Concat(copies).Concat(created).Select(row => row.AltinnRowId).ToList();
-        Assert.DoesNotContain(Guid.Empty, ids);
-        Assert.Equal(ids.Count, ids.Distinct().Count());
+        Assert.Equal(existingRowId, copies[0].AltinnRowId);
+        Assert.Equal(existingRowId, created[0].AltinnRowId);
+        foreach (var list in new[] { rows, copies, created })
+        {
+            var ids = list.Select(row => row.AltinnRowId).ToList();
+            Assert.DoesNotContain(Guid.Empty, ids);
+            Assert.Equal(ids.Count, ids.Distinct().Count());
+        }
+    }
+
+    [Fact]
+    public async Task ListOfObjectsWithTheSameRowIdTwiceFails()
+    {
+        var model = new ListModel();
+        var calculationConfig = JsonSerializer.Deserialize<CalculationConfig>(
+            """
+            {
+                "calculations": [
+                    {
+                        "field": "rows",
+                        "expression": [
+                            "list",
+                            ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 1],
+                            ["object", "altinnRowId", "7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", "quantity", 2]
+                        ]
+                    }
+                ]
+            }
+            """,
+            _jsonSerializerOptions
+        );
+        _appResources.Setup(ar => ar.GetCalculationConfig("default")).Returns(calculationConfig);
+        _appResources.Setup(ar => ar.GetTexts("org", "app", "nb")).ReturnsAsync((TextResource?)null);
+        var dataAccessor = new InstanceDataAccessorFake(
+            new Instance()
+            {
+                Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+                AppId = "org/app",
+                Process = new() { CurrentTask = new() { ElementId = TaskId } },
+            },
+            applicationMetadata: null,
+            translationService: new TranslationService(
+                new AppIdentifier("org", "app"),
+                _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_output)
+            ),
+            layout: null,
+            frontEndSettings: _frontendSettings.Value,
+            gatewayAction: null,
+            language: null
+        )
+        {
+            { _defaultSingleDataElement, model },
+        };
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _dataModelFieldCalculator.Calculate(dataAccessor, TaskId)
+        );
+
+        Assert.Contains("7d4b4a0a-5b4b-4b1a-9f0e-3f6b1d2c8a11", exception.Message);
+        Assert.Contains("rows", exception.Message);
     }
 
     private sealed class ListModel

@@ -179,8 +179,11 @@ function writeCalculationResult(target: string, result: unknown, { dataType, mod
 
 function mergeObject(target: string, result: Record<string, unknown>, context: CalculationTarget) {
   for (const [key, value] of Object.entries(result)) {
-    // The row id belongs to the row, so a copied row never gets the id of the row it was copied from
+    // The row id is not in the schema. A row copied from another group brings its own, and keeps it.
     if (key === ALTINN_ROW_ID) {
+      if (typeof value === 'string' && value.length > 0) {
+        dot.str(`${target}.${key}`, value, context.model.currentData);
+      }
       continue;
     }
     writeCalculationResult(`${target}.${key}`, value, context);
@@ -212,6 +215,19 @@ function mergeRows(target: string, rows: Record<string, unknown>[], context: Cal
   }
   if (current.length > rows.length) {
     current.splice(rows.length);
+  }
+
+  // Rows that bring their own id can collide, such as a row listed twice. Rows are matched by id when saving, so
+  // the calculation fails rather than produce a list that cannot be told apart.
+  const rowIds = new Set<string>();
+  for (const row of current) {
+    const rowId = isObject(row) ? row[ALTINN_ROW_ID] : undefined;
+    if (typeof rowId === 'string' && rowId.length > 0) {
+      if (rowIds.has(rowId)) {
+        throw new Error(`The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`);
+      }
+      rowIds.add(rowId);
+    }
   }
 }
 

@@ -16,7 +16,8 @@ namespace Altinn.App.Core.Features.DataProcessing;
 internal sealed class DataModelFieldCalculator
 {
     /// <summary>
-    /// The row id is owned by the data model, so a result never writes it. Rows keep their id by position.
+    /// A row in a result may carry its own row id, such as a row copied from another group. Rows without one keep
+    /// the id of the row they are merged into.
     /// </summary>
     private const string AltinnRowIdJsonName = "altinnRowId";
 
@@ -132,8 +133,8 @@ internal sealed class DataModelFieldCalculator
 
     /// <summary>
     /// Writes a result the same way the frontend does: an object sets the properties it contains and leaves the
-    /// others alone, and a list of objects is merged row by row, so existing rows keep their row id and the
-    /// properties the result leaves out. Other values replace the field.
+    /// others alone, and a list of objects is merged row by row, so existing rows keep the properties the result
+    /// leaves out, and their row id unless the result row has one. Other values replace the field.
     /// </summary>
     private void SetResult(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement result)
     {
@@ -155,11 +156,6 @@ internal sealed class DataModelFieldCalculator
     {
         foreach (var property in result.EnumerateObject())
         {
-            if (property.Name == AltinnRowIdJsonName)
-            {
-                continue;
-            }
-
             SetResult(formDataWrapper, field, $"{path}.{property.Name}", property.Value);
         }
     }
@@ -190,6 +186,37 @@ internal sealed class DataModelFieldCalculator
         for (var index = currentRowCount - 1; index >= rowCount; index--)
         {
             formDataWrapper.RemoveField($"{path}[{index}]", RowRemovalOption.DeleteRow);
+        }
+
+        ThrowOnDuplicateRowIds(formDataWrapper, field, path, rowCount);
+    }
+
+    /// <summary>
+    /// Rows that carry their own id can collide, such as a row listed twice. The frontend matches rows by id, so
+    /// the calculation fails rather than save a list it cannot tell apart.
+    /// </summary>
+    private static void ThrowOnDuplicateRowIds(
+        IFormDataWrapper formDataWrapper,
+        DataReference field,
+        string path,
+        int rowCount
+    )
+    {
+        var rowIds = new HashSet<string>(StringComparer.Ordinal);
+        for (var index = 0; index < rowCount; index++)
+        {
+            var rowId = formDataWrapper.Get($"{path}[{index}].{AltinnRowIdJsonName}") switch
+            {
+                Guid guid when guid != Guid.Empty => guid.ToString(),
+                string text when text.Length > 0 => text,
+                _ => null,
+            };
+            if (rowId is not null && !rowIds.Add(rowId))
+            {
+                throw new InvalidOperationException(
+                    $"The calculation for {field.Field} gives more than one row in {path} the altinnRowId {rowId}"
+                );
+            }
         }
     }
 

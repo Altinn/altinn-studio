@@ -1,5 +1,5 @@
 {
-    "name": "Should remove the rows a shorter list result does not have, and keep the ids of the rows that are merged into",
+    "name": "Should remove the rows a shorter list result does not have, keep the ids of the rows merged into, and let copied rows bring their ids",
     "expects": [
         {
             "field": "form.children",
@@ -20,12 +20,12 @@
             "field": "form.copies",
             "result": [
                 {
-                    "altinnRowId": "copy-1",
+                    "altinnRowId": "row-1",
                     "price": 1,
                     "quantity": 10
                 },
                 {
-                    "altinnRowId": null,
+                    "altinnRowId": "row-2",
                     "price": 2,
                     "quantity": 20
                 }

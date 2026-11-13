@@ -14,7 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
 - System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
-- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects are matched by position, so they keep their `altinnRowId`. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects are matched by position and keep their `altinnRowId`, unless the result row brings one, as a row copied from another group does. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 
 ### Changed
 

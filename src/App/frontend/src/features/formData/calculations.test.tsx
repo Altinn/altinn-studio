@@ -409,7 +409,7 @@ describe('calculations in the form store', () => {
     });
   });
 
-  it('appends rows with new ids and ignores the ids of rows copied from another group', async () => {
+  it('appends rows with new ids, and copied rows keep the id of the row they are copied from', async () => {
     const { store } = await renderCalculations(
       { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
       {
@@ -427,17 +427,35 @@ describe('calculations in the form store', () => {
         { altinnRowId: 'b', price: 20, quantity: 2 },
       ],
       copies: [
-        { altinnRowId: 'copy-a', price: 10, quantity: 1 },
-        { altinnRowId: isUuid, price: 20, quantity: 2 },
+        { altinnRowId: 'a', price: 10, quantity: 1 },
+        { altinnRowId: 'b', price: 20, quantity: 2 },
       ],
     });
-    const copies = model.currentData['copies'] as { altinnRowId: string }[];
-    expect(copies[1].altinnRowId).not.toBe('b');
 
     // Calculating again changes nothing, so the rows keep their ids and references
     const previous = model.currentData;
     act(() => store.getState().data.debounce('forced'));
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(previous);
+  });
+
+  it('fails when two rows in a list result have the same id', async () => {
+    await expect(
+      renderCalculations(
+        {
+          calculations: [
+            {
+              field: 'rows',
+              expression: [
+                'list',
+                ['object', 'altinnRowId', 'same', 'price', 1],
+                ['object', 'altinnRowId', 'same', 'price', 2],
+              ],
+            },
+          ],
+        },
+        { rows: [] },
+      ),
+    ).rejects.toThrow('altinnRowId same');
   });
 
   it('leaves a list of primitives alone when the result is a list of objects', async () => {

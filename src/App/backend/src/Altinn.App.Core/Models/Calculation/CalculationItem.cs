@@ -20,9 +20,10 @@ public class CalculationItem : IJsonOnDeserialized
     /// The expression to be used for the calculation. Note that this will be run in the context of the field, so you can use relative paths in the expression.
     /// </summary>
     /// <remarks>
-    /// An object result sets the properties it contains and leaves the others untouched (<c>altinnRowId</c> is never
-    /// written). A list of objects is merged row by row: the field gets as many rows as the result, and existing
-    /// rows keep their row id and the properties the result leaves out. Other values replace the field.
+    /// An object result sets the properties it contains and leaves the others untouched. A list of objects is merged
+    /// row by row: the field gets as many rows as the result, and existing rows keep the properties the result
+    /// leaves out, and their <c>altinnRowId</c> unless the result row has one. Two rows with the same id fail the
+    /// calculation. Other values replace the field.
     /// </remarks>
     [JsonPropertyName("expression")]
     public required Expression Expression { get; init; }
