@@ -19,6 +19,7 @@ import (
 const (
 	doctorKeyWidth = 14
 	unknownValue   = "unknown"
+	notFoundValue  = "not found"
 )
 
 // DoctorCommand implements the 'doctor' subcommand.
@@ -44,6 +45,8 @@ func (c *DoctorCommand) Usage() string {
 		fmt.Sprintf("Usage: %s doctor [options]", osutil.CurrentBin()),
 		"",
 		"Diagnose the development environment and show any issues.",
+		"Inside an app, check the .NET SDK the app needs: the version its global.json",
+		"asks for, or the SDK for its target framework.",
 		"",
 		"Options:",
 		"  --json         Output as JSON",
@@ -101,7 +104,7 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.out.Printlnf("%s doctor", osutil.CurrentBin())
 	c.out.Println("")
 
-	table := newDoctorTable(doctorKeyWidth)
+	table := newDoctorTable()
 	c.renderDoctorCLISection(table, report.CLI)
 	c.renderDoctorSystemSection(table, report.System)
 	c.renderDoctorPrerequisitesSection(table, report.Prerequisites)
@@ -113,10 +116,10 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.out.RenderTable(table)
 }
 
-func newDoctorTable(keyWidth int) *ui.Table {
+func newDoctorTable() *ui.Table {
 	return ui.NewTable(
 		ui.NewColumn("").WithWidth(1),
-		ui.NewColumn("").WithMinWidth(keyWidth).WithStyle(ui.CellStyleDim),
+		ui.NewColumn("").WithMinWidth(doctorKeyWidth).WithStyle(ui.CellStyleDim),
 		ui.NewColumn(""),
 	).Indent(2).Gaps(1, 2)
 }
@@ -181,19 +184,7 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 		return
 	}
 
-	dotnetValue := prerequisites.DotnetValue
-	if dotnetValue == "" {
-		dotnetValue = unknownValue
-	}
-	if prerequisites.Dotnet.OK {
-		doctorKeyValueStatus(table, true, ".NET SDK", dotnetValue)
-	} else {
-		msg := "not found"
-		if dotnetValue != unknownValue {
-			msg = dotnetValue + " (8.0+ required)"
-		}
-		doctorKeyValueStatus(table, false, ".NET SDK", msg)
-	}
+	c.renderDoctorDotnetPrerequisite(table, prerequisites)
 
 	containerValue := prerequisites.ContainerValue
 	if containerValue == "" {
@@ -202,7 +193,7 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 	if prerequisites.Container.OK {
 		doctorKeyValueStatus(table, true, "Container", containerValue)
 	} else {
-		msg := "not found"
+		msg := notFoundValue
 		if containerValue != unknownValue {
 			msg = containerValue
 		}
@@ -228,6 +219,55 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prereq
 	}
 
 	c.renderDoctorWindowsPrerequisite(table, prerequisites)
+}
+
+// renderDoctorDotnetPrerequisite states the SDK dotnet selects. Inside an app it states what the app needs next to
+// it; outside one it names the SDK each app version needs, since doctor cannot tell which app comes next.
+func (c *DoctorCommand) renderDoctorDotnetPrerequisite(table *ui.Table, prerequisites *doctorsvc.Prerequisites) {
+	requirement := prerequisites.DotnetRequirement
+	if requirement != nil {
+		doctorKeyValueStatus(table, prerequisites.Dotnet.OK, ".NET SDK", doctorAppDotnetValue(prerequisites))
+		return
+	}
+
+	value := prerequisites.DotnetValue
+	switch {
+	case prerequisites.Dotnet.OK:
+	case value == "":
+		value = notFoundValue
+	default:
+		value += " (" + doctorsvc.DotnetSDKForV8Apps + "+ required)"
+	}
+	doctorKeyValueStatus(table, prerequisites.Dotnet.OK, ".NET SDK", value)
+	table.Row(ui.Empty(), ui.Empty(), ui.Dim(
+		"v8 apps need "+doctorsvc.DotnetSDKForV8Apps+"+, v9 apps need "+doctorsvc.DotnetSDKForV9Apps+"+",
+	))
+}
+
+func doctorAppDotnetValue(prerequisites *doctorsvc.Prerequisites) string {
+	requirement := prerequisites.DotnetRequirement
+	need := ""
+	if requirement.TargetFramework != "" {
+		need = "app targets " + requirement.TargetFramework
+		if !prerequisites.Dotnet.OK {
+			need += ", needs " + requirement.MinimumSDK + "+"
+		}
+	}
+
+	value := prerequisites.DotnetValue
+	switch {
+	case value == "" && requirement.SDKVersion != "":
+		// dotnet ran and found no SDK for the version global.json asks for.
+		return "none matches global.json (" + requirement.SDKVersion + ", rollForward " + requirement.RollForward + ")"
+	case value == "":
+		value = notFoundValue
+	case !prerequisites.Dotnet.OK && requirement.SDKVersion != "":
+		value += " from global.json"
+	}
+	if need == "" {
+		return value
+	}
+	return value + " (" + need + ")"
 }
 
 func doctorContainerToolsLabel(tools []doctorsvc.ContainerTool) string {

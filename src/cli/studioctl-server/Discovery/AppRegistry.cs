@@ -9,10 +9,16 @@ internal sealed class AppRegistry : BackgroundService
     private const int MaxConcurrentProbes = 8;
     private static readonly TimeSpan _startupPollInterval = TimeSpan.FromMilliseconds(500);
 
+    // How long a start waits for Localtest when it cannot be reached at all. Long enough for a Localtest container
+    // that is starting or restarting to accept connections, short enough that a developer without a running
+    // environment hears so soon after the app has started. A start never waits beyond its own timeout.
+    internal static readonly TimeSpan LocaltestUnavailableGrace = TimeSpan.FromSeconds(10);
+
     private readonly DiscoveryState[] _discoveries;
     private readonly TimeSpan _passivePollInterval;
     private readonly AppMetadataProbe _probe;
     private readonly LocaltestStorageProbe _storageProbe;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<AppRegistry> _logger;
     private readonly Channel<AppRegistryMessage> _messages = Channel.CreateUnbounded<AppRegistryMessage>();
     private readonly List<AppStartWaiter> _pendingStarts = [];
@@ -25,6 +31,7 @@ internal sealed class AppRegistry : BackgroundService
         IEnumerable<IAppDiscovery> discoveries,
         AppMetadataProbe probe,
         LocaltestStorageProbe storageProbe,
+        TimeProvider timeProvider,
         ILogger<AppRegistry> logger
     )
     {
@@ -32,6 +39,7 @@ internal sealed class AppRegistry : BackgroundService
         _passivePollInterval = _discoveries.Min(static discovery => discovery.Discovery.PassivePollInterval);
         _probe = probe;
         _storageProbe = storageProbe;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -68,7 +76,7 @@ internal sealed class AppRegistry : BackgroundService
         CancellationToken cancellationToken
     )
     {
-        var waiter = new AppStartWaiter(appId, processId, containerId, hostPort, DateTimeOffset.UtcNow + timeout);
+        var waiter = new AppStartWaiter(appId, processId, containerId, hostPort, _timeProvider.GetUtcNow() + timeout);
         using var cancellation = cancellationToken.Register(
             static state =>
             {
@@ -152,7 +160,7 @@ internal sealed class AppRegistry : BackgroundService
         CancellationToken cancellationToken
     )
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
         var shouldRefresh =
             message is not TimerTick || (_pendingStarts.Count > 0 && !_lastRefreshFailed) || now >= nextPoll;
         if (!shouldRefresh)
@@ -189,7 +197,7 @@ internal sealed class AppRegistry : BackgroundService
         }
         finally
         {
-            PrunePendingStarts(DateTimeOffset.UtcNow);
+            PrunePendingStarts(_timeProvider.GetUtcNow());
         }
 
         return now >= nextPoll ? now + _passivePollInterval : nextPoll;
@@ -345,15 +353,39 @@ internal sealed class AppRegistry : BackgroundService
             if (app is null)
                 continue;
 
-            if (
-                await _storageProbe.ProbeApplicationMetadata(app.AppId, cancellationToken)
-                is LocaltestStorageProbeResult.NotReady
-            )
-                continue;
-
-            waiter.TrySetResult(app.BaseUri.Value);
-            _pendingStarts.RemoveAt(i);
+            var result = await _storageProbe.ProbeApplicationMetadata(app.AppId, cancellationToken);
+            var now = _timeProvider.GetUtcNow();
+            switch (result)
+            {
+                case LocaltestStorageProbeResult.Ready:
+                    waiter.TrySetResult(app.BaseUri.Value);
+                    _pendingStarts.RemoveAt(i);
+                    break;
+                case LocaltestStorageProbeResult.NotReady:
+                    waiter.LocaltestUnavailableSince = null;
+                    break;
+                case LocaltestStorageProbeResult.Unavailable:
+                    waiter.LocaltestUnavailableSince ??= now;
+                    if (now - waiter.LocaltestUnavailableSince < LocaltestUnavailableGrace)
+                        break;
+                    FailLocaltestUnavailable(waiter);
+                    _pendingStarts.RemoveAt(i);
+                    break;
+            }
         }
+    }
+
+    private void FailLocaltestUnavailable(AppStartWaiter waiter)
+    {
+        var localtest = _storageProbe.BaseUri?.ToString() ?? "<not configured>";
+        _logger.LogWarning(
+            "App {AppId} started, but Localtest at {LocaltestUrl} could not be reached",
+            waiter.AppId,
+            localtest
+        );
+        waiter.TrySetException(
+            new LocaltestUnavailableException($"app started, but localtest at {localtest} could not be reached")
+        );
     }
 
     private void PrunePendingStarts(DateTimeOffset now)
@@ -369,6 +401,13 @@ internal sealed class AppRegistry : BackgroundService
 
             if (now < waiter.Deadline)
                 continue;
+
+            if (waiter.LocaltestUnavailableSince is not null)
+            {
+                FailLocaltestUnavailable(waiter);
+                _pendingStarts.RemoveAt(i);
+                continue;
+            }
 
             waiter.TrySetException(
                 new TimeoutException("matching app endpoint not found or not reachable through localtest storage")
@@ -472,6 +511,9 @@ internal sealed class AppRegistry : BackgroundService
         public string? ContainerId { get; }
         public int? HostPort { get; }
         public DateTimeOffset Deadline { get; }
+
+        // Since when the storage probe has found Localtest unreachable for this start; null while Localtest answers.
+        public DateTimeOffset? LocaltestUnavailableSince { get; set; }
         public Task<Uri> Task => _result.Task;
         public bool IsCompleted => _result.Task.IsCompleted;
 
