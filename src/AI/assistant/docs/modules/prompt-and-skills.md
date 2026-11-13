@@ -18,31 +18,34 @@ _The parts of the loop system prompt. The final answer rules are different for c
 
 ## Skills
 
-The assistant loads the skills that `SKILLS` in `src/AI/assistant/shared/config/base_config.py` names. They are the assistant's own, not the skills for coding agents in `agents/_skills/`.
+The assistant loads every skill in `src/AI/assistant/agents/skills/`. They are the assistant's own, not the skills for coding agents in `agents/_skills/`.
 
-Skills use progressive disclosure. The prompt has only the name and the description of each skill. The model calls the `skill` tool to get the body. A long body comes in parts, as [Tools](tools.md) describes.
+Skills use progressive disclosure. The prompt has only the name and the description of each skill. The model calls the `skill` tool to get the body, or a file that the body links to. A long body comes in parts, as [Tools](tools.md) describes.
 
 ```mermaid
 sequenceDiagram
   participant M as Model
   participant T as skill tool
   participant F as Skill files
-  M->>T: skill(name=altinn-datamodel)
-  T->>F: Read SKILL.md, v8.md or v9.md, and the included files
+  M->>T: skill(skill=studio-data-model)
+  T->>F: Read SKILL.md
   F-->>T: Body text
   T-->>M: Body as tool result, plus a source
+  M->>T: skill(skill=studio-data-model, file=references/v8.md)
+  T-->>M: Text for v8 apps
 ```
 
 _A skill load. The source becomes a link chip under the final answer._
 
-To add a skill, make `src/AI/assistant/agents/skills/altinn-<name>/SKILL.md` and add the name to `SKILLS`. The loader takes the name from the folder and reads these fields, each on one line:
+To add a skill, make `src/AI/assistant/agents/skills/studio-<topic>/SKILL.md` in the [Agent Skills](https://agentskills.io/specification) format. The loader reads these fields:
 
+- `name`, which is the same as the folder name.
 - `description`, which is necessary. The listing cuts it at 250 characters.
-- `when_to_use`, which the listing adds after the description.
-- `title` and `docs_url`, which the chat UI shows as the source chip of the answer. Use only a URL that you know is available.
-- `include`, a list of files beside `SKILL.md`, with commas between them. The loader adds them to the body. This is the only way the model sees them, because `read_file` reads only the app repository.
+- `metadata.studio-title` and `metadata.studio-docs-url`, which the chat UI shows as the source chip of the answer. `metadata.studio-docs-url-v9` is the URL for v9 apps, if the page is different. Use only a URL that you know is available.
 
-A `v8.md` or `v9.md` file beside `SKILL.md` holds text for apps of that version. The loader adds it after the body, before the included files.
+Put the files that the body links to in `references/`. `references/v8.md` or `references/v9.md` holds text for apps of that version. The model loads these files with the `file` argument of the `skill` tool, because `read_file` reads only the app repository.
+
+The workflow `agents-skills-check.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
 
 ## Prompts for the gates, intake and spec
 

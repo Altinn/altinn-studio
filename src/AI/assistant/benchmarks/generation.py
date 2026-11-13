@@ -250,14 +250,16 @@ ITEM_EVALUATORS: list[ItemEvaluator] = [
 def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
     """The real tool catalog the loop offers, optionally narrowed."""
     from agents.core import ToolRegistry
+    from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry, _internal_tools
 
+    skills = discover_skills()
     if names is None:
-        return _build_registry().to_schema()
+        return _build_registry(skills).to_schema()
     # An item names the tools of the session it was recorded from, which can
     # include a tool this deployment does not register.
     every_tool = ToolRegistry()
-    for tool in _internal_tools([]):
+    for tool in _internal_tools(skills):
         every_tool.register(tool)
     by_name = {schema["name"]: schema for schema in every_tool.to_schema()}
     missing = [name for name in names if name not in by_name]
@@ -269,6 +271,7 @@ def tool_catalog(names: list[str] | None = None) -> list[dict[str, Any]]:
 def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
     """The real loop system prompt, composed for one goal."""
     from agents.core.context import SessionContext, build_system_prompt
+    from agents.core.skills import discover_skills, format_skill_listing
 
     return build_system_prompt(
         SessionContext(
@@ -276,7 +279,8 @@ def actor_system_prompt(goal: str, *, allow_app_changes: bool = True) -> str:
             repo_path="/tmp/generation-experiment",
             user_goal=goal,
             allow_app_changes=allow_app_changes,
-        )
+        ),
+        skill_listing=format_skill_listing(discover_skills()),
     )
 
 

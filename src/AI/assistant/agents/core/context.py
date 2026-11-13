@@ -87,7 +87,7 @@ Every tool_use block you emit in the same assistant turn runs together — reads
 - **Navigation** — `scan_repo` once early.
 - **Inspection** — `read_file` before any edit/overwrite.  Read every file you'll need in one batch.
 - **Modification** — `edit_file` (literal string replace) and `write_file` (create or wholesale-rewrite).  Your only ways to change files.  `altinn_datamodel_sync` regenerates XSD + C# after data-model changes.
-- **Knowledge** — `skill(name)` loads curated instructions for a topic (see the skill listing below).  Load the relevant skill BEFORE working on data models, policy, text resources, prefill, or dynamic expressions.  For anything the skills don't cover, load `altinn-docs` and use `web_fetch` on pages from its index.
+- **Knowledge** — `skill(name)` loads curated instructions for a topic (see the skill listing below).  Load the relevant skill BEFORE working on data models, policy, text resources, prefill, or dynamic expressions.  A skill links files under `references/`, such as the file for this app's version; load one with `skill(name, file=...)`.  For anything the skills don't cover, load `studio-docs` and use `web_fetch` on pages from its index.
 - **Schema truth** — `altinn_layout_props(component_type=…)` for the canonical component property list.  Live lookup; batch it with reads.
 - **Recovery** — `discard_file_changes(path)` resets one file to HEAD.  Surgical, single-file.
 - **Finalize** — `verify_changes`, then `commit_session_branch`.

@@ -1,10 +1,14 @@
 ---
-description: Text resources (resource.nb.json etc.): key naming, locale files, and how layouts reference them. Load before adding or renaming text resources.
-title: Tekstressurser
-docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/
+name: studio-text-resources
+description: 'Text resources (resource.nb.json etc.): key naming, locale files, and how layouts reference them. Load before adding or renaming text resources.'
+metadata:
+  studio-title: Tekstressurser
+  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/reference/ux/texts/
 ---
 
 # ALTINN RESOURCES STRUCTURE AND RULES
+
+Also read [references/v8.md](references/v8.md) for a v8 app or [references/v9.md](references/v9.md) for a v9 app.
 
 ## CRITICAL REQUIREMENT
 

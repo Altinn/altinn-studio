@@ -29,6 +29,7 @@ from agents.core import (
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
+    Skill,
     SkillTool,
     TerminationReason,
     TextBlock,
@@ -411,18 +412,18 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
 _PREVIEW_CHECK_TOOL = "preview_render_check"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
+def _build_registry(skills: list[Skill]) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
     # The render check works only with the local Designer stack.
     preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
+    for tool in _internal_tools(skills):
         if tool.name != _PREVIEW_CHECK_TOOL or preview_check:
             registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
+def _internal_tools(skills: list[Skill]) -> list[Tool]:
     """Every tool that exists.  `_build_registry` decides which ones the model gets."""
     return [
         ScanRepoTool(),

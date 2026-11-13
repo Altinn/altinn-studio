@@ -1,9 +1,14 @@
 ---
-description: How to plan an Altinn app change: which files are involved per task type, ordering, and validation strategy. Load first on unfamiliar or multi-file tasks.
-title: Planlegging av app-endringer
+name: studio-app-development
+description: 'How to plan an Altinn app change: which files are involved per task type, ordering, and validation strategy. Load first on unfamiliar or multi-file tasks.'
+metadata:
+  studio-title: Planlegging av app-endringer
+  studio-docs-url: https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/
 ---
 
 # Altinn App Development Instructions
+
+Also read [references/v8.md](references/v8.md) for a v8 app or [references/v9.md](references/v9.md) for a v9 app.
 
 ### Core Components
 
@@ -62,10 +67,10 @@ Both are required on every page of a multi-page form. `verify_changes` rejects a
 - **UI components** → `altinn_layout_props(component_type=…)` for the canonical property list before adding or editing any component
 - **Data models** → edit `App/models/model.schema.json`, then `altinn_datamodel_sync` to regenerate model.xsd and model.cs — never hand-edit the generated files
 - **Text content** → edit `App/config/texts/resource.<locale>.json` directly; update every locale the app has in the same change
-- **Prefill** → `skill(altinn-prefill)` when pre-population from external sources is needed
-- **Authorization / policy** → `skill(altinn-policy)`
-- **Dynamic expressions** → `skill(altinn-expressions)`
-- **Anything the skills don't cover** → `skill(altinn-docs)`, then `web_fetch` on URLs taken verbatim from its index
+- **Prefill** → `skill(studio-prefill)` when pre-population from external sources is needed
+- **Authorization / policy** → `skill(studio-policy)`
+- **Dynamic expressions** → `skill(studio-expressions)`
+- **Anything the skills don't cover** → `skill(studio-docs)`, then `web_fetch` on URLs taken verbatim from its index
 
 ### 2. Validation strategy
 
