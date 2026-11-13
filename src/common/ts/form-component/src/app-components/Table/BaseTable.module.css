@@ -1,0 +1,270 @@
+@value mediaMdDown from '../breakpoints/breakpoints.module.css';
+
+/*
+ * Every rule below the first is a way in which a table differs from the designsystem default, switched on by a
+ * BaseTable property. The designsystem CSS is in a cascade layer, so these rules win over it whatever their
+ * specificity. Each selector has the same specificity, or one class more, than the rule it replaces in the component's
+ * own CSS module, so that it wins and loses against the component's other rules as before.
+ *
+ * TODO(1779): Remove these after going through all the different Table styles in Altinn, and making sure they are
+ * consistent.
+ */
+
+.table {
+  width: 100%;
+}
+
+.table.shadow {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 2px rgba(0, 0, 0, 0.12);
+}
+
+@media mediaMdDown {
+  .table.topBorderOnSmallScreens {
+    border-top: 1px solid #dde3e5;
+  }
+}
+
+/*
+ * Some tables' rules used to reach the cells of tables nested in their cells, such as a Markdown table in a text, and
+ * some did not. lookReachesNestedTables keeps that, so that nothing changes visually. The :where() keeps it from
+ * adding to the specificity.
+ */
+.table.headerBackgroundGray:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerBackgroundGray:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  background-color: #f5f5f5;
+}
+
+.table.headerBackgroundTinted:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerBackgroundTinted:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.table.headerBackgroundTintedThead:where(.lookInNestedTables, .headerLookInNestedTables) thead th,
+.table.headerBackgroundTintedThead:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.table.headerFontWeightMedium:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerFontWeightMedium:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  font-weight: 500;
+}
+
+.table.headerDividerLight:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerDividerLight:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  border-bottom: 1px solid #dde3e5;
+}
+
+.table.headerDividerStrong:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerDividerStrong:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  border-bottom: 2px solid var(--ds-color-neutral-base-default);
+}
+
+.table.headerPaddingMedium:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerPaddingMedium:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.table.headerPaddingLarge:where(.lookInNestedTables, .headerLookInNestedTables) th,
+.table.headerPaddingLarge:where(:not(.lookInNestedTables, .headerLookInNestedTables))
+  > thead
+  > tr
+  > th {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+/* The tables whose look reached nested tables set the whole border, the others only its colour */
+.table.rowDividerLight:where(.lookInNestedTables) td {
+  border-bottom: 1px solid #dde3e5;
+}
+
+.table.rowDividerLight:where(:not(.lookInNestedTables)) > tbody > tr > td {
+  border-bottom-color: #dde3e5;
+}
+
+.table.rowDividerDashed:where(.lookInNestedTables) td,
+.table.rowDividerDashed:where(:not(.lookInNestedTables)) > tbody > tr > td {
+  border-bottom: 1px dashed var(--ds-color-neutral-border-strong);
+}
+
+.table.cellPaddingMedium:where(.lookInNestedTables) td,
+.table.cellPaddingMedium:where(:not(.lookInNestedTables)) > tbody > tr > td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.table.cellPaddingLarge:where(.lookInNestedTables) td,
+.table.cellPaddingLarge:where(:not(.lookInNestedTables)) > tbody > tr > td {
+  padding-top: var(--ds-size-4);
+  padding-bottom: var(--ds-size-4);
+}
+
+.table.rowHeightLarge tr {
+  height: 60px;
+}
+
+.table.cellFontSizeLarge:where(.lookInNestedTables) td,
+.table.cellFontSizeLarge:where(:not(.lookInNestedTables)) > tbody > tr > td {
+  font-size: 16px;
+}
+
+/* Replaces the designsystem's thick line above the footer with a light line under it */
+.table.footerBackgroundGray > tfoot td {
+  background-color: #f5f5f5;
+  border-top: none;
+  border-bottom: 1px solid #dde3e5;
+}
+
+/* Layout: these are not part of the look, and are not covered by the TODO above */
+
+.table.fullWidth > :is(thead, tbody, tfoot) > tr > :is(th, td):first-child {
+  padding-left: var(--modal-padding-x);
+}
+
+.table.fullWidth > :is(thead, tbody, tfoot) > tr > :is(th, td):last-child {
+  padding-right: var(--modal-padding-x);
+}
+
+/* Comes after the look rules, with the same specificity, so that stacked cells lose their borders and padding */
+.table.stackedRows {
+  display: block;
+}
+
+.table.stackedRows thead {
+  display: none;
+}
+
+.table.stackedRows th {
+  display: block;
+  border: none;
+}
+
+.table.stackedRows tbody,
+.table.stackedRows tr {
+  display: block;
+}
+
+.table.stackedRows td {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  padding: var(--ds-size-2) 0;
+}
+
+.table.stackedRows td[data-header-title]:not([data-header-title=''])::before,
+.table.stackedRows th[data-header-title]:not([data-header-title=''])::before {
+  content: attr(data-header-title);
+  display: block;
+  text-align: left;
+  font-weight: 500;
+}
+
+.table.stackedRowsFramed caption {
+  display: block;
+}
+
+.table.stackedRowsFramed tbody tr:last-child {
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+}
+
+.table.stackedRowsFramed tbody tr:first-child {
+  border-top: 2px solid var(--ds-color-neutral-border-strong);
+}
+
+.table.stackedRowsFramed tr {
+  border-bottom: 1px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.table.stackedRowsFramed tr:hover td {
+  background-color: unset;
+}
+
+.table.stackedRowsDivided tbody:last-child tr:last-child {
+  border-bottom: none;
+}
+
+.table.stackedRowsDivided tr {
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.rowError > td {
+  background-color: var(--repeating-group-error-color) !important;
+}
+
+.rowBackgroundTinted,
+.rowBackgroundTinted td {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.columnWidth {
+  --cell-width: auto;
+  width: var(--cell-width);
+}
+
+/* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin)).
+   Adding 8.15% is a workaround for calc not working with both percentages and pixels inside a cell element. */
+.columnWidth:first-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.columnWidth:last-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.buttonCell {
+  min-width: unset;
+  max-width: unset;
+  width: 1px;
+}
+
+.buttonCell > div {
+  margin: 0;
+}
+
+.buttonCellContent {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.pager {
+  min-height: 60px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  background-color: var(--ds-color-neutral-background-tinted);
+  width: 100%;
+}
+
+.pagerCentered {
+  justify-content: center;
+}
