@@ -47,5 +47,6 @@
 }
 
 .messages [role='link'][data-target-node] {
+  cursor: pointer;
   outline-offset: -3px;
 }
