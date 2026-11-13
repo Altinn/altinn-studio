@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -80,6 +81,30 @@ public class GetModelMetadataTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(expectedModelMetadata, responseContent);
         Assert.True(JsonUtils.DeepEquals(expectedModelMetadata, responseContent));
+    }
+
+    [Fact]
+    public async Task GetModelMetadata_Should_Return_Enum_Values_As_Names()
+    {
+        // Arrange
+        (string url, _) = await ArrangeGetModelMetadataTest(
+            "ttd",
+            "app-with-layoutsets",
+            "testUser",
+            "layoutSet1",
+            null
+        );
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JsonNode stringField = JsonNode.Parse(responseContent)["elements"]["InnflytterSkjema.Innflytter.Fornavn"];
+        Assert.Equal("\"Field\"", stringField["type"].ToJsonString());
+        Assert.Equal("\"String\"", stringField["xsdValueType"].ToJsonString());
     }
 
     [Theory]

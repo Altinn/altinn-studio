@@ -55,6 +55,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
           internalBindingFormat={dataModelBinding}
           componentType={component.type}
           bindingKey={bindingKey}
+          hasGroupBinding={!!component.dataModelBindings?.group?.field}
         />
       )}
     </div>
