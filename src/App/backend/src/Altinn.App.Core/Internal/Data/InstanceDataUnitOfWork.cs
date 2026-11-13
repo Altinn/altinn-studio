@@ -846,8 +846,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             throw new InvalidOperationException("Workflow-owned aggregate save requires a captured instance version.");
         }
 
+        IEnumerable<StorageAuthenticationMethod> authenticationMethods = mutationPlan.AuthenticationMethods;
+        if (workflowOwned)
+        {
+            // The engine's callback has no user, and a current-user request gets the service owner's token there.
+            authenticationMethods = authenticationMethods.Select(method =>
+                method.Request is AuthenticationMethod.UserToken ? defaultAuthenticationMethod : method
+            );
+        }
+
         StorageAuthenticationMethod authenticationMethod = ResolveAggregateAuthenticationMethod(
-            mutationPlan.AuthenticationMethods,
+            [.. authenticationMethods],
             defaultAuthenticationMethod
         );
 
