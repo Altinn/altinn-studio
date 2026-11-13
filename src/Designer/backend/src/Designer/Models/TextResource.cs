@@ -1,5 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
@@ -11,6 +12,18 @@ namespace Altinn.Studio.Designer.Models;
 [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
 public class TextResource
 {
+    /// <summary>
+    /// The URL to the JSON schema for text resource files.
+    /// </summary>
+    public const string SchemaUrl = "https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json";
+
+    /// <summary>
+    /// Gets or sets the URL to the JSON schema for this file.
+    /// </summary>
+    [JsonProperty(PropertyName = "$schema")]
+    [JsonPropertyName("$schema")]
+    public string Schema { get; set; }
+
     /// <summary>
     /// Gets or sets the language. Should be a two letter ISO name.
     /// </summary>
