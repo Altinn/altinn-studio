@@ -112,6 +112,29 @@ describe('Repeating-group validation on mobile', () => {
     });
   }
 
+  it('dismisses messages when keyboard focus leaves the popup and trigger', () => {
+    setup(390);
+    cy.waitUntilSaved();
+    cy.get(appFrontend.errorReport).should('have.focus');
+    openRow('mixed', 4);
+    dialog().find('button[data-target-node="validation-mixed-age-4"]').click();
+    cy.get('#validation-mixed-age-4').should('have.focus');
+    openRow('mixed', 4);
+    dialog().find('li').first().find('[data-field="validation"] > div[id]').click();
+    dialog().should('be.visible');
+    dialog().focus();
+    for (let index = 0; index < 3; index++) {
+      cy.tab();
+      dialog().should('be.visible');
+    }
+    cy.tab();
+    dialog().should('not.exist');
+    cy.focused().should('be.visible');
+    cy.tab();
+    cy.tab();
+    cy.get('#validation-mixed-species-4').should('have.focus').and('be.visible');
+  });
+
   it('keeps the popup and its close control inside a short landscape viewport', () => {
     setup(390);
     cy.viewport(740, 390);
