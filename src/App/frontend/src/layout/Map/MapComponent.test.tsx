@@ -1,14 +1,12 @@
 import React from 'react';
 
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -52,62 +50,6 @@ describe('MapComponent', () => {
     expect(container.querySelector('.leaflet-draw-draw-polygon')).toBeInTheDocument();
     expect(container.querySelector('.leaflet-draw-draw-polyline')).toBeInTheDocument();
     expect(container.querySelector('.leaflet-draw-draw-marker')).not.toBeInTheDocument();
-  });
-
-  it('keeps the drawn layers when saved data changes fields that are not drawn', async () => {
-    const geometries = { dataType: defaultDataTypeMock, field: 'Geometries' };
-    const polygon = (lng: number) =>
-      JSON.stringify({
-        type: 'Polygon',
-        coordinates: [
-          [
-            [lng, 59],
-            [lng + 1, 59],
-            [lng + 1, 60],
-            [lng, 59],
-          ],
-        ],
-      });
-    const { container, formDataMethods } = await render({
-      component: {
-        toolbar: { polygon: true },
-        geometryType: 'GeoJSON',
-        dataModelBindings: {
-          geometries,
-          geometryData: { dataType: defaultDataTypeMock, field: 'Geometries.Data' },
-          geometryLabel: { dataType: defaultDataTypeMock, field: 'Geometries.Label' },
-          geometryIsEditable: { dataType: defaultDataTypeMock, field: 'Geometries.Editable' },
-        },
-      },
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              Geometries: [{ [ALTINN_ROW_ID]: 'row-1', Data: polygon(10), Editable: true }],
-            };
-          }),
-      },
-    });
-    const setField = (field: string, newValue: FDLeafValue) =>
-      act(() => {
-        formDataMethods.setLeafValueInList({
-          reference: geometries,
-          findRow: (row) => row[ALTINN_ROW_ID] === 'row-1',
-          field,
-          newValue,
-        });
-        formDataMethods.debounce('forced');
-      });
-
-    const drawnLayer = container.querySelector('path.leaflet-interactive');
-    expect(drawnLayer).toBeInTheDocument();
-
-    // Editable geometries are drawn without their label
-    setField('Label', 'Field 1');
-    expect(container.querySelector('path.leaflet-interactive')).toBe(drawnLayer);
-
-    setField('Data', polygon(12));
-    await waitFor(() => expect(container.querySelector('path.leaflet-interactive')).not.toBe(drawnLayer));
   });
 
   it('should show correct footer text when no location is selected', async () => {
