@@ -204,6 +204,24 @@ public sealed class OnProcessEndConfirmMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task OnARerun_AFiksArkivTaskWithoutMarkInstanceComplete_ReportsTheExistingConfirm()
+    {
+        // The first run's Fiks Arkiv step removed MarkInstanceComplete, the only sign that the task confirmed in v8.
+        const string original = """{ "id": "ttd/app", "onProcessEnd": { "confirm": true } }""";
+        _app.Write(MetadataPath, original);
+        _app.Write(ProcessPath, Process(ServiceTask("Task_Fiks", "fiksArkiv")));
+
+        var result = await Migrate();
+
+        Assert.Equal(original, _app.Read(MetadataPath));
+        Assert.Contains(
+            "already sets onProcessEnd.confirm",
+            Assert.Single(result.Messages).Text,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
     public async Task ConfirmFalse_IsKeptWithAWarning()
     {
         var original = """{ "id": "ttd/app", "onProcessEnd": { "confirm": false } }""";
