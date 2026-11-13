@@ -14,3 +14,4 @@ resources:
   - otel-operator.yaml
   - keda.yaml
   - runner-org-sync.yaml
+  - core-operator.yaml

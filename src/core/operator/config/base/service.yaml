@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-operator
+  namespace: core-operator
+  labels:
+    app.kubernetes.io/name: core-operator
+spec:
+  selector:
+    app.kubernetes.io/name: core-operator
+  ports:
+    # The run API for the assistant and Designer.
+    - name: api
+      port: 8080
+      targetPort: api
+      protocol: TCP
+    # The callbacks of operator-workflow-engine.
+    - name: callbacks
+      port: 8090
+      targetPort: callbacks
+      protocol: TCP

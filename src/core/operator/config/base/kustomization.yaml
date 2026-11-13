@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Each namespaced object sets its namespace. The Flux Kustomization has no targetNamespace, because the ClusterRole for
+# TokenReviews is cluster-scoped.
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - rbac.yaml
+  - deployment.yaml
+  - service.yaml
+  - networkpolicy.yaml
+# The operator reads every YAML file in the ConfigMap in name order. The overlays of the environments with sandbox
+# nodes merge in kinds.yaml. The hash in the name rolls out the Deployment when the configuration changes.
+configMapGenerator:
+  - name: core-operator-config
+    namespace: core-operator
+    files:
+      - config.yaml
+# The deploy workflow pins the image in the annotation. This copies it to the container.
+replacements:
+  - source:
+      kind: Deployment
+      name: core-operator
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: core-operator
+        fieldPaths:
+          - spec.template.spec.containers.[name=core-operator].image
