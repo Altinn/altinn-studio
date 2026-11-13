@@ -47,6 +47,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` points the gateways after an eFormidling service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the task's first form in `applicationmetadata.json`. A gateway the PDF service task step already pinned keeps its value; without a layout-set data model it asks you to set it. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+- `studioctl env up` starts a new studioctl server instead of failing with `kill process: operation not permitted` when the saved server process id belongs to another user's process, as after restoring a cached studioctl home on a CI runner. ([#21482](https://github.com/Altinn/altinn-studio/pull/21482))
 
 ## [0.1.0-preview.31] - 2026-11-06
 
