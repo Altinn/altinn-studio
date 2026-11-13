@@ -111,6 +111,42 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="validateonbacktosummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="validateOnBackToSummary">validateOnBackToSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Validation when returning to a summary or a linked page. Falls back to Next validation at each configuration level. Use an empty show array to skip validation.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="validateonbacktosummary.page">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="validateOnBackToSummary.page">validateOnBackToSummary.page</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Required</span>
+      <span class="component-property-type" title="&quot;current&quot; | &quot;currentAndPrevious&quot; | &quot;all&quot;">Type: <span class="component-property-value">&quot;current&quot; | &quot;currentAndPrevious&quot; | &quot;all&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Which pages should be validated when the next button is clicked. Allowed values: "current", "currentAndPrevious", "all".</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="validateonbacktosummary.show">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="validateOnBackToSummary.show">validateOnBackToSummary.show</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Required</span>
+      <span class="component-property-type" title="&quot;Schema&quot; | &quot;Invalid&quot; | &quot;Component&quot; | &quot;Expression&quot; | &quot;CustomBackend&quot; | &quot;Required&quot; | &quot;AllExceptRequired&quot; | &quot;All&quot;[]">Type: <span class="component-property-value">&quot;Schema&quot; | &quot;Invalid&quot; | &quot;Component&quot; | &quot;Expression&quot; | &quot;CustomBackend&quot; | &quot;Required&quot; | &quot;AllExceptRequired&quot; | &quot;All&quot;[]</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
+</details>
+
 <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="validateonprevious">
   <div class="component-property-summary">
     <span class="component-property-name" title="validateOnPrevious">validateOnPrevious</span>

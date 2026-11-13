@@ -3,15 +3,23 @@ import { useSearchParams } from 'react-router';
 
 import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 
 import { useCurrentProcessKey, useIsAnyProcessing, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
+import { getReturnRoute, returnRouteStillValid } from 'src/features/form/layout/PageNavigationContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
-import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
+import { useAsRef } from 'src/hooks/useAsRef';
+import {
+  useNavigatePage,
+  useNextPageKey,
+  usePreviousPageKey,
+  useVisiblePageOrderSnapshot,
+} from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -86,12 +94,13 @@ function NavigationButtonsComponentInner({
     Expressions.NavigationButtons.textResourceBindings.backToPage,
   );
 
-  const { getPageValidation } = usePageValidation(baseComponentId);
-  // Inherited validation applies only to forward navigation.
+  const { getPageValidation, getReturnValidation } = usePageValidation(baseComponentId);
   const validateOnForward = config.validateOnNext ?? getPageValidation();
   const validateOnBackward = config.validateOnPrevious;
+  const validateOnReturn = config.validateOnBackToSummary ?? config.validateOnNext ?? getReturnValidation();
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
+  const getVisibleOrder = useVisiblePageOrderSnapshot();
   const hasNext = !!useNextPageKey();
   const hasPrevious = !!usePreviousPageKey();
   const returnToView = FormStore.pageNavigation.useReturnToView();
@@ -99,6 +108,8 @@ function NavigationButtonsComponentInner({
 
   const [searchParams] = useSearchParams();
   const backToPage = searchParams.get(SearchParams.BackToPage);
+  const returnToViewRef = useAsRef(returnToView);
+  const backToPageRef = useAsRef(backToPage);
   const showBackToPageButton = !!backToPage;
 
   const performProcess = useProcessingMutationWithKey<NavigatePageProcessKey>('navigate-page');
@@ -125,23 +136,29 @@ function NavigationButtonsComponentInner({
    */
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
+  const validationBlocksNavigation = async (validation: PageValidation | undefined) => {
+    if (!validation) {
+      return false;
+    }
+
+    const pageKey = layoutLookups.componentToPage[baseComponentId];
+    if (!pageKey) {
+      throw new Error(`Could not find page key for component ${baseComponentId}`);
+    }
+
+    const prevScrollPosition = getScrollPosition();
+    const hasErrors = await onPageNavigationValidation(pageKey, validation);
+    if (hasErrors) {
+      resetScrollPosition(prevScrollPosition);
+    }
+    return hasErrors;
+  };
+
   const onClickPrevious = () =>
     performProcess('previous', async () => {
       await maybeSaveOnPageChange();
-
-      const prevScrollPosition = getScrollPosition();
-      if (validateOnBackward) {
-        const pageKey = layoutLookups.componentToPage[baseComponentId];
-        if (!pageKey) {
-          throw new Error(`Could not find page key for component ${baseComponentId}`);
-        }
-
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnBackward);
-        if (hasErrors) {
-          // Block navigation if validation fails
-          resetScrollPosition(prevScrollPosition);
-          return;
-        }
+      if (await validationBlocksNavigation(validateOnBackward)) {
+        return;
       }
 
       await navigateToPreviousPage({ skipAutoSave: true });
@@ -150,38 +167,43 @@ function NavigationButtonsComponentInner({
   const onClickNext = () =>
     performProcess('next', async () => {
       await maybeSaveOnPageChange();
-
-      const prevScrollPosition = getScrollPosition();
-
-      if (validateOnForward) {
-        const pageKey = layoutLookups.componentToPage[baseComponentId];
-        if (!pageKey) {
-          throw new Error(`Could not find page key for component ${baseComponentId}`);
-        }
-        const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
-        if (hasErrors) {
-          resetScrollPosition(prevScrollPosition);
-          return;
-        }
+      if (await validationBlocksNavigation(validateOnForward)) {
+        return;
       }
 
       await navigateToNextPage({ skipAutoSave: true });
     });
 
-  const onClickBackToSummary = () =>
-    performProcess('backToSummary', async () => {
-      await maybeSaveOnPageChange();
-      await navigateToPage(returnToView?.pageId, { skipAutoSave: true });
-    });
-
-  const onClickBackToPage = () =>
-    performProcess('backToPage', async () => {
-      if (!backToPage) {
+  const onClickReturn = (key: 'backToSummary' | 'backToPage', getTargetPage: () => string | null | undefined) =>
+    performProcess(key, async () => {
+      const targetPage = getTargetPage();
+      if (!targetPage) {
         return;
       }
+      const currentPage = layoutLookups.componentToPage[baseComponentId];
+      const routeBefore = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
+
       await maybeSaveOnPageChange();
-      await navigateToPage(backToPage, { skipAutoSave: true });
+
+      // An empty show list opts out. Validating with it would hide errors that are already visible.
+      if (
+        validateOnReturn &&
+        validateOnReturn.show.length > 0 &&
+        (await validationBlocksNavigation(validateOnReturn))
+      ) {
+        return;
+      }
+
+      // Saving or validation can reveal a page on the way back, before the rendered state has caught up.
+      // Then ClearInvalidReturnState removes the shortcut, and the user continues with regular navigation.
+      const routeAfter = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
+      if (getTargetPage() === targetPage && returnRouteStillValid(routeBefore, routeAfter)) {
+        await navigateToPage(targetPage, { skipAutoSave: true });
+      }
     });
+
+  const onClickBackToSummary = () => onClickReturn('backToSummary', () => returnToViewRef.current?.pageId);
+  const onClickBackToPage = () => onClickReturn('backToPage', () => backToPageRef.current);
 
   const loadingKey =
     currentProcessKey === 'next' ||

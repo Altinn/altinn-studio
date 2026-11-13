@@ -1,29 +1,30 @@
 import { useMemo } from 'react';
 
-import type { PageValidation } from '@app/layout-contract/generated/common.generated';
-
 import { FormStore } from 'src/features/form/FormContext';
-import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiConfig } from 'src/features/form/ui';
+import { useCurrentUiFolderSettingsFromUrl } from 'src/features/form/ui/hooks';
 
-export function useEffectivePageValidation(pageKey: string): {
-  getPageValidation: () => PageValidation | undefined;
-} {
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const effectivePageValidation = usePageSettings().validationOnNavigation;
+export function useEffectivePageValidation(pageKey: string) {
+  const page = FormStore.bootstrap.useLayoutCollection()[pageKey]?.data;
+  const task = useCurrentUiFolderSettingsFromUrl()?.pages;
+  const app = getUiConfig().settings;
 
-  return useMemo(() => {
-    if (!pageKey) {
-      return { getPageValidation: () => undefined };
-    }
-    const currentPageLayout = layoutCollection[pageKey];
-    const pageValidation = currentPageLayout?.data?.validationOnNavigation;
-
-    const validationOnNavigation = pageValidation ?? effectivePageValidation;
-
-    return {
-      getPageValidation: () => validationOnNavigation,
-    };
-  }, [pageKey, layoutCollection, effectivePageValidation]);
+  return useMemo(
+    () => ({
+      getPageValidation: () =>
+        pageKey
+          ? (page?.validationOnNavigation ?? task?.validationOnNavigation ?? app?.validationOnNavigation)
+          : undefined,
+      getReturnValidation: () =>
+        page?.validateOnBackToSummary ??
+        page?.validationOnNavigation ??
+        task?.validateOnBackToSummary ??
+        task?.validationOnNavigation ??
+        app?.validateOnBackToSummary ??
+        app?.validationOnNavigation,
+    }),
+    [pageKey, page, task, app],
+  );
 }
 
 export function usePageValidation(componentId: string) {

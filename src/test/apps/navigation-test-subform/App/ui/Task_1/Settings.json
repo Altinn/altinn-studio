@@ -1,6 +1,8 @@
 ﻿{
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
+    "validationOnNavigation": { "page": "current", "show": [] },
+    "validateOnBackToSummary": { "page": "current", "show": ["Required"] },
     "navigationTitle": ["concat", "Skjema", "sider"],
     "hideAppNameInPdf": true,
     "showLanguageSelector": true,
@@ -30,7 +32,7 @@
       },
       {
         "name": "group.summary",
-        "order": ["feedback", "summary"]
+        "order": ["feedback", "summary", "summary2"]
       }
     ]
   },

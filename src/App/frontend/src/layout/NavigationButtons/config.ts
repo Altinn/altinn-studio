@@ -59,4 +59,15 @@ export const Config = new CG.component({
     ),
   )
   .addProperty(new CG.prop('validateOnNext', CG.common('PageValidation').optional()))
+  .addProperty(
+    new CG.prop(
+      'validateOnBackToSummary',
+      CG.common('PageValidation')
+        .optional()
+        .setDescription(
+          'Validation when returning to a summary or a linked page. Falls back to Next validation at each configuration level. Use an empty show array to skip validation.',
+          'Validering ved retur til oppsummering eller en side med returlenke. Bruker ellers valideringen for Neste på hvert innstillingsnivå. Bruk en tom show-liste for å hoppe over valideringen.',
+        ),
+    ),
+  )
   .addProperty(new CG.prop('validateOnPrevious', CG.common('PageValidation').optional()));

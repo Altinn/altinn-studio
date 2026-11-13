@@ -10,8 +10,9 @@ export type CompNavigationButtonsSerialized = {
   };
   showBackButton?: boolean;
   validateOnNext?: PageValidation;
+  validateOnBackToSummary?: PageValidation;
   validateOnPrevious?: PageValidation;
   dataModelBindings?: undefined;
 } & ComponentBase;
 
-// Source hash: a0e3dceacf5b4a6319f3227b9de9eb91a803245b4430fd3e1d076f2680454b7e
+// Source hash: 98dbeb0e9d18e37b4ee30a28e59a2c2b9243a71cde58da66c0a099bdfec4320e

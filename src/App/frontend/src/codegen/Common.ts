@@ -106,6 +106,7 @@ const common = {
               .setDescription('Sets expanded width for pages', 'Viser sidene med utvidet bredde.'),
           ),
           new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+          new CG.prop('validateOnBackToSummary', CG.common('PageValidation').optional()),
         ),
       ),
     )
@@ -1033,6 +1034,7 @@ const common = {
           ),
       ),
       new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+      new CG.prop('validateOnBackToSummary', CG.common('PageValidation').optional()),
       new CG.prop(
         'hideAppNameInPdf',
         new CG.expr(ExprVal.Boolean)

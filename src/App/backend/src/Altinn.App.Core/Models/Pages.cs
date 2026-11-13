@@ -49,7 +49,7 @@ public class Pages
     public Expression? NavigationTitle { get; set; }
 
     /// <summary>
-    /// Page validation settings used when navigating between pages.
+    /// Default forward navigation validation for this task or UI folder.
     /// </summary>
     public PageValidation? ValidationOnNavigation { get; set; }
 
@@ -57,6 +57,12 @@ public class Pages
     /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
     /// </summary>
     public Expression? HideAppNameInPdf { get; set; }
+
+    /// <summary>
+    /// Validation when returning to a summary or a page linked with a return button.
+    /// Falls back to forward navigation validation at this configuration level.
+    /// </summary>
+    public PageValidation? ValidateOnBackToSummary { get; set; }
 
     /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.

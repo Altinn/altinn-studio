@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
-import { useIsHiddenPage } from 'src/utils/layout/hidden';
+import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
+import { useNavigationParam } from 'src/hooks/navigation';
+import { useCurrentView, usePageOrder } from 'src/hooks/useNavigatePage';
 
 type ReturnToView = {
   pageId: string;
@@ -61,27 +65,66 @@ export const pageNavigationHooks = {
   },
 };
 
-export function ClearHiddenSummaryReturnState() {
-  const returnToView = FormStore.pageNavigation.useReturnToView();
-  return returnToView ? (
-    <ClearReturnStateForHiddenPage
-      key={returnToView.pageId}
-      pageId={returnToView.pageId}
-    />
-  ) : null;
+/**
+ * The visible pages from the current page to the return target, both included. Undefined when either is not visible.
+ */
+export function getReturnRoute(order: string[], from: string | undefined, to: string): string[] | undefined {
+  const fromIndex = order.indexOf(from ?? '');
+  const toIndex = order.indexOf(to);
+  if (fromIndex < 0 || toIndex < 0) {
+    return undefined;
+  }
+  return order.slice(Math.min(fromIndex, toIndex), Math.max(fromIndex, toIndex) + 1);
 }
 
-function ClearReturnStateForHiddenPage({ pageId }: { pageId: string }) {
+/**
+ * A return route is still valid when it shows no page that was missing before.
+ */
+export function returnRouteStillValid(before: string[] | undefined, after: string[] | undefined): boolean {
+  return !!before && !!after && after.every((page) => before.includes(page));
+}
+
+export function ClearInvalidReturnState() {
+  const readOnly = FormStore.useIsReadOnly();
+  const hasParent = FormStore.raw.useSelector((state) => state.parent !== undefined);
+  const returnToView = FormStore.pageNavigation.useReturnToView();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
-  const hidden = useIsHiddenPage(pageId, { respectPageOrder: true, respectDevTools: false });
+  const order = usePageOrder();
+  const page = useCurrentView();
+  const mainPage = useNavigationParam('mainPageKey');
+  // Keep watching the parent page while the user edits one of its subforms.
+  const isParentForm = Boolean(mainPage) && !hasParent;
+  const currentPage = isParentForm ? mainPage : page;
+  const [searchParams, setSearchParams] = useSearchParams();
+  // The URL belongs to the active form. A parent only watches its own summary return.
+  const backToPage = isParentForm ? null : searchParams.get(SearchParams.BackToPage);
+  const returnPage = returnToView?.pageId ?? backToPage;
+  const previous = useRef<{ from: string | undefined; to: string; pages: string[] }>(undefined);
 
   useEffect(() => {
-    if (hidden) {
+    if (readOnly || !returnPage) {
+      previous.current = undefined;
+      return;
+    }
+    const pages = getReturnRoute(order, currentPage, returnPage);
+
+    const sameRoute = previous.current?.from === currentPage && previous.current?.to === returnPage;
+    if (!pages || (sameRoute && !returnRouteStillValid(previous.current?.pages, pages))) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
+      if (backToPage) {
+        setSearchParams((params) => {
+          const next = new URLSearchParams(params);
+          next.delete(SearchParams.BackToPage);
+          return next;
+        }, replaceAndPreventResetOptions);
+      }
+    } else {
+      // Hiding a page is safe, but revealing it again must remove the shortcut.
+      previous.current = { from: currentPage, to: returnPage, pages };
     }
-  }, [hidden, setReturnToView, setSummaryNodeOfOrigin]);
+  }, [readOnly, returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
 
   return null;
 }

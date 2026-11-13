@@ -13,7 +13,8 @@
         },
         "options": [
           { "value": "feedback", "label": "Skjul tilbakemelding" },
-          { "value": "summary", "label": "Skjul oppsummering" }
+          { "value": "summary", "label": "Skjul oppsummering" },
+          { "value": "info1", "label": "Skjul generell info" }
         ]
       },
       {

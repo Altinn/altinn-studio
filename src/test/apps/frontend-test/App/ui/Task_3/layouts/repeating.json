@@ -744,6 +744,7 @@
       },
       {
         "id": "nav-page-repeating",
+        "validateOnBackToSummary": { "page": "current", "show": [] },
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste",
