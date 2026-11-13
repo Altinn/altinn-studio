@@ -15,8 +15,11 @@ import type { AxiosStatic } from 'axios';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { OrgContext } from 'admin/contexts/OrgContext';
+import { DEFAULT_SEARCH_PARAMS, ERROR_METRICS_RANGE_MINUTES } from 'admin/constants/constants';
+import type { AppDailyMetricsSummary } from 'admin/features/apps/types/metrics/AppDailyMetricsSummary';
 
-const range = 1440;
+const range = ERROR_METRICS_RANGE_MINUTES;
+const period = DEFAULT_SEARCH_PARAMS.period;
 const env = 'production';
 const envTitle = textMock('general.production_environment_alt').toLowerCase();
 const orgFullName = 'Test Org Full Name';
@@ -45,14 +48,14 @@ vi.mock('axios', async () => {
 });
 vi.mock('admin/features/apps/hooks/useQueryParamState');
 
-const mockSetRange = vi.fn();
+const mockSetPeriod = vi.fn();
 const mockSetEnvironment = vi.fn();
 
 describe('AppsTable', () => {
   beforeEach(() => {
     vi.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
-      if (key === 'range') {
-        return [1440, mockSetRange];
+      if (key === 'period') {
+        return [period, mockSetPeriod];
       }
       if (key === 'environment') {
         return [defaultValue, mockSetEnvironment];
@@ -78,7 +81,7 @@ describe('AppsTable', () => {
 
       renderAppsTable(queryClient);
 
-      expect(screen.getByLabelText(textMock('admin.metrics.errors.loading'))).toBeInTheDocument();
+      expect(screen.getByLabelText(textMock('admin.apps.metrics.loading'))).toBeInTheDocument();
     });
 
     it('should render error state with danger alert for non-403 errors', async () => {
@@ -102,7 +105,7 @@ describe('AppsTable', () => {
 
       await waitFor(() => {
         expect(
-          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+          screen.queryByLabelText(textMock('admin.apps.metrics.loading')),
         ).not.toBeInTheDocument();
       });
 
@@ -130,7 +133,7 @@ describe('AppsTable', () => {
 
       await waitFor(() => {
         expect(
-          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+          screen.queryByLabelText(textMock('admin.apps.metrics.loading')),
         ).not.toBeInTheDocument();
       });
 
@@ -162,7 +165,7 @@ describe('AppsTable', () => {
 
       await waitFor(() => {
         expect(
-          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+          screen.queryByLabelText(textMock('admin.apps.metrics.loading')),
         ).not.toBeInTheDocument();
       });
 
@@ -214,7 +217,7 @@ describe('AppsTable', () => {
   describe('environment fallback', () => {
     beforeEach(() => {
       vi.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
-        if (key === 'range') return [1440, mockSetRange];
+        if (key === 'range') return [1440, mockSetPeriod];
         if (key === 'environment') return ['production', mockSetEnvironment];
         return [defaultValue, vi.fn()];
       });
@@ -234,7 +237,7 @@ describe('AppsTable', () => {
     });
   });
 
-  it('should change range when selecting a new range', async () => {
+  it('should change period when selecting a new period', async () => {
     const user = userEvent.setup();
 
     const queryClient = createQueryClientMock();
@@ -267,10 +270,132 @@ describe('AppsTable', () => {
 
     renderAppsTable(queryClient);
 
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, '60');
+    const select = screen.getByRole('combobox', { name: textMock('admin.apps.period') });
+    await user.selectOptions(select, '90');
 
-    expect(mockSetRange).toHaveBeenCalledWith(60);
+    expect(mockSetPeriod).toHaveBeenCalledWith(90);
+  });
+
+  describe('Daily metrics', () => {
+    const dailyMetrics: AppDailyMetricsSummary = {
+      periodDays: period,
+      metricDate: '2026-11-10',
+      observedSince: '2026-10-01',
+      computedAt: '2026-11-11T02:30:00Z',
+      apps: [
+        {
+          app,
+          instancesCreated: 120,
+          instancesCreatedPreviousPeriod: 100,
+          instancesCompleted: 90,
+          secondsToCompleteP50: 660,
+          lastInstanceCreatedOn: '2026-11-10',
+        },
+        {
+          app: 'idle-app',
+          instancesCreated: 0,
+          instancesCreatedPreviousPeriod: 0,
+          instancesCompleted: 0,
+          secondsToCompleteP50: null,
+          lastInstanceCreatedOn: '2026-04-03',
+        },
+      ],
+    };
+
+    const seedApps = (queryClient = createQueryClientMock()) => {
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        production: [
+          { app, env, org, version: '1' },
+          { app: 'idle-app', env, org, version: '2' },
+        ],
+      });
+      queryClient.setQueryData([QueryKey.ErrorMetrics, org, env, range], []);
+      return queryClient;
+    };
+
+    it('should show the stamp, the summary and the typical time to complete', () => {
+      const queryClient = seedApps();
+      queryClient.setQueryData([QueryKey.AppDailyMetrics, org, env, period], dailyMetrics);
+
+      renderAppsTable(queryClient);
+
+      expect(
+        screen.getByText(/mockedText\(admin\.apps\.stamp, \{"date":"10\. november 2026"/),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('admin.apps.summary.created', { days: period })),
+      ).toBeInTheDocument();
+      // The total in the summary tile and the app's own row
+      expect(screen.getAllByText('120')).toHaveLength(2);
+      expect(
+        screen.getByText(
+          textMock('admin.apps.summary.created_change', { change: '▲ 20', days: period }),
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('admin.apps.summary.completed_share', { percent: 75 })),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          textMock('admin.apps.typical_time', {
+            duration: textMock('admin.workflows.duration.minutes', { count: 11 }),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should flag an app without use and count it among the deviations', () => {
+      const queryClient = seedApps();
+      queryClient.setQueryData([QueryKey.AppDailyMetrics, org, env, period], dailyMetrics);
+
+      renderAppsTable(queryClient);
+
+      expect(
+        screen.getByText(textMock('admin.apps.deviations.no_use', { months: 7 })),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('admin.apps.summary.deviations_detail', { errors: 0, noUse: 1 })),
+      ).toBeInTheDocument();
+    });
+
+    it('should put the app without use first by default', () => {
+      const queryClient = seedApps();
+      queryClient.setQueryData([QueryKey.AppDailyMetrics, org, env, period], dailyMetrics);
+
+      renderAppsTable(queryClient);
+
+      const links = screen.getAllByRole('link');
+      expect(links[0]).toHaveTextContent('idle-app');
+      expect(links[1]).toHaveTextContent(app);
+    });
+
+    it('should show that no daily numbers exist yet', () => {
+      const queryClient = seedApps();
+      queryClient.setQueryData([QueryKey.AppDailyMetrics, org, env, period], {
+        ...dailyMetrics,
+        metricDate: null,
+        observedSince: null,
+        computedAt: null,
+        apps: [],
+      });
+
+      renderAppsTable(queryClient);
+
+      expect(screen.getByText(textMock('admin.apps.stamp.no_data'))).toBeInTheDocument();
+      expect(screen.getAllByText(textMock('admin.apps.deviations.none'))).toHaveLength(2);
+    });
+
+    it('should render an error when the daily numbers cannot be fetched', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
+      const queryClient = seedApps();
+
+      renderAppsTable(queryClient);
+
+      await waitFor(() => {
+        expect(screen.getByText(textMock('admin.apps.metrics.error'))).toBeInTheDocument();
+      });
+    });
   });
 });
 

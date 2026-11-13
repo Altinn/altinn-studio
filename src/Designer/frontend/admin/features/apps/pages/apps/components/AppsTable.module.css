@@ -6,10 +6,34 @@
   margin: var(--ds-size-6) 0;
 }
 
-.errorMetricsHeaderCell {
+.toolbar {
   display: flex;
-  justify-content: end;
-  gap: var(--ds-size-3);
+  justify-content: space-between;
+  align-items: end;
+  gap: var(--ds-size-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--ds-size-4);
+}
+
+.numericHeaderCell {
+  text-align: right;
+}
+
+.numericCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.stack {
+  display: inline-grid;
+  justify-items: end;
+  line-height: 1.25;
+}
+
+.subtle {
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  white-space: nowrap;
 }
 
 .errorMetricsCell {

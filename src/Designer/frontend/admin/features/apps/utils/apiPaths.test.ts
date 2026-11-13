@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { resumeWorkflowPath, workflowCollectionsPath, workflowsListPath } from './apiPaths';
+import {
+  appDailyMetricsDetailsPath,
+  appDailyMetricsPath,
+  resumeWorkflowPath,
+  workflowCollectionsPath,
+  workflowsListPath,
+} from './apiPaths';
 
 const org = 'ttd';
 const env = 'at23';
@@ -50,6 +56,17 @@ describe('workflow ops paths', () => {
     );
     expect(resumeWorkflowPath(org, env, app, firstKey, false)).toBe(
       `${basePath}/workflows/${firstKey}/resume?cascade=false`,
+    );
+  });
+});
+
+describe('appDailyMetricsPath', () => {
+  it('asks for the period in days', () => {
+    expect(appDailyMetricsPath(org, env, 30)).toBe(
+      `/designer/api/v1/admin/app-daily-metrics/${org}/${env}?days=30`,
+    );
+    expect(appDailyMetricsDetailsPath(org, env, app, 7)).toBe(
+      `/designer/api/v1/admin/app-daily-metrics/${org}/${env}/${app}?days=7`,
     );
   });
 });

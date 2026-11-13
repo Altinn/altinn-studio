@@ -1,0 +1,7 @@
+.stamp {
+  color: var(--ds-color-neutral-text-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  align-items: center;
+}
