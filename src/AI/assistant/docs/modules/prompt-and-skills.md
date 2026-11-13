@@ -47,7 +47,7 @@ Put the files that the body links to in `references/`. `references/v8.md` or `re
 
 Write a skill for each agent that loads it: the assistant, and coding agents in a local clone of the app when studioctl ships the skills. The assistant cannot build or run an app, so a skill must not tell the reader to do this. Each item under "Before you finish" must be one that the reader can check in the files of the app. If the build checks a rule, state the rule, but do not give its `ALTINNAPP` code. The build message gives the code and the fix, and the rules change with each release of the app libraries. Coding agents get the build and run steps from the `agents/_skills/app-development/` skill.
 
-The workflow `agents-skills-check.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
+The workflow `assistant-skill-links.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
 
 ## Prompts for the gates, intake and spec
 

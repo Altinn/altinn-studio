@@ -11,8 +11,6 @@ from shared.config.base_config import DEFAULT_ROLE, default_role_model, resolved
 class _Config:
     LLM_MODEL_ACTOR = "actor-model"
     LLM_MODEL_PLANNER = "planner-model"
-    LLM_MODEL_REVIEWER = "reviewer-model"
-    LLM_MODEL_ASSISTANT = "assistant-model"
     LLM_MODEL = "llm-model"
     AZURE_DEPLOYMENT_NAME = "azure-deployment"
     AZURE_API_KEY = "a-key"
@@ -65,7 +63,6 @@ class TestTheTwoResolutionPaths:
 
         assert models["actor"] == config.LLM_MODEL_ACTOR
         assert models["planner"] == config.LLM_MODEL_PLANNER
-        assert models["reviewer"] == config.LLM_MODEL_REVIEWER
 
     def test_it_is_reported_under_its_own_name(self, config):
         assert resolved_role_models()[DEFAULT_ROLE] == "azure-deployment"
@@ -76,8 +73,7 @@ class TestTheNamedRoles:
         models = resolved_role_models()
 
         assert models["actor"] == "actor-model"
-        assert models["reviewer"] == "reviewer-model"
-        assert models["assistant"] == "assistant-model"
+        assert models["planner"] == "planner-model"
 
     def test_llm_model_is_not_reported_as_a_role_of_its_own(self, config):
         """It was reported as 'fallback', which read like a role the client has.

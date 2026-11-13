@@ -313,14 +313,10 @@ def resolve_system_prompt(item_input: dict[str, Any]) -> str:
 
 def adapter_for(model: str, max_tokens: int | None = None) -> Any:
     """An adapter for one named model, bypassing role selection."""
-    from agents.core.llm_adapter import (
-        _ANTHROPIC_MAX_TOKENS,
-        AnthropicAdapter,
-        OpenAIAdapter,
-        _is_claude_model,
-    )
+    from agents.core.llm_adapter import _ANTHROPIC_MAX_TOKENS, AnthropicAdapter, OpenAIAdapter
+    from shared.utils.models import is_claude_model
 
-    if _is_claude_model(model):
+    if is_claude_model(model):
         return AnthropicAdapter(
             model=model,
             max_tokens=max_tokens if max_tokens is not None else _ANTHROPIC_MAX_TOKENS,

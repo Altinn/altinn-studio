@@ -151,7 +151,7 @@ def _models_and_sampling() -> tuple[dict[str, str], dict[str, str]]:
     sampling = {
         "temperature": _sampling_value(config.LLM_TEMPERATURE),
         "temperature_planner": _sampling_value(config.LLM_TEMPERATURE_PLANNER),
-        # The live knob for the gpt-5 family, which the gates run on.
+        # The live knob for the gpt reasoning models, which the gates run on.
         "reasoning_effort": _sampling_value(config.LLM_REASONING_EFFORT),
     }
     return models, sampling

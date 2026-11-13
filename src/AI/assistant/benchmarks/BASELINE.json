@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "2cfeeef6e539",
-    "code": "9e1c66e dirty",
+    "actor_prompt": "d3684044618e",
+    "code": "1142d9c clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "fa875a2c37a4"
+    "tools": "ffc193b2c371"
   },
-  "check_id": "20261106T200119Z-agent-skills-version-file-on-demand-21793-49da",
-  "label": "Agent Skills, version file on demand, #21793",
-  "recorded_at": "2026-11-06T20:08:32+00:00",
-  "why": "The skills move to the Agent Skills format, the roles move to the gpt-6 deployments and the actor loads each skill's version file on demand, in #21793. Full check with e2e, run once in each version-file mode on the same commit. The append-mode run is 20261106T195143Z-agent-skills-version-file-appended-21793-24c8. Every behavior scores the same in both. On demand, the actor loaded references/v8.md for each of the 15 skills it loaded that has a version file, every time before its first write, at four more actor turns across the four builds. actor.picks-allowed-tool is 0.889 in both modes, because in one replay the actor loads a skill where the item expects verify_changes. Studio has the preview turned off (#21637), so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force."
+  "check_id": "20261113T071624Z-gpt-6-deployments-21937-1142d9cd12-0d6f",
+  "label": "gpt-6 deployments, #21937 1142d9cd12",
+  "recorded_at": "2026-11-13T07:24:09+00:00",
+  "why": "#21937 moves the assistant to the gpt-6 deployments. Its runner also writes the judge to Langfuse, so a machine without the local copy of this run can compare with it. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. Against the #21905 baseline on gpt-5.x, every scored behavior has the same score except two, each by one item that passed in an earlier run on the same agent code. In scope-lookup-keyword-overlap, gpt-6-luna declined a Norwegian question in English. In build-verifies-before-committing, gpt-6.1-terra read files before it called verify_changes. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }
