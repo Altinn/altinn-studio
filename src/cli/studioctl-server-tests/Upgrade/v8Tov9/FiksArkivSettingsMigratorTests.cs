@@ -89,7 +89,7 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
     [Fact]
     public async Task NoMoveToNextTask_LeavesTheFileUntouched()
     {
-        var original = Settings("      \"MarkInstanceComplete\": true", "      \"Action\": \"reject\"");
+        var original = Settings("      \"Action\": \"confirm\"", "      \"Action\": \"reject\"");
         _app.Write("appsettings.json", original);
         _app.Write("config/process/process.bpmn", ProcessWithGateway());
 
@@ -105,7 +105,7 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
         _app.Write(
             "appsettings.json",
             Settings(
-                "      \"MoveToNextTask\": true,\n      \"MarkInstanceComplete\": true,\n      \"Action\": \"confirm\"",
+                "      \"MoveToNextTask\": true,\n      \"Action\": \"confirm\"",
                 "      \"Action\": \"reject\",\n      \"MoveToNextTask\": true"
             )
         );
@@ -117,7 +117,6 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
         Assert.DoesNotContain("MoveToNextTask", rewritten, StringComparison.OrdinalIgnoreCase);
         using var doc = JsonDocument.Parse(rewritten); // the trailing comma after "Action": "reject" is gone
         var fiks = doc.RootElement.GetProperty("FiksArkivSettings");
-        Assert.True(fiks.GetProperty("SuccessHandling").GetProperty("MarkInstanceComplete").GetBoolean());
         Assert.Equal("confirm", fiks.GetProperty("SuccessHandling").GetProperty("Action").GetString());
         Assert.Equal("reject", fiks.GetProperty("ErrorHandling").GetProperty("Action").GetString());
         Assert.Equal("0301", fiks.GetProperty("Recipient").GetProperty("Identifier").GetProperty("Value").GetString());
@@ -137,13 +136,7 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
     [Fact]
     public async Task SuccessHandlingFalse_IsRemovedAndFlaggedAsABehaviorChange()
     {
-        _app.Write(
-            "appsettings.json",
-            Settings(
-                "      \"MoveToNextTask\": false,\n      \"MarkInstanceComplete\": true",
-                "      \"Action\": \"reject\""
-            )
-        );
+        _app.Write("appsettings.json", Settings("      \"MoveToNextTask\": false", "      \"Action\": \"reject\""));
         _app.Write("config/process/process.bpmn", ProcessWithGateway());
 
         var result = await Migrate();
@@ -173,10 +166,7 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
     [Fact]
     public async Task EnvironmentSpecificFiles_AreMigratedToo()
     {
-        _app.Write(
-            "appsettings.json",
-            Settings("      \"MarkInstanceComplete\": true", "      \"Action\": \"reject\"")
-        );
+        _app.Write("appsettings.json", Settings("      \"Action\": \"confirm\"", "      \"Action\": \"reject\""));
         _app.Write(
             "appsettings.Production.json",
             """
@@ -205,6 +195,42 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
         );
         var warning = Assert.Single(result.Warnings);
         Assert.Contains("appsettings.Production.json", warning, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(true, "onProcessEnd.confirm")]
+    [InlineData(false, "behavior is unchanged")]
+    public async Task MarkInstanceComplete_IsRemovedFromSuccessHandling(bool value, string explanation)
+    {
+        _app.Write(
+            "appsettings.json",
+            Settings(
+                $"      \"Action\": \"confirm\",\n      \"MarkInstanceComplete\": {(value ? "true" : "false")}",
+                "      \"Action\": \"reject\""
+            )
+        );
+        _app.Write("config/process/process.bpmn", ProcessWithGateway());
+
+        var result = await Migrate();
+
+        var rewritten = _app.Read("appsettings.json");
+        Assert.DoesNotContain("MarkInstanceComplete", rewritten, StringComparison.OrdinalIgnoreCase);
+        using var doc = JsonDocument.Parse(rewritten);
+        Assert.Equal(
+            "confirm",
+            doc.RootElement.GetProperty("FiksArkivSettings")
+                .GetProperty("SuccessHandling")
+                .GetProperty("Action")
+                .GetString()
+        );
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains(
+            $"SuccessHandling:MarkInstanceComplete ({(value ? "true" : "false")})",
+            warning,
+            StringComparison.Ordinal
+        );
+        Assert.Contains(explanation, warning, StringComparison.Ordinal);
+        Assert.Single(result.Messages);
     }
 
     [Fact]
@@ -243,6 +269,9 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
                   "Nested": {
                     "MoveToNextTask": false
                   }
+                },
+                "ErrorHandling": {
+                  "MarkInstanceComplete": true
                 }
               }
             }

@@ -316,6 +316,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
+        // After the eFormidling migration, which can add an eFormidling task, and before the Fiks Arkiv settings
+        // step removes MarkInstanceComplete, which it reads.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOnProcessEndConfirm(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
 
@@ -2151,9 +2156,32 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
-    /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
-    /// not followed by the exclusive gateway the v9 app requires at startup.
+    /// Set onProcessEnd.confirm in applicationmetadata.json for an app whose eFormidling or Fiks Arkiv task
+    /// confirmed its instances as complete in v8; the v9 tasks never do.
+    /// </summary>
+    static async Task<int> MigrateOnProcessEndConfirm(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Confirmation at process end");
+        try
+        {
+            var result = await OnProcessEndConfirmMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No eFormidling or Fiks Arkiv task confirmed instances in v8",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error setting onProcessEnd.confirm", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 13: remove the Fiks Arkiv moveToNextTask and markInstanceComplete settings v9 no longer has (a
+    /// concluded Fiks Arkiv task always moves the process on, and never confirms the instance), say what
+    /// changes where moveToNextTask was false, and point out a Fiks Arkiv task not followed by the exclusive
+    /// gateway the v9 app requires at startup.
     /// </summary>
     static async Task<int> MigrateFiksArkivSettings(string projectFolder)
     {

@@ -13,13 +13,19 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.FiksArkivSettingsMigration;
 /// configuration binder would ignore it silently, and an app that relied on <c>false</c> (stay put after a
 /// receipt; fail the task on a rejection) has behavior to re-plan.
 ///
+/// Also removes <c>successHandling.markInstanceComplete</c>, which v9 does not have either: a v9 app
+/// confirms instances only through <c>onProcessEnd.confirm</c>, which <see cref="OnProcessEndConfirmMigration"/>
+/// sets from this setting in the step before.
+///
 /// Also points out a Fiks Arkiv task that is not followed by an exclusive gateway: the v9 app refuses to
 /// start until one separates a confirmed archiving from a rejected one. Advisory only, since adding a
 /// gateway means deciding where a rejected case should go.
 /// </summary>
 internal sealed class FiksArkivSettingsMigrator
 {
-    private const string SettingName = "MoveToNextTask";
+    private const string MoveToNextTask = "MoveToNextTask";
+    private const string MarkInstanceComplete = "MarkInstanceComplete";
+    private static readonly string[] _settingNames = [MoveToNextTask, MarkInstanceComplete];
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
     private readonly string _projectFolder;
@@ -39,7 +45,7 @@ internal sealed class FiksArkivSettingsMigrator
 
         foreach (var file in EnumerateAppSettingsFiles(ResolveAppFolder()))
         {
-            await StripMoveToNextTask(file, messages);
+            await StripRemovedSettings(file, messages);
         }
 
         AdviseOnProcessShape(messages);
@@ -49,33 +55,34 @@ internal sealed class FiksArkivSettingsMigrator
 
     /// <summary>
     /// Removes every whole-line <c>"moveToNextTask": true/false</c> property that sits directly inside a
-    /// <c>successHandling</c> or <c>errorHandling</c> object, preserving the surrounding formatting (the same
+    /// <c>successHandling</c> or <c>errorHandling</c> object, and every <c>"markInstanceComplete"</c> one
+    /// directly inside a <c>successHandling</c> object, preserving the surrounding formatting (the same
     /// approach as the eFormidling and enablePdfCreation migrations). The parent is tracked by following the
     /// braces, so a same-named property elsewhere in the file is left alone. A property with unexpected
     /// formatting is left in place with a to-do. Verifies the result still parses before writing it.
     /// </summary>
-    private static async Task StripMoveToNextTask(string file, List<UpgradeMessage> messages)
+    private static async Task StripRemovedSettings(string file, List<UpgradeMessage> messages)
     {
         var (original, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(file));
-        if (!original.Contains(SettingName, StringComparison.OrdinalIgnoreCase))
+        if (!_settingNames.Any(name => original.Contains(name, StringComparison.OrdinalIgnoreCase)))
             return;
 
         var fileName = Path.GetFileName(file);
         var lines = original.Split('\n');
         var kept = new List<string>(lines.Length);
         var owners = new Stack<string?>();
-        var removed = new List<(string Handler, bool Value)>();
+        var removed = new List<(string Handler, string Setting, bool Value)>();
 
         for (var i = 0; i < lines.Length; i++)
         {
             var line = lines[i];
             var owner = owners.Count > 0 ? owners.Peek() : null;
 
-            if (TryParseSettingLine(line, out var value))
+            if (TryParseSettingLine(line, out var setting, out var value))
             {
-                if (owner is { } handler && IsHandler(handler))
+                if (owner is { } handler && Holds(handler, setting))
                 {
-                    removed.Add((handler, value));
+                    removed.Add((handler, setting, value));
                     // Removing the last property of the object leaves a dangling comma on the previous one.
                     if (NextMeaningfulLine(lines, i).StartsWith('}') && kept.Count > 0)
                     {
@@ -87,12 +94,22 @@ internal sealed class FiksArkivSettingsMigrator
                     continue;
                 }
             }
-            else if (line.Contains($"\"{SettingName}\"", StringComparison.OrdinalIgnoreCase))
+            else if (
+                _settingNames.FirstOrDefault(name =>
+                    line.Contains($"\"{name}\"", StringComparison.OrdinalIgnoreCase)
+                ) is
+                { } unparsed
+            )
             {
                 messages.Todo(
-                    $"Found {SettingName} on a line with unexpected formatting in {fileName} (line {i + 1}); left "
-                        + "it in place. Remove it manually: the setting no longer exists in v9, and a Fiks Arkiv task "
-                        + "always moves the process on when it concludes."
+                    $"Found {unparsed} on a line with unexpected formatting in {fileName} (line {i + 1}); left "
+                        + "it in place. Remove it manually: the setting no longer exists in v9"
+                        + (
+                            unparsed == MoveToNextTask
+                                ? ", and a Fiks Arkiv task always moves the process on when it concludes."
+                                : ", and the app confirms instances only through onProcessEnd.confirm in "
+                                    + "applicationmetadata.json."
+                        )
                 );
             }
 
@@ -111,28 +128,50 @@ internal sealed class FiksArkivSettingsMigrator
         catch (JsonException ex)
         {
             messages.Todo(
-                $"Removing {SettingName} from {fileName} would produce invalid JSON ({ex.Message}). Left the file "
-                    + "unchanged; remove the setting manually, it no longer exists in v9."
+                $"Removing {string.Join(" and ", removed.Select(r => r.Setting).Distinct())} from {fileName} would "
+                    + $"produce invalid JSON ({ex.Message}). Left the file unchanged; remove the settings manually, they "
+                    + "no longer exist in v9."
             );
             return;
         }
 
         await Utf8TextFile.Write(file, result, hadBom);
 
-        foreach (var (handler, value) in removed)
+        foreach (var (handler, setting, value) in removed)
         {
-            Report(messages, fileName, handler, value);
+            if (setting == MarkInstanceComplete)
+                ReportMarkInstanceComplete(messages, fileName, handler, value);
+            else
+                ReportMoveToNextTask(messages, fileName, handler, value);
         }
     }
 
-    private static void Report(List<UpgradeMessage> messages, string fileName, string handler, bool value)
+    private static void ReportMarkInstanceComplete(
+        List<UpgradeMessage> messages,
+        string fileName,
+        string handler,
+        bool value
+    )
+    {
+        messages.Warn(
+            value
+                ? $"Removed {handler}:{MarkInstanceComplete} (true) from {fileName}. The v9 Fiks Arkiv task never "
+                    + "confirms the instance; the app confirms it when the process ends with onProcessEnd.confirm in "
+                    + "applicationmetadata.json, which the 'Confirmation at process end' step sets for an app with a "
+                    + "Fiks Arkiv task."
+                : $"Removed {handler}:{MarkInstanceComplete} (false) from {fileName}. The setting no longer exists in "
+                    + "v9 and the v9 Fiks Arkiv task never confirms the instance, so the behavior is unchanged."
+        );
+    }
+
+    private static void ReportMoveToNextTask(List<UpgradeMessage> messages, string fileName, string handler, bool value)
     {
         var isSuccess = handler.Equals("SuccessHandling", StringComparison.OrdinalIgnoreCase);
 
         if (value)
         {
             messages.Warn(
-                $"Removed {handler}:{SettingName} (true) from {fileName}. A Fiks Arkiv task in v9 always moves the "
+                $"Removed {handler}:{MoveToNextTask} (true) from {fileName}. A Fiks Arkiv task in v9 always moves the "
                     + "process on when it concludes, so the setting no longer exists and the behavior is unchanged."
             );
             return;
@@ -141,7 +180,7 @@ internal sealed class FiksArkivSettingsMigrator
         if (isSuccess)
         {
             messages.Todo(
-                $"Removed {handler}:{SettingName} (false) from {fileName}, and the behavior changes: in v8 the "
+                $"Removed {handler}:{MoveToNextTask} (false) from {fileName}, and the behavior changes: in v8 the "
                     + "instance stayed on the Fiks Arkiv task after the archive confirmed the record, to be moved on "
                     + "by hand. In v9 the task always moves the process on with successHandling.action once the "
                     + "receipt arrives. Review what the instance was waiting for while it stayed put, and model it as "
@@ -151,7 +190,7 @@ internal sealed class FiksArkivSettingsMigrator
         }
 
         messages.Todo(
-            $"Removed {handler}:{SettingName} (false) from {fileName}, and the behavior changes: in v8 a rejected "
+            $"Removed {handler}:{MoveToNextTask} (false) from {fileName}, and the behavior changes: in v8 a rejected "
                 + "archiving failed the task and left the instance for manual follow-up. In v9 the task always moves "
                 + "the process on with errorHandling.action ('reject' by default), so the process has to route that "
                 + "action: make sure an exclusive gateway follows the Fiks Arkiv task with a flow for "
@@ -265,25 +304,27 @@ internal sealed class FiksArkivSettingsMigrator
         return Directory.EnumerateFiles(appFolder, "appsettings*.json", SearchOption.TopDirectoryOnly);
     }
 
-    private static bool IsHandler(string? owner) =>
-        owner is not null
-        && (
-            owner.Equals("SuccessHandling", StringComparison.OrdinalIgnoreCase)
-            || owner.Equals("ErrorHandling", StringComparison.OrdinalIgnoreCase)
-        );
+    /// <summary>Whether the setting belongs in the object named <paramref name="owner"/>.</summary>
+    private static bool Holds(string owner, string setting) =>
+        owner.Equals("SuccessHandling", StringComparison.OrdinalIgnoreCase)
+        || (setting == MoveToNextTask && owner.Equals("ErrorHandling", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Matches a whole line of the form <c>"moveToNextTask": true,</c> (value true/false, quoted or not,
-    /// comma optional) and nothing else, so removing the line cannot take other content with it.
+    /// Matches a whole line of the form <c>"moveToNextTask": true,</c> (one of the removed settings, value
+    /// true/false, quoted or not, comma optional) and nothing else, so removing the line cannot take other
+    /// content with it.
     /// </summary>
-    private static bool TryParseSettingLine(string line, out bool value)
+    private static bool TryParseSettingLine(string line, out string setting, out bool value)
     {
         value = false;
         var trimmed = line.Trim();
-        var key = $"\"{SettingName}\"";
-        if (!trimmed.StartsWith(key, StringComparison.OrdinalIgnoreCase))
+        setting =
+            _settingNames.FirstOrDefault(name => trimmed.StartsWith($"\"{name}\"", StringComparison.OrdinalIgnoreCase))
+            ?? "";
+        if (setting.Length == 0)
             return false;
 
+        var key = $"\"{setting}\"";
         var rest = trimmed[key.Length..].TrimStart();
         if (!rest.StartsWith(':'))
             return false;
