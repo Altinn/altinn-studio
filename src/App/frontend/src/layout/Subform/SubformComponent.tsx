@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigation } from 'react-router';
 
-import { Button, FatalError, Flex, Spinner } from '@app/form-component';
+import { BaseTable, Button, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -104,9 +103,13 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
         data-componentid={componentId}
         data-componentbaseid={baseComponentId}
       >
-        <Table
+        <BaseTable
           id={`subform-${componentId}-table`}
-          className={classes.subformTable}
+          headerBackground='gray'
+          headerDivider='light'
+          headerPadding='large'
+          rowDivider='light'
+          cellPadding='medium'
         >
           {title && (
             <Caption
@@ -125,37 +128,37 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           )}
           {subformEntries.length > 0 && (
             <>
-              <Table.Head id={`subform-${componentId}-table-body`}>
-                <Table.Row>
+              <BaseTable.Head id={`subform-${componentId}-table-body`}>
+                <BaseTable.Row>
                   {(config.tableColumns ?? []).length ? (
                     (config.tableColumns ?? []).map((entry, index) => (
-                      <Table.HeaderCell
-                        className={classes.tableCellFormatting}
+                      <BaseTable.HeaderCell
+                        columnWidth
                         key={index}
                       >
                         <Lang id={entry.headerContent} />
-                      </Table.HeaderCell>
+                      </BaseTable.HeaderCell>
                     ))
                   ) : (
-                    <Table.HeaderCell className={classes.tableCellFormatting}>
+                    <BaseTable.HeaderCell columnWidth>
                       <Lang id='form_filler.subform_default_header' />
-                    </Table.HeaderCell>
+                    </BaseTable.HeaderCell>
                   )}
-                  <Table.HeaderCell>
+                  <BaseTable.HeaderCell>
                     <span className={utilClasses.visuallyHidden}>
                       <Lang id='general.edit' />
                     </span>
-                  </Table.HeaderCell>
+                  </BaseTable.HeaderCell>
                   {(config.showDeleteButton ?? true) && (
-                    <Table.HeaderCell>
+                    <BaseTable.HeaderCell>
                       <span className={utilClasses.visuallyHidden}>
                         <Lang id='general.delete' />
                       </span>
-                    </Table.HeaderCell>
+                    </BaseTable.HeaderCell>
                   )}
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
+                </BaseTable.Row>
+              </BaseTable.Head>
+              <BaseTable.Body>
                 {subformEntries.map((dataElement, index) => (
                   <SubformTableRow
                     key={dataElement.id}
@@ -166,10 +169,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                     showDeleteButton={config.showDeleteButton ?? true}
                   />
                 ))}
-              </Table.Body>
+              </BaseTable.Body>
             </>
           )}
-        </Table>
+        </BaseTable>
 
         {(config.showAddButton ?? true) && (
           <div className={classes.addButton}>
@@ -243,87 +246,84 @@ function SubformTableRow({
 
   if (isSubformDataFetching) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={actualColumns}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={actualColumns}>
           <Spinner aria-label={langAsString('general.loading')} />
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   } else if (subformDataError) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={actualColumns}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={actualColumns}>
           <FatalError>
             <Lang id='form_filler.error_fetch_subform' />
           </FatalError>
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   }
 
   return (
-    <Table.Row
+    <BaseTable.Row
       key={`subform-row-${id}`}
       data-row-num={rowNumber}
-      className={cn({ [classes.disabledRow]: isDeleting, [classes.tableRowError]: hasErrors })}
+      error={hasErrors}
+      className={cn({ [classes.disabledRow]: isDeleting })}
     >
       {(config.tableColumns ?? []).length ? (
         (config.tableColumns ?? []).map((entry, index) => (
-          <Table.Cell key={`subform-cell-${id}-${index}`}>
+          <BaseTable.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
               baseComponentId={baseComponentId}
               data={subformData}
               dataSources={subformDataSources}
             />
-          </Table.Cell>
+          </BaseTable.Cell>
         ))
       ) : (
-        <Table.Cell key={`subform-cell-${id}-0`}>{String(id)}</Table.Cell>
+        <BaseTable.Cell key={`subform-cell-${id}-0`}>{String(id)}</BaseTable.Cell>
       )}
-      <Table.Cell className={classes.buttonCell}>
-        <div className={classes.buttonInCellWrapper}>
+      <BaseTable.ButtonCell>
+        <Button
+          disabled={isDeleting || instanceLocked}
+          variant='tertiary'
+          color='second'
+          onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
+          aria-label={editButtonText}
+          className={classes.tableButton}
+        >
+          {editButtonText}
+          <PencilIcon
+            fontSize='1rem'
+            aria-hidden='true'
+          />
+        </Button>
+      </BaseTable.ButtonCell>
+      {showDeleteButton && (
+        <BaseTable.ButtonCell>
           <Button
             disabled={isDeleting || instanceLocked}
             variant='tertiary'
-            color='second'
-            onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
-            aria-label={editButtonText}
+            color='danger'
+            onClick={() => {
+              // Deleting an entry writes to the instance, which is locked
+              if (!instanceLocked) {
+                deleteSubformEntry(id);
+              }
+            }}
+            aria-label={deleteButtonText}
             className={classes.tableButton}
           >
-            {editButtonText}
-            <PencilIcon
+            {deleteButtonText}
+            <TrashIcon
               fontSize='1rem'
               aria-hidden='true'
             />
           </Button>
-        </div>
-      </Table.Cell>
-      {showDeleteButton && (
-        <Table.Cell className={classes.buttonCell}>
-          <div className={classes.buttonInCellWrapper}>
-            <Button
-              disabled={isDeleting || instanceLocked}
-              variant='tertiary'
-              color='danger'
-              onClick={() => {
-                // Deleting an entry writes to the instance, which is locked
-                if (!instanceLocked) {
-                  deleteSubformEntry(id);
-                }
-              }}
-              aria-label={deleteButtonText}
-              className={classes.tableButton}
-            >
-              {deleteButtonText}
-              <TrashIcon
-                fontSize='1rem'
-                aria-hidden='true'
-              />
-            </Button>
-          </div>
-        </Table.Cell>
+        </BaseTable.ButtonCell>
       )}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }

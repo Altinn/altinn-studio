@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
 
-import { FatalError, Flex, Spinner } from '@app/form-component';
+import { BaseTable, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Paragraph, Table } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
@@ -20,7 +20,6 @@ import { useAllNavigationParams, useIsSubformPage } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
-import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
@@ -62,56 +61,56 @@ function SubformTableRow({
 
   if (isSubformDataFetching) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={config.tableColumns.length}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={config.tableColumns.length}>
           <Spinner aria-label={langAsString('general.loading')} />
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   } else if (subformDataError) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={config.tableColumns.length}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={config.tableColumns.length}>
           <FatalError>
             <Lang id='form_filler.error_fetch_subform' />
           </FatalError>
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   }
 
   const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}/${nodeId}/${dataElement.id}${hasErrors ? '?validate=true' : ''}`;
 
   return (
-    <Table.Row
+    <BaseTable.Row
       key={`subform-row-${id}`}
       data-row-num={rowNumber}
-      className={classNames({ [classes1.tableRowError]: !pdfModeActive && hasErrors })}
+      error={!pdfModeActive && hasErrors}
     >
       {config.tableColumns.length ? (
         config.tableColumns.map((entry, index) => (
-          <Table.Cell key={`subform-cell-${id}-${index}`}>
+          <BaseTable.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
               baseComponentId={baseComponentId}
               data={subformData}
               dataSources={subformDataSources}
             />
-          </Table.Cell>
+          </BaseTable.Cell>
         ))
       ) : (
-        <Table.Cell key={`subform-cell-${id}-0`}>{String(id)}</Table.Cell>
+        <BaseTable.Cell key={`subform-cell-${id}-0`}>{String(id)}</BaseTable.Cell>
       )}
       {!pdfModeActive && (
-        <Table.Cell className={classes2.noRightPad}>
+        <BaseTable.Cell className={classes2.noRightPad}>
           <EditButton
             className={classes2.marginLeftAuto}
             targetBaseComponentId={baseComponentId}
             navigationOverride={() => navigate(url)}
           />
-        </Table.Cell>
+        </BaseTable.Cell>
       )}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }
 
@@ -189,9 +188,13 @@ export function SubformSummaryTable({
         data-componentid={componentId}
         data-componentbaseid={targetBaseComponentId}
       >
-        <Table
+        <BaseTable
           id={`subform-${componentId}-table`}
-          className={classes1.subformTable}
+          headerBackground='gray'
+          headerDivider='light'
+          headerPadding='large'
+          rowDivider='light'
+          cellPadding='medium'
         >
           {title && (
             <Caption
@@ -200,32 +203,32 @@ export function SubformSummaryTable({
               title={<Lang id={title} />}
             />
           )}
-          <Table.Head id={`subform-${componentId}-table-body`}>
-            <Table.Row>
+          <BaseTable.Head id={`subform-${componentId}-table-body`}>
+            <BaseTable.Row>
               {(config.tableColumns ?? []).length ? (
                 (config.tableColumns ?? []).map((entry, index) => (
-                  <Table.HeaderCell
-                    className={classes1.tableCellFormatting}
+                  <BaseTable.HeaderCell
+                    columnWidth
                     key={index}
                   >
                     <Lang id={entry.headerContent} />
-                  </Table.HeaderCell>
+                  </BaseTable.HeaderCell>
                 ))
               ) : (
-                <Table.HeaderCell className={classes1.tableCellFormatting}>
+                <BaseTable.HeaderCell columnWidth>
                   <Lang id='form_filler.subform_default_header' />
-                </Table.HeaderCell>
+                </BaseTable.HeaderCell>
               )}
               {!pdfModeActive && (
-                <Table.HeaderCell className={classNames(classes2.editColumnHeader, classes2.noRightPad)}>
+                <BaseTable.HeaderCell className={classNames(classes2.editColumnHeader, classes2.noRightPad)}>
                   <span className={utilClasses.visuallyHidden}>
                     <Lang id='general.edit' />
                   </span>
-                </Table.HeaderCell>
+                </BaseTable.HeaderCell>
               )}
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
+            </BaseTable.Row>
+          </BaseTable.Head>
+          <BaseTable.Body>
             {dataElements.map((dataElement, index) => (
               <SubformTableRow
                 key={dataElement.id}
@@ -236,8 +239,8 @@ export function SubformSummaryTable({
                 pdfModeActive={pdfModeActive}
               />
             ))}
-          </Table.Body>
-        </Table>
+          </BaseTable.Body>
+        </BaseTable>
       </Flex>
     </ComponentStructureWrapper>
   );
