@@ -109,6 +109,7 @@ public sealed class TelemetryConfigurationTests
         ["altinn.workflow_engine.main_loop.wait.duration"] = _durationBuckets,
         ["altinn.workflow_engine.main_loop.processing.duration"] = _durationBuckets,
         ["altinn.workflow_engine.main_loop.duration"] = _durationBuckets,
+        ["altinn.workflow_engine.collection_event.read.duration"] = _durationBuckets,
         ["altinn.workflow_engine.mailbox.receiver.wake.duration"] = _wakeLatencyBuckets,
         ["altinn.workflow_engine.step.wait.duration"] = _waitBudgetBuckets,
     };

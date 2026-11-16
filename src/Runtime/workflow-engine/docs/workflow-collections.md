@@ -377,6 +377,16 @@ use the list endpoint's rollup; to enumerate a collection's failures, use
 `GET /workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
 (drop the `role` filter for all of them).
 
+**`GET /api/v1/{namespace}/collections/{key}/events`** — the frontier view as a stream.
+Server-Sent Events whose data is the body the detail endpoint returns. It is sent first as soon as the engine has read
+the collection, then whenever a workflow in it leaves `Processing` or is resumed, failed, abandoned or released from a
+mailbox, and at a fixed interval in any case. Step progress within a running workflow shows only with the next of
+those. Events are full snapshots without ids, so a client that reconnects starts from a fresh one. With
+`?until=Settled` the engine ends the stream after the first snapshot in which the collection is settled. Returns 404
+before any event if the collection does not exist, and 429 when the engine instance serves its maximum number of
+streams. [Collection events](technical-guide.md#collection-events) defines settled and describes how changes reach the
+stream.
+
 ---
 
 ## Key Rules Summary

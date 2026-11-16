@@ -72,6 +72,27 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
     }
 
     [Fact]
+    public async Task CollectionEventsUntil_DocumentsItsValues()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var untilParam = doc
+            .RootElement.GetProperty("paths")
+            .GetProperty("/api/v1/{namespace}/collections/{key}/events")
+            .GetProperty("get")
+            .GetProperty("parameters")
+            .EnumerateArray()
+            .Single(p => p.GetProperty("name").GetString() == "until");
+
+        Assert.Contains("Settled", untilParam.GetProperty("description").GetString(), StringComparison.Ordinal);
+        Assert.Equal(
+            Enum.GetNames<CollectionEventsUntil>(),
+            untilParam.GetProperty("schema").GetProperty("enum").EnumerateArray().Select(e => e.GetString())
+        );
+    }
+
+    [Fact]
     public async Task WorkflowRoleSchema_ListsTheWireNames()
     {
         using var client = fixture.CreateEngineClient();

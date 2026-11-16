@@ -443,6 +443,20 @@ public sealed class EngineApiClient : IDisposable
         _client.GetAsync($"{GetCollectionsBasePath(ns)}/{Uri.EscapeDataString(key)}", CancellationToken.None);
 
     /// <summary>
+    /// Opens a collection's event stream, returning once the headers have arrived so the body can be read as it
+    /// streams.
+    /// </summary>
+    public async Task<HttpResponseMessage> StreamCollectionEvents(string key, string? until = null, string? ns = null)
+    {
+        var query = until is null ? "" : $"?until={Uri.EscapeDataString(until)}";
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{GetCollectionsBasePath(ns)}/{Uri.EscapeDataString(key)}/events{query}"
+        );
+        return await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
+    }
+
+    /// <summary>
     /// Gets a single workflow collection by key, including head statuses. Returns <see langword="null"/> on 404.
     /// </summary>
     public async Task<WorkflowCollectionDetailResponse?> GetCollection(string key, string? ns = null)

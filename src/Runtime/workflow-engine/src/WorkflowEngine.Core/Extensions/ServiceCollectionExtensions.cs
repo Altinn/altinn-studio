@@ -60,7 +60,9 @@ public static class ServiceCollectionExtensions
 
             services.AddSingleton<AsyncSignal>();
             services.AddSingleton<StatusChangeSignal>();
-            services.AddHostedService(sp => sp.GetRequiredService<StatusChangeSignal>());
+            services.AddSingleton<CollectionEventHub>();
+            services.AddHostedService(sp => sp.GetRequiredService<CollectionEventHub>());
+            services.AddHostedService<DatabaseNotificationListener>();
             services.AddSingleton<InFlightTracker>();
 
             services.AddSingleton<WorkflowWriteBuffer>();
@@ -246,6 +248,15 @@ public static class OptionsBuilderExtensions
                         .EngineSettings
                         .Concurrency
                         .BackpressureThreshold;
+
+                if (config.CollectionEvents.MaxBatchSize <= 0)
+                    config.CollectionEvents.MaxBatchSize = Defaults.EngineSettings.CollectionEvents.MaxBatchSize;
+
+                if (config.CollectionEvents.SweepInterval <= TimeSpan.Zero)
+                    config.CollectionEvents.SweepInterval = Defaults.EngineSettings.CollectionEvents.SweepInterval;
+
+                if (config.CollectionEvents.MaxStreams <= 0)
+                    config.CollectionEvents.MaxStreams = Defaults.EngineSettings.CollectionEvents.MaxStreams;
 
                 if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
                     config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;
@@ -435,6 +446,21 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Concurrency.BackpressureThreshold >= config.WriteBuffer.MaxQueueSize,
                 $"{ns}.{nameof(EngineSettings.Concurrency)}.{nameof(EngineSettings.Concurrency.BackpressureThreshold)} must be greater than or equal to {ns}.{nameof(EngineSettings.WriteBuffer)}.{nameof(EngineSettings.WriteBuffer.MaxQueueSize)}."
+            );
+
+            builder.Validate(
+                config => config.CollectionEvents.MaxBatchSize > 0,
+                $"{ns}.{nameof(EngineSettings.CollectionEvents)}.{nameof(CollectionEventSettings.MaxBatchSize)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.CollectionEvents.SweepInterval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.CollectionEvents)}.{nameof(CollectionEventSettings.SweepInterval)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.CollectionEvents.MaxStreams > 0,
+                $"{ns}.{nameof(EngineSettings.CollectionEvents)}.{nameof(CollectionEventSettings.MaxStreams)} must be greater than zero."
             );
 
             builder.Validate(

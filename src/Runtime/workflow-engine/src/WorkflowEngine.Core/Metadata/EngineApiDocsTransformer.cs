@@ -42,6 +42,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["FailWorkflow"] = "fail",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["StreamCollectionEvents"] = "collection-events",
         ["ListNamespaceThrottles"] = "list-namespace-throttles",
         ["GetNamespaceThrottle"] = "get-namespace-throttle",
         ["TripNamespaceThrottle"] = "force-trip-throttle",
@@ -89,6 +90,14 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["pageSize"] = "Items per page (default 25, clamped to 1–100). Ignored in annotate (key) mode.",
     };
 
+    private static readonly Dictionary<string, string> _collectionEventsParamDescriptions = new()
+    {
+        ["until"] =
+            "'Settled' ends the stream after the first snapshot in which the collection has a head and every head is "
+            + "terminal (Waiting and Held are not). Case-insensitive; an unrecognized value returns 400. Without it, "
+            + "only the client, the collection's deletion or the instance's shutdown ends the stream.",
+    };
+
     public Task TransformAsync(
         OpenApiOperation operation,
         OpenApiOperationTransformerContext context,
@@ -128,6 +137,13 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
                 operation,
                 _listCollectionParamDescriptions,
                 new() { ["failures"] = EnumSchema<CollectionFailureFilter>() }
+            );
+
+        if (operationId == "StreamCollectionEvents")
+            ApplyParameterDocs(
+                operation,
+                _collectionEventsParamDescriptions,
+                new() { ["until"] = EnumSchema<CollectionEventsUntil>() }
             );
 
         return Task.CompletedTask;

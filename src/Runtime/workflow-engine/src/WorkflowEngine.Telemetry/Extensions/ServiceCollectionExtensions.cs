@@ -217,6 +217,7 @@ public static class ServiceCollectionExtensions
                         .AddView(Metrics.EngineMainLoopQueueTime.Name, durationView)
                         .AddView(Metrics.EngineMainLoopServiceTime.Name, durationView)
                         .AddView(Metrics.EngineMainLoopTotalTime.Name, durationView)
+                        .AddView(Metrics.CollectionEventReadDuration.Name, durationView)
                         .AddView(Metrics.MailboxReceiverWakeLatency.Name, wakeLatencyView)
                         .AddView(Metrics.StepWaitDuration.Name, waitBudgetView);
                 });
