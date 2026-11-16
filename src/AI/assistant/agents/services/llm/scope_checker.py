@@ -10,7 +10,7 @@ feature by name).
 from collections.abc import Sequence
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from agents.prompts import get_prompt_with_langfuse
 from shared.utils.logging_utils import get_logger
@@ -22,6 +22,9 @@ log = get_logger(__name__)
 
 
 class ScopeCheckResult(BaseModel):
+    # A validation error is logged, and the reply it rejects can quote the user's question.
+    model_config = ConfigDict(hide_input_in_errors=True)
+
     in_scope: bool
     decline_message: str | None = None
     reason: str | None = None

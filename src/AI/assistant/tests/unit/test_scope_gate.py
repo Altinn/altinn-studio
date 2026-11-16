@@ -90,6 +90,7 @@ class TestCheckScopeAsync:
             result = await check_scope_async("legg til et tekstfelt")
 
         assert result.in_scope is True
+        assert "Sorry" not in (result.reason or "")
 
 
 def _event_sink() -> EventSink:

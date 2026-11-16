@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain_openai.chat_models.base import BaseChatOpenAI
 from langfuse import get_client
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
@@ -576,6 +576,9 @@ def build_security_check_message(
 
 class SecurityVerdict(BaseModel):
     """The security gate's answer to whether a request is a legitimate use of the assistant."""
+
+    # A validation error is logged, and the reply it rejects can quote the user's request.
+    model_config = ConfigDict(hide_input_in_errors=True)
 
     safe: bool
     reason: str | None = Field(default=None, description="The security concern when unsafe. Null when safe.")

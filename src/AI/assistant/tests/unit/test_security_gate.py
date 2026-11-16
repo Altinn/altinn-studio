@@ -247,6 +247,7 @@ class TestTheVerdictIsHeldToASchema:
 
         assert parsed.failed is True
         assert parsed.safe is False
+        assert "Dette ser greit ut" not in (parsed.reason or "")
 
 
 class TestAnthropicHoldsTheReplyToTheSchema:
