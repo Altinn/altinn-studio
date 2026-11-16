@@ -20,10 +20,11 @@ from a fork cannot publish a release, so after it merges, run the release workfl
 into.
 
 The app libraries, codelists and fileanalyzers workflows publish to nuget.org through trusted publishing, which only
-works from the `libraries` environment, and that environment only accepts the release branches. So these workflows run
-on the push that the merge makes, and only when its commit message is the release pull request's title,
-`chore: release <component> vX.Y.Z`, or for a rebase merge the releaser's commit, `Release <component> vX.Y.Z`. If you
-edit the title when you merge, run the release workflow by hand on the branch it merged into.
+works from the `libraries` environment. That environment accepts `main`, and each `release/<component>/vX.Y` branch has
+to be added to it before the first stable release from that branch. Pull request runs are not accepted, so these
+workflows run on every push that changes the component's changelog. They release the latest version in it when that
+version has no GitHub release yet, draft or published. If a release fails after the releaser has created the draft,
+delete the draft and run the workflow by hand on the branch.
 
 ## Prereleases
 

@@ -1,6 +1,7 @@
 name: Release - fileanalyzers
 
-# Releases when a fileanalyzers release pull request, made by the releaser's `prepare` command, is merged.
+# Releases the latest version in the fileanalyzers changelog when it has no GitHub release yet, which is when a release
+# pull request from the releaser's `prepare` command has merged.
 #
 # Runs on push rather than on the merged pull request, because nuget.org's trusted publishing requires the
 # `libraries` environment, which only accepts branches, and GitHub checks environment branch rules for pull
@@ -22,17 +23,13 @@ jobs:
   resolve-release-context:
     name: Resolve release context
     runs-on: ubuntu-latest
-    # A push releases only the merge of a release pull request: the releaser titles it
-    # 'chore: release fileanalyzers <version>', which a squash merge keeps, and commits 'Release fileanalyzers <version>',
-    # which a rebase merge keeps. workflow_dispatch can also run on a tag.
-    if: >
-      github.ref_type == 'branch' &&
-      (
-        github.event_name == 'workflow_dispatch' ||
-        startsWith(github.event.head_commit.message, 'chore: release fileanalyzers v') ||
-        startsWith(github.event.head_commit.message, 'Release fileanalyzers v')
-      )
+    # workflow_dispatch can also run on a tag
+    if: github.ref_type == 'branch'
+    permissions:
+      # Draft releases are only visible with write access
+      contents: write
     outputs:
+      release: ${{ steps.context.outputs.release }}
       version: ${{ steps.context.outputs.version }}
     steps:
       - name: Checkout repository
@@ -50,6 +47,8 @@ jobs:
         id: context
         env:
           BASE_BRANCH: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           version="$(go run . resolve-version --component fileanalyzers --base-branch "$BASE_BRANCH")"
 
@@ -65,6 +64,18 @@ jobs:
           fi
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          # The releaser creates a draft release, which gets its tag when someone publishes it. A release for
+          # this version, draft or published, means it is released already, or that a failed attempt left a
+          # draft to delete before trying again.
+          tag="fileanalyzers/v${version}"
+          tags="$(gh api --paginate "repos/${REPOSITORY}/releases?per_page=100" --jq '.[].tag_name')"
+          if grep -Fxq "$tag" <<<"$tags"; then
+            echo "${tag} already has a GitHub release; nothing to release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
         working-directory: src/tools/releaser
 
   release:
@@ -74,6 +85,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    if: needs.resolve-release-context.outputs.release == 'true'
     environment: libraries
 
     steps:
