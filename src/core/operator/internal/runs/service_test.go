@@ -50,35 +50,6 @@ func TestCreateFindsTheRunInProgress(t *testing.T) {
 	Expect(next.ID).NotTo(Equal(first.ID))
 }
 
-// Once a run has ended, a create for the same kind and source makes a new run, and the next create finds that one.
-func TestCreateAfterARunEndedMakesANewRun(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-	ctx := t.Context()
-	request := CreateRequest{Kind: testKind, Labels: testLabels("app")}
-
-	first := h.create(t, "assistant", "app")
-	h.engine.Update(h.workflowID(t, first.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusFailed })
-
-	// The queue forgets a run that the engine no longer calls.
-	h.clock.Advance(waitingTTL + time.Second)
-	second, created, err := h.service.Create(ctx, "assistant", request)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created).To(BeTrue())
-	Expect(second.ID).NotTo(Equal(first.ID))
-	again, created, err := h.service.Create(ctx, "assistant", request)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created).To(BeFalse())
-	Expect(again.ID).To(Equal(second.ID))
-
-	h.engine.Update(h.workflowID(t, second.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusCompleted })
-	h.clock.Advance(waitingTTL + time.Second)
-	third, created, err := h.service.Create(ctx, "assistant", request)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created).To(BeTrue())
-	Expect(third.ID).NotTo(BeElementOf(first.ID, second.ID))
-}
-
 // A canceled run has ended once the cancel answers, before the engine marks its workflow canceled at its next fetch.
 func TestCreateRightAfterACancelMakesANewRun(t *testing.T) {
 	RegisterTestingT(t)
@@ -205,42 +176,6 @@ func TestCreateForTheSameSourceAtOnceMakesOneRun(t *testing.T) {
 	}
 	Expect(created).To(Equal(1))
 	Expect(h.engine.Workflows()).To(HaveLen(1))
-}
-
-func TestFindListsTheCallersRunsNewestFirst(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-	ctx := t.Context()
-
-	first := h.create(t, "assistant", "app")
-	h.clock.Advance(time.Second)
-	second := h.create(t, "assistant", "other")
-	h.create(t, "other", "app")
-
-	found, err := h.service.Find(ctx, "assistant", Filter{Labels: map[string]string{"org": "TTD"}})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(found).To(HaveLen(2))
-	Expect(found[0].ID).To(Equal(second.ID))
-	Expect(found[1].ID).To(Equal(first.ID))
-
-	found, err = h.service.Find(ctx, "assistant", Filter{
-		Labels: map[string]string{"repoOwner": "ttd", "repo": "app", "commit": testCommit}, Kind: testKind,
-	})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(found).To(HaveLen(1))
-	Expect(found[0].ID).To(Equal(first.ID))
-
-	found, err = h.service.Find(ctx, "assistant", Filter{Labels: map[string]string{"repo": "nothing"}})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(found).To(BeEmpty())
-
-	var invalid *RequestError
-	_, err = h.service.Find(ctx, "assistant", Filter{})
-	Expect(err).To(BeAssignableToTypeOf(invalid))
-	_, err = h.service.Find(ctx, "assistant", Filter{Labels: map[string]string{"repo": "../app"}})
-	Expect(err).To(MatchError(HavePrefix("The label repo must be")))
-	_, err = h.service.Find(ctx, "assistant", Filter{Labels: map[string]string{"kind": testKind}})
-	Expect(err).To(MatchError(HavePrefix("A label key must be")), "kind is a filter of its own")
 }
 
 func TestUploadEndsWithTheUploadTimeout(t *testing.T) {

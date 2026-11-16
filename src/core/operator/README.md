@@ -214,6 +214,11 @@ The [Makefile](Makefile) has the checks that CI runs. `make manifests` builds th
   simulates the engine: the fake engine in `internal/engine/enginetest` only stores workflows. The contract tests read
   the callback examples in [api/callbacks](api/callbacks) and the operator runner's
   [protocol examples](../operator-runner/examples/protocol.json).
+- `make test-integration` runs runs against the [engine host](../operator-workflow-engine/README.md) from its source,
+  with Postgres in a container, so it needs Docker or Podman and the .NET SDK. It covers what only the real engine
+  does: the state it passes on, its deferrals and wait budgets, the errors it records and a restart of the operator.
+  A copy of those rules in the operator's tests would drift from the engine, which another team changes. The test sets
+  `timeScale`, so a run takes seconds.
 - `make run` runs the operator against the cluster in your kubeconfig. Set `CORE_OPERATOR_CONFIG_DIR` to a folder with
   the configuration.
 
