@@ -12,8 +12,8 @@ keep the app's copies of the models from drifting.
 ## Where it runs
 
 The runtime clusters of at23, tt02 and prod run it, from their syncroots in [`infra/runtime/syncroot`](../../../infra/runtime/syncroot).
-In tt02 and prod, only the service owners whose cluster has a workflow engine database run it, which today is ttd
-alone. The syncroot suspends it in the other clusters, so they get no failing pods. The
+Every service owner can use it in tt02. In prod, only the service owners whose cluster has a workflow engine database
+run it, which today is ttd alone. The syncroot suspends it in the other clusters, so they get no failing pods. The
 [kustomize overlays](infra/kustomize) also cover at22, at24 and yt01, but no syncroot deploys it there yet.
 
 The local environment runs the build deployed to tt02, with the configuration studioctl supplies. A change to that
