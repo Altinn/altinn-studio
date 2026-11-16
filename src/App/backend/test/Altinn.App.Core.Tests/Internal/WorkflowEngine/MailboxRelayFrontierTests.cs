@@ -19,6 +19,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -150,6 +151,12 @@ public class MailboxRelayFrontierTests
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
             );
+
+        public IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+            string ns,
+            string key,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
@@ -342,7 +349,8 @@ public class MailboxRelayFrontierTests
             processNextRequestFactory: null!,
             collection,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
     private static MailboxRelayRequest CreateRequest(Guid receiverWorkflowId, Guid stepId) =>

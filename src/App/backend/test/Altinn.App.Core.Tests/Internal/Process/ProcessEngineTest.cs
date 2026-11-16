@@ -367,7 +367,7 @@ public sealed partial class ProcessEngineTest
                     capturedState = state;
                 }
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(CreateEndedInstance(), _storageVersions, null, true));
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateEndedInstance(), _storageVersions, null));
 
         Instance instance = CreateTask2Instance();
         instance.Data = [dataElement];
@@ -535,8 +535,7 @@ public sealed partial class ProcessEngineTest
                 new ProcessNextWorkflowResult(
                     CreateEndedInstance(),
                     new StorageVersionMetadata(InstanceVersion: 22, ProcessStateVersion: 14),
-                    WorkflowFailure: null,
-                    ProcessStateCommitted: true
+                    Failure: null
                 )
             );
 
@@ -850,7 +849,7 @@ public sealed partial class ProcessEngineTest
             .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
                 (_, _, state, _, _, _) => capturedState = state
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null));
 
         ProcessChangeResult result = await fixture.ProcessEngine.Next(
             new ProcessNextRequest
@@ -1214,8 +1213,7 @@ public sealed partial class ProcessEngineTest
                 new ProcessNextWorkflowResult(
                     instance,
                     StorageVersionMetadata.Empty,
-                    workflowFailure,
-                    ProcessStateCommitted: true
+                    new ProcessNextWorkflowFailure(workflowFailure, ProcessStateCommitted: true)
                 )
             );
 
@@ -1269,7 +1267,7 @@ public sealed partial class ProcessEngineTest
             );
         workflowService
             .Setup(service => service.ResumeAndWaitForWorkflow(original, workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ProcessNextWorkflowResult(resumed, versions, null, true, parked));
+            .ReturnsAsync(new ProcessNextWorkflowResult(resumed, versions, null, parked));
 
         ProcessChangeResult result = await fixture.ProcessEngine.ResumeCurrentTask(
             new ProcessNextRequest
@@ -1492,8 +1490,7 @@ public sealed partial class ProcessEngineTest
                 new ProcessNextWorkflowResult(
                     instance,
                     versions ?? _storageVersions,
-                    failure,
-                    processStateCommitted,
+                    failure is null ? null : new ProcessNextWorkflowFailure(failure, processStateCommitted),
                     parked
                 )
             );
@@ -1525,7 +1522,7 @@ public sealed partial class ProcessEngineTest
                     Assert.Equal("Task_2", transition.NewProcessState?.CurrentTask?.ElementId);
                 }
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null));
         var services = new ServiceCollection();
         services.AddSingleton(workflowService.Object);
         await using var fixture = Fixture.Create(services);
@@ -1603,7 +1600,7 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null));
         var services = new ServiceCollection();
         services.AddSingleton(workflowService.Object);
         var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
@@ -1903,7 +1900,7 @@ public sealed partial class ProcessEngineTest
                         ProcessStateChange _,
                         string? _,
                         CancellationToken _
-                    ) => new ProcessNextWorkflowResult(instance, versions, null, false)
+                    ) => new ProcessNextWorkflowResult(instance, versions, null)
                 );
             workflowServiceMock
                 .Setup(service =>

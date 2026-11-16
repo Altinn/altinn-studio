@@ -1,4 +1,7 @@
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.ServerSentEvents;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -92,6 +95,38 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             ?? throw new InvalidOperationException(
                 "The expected workflow collection detail was not found in the response content."
             );
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+        string ns,
+        string key,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        string url =
+            $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/collections/{Uri.EscapeDataString(key)}/events?until=Settled";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        httpRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+
+        // Headers-read completion, or the client would buffer a body that never ends
+        using HttpResponseMessage response = await _httpClient.SendAsync(
+            httpRequest,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken
+        );
+        response.EnsureSuccessStatusCode();
+
+        await using Stream body = await response.Content.ReadAsStreamAsync(cancellationToken);
+        SseParser<WorkflowCollectionDetailResponse?> parser = SseParser.Create(
+            body,
+            (_, data) => JsonSerializer.Deserialize<WorkflowCollectionDetailResponse>(data, JsonSerializerOptions.Web)
+        );
+        await foreach (SseItem<WorkflowCollectionDetailResponse?> item in parser.EnumerateAsync(cancellationToken))
+        {
+            yield return item.Data
+                ?? throw new InvalidOperationException("A collection event carried no collection snapshot.");
+        }
     }
 
     /// <inheritdoc />

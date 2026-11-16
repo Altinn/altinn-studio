@@ -95,6 +95,12 @@ public class MintMailboxTests
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+            string ns,
+            string key,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
             string? collectionKey = null,
