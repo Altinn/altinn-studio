@@ -253,6 +253,7 @@ fn is_archive(headers: &HeaderMap) -> bool {
 mod tests {
     use std::{future, io, net::SocketAddr, rc::Rc, time::Duration};
 
+    use base64::Engine as _;
     use bytes::Bytes;
     use serde_json::{Value, json};
     use tokio::{
@@ -266,6 +267,7 @@ mod tests {
         fake::{FakeRunner, RUN_ID},
         host::Host,
         http,
+        run::RunError,
     };
 
     type TestResult = Result<(), Box<dyn std::error::Error>>;
@@ -445,19 +447,54 @@ mod tests {
         Ok(())
     }
 
+    /// An example from `examples/protocol.json`: a request to an operator runner in a state, and its answer.
+    #[derive(serde::Deserialize)]
+    struct Example {
+        state: String,
+        request: String,
+        #[serde(default)]
+        archive: String,
+        status: u16,
+        body: Value,
+    }
+
+    /// The core operator's tests read the examples too, so its fake operator runner answers as this one does.
     #[tokio::test(flavor = "local")]
-    async fn answers_404_for_the_status_of_a_run_that_has_not_claimed_the_operator_runner() -> TestResult {
-        let host = start().await?;
+    async fn answers_the_examples_of_the_protocol() -> TestResult {
+        let examples = include_str!("../examples/protocol.json")
+            .replace("{runId}", RUN_ID)
+            .replace("{otherRunId}", OTHER_RUN_ID);
+        for example in serde_json::from_str::<Vec<Example>>(&examples)? {
+            let host = start().await?;
+            host.runner.hold.set(example.state == "running");
+            if example.state == "failed" {
+                *host.runner.error.borrow_mut() = Some(RunError::InvalidArchive("gzip: invalid header".to_string()));
+            }
+            if example.state != "unclaimed" {
+                let wait = if example.state == "running" { 0 } else { 5 };
+                send(host.address, &put_archive(RUN_ID)).await?;
+                send(host.address, &get_status(RUN_ID, wait)).await?;
+            }
 
-        let (unclaimed, problem) = send_json(host.address, &get_status(RUN_ID, 0)).await?;
-        assert!(!host.host.is_claimed());
-        send(host.address, &put_archive(RUN_ID)).await?;
-        let other = send(host.address, &get_status(OTHER_RUN_ID, 0)).await?.0;
-        let not_a_uuid = send(host.address, &get("/runs/run-1")).await?.0;
-        let claimed = send(host.address, &get_status(RUN_ID, 5)).await?.0;
+            let (method, path) = example.request.split_once(' ').ok_or("no method")?;
+            let request = match (method, path.strip_prefix("/runs/")) {
+                ("PUT", Some(run)) => {
+                    let archive = base64::engine::general_purpose::STANDARD.decode(&example.archive)?;
+                    put(run, "", "application/gzip", &archive)
+                }
+                _ => get(path),
+            };
 
-        assert_eq!((unclaimed, other, not_a_uuid, claimed), (404, 404, 404, 200));
-        assert_eq!(problem["detail"], "This run has not claimed the operator runner.");
+            let name = format!("{} {}", example.state, example.request);
+            assert_eq!(
+                send_json(host.address, &request).await?,
+                (example.status, example.body),
+                "{name}"
+            );
+            if example.state == "unclaimed" && example.status != 202 {
+                assert!(!host.host.is_claimed(), "{name}");
+            }
+        }
         Ok(())
     }
 
@@ -515,40 +552,16 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn answers_a_repeat_for_the_same_run_with_its_status() -> TestResult {
-        let host = start().await?;
-        host.runner.hold.set(true);
-
-        let first = send_json(host.address, &put_archive(RUN_ID)).await?;
-        let while_running = send_json(host.address, &put_archive(RUN_ID)).await?;
-        let in_upper_case = send_json(host.address, &put_archive(&RUN_ID.to_uppercase())).await?;
-        let with_other_body = send_json(host.address, &put(RUN_ID, UPGRADE, "text/plain", b"x")).await?;
-        host.runner.release.notify_one();
-        send(host.address, &get_result(RUN_ID, 5)).await?;
-        let after_the_end = send_json(host.address, &put_archive(RUN_ID)).await?;
-
-        for running in [&first, &while_running, &in_upper_case, &with_other_body] {
-            assert_eq!(*running, (202, accepted(RUN_ID, "running")));
-        }
-        assert_eq!(after_the_end, (202, accepted(RUN_ID, "completed")));
-        assert_eq!(host.runner.archives.borrow().len(), 1);
-        Ok(())
-    }
-
-    #[tokio::test(flavor = "local")]
-    async fn refuses_another_run_after_the_claim() -> TestResult {
+    async fn answers_a_repeat_in_upper_case_or_with_another_body_with_the_status_of_the_run() -> TestResult {
         let host = start().await?;
         host.runner.hold.set(true);
 
         send(host.address, &put_archive(RUN_ID)).await?;
-        let (while_running, problem) = send_json(host.address, &put_archive(OTHER_RUN_ID)).await?;
-        let other_result = send(host.address, &get_result(OTHER_RUN_ID, 0)).await?.0;
-        host.runner.release.notify_one();
-        send(host.address, &get_result(RUN_ID, 5)).await?;
-        let after_the_end = send(host.address, &put_archive(OTHER_RUN_ID)).await?.0;
+        let in_upper_case = send_json(host.address, &put_archive(&RUN_ID.to_uppercase())).await?;
+        let with_other_body = send_json(host.address, &put(RUN_ID, UPGRADE, "text/plain", b"x")).await?;
 
-        assert_eq!((while_running, after_the_end, other_result), (409, 409, 404));
-        assert_eq!(problem["status"], 409);
+        assert_eq!(in_upper_case, (202, accepted(RUN_ID, "running")));
+        assert_eq!(with_other_body, (202, accepted(RUN_ID, "running")));
         assert_eq!(host.runner.archives.borrow().len(), 1);
         Ok(())
     }
@@ -593,74 +606,25 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn refuses_an_unknown_command_a_missing_command_and_a_run_id_that_is_not_a_uuid() -> TestResult {
-        let host = start().await?;
-
-        let (unknown, problem) =
-            send_json(host.address, &put(RUN_ID, "?command=sh", "application/gzip", ARCHIVE)).await?;
-        let missing = send(host.address, &put(RUN_ID, "", "application/gzip", ARCHIVE))
-            .await?
-            .0;
-        let not_a_uuid = send(host.address, &put_archive("run-1")).await?.0;
-
-        assert_eq!((unknown, missing, not_a_uuid), (404, 400, 400));
-        assert_eq!(problem["detail"], "The operator runner has no command sh.");
-        assert!(!host.host.is_claimed());
-        Ok(())
-    }
-
-    #[tokio::test(flavor = "local")]
-    async fn refuses_a_body_that_is_not_gzip_without_a_claim() -> io::Result<()> {
-        let host = start().await?;
-
-        let (status, _) = send(host.address, &put(RUN_ID, UPGRADE, "application/gzip", b"app")).await?;
-
-        assert_eq!(status, 400);
-        assert!(!host.host.is_claimed());
-        Ok(())
-    }
-
-    #[tokio::test(flavor = "local")]
-    async fn refuses_other_content_types_without_a_claim() -> io::Result<()> {
-        let host = start().await?;
-
-        let (status, _) = send(host.address, &put(RUN_ID, UPGRADE, "application/json", b"{}")).await?;
-
-        assert_eq!(status, 415);
-        assert!(!host.host.is_claimed());
-        Ok(())
-    }
-
-    #[tokio::test(flavor = "local")]
-    async fn refuses_a_large_archive_from_its_length_without_a_claim() -> io::Result<()> {
-        let host = start().await?;
-        let declared = put_head(
-            RUN_ID,
-            UPGRADE,
-            &["Content-Type: application/gzip", "Content-Length: 11"],
-        );
-
-        let (status, _) = send(host.address, declared.as_bytes()).await?;
-
-        assert_eq!(status, 413);
-        assert!(!host.host.is_claimed());
-        Ok(())
-    }
-
-    #[tokio::test(flavor = "local")]
-    async fn refuses_a_large_archive_from_its_chunks_without_a_claim() -> io::Result<()> {
-        let host = start().await?;
-        let head = put_head(
-            RUN_ID,
-            UPGRADE,
-            &["Content-Type: application/gzip", "Transfer-Encoding: chunked"],
-        );
-        let chunked = format!("{head}6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n");
-
-        let (status, _) = send(host.address, chunked.as_bytes()).await?;
-
-        assert_eq!(status, 413);
-        assert!(!host.host.is_claimed());
+    async fn refuses_requests_that_are_not_valid_without_a_claim() -> io::Result<()> {
+        let (gzip, header) = ("application/gzip", "Content-Type: application/gzip");
+        let by_length = put_head(RUN_ID, UPGRADE, &[header, "Content-Length: 11"]);
+        let head = put_head(RUN_ID, UPGRADE, &[header, "Transfer-Encoding: chunked"]);
+        let in_chunks = format!("{head}6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n");
+        let requests = [
+            ("an unknown command", put(RUN_ID, "?command=sh", gzip, ARCHIVE), 404),
+            ("no command", put(RUN_ID, "", gzip, ARCHIVE), 400),
+            ("a start with a run id that is not a UUID", put_archive("run-1"), 400),
+            ("a read with a run id that is not a UUID", get("/runs/run-1"), 404),
+            ("a JSON body", put(RUN_ID, UPGRADE, "application/json", b"{}"), 415),
+            ("a large archive by its length", by_length.into_bytes(), 413),
+            ("a large archive in chunks", in_chunks.into_bytes(), 413),
+        ];
+        for (name, request, status) in requests {
+            let host = start().await?;
+            assert_eq!(send(host.address, &request).await?.0, status, "{name}");
+            assert!(!host.host.is_claimed(), "{name}");
+        }
         Ok(())
     }
 

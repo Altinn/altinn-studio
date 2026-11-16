@@ -39,8 +39,11 @@ address that is not theirs.
 
 ## API
 
-The core operator is the only client, and the network policy lets only its pods reach the operator runner. The
-operator's client follows this protocol, so change both in the same pull request.
+The core operator is the only client, and the network policy lets only its pods reach the operator runner.
+[`examples/protocol.json`](examples/protocol.json) has an example of each answer that the operator reads, where
+`{runId}` is the run that claims the operator runner. The route tests check that the operator runner gives these
+answers, and the operator's tests check that its client reads its fake operator runner's answers as it reads these, so
+change the examples together with both sides.
 
 A client names a command. It cannot send a command line. Each command is a `Spec` in [`src/run.rs`](src/run.rs):
 
@@ -82,17 +85,10 @@ command runs, after the answer.
 
 ### Follow the run
 
-`GET /runs/{runId}?wait={seconds}` answers with the status of the run, without its output. It waits as
-[Fetch the result](#fetch-the-result) does, and answers 200 with one of these:
-
-```json
-{ "status": "running" }
-{ "status": "completed", "exitCode": 0, "timedOut": false }
-{ "status": "failed", "error": "..." }
-```
-
-The fields mean the same as in the result. A status read does not count as the fetch, so the operator can follow the
-run with it as often as it needs to. The operator runner answers 404 and 400 as it does for the result.
+`GET /runs/{runId}?wait={seconds}` answers 200 with the status of the run: the result without `stdout`, `stderr`,
+`report` and `patch`. It waits as [Fetch the result](#fetch-the-result) does. A status read does not count as the
+fetch, so the operator can follow the run with it as often as it needs to. The operator runner answers 404 and 400 as
+it does for the result.
 
 ### Fetch the result
 
