@@ -79,7 +79,8 @@ func run() int {
 	}
 	// The operator runner calls have no client timeout. Each step's execution deadline bounds the steps' calls, and the
 	// caller's request bounds an upload or a result that the operator passes on.
-	host := runner.NewClient(&http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}, runner.Port)
+	httpClient := &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	host := runner.NewClient(httpClient, runner.Port, cluster.Sandbox())
 	if err = setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
 		setupLog.Error(err, "unable to set up the operator")
 		return 1

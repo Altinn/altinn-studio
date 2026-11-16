@@ -49,15 +49,8 @@ type RequestError struct {
 
 func (e *RequestError) Error() string { return e.Message }
 
-// UploadError passes on the operator runner's refusal of an archive, such as one that is too large.
-type UploadError struct {
-	Detail string
-	Status int
-}
-
-func (e *UploadError) Error() string {
-	return fmt.Sprintf("the operator runner refused the archive: %d %s", e.Status, e.Detail)
-}
+// UploadError is the operator runner's refusal of an archive, such as one that is too large.
+type UploadError = runner.RejectedError
 
 // Service carries out the run API for a caller. It keeps nothing of a run: the engine keeps the run's workflow, and
 // the run's Job keeps the archive and the result.
@@ -325,20 +318,15 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 	if rec.Status != StatusAwaitingArchive {
 		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, rec.Status)
 	}
-	if rec.state.PodIP == "" {
-		return nil, fmt.Errorf("%w: the run has no operator runner", ErrNotAwaiting)
-	}
 
-	err = s.host.Start(ctx, rec.state.PodIP, runID, rec.state.Spec.Command, archive, size)
-	var rejection *runner.RejectedError
+	err = s.host.Start(ctx, rec.state.pod(runID), rec.state.Spec.Command, archive, size)
 	switch {
 	case err == nil:
 		return &rec.Run, nil
-	case errors.As(err, &rejection):
-		return nil, &UploadError{Status: rejection.Status, Detail: rejection.Detail}
-	case errors.Is(err, runner.ErrConflict):
-		// The Job's pod is the run's own, so another run cannot have claimed it.
-		return nil, fmt.Errorf("upload the archive: %w", err)
+	case errors.Is(err, runner.ErrRejected):
+		return nil, fmt.Errorf("upload the archive: %w", err) // an *UploadError
+	case errors.Is(err, runner.ErrGone):
+		return nil, fmt.Errorf("%w: %w", ErrNotAwaiting, err)
 	default:
 		return nil, fmt.Errorf("%w: %w", ErrRunner, err)
 	}
@@ -365,22 +353,16 @@ func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadClos
 	case !rec.keepsResult():
 		// run.cleanup has deleted the Job.
 		return nil, 0, ErrExpired
-	case rec.state.PodIP == "":
-		return nil, 0, fmt.Errorf("%w: the run has no operator runner", ErrExpired)
 	}
 
-	body, size, err := s.host.OpenResult(ctx, rec.state.PodIP, runID)
+	body, size, err := s.host.OpenResult(ctx, rec.state.pod(runID))
 	switch {
 	case err == nil:
 		return body, size, nil
 	case errors.Is(err, runner.ErrUnreachable):
-		// The operator runner exits once it has served the result and its grace has passed, or once the result timeout has.
-		gone, podErr := s.sandbox.PodGone(ctx, rec.state.Spec.Namespace, runID, rec.state.PodIP)
-		if podErr == nil && gone {
-			return nil, 0, fmt.Errorf("%w: %w", ErrExpired, err)
-		}
 		return nil, 0, fmt.Errorf("%w: %w", ErrRunner, err)
 	default:
+		// The operator runner exits once it has served the result and its grace has passed, or once the result timeout has.
 		return nil, 0, fmt.Errorf("%w: %w", ErrExpired, err)
 	}
 }

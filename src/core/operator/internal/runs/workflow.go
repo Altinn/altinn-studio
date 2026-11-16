@@ -9,6 +9,7 @@ import (
 	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
+	"altinn.studio/core-operator/internal/runner"
 )
 
 const (
@@ -73,6 +74,11 @@ type runState struct {
 	Outcome string   `json:"outcome,omitempty"`
 	Error   string   `json:"error,omitempty"`
 	Spec    KindSpec `json:"spec"`
+}
+
+// pod is where the run's operator runner listens.
+func (s *runState) pod(runID string) runner.Pod {
+	return runner.Pod{Namespace: s.Spec.Namespace, RunID: runID, IP: s.PodIP}
 }
 
 func (s *runState) encode() (*string, error) {

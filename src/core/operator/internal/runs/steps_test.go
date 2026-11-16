@@ -159,9 +159,8 @@ func TestAwaitArchiveRetriesAnUnreachableRunner(t *testing.T) {
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "app")
-	ip, port := h.host.Address()
+	ip, _ := h.host.Address()
 	h.host.Close()
-	h.steps.host = runner.NewClient(http.DefaultClient, port)
 	h.states[run.ID] = h.stateWith(t, run.ID, func(s *runState) { s.PodIP = ip })
 	h.sandbox.Add(sandbox.Job{RunID: run.ID, Kind: testKind, Caller: "assistant", Namespace: testNamespace})
 	h.sandbox.SetPod(testNamespace, run.ID, sandbox.Pod{Status: sandbox.PodReady, IP: ip})
@@ -183,9 +182,8 @@ func TestAwaitResultFailsWhenThePodIsGone(t *testing.T) {
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "app")
-	ip, port := h.host.Address()
+	ip, _ := h.host.Address()
 	h.host.Close()
-	h.steps.host = runner.NewClient(http.DefaultClient, port)
 	h.states[run.ID] = h.stateWith(t, run.ID, func(s *runState) { s.PodIP = ip })
 
 	// The pod is still there, so the operator runner may answer later.
@@ -213,7 +211,8 @@ func TestStepsRefuseCallbacksThatAreNotForARun(t *testing.T) {
 	for name, change := range cases {
 		Expect(callbacks.Ended(h.call(t, run.ID, StepAdmit, change).body)).To(HaveField("Reason", ReasonInternal), name)
 	}
-	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitArchive).body)).To(Equal(errNoPodIP), "no pod IP")
+	ended := callbacks.Ended(h.call(t, run.ID, StepAwaitArchive).body)
+	Expect(ended).To(HaveField("Reason", ReasonStartFailed), "no pod IP")
 }
 
 // A run keeps the kind it was created with, so a change to the catalog does not change a run in flight, and its
