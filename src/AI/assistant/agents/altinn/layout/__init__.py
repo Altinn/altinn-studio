@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from typing import Any
+
+from shared.utils.ttl_cache import TtlCache
 
 _SCHEMA_CACHE_TTL_SECONDS = 60 * 60  # schemas change rarely; 1h is generous
 _REMOTE_SCHEMA_PREFIX = "https://"
 _SIBLING_SCHEMA_GLOB_PATTERN = "*.schema.v1.json"
-_schema_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_schema_cache: TtlCache[dict[str, Any]] = TtlCache(_SCHEMA_CACHE_TTL_SECONDS)
 
 
 def get_layout_schema(schema_location: str) -> dict[str, Any]:
@@ -20,12 +21,10 @@ def get_layout_schema(schema_location: str) -> dict[str, Any]:
     layout files would otherwise hit the CDN N times.  One in-process
     TTL cache serves both the validator and the properties introspector.
     """
-    now = time.monotonic()
-    hit = _schema_cache.get(schema_location)
-    if hit and now - hit[0] < _SCHEMA_CACHE_TTL_SECONDS:
-        return hit[1]
-    schema = _load_schema(schema_location)
-    _schema_cache[schema_location] = (now, schema)
+    schema = _schema_cache.get(schema_location)
+    if schema is None:
+        schema = _load_schema(schema_location)
+        _schema_cache.put(schema_location, schema)
     return schema
 
 
