@@ -1,6 +1,9 @@
 # Preview, on a site of its own, so that the app content it serves can't act on Studio. Only paths that start with a
 # session ID reach the preview service; see src/core/preview/README.md.
 #
+# The entrypoint adds this server where PREVIEW_SERVER_NAME names preview's host: in the local stack, and in the
+# clusters whose environment has a preview host name. In the clusters, preview-ssl/ holds its TLS settings.
+#
 # The session ID opens the session, so it stays out of the logs and the traces:
 # - The access log writes a placeholder in its place.
 # - The error log takes only critical errors, since nginx writes the whole request line into an error, such as a
@@ -10,8 +13,9 @@
 #   unsampled one, and preview would then drop its spans too.
 #
 # nginx looks preview's address up on each request, so the load balancer starts without preview and follows preview
-# to a new address. PREVIEW_RESOLVER is the container runtime's DNS server, since nginx's resolver doesn't read
-# /etc/resolv.conf.
+# to a new address. nginx's resolver doesn't read /etc/resolv.conf, so PREVIEW_RESOLVER names the DNS server: the
+# container runtime's locally, and cluster DNS in the clusters. It doesn't apply the search domains either, so in the
+# clusters PREVIEW_SERVICE_HOST is the Service's fully qualified name.
 
 map $request_uri $preview_logged_uri {
   "~^/[0-9a-f]{32}(?<preview_rest>/.*)?$" "/{sessionId}$preview_rest";
@@ -24,6 +28,8 @@ log_format preview '$remote_addr - $remote_user [$time_local] "$request_method $
 server {
   listen ${LISTEN_DIRECTIVE};
   server_name ${PREVIEW_SERVER_NAME};
+
+  include /etc/nginx/preview-ssl/*.conf;
 
   access_log /var/log/nginx/access.log preview;
   error_log /var/log/nginx/error.log crit;

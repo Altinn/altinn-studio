@@ -64,14 +64,27 @@ The [deploy workflow](../../../.github/workflows/deploy-studio-preview.yaml) bui
 manifests as an OCI artifact with a tag for each environment. The
 [syncroot entry](../../../infra/studio/syncroot/base/altinn-preview.yaml) deploys the environment's overlay, which
 sets preview's host and the Studio origin in the `altinn-preview-environment` ConfigMap. Only dev has the entry so
-far. Browsers reach preview once the load balancer has a route to its host, which needs the host's certificate.
+far.
+
+Preview's host is on a domain of its own, so it has a certificate of its own, which the platform keeps in the same Key
+Vault as Studio's:
+
+- The [ExternalSecret](../../../infra/studio/ssl-cert/base/preview-ssl-cert-external-secret.yaml) copies it into
+  the cluster as `preview-ssl-key-secret`. The load balancer reloads it when it changes, as it does Studio's.
+- [altinn-studio-infra](https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra) passes the names of
+  its Key Vault secrets to the syncroot, as `PREVIEW_TLS_CERT_SECRET_NAME_CRT` and `PREVIEW_TLS_CERT_SECRET_NAME_KEY`.
+  It must pass them in every environment before the syncroot uses them, since Flux applies nothing from the syncroot
+  while a variable is missing.
+- The load balancer serves preview's host only in the environments its chart names in `previewHosts`, since only
+  those mount the certificate. A host's DNS record points at its environment's load balancer.
 
 External Secrets generates the Redis password in the cluster, since nothing outside it needs the password. Redis and
 preview read it only when they start, so the [ExternalSecret](infra/kustomize/base/externalsecret.yaml) creates the
 Secret once and never changes it. To change the password, delete the `altinn-preview-redis` Secret, then restart Redis
 and preview.
 
-The route must do what the [local one](../../load-balancer/local/servers/preview.conf.template) does:
+The load balancer's [route](../../load-balancer/preview/preview.conf.template) is the same in the clusters and the local
+stack:
 
 - It forwards only paths that start with a session ID.
 - It looks the service's address up on each request, so the load balancer starts without preview and follows its
