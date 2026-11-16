@@ -1,9 +1,8 @@
-import { HttpError } from '@studio/http-client';
-
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { isAuthenticationRedirectError } from 'src/utils/maybeAuthenticationRedirect';
 
 function stepUpError(data: unknown = { RequiredAuthenticationLevel: '3' }) {
-  return new HttpError({ status: 403, data });
+  return createHttpErrorMock(403, data);
 }
 
 describe('isAuthenticationRedirectError', () => {
@@ -14,7 +13,7 @@ describe('isAuthenticationRedirectError', () => {
   it.each([
     ['a plain error', new Error('boom')],
     ['a 403 without RequiredAuthenticationLevel', stepUpError({})],
-    ['a non-403 http error', new HttpError({ status: 500, data: {} })],
+    ['a non-403 http error', createHttpErrorMock(500, {})],
   ])('does not recognize %s', (_name, error) => {
     expect(isAuthenticationRedirectError(error)).toBe(false);
   });

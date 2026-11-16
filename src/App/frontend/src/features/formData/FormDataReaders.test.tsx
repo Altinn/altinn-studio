@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { HttpError } from '@studio/http-client';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,6 +8,7 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -202,7 +202,7 @@ describe('FormDataReaders', () => {
 
   it('advanced, should fetch data from multiple models, handle failures', async () => {
     vi.useFakeTimers();
-    const missingError = new HttpError(undefined, 'This should fail when fetching');
+    const missingError = createHttpErrorMock(undefined, undefined, 'This should fail when fetching');
 
     const model2Promise = new Promise((resolve) => {
       setTimeout(() => resolve({ name: 'Universe' }), 100);

@@ -2,11 +2,11 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import type { createMemoryRouter } from 'react-router';
 
-import { HttpError } from '@studio/http-client';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/process/useProcessNext';
@@ -50,7 +50,7 @@ async function renderFailingProcessNext(
   let transitionAttempted = false;
   vi.mocked(doProcessNext).mockImplementation(async () => {
     transitionAttempted = true;
-    throw new HttpError({ status, data: errorBody });
+    throw createHttpErrorMock(status, errorBody);
   });
 
   await renderWithInstanceAndLayout({

@@ -1,8 +1,8 @@
 import { isHttpError } from '@studio/http-client';
 
 export interface HttpErrorDetails {
-  method: string | undefined;
-  url: string | undefined;
+  method: string;
+  url: string;
   responseStatus: number | undefined;
   responseData: unknown;
 }
@@ -18,8 +18,8 @@ export function getHttpErrorDetails(error: unknown): HttpErrorDetails | null {
 
   const { request, response } = error;
   return {
-    method: request?.method,
-    url: request?.url,
+    method: request.method,
+    url: request.url,
     responseStatus: response?.status,
     responseData: response?.data,
   };

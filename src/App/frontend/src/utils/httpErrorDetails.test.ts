@@ -10,9 +10,10 @@ describe('getHttpErrorDetails', () => {
   });
 
   it('should extract method, url, status and body from an http error', () => {
-    const error = new HttpError({ status: 500, data: { title: 'Instance initialization failed.' } }, undefined, {
-      request: { method: 'POST', url: '/instances?instanceOwnerPartyId=501337&language=nb' },
-    });
+    const error = new HttpError(
+      { method: 'POST', url: '/instances?instanceOwnerPartyId=501337&language=nb' },
+      { status: 500, data: { title: 'Instance initialization failed.' }, headers: new Headers() },
+    );
 
     expect(getHttpErrorDetails(error)).toEqual({
       method: 'POST',
@@ -22,12 +23,12 @@ describe('getHttpErrorDetails', () => {
     });
   });
 
-  it('should handle a missing request and response', () => {
-    const error = new HttpError(undefined, 'Failed to fetch');
+  it('should handle a missing response', () => {
+    const error = new HttpError({ method: 'GET', url: '/instances' }, undefined, { message: 'Failed to fetch' });
 
     expect(getHttpErrorDetails(error)).toEqual({
-      method: undefined,
-      url: undefined,
+      method: 'GET',
+      url: '/instances',
       responseStatus: undefined,
       responseData: undefined,
     });

@@ -1,11 +1,10 @@
 import { LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
-import { HttpError } from '@studio/http-client';
-
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
 import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
@@ -86,7 +85,7 @@ describe('instance-selection clientLoader', () => {
       validParties: [],
       message: 'Not allowed',
     };
-    const error = new HttpError({ status: 403, data: validationResult }, 'Forbidden');
+    const error = createHttpErrorMock(403, validationResult, 'Forbidden');
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
     vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
@@ -101,7 +100,7 @@ describe('instance-selection clientLoader', () => {
   });
 
   it('should return forbidden error when instantiation fails with 403 without validation', async () => {
-    const error = new HttpError({ status: 403, data: {} }, 'Forbidden');
+    const error = createHttpErrorMock(403, {}, 'Forbidden');
 
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
     vi.mocked(mutations.createInstance.mock).mockRejectedValue(error);
@@ -159,7 +158,7 @@ describe('instance-selection clientLoader', () => {
       onEntry: { show: 'new-instance' },
     });
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.createInstance.mock).mockRejectedValue(new HttpError({ status: 410, data: undefined }, 'Gone'));
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(createHttpErrorMock(410, undefined, 'Gone'));
 
     const result = await clientLoader(createLoaderArgs());
 

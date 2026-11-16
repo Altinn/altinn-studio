@@ -15,9 +15,10 @@ const failedInstantiationBody = {
 const failedInstantiationUrl = '/ttd/component-library/instances?instanceOwnerPartyId=501337&language=nb';
 
 function makeInstantiationError(): HttpError {
-  return new HttpError({ status: 500, data: failedInstantiationBody }, undefined, {
-    request: { method: 'POST', url: failedInstantiationUrl },
-  });
+  return new HttpError(
+    { method: 'POST', url: failedInstantiationUrl },
+    { status: 500, data: failedInstantiationBody, headers: new Headers() },
+  );
 }
 
 describe('Unknown error', () => {

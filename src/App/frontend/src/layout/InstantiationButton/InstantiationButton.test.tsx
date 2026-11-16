@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
-import { HttpError } from '@studio/http-client';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IQueryParameters } from '@app/layout-contract/generated/common.generated';
@@ -11,6 +10,7 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -125,7 +125,7 @@ describe('InstantiationButton', () => {
 
   it('should explain that the service cannot be started, and disable the button, after a 410 response', async () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
-    const createWithPrefill = vi.fn().mockRejectedValue(new HttpError({ status: 410, data: undefined }, 'Gone'));
+    const createWithPrefill = vi.fn().mockRejectedValue(createHttpErrorMock(410, undefined, 'Gone'));
     await render(createWithPrefill);
 
     await userEvent.click(screen.getByRole('button', { name: 'Instantiate' }));

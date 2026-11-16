@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { HttpError } from '@studio/http-client';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -95,7 +95,7 @@ describe('InstanceSelection', () => {
       queries: { getActiveInstances: async () => mockActiveInstances },
       mutations: {
         createInstance: async () => {
-          throw new HttpError({ status: 410, data: undefined }, 'Gone');
+          throw createHttpErrorMock(410, undefined, 'Gone');
         },
       },
     });
