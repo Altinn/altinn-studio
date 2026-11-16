@@ -23,7 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- In a local run against localtest, `UseMaskinportenAltinnAuthorization` and `IMaskinportenClient.GetAltinnExchangedToken` now get a service owner token from localtest instead of failing. You no longer need a Maskinporten client to call Altinn APIs, such as another app, as the service owner locally. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
+- Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 - Expression handling in backend now supports accessing base class properties, when a derived class is used in the data model class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` and `AD0001` instead, which still fail a build that treats warnings as errors. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))

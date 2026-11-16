@@ -389,17 +389,16 @@ public class MaskinportenClientTests
                 ConsumerOrg = OrganizationNumber.Parse("991825827"),
             },
             "resource" => new MaskinportenTokenRequest { Scopes = ["scope"], Resource = "https://api.example.com/v1" },
-            _ => new MaskinportenTokenRequest
+            "system user" => new MaskinportenTokenRequest
             {
                 Scopes = ["scope"],
                 SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
             },
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
         };
 
-        // Act & assert - fails before any request, so the HttpClientFactory mock has no setup
-        await Assert.ThrowsAsync<MaskinportenUnsupportedTokenException>(() =>
-            fixture.Client().GetAltinnExchangedToken(request)
-        );
+        // Act & assert - throws before any request, so the HttpClientFactory mock needs no setup
+        await Assert.ThrowsAsync<NotSupportedException>(() => fixture.Client().GetAltinnExchangedToken(request));
     }
 
     [Fact]

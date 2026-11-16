@@ -152,9 +152,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     ) => GetAltinnExchangedToken(new MaskinportenTokenRequest { Scopes = scopes }, cancellationToken);
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// On localtest the token comes from localtest instead, see <see cref="GetLocaltestServiceOwnerToken"/>.
-    /// </remarks>
     public async Task<JwtToken> GetAltinnExchangedToken(
         MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
@@ -339,15 +336,9 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     }
 
     /// <summary>
-    /// <para>Gets a service owner token for the app's org from localtest, in place of an exchanged one.</para>
-    /// <para>Localtest is the Altinn platform of a local run, so it is also the authority that would exchange the
-    /// token, and it has no exchange endpoint. A token from Maskinporten would therefore be of no use, and getting
-    /// one would need a real Maskinporten client and network access to Maskinporten. Localtest issues the token
-    /// directly instead, so a local run needs no Maskinporten client to call Altinn APIs as the service owner.</para>
-    /// <para>The token carries Digdir's organization number whatever the org.</para>
+    /// Gets a service owner token for the app's org from localtest. Localtest has no endpoint to exchange a
+    /// Maskinporten token, so a local run gets its token this way, and needs no Maskinporten client for it.
     /// </summary>
-    /// <exception cref="MaskinportenUnsupportedTokenException">The request asks for a token on behalf of a consumer
-    /// org, restricted to a resource, or for a system user. Localtest can only issue plain service owner tokens.</exception>
     private async Task<JwtToken> GetLocaltestServiceOwnerToken(
         MaskinportenTokenRequest request,
         CancellationToken cancellationToken
@@ -355,9 +346,9 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     {
         if (request is not { ConsumerOrg: null, Resource: null, SystemUser: null })
         {
-            throw new MaskinportenUnsupportedTokenException(
-                "Localtest issues only service owner tokens for scopes. A token request with a consumer org, a "
-                    + "resource or a system user cannot be served in a local run."
+            throw new NotSupportedException(
+                "Localtest issues only plain service owner tokens. A request with a consumer org, a resource or a "
+                    + "system user cannot get a token in a local run."
             );
         }
 
@@ -373,7 +364,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         using HttpResponseMessage response = await client.GetAsync(url, timeout.Token);
 
         if (!response.IsSuccessStatusCode)
-            throw await PlatformHttpException.Create(response, cancellationToken);
+            throw await PlatformHttpException.Create(response, timeout.Token);
 
         return JwtToken.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
     }
