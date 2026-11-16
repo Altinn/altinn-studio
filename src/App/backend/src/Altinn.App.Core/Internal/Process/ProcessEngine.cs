@@ -203,16 +203,16 @@ internal class ProcessEngine : IProcessEngine
             language: language,
             cancellationToken: cancellationToken
         );
-        if (result.WorkflowFailure is null)
+        if (result.Failure is not { } failure)
         {
             return result.Instance;
         }
 
         throw new WorkflowExecutionFailedException(
             result.Instance,
-            result.WorkflowFailure,
-            result.ProcessStateCommitted,
-            CreateWorkflowFailureMessage(result.WorkflowFailure)
+            failure.WorkflowFailure,
+            failure.ProcessStateCommitted,
+            CreateWorkflowFailureMessage(failure.WorkflowFailure)
         );
     }
 
@@ -318,16 +318,16 @@ internal class ProcessEngine : IProcessEngine
             cancellationToken
         );
 
-        if (workflowResult.WorkflowFailure is not null)
+        if (workflowResult.Failure is { } failure)
         {
             var failureResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "Something went wrong while resuming the current task.",
-                ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
-                WorkflowFailure = workflowResult.WorkflowFailure,
-                ProcessStateOnFailure = workflowResult.ProcessStateCommitted ? workflowResult.Instance.Process : null,
+                ErrorMessage = CreateWorkflowFailureMessage(failure.WorkflowFailure),
+                WorkflowFailure = failure.WorkflowFailure,
+                ProcessStateOnFailure = failure.ProcessStateCommitted ? workflowResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
@@ -521,23 +521,23 @@ internal class ProcessEngine : IProcessEngine
             cancellationToken
         );
 
-        if (workflowResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
+        if (workflowResult.Failure?.WorkflowFailure.Kind == WorkflowFailureKind.DependencyFailed)
         {
             ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
         }
 
-        if (workflowResult.WorkflowFailure is not null)
+        if (workflowResult.Failure is { } failure)
         {
             var failureResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "Something went wrong while moving to the next task.",
-                ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
-                WorkflowFailure = workflowResult.WorkflowFailure,
-                ProcessStateOnFailure = workflowResult.ProcessStateCommitted ? workflowResult.Instance.Process : null,
+                ErrorMessage = CreateWorkflowFailureMessage(failure.WorkflowFailure),
+                WorkflowFailure = failure.WorkflowFailure,
+                ProcessStateOnFailure = failure.ProcessStateCommitted ? workflowResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;

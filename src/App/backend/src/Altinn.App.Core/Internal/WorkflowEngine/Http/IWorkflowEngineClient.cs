@@ -34,6 +34,18 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
+    /// Streams a workflow collection's snapshots from the engine's event stream, as the engine sends them, until the
+    /// engine ends it after the first snapshot in which the collection has a head and every head is terminal
+    /// (<c>Waiting</c> and <c>Held</c> are not). An unsuccessful status throws <see cref="HttpRequestException"/>
+    /// carrying it, before any snapshot.
+    /// </summary>
+    IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+        string ns,
+        string key,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets a workflow with its dependencies by database ID.
     /// Returns <see langword="null"/> when the workflow does not exist in the namespace.
     /// </summary>
