@@ -175,16 +175,16 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			RegisterTestingT(t)
-			described := describe(tc.workflow)
-			Expect(described.status).To(Equal(tc.status))
+			described := readRun(tc.workflow)
+			Expect(described.Status).To(Equal(tc.status))
 			if tc.reason == "" {
-				Expect(described.err).To(BeNil())
+				Expect(described.Error).To(BeNil())
 			} else {
-				Expect(described.err).NotTo(BeNil())
-				Expect(described.err.Reason).To(Equal(tc.reason))
+				Expect(described.Error).NotTo(BeNil())
+				Expect(described.Error.Reason).To(Equal(tc.reason))
 			}
-			Expect(described.finishedAt != nil).To(Equal(tc.status.Final()))
-			Expect(described.resultExpiresAt != nil).To(Equal(tc.status == StatusCompleted))
+			Expect(described.FinishedAt != nil).To(Equal(tc.status.Final()))
+			Expect(described.ResultExpiresAt != nil).To(Equal(tc.status == StatusCompleted))
 		})
 	}
 }
@@ -199,16 +199,16 @@ func TestDescribeTellsUntilWhenTheResultCanBeFetched(t *testing.T) {
 			workflow.Steps[i].UpdatedAt = &ended
 		}
 	}
-	described := describe(workflow)
-	Expect(*described.finishedAt).To(Equal(ended))
-	Expect(*described.resultExpiresAt).To(Equal(ended.Add(5 * time.Minute)))
+	described := readRun(workflow)
+	Expect(*described.FinishedAt).To(Equal(ended))
+	Expect(*described.ResultExpiresAt).To(Equal(ended.Add(5 * time.Minute)))
 }
 
 func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 	RegisterTestingT(t)
 
 	starting := workflowAt(engine.StatusWaiting, StepAwaitArchive, engine.StatusWaiting)
-	Expect(startedAt(starting)).To(BeNil())
+	Expect(readRun(starting).StartedAt).To(BeNil())
 
 	sent := time.Date(2026, 11, 3, 10, 29, 0, 0, time.UTC)
 	running := workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting)
@@ -217,7 +217,7 @@ func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 			running.Steps[i].UpdatedAt = &sent
 		}
 	}
-	Expect(startedAt(running)).To(Equal(&sent))
+	Expect(readRun(running).StartedAt).To(Equal(&sent))
 
 	// A kind without an archive has no run.await-archive. Its command starts when run.await-pod ends.
 	started := time.Date(2026, 11, 3, 10, 28, 0, 0, time.UTC)
@@ -232,7 +232,7 @@ func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 		}
 	}
 	withoutArchive.Steps = steps
-	Expect(startedAt(withoutArchive)).To(Equal(&started))
+	Expect(readRun(withoutArchive).StartedAt).To(Equal(&started))
 }
 
 // Before the command runs, the cancel deletes the Job, so the run can only end canceled, and shows it at once.
@@ -243,9 +243,9 @@ func TestDescribeShowsACancelBeforeTheCommandAtOnce(t *testing.T) {
 	for _, step := range []string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive} {
 		workflow := workflowAt(engine.StatusWaiting, step, engine.StatusWaiting)
 		workflow.CancellationRequestedAt = &requested
-		described := describe(workflow)
-		Expect(described.status).To(Equal(StatusCanceled), step)
-		Expect(*described.finishedAt).To(Equal(requested))
+		described := readRun(workflow)
+		Expect(described.Status).To(Equal(StatusCanceled), step)
+		Expect(*described.FinishedAt).To(Equal(requested))
 	}
 }
 
@@ -257,24 +257,24 @@ func TestDescribeLetsAResultWinOverACancel(t *testing.T) {
 	requested := time.Date(2026, 11, 3, 10, 31, 0, 0, time.UTC)
 	running := workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting)
 	running.CancellationRequestedAt = &requested
-	Expect(describe(running).status).To(Equal(StatusRunning))
+	Expect(readRun(running).Status).To(Equal(StatusRunning))
 
 	cleaning := withOutcome(workflowAt(engine.StatusProcessing, StepCleanup, engine.StatusProcessing), "completed", "")
 	cleaning.CancellationRequestedAt = &requested
-	Expect(describe(cleaning).status).To(Equal(StatusCompleted))
+	Expect(readRun(cleaning).Status).To(Equal(StatusCompleted))
 
 	completed := withOutcome(workflowAt(engine.StatusCompleted, "", ""), "completed", "")
 	completed.CancellationRequestedAt = &requested
-	Expect(describe(completed).status).To(Equal(StatusCompleted))
+	Expect(readRun(completed).Status).To(Equal(StatusCompleted))
 
 	canceled := workflowAt(engine.StatusCanceled, StepAwaitResult, engine.StatusFailed)
 	canceled.CancellationRequestedAt = &requested
-	Expect(describe(canceled).status).To(Equal(StatusCanceled))
+	Expect(readRun(canceled).Status).To(Equal(StatusCanceled))
 
 	// The cancel deleted the Job, so the step failed before the engine canceled the workflow.
 	failed := workflowAt(engine.StatusFailed, StepAwaitResult, engine.StatusFailed)
 	failed.CancellationRequestedAt = &requested
-	Expect(describe(failed).status).To(Equal(StatusCanceled))
+	Expect(readRun(failed).Status).To(Equal(StatusCanceled))
 }
 
 func TestDescribeKeepsTheErrorDetailShort(t *testing.T) {
@@ -282,9 +282,9 @@ func TestDescribeKeepsTheErrorDetailShort(t *testing.T) {
 
 	long := strings.Repeat("æ", maxDetail)
 	failed := workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed)
-	described := describe(
+	described := readRun(
 		withError(failed, StepAwaitArchive, `{"status":422,"reason":"start-failed","detail":"`+long+`"}`),
 	)
-	Expect(len(described.err.Detail)).To(BeNumerically("<=", maxDetail))
-	Expect(strings.ToValidUTF8(described.err.Detail, "?")).To(Equal(described.err.Detail))
+	Expect(len(described.Error.Detail)).To(BeNumerically("<=", maxDetail))
+	Expect(strings.ToValidUTF8(described.Error.Detail, "?")).To(Equal(described.Error.Detail))
 }
