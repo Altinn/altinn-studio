@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0501`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0501](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
+- Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0502`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0502](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0502), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
 
 ### Fixed
 

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Altinn.App.Analyzers.Tests.Fixtures;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -72,6 +71,14 @@ public class AsyncVoidAnalyzerTests
                         _ = Local();
                     }
                 }
+
+                public sealed class GenericHandlers<T>
+                    where T : EventArgs
+                {
+                    public event EventHandler<T>? Changed;
+
+                    public void Run() => Changed += async (sender, e) => await Task.Delay(1);
+                }
                 """
         );
 
@@ -89,7 +96,7 @@ public class AsyncVoidAnalyzerTests
         Assert.Empty(diagnostics);
     }
 
-    private static async Task<ImmutableArray<Diagnostic>> Analyze(string source, bool isAltinnApp = true)
+    private static async Task<IReadOnlyList<Diagnostic>> Analyze(string source, bool isAltinnApp = true)
     {
         var references = AppDomain
             .CurrentDomain.GetAssemblies()
@@ -108,8 +115,11 @@ public class AsyncVoidAnalyzerTests
         Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
 
         var options = new AnalyzerOptions([], new AltinnAppOptionsProvider(isAltinnApp));
-        return await compilation
+        var diagnostics = await compilation
             .WithAnalyzers([new AsyncVoidAnalyzer()], options)
             .GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+
+        // The analyzer runs concurrently, so it reports in no fixed order.
+        return diagnostics.OrderBy(d => d.Location.GetLineSpan().StartLinePosition).ToList();
     }
 }

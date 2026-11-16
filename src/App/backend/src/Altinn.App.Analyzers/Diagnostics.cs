@@ -27,7 +27,7 @@ public static class Diagnostics
 
         // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
         public static readonly DiagnosticDescriptor AsyncVoid = Error(
-            "ALTINNAPP0501",
+            "ALTINNAPP0502",
             Category.CodeSmells,
             "Async method returns void",
             "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "

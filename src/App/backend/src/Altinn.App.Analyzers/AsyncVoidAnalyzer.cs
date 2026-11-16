@@ -72,9 +72,18 @@ public sealed class AsyncVoidAnalyzer : DiagnosticAnalyzer
         if (method.Parameters[0].Type.SpecialType != SpecialType.System_Object)
             return false;
 
-        for (var type = method.Parameters[1].Type; type is not null; type = type.BaseType)
+        return DerivesFrom(method.Parameters[1].Type, eventArgs);
+    }
+
+    // A type parameter has no base type, so for `T where T : EventArgs` the constraint is what says it is EventArgs.
+    private static bool DerivesFrom(ITypeSymbol type, INamedTypeSymbol baseType)
+    {
+        if (type is ITypeParameterSymbol typeParameter)
+            return typeParameter.ConstraintTypes.Any(constraint => DerivesFrom(constraint, baseType));
+
+        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
         {
-            if (SymbolEqualityComparer.Default.Equals(type, eventArgs))
+            if (SymbolEqualityComparer.Default.Equals(current, baseType))
                 return true;
         }
         return false;
