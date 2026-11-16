@@ -5,28 +5,18 @@ import asyncio
 from collections.abc import Sequence
 from typing import Any
 
-from pydantic import BaseModel
-
 from shared.models import AgentAttachment
 from shared.utils.logging_utils import get_logger
 
-from .llm_client import check_security_with_llm, suggest_goals_with_llm
+from .llm_client import SecurityVerdict, check_security_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
 
-# `action` when the classifier never ran, as opposed to answering "unsafe".
-GATE_FAILED_ACTION = "error"
 
+class SecurityCheckResult(SecurityVerdict):
+    """The security gate's verdict on a goal."""
 
-class SecurityCheckResult(BaseModel):
-    """The security gate's verdict on a goal, with what the classifier read from it."""
-
-    action: str  # add, remove, update, move
-    component: str  # field, layout, validation, etc.
-    target: str  # specific target like "layout main", "field totalWeight"
-    details: dict[str, str] = {}  # additional details like type, binding
-    safe: bool = True  # whether the goal is a legitimate request
-    reason: str | None = None  # reason if not safe
+    failed: bool = False  # the classifier gave no verdict, so `safe` is false without the goal being unsafe
 
 
 async def check_security_async(
@@ -39,42 +29,17 @@ async def check_security_async(
     # Quick safety check before LLM processing
     is_safe, safety_reason = _validate_goal_safety_quick(goal)
     if not is_safe:
-        return SecurityCheckResult(
-            action="blocked",
-            component="unknown",
-            target=goal,
-            safe=False,
-            reason=safety_reason,
-        )
+        return SecurityCheckResult(safe=False, reason=safety_reason)
 
     try:
-        result = await check_security_with_llm(goal, attachments=attachments, conversation=conversation)
-
-        # Validate LLM response structure
-        parsed = SecurityCheckResult(
-            action=result.get("action", "unknown"),
-            component=result.get("component", "unknown"),
-            target=result.get("target", goal),
-            details=result.get("details", {}),
-            safe=result.get("safe", False),
-            reason=result.get("reason"),
-        )
-
-        # Log if the classifier marked something unsafe
-        if not parsed.safe:
-            log.warning(f"Security gate flagged goal as unsafe: {parsed.reason}")
-
-        return parsed
-
+        verdict = await check_security_with_llm(goal, attachments=attachments, conversation=conversation)
     except Exception as e:
         log.error(f"Security check failed: {e}")
-        return SecurityCheckResult(
-            action=GATE_FAILED_ACTION,
-            component="unknown",
-            target=goal,
-            safe=False,
-            reason=f"Security check failed: {e!s}",
-        )
+        return SecurityCheckResult(safe=False, reason=f"Security check failed: {e!s}", failed=True)
+
+    if not verdict.safe:
+        log.warning(f"Security gate flagged goal as unsafe: {verdict.reason}")
+    return SecurityCheckResult(safe=verdict.safe, reason=verdict.reason)
 
 
 def _validate_goal_safety_quick(goal: str) -> tuple[bool, str | None]:

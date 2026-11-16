@@ -9,7 +9,6 @@ from opentelemetry import trace as otel_trace
 
 from agents.services.events import AgentEvent, EventSink, sink
 from agents.services.llm import (
-    GATE_FAILED_ACTION,
     check_scope_async,
     check_security_async,
     suggest_goal_correction,
@@ -239,7 +238,7 @@ async def _check_security(state: AgentState):
         state.user_goal, attachments=state.attachments, conversation=state.conversation_history
     )
 
-    if parsed.action == GATE_FAILED_ACTION:
+    if parsed.failed:
         _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
@@ -250,12 +249,7 @@ async def _check_security(state: AgentState):
         )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
-    _log.info(
-        "Goal passed the security gate for session %s: action=%s, component=%s",
-        state.session_id,
-        parsed.action,
-        parsed.component,
-    )
+    _log.info("Goal passed the security gate for session %s", state.session_id)
 
 
 def _mark_as_experiment_item(state: AgentState, root_span) -> dict[str, str]:
