@@ -158,7 +158,7 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 
 	cluster, err := newCluster(cfg, false, kube.Options{RESTConfig: restConfig})
 	Expect(err).NotTo(HaveOccurred())
-	host := runner.NewClient(http.DefaultClient, runner.Port)
+	host := runner.NewClient(http.DefaultClient, runner.Port, cluster.Sandbox())
 	Expect(setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host)).To(Succeed())
 	ctx, cancel := context.WithCancel(context.Background())
 	stopped := make(chan error)

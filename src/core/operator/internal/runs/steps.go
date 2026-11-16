@@ -31,8 +31,7 @@ const (
 )
 
 var (
-	errState   = errors.New("the step state is not valid")
-	errNoPodIP = ends(ReasonInternal, "The step state has no pod IP.", nil)
+	errState = errors.New("the step state is not valid")
 	// errQueueTimeout fails run.admit on the engine's final check, so the run's status can say why it ended.
 	errQueueTimeout = &callbacks.End{Reason: ReasonQueueTimeout, Expected: true,
 		Detail: "The run waited in the queue longer than its kind allows."}
@@ -237,11 +236,8 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 	if err != nil {
 		return callbacks.Response{}, err
 	}
-	if run.state.PodIP == "" {
-		return callbacks.Response{}, errNoPodIP
-	}
 
-	_, err = s.host.Status(ctx, run.state.PodIP, run.id, 0)
+	_, err = s.host.Status(ctx, run.state.pod(run.id), 0)
 	switch {
 	case err == nil:
 		return callbacks.Done(payload.State), nil
@@ -251,7 +247,7 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 		}
 		return run.wait(payload, archiveRecheck, "Waiting for the caller to upload the archive."), nil
 	default:
-		return callbacks.Response{}, s.runnerError(ctx, run, ReasonStartFailed, err)
+		return callbacks.Response{}, runnerError(ReasonStartFailed, err)
 	}
 }
 
@@ -264,10 +260,10 @@ func (s *Steps) startWithoutArchive(ctx context.Context, run *stepRun) error {
 		return err
 	}
 	err = s.host.Start(
-		ctx, run.state.PodIP, run.id, run.state.Spec.Command, bytes.NewReader(archive), int64(len(archive)),
+		ctx, run.state.pod(run.id), run.state.Spec.Command, bytes.NewReader(archive), int64(len(archive)),
 	)
 	if err != nil {
-		return s.runnerError(ctx, run, ReasonStartFailed, err)
+		return runnerError(ReasonStartFailed, err)
 	}
 	return nil
 }
@@ -292,13 +288,10 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	if err != nil {
 		return callbacks.Response{}, err
 	}
-	if run.state.PodIP == "" {
-		return callbacks.Response{}, errNoPodIP
-	}
 
-	status, err := s.host.Status(ctx, run.state.PodIP, run.id, scaled(resultWait, run.state.Spec.TimeScale))
+	status, err := s.host.Status(ctx, run.state.pod(run.id), scaled(resultWait, run.state.Spec.TimeScale))
 	if err != nil {
-		return callbacks.Response{}, s.runnerError(ctx, run, ReasonRunFailed, err)
+		return callbacks.Response{}, runnerError(ReasonRunFailed, err)
 	}
 	if status.Status == runner.StatusRunning {
 		return run.wait(payload, resultRecheck, "The command is running."), nil
@@ -314,27 +307,16 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	return callbacks.Done(state), nil
 }
 
-// runnerError decides whether a failed request to the operator runner can succeed later, and ends the run for reason
-// if not. An operator runner that does not answer may be restarting its connection, unless its pod is gone.
-func (s *Steps) runnerError(ctx context.Context, run *stepRun, reason string, err error) error {
+// runnerError ends the run for reason when a repeat of a request to the operator runner cannot succeed, and otherwise
+// has the engine retry the step.
+func runnerError(reason string, err error) error {
 	switch {
 	case errors.Is(err, runner.ErrRejected), errors.Is(err, runner.ErrNotClaimed):
 		return ends(reason, "The operator runner refused the request.", err)
-	case errors.Is(err, runner.ErrUnreachable):
-		if gone, podErr := s.podGone(ctx, run); podErr == nil && gone {
-			return ends(reason, "The operator runner's pod is gone, and its result with it.", err)
-		}
+	case errors.Is(err, runner.ErrGone):
+		return ends(reason, "The operator runner's pod is gone, and its result with it.", err)
 	}
 	return fmt.Errorf("ask the operator runner: %w", err)
-}
-
-// podGone reports whether the run's pod has stopped or disappeared, so its operator runner can never answer.
-func (s *Steps) podGone(ctx context.Context, run *stepRun) (bool, error) {
-	gone, err := s.sandbox.PodGone(ctx, run.state.Spec.Namespace, run.id, run.state.PodIP)
-	if err != nil {
-		return false, fmt.Errorf("read the pod: %w", err)
-	}
-	return gone, nil
 }
 
 // cleanup deletes the Job once the caller can have the result no more. The operator runner of a completed run keeps the
@@ -346,9 +328,9 @@ func (s *Steps) cleanup(ctx context.Context, payload *callbacks.Payload) (callba
 		return callbacks.Response{}, err
 	}
 	if run.state.Outcome == runner.StatusCompleted && !payload.IsFinalWaitCheck {
-		gone, err := s.podGone(ctx, run)
+		gone, err := s.sandbox.PodGone(ctx, run.state.Spec.Namespace, run.id, run.state.PodIP)
 		if err != nil {
-			return callbacks.Response{}, err
+			return callbacks.Response{}, fmt.Errorf("read the pod: %w", err)
 		}
 		if !gone {
 			return run.wait(payload, cleanupRecheck, "Waiting for the caller to fetch the result."), nil

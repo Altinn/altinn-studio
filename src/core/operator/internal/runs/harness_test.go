@@ -92,7 +92,7 @@ func newHarness(t *testing.T) *harness {
 	clk.Advance(warmup)
 	engineClient := engine.NewClient(fakeEngine.URL(), http.DefaultClient)
 	box := sandboxtest.New()
-	hostClient := runner.NewClient(http.DefaultClient, port)
+	hostClient := runner.NewClient(http.DefaultClient, port, box)
 	steps := NewSteps(cfg, queue, box, hostClient, clk)
 	return &harness{
 		clock:     clk,
@@ -139,7 +139,8 @@ func (h *harness) create(t *testing.T, caller, app string) *Run {
 func (h *harness) upload(t *testing.T, runID, content string) {
 	t.Helper()
 	archive := gzipArchive(t, content)
-	if err := h.steps.host.Start(t.Context(), podIP, runID, "upgrade-v9", bytes.NewReader(archive), -1); err != nil {
+	pod := runner.Pod{Namespace: testNamespace, RunID: runID, IP: podIP}
+	if err := h.steps.host.Start(t.Context(), pod, "upgrade-v9", bytes.NewReader(archive), -1); err != nil {
 		t.Fatal(err)
 	}
 }
