@@ -15,7 +15,7 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
 
 - The policy holds `<xacml:Rule Effect="Permit">` elements and then one `<xacml:ObligationExpressions>` element.
 - A rule's `<xacml:Target>` has three `<xacml:AnyOf>` elements, in this order: subjects (who), resource (which app,
-  and maybe which task), actions (what).
+  and maybe which task), actions (what). A payment rule can have no subjects.
 - Each `<xacml:AllOf>` in an AnyOf is one alternative. A rule applies when one AllOf in every AnyOf matches. All
   `<xacml:Match>` elements in one AllOf must match, which is how org, app and task combine.
 - `[ORG]`, `[APP]` and `[org]` are placeholders. Studio replaces them with the app's org and name when it deploys,
@@ -56,24 +56,17 @@ Choose in this order:
 
 ## The lists of packages and roles
 
-Use the access packages and roles that Studio's policy editor offers. Designer reads them from Altinn Access
-Management, and they change without a change to the app, so read them each time, and never write a code you have not
-seen there.
+Altinn Access Management keeps the access packages and roles, and changes them without a change to the app. Read the
+current lists each time, and never write a code you have not seen there. When no tool gives you the lists, read them
+from Access Management in production:
 
-- Designer serves the access packages at `/designer/api/<org>/<app>/policy/accesspackageoptions`, by group and area.
-  A package's code is the last part of its `urn`. A policy can use a package only when its
-  `isResourcePolicyAvailable` is `true`.
-- Designer serves the roles a policy can use at `/designer/api/<org>/<app>/policy/subjectoptions`. A role's code is
-  the last part of its `legacyUrn`, or of its `urn` when it has no `legacyUrn`, such as `dagl` in
-  `urn:altinn:rolecode:dagl`. The list has Altinn 2 roles too: those whose provider code is `sys-altinn2`.
+- Access packages: `https://platform.altinn.no/accessmanagement/api/v1/meta/info/accesspackages/export`, by group and
+  area. A package's code is the last part of its `urn`.
+- Roles: `https://platform.altinn.no/accessmanagement/api/v1/meta/info/roles/`. A role's code is the last part of its
+  `legacyUrn`, or of its `urn` when it has no `legacyUrn`, such as `dagl` in `urn:altinn:rolecode:dagl`. Altinn 2
+  roles have the provider code `sys-altinn2`.
 
-Where a shell is available, one way to search the packages is, with the app's org and name:
-
-```sh
-curl -s https://altinn.studio/designer/api/<org>/<app>/policy/accesspackageoptions \
-  | jq -r '.[] | .name as $group | .areas[] | .packages[] | select(.isResourcePolicyAvailable)
-      | [$group, (.urn | split(":") | last), .name] | @tsv' | grep -i 'regnskap'
-```
+A policy can use a package or a role only when its `isResourcePolicyAvailable` is `true`.
 
 ## Attributes
 
@@ -86,7 +79,7 @@ curl -s https://altinn.studio/designer/api/<org>/<app>/policy/accesspackageoptio
 | Task | `urn:altinn:task`, in the AllOf with org and app | resource | Task ID from `process.bpmn` |
 | Ended process | `urn:altinn:end-event`, in the AllOf with org and app | resource | End event ID, such as `EndEvent_1` |
 | Events | `urn:altinn:appresource`, in the AllOf with org and app | resource | `events`, with the action `read` |
-| Action | `urn:oasis:names:tc:xacml:1.0:action:action-id` | action | `read`, `write` and so on |
+| Action | `urn:oasis:names:tc:xacml:1.0:action:action-id` | action | One of the [actions](#actions) |
 
 The categories in full:
 
@@ -108,6 +101,18 @@ Notes:
 - When users need level 4, Studio can let system users in at level 3 with
   `urn:altinn:minimum-authenticationlevel-systemuser` = `3`. Studio removes it whenever the users' level changes,
   because it lets more users in. Do the same, and ask whether system users should still get in at level 3.
+
+## Actions
+
+The app and Altinn check these actions:
+
+- `instantiate`, `read`, `write` and `delete`: start, see, change and delete an instance.
+- `complete`: the service owner confirms that it has received the instance.
+- `confirm`, `sign`, `pay` and `reject`: on tasks, as [Rights the process needs](#rights-the-process-needs) says.
+- `publish`: a system publishes events about the app to the Events API.
+- An action named like a task type the app defines, or listed on a task in `process.bpmn`.
+
+Studio's policy editor also offers `subscribe`, `scopeaccess` and `access`, which no app checks. Do not add them.
 
 ## A complete rule
 
@@ -203,10 +208,11 @@ task:
 
 ## Before you finish
 
-- The file is well-formed XML. Every rule has the three AnyOf elements, and every `RuleId` is unique.
+- The file is well-formed XML. Every rule has the three AnyOf elements, apart from a payment rule without subjects.
+  Every `RuleId` is unique.
 - All rules come before `<xacml:ObligationExpressions>`, and the file has no comments.
-- Every package code you added is in the editor's list, with `isResourcePolicyAvailable`. Every role code you
-  added is one Studio offers, unless the user asked for that role.
+- Every package and role code you added is in the current list, and a policy can use it, unless the user asked for
+  that role.
 - Users get the action from the table above on every task they must complete.
 - Tell the user which subjects got which rights, and in which tasks.
 
