@@ -192,16 +192,17 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		return callbacks.Response{}, fmt.Errorf("read the pod: %w", err)
 	}
 
+	waiting := "Waiting for the operator runner to start."
 	switch pod.Status {
 	case sandbox.JobUnseen:
 		// The sandbox has not seen the new Job yet. Until it does, the run holds its place through its reservation,
 		// which a queue that restarted meanwhile does not know.
 		s.queue.KeepAdmitted(run.id, run.state.Kind, run.caller)
-		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
+		waiting = "Waiting for the Job to create its pod."
 	case sandbox.JobFailed:
 		return callbacks.Response{}, ends(ReasonStartFailed, "The Job failed: "+pod.Detail, nil)
 	case sandbox.PodNone:
-		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
+		waiting = "Waiting for the Job to create its pod."
 	case sandbox.PodEnded:
 		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
 	case sandbox.PodReady:
@@ -217,10 +218,15 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		}
 		return callbacks.Done(state), nil
 	case sandbox.PodUnschedulable:
-		return run.wait(payload, podRecheck, "Waiting for a sandbox node."), nil
+		waiting = "Waiting for a sandbox node."
 	case sandbox.PodStarting:
 	}
-	return run.wait(payload, podRecheck, "Waiting for the operator runner to start."), nil
+	if payload.IsFinalWaitCheck {
+		// The engine would fail the step after this deferral, with a text of its own. Failing it here says what the pod
+		// was waiting for.
+		return callbacks.Response{}, ends(ReasonStartFailed, "The pod was not ready in time. "+waiting, nil)
+	}
+	return run.wait(payload, podRecheck, waiting), nil
 }
 
 // awaitArchive waits until the caller's archive has reached the operator runner, which then starts the command. The
