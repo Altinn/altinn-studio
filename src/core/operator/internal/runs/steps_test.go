@@ -135,6 +135,11 @@ func TestAwaitPodWaitsForASandboxNode(t *testing.T) {
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	h.setPod(run.ID, sandbox.PodUnschedulable, "")
 	Expect(h.call(t, run.ID, StepAwaitPod).response.Defer.Reason).To(Equal("Waiting for a sandbox node."))
+
+	// On the engine's final check, the run fails with what the pod waited for.
+	final := h.call(t, run.ID, StepAwaitPod, func(p *callbacks.Payload) { p.IsFinalWaitCheck = true })
+	Expect(callbacks.Ended(final.body)).To(Equal(&callbacks.End{Reason: ReasonStartFailed,
+		Detail: "The pod was not ready in time. Waiting for a sandbox node."}))
 }
 
 func TestAwaitPodFailsForAFailedJobWithoutPod(t *testing.T) {
