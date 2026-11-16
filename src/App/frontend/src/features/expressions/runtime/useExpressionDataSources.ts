@@ -175,7 +175,7 @@ export function useExpressionDataSources(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'runtime');
 
@@ -202,7 +202,7 @@ export function useExpressionDataSourcesForStoreSelector(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'storeSelector');
 
