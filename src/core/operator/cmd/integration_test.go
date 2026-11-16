@@ -211,7 +211,9 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 		run := c.create("upgrade", app("silent"), http.StatusAccepted)
 		ready(run.ID)
 		failed := c.await(run.ID, runs.StatusFailed)
-		Expect(failed.Error.Reason).To(Equal(runs.ReasonArchiveTimeout))
+		Expect(failed.Error).To(Equal(&runs.RunError{
+			Reason: runs.ReasonArchiveTimeout, Detail: "No archive arrived within the upload timeout of the kind.",
+		}))
 	})
 
 	t.Run("a run fails when a step fails", func(t *testing.T) {
@@ -220,7 +222,9 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 		ready(run.ID)
 		box.SetPod(namespace, run.ID, sandbox.Pod{Status: sandbox.PodEnded, Detail: "run-x is Failed"})
 		failed := c.await(run.ID, runs.StatusFailed)
-		Expect(failed.Error.Reason).To(Equal(runs.ReasonStartFailed))
+		Expect(failed.Error).To(Equal(&runs.RunError{
+			Reason: runs.ReasonStartFailed, Detail: "The pod stopped before it was ready: run-x is Failed",
+		}))
 	})
 
 	t.Run("a cancel deletes the Job", func(t *testing.T) {
