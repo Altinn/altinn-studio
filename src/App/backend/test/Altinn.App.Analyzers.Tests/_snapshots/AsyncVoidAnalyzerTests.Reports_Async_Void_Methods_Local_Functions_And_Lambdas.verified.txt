@@ -1,0 +1,62 @@
+﻿[
+  {
+    Id: ALTINNAPP0501,
+    Title: Async method returns void,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Handlers.cs(10,9),
+    Code: async,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501,
+    MessageFormat: {0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Message: Local function 'Local' is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0501,
+    Title: Async method returns void,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Handlers.cs(13,23),
+    Code: async,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501,
+    MessageFormat: {0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Message: This lambda is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0501,
+    Title: Async method returns void,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Handlers.cs(14,25),
+    Code: async,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501,
+    MessageFormat: {0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Message: This lambda is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0501,
+    Title: Async method returns void,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Handlers.cs(15,33),
+    Code: async,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501,
+    MessageFormat: {0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Message: This lambda is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0501,
+    Title: Async method returns void,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/Handlers.cs(6,12),
+    Code: async,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0501,
+    MessageFormat: {0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Message: Method 'Fire' is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an exception it throws cannot be caught and stops the app. Return Task instead, and await it.,
+    Category: CodeSmells
+  }
+]
