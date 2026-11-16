@@ -32,7 +32,7 @@ async def _suggest_after_two_choices() -> MagicMock:
     gate call is asynchronous."""
     client = MagicMock()
     client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
-    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true}')
+    client.call_async = AsyncMock(return_value='{"safe":true,"reason":null}')
     with (
         patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
         patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),

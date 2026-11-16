@@ -27,6 +27,7 @@ from agents.services.llm.scope_checker import (
     build_scope_check_message,
     check_scope_async,
 )
+from agents.services.llm.security_checker import SecurityCheckResult
 
 
 def _state(**overrides) -> AgentState:
@@ -60,22 +61,7 @@ class TestCheckScopeAsync:
 
         assert result.in_scope is False
         assert result.decline_message == "Jeg kan bare hjelpe med Altinn."
-
-    async def test_strips_markdown_fences_around_the_json(self):
-        client = MagicMock()
-        client.call_async = AsyncMock(
-            return_value='```json\n{"in_scope": true, "decline_message": null, "reason": "layout"}\n```'
-        )
-        with (
-            patch("agents.services.llm.scope_checker.get_llm_client", return_value=client),
-            patch(
-                "agents.services.llm.scope_checker.get_prompt_with_langfuse",
-                return_value=("system", None),
-            ),
-        ):
-            result = await check_scope_async("legg til et tekstfelt")
-
-        assert result.in_scope is True
+        assert client.call_async.await_args.kwargs["response_schema"] is ScopeCheckResult
 
     async def test_fails_open_when_the_classifier_call_fails(self):
         client = MagicMock()
@@ -88,22 +74,6 @@ class TestCheckScopeAsync:
             ),
         ):
             result = await check_scope_async("legg til et tekstfelt")
-
-        assert result.in_scope is True
-
-    async def test_fails_open_when_in_scope_is_not_a_boolean(self):
-        client = MagicMock()
-        client.call_async = AsyncMock(
-            return_value='{"in_scope": "false", "decline_message": "Nei.", "reason": "travel"}'
-        )
-        with (
-            patch("agents.services.llm.scope_checker.get_llm_client", return_value=client),
-            patch(
-                "agents.services.llm.scope_checker.get_prompt_with_langfuse",
-                return_value=("system", None),
-            ),
-        ):
-            result = await check_scope_async("planlegg japanreisen min")
 
         assert result.in_scope is True
 
@@ -334,7 +304,7 @@ class TestSecurityCheckRejectionCopy:
         return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):
-        parsed = MagicMock(safe=False, reason=UNSAFE_GATE_REASON)
+        parsed = SecurityCheckResult(safe=False, reason=UNSAFE_GATE_REASON)
 
         rejection = await self._reject(parsed)
 
