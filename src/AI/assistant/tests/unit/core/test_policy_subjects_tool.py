@@ -7,6 +7,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from pydantic import ValidationError
 
 from agents.core import LoopContext, PolicySubjectsTool
 from agents.core.tools.policy_subjects_tool import (
@@ -17,6 +18,7 @@ from agents.core.tools.policy_subjects_tool import (
 )
 from agents.services.designer import policy_options
 from agents.services.designer.policy_options import AccessPackage, Role, parse_access_packages, parse_roles
+from shared.utils.ttl_cache import TtlCache
 
 FIXTURES = Path(__file__).parents[1] / "services" / "designer" / "fixtures"
 RECORDED = {path.stem: path.read_bytes() for path in FIXTURES.glob("*.json")}
@@ -129,26 +131,26 @@ class TestDescribeAccessPackages:
 
 class TestDescribeRoles:
     def test_lists_the_roles_apart_from_altinn2_with_enhetsregisteret_first(self, roles):
-        text = describe_roles(roles, search=None, altinn2=False, max_chars=MAX_CHARS)
+        text = describe_roles(roles, search=None, kind="roles", max_chars=MAX_CHARS)
 
         assert _codes(text) == {"dagl", "priv"}
         assert text.index("## Enhetsregisteret") < text.index("| `priv`")
 
     def test_lists_the_altinn2_roles_on_their_own(self, roles):
-        text = describe_roles(roles, search=None, altinn2=True, max_chars=MAX_CHARS)
+        text = describe_roles(roles, search=None, kind="altinn2_roles", max_chars=MAX_CHARS)
 
         assert _codes(text) == {"utinn"}
         assert "31 December 2026" in text
 
     def test_search(self, roles):
-        text = describe_roles(roles, search="daglig", altinn2=False, max_chars=MAX_CHARS)
+        text = describe_roles(roles, search="daglig", kind="roles", max_chars=MAX_CHARS)
 
         assert _codes(text) == {"dagl"}
 
     def test_says_designer_lists_no_altinn2_roles_once_they_are_gone(self, roles):
-        current = [role for role in roles if role.provider_code != "sys-altinn2"]
+        current = [role for role in roles if not role.is_altinn2]
 
-        text = describe_roles(current, search=None, altinn2=True, max_chars=MAX_CHARS)
+        text = describe_roles(current, search=None, kind="altinn2_roles", max_chars=MAX_CHARS)
 
         assert text.startswith("Designer lists no Altinn 2 roles any more")
         assert "None" not in text
@@ -159,7 +161,7 @@ class TestDescribeRoles:
             for index in range(130)
         ]
 
-        text = describe_roles(roles, search=None, altinn2=False, max_chars=2_000)
+        text = describe_roles(roles, search=None, kind="roles", max_chars=2_000)
 
         assert text.endswith("more rows. Add a search to narrow the list.")
 
@@ -167,7 +169,7 @@ class TestDescribeRoles:
 class TestTool:
     @pytest.fixture(autouse=True)
     def designer(self, monkeypatch):
-        monkeypatch.setattr(policy_options, "_cache", {})
+        monkeypatch.setattr(policy_options, "_cache", TtlCache(ttl_seconds=60))
         monkeypatch.setattr(policy_options.config, "DESIGNER_BASE_URL", "http://designer.test/")
 
     @pytest.fixture
@@ -182,7 +184,7 @@ class TestTool:
     async def test_lists_a_group_and_names_the_docs_as_its_source(self, serve, run):
         serve(_recorded)
 
-        result = await run(group="Særskilt")
+        result = await run(kind="access_packages", group="Særskilt")
 
         assert not result.is_error
         assert "`regnskapsforer-med-signeringsrettighet`" in result.content
@@ -201,10 +203,10 @@ class TestTool:
     async def test_reads_each_list_from_designer_once_within_the_hour_for_every_app(self, serve, run, ctx):
         requests = serve(_recorded)
 
-        await run(group="Allment")
+        await run(kind="access_packages", group="Allment")
         await run(kind="roles")
         ctx.extras["app_name"] = "other-app"
-        await run(search="regnskap")
+        await run(kind="access_packages", search="regnskap")
         await run(kind="altinn2_roles")
 
         assert [str(request.url) for request in requests] == [
@@ -217,7 +219,7 @@ class TestTool:
         requests = serve(_recorded)
         ctx.designer_api_key = "key"
 
-        await run(group="Allment")
+        await run(kind="access_packages", group="Allment")
 
         assert "x-api-key" not in requests[0].headers
 
@@ -225,7 +227,7 @@ class TestTool:
         requests = serve(_recorded)
         del ctx.extras["app_name"]
 
-        result = await run(group="Allment")
+        result = await run(kind="access_packages", group="Allment")
 
         assert result.is_error
         assert "needs the app's org and name" in result.content
@@ -241,7 +243,7 @@ class TestTool:
     async def test_tells_the_model_not_to_guess_when_designer_fails(self, serve, run):
         serve(lambda request: httpx.Response(503))
 
-        result = await run(group="Allment")
+        result = await run(kind="access_packages", group="Allment")
 
         assert result.is_error
         assert "Could not read the list from Designer" in result.content
@@ -250,17 +252,25 @@ class TestTool:
     async def test_an_unreadable_answer_is_an_error_and_is_not_kept(self, serve, run):
         requests = serve(lambda request: httpx.Response(200, json={"unexpected": True}))
 
-        first = await run(group="Allment")
-        await run(group="Allment")
+        first = await run(kind="access_packages", group="Allment")
+        await run(kind="access_packages", group="Allment")
 
         assert first.is_error
         assert "expected a list of access package groups" in first.content
         assert len(requests) == 2
 
+    def test_refuses_a_group_for_roles(self):
+        with pytest.raises(ValidationError, match="only for `access_packages`"):
+            PolicySubjectsArgs(kind="roles", group="Allment")
+
+    def test_needs_a_kind(self):
+        with pytest.raises(ValidationError, match="kind"):
+            PolicySubjectsArgs.model_validate({"group": "Allment"})
+
     async def test_an_unknown_group_is_an_error(self, serve, run):
         serve(_recorded)
 
-        result = await run(group="Nope")
+        result = await run(kind="access_packages", group="Nope")
 
         assert result.is_error
         assert "No group is called 'Nope'" in result.content

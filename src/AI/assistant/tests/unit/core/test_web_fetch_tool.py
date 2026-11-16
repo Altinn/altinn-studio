@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 import httpx
 import pytest
 
 from agents.core import LoopContext, WebFetchTool
 from agents.core.tools.web_fetch_tool import MAX_REDIRECTS
 
+from .conftest import Handler
+
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
-
-Handler = Callable[[httpx.Request], httpx.Response]
 
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:

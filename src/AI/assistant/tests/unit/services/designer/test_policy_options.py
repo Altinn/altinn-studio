@@ -72,6 +72,13 @@ class TestParseAccessPackages:
         with pytest.raises(PolicyOptionsError, match="list of areas"):
             parse_access_packages(changed)
 
+    def test_fails_on_a_group_without_a_type(self, packages_data):
+        changed = copy.deepcopy(packages_data)
+        del changed[0]["type"]
+
+        with pytest.raises(PolicyOptionsError, match="no 'type'"):
+            parse_access_packages(changed)
+
     def test_fails_on_a_package_that_is_not_an_object(self, packages_data):
         changed = copy.deepcopy(packages_data)
         changed[0]["areas"][0]["packages"].append("regnskap")
@@ -103,5 +110,5 @@ class TestParseRoles:
         changed = copy.deepcopy(roles_data)
         changed[0]["legacyUrn"] = legacy_urn
 
-        with pytest.raises(PolicyOptionsError, match="unexpected role URN"):
+        with pytest.raises(PolicyOptionsError, match="unexpected URN"):
             parse_roles(changed)

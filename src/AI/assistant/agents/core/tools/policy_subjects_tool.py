@@ -1,16 +1,17 @@
-"""`altinn_policy_subjects` — the access packages and roles a policy can name, as Studio's policy editor offers them.
+"""`altinn_policy_subjects` looks up the access packages and roles that Studio's policy editor offers.
 
-The studio-policy skill says what the lists are and where they live, without naming this tool.
+The studio-policy skill does not name this tool, since coding agents outside the assistant read the same skill.
 """
 
 from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from operator import attrgetter
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 from agents.services.designer import policy_options
@@ -36,8 +37,7 @@ _ROLES_SOURCE = {
     "kind": "docs",
 }
 
-ALTINN2_PROVIDER = "sys-altinn2"
-# Enhetsregisteret first, since those are the roles a service for organizations uses.
+# Enhetsregisteret first, since those are the roles a service for organizations uses. Other providers come last.
 _PROVIDER_ORDER = {"sys-ccr": 0, "sys-altinn3": 1}
 # Most codes are ASCII, and names are Norwegian. Folding both lets `regnskapsforer` find `Regnskapsfører`.
 _ASCII_FOLD = str.maketrans({"æ": "ae", "ø": "o", "å": "a"})
@@ -45,13 +45,43 @@ _ASCII_FOLD = str.maketrans({"æ": "ae", "ø": "o", "å": "a"})
 _SORT_FOLD = str.maketrans({"æ": "{0", "ø": "{1", "å": "{2"})
 
 
+RoleKind = Literal["roles", "altinn2_roles"]
+
+
+@dataclass(frozen=True)
+class _RoleList:
+    altinn2: bool
+    intro: str
+    empty: str
+
+
+_ROLE_LISTS: dict[RoleKind, _RoleList] = {
+    "roles": _RoleList(
+        altinn2=False,
+        intro=(
+            "The roles Studio's policy editor offers, without Altinn 2 roles. Put the code in a subject match with "
+            f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`. A code with another AttributeId names it in brackets.'
+        ),
+        empty="Designer lists no roles apart from Altinn 2 roles.",
+    ),
+    # Remove on 1 January 2027, together with the skill's references/altinn2-roles.md.
+    "altinn2_roles": _RoleList(
+        altinn2=True,
+        intro=(
+            "Altinn 2 roles stop giving access by 31 December 2026. In a policy they appear as "
+            f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`, in any letter case.'
+        ),
+        empty="Designer lists no Altinn 2 roles any more, so a policy cannot use them. Use an access package instead.",
+    ),
+}
+
+
 class PolicySubjectsArgs(BaseModel):
     kind: Literal["access_packages", "roles", "altinn2_roles"] = Field(
-        default="access_packages",
         description=(
-            "`access_packages`; `roles`, the roles Studio's policy editor offers apart from Altinn 2 roles, such as "
-            "`dagl` and `priv`; or `altinn2_roles`, the Altinn 2 roles it offers, which stop giving access at the end "
-            "of 2026."
+            "Which list to read. `access_packages` are the access packages. `roles` are the roles Studio's policy "
+            "editor offers apart from Altinn 2 roles, such as `dagl` and `priv`. `altinn2_roles` are the Altinn 2 "
+            "roles it offers, which stop giving access at the end of 2026."
         ),
     )
     search: str | None = Field(
@@ -64,9 +94,16 @@ class PolicySubjectsArgs(BaseModel):
     group: str | None = Field(
         default=None,
         description=(
-            "Access packages only: list one group: `Allment`, `Bransje`, `Særskilt`, `Innbygger` or `Vergemål`."
+            "The access package group to list: `Allment`, `Bransje`, `Særskilt`, `Innbygger` or `Vergemål`. Only "
+            "for `access_packages`."
         ),
     )
+
+    @model_validator(mode="after")
+    def _group_only_for_access_packages(self) -> Self:
+        if self.group and self.kind != "access_packages":
+            raise ValueError("`group` is only for `access_packages`. Narrow the roles with `search`.")
+        return self
 
 
 class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
@@ -76,7 +113,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
     description = (
         "Look up the access packages and roles an app's authorization policy can name: the lists Studio's policy "
         "editor offers, with each code, name and description. Use it before you add a package or role to the "
-        "policy, and to explain one the policy already has.  For access packages, give `group` or `search`. "
+        "policy, and to explain one the policy already has. For access packages, give `group` or `search`. "
         "Without them you get the groups and areas to choose from."
     )
     input_schema = PolicySubjectsArgs
@@ -101,10 +138,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                 source = _PACKAGES_SOURCE
             else:
                 content = describe_roles(
-                    await policy_options.roles(org, app),
-                    search=args.search,
-                    altinn2=args.kind == "altinn2_roles",
-                    max_chars=max_chars,
+                    await policy_options.roles(org, app), kind=args.kind, search=args.search, max_chars=max_chars
                 )
                 source = _ROLES_SOURCE
         except PolicyOptionsError as exc:
@@ -162,42 +196,31 @@ def describe_access_packages(
     return _tables(intro, ("Code", "Name", "Area", "Description"), sections, narrow=narrow, max_chars=max_chars)
 
 
-def describe_roles(all_roles: list[Role], *, search: str | None, altinn2: bool, max_chars: int) -> str:
+def describe_roles(all_roles: list[Role], *, kind: RoleKind, search: str | None, max_chars: int) -> str:
     """The roles Studio's policy editor offers, or the Altinn 2 roles a policy may still name."""
+    role_list = _ROLE_LISTS[kind]
     words = _words(search)
-    # Remove `altinn2_roles` on 1 January 2027, together with the skill's references/altinn2-roles.md.
-    if altinn2:
-        selected = [role for role in all_roles if role.provider_code == ALTINN2_PROVIDER]
-        intro = (
-            "Altinn 2 roles stop giving access by 31 December 2026. In a policy they appear as "
-            f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`, in any letter case.'
-        )
-    else:
-        selected = [role for role in all_roles if role.provider_code != ALTINN2_PROVIDER]
-        intro = (
-            "The roles Studio's policy editor offers, without Altinn 2 roles. Put the code in a subject match with "
-            f'`AttributeId="{ROLE_CODE_ATTRIBUTE}"`. A code with another AttributeId names it in brackets.'
-        )
+    selected = [role for role in all_roles if role.is_altinn2 == role_list.altinn2]
     if not selected:
-        return (
-            "Designer lists no Altinn 2 roles any more, so a policy cannot use them. Use an access package instead."
-            if altinn2
-            else "Designer lists no roles apart from Altinn 2 roles."
-        )
+        return role_list.empty
     matching = [
         role for role in selected if _matches(words, role.code, role.name, role.description, role.provider_name)
     ]
     if not matching:
         return f"No role matches {search!r}. Search with fewer or other words."
     matching.sort(
-        key=lambda role: (_PROVIDER_ORDER.get(role.provider_code, 99), role.provider_name, _sort_key(role.code))
+        key=lambda role: (
+            _PROVIDER_ORDER.get(role.provider_code, len(_PROVIDER_ORDER)),
+            role.provider_name,
+            _sort_key(role.code),
+        )
     )
     sections = [
         (provider_name, [_role_row(role) for role in rows])
         for provider_name, rows in _group_by(matching, attrgetter("provider_name")).items()
     ]
     narrow = "Narrow the search." if words else "Add a search to narrow the list."
-    return _tables(intro, ("Code", "Name", "Description"), sections, narrow=narrow, max_chars=max_chars)
+    return _tables(role_list.intro, ("Code", "Name", "Description"), sections, narrow=narrow, max_chars=max_chars)
 
 
 def _package_row(package: AccessPackage) -> str:
