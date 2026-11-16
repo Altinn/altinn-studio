@@ -78,6 +78,8 @@
     "minimatch@npm:^9.0.5": "^11.0.8",
     "minimatch@npm:^10.2.1": "^11.0.8",
     "minimatch@npm:^10.2.2": "^11.0.8",
-    "minimatch@npm:^10.2.6": "^11.0.8"
+    "minimatch@npm:^10.2.6": "^11.0.8",
+    "fast-xml-parser@npm:^4.4.1": "^5.12.1",
+    "serialize-javascript@npm:^6.0.2": "^7.1.4"
   }
 }
