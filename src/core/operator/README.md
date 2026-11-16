@@ -203,31 +203,17 @@ The report of `upgrade-v9` is the output of `studioctl app upgrade v9 --json`, a
 
 ## Callback contract
 
-The engine sends `POST /workflow-engine-callbacks/{commandKey}` to the callback port for each step.
-
-```json
-{
-  "commandKey": "run.admit",
-  "context": { "domain": "runs", "caller": "assistant", "subjectId": "0b6f…" },
-  "workflowId": "…",
-  "stepId": "…",
-  "executionReferenceTime": "2026-11-03T10:00:00+00:00",
-  "state": null,
-  "retryCount": 0,
-  "executionDeadline": "2026-11-03T10:00:30+00:00",
-  "deferCount": 0,
-  "firstDeferredAt": null,
-  "waitDeadline": null,
-  "isFinalWaitCheck": false
-}
-```
+The engine sends `POST /workflow-engine-callbacks/{commandKey}` to the callback port for each step, with a payload such
+as [payload.json](api/callbacks/payload.json).
 
 The operator answers:
 
 - 2xx with an empty body, or `{"state": "…"}`, when the step is done. `state` reaches the next step as its `state`.
 - 2xx with `{"state": "…", "defer": {"delay": "00:00:05", "reason": "queued"}}` when the step waits. `delay` is a
   .NET `TimeSpan` in the constant format `[d.]hh:mm:ss[.fffffff]`.
-- 4xx, other than 408, 418 and 429, when the step must fail without a retry.
+- 4xx, other than 408, 418 and 429, when the step must fail without a retry. The operator answers 422 with a problem
+  such as `{"status": 422, "reason": "queue-timeout", "detail": "…"}`. The engine keeps it in the step's error history,
+  where the run's status reads the reason back.
 - 5xx, 408 or 429 when the engine should retry the step.
 
 `stepId` is the same for every attempt of a step, so a handler can use it as the idempotency key for a call it must not

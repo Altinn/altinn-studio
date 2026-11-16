@@ -12,16 +12,24 @@ import (
 const ContentType = "application/problem+json"
 
 // Details is an RFC 9457 problem. Type is left out, which means about:blank: the status code says what happened.
+// Reason is an extension member for a code that a program can act on.
 type Details struct {
 	Title  string `json:"title"`
 	Detail string `json:"detail,omitempty"`
+	Reason string `json:"reason,omitempty"`
 	Status int    `json:"status"`
 }
 
 // Write answers with status and a problem whose title is the status text.
 func Write(w http.ResponseWriter, r *http.Request, status int, detail string) {
+	WriteDetails(w, r, Details{Status: status, Detail: detail})
+}
+
+// WriteDetails answers with details, whose title is the text of their status.
+func WriteDetails(w http.ResponseWriter, r *http.Request, details Details) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	write(w, r, status, ContentType, Details{Title: http.StatusText(status), Status: status, Detail: detail})
+	details.Title = http.StatusText(details.Status)
+	write(w, r, details.Status, ContentType, details)
 }
 
 // WriteJSON answers with status and body as JSON.

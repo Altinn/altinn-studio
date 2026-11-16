@@ -31,29 +31,19 @@ const (
 )
 
 var (
-	errContext = errors.New("the callback is not for a run")
-	errNoKind  = errors.New("the run's kind is not configured anymore")
-	// errQueueTimeout fails run.admit on the engine's final check. The engine passes the error on in the step's error
-	// history, where status reads recognize it.
-	errQueueTimeout = errors.New("the run waited in the queue longer than its kind allows")
+	errState   = errors.New("the step state is not valid")
+	errNoPodIP = ends(ReasonInternal, "The step state has no pod IP.", nil)
+	// errQueueTimeout fails run.admit on the engine's final check, so the run's status can say why it ended.
+	errQueueTimeout = &callbacks.End{Reason: ReasonQueueTimeout, Expected: true,
+		Detail: "The run waited in the queue longer than its kind allows."}
 	// errArchiveTimeout fails run.await-archive on the engine's final check, as errQueueTimeout does run.admit.
-	errArchiveTimeout = errors.New("no archive arrived within the upload timeout")
-	errState          = errors.New("the step state is not valid")
-	errNoPodIP        = errors.New("the step state has no pod IP")
-	errPodEnded       = errors.New("the pod stopped before it was ready")
-	errJobFailed      = errors.New("the Job failed")
-	errPodGone        = errors.New("the operator runner's pod is gone, and its result with it")
-	errJobRefused     = errors.New("the sandbox refused the Job")
+	errArchiveTimeout = &callbacks.End{Reason: ReasonArchiveTimeout, Expected: true,
+		Detail: "No archive arrived within the upload timeout of the kind."}
 )
 
-// permanent marks err so that the engine fails the run instead of retrying the step.
-func permanent(err error) error {
-	return fmt.Errorf("%w: %w", callbacks.ErrPermanent, err)
-}
-
-// expected fails the run like permanent, for an end of the run that is not a fault of the operator.
-func expected(err error) error {
-	return fmt.Errorf("%w: %w", callbacks.ErrExpected, err)
+// ends fails the run instead of retrying the step. The run's status shows reason and detail, and the log err.
+func ends(reason, detail string, err error) error {
+	return &callbacks.End{Err: err, Reason: reason, Detail: detail}
 }
 
 // Steps are the callback handlers of the run workflow. Each step works out what it needs from the run id in the
@@ -102,11 +92,12 @@ func (r *stepRun) wait(payload *callbacks.Payload, delay time.Duration, reason s
 func (s *Steps) load(ctx context.Context, payload *callbacks.Payload) (*stepRun, error) {
 	id := payload.Context.SubjectID
 	if payload.Context.Domain != Domain || !ValidRunID(id) || payload.Context.Caller == "" {
-		return nil, permanent(fmt.Errorf("%w: domain %q, subject %q", errContext, payload.Context.Domain, id))
+		detail := fmt.Sprintf("The callback is not for a run: domain %q, subject %q.", payload.Context.Domain, id)
+		return nil, ends(ReasonInternal, detail, nil)
 	}
 	state, err := parseState(payload.State)
 	if err != nil {
-		return nil, permanent(err)
+		return nil, ends(ReasonInternal, "The step state is not valid.", err)
 	}
 	trace.SpanFromContext(ctx).SetAttributes(
 		telemetry.AttrKind.String(state.Kind),
@@ -125,7 +116,7 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 	// The limits are the kind's current ones, since they describe the sandbox as it is now.
 	limits, ok := s.cfg.Kinds[run.state.Kind]
 	if !ok {
-		return callbacks.Response{}, permanent(fmt.Errorf("%w: %s", errNoKind, run.state.Kind))
+		return callbacks.Response{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
 	}
 	jobs, err := s.sandbox.ActiveJobs(ctx, run.state.Spec.Namespace, run.state.Kind)
 	if err != nil {
@@ -144,7 +135,7 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 	if payload.IsFinalWaitCheck {
 		// The engine would fail the step after this deferral. Failing it here gives an error that status reads know.
 		s.queue.Forget(run.id)
-		return callbacks.Response{}, expected(errQueueTimeout)
+		return callbacks.Response{}, errQueueTimeout
 	}
 	reason := fmt.Sprintf("The run is number %d in the queue for %s.", admission.Position, run.state.Kind)
 	return run.wait(payload, AdmitRecheck, reason), nil
@@ -169,9 +160,9 @@ func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (call
 	case errors.Is(err, sandbox.ErrNotAdmitted):
 		// The policy compares the Job with the template it has cached, which lags a rollout of the template by a
 		// moment. The step's retry strategy bounds how long a Job that never fits is tried.
-		return callbacks.Response{}, fmt.Errorf("%w: %w", errJobRefused, err)
+		return callbacks.Response{}, fmt.Errorf("the sandbox refused the Job: %w", err)
 	case errors.Is(err, sandbox.ErrRefused):
-		return callbacks.Response{}, permanent(fmt.Errorf("%w: %w", errJobRefused, err))
+		return callbacks.Response{}, ends(ReasonStartFailed, "The sandbox refused the Job.", err)
 	default:
 		return callbacks.Response{}, fmt.Errorf("create Job: %w", err)
 	}
@@ -208,11 +199,11 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		s.queue.KeepAdmitted(run.id, run.state.Kind, run.caller)
 		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
 	case sandbox.JobFailed:
-		return callbacks.Response{}, permanent(fmt.Errorf("%w: %s", errJobFailed, pod.Detail))
+		return callbacks.Response{}, ends(ReasonStartFailed, "The Job failed: "+pod.Detail, nil)
 	case sandbox.PodNone:
 		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
 	case sandbox.PodEnded:
-		return callbacks.Response{}, permanent(fmt.Errorf("%w: %s", errPodEnded, pod.Detail))
+		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
 	case sandbox.PodReady:
 		run.state.PodIP = pod.IP
 		if !run.state.Spec.RequiresArchive {
@@ -241,7 +232,7 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 		return callbacks.Response{}, err
 	}
 	if run.state.PodIP == "" {
-		return callbacks.Response{}, permanent(errNoPodIP)
+		return callbacks.Response{}, errNoPodIP
 	}
 
 	_, err = s.host.Status(ctx, run.state.PodIP, run.id, 0)
@@ -250,11 +241,11 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 		return callbacks.Done(payload.State), nil
 	case errors.Is(err, runner.ErrNotClaimed):
 		if payload.IsFinalWaitCheck {
-			return callbacks.Response{}, expected(errArchiveTimeout)
+			return callbacks.Response{}, errArchiveTimeout
 		}
 		return run.wait(payload, archiveRecheck, "Waiting for the caller to upload the archive."), nil
 	default:
-		return callbacks.Response{}, s.runnerError(ctx, run, err)
+		return callbacks.Response{}, s.runnerError(ctx, run, ReasonStartFailed, err)
 	}
 }
 
@@ -270,7 +261,7 @@ func (s *Steps) startWithoutArchive(ctx context.Context, run *stepRun) error {
 		ctx, run.state.PodIP, run.id, run.state.Spec.Command, bytes.NewReader(archive), int64(len(archive)),
 	)
 	if err != nil {
-		return s.runnerError(ctx, run, err)
+		return s.runnerError(ctx, run, ReasonStartFailed, err)
 	}
 	return nil
 }
@@ -296,12 +287,12 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 		return callbacks.Response{}, err
 	}
 	if run.state.PodIP == "" {
-		return callbacks.Response{}, permanent(errNoPodIP)
+		return callbacks.Response{}, errNoPodIP
 	}
 
 	status, err := s.host.Status(ctx, run.state.PodIP, run.id, scaled(resultWait, run.state.Spec.TimeScale))
 	if err != nil {
-		return callbacks.Response{}, s.runnerError(ctx, run, err)
+		return callbacks.Response{}, s.runnerError(ctx, run, ReasonRunFailed, err)
 	}
 	if status.Status == runner.StatusRunning {
 		return run.wait(payload, resultRecheck, "The command is running."), nil
@@ -317,15 +308,15 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	return callbacks.Done(state), nil
 }
 
-// runnerError decides whether a failed request to the operator runner can succeed later. An operator runner that does
-// not answer may be restarting its connection, unless its pod is gone.
-func (s *Steps) runnerError(ctx context.Context, run *stepRun, err error) error {
+// runnerError decides whether a failed request to the operator runner can succeed later, and ends the run for reason
+// if not. An operator runner that does not answer may be restarting its connection, unless its pod is gone.
+func (s *Steps) runnerError(ctx context.Context, run *stepRun, reason string, err error) error {
 	switch {
 	case errors.Is(err, runner.ErrRejected), errors.Is(err, runner.ErrNotClaimed):
-		return permanent(err)
+		return ends(reason, "The operator runner refused the request.", err)
 	case errors.Is(err, runner.ErrUnreachable):
 		if gone, podErr := s.podGone(ctx, run); podErr == nil && gone {
-			return permanent(fmt.Errorf("%w: %w", errPodGone, err))
+			return ends(reason, "The operator runner's pod is gone, and its result with it.", err)
 		}
 	}
 	return fmt.Errorf("ask the operator runner: %w", err)

@@ -113,12 +113,12 @@ type ErrorEntry struct {
 	Message string `json:"message"`
 }
 
-// LastError returns the newest error of a step, or nil.
-func (s *Step) LastError() *ErrorEntry {
+// LastError returns the message of the newest error of a step, or "".
+func (s *Step) LastError() string {
 	if len(s.ErrorHistory) == 0 {
-		return nil
+		return ""
 	}
-	return &s.ErrorHistory[len(s.ErrorHistory)-1]
+	return s.ErrorHistory[len(s.ErrorHistory)-1].Message
 }
 
 type listResponse struct {

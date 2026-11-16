@@ -84,18 +84,40 @@ func Wait(state *string, delay time.Duration, reason string) Response {
 	return Response{State: state, Defer: &Defer{Delay: engine.Duration(delay), Reason: reason}}
 }
 
-// Handler runs one step. An error that wraps ErrPermanent or ErrExpected fails the workflow; any other error makes the
-// engine retry the step under its retry strategy.
+// Handler runs one step. An *End fails the step and the workflow; any other error makes the engine retry the step under
+// its retry strategy.
 type Handler func(ctx context.Context, payload *Payload) (Response, error)
 
-// ErrPermanent marks an error that a retry cannot fix, as in fmt.Errorf("%w: %w", callbacks.ErrPermanent, err). The
-// engine fails the step and the workflow.
-var ErrPermanent = errors.New("the step cannot succeed")
+// End ends the workflow with Reason, a code of the workflow's domain, and Detail, a sentence for whoever started it.
+// The router answers it with a problem that carries both, which the engine keeps in the step's error history for Ended
+// to read back. Err is for the log only. Expected marks an end that is not a fault, such as a run that waited in the
+// queue longer than its kind allows: the router logs it as information and leaves the span unmarked.
+type End struct { //nolint:errname // An End that is Expected is not a fault, so End is no XxxError.
+	Err      error
+	Reason   string
+	Detail   string
+	Expected bool
+}
 
-// ErrExpected marks an end of the workflow that is not a fault, such as a run that waited in the queue longer than
-// its kind allows. The engine fails the step and the workflow as for ErrPermanent, but the router logs it as
-// information and leaves the span unmarked.
-var ErrExpected = errors.New("the step ends the workflow")
+func (e *End) Error() string {
+	if e.Err == nil {
+		return e.Detail
+	}
+	return e.Detail + " " + e.Err.Error()
+}
+
+// Ended reads the End that a step answered from the message of an error that the engine recorded for the step, where
+// the engine puts the answer after its own text. It returns nil for an error of the engine's own, such as a wait budget
+// that ran out.
+func Ended(message string) *End {
+	var details problem.Details
+	if start := strings.IndexByte(message, '{'); start >= 0 &&
+		json.Unmarshal([]byte(message[start:]), &details) == nil &&
+		details.Status == http.StatusUnprocessableEntity && details.Reason != "" {
+		return &End{Reason: details.Reason, Detail: details.Detail}
+	}
+	return nil
+}
 
 // Group is the handlers of one domain by command key, such as the run.* steps. The configuration turns groups on, so
 // a Deployment with other groups can run with another identity.
@@ -155,26 +177,26 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx = logging.IntoContext(ctx, logger)
 
 	response, err := handler(ctx, &payload)
-	if err != nil {
-		// 422 is a 4xx the engine does not retry; 408, 418 and 429 would make it retry.
-		if errors.Is(err, ErrExpected) {
-			logger.Info("Callback ended the workflow", "error", err.Error())
-			problem.Write(w, req, http.StatusUnprocessableEntity, err.Error())
-			return
-		}
-		if errors.Is(err, ErrPermanent) {
-			// The run fails, so the error is worth an exported log record.
+	var end *End
+	switch {
+	case err == nil:
+		problem.WriteJSON(w, req, http.StatusOK, response)
+	case errors.As(err, &end):
+		if end.Expected {
+			logger.Info("Callback ended the workflow", "reason", end.Reason, "error", err.Error())
+		} else {
+			// The workflow fails, so the error is worth an exported log record.
 			commontelemetry.SetError(span, "permanent", err)
-			logger.Error(err, "Callback failed the step")
-			problem.Write(w, req, http.StatusUnprocessableEntity, err.Error())
-			return
+			logger.Error(err, "Callback failed the workflow", "reason", end.Reason)
 		}
+		// 422 is a 4xx the engine does not retry; 408, 418 and 429 would make it retry.
+		problem.WriteDetails(w, req, problem.Details{
+			Status: http.StatusUnprocessableEntity, Reason: end.Reason, Detail: end.Detail,
+		})
+	default:
 		// The engine retries, and fails the step itself when its retry strategy runs out.
 		commontelemetry.SetError(span, "retryable", err)
 		logger.Info("Callback failed, the engine retries it", "error", err.Error())
 		problem.Write(w, req, http.StatusServiceUnavailable, err.Error())
-		return
 	}
-
-	problem.WriteJSON(w, req, http.StatusOK, response)
 }
