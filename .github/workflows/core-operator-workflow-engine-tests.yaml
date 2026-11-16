@@ -10,8 +10,9 @@ on:
       - 'src/Runtime/workflow-engine/Directory.Build.props'
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
       - 'src/core/operator-workflow-engine/**'
-      # The callback contract examples, which the operator's tests read too.
-      - 'src/core/operator/api/callbacks/**'
+      # The core operator, which the integration test runs against this host.
+      - 'src/core/operator/**'
+      - 'src/common/go/**'
       - '.github/workflows/core-operator-workflow-engine-tests.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'
@@ -55,6 +56,35 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build
+
+  # Runs against this host and the engine library, with the core operator's real wiring. The operator's own workflow
+  # does not run it, since it does not run when the engine library changes.
+  integration:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Integration test with the core operator
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/core/operator/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/core/operator-workflow-engine/global.json
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go-cached
+        with:
+          module: src/core/operator
+
+      - name: Test
+        run: make test-integration
 
   # Nothing else builds the image before the deploy workflow does on main, so a broken Dockerfile, ignore file or
   # base image would otherwise first show there.

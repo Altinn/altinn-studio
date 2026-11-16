@@ -92,7 +92,8 @@ neither logs it nor puts it on telemetry.
 <http://localhost:8090> and sends no token. Point `OperatorCommandSettings__TokenPath` at a file to send one.
 
 `make test` runs the tests. The integration tests start PostgreSQL with Testcontainers, so they need Docker or another
-Docker-compatible engine.
+Docker-compatible engine. The core operator's `make test-integration` runs this host from its source with the operator,
+and CI runs it when either side or the engine library changes.
 
 ## Deployment
 
