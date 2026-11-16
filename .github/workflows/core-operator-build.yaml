@@ -8,6 +8,8 @@ on:
       - 'src/common/go/**'
       # The envtest runs the operator runner's admission policy and PodTemplate.
       - 'src/core/operator-runner/infra/**'
+      # The runner client's tests read the operator runner's protocol examples.
+      - 'src/core/operator-runner/examples/protocol.json'
       - '.github/workflows/core-operator-build.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'

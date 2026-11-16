@@ -231,7 +231,8 @@ The [Makefile](Makefile) has the checks that CI runs: `make fmt`, `make lint`, `
   `internal/runner/runnertest` and `internal/sandbox/sandboxtest`. No test simulates the engine: the other tests keep
   workflows in `internal/engine/enginetest`, which only stores them. The tests of `internal/kube` cover the Kubernetes
   side with a fake API server, and the envtest above. The contract tests read the callback examples in
-  [api/callbacks](api/callbacks).
+  [api/callbacks](api/callbacks), and the runner client's tests the operator runner's
+  [protocol examples](../operator-runner/examples/protocol.json).
 - `make run` runs the operator against the cluster in your kubeconfig, without leader election. Set
   `CORE_OPERATOR_CONFIG_DIR` to a folder with the configuration.
 

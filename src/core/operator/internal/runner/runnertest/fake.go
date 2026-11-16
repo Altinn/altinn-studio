@@ -1,7 +1,9 @@
-// Package runnertest is an operator runner for tests: one run per server, as in a pod.
+// Package runnertest is an operator runner for tests: one run per server, as in a pod. The client's tests check that
+// the client reads its answers as it reads the operator runner's in src/core/operator-runner/examples/protocol.json.
 package runnertest
 
 import (
+	"bytes"
 	"io"
 	"net"
 	"net/http"
@@ -12,9 +14,6 @@ import (
 	"altinn.studio/core-operator/internal/problem"
 	"altinn.studio/core-operator/internal/runner"
 )
-
-// MaxArchiveBytes is the largest archive the fake accepts, as the operator runner does.
-const MaxArchiveBytes = 50 << 20
 
 type Runner struct {
 	Server *httptest.Server
@@ -86,11 +85,7 @@ func (h *Runner) FetchCount() int {
 }
 
 func (h *Runner) start(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "application/gzip" {
-		problem.Write(w, r, http.StatusUnsupportedMediaType, "The content type must be application/gzip.")
-		return
-	}
-	body, err := io.ReadAll(io.LimitReader(r.Body, MaxArchiveBytes+1))
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -98,15 +93,12 @@ func (h *Runner) start(w http.ResponseWriter, r *http.Request) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.RunID != "" && h.RunID != r.PathValue("id") {
-		problem.Write(w, r, http.StatusConflict, "Another run has claimed this operator runner.")
+		problem.Write(w, r, http.StatusConflict,
+			"Another run has claimed this operator runner. Each run needs a new operator runner.")
 		return
 	}
 	if h.RunID == "" {
-		switch {
-		case len(body) > MaxArchiveBytes:
-			problem.Write(w, r, http.StatusRequestEntityTooLarge, "The archive is too large.")
-			return
-		case len(body) < 2 || body[0] != 0x1f || body[1] != 0x8b:
+		if !bytes.HasPrefix(body, []byte{0x1f, 0x8b}) {
 			problem.Write(w, r, http.StatusBadRequest, "The body is not a gzip archive.")
 			return
 		}

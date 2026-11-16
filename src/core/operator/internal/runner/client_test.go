@@ -3,9 +3,15 @@ package runner_test
 import (
 	"bytes"
 	"context"
-	"errors"
+	"encoding/json"
 	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -21,59 +27,76 @@ func (gone pods) PodGone(context.Context, string, string, string) (bool, error) 
 	return bool(gone), nil
 }
 
-func TestStartStatusAndResult(t *testing.T) {
+// example is a request to an operator runner in a state, and its answer, from the operator runner's
+// examples/protocol.json. The operator runner's route tests check that it gives these answers.
+type example struct {
+	State   string          `json:"state"`
+	Request string          `json:"request"`
+	Archive []byte          `json:"archive"`
+	Body    json.RawMessage `json:"body"`
+	Status  int             `json:"status"`
+}
+
+// The client reads each answer of the fake operator runner as it reads the operator runner's answer in the examples, so
+// a test with the fake shows what the operator does with the operator runner.
+func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 	RegisterTestingT(t)
-
-	host := runnertest.New()
-	defer host.Close()
-	ip, port := host.Address()
-	client := runner.NewClient(http.DefaultClient, port, pods(false))
-	ctx := t.Context()
-	archive := []byte{0x1f, 0x8b, 1, 2, 3}
-	pod, other := runner.Pod{RunID: "run-1", IP: ip}, runner.Pod{RunID: "run-2", IP: ip}
-
-	_, err := client.Status(ctx, pod, 0)
-	Expect(err).To(MatchError(runner.ErrNotClaimed), "no archive yet")
-
-	Expect(client.Start(ctx, pod, "upgrade-v9", bytes.NewReader(archive), int64(len(archive)))).To(Succeed())
-	Expect(client.Start(ctx, pod, "upgrade-v9", bytes.NewReader(archive), int64(len(archive)))).
-		To(Succeed(), "the same run again")
-	err = client.Start(ctx, other, "upgrade-v9", bytes.NewReader(archive), int64(len(archive)))
-	var rejection *runner.RejectedError
-	Expect(errors.As(err, &rejection)).To(BeTrue(), "another run's pod")
-	Expect(*rejection).To(Equal(runner.RejectedError{Status: http.StatusConflict,
-		Detail: "Another run has claimed this operator runner."}))
-
-	runID, command, received, starts := host.Snapshot()
-	Expect(runID).To(Equal("run-1"))
-	Expect(command).To(Equal("upgrade-v9"))
-	Expect(received).To(Equal(archive))
-	Expect(starts).To(Equal(2))
-
-	status, err := client.Status(ctx, pod, 0)
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "operator-runner", "examples", "protocol.json"))
 	Expect(err).NotTo(HaveOccurred())
-	Expect(status.Status).To(Equal(runner.StatusRunning))
+	runID := "0b6f3c1e-8d2a-4f5b-9c7e-1a2b3c4d5e6f"
+	replacer := strings.NewReplacer("{runId}", runID, "{otherRunId}", "11111111-2222-3333-4444-555555555555")
+	var examples []example
+	Expect(json.Unmarshal([]byte(replacer.Replace(string(data))), &examples)).To(Succeed())
 
-	exitCode := 0
-	result := `{"status":"completed","exitCode":0,"timedOut":false,"stdout":"ok","stderr":"","report":null,"patch":null}`
-	host.Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: &exitCode}, result)
-	status, err = client.Status(ctx, pod, 0)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(status.Status).To(Equal(runner.StatusCompleted))
-	Expect(*status.ExitCode).To(Equal(0))
-	Expect(host.FetchCount()).To(BeZero(), "a status read is not a fetch")
+	for _, e := range examples {
+		host := runnertest.New()
+		if e.State != "unclaimed" {
+			Expect(ask(host.Server, "PUT /runs/"+runID+"?command=upgrade-v9", []byte{0x1f, 0x8b})).To(Equal([]any{nil}))
+		}
+		if e.State == runner.StatusCompleted || e.State == runner.StatusFailed {
+			// The run ended with the status in the example's answer, and that answer is its result.
+			var status runner.Status
+			Expect(json.Unmarshal(e.Body, &status)).To(Succeed())
+			host.Finish(status, string(e.Body))
+		}
+		replay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(e.Status)
+			if _, err := w.Write(e.Body); err != nil {
+				t.Error(err)
+			}
+		}))
+		fromFake, fromExample := ask(host.Server, e.Request, e.Archive), ask(replay, e.Request, e.Archive)
+		Expect(fromFake).To(Equal(fromExample), e.State+" "+e.Request)
+		replay.Close()
+		host.Close()
+	}
+}
 
-	body, size, err := client.OpenResult(ctx, pod)
+// ask sends request with the client, and returns what the client makes of the answer.
+func ask(server *httptest.Server, request string, archive []byte) []any {
+	address, ok := server.Listener.Addr().(*net.TCPAddr)
+	Expect(ok).To(BeTrue())
+	client := runner.NewClient(http.DefaultClient, address.Port, pods(false))
+	method, target, _ := strings.Cut(request, " ")
+	endpoint, err := url.Parse(target)
 	Expect(err).NotTo(HaveOccurred())
-	data, err := io.ReadAll(body)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(body.Close()).To(Succeed())
-	Expect(string(data)).To(Equal(result))
-	Expect(size).To(Equal(int64(len(result))))
-	Expect(host.FetchCount()).To(Equal(1))
-
-	_, _, err = client.OpenResult(ctx, other)
-	Expect(err).To(MatchError(runner.ErrNotClaimed), "a run the operator runner does not know")
+	runID, read, _ := strings.Cut(strings.TrimPrefix(endpoint.Path, "/runs/"), "/")
+	pod := runner.Pod{RunID: runID, IP: address.IP.String()}
+	switch {
+	case method == http.MethodPut:
+		command := endpoint.Query().Get("command")
+		return []any{client.Start(context.Background(), pod, command, bytes.NewReader(archive), int64(len(archive)))}
+	case read == "result":
+		body, size, err := client.OpenResult(context.Background(), pod)
+		if err != nil {
+			return []any{err}
+		}
+		data, err := io.ReadAll(body)
+		return []any{string(data), size, err, body.Close()}
+	default:
+		status, err := client.Status(context.Background(), pod, 0)
+		return []any{status, err}
+	}
 }
 
 func TestUnreachableRunner(t *testing.T) {
