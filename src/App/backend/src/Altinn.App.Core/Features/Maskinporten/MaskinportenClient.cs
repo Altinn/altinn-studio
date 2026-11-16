@@ -6,6 +6,8 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -81,6 +83,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     private readonly PlatformSettings _platformSettings;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IAppMetadata _appMetadata;
+    private readonly RuntimeEnvironment _runtimeEnvironment;
     private readonly TimeProvider _timeProvider;
     private readonly HybridCache _tokenCache;
     private readonly Telemetry? _telemetry;
@@ -99,6 +102,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// <param name="httpClientFactory">HttpClient factory.</param>
     /// <param name="tokenCache">Token cache store.</param>
     /// <param name="appMetadata">The app's metadata, for the org that owns it.</param>
+    /// <param name="runtimeEnvironment">Tells whether the app runs against localtest.</param>
     /// <param name="logger">Logger interface.</param>
     /// <param name="timeProvider">Optional TimeProvider implementation.</param>
     /// <param name="telemetry">Optional telemetry service.</param>
@@ -108,6 +112,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         IHttpClientFactory httpClientFactory,
         HybridCache tokenCache,
         IAppMetadata appMetadata,
+        RuntimeEnvironment runtimeEnvironment,
         ILogger<MaskinportenClient> logger,
         TimeProvider? timeProvider = null,
         Telemetry? telemetry = null
@@ -120,6 +125,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _appMetadata = appMetadata;
+        _runtimeEnvironment = runtimeEnvironment;
         _tokenCache = tokenCache;
     }
 
@@ -146,12 +152,18 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     ) => GetAltinnExchangedToken(new MaskinportenTokenRequest { Scopes = scopes }, cancellationToken);
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// On localtest the token comes from localtest instead, see <see cref="GetLocaltestServiceOwnerToken"/>.
+    /// </remarks>
     public async Task<JwtToken> GetAltinnExchangedToken(
         MaskinportenTokenRequest request,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        if (_runtimeEnvironment.IsLocaltestPlatform())
+            return await GetLocaltestServiceOwnerToken(request, cancellationToken);
 
         var result = await GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, request, cancellationToken);
         return result.Token;
@@ -324,6 +336,46 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
             _telemetry?.RecordMaskinportenAltinnTokenExchangeRequest(Telemetry.Maskinporten.RequestResult.Error);
             throw new MaskinportenAuthenticationException($"Authentication with Altinn failed: {e.Message}", e);
         }
+    }
+
+    /// <summary>
+    /// <para>Gets a service owner token for the app's org from localtest, in place of an exchanged one.</para>
+    /// <para>Localtest is the Altinn platform of a local run, so it is also the authority that would exchange the
+    /// token, and it has no exchange endpoint. A token from Maskinporten would therefore be of no use, and getting
+    /// one would need a real Maskinporten client and network access to Maskinporten. Localtest issues the token
+    /// directly instead, so a local run needs no Maskinporten client to call Altinn APIs as the service owner.</para>
+    /// <para>The token carries Digdir's organization number whatever the org.</para>
+    /// </summary>
+    /// <exception cref="MaskinportenUnsupportedTokenException">The request asks for a token on behalf of a consumer
+    /// org, restricted to a resource, or for a system user. Localtest can only issue plain service owner tokens.</exception>
+    private async Task<JwtToken> GetLocaltestServiceOwnerToken(
+        MaskinportenTokenRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (request is not { ConsumerOrg: null, Resource: null, SystemUser: null })
+        {
+            throw new MaskinportenUnsupportedTokenException(
+                "Localtest issues only service owner tokens for scopes. A token request with a consumer org, a "
+                    + "resource or a system user cannot be served in a local run."
+            );
+        }
+
+        string org = _appMetadata.ApplicationMetadata.AppIdentifier.Org;
+        string url =
+            $"{_runtimeEnvironment.GetPlatformBaseUrl()}/Home/GetTestOrgToken?org={Uri.EscapeDataString(org)}"
+            + $"&orgNumber=991825827&authenticationLevel=3&scopes={Uri.EscapeDataString(request.FormattedScopes)}";
+
+        _logger.LogDebug("Getting a service owner token from localtest for scopes: {Scopes}", request.FormattedScopes);
+
+        using HttpClient client = _httpClientFactory.CreateClient();
+        using var timeout = CreateTimeout(cancellationToken);
+        using HttpResponseMessage response = await client.GetAsync(url, timeout.Token);
+
+        if (!response.IsSuccessStatusCode)
+            throw await PlatformHttpException.Create(response, cancellationToken);
+
+        return JwtToken.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
     }
 
     /// <summary>

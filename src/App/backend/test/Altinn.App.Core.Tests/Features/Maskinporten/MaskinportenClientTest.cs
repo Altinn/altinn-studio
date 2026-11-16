@@ -11,6 +11,7 @@ using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.PlatformServices.Tests.Mocks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
@@ -50,7 +51,12 @@ public class MaskinportenClientTests
         public MaskinportenClient Client() =>
             (MaskinportenClient)App.Services.GetRequiredService<IMaskinportenClient>();
 
-        public static Fixture Create(bool configureMaskinporten = true, string? authority = null, string org = "tdd")
+        public static Fixture Create(
+            bool configureMaskinporten = true,
+            string? authority = null,
+            string org = "tdd",
+            string hostName = DeployedHostName
+        )
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var fakeTimeProvider = new FakeTime(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero));
@@ -65,6 +71,7 @@ public class MaskinportenClientTests
                 services.Configure<MemoryCacheOptions>(options => options.Clock = fakeTimeProvider);
                 services.AddSingleton<TimeProvider>(fakeTimeProvider);
                 services.AddSingleton(fakeTimeProvider);
+                services.Configure<GeneralSettings>(options => options.HostName = hostName);
 
                 if (configureMaskinporten)
                 {
@@ -95,6 +102,7 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
                 App.Services.GetRequiredService<IAppMetadata>(),
+                App.Services.GetRequiredService<RuntimeEnvironment>(),
                 logger ?? App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
                 timeProvider ?? App.Services.GetRequiredService<TimeProvider>()
             );
@@ -109,6 +117,7 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
                 App.Services.GetRequiredService<IAppMetadata>(),
+                App.Services.GetRequiredService<RuntimeEnvironment>(),
                 new CapturingLogger(sink),
                 App.Services.GetRequiredService<TimeProvider>()
             );
@@ -323,6 +332,74 @@ public class MaskinportenClientTests
         // Assert
         Assert.NotNull(capturedUrls.ExchangeUrl);
         Assert.Equal(expectedQuery, capturedUrls.ExchangeUrl.Query);
+    }
+
+    [Fact]
+    public async Task GetAltinnExchangedToken_OnLocaltest_GetsTheTokenFromLocaltestWithoutAMaskinportenClient()
+    {
+        // Arrange - a local run usually has no Maskinporten client, and localtest has no exchange endpoint
+        await using var fixture = Fixture.Create(configureMaskinporten: false, org: "ttd", hostName: LocaltestHostName);
+        var requests = new List<HttpRequestMessage>();
+        var localtestToken = TestAuthentication.GetServiceOwnerToken(org: "ttd");
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+                new HttpClient(
+                    new DelegatingHandlerStub(
+                        (request, _) =>
+                        {
+                            requests.Add(request);
+                            return Task.FromResult(
+                                new HttpResponseMessage(HttpStatusCode.OK)
+                                {
+                                    Content = new StringContent(localtestToken),
+                                }
+                            );
+                        }
+                    )
+                )
+            );
+
+        // Act
+        var result = await fixture.Client().GetAltinnExchangedToken(["b", "a"]);
+
+        // Assert
+        Assert.Equal(localtestToken, result.Value);
+        var request = Assert.Single(requests);
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal(
+            "http://localhost:5101/Home/GetTestOrgToken?org=ttd&orgNumber=991825827&authenticationLevel=3&scopes=a%20b",
+            request.RequestUri?.AbsoluteUri
+        );
+    }
+
+    public static TheoryData<string> RequestsLocaltestCannotIssue => ["consumer org", "resource", "system user"];
+
+    [Theory]
+    [MemberData(nameof(RequestsLocaltestCannotIssue))]
+    public async Task GetAltinnExchangedToken_OnLocaltest_ThrowsForARequestLocaltestCannotIssue(string kind)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create(configureMaskinporten: false, hostName: LocaltestHostName);
+        var request = kind switch
+        {
+            "consumer org" => new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                ConsumerOrg = OrganizationNumber.Parse("991825827"),
+            },
+            "resource" => new MaskinportenTokenRequest { Scopes = ["scope"], Resource = "https://api.example.com/v1" },
+            _ => new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
+            },
+        };
+
+        // Act & assert - fails before any request, so the HttpClientFactory mock has no setup
+        await Assert.ThrowsAsync<MaskinportenUnsupportedTokenException>(() =>
+            fixture.Client().GetAltinnExchangedToken(request)
+        );
     }
 
     [Fact]

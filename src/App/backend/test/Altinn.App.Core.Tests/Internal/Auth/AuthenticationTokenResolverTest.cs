@@ -23,15 +23,11 @@ namespace Altinn.App.Core.Tests.Internal.Auth;
 public class AuthenticationTokenResolverTest
 {
     private static readonly ApplicationMetadata _appMetadata = new("test-org/test-app") { Org = "test-org" };
-    private static readonly PlatformSettings _platformSettings = new();
-    private static readonly GeneralSettings _generalSettingsLocal = new();
-    private static readonly GeneralSettings _generalSettingsTt02 = new() { HostName = "tt02.altinn.no" };
     private static readonly Authenticated _userAuth = TestAuthentication.GetUserAuthentication();
 
     private static readonly TestTokens _testTokens = new(
         UserToken: JwtToken.Parse(_userAuth.Token),
-        ServiceOwnerTokenLocal: JwtToken.Parse(TestAuthentication.GetServiceOwnerToken()),
-        ServiceOwnerTokenTt02: JwtToken.Parse(TestAuthentication.GetServiceOwnerToken()),
+        ServiceOwnerToken: JwtToken.Parse(TestAuthentication.GetServiceOwnerToken()),
         MaskinportenToken: TestAuthentication.GetMaskinportenToken("-").AccessToken,
         CustomToken: TestAuthentication.GetMaskinportenToken("-").AccessToken
     );
@@ -43,8 +39,7 @@ public class AuthenticationTokenResolverTest
         {
             TheoryData<TestCase> data = new();
             data.Add(new(AuthenticationMethod.CurrentUser(), _testTokens.UserToken));
-            data.Add(new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenLocal, _generalSettingsLocal));
-            data.Add(new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerTokenTt02, _generalSettingsTt02));
+            data.Add(new(AuthenticationMethod.ServiceOwner(), _testTokens.ServiceOwnerToken));
             data.Add(new(AuthenticationMethod.Maskinporten("-"), _testTokens.MaskinportenToken));
             data.Add(new(AuthenticationMethod.Custom(() => Task.FromResult(_testTokens.CustomToken)), _testTokens.CustomToken));
             return data;
@@ -56,7 +51,7 @@ public class AuthenticationTokenResolverTest
     public async Task GetAccessToken_ResolvesCorrectTokenSource(TestCase testCase)
     {
         // Arrange
-        await using var fixture = Fixture.Create(testCase.GeneralSettings);
+        await using var fixture = Fixture.Create();
 
         // Act
         var result = await fixture.AuthenticationTokenResolver.GetAccessToken(testCase.AuthenticationMethod);
@@ -69,7 +64,7 @@ public class AuthenticationTokenResolverTest
     public async Task GetAccessToken_RequestsCorrectScope_Maskinporten()
     {
         // Arrange
-        await using var fixture = Fixture.Create(_generalSettingsTt02);
+        await using var fixture = Fixture.Create();
         var authMethodMaskinporten = AuthenticationMethod.Maskinporten("a", "b");
         var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
 
@@ -112,39 +107,13 @@ public class AuthenticationTokenResolverTest
     }
 
     [Fact]
-    public async Task GetAccessToken_CallsCorrectUrl_Localtest()
-    {
-        // Arrange
-        var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
-        string requestedUrl = string.Empty;
-        // Scopes are normalized to a deterministic (ordinal) order before use
-        string expectedUrl =
-            "http://localhost:5101/Home/GetTestOrgToken?org=test-org&orgNumber=991825827&authenticationLevel=3&scopes=a%20altinn%3Aserviceowner%20altinn%3Aserviceowner%2Finstances.read%20altinn%3Aserviceowner%2Finstances.write%20b";
-
-        await using var fixture = Fixture.Create(
-            _generalSettingsLocal,
-            request =>
-            {
-                requestedUrl = request.RequestUri!.AbsoluteUri;
-            }
-        );
-
-        // Act
-        var result = await fixture.AuthenticationTokenResolver.GetAccessToken(authMethodAltinn);
-
-        // Assert
-        Assert.Contains("altinn.no", result.Issuer);
-        Assert.Equal(expectedUrl, requestedUrl);
-    }
-
-    [Fact]
     public async Task GetAccessToken_UnderWorkflowCallbackPrincipal_ResolvesCurrentUserAsServiceOwner()
     {
         // Arrange: the ambient principal is an app callback (Authenticated.App), as during a workflow-engine
         // callback. There is no citizen user, so a CurrentUser() request must fall back to a service-owner
         // token rather than handing out the callback JWT (which Storage/PDF/register reject with 401).
         var appAuth = CreateAppCallbackAuthentication();
-        await using var fixture = Fixture.Create(_generalSettingsTt02, currentAuth: appAuth);
+        await using var fixture = Fixture.Create(currentAuth: appAuth);
 
         // Act
         var result = await fixture.AuthenticationTokenResolver.GetAccessToken(AuthenticationMethod.CurrentUser());
@@ -200,14 +169,9 @@ public class AuthenticationTokenResolverTest
         public IAuthenticationTokenResolver AuthenticationTokenResolver =>
             ServiceProvider.GetRequiredService<IAuthenticationTokenResolver>();
 
-        public static Fixture Create(
-            GeneralSettings? generalSettings = null,
-            Action<HttpRequestMessage>? localtestTokenCallback = null,
-            Authenticated? currentAuth = null
-        )
+        public static Fixture Create(Authenticated? currentAuth = null)
         {
             var mocks = new FixtureMocks();
-            mocks.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(_appMetadata);
             mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(currentAuth ?? _userAuth);
             mocks
                 .MaskinportenClientMock.Setup(x =>
@@ -218,42 +182,12 @@ public class AuthenticationTokenResolverTest
                 .MaskinportenClientMock.Setup(x =>
                     x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
                 )
-                .ReturnsAsync(_testTokens.ServiceOwnerTokenTt02);
-            mocks
-                .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(() =>
-                {
-                    DelegatingHandlerStub delegatingHandler = new(
-                        (request, cancellationToken) =>
-                        {
-                            localtestTokenCallback?.Invoke(request);
-
-                            return Task.FromResult(
-                                new HttpResponseMessage
-                                {
-                                    StatusCode = HttpStatusCode.OK,
-                                    Content = new StringContent(_testTokens.ServiceOwnerTokenLocal),
-                                }
-                            );
-                        }
-                    );
-                    return new HttpClient(delegatingHandler);
-                });
-
+                .ReturnsAsync(_testTokens.ServiceOwnerToken);
             var services = new ServiceCollection();
-            services.AddRuntimeEnvironment();
-            services.Configure<PlatformSettings>(options =>
-                options.ApiStorageEndpoint = _platformSettings.ApiStorageEndpoint
-            );
-            services.Configure<GeneralSettings>(options =>
-                options.HostName = generalSettings?.HostName ?? _generalSettingsLocal.HostName
-            );
             services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
             services.AddSingleton<ModelSerializationService>();
             services.AddSingleton(mocks.AppModelMock.Object);
-            services.AddSingleton(mocks.HttpClientFactoryMock.Object);
             services.AddSingleton(mocks.MaskinportenClientMock.Object);
-            services.AddSingleton(mocks.AppMetadataMock.Object);
             services.AddSingleton(mocks.AuthenticationContextMock.Object);
             services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
 
@@ -263,8 +197,6 @@ public class AuthenticationTokenResolverTest
         public sealed record FixtureMocks
         {
             public Mock<IAuthenticationContext> AuthenticationContextMock { get; init; } = new(MockBehavior.Strict);
-            public Mock<IAppMetadata> AppMetadataMock { get; init; } = new(MockBehavior.Strict);
-            public Mock<IHttpClientFactory> HttpClientFactoryMock { get; init; } = new(MockBehavior.Strict);
             public Mock<IMaskinportenClient> MaskinportenClientMock { get; init; } = new(MockBehavior.Strict);
             public Mock<IAppModel> AppModelMock { get; init; } = new(MockBehavior.Strict);
         }
@@ -277,8 +209,7 @@ public class AuthenticationTokenResolverTest
 
     private sealed record TestTokens(
         JwtToken UserToken,
-        JwtToken ServiceOwnerTokenLocal,
-        JwtToken ServiceOwnerTokenTt02,
+        JwtToken ServiceOwnerToken,
         JwtToken MaskinportenToken,
         JwtToken CustomToken
     );
@@ -286,8 +217,6 @@ public class AuthenticationTokenResolverTest
     public sealed record TestCase : IXunitSerializable
     {
         private const string SerializationIdentifier = "identifier";
-
-        public GeneralSettings? GeneralSettings { get; set; }
 
         private AuthenticationMethod? _authenticationMethod;
         internal AuthenticationMethod AuthenticationMethod =>
@@ -299,15 +228,10 @@ public class AuthenticationTokenResolverTest
 
         public TestCase() { }
 
-        internal TestCase(
-            AuthenticationMethod authenticationMethod,
-            JwtToken expectedToken,
-            GeneralSettings? generalSettings = null
-        )
+        internal TestCase(AuthenticationMethod authenticationMethod, JwtToken expectedToken)
         {
             _authenticationMethod = authenticationMethod;
             _expectedToken = expectedToken;
-            GeneralSettings = generalSettings;
         }
 
         public void Deserialize(IXunitSerializationInfo info)
@@ -320,7 +244,6 @@ public class AuthenticationTokenResolverTest
                 {
                     _authenticationMethod = testCase.AuthenticationMethod;
                     _expectedToken = testCase.ExpectedToken;
-                    GeneralSettings = testCase.GeneralSettings;
                     return;
                 }
             }
@@ -335,9 +258,7 @@ public class AuthenticationTokenResolverTest
 
         public override string ToString()
         {
-            var authName = AuthenticationMethod.GetType().Name;
-
-            return GeneralSettings is null ? authName : $"{authName} ({GeneralSettings.HostName})";
+            return AuthenticationMethod.GetType().Name;
         }
     }
 }

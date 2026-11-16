@@ -51,6 +51,8 @@ public interface IMaskinportenClient
     /// <p>Sends an authorization request to Maskinporten, then exchanges the grant for an Altinn issued token.</p>
     /// <p>Will cache tokens per scope, for the lifetime duration as defined in the Altinn token payload,
     /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.</p>
+    /// <p>On localtest, the token comes from localtest, which issues it as a service owner token for the app's org.
+    /// No Maskinporten client is needed for that.</p>
     /// </summary>
     /// <param name="scopes">A list of scopes to claim authorization for with Maskinporten. These scopes will carry through to the Altinn issued token.</param>
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
@@ -76,6 +78,9 @@ public interface IMaskinportenClient
     /// be compatible with the Altinn token exchange.</p>
     /// <p>Tokens are cached per distinct request, for the lifetime duration as defined in the Altinn token payload,
     /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.</p>
+    /// <p>On localtest, the token comes from localtest, which issues it as a service owner token for the app's org.
+    /// No Maskinporten client is needed for that, but localtest cannot serve a request with a consumer org, a resource
+    /// or a system user.</p>
     /// </summary>
     /// <param name="request">The token request. The scopes will carry through to the Altinn issued token.</param>
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
@@ -87,6 +92,9 @@ public interface IMaskinportenClient
     /// The Maskinporten configuration is incomplete or invalid. Very possibly because the credentials the platform provisions for the app are missing or corrupt.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenTokenExpiredException">The token received from Maskinporten and/or Altinn Authentication has already expired.</exception>
+    /// <exception cref="Exceptions.MaskinportenUnsupportedTokenException">
+    /// On localtest, the request has a consumer org, a resource or a system user.
+    /// </exception>
     /// <seealso cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/>
     public Task<JwtToken> GetAltinnExchangedToken(
         MaskinportenTokenRequest request,
