@@ -12,43 +12,53 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
-    // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
-    // wait adds to a settled transition and how many collection reads a slow one costs. It polls at the
-    // initial delay for as long as a synchronous completion is still plausible, then grows each delay by
-    // the backoff percentage up to the cap, which bounds the reads a slow transition costs. Change none
-    // of these without measuring both.
-    private const int InitialWorkflowPollingDelayMs = 50;
-    private const int WorkflowPollingTightWindowMs = 2_000;
-    private const int WorkflowPollingBackoffPercent = 50;
-    private const int MaxWorkflowPollingDelayMs = 2_000;
+    // The engine sends a snapshot at least once per sweep, 5 seconds by default, so the later limit leaves room for
+    // two missed sweeps
+    private static readonly TimeSpan _firstCollectionEventTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _nextCollectionEventTimeout = TimeSpan.FromSeconds(15);
+
+    // The cap bounds how late a refused wait sees a slot that has freed up
+    private static readonly TimeSpan _firstStreamRetryDelay = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan _maxStreamRetryDelay = TimeSpan.FromSeconds(2);
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
-    internal int WorkflowPollingTimeoutMs = 100_000;
+    internal int WorkflowWaitTimeoutMs = 100_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
     private readonly AppIdentifier _appIdentifier;
     private readonly TimeProvider _timeProvider;
+    private readonly ILogger<WorkflowEngineService> _logger;
 
     public WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
         IInstanceClientWithStorageMetadata instanceClient,
-        AppIdentifier appIdentifier
+        AppIdentifier appIdentifier,
+        ILogger<WorkflowEngineService> logger
     )
-        : this(processNextRequestFactory, workflowEngineClient, instanceClient, appIdentifier, TimeProvider.System) { }
+        : this(
+            processNextRequestFactory,
+            workflowEngineClient,
+            instanceClient,
+            appIdentifier,
+            logger,
+            TimeProvider.System
+        ) { }
 
     internal WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
         IInstanceClientWithStorageMetadata instanceClient,
         AppIdentifier appIdentifier,
+        ILogger<WorkflowEngineService> logger,
         TimeProvider timeProvider
     )
     {
@@ -56,6 +66,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         _workflowEngineClient = workflowEngineClient;
         _instanceClient = instanceClient;
         _appIdentifier = appIdentifier;
+        _logger = logger;
         _timeProvider = timeProvider;
     }
 
@@ -437,12 +448,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
-    /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
-    /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
-    /// a mailbox receive workflow is waiting for its message — is released as a committed, parked success on
-    /// the first poll that sees it, and a chain that is neither settled nor parked when
-    /// <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// Waits until the anchored chain settles, then refetches the instance and classifies the outcome. The wait
+    /// follows the collection's event stream, and opens it again whenever it is refused, breaks, ends or falls silent
+    /// before the wait is decided. Two early exits shortcut the full wait: a <em>parked</em> chain — every active
+    /// workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because a mailbox receive
+    /// workflow is waiting for its message — is released as a committed, parked success on the first snapshot that
+    /// shows it, and a chain that is neither settled nor parked when <see cref="WorkflowWaitTimeoutMs"/> runs out,
+    /// across all attempts, is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
@@ -452,102 +464,288 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     )
     {
         long startedAt = _timeProvider.GetTimestamp();
-        int currentDelayMs = InitialWorkflowPollingDelayMs;
+        TimeSpan budget = TimeSpan.FromMilliseconds(WorkflowWaitTimeoutMs);
+        int failedAttempts = 0;
+        int[] failuresByKind = new int[Enum.GetValues<StreamFailure>().Length];
 
-        while (true)
+        while (budget - _timeProvider.GetElapsedTime(startedAt) > TimeSpan.Zero)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (_timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs))
-            {
-                return await CreatePollingTimeoutResult(instance, collectionKey, sinceWorkflowId, cancellationToken);
-            }
-
-            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-                GetNamespace(),
+            (ProcessNextWorkflowResult? result, bool snapshotDelivered) = await FollowCollectionEvents(
+                instance,
                 collectionKey,
-                cancellationToken: cancellationToken
+                sinceWorkflowId,
+                startedAt,
+                budget,
+                failuresByKind,
+                cancellationToken
             );
-            if (collection?.Heads.Count > 0)
+            if (result is not null)
             {
-                if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
-                {
-                    IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
-                        await _workflowEngineClient.ListWorkflows(
-                            GetNamespace(),
-                            collectionKey: collectionKey,
-                            cancellationToken: cancellationToken
-                        );
-                    IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
-                        collectionWorkflows,
-                        sinceWorkflowId
-                    );
-
-                    if (!currentChain.Any(IsActiveWorkflowStatus))
-                    {
-                        InstanceWithStorageMetadata freshInstance =
-                            await _instanceClient.GetInstanceWithStorageMetadata(
-                                instance,
-                                cancellationToken: cancellationToken
-                            );
-                        return new ProcessNextWorkflowResult(
-                            freshInstance.Instance,
-                            freshInstance.Metadata,
-                            BuildWorkflowFailure(currentChain),
-                            HasCommittedProcessState(currentChain)
-                        );
-                    }
-                }
-                else if (collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus))
-                {
-                    // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
-                    // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
-                    // success shape applies and the read-path annotation takes over.
-                    IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
-                        await _workflowEngineClient.ListWorkflows(
-                            GetNamespace(),
-                            collectionKey: collectionKey,
-                            cancellationToken: cancellationToken
-                        ),
-                        sinceWorkflowId
-                    );
-
-                    List<WorkflowStatusResponse> activeWorkflows = currentChain.Where(IsActiveWorkflowStatus).ToList();
-                    bool anchoredChainParked =
-                        activeWorkflows.Count > 0 && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
-
-                    // The committed-state guard is defensive: should a pre-commit step ever learn to
-                    // defer, fall through to the ordinary wait (and its timeout) rather than returning a
-                    // process state that does not exist yet.
-                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
-                    {
-                        InstanceWithStorageMetadata freshInstance =
-                            await _instanceClient.GetInstanceWithStorageMetadata(
-                                instance,
-                                cancellationToken: cancellationToken
-                            );
-                        return new ProcessNextWorkflowResult(
-                            freshInstance.Instance,
-                            freshInstance.Metadata,
-                            WorkflowFailure: null,
-                            ProcessStateCommitted: true,
-                            Parked: true
-                        );
-                    }
-                }
+                LogFailedStreamAttempts(collectionKey, failuresByKind, decided: true);
+                return result;
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
-            currentDelayMs =
-                _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
-                    ? InitialWorkflowPollingDelayMs
-                    : Math.Min(
-                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
-                        MaxWorkflowPollingDelayMs
-                    );
+            failedAttempts = snapshotDelivered ? 1 : failedAttempts + 1;
+            TimeSpan delay = StreamRetryDelay(failedAttempts);
+            TimeSpan remaining = budget - _timeProvider.GetElapsedTime(startedAt);
+            if (remaining > TimeSpan.Zero)
+            {
+                await Task.Delay(delay < remaining ? delay : remaining, _timeProvider, cancellationToken);
+            }
+        }
+
+        LogFailedStreamAttempts(collectionKey, failuresByKind, decided: false);
+        return await CreateTimeoutResult(instance, collectionKey, sinceWorkflowId, cancellationToken);
+    }
+
+    private static TimeSpan StreamRetryDelay(int failedAttempts)
+    {
+        TimeSpan ceiling = _firstStreamRetryDelay * Math.Pow(2, Math.Min(failedAttempts - 1, 10));
+        if (ceiling > _maxStreamRetryDelay)
+        {
+            ceiling = _maxStreamRetryDelay;
+        }
+
+        return ceiling * (1 - (Random.Shared.NextDouble() / 2));
+    }
+
+    /// <summary>
+    /// One attempt at following the collection's event stream, deciding each snapshot until one decides the wait.
+    /// Returns no result when the stream cannot be opened, breaks, ends or falls silent, or the budget runs out, and
+    /// says whether it delivered a snapshot first. Deciding a snapshot is not the stream's part: a failure there ends
+    /// the wait.
+    /// </summary>
+    private async Task<(ProcessNextWorkflowResult? Result, bool SnapshotDelivered)> FollowCollectionEvents(
+        Instance instance,
+        string collectionKey,
+        Guid sinceWorkflowId,
+        long startedAt,
+        TimeSpan budget,
+        int[] failuresByKind,
+        CancellationToken cancellationToken
+    )
+    {
+        TimeSpan silenceLimit = _firstCollectionEventTimeout;
+        bool snapshotDelivered = false;
+
+        // Disarmed until each wait for an event: the constructor is the only way to give it the time provider that
+        // CancelAfter then runs on.
+        using var silence = new CancellationTokenSource(Timeout.InfiniteTimeSpan, _timeProvider);
+        using var streamCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, silence.Token);
+        IAsyncEnumerator<WorkflowCollectionDetailResponse>? events = null;
+        try
+        {
+            while (await NextCollectionEvent() is { } collection)
+            {
+                snapshotDelivered = true;
+                if (
+                    await TryCompleteWait(instance, collectionKey, sinceWorkflowId, collection, cancellationToken) is
+                    { } result
+                )
+                {
+                    return (result, snapshotDelivered);
+                }
+
+                silenceLimit = _nextCollectionEventTimeout;
+            }
+
+            return (null, snapshotDelivered);
+        }
+        finally
+        {
+            if (events is not null)
+            {
+                await events.DisposeAsync();
+            }
+        }
+
+        // The next snapshot, or null when the stream cannot give one within the limit and the budget.
+        async Task<WorkflowCollectionDetailResponse?> NextCollectionEvent()
+        {
+            TimeSpan remaining = budget - _timeProvider.GetElapsedTime(startedAt);
+            if (remaining <= TimeSpan.Zero)
+            {
+                return null;
+            }
+
+            silence.CancelAfter(remaining < silenceLimit ? remaining : silenceLimit);
+            try
+            {
+                events ??= _workflowEngineClient
+                    .StreamCollectionEvents(GetNamespace(), collectionKey, streamCts.Token)
+                    .GetAsyncEnumerator(streamCts.Token);
+                if (await events.MoveNextAsync())
+                {
+                    return events.Current;
+                }
+
+                RecordStreamFailure(StreamFailure.Ended);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                if (_timeProvider.GetElapsedTime(startedAt) < budget)
+                {
+                    RecordStreamFailure(StreamFailure.Silent);
+                }
+            }
+            catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                RecordStreamFailure(StreamFailure.NotServed, exception);
+            }
+            catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                RecordStreamFailure(StreamFailure.Refused, exception);
+            }
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
+            {
+                RecordStreamFailure(StreamFailure.Failed, exception);
+            }
+            finally
+            {
+                silence.CancelAfter(Timeout.InfiniteTimeSpan);
+            }
+
+            return null;
+        }
+
+        void RecordStreamFailure(StreamFailure failure, Exception? exception = null)
+        {
+            failuresByKind[(int)failure]++;
+            _logger.LogDebug(
+                exception,
+                "An attempt to follow the event stream of workflow collection {CollectionKey} failed: {StreamFailure}. "
+                    + "The wait opens it again.",
+                collectionKey,
+                failure
+            );
         }
     }
 
-    private async Task<ProcessNextWorkflowResult> CreatePollingTimeoutResult(
+    private enum StreamFailure
+    {
+        NotServed,
+        Refused,
+        Failed,
+        Ended,
+        Silent,
+    }
+
+    private void LogFailedStreamAttempts(string collectionKey, int[] failuresByKind, bool decided)
+    {
+        if (failuresByKind.Sum() == 0)
+        {
+            return;
+        }
+
+        _logger.Log(
+            decided ? LogLevel.Information : LogLevel.Warning,
+            "The wait on workflow collection {CollectionKey} ended (decided: {Decided}) after failed attempts to "
+                + "follow its event stream: {NotServed} answered 404, {Refused} were refused with 429, {Failed} could "
+                + "not be opened or broke, {Ended} ended before the wait was decided, {Silent} stayed silent for too long.",
+            collectionKey,
+            decided,
+            failuresByKind[(int)StreamFailure.NotServed],
+            failuresByKind[(int)StreamFailure.Refused],
+            failuresByKind[(int)StreamFailure.Failed],
+            failuresByKind[(int)StreamFailure.Ended],
+            failuresByKind[(int)StreamFailure.Silent]
+        );
+    }
+
+    /// <summary>
+    /// Decides one snapshot of the collection: the result once the anchored chain has settled, a parked result once
+    /// it is parked with its process state committed, otherwise <see langword="null"/> to keep waiting. Heads that
+    /// all completed decide the wait by themselves; anything else is decided from the collection's workflows.
+    /// </summary>
+    private async Task<ProcessNextWorkflowResult?> TryCompleteWait(
+        Instance instance,
+        string collectionKey,
+        Guid sinceWorkflowId,
+        WorkflowCollectionDetailResponse collection,
+        CancellationToken cancellationToken
+    )
+    {
+        if (collection.Heads.Count == 0)
+        {
+            return null;
+        }
+
+        if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
+        {
+            if (collection.Heads.All(head => head.Status == PersistentItemStatus.Completed))
+            {
+                return await RefetchInstance(instance, failure: null, parked: false, cancellationToken);
+            }
+
+            // Listed after the heads, so a workflow that went active since, such as a resumed one, shows here
+            IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+                await _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    cancellationToken: cancellationToken
+                ),
+                sinceWorkflowId
+            );
+            if (currentChain.Any(IsActiveWorkflowStatus))
+            {
+                return null;
+            }
+
+            return await RefetchInstance(
+                instance,
+                BuildWorkflowFailure(currentChain) is { } workflowFailure
+                    ? new ProcessNextWorkflowFailure(workflowFailure, HasCommittedProcessState(currentChain))
+                    : null,
+                parked: false,
+                cancellationToken
+            );
+        }
+
+        if (collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus))
+        {
+            // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
+            // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
+            // success shape applies and the read-path annotation takes over. The heads alone cannot tell: a receive
+            // workflow is Held from its enqueue, and heads the chain while the segment before it still runs.
+            IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
+                await _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    cancellationToken: cancellationToken
+                ),
+                sinceWorkflowId
+            );
+
+            List<WorkflowStatusResponse> activeWorkflows = currentChain.Where(IsActiveWorkflowStatus).ToList();
+            bool anchoredChainParked = activeWorkflows.Count > 0 && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
+
+            // The committed-state guard is defensive: should a pre-commit step ever learn to
+            // defer, fall through to the ordinary wait (and its timeout) rather than returning a
+            // process state that does not exist yet.
+            if (anchoredChainParked && HasCommittedProcessState(currentChain))
+            {
+                return await RefetchInstance(instance, failure: null, parked: true, cancellationToken);
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<ProcessNextWorkflowResult> RefetchInstance(
+        Instance instance,
+        ProcessNextWorkflowFailure? failure,
+        bool parked,
+        CancellationToken cancellationToken
+    )
+    {
+        InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
+            instance,
+            cancellationToken: cancellationToken
+        );
+        return new ProcessNextWorkflowResult(freshInstance.Instance, freshInstance.Metadata, failure, parked);
+    }
+
+    private async Task<ProcessNextWorkflowResult> CreateTimeoutResult(
         Instance instance,
         string collectionKey,
         Guid sinceWorkflowId,
@@ -569,8 +767,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return new ProcessNextWorkflowResult(
             freshInstance.Instance,
             freshInstance.Metadata,
-            new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-            HasCommittedProcessState(currentChain)
+            new ProcessNextWorkflowFailure(
+                new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
+                HasCommittedProcessState(currentChain)
+            )
         );
     }
 

@@ -304,7 +304,7 @@ public sealed partial class ProcessEngineTest
             .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
                 (_, _, _, transition, _, _) => captured.Add(transition)
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(afterTransition, _storageVersions, null, true, parked));
+            .ReturnsAsync(new ProcessNextWorkflowResult(afterTransition, _storageVersions, Failure: null, parked));
         return captured;
     }
 
