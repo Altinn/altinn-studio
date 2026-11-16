@@ -3,7 +3,6 @@ package runs
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -69,9 +68,9 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		return
 	}
 	for _, job := range jobs {
-		workflow, err := c.workflowOf(ctx, job.RunID, job.Caller)
+		workflow, err := locate(ctx, c.engine, job.Caller, job.RunID)
 		switch {
-		case errors.Is(err, engine.ErrNotFound):
+		case errors.Is(err, ErrNotFound):
 			// The engine has no workflow for the Job, so nothing else will delete it.
 		case err != nil:
 			logger.Info("Could not find the workflow of a run Job", "runId", job.RunID, "error", err.Error())
@@ -85,21 +84,4 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		}
 		logger.Info("Deleted the Job of a finished run", "runId", job.RunID)
 	}
-}
-
-// workflowOf finds the workflow of a run Job by the Job's labels, or returns engine.ErrNotFound when the engine has
-// none.
-func (c *Collector) workflowOf(ctx context.Context, runID, caller string) (*engine.Workflow, error) {
-	if !ValidRunID(runID) || caller == "" {
-		return nil, engine.ErrNotFound
-	}
-	labels := map[string]string{workflowLabelRunID: runID}
-	workflows, err := c.engine.FindByLabels(ctx, EngineNamespace(caller), labels, 1)
-	if err != nil {
-		return nil, fmt.Errorf("find the workflow: %w", err)
-	}
-	if len(workflows) == 0 {
-		return nil, engine.ErrNotFound
-	}
-	return &workflows[0], nil
 }

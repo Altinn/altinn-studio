@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"maps"
-	"slices"
 	"sync"
 	"time"
 
@@ -164,14 +163,13 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	}
 	after := ""
 	for i := range workflows {
-		found := s.view(&workflows[i])
-		if found.Status.Final() && (found.Status != StatusCompleted || workflows[i].OverallStatus.Terminal()) {
-			if after == "" {
-				after = found.ID
-			}
-			continue
+		found := s.read(&workflows[i])
+		if !found.Status.Final() || found.keepsResult() {
+			return &found.Run, false, nil
 		}
-		return found, false, nil
+		if after == "" {
+			after = found.ID
+		}
 	}
 
 	kind := s.cfg.Kinds[request.Kind]
@@ -231,19 +229,19 @@ func (s *Service) Find(ctx context.Context, caller string, filter Filter) ([]*Ru
 	}
 	found := make([]*Run, 0, len(workflows))
 	for i := range workflows {
-		found = append(found, s.view(&workflows[i]))
+		found = append(found, &s.read(&workflows[i]).Run)
 	}
 	return found, nil
 }
 
 // locate finds a caller's run by its id. The engine namespace holds only the caller's runs, so a caller cannot learn
 // another's run ids.
-func (s *Service) locate(ctx context.Context, caller, runID string) (*engine.Workflow, error) {
-	if !ValidRunID(runID) {
+func locate(ctx context.Context, client *engine.Client, caller, runID string) (*engine.Workflow, error) {
+	if !ValidRunID(runID) || caller == "" {
 		return nil, ErrNotFound
 	}
 	labels := map[string]string{workflowLabelRunID: runID}
-	workflows, err := s.engine.FindByLabels(ctx, EngineNamespace(caller), labels, 1)
+	workflows, err := client.FindByLabels(ctx, EngineNamespace(caller), labels, 1)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
@@ -253,35 +251,24 @@ func (s *Service) locate(ctx context.Context, caller, runID string) (*engine.Wor
 	return &workflows[0], nil
 }
 
-// view describes a run as the run API shows it.
-func (s *Service) view(workflow *engine.Workflow) *Run {
-	described := describe(workflow)
-	run := &Run{
-		ID:              workflow.Labels[workflowLabelRunID],
-		Kind:            workflow.Labels[workflowLabelKind],
-		Labels:          labelsOf(workflow.Labels),
-		Status:          described.status,
-		CreatedAt:       workflow.CreatedAt,
-		StartedAt:       startedAt(workflow),
-		FinishedAt:      described.finishedAt,
-		ResultExpiresAt: described.resultExpiresAt,
-		Error:           described.err,
-	}
-	if described.status == StatusQueued {
-		if position, ok := s.queue.Position(run.ID); ok {
-			run.QueuePosition = &position
+// read reads a run from its workflow, with its place in the queue.
+func (s *Service) read(workflow *engine.Workflow) *record {
+	rec := readRun(workflow)
+	if rec.Status == StatusQueued {
+		if position, ok := s.queue.Position(rec.ID); ok {
+			rec.QueuePosition = &position
 		}
 	}
-	return run
+	return rec
 }
 
 // Get returns a run. With wait, it waits up to MaxWait for the status or the queue position to change.
 func (s *Service) Get(ctx context.Context, caller, runID string, wait time.Duration) (*Run, error) {
-	workflow, err := s.locate(ctx, caller, runID)
+	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
 		return nil, err
 	}
-	run := s.view(workflow)
+	run := &s.read(workflow).Run
 	if wait <= 0 || run.Status.Final() {
 		return run, nil
 	}
@@ -291,7 +278,7 @@ func (s *Service) Get(ctx context.Context, caller, runID string, wait time.Durat
 		if workflow = s.poll(ctx, workflow); workflow == nil {
 			break
 		}
-		next := s.view(workflow)
+		next := &s.read(workflow).Run
 		if next.Status != run.Status || !equalPosition(next.QueuePosition, run.QueuePosition) {
 			return next, nil
 		}
@@ -326,41 +313,27 @@ func equalPosition(a, b *int) bool {
 	return *a == *b
 }
 
-// runnerOf returns the address and the command of a run's operator runner, which run.await-pod left in its state.
-func runnerOf(workflow *engine.Workflow) (podIP, command string, ok bool) {
-	index := slices.IndexFunc(workflow.Steps, func(step engine.Step) bool { return step.OperationID == StepAwaitPod })
-	if index < 0 || workflow.Steps[index].Status != engine.StatusCompleted {
-		return "", "", false
-	}
-	state, err := parseState(workflow.Steps[index].StateOut)
-	if err != nil || state.PodIP == "" {
-		return "", "", false
-	}
-	return state.PodIP, state.Spec.Command, true
-}
-
 // Upload passes the caller's archive on to the run's operator runner, which starts the command. The run must await its
 // archive. size is -1 when the caller did not say. A repeat after the operator runner has the archive succeeds, and the
 // operator runner discards the archive that came again.
 func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.Reader, size int64) (*Run, error) {
-	workflow, err := s.locate(ctx, caller, runID)
+	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
 		return nil, err
 	}
-	run := s.view(workflow)
-	if run.Status != StatusAwaitingArchive {
-		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, run.Status)
+	rec := s.read(workflow)
+	if rec.Status != StatusAwaitingArchive {
+		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, rec.Status)
 	}
-	podIP, command, ok := runnerOf(workflow)
-	if !ok {
+	if rec.state.PodIP == "" {
 		return nil, fmt.Errorf("%w: the run has no operator runner", ErrNotAwaiting)
 	}
 
-	err = s.host.Start(ctx, podIP, runID, command, archive, size)
+	err = s.host.Start(ctx, rec.state.PodIP, runID, rec.state.Spec.Command, archive, size)
 	var rejection *runner.RejectedError
 	switch {
 	case err == nil:
-		return run, nil
+		return &rec.Run, nil
 	case errors.As(err, &rejection):
 		return nil, &UploadError{Status: rejection.Status, Detail: rejection.Detail}
 	case errors.Is(err, runner.ErrConflict):
@@ -375,36 +348,35 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 // operator runner keeps the result for a grace after it, and then exits, and run.cleanup deletes the Job. The caller
 // closes the body. size is -1 when the operator runner did not say.
 func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadCloser, int64, error) {
-	workflow, err := s.locate(ctx, caller, runID)
+	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
 		return nil, 0, err
 	}
-	described := describe(workflow)
+	rec := readRun(workflow)
 	switch {
-	case !described.status.Final():
+	case !rec.Status.Final():
 		return nil, 0, ErrNotFinished
-	case described.status != StatusCompleted:
-		detail := string(described.status)
-		if described.err != nil {
-			detail += ": " + described.err.Detail
+	case rec.Status != StatusCompleted:
+		detail := string(rec.Status)
+		if rec.Error != nil {
+			detail += ": " + rec.Error.Detail
 		}
 		return nil, 0, fmt.Errorf("%w: the run is %s", ErrNoResult, detail)
-	case workflow.OverallStatus.Terminal():
+	case !rec.keepsResult():
 		// run.cleanup has deleted the Job.
 		return nil, 0, ErrExpired
-	}
-	podIP, _, ok := runnerOf(workflow)
-	if !ok {
+	case rec.state.PodIP == "":
 		return nil, 0, fmt.Errorf("%w: the run has no operator runner", ErrExpired)
 	}
 
-	body, size, err := s.host.OpenResult(ctx, podIP, runID)
+	body, size, err := s.host.OpenResult(ctx, rec.state.PodIP, runID)
 	switch {
 	case err == nil:
 		return body, size, nil
 	case errors.Is(err, runner.ErrUnreachable):
 		// The operator runner exits once it has served the result and its grace has passed, or once the result timeout has.
-		if gone, podErr := s.podGone(ctx, workflow, runID, podIP); podErr == nil && gone {
+		gone, podErr := s.sandbox.PodGone(ctx, rec.state.Spec.Namespace, runID, rec.state.PodIP)
+		if podErr == nil && gone {
 			return nil, 0, fmt.Errorf("%w: %w", ErrExpired, err)
 		}
 		return nil, 0, fmt.Errorf("%w: %w", ErrRunner, err)
@@ -413,27 +385,15 @@ func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadClos
 	}
 }
 
-// podGone reports whether the pod of a run's operator runner has stopped or disappeared.
-func (s *Service) podGone(ctx context.Context, workflow *engine.Workflow, runID, podIP string) (bool, error) {
-	state, err := parseState(workflow.InitialState)
-	if err != nil {
-		return false, err
-	}
-	gone, err := s.sandbox.PodGone(ctx, state.Spec.Namespace, runID, podIP)
-	if err != nil {
-		return false, fmt.Errorf("read the pod: %w", err)
-	}
-	return gone, nil
-}
-
 // Cancel cancels the run's workflow and deletes its Job. canceled is false when the run had already ended.
 func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool, error) {
-	workflow, err := s.locate(ctx, caller, runID)
+	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
 		return nil, false, err
 	}
-	if run := s.view(workflow); run.Status.Final() {
-		return run, false, nil
+	rec := s.read(workflow)
+	if rec.Status.Final() {
+		return &rec.Run, false, nil
 	}
 
 	err = s.engine.Cancel(ctx, workflow.Namespace, workflow.DatabaseID)
@@ -450,17 +410,15 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 	s.queue.Forget(runID)
 	// The engine stops calling the run's steps, but the Job would run its command to the end. The garbage collector
 	// deletes it too, if this fails.
-	if state, stateErr := parseState(workflow.InitialState); stateErr == nil {
-		if err := s.sandbox.DeleteJob(ctx, state.Spec.Namespace, runID); err != nil {
-			logging.FromContext(ctx).
-				Info("Could not delete the Job of a canceled run", "runId", runID, "error", err.Error())
-		}
+	if err := s.sandbox.DeleteJob(ctx, rec.state.Spec.Namespace, runID); err != nil {
+		logging.FromContext(ctx).
+			Info("Could not delete the Job of a canceled run", "runId", runID, "error", err.Error())
 	}
 	if workflow.CancellationRequestedAt == nil {
 		now := s.clock.Now()
 		workflow.CancellationRequestedAt = &now
 	}
-	return s.view(workflow), true, nil
+	return &s.read(workflow).Run, true, nil
 }
 
 // keyedMutex serializes the creates of one kind and labels, so two requests at the same time cannot both find no run
