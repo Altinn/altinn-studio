@@ -28,6 +28,6 @@
     "prettier": "3.9.8",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.4",
-    "vitest": "5.0.1"
+    "vitest": "5.0.5"
   }
 }
