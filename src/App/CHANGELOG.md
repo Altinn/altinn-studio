@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Attachments in `AttachmentList` no longer show as plain text until the page is reloaded after the user changes a field or a `CustomButton` runs a server action. Files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
+
 ## [9.0.0-preview.11] - 2026-11-16
 
 ### Added
