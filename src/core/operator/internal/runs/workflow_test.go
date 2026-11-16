@@ -56,7 +56,7 @@ func enqueueRequest(t *testing.T) engine.EnqueueRequest {
 		Caller: "assistant",
 		Kind:   testKind,
 		Labels: testLabels("app"),
-		Spec:   specOf(testConfig().Kinds[testKind]),
+		Spec:   specOf(testConfig().Kinds[testKind], 0),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +99,7 @@ func TestEnqueueRequestHasTheRunSteps(t *testing.T) {
 func TestMaxDurationGrowsWithTheQueueTimeout(t *testing.T) {
 	RegisterTestingT(t)
 
-	spec := specOf(testConfig().Kinds[testKind])
+	spec := specOf(testConfig().Kinds[testKind], 0)
 	longer := spec
 	longer.QueueTimeout += time.Hour
 	Expect(maxDuration(longer) - maxDuration(spec)).To(Equal(time.Hour))
@@ -115,14 +115,14 @@ func must(data []byte, err error) []byte {
 func TestAKindWithoutArchiveHasNoArchiveStep(t *testing.T) {
 	RegisterTestingT(t)
 
-	spec := specOf(testConfig().Kinds[noArchiveKind])
+	spec := specOf(testConfig().Kinds[noArchiveKind], 0)
 	keys := make([]string, 0, len(runSteps(spec)))
 	for _, step := range runSteps(spec) {
 		keys = append(keys, step.key)
 	}
 	Expect(keys).To(Equal([]string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitResult, StepCleanup}))
 
-	withArchive := specOf(testConfig().Kinds[testKind])
+	withArchive := specOf(testConfig().Kinds[testKind], 0)
 	archiveStep := 2*(retryMaxDuration+retryMaxDelay+engineLatency+10*time.Second) + config.UploadTimeout
 	Expect(maxDuration(withArchive) - maxDuration(spec)).To(Equal(archiveStep))
 }

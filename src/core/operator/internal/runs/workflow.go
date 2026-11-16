@@ -37,9 +37,11 @@ type KindSpec struct {
 	RequiresArchive bool          `json:"requiresArchive"`
 	QueueTimeout    time.Duration `json:"queueTimeout"`
 	RunTimeout      time.Duration `json:"runTimeout"`
+	// TimeScale is the operator's timeScale at the create, which shortens the run's other waits and budgets.
+	TimeScale float64 `json:"timeScale,omitempty"`
 }
 
-func specOf(kind config.Kind) KindSpec {
+func specOf(kind config.Kind, timeScale float64) KindSpec {
 	return KindSpec{
 		Namespace:       kind.Namespace,
 		PodTemplate:     kind.PodTemplate,
@@ -47,7 +49,16 @@ func specOf(kind config.Kind) KindSpec {
 		RequiresArchive: kind.RequiresArchive,
 		QueueTimeout:    kind.QueueTimeout,
 		RunTimeout:      kind.RunTimeout,
+		TimeScale:       timeScale,
 	}
+}
+
+// scaled shortens d by a time scale, which only the integration test sets. Zero leaves d as it is.
+func scaled(d time.Duration, timeScale float64) time.Duration {
+	if timeScale == 0 {
+		return d
+	}
+	return time.Duration(float64(d) * timeScale)
 }
 
 // runState is the state that the steps hand on. The engine keeps it with each step, so a step that runs again after a
@@ -96,28 +107,36 @@ type stepDefinition struct {
 }
 
 // runSteps lists the steps of a run of the kind. A kind that requires no archive has no run.await-archive:
-// run.await-pod starts its command once the pod is ready.
+// run.await-pod starts its command once the pod is ready. The time scale shortens the budgets that the kind does not
+// set itself.
 func runSteps(spec KindSpec) []stepDefinition {
+	scale := func(d time.Duration) time.Duration { return scaled(d, spec.TimeScale) }
 	steps := []stepDefinition{
 		{key: StepAdmit, maxExecutionTime: 10 * time.Second, waitBudget: spec.QueueTimeout},
-		{key: StepCreateJob, maxExecutionTime: 30 * time.Second, waitBudget: 5 * time.Minute},
-		{key: StepAwaitPod, maxExecutionTime: 10 * time.Second, waitBudget: config.PodBudget},
+		{key: StepCreateJob, maxExecutionTime: 30 * time.Second, waitBudget: scale(5 * time.Minute)},
+		{key: StepAwaitPod, maxExecutionTime: 10 * time.Second, waitBudget: scale(config.PodBudget)},
 	}
 	if spec.RequiresArchive {
-		steps = append(steps,
-			stepDefinition{key: StepAwaitArchive, maxExecutionTime: 10 * time.Second, waitBudget: config.UploadTimeout})
+		steps = append(
+			steps,
+			stepDefinition{
+				key:              StepAwaitArchive,
+				maxExecutionTime: 10 * time.Second,
+				waitBudget:       scale(config.UploadTimeout),
+			},
+		)
 	}
 	return append(
 		steps,
 		stepDefinition{
 			key:              StepAwaitResult,
 			maxExecutionTime: 40 * time.Second,
-			waitBudget:       spec.RunTimeout + runResultSlack,
+			waitBudget:       spec.RunTimeout + scale(runResultSlack),
 		},
 		stepDefinition{
 			key:              StepCleanup,
 			maxExecutionTime: 30 * time.Second,
-			waitBudget:       config.ResultTimeout + config.ResultGrace + cleanupSlack,
+			waitBudget:       scale(config.ResultTimeout + config.ResultGrace + cleanupSlack),
 		},
 	)
 }
@@ -129,7 +148,7 @@ func runSteps(spec KindSpec) []stepDefinition {
 func maxDuration(spec KindSpec) time.Duration {
 	var total time.Duration
 	for _, step := range runSteps(spec) {
-		retries := retryMaxDuration + retryMaxDelay + engineLatency + step.maxExecutionTime
+		retries := scaled(retryMaxDuration+retryMaxDelay+engineLatency, spec.TimeScale) + step.maxExecutionTime
 		total += retries
 		if step.waitBudget > 0 {
 			total += step.waitBudget + retries
@@ -164,9 +183,9 @@ func BuildEnqueueRequest(run newRun) (engine.EnqueueRequest, error) {
 
 	retry := &engine.RetryStrategy{
 		BackoffType:  engine.BackoffExponential,
-		BaseInterval: engine.Duration(time.Second),
-		MaxDelay:     engine.DurationOf(retryMaxDelay),
-		MaxDuration:  engine.DurationOf(retryMaxDuration),
+		BaseInterval: engine.Duration(scaled(time.Second, run.Spec.TimeScale)),
+		MaxDelay:     engine.DurationOf(scaled(retryMaxDelay, run.Spec.TimeScale)),
+		MaxDuration:  engine.DurationOf(scaled(retryMaxDuration, run.Spec.TimeScale)),
 	}
 
 	definitions := runSteps(run.Spec)

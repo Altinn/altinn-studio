@@ -183,7 +183,7 @@ func resultOutcome(steps []engine.Step, workflowFinishedAt *time.Time) *descript
 	case runner.StatusCompleted:
 		outcome.status = StatusCompleted
 		if outcome.finishedAt != nil {
-			expiresAt := outcome.finishedAt.Add(config.ResultTimeout)
+			expiresAt := outcome.finishedAt.Add(scaled(config.ResultTimeout, state.Spec.TimeScale))
 			outcome.resultExpiresAt = &expiresAt
 		}
 	case runner.StatusFailed:

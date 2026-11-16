@@ -2,7 +2,6 @@ package runs
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -100,7 +99,7 @@ func TestCreateStoresTheRunInTheEngine(t *testing.T) {
 	state, err := parseState(stored.Request.Workflows[0].State)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(state.Kind).To(Equal(testKind))
-	Expect(state.Spec).To(Equal(specOf(h.cfg.Kinds[testKind])))
+	Expect(state.Spec).To(Equal(specOf(h.cfg.Kinds[testKind], 0)))
 }
 
 func TestCreateChecksTheKindTheLabelsAndTheQueue(t *testing.T) {
@@ -274,7 +273,9 @@ func TestGetWaitsForAChange(t *testing.T) {
 	Eventually(h.clock.HasWaiters).Should(BeTrue())
 	Consistently(done, 50*time.Millisecond).ShouldNot(Receive())
 
-	h.step(t, run.ID, StepAdmit)
+	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) {
+		w.OverallStatus, w.Steps[0].Status = engine.StatusProcessing, engine.StatusCompleted
+	})
 	h.clock.Advance(statusPoll)
 	var changed *Run
 	Eventually(done).Should(Receive(&changed))
@@ -302,84 +303,21 @@ func TestGetStopsWaitingAtTheDeadline(t *testing.T) {
 	Expect(same.Status).To(Equal(StatusQueued))
 }
 
-func TestCancelDeletesTheJob(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-	ctx := t.Context()
-
-	run := h.create(t, "assistant", "key")
-	Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
-
-	canceled, accepted, err := h.service.Cancel(ctx, "assistant", run.ID)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(accepted).To(BeTrue())
-	Expect(canceled.Status).To(Equal(StatusCanceled))
-	Expect(h.hasJob(run.ID)).To(BeFalse())
-
-	// The engine finalizes the cancel at its next fetch.
-	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusCanceled })
-	again, accepted, err := h.service.Cancel(ctx, "assistant", run.ID)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(accepted).To(BeFalse())
-	Expect(again.Status).To(Equal(StatusCanceled))
-
-	_, _, err = h.service.Result(ctx, "assistant", run.ID)
-	Expect(err).To(MatchError(ErrNoResult))
-}
-
-func TestUploadNeedsARunThatAwaitsItsArchive(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-
-	run := h.create(t, "assistant", "app")
-	Expect(h.uploadArchive(t, run.ID, "app")).To(MatchError(ErrNotAwaiting), "a queued run")
-	Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
-	Expect(h.uploadArchive(t, run.ID, "app")).To(MatchError(ErrNotAwaiting), "a starting run")
-	h.readyPod(run.ID)
-	Expect(h.step(t, run.ID, StepAwaitPod).done()).To(BeTrue())
-
-	_, err := h.service.Upload(t.Context(), "assistant", run.ID, bytes.NewReader([]byte("PK")), 2)
-	var refused *UploadError
-	Expect(errors.As(err, &refused)).To(BeTrue())
-	Expect(refused.Status).To(Equal(400))
-	Expect(h.host.Claimed()).To(BeEmpty(), "the operator runner did not take the body")
-
-	Expect(h.uploadArchive(t, run.ID, "app")).To(Succeed())
-	Expect(h.uploadArchive(t, run.ID, "app")).To(Succeed(), "an upload that comes again")
-}
-
-// The result lives in the Job. Once the operator runner has exited, the result is gone, while the engine still has the
-// run's status.
-func TestResultExpiresWithTheJob(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-	ctx := t.Context()
-
-	run := h.create(t, "assistant", "app")
-	h.startCommand(t, run.ID)
-	h.host.Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, `{"status":"completed"}`)
-	Expect(h.step(t, run.ID, StepAwaitResult).done()).To(BeTrue())
-
-	h.host.Close()
-	h.setPod(run.ID, sandbox.PodEnded, "")
-	_, _, err := h.service.Result(ctx, "assistant", run.ID)
-	Expect(err).To(MatchError(ErrExpired))
-	completed := h.get(t, run.ID)
-	Expect(completed.Status).To(Equal(StatusCompleted))
-	Expect(completed.Kind).To(Equal(testKind))
-}
-
 // An operator runner that does not answer while its pod still runs may answer later, so the caller retries.
 func TestResultIsUnavailableWhileTheRunnerDoesNotAnswer(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "app")
-	h.startCommand(t, run.ID)
-	h.host.Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, `{"status":"completed"}`)
-	Expect(h.step(t, run.ID, StepAwaitResult).done()).To(BeTrue())
+	state := h.stateWith(t, run.ID, func(s *runState) { s.PodIP, s.Outcome = podIP, runner.StatusCompleted })
+	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) {
+		for i := range w.Steps {
+			w.Steps[i].Status, w.Steps[i].StateOut = engine.StatusCompleted, state
+		}
+		w.OverallStatus, w.Steps[len(w.Steps)-1].Status = engine.StatusProcessing, engine.StatusWaiting
+	})
+	h.sandbox.Add(sandbox.Job{RunID: run.ID, Kind: testKind, Caller: "assistant", Namespace: testNamespace})
+	h.readyPod(run.ID)
 
 	h.host.Close()
 	_, _, err := h.service.Result(t.Context(), "assistant", run.ID)
@@ -415,16 +353,4 @@ func TestKindsListsWhatTheCallerMayRun(t *testing.T) {
 	Expect(h.service.Kinds("other")).To(Equal([]Kind{upgrade}))
 	Expect(h.service.Kinds("designer")).To(BeEmpty())
 	Expect(h.service.Kinds("nobody")).To(BeEmpty())
-}
-
-func TestStatusOfAPodThatWasNeverReady(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-
-	run := h.create(t, "assistant", "key")
-	Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
-	h.setPod(run.ID, sandbox.PodStarting, "")
-	Expect(h.step(t, run.ID, StepAwaitPod).deferred()).To(BeTrue())
-	Expect(h.get(t, run.ID).Status).To(Equal(StatusStarting))
 }

@@ -17,8 +17,8 @@ func TestCollectorDeletesJobsOfFinishedOrUnknownRuns(t *testing.T) {
 	running := h.create(t, "assistant", "running")
 	canceled := h.create(t, "other", "canceled")
 	for _, run := range []*Run{running, canceled} {
-		Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-		Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
+		Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
+		Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	}
 	h.engine.Update(h.workflowID(t, canceled.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusCanceled })
 
@@ -38,8 +38,8 @@ func TestCollectorKeepsJobsWhenTheEngineDoesNotAnswer(t *testing.T) {
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "key")
-	Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	h.engine.Close()
 
 	h.collector.Collect(t.Context())
@@ -53,10 +53,10 @@ func TestCollectorDeletesTheJobOfARunWhoseKindIsGone(t *testing.T) {
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "key")
-	Expect(h.step(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.step(t, run.ID, StepCreateJob).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	delete(h.cfg.Kinds, testKind)
-	h.failStep(t, run.ID, StepAwaitPod, "the pod stopped before it was ready")
+	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusFailed })
 
 	h.collector.Collect(t.Context())
 	Expect(h.hasJob(run.ID)).To(BeFalse())

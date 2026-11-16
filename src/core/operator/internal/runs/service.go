@@ -101,8 +101,8 @@ func (s *Service) Kinds(caller string) []Kind {
 	kinds := make([]Kind, 0, len(names))
 	for _, name := range names {
 		kind := s.cfg.Kinds[name]
-		uploadTimeout := config.UploadTimeout
-		spec := specOf(kind)
+		spec := specOf(kind, s.cfg.TimeScale)
+		uploadTimeout := scaled(config.UploadTimeout, spec.TimeScale)
 		if !spec.RequiresArchive {
 			uploadTimeout = 0
 		}
@@ -114,8 +114,8 @@ func (s *Service) Kinds(caller string) []Kind {
 			QueueTimeoutSeconds:  int(kind.QueueTimeout / time.Second),
 			UploadTimeoutSeconds: int(uploadTimeout / time.Second),
 			RunTimeoutSeconds:    int(kind.RunTimeout / time.Second),
-			ResultTimeoutSeconds: int(config.ResultTimeout / time.Second),
-			MaxDurationSeconds:   int(maxDuration(specOf(kind)) / time.Second),
+			ResultTimeoutSeconds: int(scaled(config.ResultTimeout, spec.TimeScale) / time.Second),
+			MaxDurationSeconds:   int(maxDuration(spec) / time.Second),
 		})
 	}
 	return kinds
@@ -182,7 +182,7 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 		Caller: caller,
 		Kind:   request.Kind,
 		Labels: request.Labels,
-		Spec:   specOf(kind),
+		Spec:   specOf(kind, s.cfg.TimeScale),
 	}
 	enqueueRequest, err := BuildEnqueueRequest(run)
 	if err != nil {

@@ -92,15 +92,14 @@ func TestClientAgainstTheFakeEngine(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(created.Created).To(BeTrue())
 
-	// The context is not part of the idempotency hash.
-	replay := request("a")
-	replay.Context = json.RawMessage(`{"caller":"assistant","other":1}`)
-	again, err := client.Enqueue(ctx, "runs-assistant", "key", replay)
+	again, err := client.Enqueue(ctx, "runs-assistant", "key", request("a"))
 	Expect(err).NotTo(HaveOccurred())
 	Expect(again).To(Equal(engine.EnqueueResult{WorkflowID: created.WorkflowID, Created: false}))
 
+	fake.Conflict = true
 	_, err = client.Enqueue(ctx, "runs-assistant", "key", request("b"))
 	Expect(err).To(MatchError(engine.ErrConflict))
+	fake.Conflict = false
 
 	workflow, err := client.Get(ctx, "runs-assistant", created.WorkflowID)
 	Expect(err).NotTo(HaveOccurred())

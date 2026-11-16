@@ -94,6 +94,11 @@ type stepRun struct {
 	caller string
 }
 
+// wait defers the step by delay, which the run's time scale shortens.
+func (r *stepRun) wait(payload *callbacks.Payload, delay time.Duration, reason string) callbacks.Response {
+	return callbacks.Wait(payload.State, scaled(delay, r.state.Spec.TimeScale), reason)
+}
+
 func (s *Steps) load(ctx context.Context, payload *callbacks.Payload) (*stepRun, error) {
 	id := payload.Context.SubjectID
 	if payload.Context.Domain != Domain || !ValidRunID(id) || payload.Context.Caller == "" {
@@ -142,7 +147,7 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 		return callbacks.Response{}, expected(errQueueTimeout)
 	}
 	reason := fmt.Sprintf("The run is number %d in the queue for %s.", admission.Position, run.state.Kind)
-	return callbacks.Wait(payload.State, AdmitRecheck, reason), nil
+	return run.wait(payload, AdmitRecheck, reason), nil
 }
 
 // createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full. The
@@ -160,7 +165,7 @@ func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (call
 	case err == nil:
 		return callbacks.Done(payload.State), nil
 	case errors.Is(err, sandbox.ErrQuotaFull):
-		return callbacks.Wait(payload.State, quotaRecheck, "The sandbox quota is full."), nil
+		return run.wait(payload, quotaRecheck, "The sandbox quota is full."), nil
 	case errors.Is(err, sandbox.ErrNotAdmitted):
 		// The policy compares the Job with the template it has cached, which lags a rollout of the template by a
 		// moment. The step's retry strategy bounds how long a Job that never fits is tried.
@@ -201,11 +206,11 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		// The sandbox has not seen the new Job yet. Until it does, the run holds its place through its reservation,
 		// which a queue that restarted meanwhile does not know.
 		s.queue.KeepAdmitted(run.id, run.state.Kind, run.caller)
-		return callbacks.Wait(payload.State, podRecheck, "Waiting for the Job to create its pod."), nil
+		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
 	case sandbox.JobFailed:
 		return callbacks.Response{}, permanent(fmt.Errorf("%w: %s", errJobFailed, pod.Detail))
 	case sandbox.PodNone:
-		return callbacks.Wait(payload.State, podRecheck, "Waiting for the Job to create its pod."), nil
+		return run.wait(payload, podRecheck, "Waiting for the Job to create its pod."), nil
 	case sandbox.PodEnded:
 		return callbacks.Response{}, permanent(fmt.Errorf("%w: %s", errPodEnded, pod.Detail))
 	case sandbox.PodReady:
@@ -221,10 +226,10 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		}
 		return callbacks.Done(state), nil
 	case sandbox.PodUnschedulable:
-		return callbacks.Wait(payload.State, podRecheck, "Waiting for a sandbox node."), nil
+		return run.wait(payload, podRecheck, "Waiting for a sandbox node."), nil
 	case sandbox.PodStarting:
 	}
-	return callbacks.Wait(payload.State, podRecheck, "Waiting for the operator runner to start."), nil
+	return run.wait(payload, podRecheck, "Waiting for the operator runner to start."), nil
 }
 
 // awaitArchive waits until the caller's archive has reached the operator runner, which then starts the command. The
@@ -247,7 +252,7 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 		if payload.IsFinalWaitCheck {
 			return callbacks.Response{}, expected(errArchiveTimeout)
 		}
-		return callbacks.Wait(payload.State, archiveRecheck, "Waiting for the caller to upload the archive."), nil
+		return run.wait(payload, archiveRecheck, "Waiting for the caller to upload the archive."), nil
 	default:
 		return callbacks.Response{}, s.runnerError(ctx, run, err)
 	}
@@ -294,12 +299,12 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 		return callbacks.Response{}, permanent(errNoPodIP)
 	}
 
-	status, err := s.host.Status(ctx, run.state.PodIP, run.id, resultWait)
+	status, err := s.host.Status(ctx, run.state.PodIP, run.id, scaled(resultWait, run.state.Spec.TimeScale))
 	if err != nil {
 		return callbacks.Response{}, s.runnerError(ctx, run, err)
 	}
 	if status.Status == runner.StatusRunning {
-		return callbacks.Wait(payload.State, resultRecheck, "The command is running."), nil
+		return run.wait(payload, resultRecheck, "The command is running."), nil
 	}
 	logging.FromContext(ctx).Info("Run finished", "outcome", status.Status, "exitCode", status.ExitCode,
 		"timedOut", status.TimedOut)
@@ -349,7 +354,7 @@ func (s *Steps) cleanup(ctx context.Context, payload *callbacks.Payload) (callba
 			return callbacks.Response{}, err
 		}
 		if !gone {
-			return callbacks.Wait(payload.State, cleanupRecheck, "Waiting for the caller to fetch the result."), nil
+			return run.wait(payload, cleanupRecheck, "Waiting for the caller to fetch the result."), nil
 		}
 	}
 	if deleteErr := s.sandbox.DeleteJob(ctx, run.state.Spec.Namespace, run.id); deleteErr != nil {
