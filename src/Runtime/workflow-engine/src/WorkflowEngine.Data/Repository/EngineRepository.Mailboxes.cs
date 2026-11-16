@@ -40,28 +40,29 @@ internal sealed partial class EngineRepository
             WHERE mr.released_at IS NULL
               AND w.id = mr.workflow_id
               AND w.status = @held
-            RETURNING mr.mailbox_id, mr.seq, t.now
+            RETURNING mr.mailbox_id, mr.seq, t.now, w.namespace, w.collection_key
         )
         UPDATE engine.mailbox_receivers AS mr
         SET released_at = released.now
         FROM released
         WHERE mr.mailbox_id = released.mailbox_id
           AND mr.seq = released.seq
-        RETURNING mr.mailbox_id, mr.seq
+        RETURNING mr.mailbox_id, mr.seq, released.namespace, released.collection_key
         """;
 
     /// <summary>
-    /// Returns the positions released, in no particular order. Ranges over one mailbox must not overlap: an
-    /// overlapped position is released once, stamped by an arbitrary element's <c>Now</c>.
+    /// Returns the positions released, in no particular order, with the released receiver's collection. Ranges over
+    /// one mailbox must not overlap: an overlapped position is released once, stamped by an arbitrary element's
+    /// <c>Now</c>.
     /// </summary>
-    private static async Task<List<(Guid MailboxId, long Seq)>> ReleaseMailboxReceivers(
+    private static async Task<List<(Guid MailboxId, long Seq, CollectionId? Collection)>> ReleaseMailboxReceivers(
         NpgsqlConnection conn,
         NpgsqlTransaction tx,
         (Guid MailboxId, long SeqLo, long SeqHi, DateTimeOffset Now)[] releases,
         CancellationToken cancellationToken
     )
     {
-        var released = new List<(Guid MailboxId, long Seq)>();
+        var released = new List<(Guid MailboxId, long Seq, CollectionId? Collection)>();
         if (releases.Length == 0)
             return released;
 
@@ -78,24 +79,10 @@ internal sealed partial class EngineRepository
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            released.Add((reader.GetGuid(0), reader.GetInt64(1)));
+            released.Add((reader.GetGuid(0), reader.GetInt64(1), await ReadCollectionId(reader, 2, cancellationToken)));
         }
 
         return released;
-    }
-
-    /// <summary>
-    /// Issued inside the releasing transaction: PostgreSQL queues the <c>NOTIFY</c> until commit, and a separate
-    /// post-commit statement could fail and make <see cref="ExecuteWithRetry"/> re-run the whole delegate.
-    /// </summary>
-    private static async Task NotifyStatusChanged(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        CancellationToken cancellationToken
-    )
-    {
-        await using var cmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx);
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -976,10 +963,10 @@ internal sealed partial class EngineRepository
         );
 
         if (released.Count > 0)
-            await NotifyStatusChanged(conn, tx, cancellationToken);
+            await NotifyChanged(conn, tx, released.Select(r => r.Collection), cancellationToken);
 
         var releasedPerMailbox = new Dictionary<Guid, int>(staged.Count);
-        foreach (var (mailboxId, _) in released)
+        foreach (var (mailboxId, _, _) in released)
         {
             releasedPerMailbox[mailboxId] = releasedPerMailbox.GetValueOrDefault(mailboxId) + 1;
         }
@@ -1510,10 +1497,10 @@ internal sealed partial class EngineRepository
             );
 
             if (released.Count > 0)
-                await NotifyStatusChanged(conn, tx, cancellationToken);
+                await NotifyChanged(conn, tx, released.Select(r => r.Collection), cancellationToken);
 
             // Keyed off the positions returned, never their order — RETURNING has none
-            var woken = new HashSet<(Guid MailboxId, long Seq)>(released);
+            var woken = released.Select(r => (r.MailboxId, r.Seq)).ToHashSet();
 
             foreach (var (index, mailboxId, idx) in accepted)
             {
