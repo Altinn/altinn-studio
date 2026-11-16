@@ -1,6 +1,5 @@
-import axios from 'axios';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { RequestOptions } from '@studio/http-client';
 import type { JSONSchema7 } from 'json-schema';
 
 import { doPerformAction } from 'src/core/api-client/actions.api';
@@ -11,6 +10,7 @@ import { partyApi } from 'src/core/api-client/party.api';
 import { fetchAuthorizedOrganizationDetails, fetchSigneeList } from 'src/core/api-client/signing.api';
 import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import { httpClient } from 'src/core/httpClient';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
@@ -57,7 +57,7 @@ export const doAttachmentUpload = async (
   const url = getFileUploadUrl(instanceId, dataTypeId, language);
   const contentType = getFileContentType(file);
 
-  const config: AxiosRequestConfig = {
+  const config: RequestOptions = {
     headers: {
       'Content-Type': contentType,
       'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
@@ -134,25 +134,25 @@ export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchR
   httpPatch<IDataModelMultiPatchResponse>(url, data);
 
 // When saving data for stateless apps
-export const doPostStatelessFormData = async (
-  url: string,
-  data: object,
-  options?: AxiosRequestConfig,
-): Promise<object> => (await httpPost<object>(url, options, data)).data;
+export const doPostStatelessFormData = async (url: string, data: object, options?: RequestOptions): Promise<object> =>
+  (await httpPost<object>(url, options, data)).data;
 
 export const fetchLogo = async (): Promise<string> =>
-  (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
+  (await httpClient.get<string>(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
-export type OptionsResponse = Pick<AxiosResponse<IRawOption[]>, 'data' | 'headers'>;
+export type OptionsResponse = { data: IRawOption[]; headers: Record<string, string> };
 
-export const fetchOptions = (url: string): Promise<OptionsResponse | null> => httpGetRaw<IRawOption[]>(url);
+export const fetchOptions = async (url: string): Promise<OptionsResponse | null> => {
+  const response = await httpGetRaw<IRawOption[]>(url);
+  return response && { data: response.data, headers: Object.fromEntries(response.headers ?? []) };
+};
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
+export const fetchFormData = (url: string, options?: RequestOptions): Promise<any> => httpGet(url, options);
 
 export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 
@@ -176,7 +176,7 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
     return Promise.resolve(null);
   }
 
-  return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
+  return (await httpClient.get<JSONSchema7>(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
 };
 
 export function fetchExternalApi({
@@ -192,7 +192,7 @@ export function fetchExternalApi({
 
 export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
   const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
-  return (await axios.get(postalCodesUrl)).data;
+  return (await httpClient.get<PostalCodesRegistry>(postalCodesUrl)).data;
 };
 
 export const fetchFormBootstrapForInstance = (options: {

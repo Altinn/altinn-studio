@@ -11,7 +11,8 @@ are in active development. `http-client` has the `@studio/` scope.
 - `language` has the built-in texts of Altinn apps in each language, and helpers for them.
 - `layout-contract` has the types and JSON schemas for app layouts and other app configuration files.
 - `http-client` has a client on top of `fetch`. Each frontend creates its own client and adds what its backend needs
-  as interceptors, such as Designer's XSRF header.
+  as interceptors. `addXsrfToken` sends the XSRF header that both the Designer and app backends check, and the rest
+  stays in the frontends, such as Designer's redirect to the Gitea login.
 
 The App frontend uses all of them except `http-client`. Designer and the
 [Studio Assistant](../../AI/assistant/README.md) use `layout-contract`, and Designer uses `http-client`. The layout

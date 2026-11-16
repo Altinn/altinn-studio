@@ -3,11 +3,10 @@ import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLoc
 import type { PropsWithChildren } from 'react';
 
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
-import { AxiosHeaders } from 'axios';
 import dotenv from 'dotenv';
 import { vi } from 'vitest';
+import type { HttpResponse } from '@studio/http-client';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
-import type { AxiosResponse } from 'axios';
 import type { Mock } from 'vitest';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
@@ -102,8 +101,8 @@ export function queryPromiseMock<Name extends keyof AppQueriesContext>(
 }
 
 /** Complete HTTP response for the API methods that still return response metadata. */
-export function httpResponse<T>(data: T): AxiosResponse<T> {
-  return { data, status: 200, statusText: 'OK', headers: {}, config: { headers: new AxiosHeaders() } };
+export function httpResponse<T>(data: T): HttpResponse<T> {
+  return { data, status: 200, headers: new Headers() };
 }
 
 // Mock postal codes data for testing. Uses the indexed format where:

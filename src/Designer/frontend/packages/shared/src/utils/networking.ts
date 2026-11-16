@@ -1,17 +1,8 @@
-import { createHttpClient } from '@studio/http-client';
-import type { RequestInterceptor, RequestOptions, ResponseInterceptor } from '@studio/http-client';
+import { addXsrfToken, createHttpClient } from '@studio/http-client';
+import type { RequestOptions, ResponseInterceptor } from '@studio/http-client';
 
 export type { RequestOptions } from '@studio/http-client';
 export { HttpError, isHttpError, isRequestCancelled } from '@studio/http-client';
-
-/** Designer backend checks this header on requests that change data. See `MvcConfiguration.cs`. */
-const XSRF_COOKIE_NAME = 'XSRF-TOKEN';
-const XSRF_HEADER_NAME = 'X-XSRF-TOKEN';
-
-const addXsrfToken: RequestInterceptor = ({ url, headers }) => {
-  const token = isSameOrigin(url) ? readCookie(XSRF_COOKIE_NAME) : null;
-  if (token) headers.set(XSRF_HEADER_NAME, token);
-};
 
 /**
  * The browser follows redirects without telling us, so a request that Gitea redirected to its
@@ -66,22 +57,4 @@ export async function del<T = void>(
   options?: RequestOptions & { data?: unknown },
 ): Promise<T> {
   return (await designerClient.delete<T>(url, options)).data;
-}
-
-function isSameOrigin(url: string): boolean {
-  // `new URL` throws on a URL it cannot parse. `URL.canParse` would check without throwing, but
-  // Safari before 17 lacks it, and the Vite build targets Safari 16.4.
-  try {
-    return new URL(url, window.location.href).origin === window.location.origin;
-  } catch {
-    return false;
-  }
-}
-
-function readCookie(name: string): string | null {
-  const cookie = document.cookie
-    .split(';')
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith(`${name}=`));
-  return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
 }

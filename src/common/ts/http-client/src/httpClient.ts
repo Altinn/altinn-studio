@@ -15,6 +15,13 @@ export type HttpRequest = {
 export type HttpResponse<T = unknown> = {
   status: number;
   data: T;
+  headers: Headers;
+};
+
+/** The request that failed, with the values that were passed on to `fetch` after the request interceptors ran. */
+export type FailedRequest = {
+  method: string;
+  url: string;
 };
 
 export type RequestInterceptor = (request: HttpRequest) => void | Promise<void>;
@@ -22,9 +29,13 @@ export type RequestInterceptor = (request: HttpRequest) => void | Promise<void>;
 /** Runs on every response that arrives, before its body is read and whatever its status. */
 export type ResponseInterceptor = (response: Response) => void | Promise<void>;
 
+/** Runs on every HttpError before the client throws it, but not on an aborted request. */
+export type ErrorInterceptor = (error: HttpError) => void | Promise<void>;
+
 export type HttpClientConfig = {
   onRequest?: RequestInterceptor[];
   onResponse?: ResponseInterceptor[];
+  onError?: ErrorInterceptor[];
 };
 
 export type HttpClient = {
@@ -51,15 +62,21 @@ export type HttpClient = {
  * request never got a response, such as on a network failure, `response` is undefined.
  */
 export class HttpError<T = unknown> extends Error {
+  readonly request: FailedRequest;
   readonly response?: HttpResponse<T>;
 
-  constructor(response?: HttpResponse<T>, message?: string, options?: { cause?: unknown }) {
+  constructor(
+    request: FailedRequest,
+    response?: HttpResponse<T>,
+    { message, cause }: { message?: string; cause?: unknown } = {},
+  ) {
     super(
       message ??
         (response ? `Request failed with status code ${response.status}` : 'Request failed'),
-      options,
+      { cause },
     );
     this.name = 'HttpError';
+    this.request = request;
     this.response = response;
   }
 }
@@ -78,6 +95,7 @@ export const isRequestCancelled = (error: unknown): boolean =>
 export function createHttpClient({
   onRequest = [],
   onResponse = [],
+  onError = [],
 }: HttpClientConfig = {}): HttpClient {
   async function request<T>(
     method: string,
@@ -94,16 +112,30 @@ export function createHttpClient({
     };
     for (const intercept of onRequest) await intercept(httpRequest);
 
-    const { url: requestUrl, ...init } = httpRequest;
-    const fetchResponse = await withHttpError(fetch(requestUrl, init));
+    try {
+      return await send<T>(httpRequest);
+    } catch (error) {
+      if (error instanceof HttpError) {
+        for (const intercept of onError) await intercept(error);
+      }
+      throw error;
+    }
+  }
+
+  async function send<T>(httpRequest: HttpRequest): Promise<HttpResponse<T>> {
+    const { url, ...init } = httpRequest;
+    const failedRequest: FailedRequest = { method: httpRequest.method, url };
+    const fetchResponse = await withHttpError(fetch(url, init), failedRequest);
     for (const intercept of onResponse) await intercept(fetchResponse);
 
+    const data = await withHttpError(readData(fetchResponse), failedRequest, fetchResponse);
     // The type parameter is the caller's claim about what the endpoint returns, as with `Response.json()`.
     const response: HttpResponse<T> = {
       status: fetchResponse.status,
-      data: (await withHttpError(readData(fetchResponse), fetchResponse.status)) as T,
+      data: data as T,
+      headers: fetchResponse.headers,
     };
-    if (!fetchResponse.ok) throw new HttpError<T>(response);
+    if (!fetchResponse.ok) throw new HttpError<T>(failedRequest, response);
     return response;
   }
 
@@ -121,13 +153,21 @@ export function createHttpClient({
  * HttpError. The status is kept when there is one, so a 403 still reads as a 403. An aborted
  * request is rethrown as it is.
  */
-async function withHttpError<R>(promise: Promise<R>, status?: number): Promise<R> {
+async function withHttpError<R>(
+  promise: Promise<R>,
+  request: FailedRequest,
+  fetchResponse?: Response,
+): Promise<R> {
   try {
     return await promise;
   } catch (error) {
     if (isRequestCancelled(error)) throw error;
-    const response = status === undefined ? undefined : { status, data: undefined };
-    throw new HttpError(response, (error as Error)?.message, { cause: error });
+    const response = fetchResponse && {
+      status: fetchResponse.status,
+      data: undefined,
+      headers: fetchResponse.headers,
+    };
+    throw new HttpError(request, response, { message: (error as Error)?.message, cause: error });
   }
 }
 

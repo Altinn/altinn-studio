@@ -1,5 +1,5 @@
+import { isHttpError } from '@studio/http-client';
 import { Ajv, type JSONSchemaType } from 'ajv';
-import { isAxiosError } from 'axios';
 
 import { httpGet, httpPost } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
@@ -94,10 +94,10 @@ export async function fetchPerson(ssn: string, name: string): Promise<PersonLook
 
     return { person: data.personDetails, error: null };
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 403) {
+    if (isHttpError(error) && error.response?.status === 403) {
       return { person: null, error: 'person_lookup.validation_error_forbidden' };
     }
-    if (isAxiosError(error) && error.response?.status === 429) {
+    if (isHttpError(error) && error.response?.status === 429) {
       return { person: null, error: 'person_lookup.validation_error_too_many_requests' };
     }
 
