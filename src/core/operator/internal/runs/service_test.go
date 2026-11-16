@@ -78,6 +78,18 @@ func TestCreateAfterARunEndedMakesANewRun(t *testing.T) {
 	Expect(third.ID).NotTo(BeElementOf(first.ID, second.ID))
 }
 
+// A canceled run has ended once the cancel answers, before the engine marks its workflow canceled at its next fetch.
+func TestCreateRightAfterACancelMakesANewRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newHarness(t)
+
+	first := h.create(t, "assistant", "app")
+	_, canceled, err := h.service.Cancel(t.Context(), "assistant", first.ID)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(canceled).To(BeTrue())
+	Expect(h.create(t, "assistant", "app").ID).NotTo(Equal(first.ID))
+}
+
 // The engine keeps the run: its labels name it and say what it is for, and its initial state has its kind.
 func TestCreateStoresTheRunInTheEngine(t *testing.T) {
 	RegisterTestingT(t)

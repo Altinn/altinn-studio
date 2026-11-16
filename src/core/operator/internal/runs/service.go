@@ -141,8 +141,9 @@ func (s *Service) check(caller string, request *CreateRequest) error {
 }
 
 // Create enqueues a run of the kind with the labels. When the caller has a run of the same kind with the same labels
-// that has not ended, it returns that run instead, with created false. A completed run whose Job still keeps the
-// result has not ended, so a create finds it and the caller can fetch the result.
+// that has not ended, it returns that run instead, with created false. A run has ended once its status is final, which
+// may be before the engine ends its workflow. A completed run whose Job still keeps the result has not ended, so a
+// create finds it and the caller can fetch the result.
 //
 // The key of the workflow comes from the newest run of the kind and labels that has ended, so two creates at the same
 // time make one run, and a create after a run has ended makes a new one.
@@ -163,14 +164,14 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	}
 	after := ""
 	for i := range workflows {
-		workflow := &workflows[i]
-		if workflow.OverallStatus.Terminal() {
+		found := s.view(&workflows[i])
+		if found.Status.Final() && (found.Status != StatusCompleted || workflows[i].OverallStatus.Terminal()) {
 			if after == "" {
-				after = workflow.Labels[workflowLabelRunID]
+				after = found.ID
 			}
 			continue
 		}
-		return s.view(workflow), false, nil
+		return found, false, nil
 	}
 
 	kind := s.cfg.Kinds[request.Kind]
