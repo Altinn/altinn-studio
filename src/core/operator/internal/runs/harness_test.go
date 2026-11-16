@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -88,7 +87,7 @@ func newHarness(t *testing.T) *harness {
 	_, port := host.Address()
 
 	cfg := testConfig()
-	queue := NewQueue(clk)
+	queue := NewQueue(clk, 0)
 	queue.Open()
 	clk.Advance(warmup)
 	engineClient := engine.NewClient(fakeEngine.URL(), http.DefaultClient)
@@ -136,12 +135,13 @@ func (h *harness) create(t *testing.T, caller, app string) *Run {
 	return run
 }
 
-// uploadArchive uploads an archive for the assistant's run, as the caller would once the run awaits it.
-func (h *harness) uploadArchive(t *testing.T, runID, content string) error {
+// upload sends an archive to the run's operator runner, as the run API passes on the caller's upload.
+func (h *harness) upload(t *testing.T, runID, content string) {
 	t.Helper()
 	archive := gzipArchive(t, content)
-	_, err := h.service.Upload(t.Context(), "assistant", runID, bytes.NewReader(archive), int64(len(archive)))
-	return err
+	if err := h.steps.host.Start(t.Context(), podIP, runID, "upgrade-v9", bytes.NewReader(archive), -1); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // workflowID finds a run's workflow in the fake engine.
@@ -170,7 +170,8 @@ func (r stepResult) deferred() bool {
 	return r.status == http.StatusOK && r.response.Defer != nil
 }
 
-// call posts a step's callback as the engine would, with the state the run's last step left.
+// call posts a step's callback as the engine would, with the state of the run's last answer, and keeps the state of
+// this answer for the next step.
 func (h *harness) call(t *testing.T, runID, key string, changes ...func(*callbacks.Payload)) stepResult {
 	t.Helper()
 	workflowID := h.workflowID(t, runID)
@@ -210,54 +211,9 @@ func (h *harness) call(t *testing.T, runID, key string, changes ...func(*callbac
 		if err := json.Unmarshal(rec.Body.Bytes(), &result.response); err != nil {
 			t.Fatal(err)
 		}
+		h.states[runID] = result.response.State
 	}
 	return result
-}
-
-// step runs a step and moves the fake engine along, as the engine would with the answer.
-func (h *harness) step(t *testing.T, runID, key string, changes ...func(*callbacks.Payload)) stepResult {
-	t.Helper()
-	result := h.call(t, runID, key, changes...)
-	workflowID := h.workflowID(t, runID)
-	switch {
-	case result.done():
-		h.states[runID] = result.response.State
-		h.engine.Reach(workflowID, key, engine.StatusCompleted)
-		h.setStateOut(workflowID, key, result.response.State)
-	case result.deferred():
-		h.states[runID] = result.response.State
-		h.engine.Reach(workflowID, key, engine.StatusWaiting)
-	}
-	return result
-}
-
-func (h *harness) setStateOut(workflowID, key string, state *string) {
-	h.engine.Update(workflowID, func(w *engine.Workflow) {
-		now := h.clock.Now()
-		w.UpdatedAt = &now
-		for i := range w.Steps {
-			if w.Steps[i].OperationID == key {
-				w.Steps[i].StateOut = state
-				w.Steps[i].UpdatedAt = &now
-			}
-		}
-	})
-}
-
-// failStep fails a step the way the engine records it.
-func (h *harness) failStep(t *testing.T, runID, key, message string) {
-	t.Helper()
-	workflowID := h.workflowID(t, runID)
-	h.engine.Reach(workflowID, key, engine.StatusFailed)
-	h.engine.Update(workflowID, func(w *engine.Workflow) {
-		now := h.clock.Now()
-		w.UpdatedAt = &now
-		for i := range w.Steps {
-			if w.Steps[i].OperationID == key {
-				w.Steps[i].ErrorHistory = append(w.Steps[i].ErrorHistory, engine.ErrorEntry{Message: message})
-			}
-		}
-	})
 }
 
 // readyPod makes the pod of a run's Job ready, with the fake operator runner's address.
@@ -274,31 +230,6 @@ func (h *harness) setPod(runID string, status sandbox.PodStatus, detail string) 
 func (h *harness) hasJob(runID string) bool {
 	_, ok := h.sandbox.Job(testNamespace, runID)
 	return ok
-}
-
-// failedByOperator is the error the engine records for a step that the operator failed with 422, as
-// operator-workflow-engine's OperatorCommand writes it.
-func failedByOperator(result stepResult) string {
-	return "OperatorCommand failed with client error UnprocessableEntity: " + result.body
-}
-
-// result reads the result of the assistant's run, as the run API sends it.
-func (h *harness) result(t *testing.T, runID string) string {
-	t.Helper()
-	body, _, err := h.service.Result(t.Context(), "assistant", runID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if closeErr := body.Close(); closeErr != nil {
-			t.Error(closeErr)
-		}
-	}()
-	data, err := io.ReadAll(body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(data)
 }
 
 // get reads the assistant's run, which most tests use.

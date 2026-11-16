@@ -23,7 +23,7 @@ func at(seconds int) time.Time {
 // newQueue returns a queue past its warmup.
 func newQueue() (*Queue, *clock.FakeClock) {
 	clk := clock.NewFakeClockAt(queueStart)
-	q := NewQueue(clk)
+	q := NewQueue(clk, 0)
 	q.Open()
 	clk.Advance(warmup)
 	return q, clk
@@ -113,7 +113,7 @@ func TestQueueRebuildsAfterARestart(t *testing.T) {
 	wide := config.Kind{MaxActive: 2, MaxActivePerCaller: 2}
 
 	clk := clock.NewFakeClockAt(queueStart.Add(time.Hour))
-	after := NewQueue(clk)
+	after := NewQueue(clk, 0)
 	after.Open()
 	Expect(after.Admit("c", testKind, "assistant", at(2), wide, jobs)).To(Equal(Admission{Position: 1}))
 	Expect(after.Admit("b", testKind, "assistant", at(1), wide, jobs)).To(Equal(Admission{Position: 1}))
@@ -163,7 +163,7 @@ func TestRegisterCountsTowardsTheQueueLimit(t *testing.T) {
 func TestQueueWaitsForTheEngineToCallAgain(t *testing.T) {
 	RegisterTestingT(t)
 	clk := clock.NewFakeClockAt(queueStart)
-	q := NewQueue(clk)
+	q := NewQueue(clk, 0)
 	wide := config.Kind{MaxActive: 1, MaxActivePerCaller: 1}
 
 	// The operator waits for its cache before it serves.

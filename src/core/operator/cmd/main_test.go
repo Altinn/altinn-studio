@@ -23,6 +23,7 @@ import (
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine/enginetest"
 	"altinn.studio/core-operator/internal/kube"
+	"altinn.studio/core-operator/internal/runner"
 )
 
 func TestRouteLeavesOutIDs(t *testing.T) {
@@ -157,7 +158,8 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 
 	cluster, err := newCluster(cfg, false, kube.Options{RESTConfig: restConfig})
 	Expect(err).NotTo(HaveOccurred())
-	Expect(setup(cluster, cfg, clock.NewRealClock())).To(Succeed())
+	host := runner.NewClient(http.DefaultClient, runner.Port)
+	Expect(setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host)).To(Succeed())
 	ctx, cancel := context.WithCancel(context.Background())
 	stopped := make(chan error)
 	go func() { stopped <- cluster.Start(ctx) }()

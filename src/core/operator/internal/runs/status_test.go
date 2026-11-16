@@ -56,7 +56,7 @@ func withError(workflow *engine.Workflow, key, message string) *engine.Workflow 
 func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 	// The engine records the body of the operator's 422 in the step's error history.
 	queueTimeout := `OperatorCommand failed with client error UnprocessableEntity: {"title":"Unprocessable Entity",` +
-		`"detail":"the step cannot succeed: the run waited in the queue longer than its kind allows","status":422}`
+		`"detail":"the step ends the workflow: the run waited in the queue longer than its kind allows","status":422}`
 	// The engine's own error when a wait budget runs out, which the operator does not let happen to run.admit.
 	waitExpired := "Wait budget of 00:15:00 exhausted after 300 deferral(s): The run is number 3 in the queue."
 	cases := []struct {
@@ -138,7 +138,7 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			workflow: withError(
 				workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed),
 				StepAwaitArchive,
-				"the step cannot succeed: "+errArchiveTimeout.Error(),
+				"the step ends the workflow: "+errArchiveTimeout.Error(),
 			),
 			status: StatusFailed,
 			reason: ReasonArchiveTimeout,

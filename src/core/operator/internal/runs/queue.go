@@ -38,7 +38,10 @@ type Queue struct {
 	clock    clock.Clock
 	waiting  map[string]*waitingRun
 	admitted map[string]*admittedRun
-	mu       sync.Mutex
+	// timeScale shortens the warmup and the times after which the queue forgets a run, as the operator's timeScale
+	// shortens the rechecks of the steps.
+	timeScale float64
+	mu        sync.Mutex
 }
 
 type waitingRun struct {
@@ -56,11 +59,12 @@ type admittedRun struct {
 }
 
 // NewQueue returns a queue that admits no one until Open.
-func NewQueue(clk clock.Clock) *Queue {
+func NewQueue(clk clock.Clock, timeScale float64) *Queue {
 	return &Queue{
-		clock:    clk,
-		waiting:  make(map[string]*waitingRun),
-		admitted: make(map[string]*admittedRun),
+		clock:     clk,
+		timeScale: timeScale,
+		waiting:   make(map[string]*waitingRun),
+		admitted:  make(map[string]*admittedRun),
 	}
 }
 
@@ -116,7 +120,7 @@ func (q *Queue) Admit(runID, kind, caller string, ref time.Time, limits config.K
 	entry.seen = now
 
 	candidates := q.waitingLocked(kind)
-	if q.started.IsZero() || now.Sub(q.started) < warmup {
+	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.timeScale) {
 		return Admission{Position: slices.Index(candidates, entry) + 1}
 	}
 	active, perCaller := q.activeLocked(kind, jobs)
@@ -196,12 +200,12 @@ func (q *Queue) WaitingByKind() map[string]int {
 
 func (q *Queue) forgetStaleLocked(now time.Time) {
 	for id, entry := range q.waiting {
-		if now.Sub(entry.seen) > waitingTTL {
+		if now.Sub(entry.seen) > scaled(waitingTTL, q.timeScale) {
 			delete(q.waiting, id)
 		}
 	}
 	for id, entry := range q.admitted {
-		if now.Sub(entry.at) > admittedTTL {
+		if now.Sub(entry.at) > scaled(admittedTTL, q.timeScale) {
 			delete(q.admitted, id)
 		}
 	}

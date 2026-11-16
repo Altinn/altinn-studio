@@ -1,12 +1,10 @@
-// Package enginetest is an in-memory workflow engine for tests. It keeps the engine's rules that the operator relies
-// on: idempotent enqueue that ignores the context, the initial state, label filters with the newest first, and
-// cancellation.
+// Package enginetest stores workflows for tests behind the engine's HTTP API. It runs no step and copies none of the
+// engine's rules: a test sets the statuses it needs with Update or a switch, and the integration test in cmd/ checks the
+// operator against the real engine.
 package enginetest
 
 import (
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -26,23 +24,25 @@ type Workflow struct {
 	key     string
 	Request engine.EnqueueRequest
 	State   engine.Workflow
-	hash    [sha256.Size]byte
 }
 
 type Engine struct {
-	Server    *httptest.Server
-	now       func() time.Time
-	workflows map[string]*Workflow
+	Server *httptest.Server
+	now    func() time.Time
+	// workflows are in the order of their enqueue, which lists them newest first.
+	workflows []*Workflow
 	// AtCapacity makes enqueue answer 429.
 	AtCapacity bool
 	// FailReads makes reads of workflows answer 500.
 	FailReads bool
-	mu        sync.Mutex
+	// Conflict makes an enqueue with a key that exists answer 409, as the engine does for another request.
+	Conflict bool
+	mu       sync.Mutex
 }
 
 // New starts a fake engine. now gives the engine's clock.
 func New(now func() time.Time) *Engine {
-	e := &Engine{now: now, workflows: make(map[string]*Workflow)}
+	e := &Engine{now: now}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/v1/{namespace}/workflows", e.enqueue)
 	mux.HandleFunc("GET /api/v1/{namespace}/workflows", e.list)
@@ -68,11 +68,6 @@ func (e *Engine) enqueue(w http.ResponseWriter, r *http.Request) {
 		problem.WriteJSON(w, r, http.StatusBadRequest, map[string]string{"detail": "bad request"})
 		return
 	}
-	hash, err := hashWithoutContext(request)
-	if err != nil {
-		problem.WriteJSON(w, r, http.StatusBadRequest, map[string]string{"detail": err.Error()})
-		return
-	}
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -84,7 +79,7 @@ func (e *Engine) enqueue(w http.ResponseWriter, r *http.Request) {
 		if existing.State.Namespace != namespace || existing.key != key {
 			continue
 		}
-		if existing.hash != hash {
+		if e.Conflict {
 			problem.WriteJSON(w, r, http.StatusConflict, map[string]string{"detail": "idempotency conflict"})
 			return
 		}
@@ -95,7 +90,6 @@ func (e *Engine) enqueue(w http.ResponseWriter, r *http.Request) {
 	now := e.now()
 	workflow := &Workflow{
 		Request: request,
-		hash:    hash,
 		key:     key,
 		State: engine.Workflow{
 			DatabaseID:    uuid.NewString(),
@@ -114,26 +108,17 @@ func (e *Engine) enqueue(w http.ResponseWriter, r *http.Request) {
 			Status:          engine.StatusEnqueued,
 		})
 	}
-	e.workflows[workflow.State.DatabaseID] = workflow
+	e.workflows = append(e.workflows, workflow)
 	problem.WriteJSON(w, r, http.StatusCreated, accepted(workflow))
 }
 
-// hashWithoutContext hashes the request as the engine does: everything but the context. The round trip through a
-// map sorts the keys, so the hash does not depend on field order.
-func hashWithoutContext(request engine.EnqueueRequest) ([sha256.Size]byte, error) {
-	request.Context = nil
-	data, err := json.Marshal(request)
-	if err != nil {
-		return [sha256.Size]byte{}, fmt.Errorf("encode request: %w", err)
+// findLocked returns the workflow with the id in the namespace, or nil.
+func (e *Engine) findLocked(namespace, id string) *Workflow {
+	index := slices.IndexFunc(e.workflows, func(w *Workflow) bool { return w.State.DatabaseID == id })
+	if index < 0 || (namespace != "" && e.workflows[index].State.Namespace != namespace) {
+		return nil
 	}
-	var canonical any
-	if decodeErr := json.Unmarshal(data, &canonical); decodeErr != nil {
-		return [sha256.Size]byte{}, fmt.Errorf("decode request: %w", decodeErr)
-	}
-	if data, err = json.Marshal(canonical); err != nil {
-		return [sha256.Size]byte{}, fmt.Errorf("encode request: %w", err)
-	}
-	return sha256.Sum256(data), nil
+	return e.workflows[index]
 }
 
 func accepted(workflow *Workflow) map[string]any {
@@ -150,8 +135,8 @@ func (e *Engine) get(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	workflow, ok := e.workflows[r.PathValue("id")]
-	if !ok || workflow.State.Namespace != r.PathValue("namespace") {
+	workflow := e.findLocked(r.PathValue("namespace"), r.PathValue("id"))
+	if workflow == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -172,13 +157,11 @@ func (e *Engine) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var found []engine.Workflow
-	for _, workflow := range e.workflows {
+	for _, workflow := range slices.Backward(e.workflows) {
 		if workflow.State.Namespace == r.PathValue("namespace") && hasLabels(workflow.State.Labels, filters) {
 			found = append(found, workflow.State)
 		}
 	}
-	// The newest first, as the engine lists them, and at most a page.
-	slices.SortFunc(found, func(a, b engine.Workflow) int { return b.CreatedAt.Compare(a.CreatedAt) })
 	if size, err := strconv.Atoi(r.URL.Query().Get("pageSize")); err == nil && size > 0 && len(found) > size {
 		found = found[:size]
 	}
@@ -206,8 +189,8 @@ func hasLabels(labels, filters map[string]string) bool {
 func (e *Engine) cancel(w http.ResponseWriter, r *http.Request) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	workflow, ok := e.workflows[r.PathValue("id")]
-	if !ok || workflow.State.Namespace != r.PathValue("namespace") {
+	workflow := e.findLocked(r.PathValue("namespace"), r.PathValue("id"))
+	if workflow == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -239,51 +222,20 @@ func (e *Engine) Workflows() []Workflow {
 func (e *Engine) Workflow(id string) (Workflow, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	workflow, ok := e.workflows[id]
-	if !ok {
+	workflow := e.findLocked("", id)
+	if workflow == nil {
 		return Workflow{}, false
 	}
 	return *workflow, true
 }
 
-// Update changes a stored workflow, as the engine would while it runs it.
+// Update changes a stored workflow, such as its status, which a test needs for a run in that state.
 func (e *Engine) Update(id string, change func(*engine.Workflow)) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	workflow, ok := e.workflows[id]
-	if !ok {
+	workflow := e.findLocked("", id)
+	if workflow == nil {
 		panic("no workflow " + id)
 	}
 	change(&workflow.State)
-}
-
-// Reach sets the workflow's steps before operationID to Completed and that step to status, as if the engine had run
-// the workflow that far. The workflow's own status follows the step.
-func (e *Engine) Reach(id string, operationID string, status engine.Status) {
-	e.Update(id, func(workflow *engine.Workflow) {
-		reached := false
-		for i := range workflow.Steps {
-			step := &workflow.Steps[i]
-			switch {
-			case step.OperationID == operationID:
-				step.Status = status
-				reached = true
-			case !reached:
-				step.Status = engine.StatusCompleted
-			default:
-				step.Status = engine.StatusEnqueued
-			}
-		}
-		switch status {
-		case engine.StatusCompleted:
-			workflow.OverallStatus = engine.StatusProcessing
-			if operationID == workflow.Steps[len(workflow.Steps)-1].OperationID {
-				workflow.OverallStatus = engine.StatusCompleted
-			}
-		case engine.StatusEnqueued, engine.StatusProcessing, engine.StatusRequeued, engine.StatusWaiting,
-			engine.StatusHeld, engine.StatusFailed, engine.StatusCanceled, engine.StatusDependencyFailed,
-			engine.StatusAbandoned:
-			workflow.OverallStatus = status
-		}
-	})
 }

@@ -87,6 +87,9 @@ type Config struct {
 	CallbackAddress      string            `koanf:"callbackAddress"`
 	ProbeAddress         string            `koanf:"probeAddress"`
 	HandlerGroups        []string          `koanf:"handlerGroups"`
+	// TimeScale shortens the operator's own waits and budgets, such as its rechecks and the upload timeout, by this
+	// factor. Only the integration test in cmd/ sets it, so a run takes seconds. Zero leaves them as they are.
+	TimeScale float64 `koanf:"timeScale"`
 }
 
 // Caller is a service that may use the run API. Its id is its key in Config.Callers.
@@ -206,6 +209,9 @@ func (c *Config) Validate() error {
 		if !slices.Contains(knownGroups, group) {
 			problems = append(problems, fmt.Sprintf("handlerGroups has the unknown group %q", group))
 		}
+	}
+	if c.TimeScale < 0 || c.TimeScale > 1 {
+		problems = append(problems, fmt.Sprintf("timeScale %v is not between 0 and 1", c.TimeScale))
 	}
 	problems = append(problems, c.callerProblems()...)
 	for name, kind := range c.Kinds {

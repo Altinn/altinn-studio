@@ -146,6 +146,7 @@ handlerGroups: [runs, maskinporten]
 		"no handler group": `
 handlerGroups: []
 `,
+		"time scale that lengthens the waits": "timeScale: 2\n",
 	}
 	for name, content := range cases {
 		t.Run(name, func(t *testing.T) {

@@ -24,6 +24,7 @@ import (
 	"altinn.studio/core-operator/internal/runapi"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/runs"
+	"altinn.studio/core-operator/internal/sandbox"
 	"altinn.studio/core-operator/internal/telemetry"
 )
 
@@ -76,7 +77,10 @@ func run() int {
 		setupLog.Error(err, "unable to connect to the cluster")
 		return 1
 	}
-	if err = setup(cluster, cfg, clock.NewRealClock()); err != nil {
+	// The operator runner calls have no client timeout. Each step's execution deadline bounds the steps' calls, and the
+	// caller's request bounds an upload or a result that the operator passes on.
+	host := runner.NewClient(&http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}, runner.Port)
+	if err = setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
 		setupLog.Error(err, "unable to set up the operator")
 		return 1
 	}
@@ -111,8 +115,9 @@ func newCluster(cfg *config.Config, leaderElect bool, opts kube.Options) (*kube.
 	return cluster, nil
 }
 
-// setup adds the servers and the garbage collector of the enabled handler groups to the cluster.
-func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock) error {
+// setup adds the servers and the garbage collector of the enabled handler groups to the cluster. The runs reach their
+// Jobs through box and their operator runners through host.
+func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandbox.Sandbox, host *runner.Client) error {
 	authenticator := auth.NewAuthenticator(
 		cluster.TokenReviewer(),
 		clk,
@@ -123,7 +128,7 @@ func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock) error {
 	var groups []callbacks.Group
 	var onServe []func()
 	if cfg.HandlerGroupEnabled(config.GroupRuns) {
-		group, queue, err := setupRuns(cluster, cfg, clk, authenticator)
+		group, queue, err := setupRuns(cluster, cfg, clk, authenticator, box, host)
 		if err != nil {
 			return err
 		}
@@ -152,16 +157,14 @@ func setupRuns(
 	cfg *config.Config,
 	clk clock.Clock,
 	authenticator *auth.Authenticator,
+	box sandbox.Sandbox,
+	hostClient *runner.Client,
 ) (callbacks.Group, *runs.Queue, error) {
 	engineClient := engine.NewClient(cfg.EngineURL, &http.Client{
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
 		Timeout:   engineRequestTimeout,
 	})
-	// The operator runner calls have no client timeout. Each step's execution deadline bounds the steps' calls, and the
-	// caller's request bounds an upload or a result that the operator passes on.
-	hostClient := runner.NewClient(&http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}, runner.Port)
-	box := cluster.Sandbox()
-	queue := runs.NewQueue(clk)
+	queue := runs.NewQueue(clk, cfg.TimeScale)
 	if err := runs.RegisterMetrics(queue); err != nil {
 		return callbacks.Group{}, nil, fmt.Errorf("register run metrics: %w", err)
 	}
