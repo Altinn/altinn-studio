@@ -48,7 +48,7 @@ describe('createHttpClient', () => {
 
       const response = await createHttpClient().get(testUrl);
 
-      expect(response.headers?.get('altinn-downstreamparameters')).toBe('a=1');
+      expect(response.headers.get('altinn-downstreamparameters')).toBe('a=1');
     });
 
     it.each([
@@ -349,7 +349,14 @@ describe('createHttpClient', () => {
     });
 
     it('returns true for an HttpError', () => {
-      expect(isHttpError(new HttpError({ status: 500, data: null }))).toBe(true);
+      expect(
+        isHttpError(
+          new HttpError(
+            { method: 'GET', url: testUrl },
+            { status: 500, data: null, headers: new Headers() },
+          ),
+        ),
+      ).toBe(true);
     });
   });
 });

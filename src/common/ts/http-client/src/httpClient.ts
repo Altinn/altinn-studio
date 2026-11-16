@@ -15,11 +15,10 @@ export type HttpRequest = {
 export type HttpResponse<T = unknown> = {
   status: number;
   data: T;
-  /** The client always sets them. They are optional so that a test can build a response without them. */
-  headers?: Headers;
+  headers: Headers;
 };
 
-/** The request that failed, as it went to `fetch` after the request interceptors. */
+/** The request that failed, with the values that were passed on to `fetch` after the request interceptors ran. */
 export type FailedRequest = {
   method: string;
   url: string;
@@ -63,23 +62,22 @@ export type HttpClient = {
  * request never got a response, such as on a network failure, `response` is undefined.
  */
 export class HttpError<T = unknown> extends Error {
+  readonly request: FailedRequest;
   readonly response?: HttpResponse<T>;
-  /** Set by the client. Undefined on an HttpError that a test builds without it. */
-  readonly request?: FailedRequest;
 
   constructor(
+    request: FailedRequest,
     response?: HttpResponse<T>,
-    message?: string,
-    options?: { cause?: unknown; request?: FailedRequest },
+    { message, cause }: { message?: string; cause?: unknown } = {},
   ) {
     super(
       message ??
         (response ? `Request failed with status code ${response.status}` : 'Request failed'),
-      options,
+      { cause },
     );
     this.name = 'HttpError';
+    this.request = request;
     this.response = response;
-    this.request = options?.request;
   }
 }
 
@@ -137,7 +135,7 @@ export function createHttpClient({
       data: data as T,
       headers: fetchResponse.headers,
     };
-    if (!fetchResponse.ok) throw new HttpError<T>(response, undefined, { request: failedRequest });
+    if (!fetchResponse.ok) throw new HttpError<T>(failedRequest, response);
     return response;
   }
 
@@ -169,7 +167,7 @@ async function withHttpError<R>(
       data: undefined,
       headers: fetchResponse.headers,
     };
-    throw new HttpError(response, (error as Error)?.message, { cause: error, request });
+    throw new HttpError(request, response, { message: (error as Error)?.message, cause: error });
   }
 }
 
