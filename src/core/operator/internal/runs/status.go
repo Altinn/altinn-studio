@@ -2,10 +2,10 @@ package runs
 
 import (
 	"slices"
-	"strings"
 	"time"
 	"unicode/utf8"
 
+	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 	"altinn.studio/core-operator/internal/runner"
@@ -202,31 +202,21 @@ func describeFailure(steps []engine.Step, finishedAt *time.Time) description {
 		return description{status: StatusFailed, finishedAt: finishedAt,
 			err: &RunError{Reason: ReasonInternal, Detail: "A run this depends on failed."}}
 	}
-	step := steps[index]
-	message := ""
-	if last := step.LastError(); last != nil {
-		message = last.Message
-	}
-
-	status, reason, detail := StatusFailed, ReasonInternal, truncate(message)
-	switch step.OperationID {
-	case StepAdmit:
-		reason = ReasonStartFailed
-		// The engine records the operator's error of a step that fails in the step's error history.
-		if strings.Contains(message, errQueueTimeout.Error()) {
-			status, reason = StatusExpired, ReasonQueueTimeout
-			detail = "The run waited in the queue longer than its kind allows."
-		}
-	case StepAwaitArchive:
-		reason = ReasonStartFailed
-		if strings.Contains(message, errArchiveTimeout.Error()) {
-			reason = ReasonArchiveTimeout
-			detail = "No archive arrived within the upload timeout of the kind."
-		}
-	case StepCreateJob, StepAwaitPod:
-		reason = ReasonStartFailed
+	// A step that ended the run says why. The engine fails a step of its own accord when its retries or wait budget run
+	// out, and its error then says nothing that the caller can use.
+	reason, detail := ReasonInternal, "The operator failed."
+	switch steps[index].OperationID {
+	case StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive:
+		reason, detail = ReasonStartFailed, "The run could not start."
 	case StepAwaitResult:
-		reason = ReasonRunFailed
+		reason, detail = ReasonRunFailed, "The run could not finish."
+	}
+	if end := callbacks.Ended(steps[index].LastError()); end != nil {
+		reason, detail = end.Reason, truncate(end.Detail)
+	}
+	status := StatusFailed
+	if reason == ReasonQueueTimeout {
+		status = StatusExpired
 	}
 	return description{status: status, finishedAt: finishedAt, err: &RunError{Reason: reason, Detail: detail}}
 }

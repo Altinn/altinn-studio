@@ -96,10 +96,7 @@ func newTestRouter(clk clock.Clock) *Router {
 			return Wait(p.State, 2*time.Second, "waiting"), nil
 		},
 		"run.permanent": func(context.Context, *Payload) (Response, error) {
-			return Response{}, errors.Join(ErrPermanent, errTest)
-		},
-		"run.expected": func(context.Context, *Payload) (Response, error) {
-			return Response{}, errors.Join(ErrExpected, errTest)
+			return Response{}, &End{Err: errTest, Reason: "broken", Detail: "It broke."}
 		},
 		"run.retry": func(context.Context, *Payload) (Response, error) {
 			return Response{}, errTest
@@ -145,13 +142,15 @@ func TestRouterAnswersByTheContract(t *testing.T) {
 	res = post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"})
 	Expect(res.Code).To(Equal(http.StatusUnprocessableEntity))
 	Expect(res.Header().Get("Content-Type")).To(Equal("application/problem+json"))
-
-	// An expected end fails the step in the same way.
-	res = post(t, router, "run.expected", Payload{CommandKey: "run.expected"})
-	Expect(res.Code).To(Equal(http.StatusUnprocessableEntity))
+	ended := `{"title":"Unprocessable Entity","status":422,"reason":"broken","detail":"It broke."}`
+	Expect(res.Body.String()).To(MatchJSON(ended))
+	// The engine records the answer after its own text, where a status read finds it.
+	Expect(Ended("OperatorCommand failed: " + ended)).To(Equal(&End{Reason: "broken", Detail: "It broke."}))
 
 	res = post(t, router, "run.retry", Payload{CommandKey: "run.retry"})
 	Expect(res.Code).To(Equal(http.StatusServiceUnavailable))
+	Expect(Ended("OperatorCommand failed: " + res.Body.String())).To(BeNil())
+	Expect(Ended("Wait budget of 00:15:00 exhausted after 300 deferral(s): queued")).To(BeNil())
 
 	res = post(t, router, "run.unknown", Payload{CommandKey: "run.unknown"})
 	Expect(res.Code).To(Equal(http.StatusNotFound))

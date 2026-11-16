@@ -54,9 +54,6 @@ func withError(workflow *engine.Workflow, key, message string) *engine.Workflow 
 }
 
 func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
-	// The engine records the body of the operator's 422 in the step's error history.
-	queueTimeout := `OperatorCommand failed with client error UnprocessableEntity: {"title":"Unprocessable Entity",` +
-		`"detail":"the step ends the workflow: the run waited in the queue longer than its kind allows","status":422}`
 	// The engine's own error when a wait budget runs out, which the operator does not let happen to run.admit.
 	waitExpired := "Wait budget of 00:15:00 exhausted after 300 deferral(s): The run is number 3 in the queue."
 	cases := []struct {
@@ -108,7 +105,7 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			workflow: withError(
 				workflowAt(engine.StatusFailed, StepAdmit, engine.StatusFailed),
 				StepAdmit,
-				queueTimeout,
+				`OperatorCommand failed: {"status":422,"reason":"queue-timeout","detail":"The run waited."}`,
 			),
 			status: StatusExpired,
 			reason: ReasonQueueTimeout,
@@ -123,9 +120,6 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			status: StatusFailed,
 			reason: ReasonStartFailed,
 		},
-		{name: "admit failed otherwise",
-			workflow: withError(workflowAt(engine.StatusFailed, StepAdmit, engine.StatusFailed), StepAdmit, "no kind"),
-			status:   StatusFailed, reason: ReasonStartFailed},
 		{name: "Job refused", workflow: workflowAt(engine.StatusFailed, StepCreateJob, engine.StatusFailed),
 			status: StatusFailed, reason: ReasonStartFailed},
 		{name: "pod failed", workflow: workflowAt(engine.StatusFailed, StepAwaitPod, engine.StatusFailed),
@@ -141,7 +135,7 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			workflow: withError(
 				workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed),
 				StepAwaitArchive,
-				"the step ends the workflow: "+errArchiveTimeout.Error(),
+				`OperatorCommand failed: {"status":422,"reason":"archive-timeout","detail":"No archive arrived."}`,
 			),
 			status: StatusFailed,
 			reason: ReasonArchiveTimeout,
@@ -288,7 +282,9 @@ func TestDescribeKeepsTheErrorDetailShort(t *testing.T) {
 
 	long := strings.Repeat("æ", maxDetail)
 	failed := workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed)
-	described := describe(withError(failed, StepAwaitArchive, long))
+	described := describe(
+		withError(failed, StepAwaitArchive, `{"status":422,"reason":"start-failed","detail":"`+long+`"}`),
+	)
 	Expect(len(described.err.Detail)).To(BeNumerically("<=", maxDetail))
 	Expect(strings.ToValidUTF8(described.err.Detail, "?")).To(Equal(described.err.Detail))
 }

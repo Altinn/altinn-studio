@@ -75,8 +75,7 @@ func TestAdmitLeavesTheQueueOnTheFinalWaitCheck(t *testing.T) {
 	Expect(h.call(t, first.ID, StepAdmit).done()).To(BeTrue())
 
 	final := h.call(t, second.ID, StepAdmit, func(p *callbacks.Payload) { p.IsFinalWaitCheck = true })
-	Expect(final.status).To(Equal(http.StatusUnprocessableEntity), final.body)
-	Expect(final.body).To(ContainSubstring(errQueueTimeout.Error()))
+	Expect(callbacks.Ended(final.body)).To(HaveField("Reason", ReasonQueueTimeout), final.body)
 	_, queued := h.queue.Position(second.ID)
 	Expect(queued).To(BeFalse())
 }
@@ -109,7 +108,7 @@ func TestCreateJobFailsWhenTheSandboxRefusesTheJob(t *testing.T) {
 
 	run := h.create(t, "assistant", "key")
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.call(t, run.ID, StepCreateJob).status).To(Equal(http.StatusUnprocessableEntity))
+	Expect(callbacks.Ended(h.call(t, run.ID, StepCreateJob).body)).To(HaveField("Reason", ReasonStartFailed))
 }
 
 func TestAwaitPodFailsForAPodThatStopped(t *testing.T) {
@@ -123,9 +122,8 @@ func TestAwaitPodFailsForAPodThatStopped(t *testing.T) {
 	Expect(h.call(t, run.ID, StepAwaitPod).response.Defer.Reason).To(Equal("Waiting for the operator runner to start."))
 
 	h.setPod(run.ID, sandbox.PodEnded, "run-x is Failed")
-	result := h.call(t, run.ID, StepAwaitPod)
-	Expect(result.status).To(Equal(http.StatusUnprocessableEntity))
-	Expect(result.body).To(ContainSubstring("run-x is Failed"))
+	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitPod).body)).To(Equal(&callbacks.End{Reason: ReasonStartFailed,
+		Detail: "The pod stopped before it was ready: run-x is Failed"}))
 }
 
 func TestAwaitPodWaitsForASandboxNode(t *testing.T) {
@@ -147,9 +145,8 @@ func TestAwaitPodFailsForAFailedJobWithoutPod(t *testing.T) {
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	h.setPod(run.ID, sandbox.JobFailed, "DeadlineExceeded")
-	result := h.call(t, run.ID, StepAwaitPod)
-	Expect(result.status).To(Equal(http.StatusUnprocessableEntity))
-	Expect(result.body).To(ContainSubstring("DeadlineExceeded"))
+	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitPod).body)).To(Equal(&callbacks.End{Reason: ReasonStartFailed,
+		Detail: "The Job failed: DeadlineExceeded"}))
 }
 
 func TestAwaitArchiveRetriesAnUnreachableRunner(t *testing.T) {
@@ -173,8 +170,7 @@ func TestAwaitArchiveFailsTheRunWhenNoArchiveArrives(t *testing.T) {
 	run := h.create(t, "assistant", "app")
 	h.states[run.ID] = h.stateWith(t, run.ID, func(s *runState) { s.PodIP = podIP })
 	final := h.call(t, run.ID, StepAwaitArchive, func(p *callbacks.Payload) { p.IsFinalWaitCheck = true })
-	Expect(final.status).To(Equal(http.StatusUnprocessableEntity), final.body)
-	Expect(final.body).To(ContainSubstring(errArchiveTimeout.Error()))
+	Expect(callbacks.Ended(final.body)).To(HaveField("Reason", ReasonArchiveTimeout), final.body)
 }
 
 func TestAwaitResultFailsWhenThePodIsGone(t *testing.T) {
@@ -193,7 +189,7 @@ func TestAwaitResultFailsWhenThePodIsGone(t *testing.T) {
 	Expect(h.call(t, run.ID, StepAwaitResult).status).To(Equal(http.StatusServiceUnavailable))
 
 	Expect(h.sandbox.DeleteJob(t.Context(), testNamespace, run.ID)).To(Succeed())
-	Expect(h.call(t, run.ID, StepAwaitResult).status).To(Equal(http.StatusUnprocessableEntity))
+	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitResult).body)).To(HaveField("Reason", ReasonRunFailed))
 }
 
 func TestStepsRefuseCallbacksThatAreNotForARun(t *testing.T) {
@@ -210,9 +206,9 @@ func TestStepsRefuseCallbacksThatAreNotForARun(t *testing.T) {
 		"a state, no kind": func(p *callbacks.Payload) { p.State = new(`{"podIP":"127.0.0.1"}`) },
 	}
 	for name, change := range cases {
-		Expect(h.call(t, run.ID, StepAdmit, change).status).To(Equal(http.StatusUnprocessableEntity), name)
+		Expect(callbacks.Ended(h.call(t, run.ID, StepAdmit, change).body)).To(HaveField("Reason", ReasonInternal), name)
 	}
-	Expect(h.call(t, run.ID, StepAwaitArchive).status).To(Equal(http.StatusUnprocessableEntity), "no pod IP")
+	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitArchive).body)).To(Equal(errNoPodIP), "no pod IP")
 }
 
 // A run keeps the kind it was created with, so a change to the catalog does not change a run in flight, and its
@@ -253,9 +249,8 @@ func TestAdmitFailsARunWhoseKindIsGone(t *testing.T) {
 
 	run := h.create(t, "assistant", "key")
 	delete(h.cfg.Kinds, testKind)
-	result := h.call(t, run.ID, StepAdmit)
-	Expect(result.status).To(Equal(http.StatusUnprocessableEntity))
-	Expect(result.body).To(ContainSubstring(errNoKind.Error()))
+	Expect(callbacks.Ended(h.call(t, run.ID, StepAdmit).body)).To(Equal(&callbacks.End{Reason: ReasonStartFailed,
+		Detail: "The run's kind is not configured anymore."}))
 }
 
 // stateWith returns the run's initial state with change applied, as the steps before would have left it.
