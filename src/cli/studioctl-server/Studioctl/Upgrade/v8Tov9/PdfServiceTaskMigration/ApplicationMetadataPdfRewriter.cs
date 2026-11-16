@@ -40,10 +40,7 @@ internal sealed class ApplicationMetadataPdfRewriter
 
     /// <summary>
     /// Returns the distinct taskIds that require a PDF service task, in document order, each paired
-    /// with the id of the first qualifying dataType bound to that task. The dataType id is used to
-    /// preserve gateway expression evaluation when a PDF task is inserted in front of a gateway
-    /// (see PdfProcessRewriter): it is the task's form data model, which is what the gateway would
-    /// previously have inferred from the data task's UI configuration.
+    /// with the id of the first qualifying dataType bound to that task.
     /// </summary>
     public IReadOnlyList<(string TaskId, string? DataTypeId)> GetTasksRequiringPdf()
     {
