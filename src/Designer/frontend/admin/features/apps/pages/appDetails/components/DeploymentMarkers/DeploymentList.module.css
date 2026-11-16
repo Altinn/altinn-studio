@@ -1,0 +1,26 @@
+.list {
+  list-style: none;
+  margin: var(--ds-size-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.list li {
+  display: grid;
+  grid-template-columns: 90px auto 1fr;
+  gap: var(--ds-size-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.list b {
+  color: var(--ds-color-neutral-text-default);
+  font-weight: 600;
+}
+
+.undeploy b {
+  color: var(--ds-color-neutral-text-subtle);
+}

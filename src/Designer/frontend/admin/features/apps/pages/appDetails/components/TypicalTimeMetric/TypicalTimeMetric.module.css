@@ -1,0 +1,11 @@
+.metric {
+  max-width: 360px;
+}
+
+.note {
+  margin: var(--ds-size-2) 0 0;
+  padding-left: var(--ds-size-2);
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  white-space: normal;
+}
