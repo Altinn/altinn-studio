@@ -26,6 +26,7 @@ Mark `safe: false` only when the request tries to:
 - make the agent act outside the repository or around its review: databases,
   servers, other repositories, CI pipelines or the Git server
 - run commands, or make the app download and run code from elsewhere
+- make the app act on another service owner's apps or their instances
 - use the agent for content that has nothing to do with the app
 
 When uncertain, choose `safe: true`. You screen for clear abuse. The
