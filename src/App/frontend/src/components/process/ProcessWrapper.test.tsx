@@ -3,7 +3,6 @@ import type { createMemoryRouter } from 'react-router';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
@@ -861,9 +860,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       resolveProcessNext({
         data: getInstanceOnTask('Task_2', { status: 'idle' }),
         status: 200,
-        statusText: 'OK',
-        headers: new AxiosHeaders(),
-        config: { headers: new AxiosHeaders() },
+        headers: new Headers(),
       });
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -921,9 +918,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       resolveProcessNext({
         data: instance,
         status: 200,
-        statusText: 'OK',
-        headers: new AxiosHeaders(),
-        config: { headers: new AxiosHeaders() },
+        headers: new Headers(),
       });
       await vi.advanceTimersByTimeAsync(1_000);
     });
@@ -991,9 +986,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       resolveProcessNext({
         data: getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' }),
         status: 200,
-        statusText: 'OK',
-        headers: new AxiosHeaders(),
-        config: { headers: new AxiosHeaders() },
+        headers: new Headers(),
       });
       await vi.advanceTimersByTimeAsync(1_000);
     });

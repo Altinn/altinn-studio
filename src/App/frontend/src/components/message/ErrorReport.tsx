@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
+import { isHttpError } from '@studio/http-client';
 
 import classes from 'src/components/message/ErrorReport.module.css';
 import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
@@ -14,7 +15,6 @@ import {
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -125,7 +125,7 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
     return <ErrorListForClosedInstantiation reason={closedReason ?? { reason: 'closed' }} />;
   }
 
-  if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
+  if (isHttpError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
     if (isInstantiationValidationResult(error.response.data)) {
       return (
         <ErrorReportListItem>

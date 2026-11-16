@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { HttpError } from '@studio/http-client';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -94,7 +95,7 @@ describe('InstanceSelection', () => {
       queries: { getActiveInstances: async () => mockActiveInstances },
       mutations: {
         createInstance: async () => {
-          throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
+          throw new HttpError({ status: 410, data: undefined }, 'Gone');
         },
       },
     });

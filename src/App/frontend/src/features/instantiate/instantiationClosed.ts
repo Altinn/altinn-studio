@@ -1,5 +1,6 @@
+import { isHttpError } from '@studio/http-client';
+
 import { GlobalData } from 'src/GlobalData';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
@@ -56,7 +57,7 @@ export function getInstantiationClosedReason(
  * getInstantiationClosedReason for the conditions.
  */
 export function isInstantiationClosedError(error: unknown): boolean {
-  return isAxiosError(error) && error.response?.status === HttpStatusCodes.Gone;
+  return isHttpError(error) && error.response?.status === HttpStatusCodes.Gone;
 }
 
 export function useInstantiationClosedReason(): InstantiationClosedReason | undefined {
