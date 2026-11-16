@@ -5,7 +5,12 @@ certificate_checksum() {
   cert_checksum="$(cksum "$SSL_CERTIFICATE_PATH")" || return 1
   key_checksum="$(cksum "$SSL_CERTIFICATE_KEY_PATH")" || return 1
 
-  printf '%s\n%s\n' "$cert_checksum" "$key_checksum"
+  preview_checksum=""
+  if [ -n "${PREVIEW_SSL_CERTIFICATE_PATH:-}" ]; then
+    preview_checksum="$(cksum "$PREVIEW_SSL_CERTIFICATE_PATH" "$PREVIEW_SSL_CERTIFICATE_KEY_PATH")" || return 1
+  fi
+
+  printf '%s\n%s\n%s\n' "$cert_checksum" "$key_checksum" "$preview_checksum"
 }
 
 reload_nginx_on_certificate_change() {
@@ -31,6 +36,13 @@ reload_nginx_on_certificate_change() {
   done
 }
 
+# Preview's servers, only where the environment has a preview host name, since only there is its certificate.
+if [ -n "${PREVIEW_SERVER_NAME:-}" ]; then
+  for tpl in /etc/nginx/preview-servers/*.conf.template /etc/nginx/preview-servers-k8s/*.conf.template; do
+    [ -f "$tpl" ] && cp "$tpl" /etc/nginx/extra-servers/
+  done
+fi
+
 for tpl in /etc/nginx/*.template /etc/nginx/extra-*/*.conf.template; do
   [ -f "$tpl" ] && envsubst "$VARS" < "$tpl" > "${tpl%.template}"
 done
@@ -40,7 +52,13 @@ if [ "${SSL_CERT_RELOAD_ENABLED:-false}" = "true" ]; then
   SSL_CERTIFICATE_KEY_PATH="${SSL_CERTIFICATE_KEY_PATH:-/etc/nginx/ssl/altinn_studio/star.altinn.studio.key}"
   SSL_CERT_RELOAD_INTERVAL_SECONDS="${SSL_CERT_RELOAD_INTERVAL_SECONDS:-60}"
 
+  if [ -n "${PREVIEW_SERVER_NAME:-}" ]; then
+    PREVIEW_SSL_CERTIFICATE_PATH="${PREVIEW_SSL_CERTIFICATE_PATH:-/etc/nginx/ssl/preview/preview.cert}"
+    PREVIEW_SSL_CERTIFICATE_KEY_PATH="${PREVIEW_SSL_CERTIFICATE_KEY_PATH:-/etc/nginx/ssl/preview/preview.key}"
+  fi
+
   export SSL_CERTIFICATE_PATH SSL_CERTIFICATE_KEY_PATH SSL_CERT_RELOAD_INTERVAL_SECONDS
+  export PREVIEW_SSL_CERTIFICATE_PATH PREVIEW_SSL_CERTIFICATE_KEY_PATH
   reload_nginx_on_certificate_change &
 fi
 

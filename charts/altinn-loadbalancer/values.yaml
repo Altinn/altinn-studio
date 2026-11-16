@@ -16,6 +16,12 @@ hosts:
   staging: staging.altinn.studio
   prod: altinn.studio
 
+# Preview's host in each environment that serves preview, on a domain of its own; see src/core/preview/README.md. It
+# is the host the environment's overlay in src/core/preview/infra/kustomize names. Only these environments mount
+# preview's certificate, the preview-ssl-key-secret Secret, so add an environment here once its certificate is there.
+previewHosts:
+  dev: preview-dev.altinnusercontent.studio
+
 env:
   DESIGNER_HOST: altinn-designer:3000
   DASHBOARD_HOST: altinn-designer:3000
@@ -26,6 +32,8 @@ env:
   INFO_HOST: altinn-designer:3000
   SETTINGS_HOST: altinn-designer:3000
   REPOS_HOST: altinn-repositories-public
+  PREVIEW_SERVICE_HOST: altinn-preview.default.svc.cluster.local
+  PREVIEW_RESOLVER: kube-dns.kube-system.svc.cluster.local
   LISTEN_DIRECTIVE: "443 ssl"
   OTEL_ENDPOINT: http://otel-router.observability.svc.cluster.local:4317
   OTEL_SERVICE_NAME: studio-loadbalancer
