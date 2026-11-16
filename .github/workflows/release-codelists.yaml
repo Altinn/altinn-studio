@@ -1,11 +1,13 @@
 name: Release - codelists
 
-# Automatically triggers release when a codelists changelog promotion PR is merged.
-# PRs must have the 'release/codelists' label.
+# Releases when a codelists release pull request, made by the releaser's `prepare` command, is merged.
+#
+# Runs on push rather than on the merged pull request, because nuget.org's trusted publishing requires the
+# `libraries` environment, which only accepts branches, and GitHub checks environment branch rules for pull
+# request events against refs/pull/<n>/merge.
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
       - 'release/codelists/v*'
@@ -20,27 +22,23 @@ jobs:
   resolve-release-context:
     name: Resolve release context
     runs-on: ubuntu-latest
-    # Automatically release same-repo release PRs. Fork PRs can be retried manually
-    # from their merged base branch because their pull_request token cannot publish releases.
+    # A push releases only the merge of a release pull request: the releaser titles it
+    # 'chore: release codelists <version>', which a squash merge keeps, and commits 'Release codelists <version>',
+    # which a rebase merge keeps. workflow_dispatch can also run on a tag.
     if: >
+      github.ref_type == 'branch' &&
       (
-        github.event_name == 'workflow_dispatch' &&
-        github.ref_type == 'branch'
-      ) ||
-      (
-        github.event_name == 'pull_request' &&
-        github.event.pull_request.merged == true &&
-        github.event.pull_request.head.repo.full_name == github.repository &&
-        contains(github.event.pull_request.labels.*.name, 'release/codelists')
+        github.event_name == 'workflow_dispatch' ||
+        startsWith(github.event.head_commit.message, 'chore: release codelists v') ||
+        startsWith(github.event.head_commit.message, 'Release codelists v')
       )
     outputs:
-      environment: ${{ steps.context.outputs.environment }}
       version: ${{ steps.context.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Setup Go
@@ -48,10 +46,10 @@ jobs:
         with:
           module: src/tools/releaser
 
-      - name: Resolve environment
+      - name: Resolve version
         id: context
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
+          BASE_BRANCH: ${{ github.ref_name }}
         run: |
           version="$(go run . resolve-version --component codelists --base-branch "$BASE_BRANCH")"
 
@@ -66,15 +64,7 @@ jobs:
             exit 1
           fi
 
-          environment="prod"
-          if [[ "$version" == *"-preview."* ]]; then
-            environment="dev"
-          elif [[ "$version" == *"-rc."* ]]; then
-            environment="staging"
-          fi
-
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "environment=$environment" >> "$GITHUB_OUTPUT"
         working-directory: src/tools/releaser
 
   release:
@@ -84,7 +74,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    environment: ${{ needs.resolve-release-context.outputs.environment }}
+    environment: libraries
 
     steps:
       - name: Checkout repository
@@ -92,13 +82,13 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Checkout base branch
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
-          MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          MERGE_SHA: ${{ github.sha }}
         run: |
           if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/codelists/v[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid base branch: ${BASE_BRANCH}"
@@ -126,7 +116,7 @@ jobs:
       - name: Run release workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
+          BASE_BRANCH: ${{ github.ref_name }}
         run: |
           go run . workflow --component codelists --base-branch "$BASE_BRANCH"
         working-directory: src/tools/releaser
@@ -137,7 +127,7 @@ jobs:
         run: |
           # Matched explicitly rather than with a sed substitution: a sed that does not match
           # passes the version through unchanged, which produced an invalid AssemblyVersion
-          # instead of failing. Same anchored pattern as the resolve-environment step.
+          # instead of failing. Same anchored pattern as the Resolve version step.
           if [[ ! "$RELEASE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "RELEASE_VERSION is not major.minor.patch[-prerelease]: $RELEASE_VERSION" >&2
             exit 1
@@ -240,12 +230,8 @@ jobs:
           {
             echo "## Release Summary"
             echo ""
-            if [[ -n "${PR_NUMBER}" ]]; then
-              echo "- **PR**: #${PR_NUMBER}"
-            fi
             echo "- **Base branch**: ${BASE_BRANCH}"
             echo "- **Version**: ${RELEASE_VERSION}"
-            echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
             echo "- **Depends on Altinn.App.Core**: ${APP_CORE_VERSION:-unresolved}"
             echo "- **Version source**: latest released section in src/App/codelists/CHANGELOG.md"
             echo ""
@@ -260,7 +246,6 @@ jobs:
             echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
-          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
+          BASE_BRANCH: ${{ github.ref_name }}
           RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
           APP_CORE_VERSION: ${{ steps.verify.outputs.app-core-version }}

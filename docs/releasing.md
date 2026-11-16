@@ -15,9 +15,15 @@ Run the commands below from `src/tools/releaser`.
 
 Tags are named `<component>/vX.Y.Z`.
 
-The release workflow runs only for a merged pull request with the `release/<component>` label. A pull request from a
-fork cannot publish a release, so after it merges, run the component's release workflow by hand on the branch it
-merged into.
+The studioctl release workflow runs only for a merged pull request with the `release/studioctl` label. A pull request
+from a fork cannot publish a release, so after it merges, run the release workflow by hand on the branch it merged
+into.
+
+The app libraries, codelists and fileanalyzers workflows publish to nuget.org through trusted publishing, which only
+works from the `libraries` environment, and that environment only accepts the release branches. So these workflows run
+on the push that the merge makes, and only when its commit message is the release pull request's title,
+`chore: release <component> vX.Y.Z`, or for a rebase merge the releaser's commit, `Release <component> vX.Y.Z`. If you
+edit the title when you merge, run the release workflow by hand on the branch it merged into.
 
 ## Prereleases
 
