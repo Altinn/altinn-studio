@@ -96,6 +96,10 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
+- A stage also runs again when its save committed but the app's answer never reached the engine. The retry
+  starts from the state the first attempt received, and Storage discards the retry's save because the step
+  id is the same. The stages after it see what the first attempt saved. Work outside Storage runs a second
+  time, which is why it must be idempotent.
 
 ### Stage results
 
