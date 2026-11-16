@@ -16,6 +16,7 @@ import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -51,7 +52,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
     config.textResourceBindings?.title,
     Expressions.LikertItem.textResourceBindings.title,
   );
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
@@ -82,7 +83,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
             <OptionalIndicator
               required={required}
               readOnly={readOnly}
-              showOptionalMarking={labelSettings?.optionalIndicator !== false}
+              showOptionalMarking={showOptionalMarking}
             />
           </span>
         </Label>

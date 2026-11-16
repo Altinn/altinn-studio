@@ -43,6 +43,8 @@ export function CompleteInterface({
     ? workflowStatusByThread?.[activeThreadId]
     : undefined;
 
+  const canSubmit = connectionStatus === 'connected';
+
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
   const handleCreateThread = useCallback(() => {
@@ -98,6 +100,7 @@ export function CompleteInterface({
             onClearMessageFeedback={onClearMessageFeedback}
             onPermissionResponse={onPermissionResponse}
             workflowStatus={currentThreadWorkflowStatus}
+            canSubmit={canSubmit}
             enableCompactInterface={false}
             currentUser={currentUser}
           />

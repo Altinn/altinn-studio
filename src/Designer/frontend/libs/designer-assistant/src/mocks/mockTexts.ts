@@ -74,6 +74,7 @@ export const mockTexts: AssistantTexts = {
   emptyThread: emptyThreadTexts,
   textarea: textAreaTexts,
   addAttachment: 'addAttachment',
+  attachmentsTooLarge: 'attachmentsTooLarge',
   allowAppChangesSwitch: 'allowAppChangesSwitch',
   send: 'send',
   cancel: 'cancel',

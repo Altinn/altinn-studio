@@ -13,6 +13,7 @@ export enum FeatureFlag {
   ImageUpload = 'imageUpload',
   HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',
   SkipJsonParseJsonInResourceList = 'skipJsonParseJsonInResourceList',
+  BrokerFileTransfer = 'brokerFileTransfer',
 }
 
 /*

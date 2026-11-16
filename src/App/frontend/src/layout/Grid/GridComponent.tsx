@@ -28,6 +28,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import { getLabelSettings } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
@@ -340,7 +341,7 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
   const required = useComponentIsRequired(config);
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;

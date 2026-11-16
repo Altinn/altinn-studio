@@ -1,6 +1,7 @@
 import { CompExternal } from '@app/layout-contract/generated/components.generated';
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Address/config.generated';
+import { BrokerFileTransferSummaryOverridesWithRef } from '@app/layout-contract/generated/components/BrokerFileTransfer/config.generated';
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
 import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
@@ -40,6 +41,7 @@ export type AnySummaryOverride =
   | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
+  | BrokerFileTransferSummaryOverridesWithRef
   | CheckboxesSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Date' } & ISummaryOverridesCommon)
@@ -115,6 +117,7 @@ export interface GlobalPageSettingsFromSchema {
   showExpandWidthButton?: boolean;
   expandedWidth?: boolean;
   showProgress?: boolean;
+  hideOptionalIndicator?: boolean;
   autoSaveBehavior?: 'onChangeFormData' | 'onChangePage';
   navigationTitle?: ExprValToActualOrExpr<ExprVal.String>;
   taskNavigation?: (NavigationTaskFromSchema | NavigationReceiptFromSchema)[];
@@ -662,4 +665,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 6bca8686e83da4b7678ff83b16476886cb4fa912569600e4a85e3c6f3452a862
+// Source hash: 03d366bb86f15445fb1faa383e6983a95ae31b58b287a6ab0ff22dfdb9a8c8b0

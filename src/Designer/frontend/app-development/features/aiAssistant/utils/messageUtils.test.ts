@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { AgentResponse, AssistantMessageData } from '@designer/assistant';
-import {
-  formatRejectedEventMessage,
-  formatRejectionMessage,
-  getAssistantMessageTimestamp,
-} from './messageUtils';
+import type { AssistantMessageData } from '@designer/assistant';
+import { formatRejectedEventMessage, getAssistantMessageTimestamp } from './messageUtils';
 
 // Test data
 const testTimestamp = 1_700_000_000_000;
@@ -12,24 +8,9 @@ const baseAssistantMessage: AssistantMessageData = {
   response: 'Hello',
   timestamp: testTimestamp,
 };
-const rejectionResult: AgentResponse = {
-  accepted: false,
-  session_id: 'session-1',
-  message: 'Nope',
-  parsed_intent: { suggestions: ['Try A', 'Try B'] },
-};
-
 const texts = { heading: '**Avvist**', suggestionsLabel: 'Forslag:' };
 
 describe('messageUtils', () => {
-  describe('formatRejectionMessage', () => {
-    it('formats rejection message with suggestions', () => {
-      expect(formatRejectionMessage(rejectionResult, texts)).toBe(
-        `${texts.heading}\n\nNope\n\n${texts.suggestionsLabel}\nTry A\nTry B`,
-      );
-    });
-  });
-
   describe('formatRejectedEventMessage', () => {
     it('formats rejection reason and suggestions', () => {
       expect(

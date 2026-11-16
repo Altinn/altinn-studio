@@ -110,6 +110,18 @@ describe('CompleteInterface', () => {
     expect(sendButton).toBeInTheDocument();
   });
 
+  it.each(['disconnected', 'connecting', 'error'] as const)(
+    'should disable the send button when the connection status is %s',
+    async (connectionStatus) => {
+      const user = userEvent.setup();
+      renderCompleteInterface({ connectionStatus });
+
+      await user.type(screen.getByPlaceholderText(mockTexts.textarea.placeholder), 'Test message');
+
+      expect(screen.getByRole('button', { name: mockTexts.send })).toBeDisabled();
+    },
+  );
+
   it('should render tool column with preview placeholder', () => {
     renderCompleteInterface();
     const previewPlaceholder = screen.getByText('Preview placeholder');

@@ -140,10 +140,14 @@ python -m benchmarks.runner status                        # repo against Langfus
 Two different questions, with two different answers.
 
 **The runs live in Langfuse.** Every dataset run of one `check` carries the same `check_id`
-in its metadata, along with all ten axes. `remote.fetch()` rebuilds a whole invocation from
+in its metadata, along with the axes. `remote.fetch()` rebuilds a whole invocation from
 there, item scores and item outputs included, so a machine that has never run the harness
 still compares against the same baseline as everyone else. The files in `benchmarks/runs/`
 are a cache: instant, and gone with the machine.
+
+The dataset axis is not in the metadata, because Langfuse writes the metadata when the first
+eval starts, and the items are known only when the last one ends. `remote.fetch()` computes
+it from the items.
 
 **Which run is the baseline lives in git**, as `BASELINE.json`, and is committed.
 
@@ -298,7 +302,7 @@ python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline 
 | `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
 | `agents/prompts/*`                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
 | any file that changes the `actor_prompt` digest                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
-| any file that changes the `tools` digest                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill text                                  |
+| any file that changes the `tools` digest                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill files                                 |
 | `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                           | code         | check, the baseline stays valid                                                                           |
 | `shared/config/base_config.py`                                                                          | models       | check, the baseline stays valid                                                                           |
 | `benchmarks/manifest.py`                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
@@ -311,7 +315,7 @@ file moves a digest. The `actor_prompt` digest hashes what `build_system_prompt`
 each app version profile, in write mode and in read-only mode, with the skill listing. The
 session values, such as the goal and the date, are fixed placeholders. Thus each section and
 template of the system prompt counts. The `tools` digest hashes the tool
-schemas, and the skill text for each app version. A digest that fails, or that the baseline
+schemas, and every file of every skill. A digest that fails, or that the baseline
 did not record, is not equal. The difference can come from this change, or from an earlier
 change on main. In both cases `runner check` refuses the comparison, so the gate fails.
 

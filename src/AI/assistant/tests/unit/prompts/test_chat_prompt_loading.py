@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from agents.prompts import loader
-from agents.prompts.loader import compiled_system_message, get_prompt_with_langfuse
+from agents.prompts.loader import compiled_system_message, get_prompt_with_langfuse, load_prompt
 
 SYSTEM = "You are the safety gate."
 
@@ -67,7 +67,7 @@ class TestFallbackToTheLocalFile:
 
         content, raw = get_prompt_with_langfuse("security_check")
 
-        assert "safety gate for Altinity" in content
+        assert content == load_prompt("security_check")["content"]
         assert raw is None
 
     def test_a_compile_failure_falls_back(self, monkeypatch):
@@ -79,7 +79,7 @@ class TestFallbackToTheLocalFile:
 
         content, raw = get_prompt_with_langfuse("scope_check")
 
-        assert "scope classifier" in content
+        assert content == load_prompt("scope_check")["content"]
         assert raw is None
 
     def test_a_missing_local_file_is_an_error_not_an_empty_prompt(self, monkeypatch):

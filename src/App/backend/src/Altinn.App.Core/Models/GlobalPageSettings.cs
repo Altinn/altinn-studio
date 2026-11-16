@@ -39,6 +39,13 @@ public class GlobalPageSettings
     public bool ShowProgress { get; set; } = false;
 
     /// <summary>
+    /// Hides the explicit marking that says a field is optional. A component's own
+    /// <c>labelSettings.optionalIndicator</c> overrides it.
+    /// </summary>
+    [JsonPropertyName("hideOptionalIndicator")]
+    public bool HideOptionalIndicator { get; set; } = false;
+
+    /// <summary>
     /// An attribute specifying when the application will save form data.
     /// onChangeFormData saves on every interaction with form elements.
     /// onChangePage saves on every page change.

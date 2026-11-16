@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -242,10 +243,18 @@ def _kept_metadata(metadata: dict) -> dict[str, str]:
 
 
 def _scored_set_digest(outcomes: dict[str, EvalOutcome]) -> str:
-    """What was measured, as one value a comparison can refuse on."""
+    return item_set_digest({name: outcome.per_item for name, outcome in outcomes.items()})
+
+
+def item_set_digest(items_by_eval: Mapping[str, Iterable[str]]) -> str:
+    """What was measured, as one value a comparison can refuse on.
+
+    `remote.fetch` builds it again from the items in Langfuse. The run metadata cannot hold it, because Langfuse
+    writes the metadata when the first eval starts, and the items are known only when the last eval ends.
+    """
     import hashlib
 
-    pairs = sorted(f"{name}:{item_id}" for name, outcome in outcomes.items() for item_id in outcome.per_item)
+    pairs = sorted(f"{name}:{item_id}" for name, item_ids in items_by_eval.items() for item_id in item_ids)
     if not pairs:
         return "nothing scored"
     digest = hashlib.sha256("\n".join(pairs).encode()).hexdigest()[:12]
@@ -432,7 +441,9 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
         _warn_if_stale(entry, len(items))
         started = time.monotonic()
         concurrency = E2E_MAX_CONCURRENCY if entry.kind in SLOW_KINDS else getattr(args, "max_concurrency", 5)
-        state = provenance.collect(agent_models=getattr(task, "role_models", None))
+        # Langfuse cannot change the metadata later, and a blocking axis that `remote.fetch` cannot read makes
+        # every comparison with this run fail on a machine without the local copy.
+        state = provenance.collect(agent_models=getattr(task, "role_models", None), judge=_judge_model())
         result = client.run_experiment(
             name=entry.name,
             run_name=runstore.new_name(f"{entry.name}-{model}"),
