@@ -60,11 +60,11 @@ PREVIEW_TEST_REDIS=localhost:6390 dotnet test
 ## Deployment
 
 The service and its Redis run in the Studio clusters, from the manifests in [infra/kustomize](infra/kustomize).
-Each environment's overlay sets the preview domain and the Studio origin in the `altinn-preview-environment`
-ConfigMap. The [deploy workflow](../../../.github/workflows/deploy-studio-preview.yaml) builds the image and pushes
-the manifests as an OCI artifact with a tag for each environment. No cluster reads the artifact yet: the overlays,
-the syncroot entry and the load balancer's route come with the preview domain and its certificate, which
-[altinn-studio-infra](https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra) configures.
+The [deploy workflow](../../../.github/workflows/deploy-studio-preview.yaml) builds the image and pushes the
+manifests as an OCI artifact with a tag for each environment. The
+[syncroot entry](../../../infra/studio/syncroot/base/altinn-preview.yaml) deploys the environment's overlay, which
+sets preview's host and the Studio origin in the `altinn-preview-environment` ConfigMap. Only dev has the entry so
+far. Browsers reach preview once the load balancer has a route to its host, which needs the host's certificate.
 
 External Secrets generates the Redis password in the cluster, since nothing outside it needs the password. Redis and
 preview read it only when they start, so the [ExternalSecret](infra/kustomize/base/externalsecret.yaml) creates the
