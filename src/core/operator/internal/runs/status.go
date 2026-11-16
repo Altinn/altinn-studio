@@ -140,7 +140,8 @@ func describe(workflow *engine.Workflow) description {
 			return description{status: StatusAwaitingArchive}
 		}
 		return description{status: StatusStarting}
-	case StepCleanup:
+	case StepCleanup, "":
+		// The engine may show every step completed a moment before it marks the workflow completed.
 		if outcome != nil {
 			return *outcome
 		}
