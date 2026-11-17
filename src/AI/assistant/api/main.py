@@ -23,6 +23,7 @@ from api.routes import (
     traces_router,
 )
 from shared.config import get_config
+from shared.telemetry import setup_telemetry
 
 # Get configuration
 config = get_config()
@@ -76,6 +77,7 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+setup_telemetry(app)
 
 # Add CORS middleware
 app.add_middleware(

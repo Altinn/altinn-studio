@@ -9,8 +9,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any
 
+from shared import telemetry
 from shared.config.base_config import get_config
-from shared.telemetry import ERROR_TYPE, GEN_AI_REQUEST_MODEL, error_type
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.models import is_claude_model, is_reasoning_model
@@ -219,12 +220,15 @@ class AnthropicAdapter(LLMAdapter):
         on_text_delta: TextDeltaCallback | None = None,
         on_tool_use_start: ToolUseStartCallback | None = None,
     ) -> AssistantMessage:
-        with trace_generation(
-            "agentic_loop_llm_call",
-            model=self.model,
-            input=_trace_input_summary(messages, system_prompt, tool_schemas),
-            metadata={"role": "actor", "provider": "anthropic"},
-        ) as span:
+        with (
+            trace_generation(
+                "agentic_loop_llm_call",
+                model=self.model,
+                input=_trace_input_summary(messages, system_prompt, tool_schemas),
+                metadata={"role": "actor", "provider": "anthropic"},
+            ) as span,
+            telemetry.model_call(telemetry.PROVIDER_ANTHROPIC, self.model) as model_usage,
+        ):
             api_messages = [_message_to_anthropic(m) for m in messages]
             _mark_last_block_cacheable(api_messages)
             kwargs: dict[str, Any] = {
@@ -266,25 +270,13 @@ class AnthropicAdapter(LLMAdapter):
             )
 
             content: list[ContentBlock] = []
-            dropped_blocks = False
             for block in response.content:
                 block_type = getattr(block, "type", None)
                 if block_type == "text":
                     content.append(TextBlock(text=block.text))
                 elif block_type == "tool_use":
                     content.append(ToolUseBlock(id=block.id, name=block.name, input=dict(block.input)))
-                else:
-                    # Other block types (e.g. thinking) are dropped — the loop
-                    # only acts on text + tool_use.  Log them: dropped blocks
-                    # are tokens we paid for without seeing, and their presence
-                    # means the request config (`thinking` above) isn't doing
-                    # what we think it does.
-                    dropped_blocks = True
-            if dropped_blocks:
-                log.warning(
-                    "The reply had blocks that the loop drops, such as thinking",
-                    extra={GEN_AI_REQUEST_MODEL: self.model},
-                )
+                # Other block types, such as thinking, are dropped: the loop only acts on text and tool_use.
 
             usage_obj = getattr(response, "usage", None)
             usage = {
@@ -301,16 +293,15 @@ class AnthropicAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(response.stop_reason)
+            details = _usage_details(
+                fresh=usage["input_tokens"],
+                output=usage["output_tokens"],
+                cache_read=usage["cache_read_input_tokens"],
+                cache_creation=usage["cache_creation_input_tokens"],
+            )
+            model_usage.update(details)
             with contextlib.suppress(Exception):
-                span.update(
-                    output=_trace_output_summary(assistant),
-                    usage_details=_usage_details(
-                        fresh=usage["input_tokens"],
-                        output=usage["output_tokens"],
-                        cache_read=usage["cache_read_input_tokens"],
-                        cache_creation=usage["cache_creation_input_tokens"],
-                    ),
-                )
+                span.update(output=_trace_output_summary(assistant), usage_details=details)
             return assistant
 
 
@@ -457,6 +448,10 @@ class OpenAIAdapter(LLMAdapter):
             self.max_tokens = _REASONING_MAX_TOKENS if self._is_reasoning else _DEFAULT_MAX_TOKENS
         self._reasoning_effort = config.LLM_REASONING_EFFORT
 
+    @property
+    def provider(self) -> str:
+        return telemetry.PROVIDER_AZURE_OPENAI if get_config().AZURE_API_KEY else telemetry.PROVIDER_OPENAI
+
     async def chat(
         self,
         messages: list[Message],
@@ -469,16 +464,19 @@ class OpenAIAdapter(LLMAdapter):
         # Streaming for OpenAI/Azure-OpenAI tool calls isn't wired yet;
         # silently fall back to non-streaming and ignore the callbacks.
         del on_text_delta, on_tool_use_start
-        with trace_generation(
-            "agentic_loop_llm_call",
-            model=self.model,
-            input=_trace_input_summary(messages, system_prompt, tool_schemas),
-            metadata={
-                "role": "actor",
-                "provider": "openai",
-                "reasoning": self._is_reasoning,
-            },
-        ) as span:
+        with (
+            trace_generation(
+                "agentic_loop_llm_call",
+                model=self.model,
+                input=_trace_input_summary(messages, system_prompt, tool_schemas),
+                metadata={
+                    "role": "actor",
+                    "provider": "openai",
+                    "reasoning": self._is_reasoning,
+                },
+            ) as span,
+            telemetry.model_call(self.provider, self.model) as model_usage,
+        ):
             api_messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
             for message in messages:
                 api_messages.extend(_message_to_openai(message))
@@ -526,18 +524,15 @@ class OpenAIAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(assistant.stop_reason)
+            details = _usage_details(
+                fresh=usage["input_tokens"] - usage["cache_read_input_tokens"] - usage["cache_creation_input_tokens"],
+                output=usage["output_tokens"],
+                cache_read=usage["cache_read_input_tokens"],
+                cache_creation=usage["cache_creation_input_tokens"],
+            )
+            model_usage.update(details)
             with contextlib.suppress(Exception):
-                span.update(
-                    output=_trace_output_summary(assistant),
-                    usage_details=_usage_details(
-                        fresh=usage["input_tokens"]
-                        - usage["cache_read_input_tokens"]
-                        - usage["cache_creation_input_tokens"],
-                        output=usage["output_tokens"],
-                        cache_read=usage["cache_read_input_tokens"],
-                        cache_creation=usage["cache_creation_input_tokens"],
-                    ),
-                )
+                span.update(output=_trace_output_summary(assistant), usage_details=details)
             return assistant
 
 

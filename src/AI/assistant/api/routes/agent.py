@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from opentelemetry import trace
 from pydantic import BaseModel, Field, field_validator
 
 from agents.graph.runner import run_in_background
@@ -12,6 +13,7 @@ from agents.services.events import permission_broker, sink
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from api.rate_limiting import RateLimiter
+from shared import telemetry
 from shared.config import get_config
 from shared.models import AgentAttachment, AttachmentUpload
 from shared.models.attachments import cleanup_session_attachments, get_session_dir
@@ -139,6 +141,7 @@ async def start_agent(
 
         sink.add_to_conversation_history(req.session_id, "user", req.goal)
 
+        trace.get_current_span().set_attributes(telemetry.correlation_attributes(state))
         sink.mark_session_started(req.session_id)
         run_in_background(state, sink)
 

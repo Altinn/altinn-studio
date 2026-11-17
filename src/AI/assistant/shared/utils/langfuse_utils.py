@@ -4,10 +4,11 @@ from contextlib import contextmanager
 
 from langfuse import Langfuse, get_client
 from opentelemetry import context as otel_context
+from opentelemetry import trace as otel_trace
 from opentelemetry.sdk.trace import SpanProcessor
 
 from shared.config.base_config import get_config
-from shared.telemetry import ERROR_TYPE, error_type
+from shared.telemetry import ERROR_TYPE, error_type, is_service_span
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -58,11 +59,9 @@ def init_langfuse():
         return None
 
     try:
-        from opentelemetry import trace as _otel_trace
         from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
 
-        # Give Langfuse its own dedicated TracerProvider so it is isolated from
-        # the global OTel provider that third-party libraries share.
+        # Langfuse gets a provider of its own. Without one it would take the global provider.
         langfuse_provider = _OtelTracerProvider()
         langfuse_provider.add_span_processor(_PropagatedAttributesProcessor())
 
@@ -74,13 +73,6 @@ def init_langfuse():
             environment=config.LANGFUSE_ENVIRONMENT,
             tracer_provider=langfuse_provider,
         )
-
-        # Reset the global OTel provider to a bare no-op (no exporters/processors).
-        # Any third-party library that instruments via the global provider will
-        # now get a no-op tracer, eliminating duplicate child spans and orphan
-        # traces from health checks.
-        _otel_trace.set_tracer_provider(_OtelTracerProvider())
-
         _initialized = True
         return _client
 
@@ -226,8 +218,8 @@ def get_current_trace_id() -> str | None:
 
 
 def _has_active_trace() -> bool:
-    """Return True when a Langfuse trace context is currently active."""
-    return get_current_trace_id() is not None
+    """Return True when a Langfuse trace context is currently active. The service's own spans, such as a request's, are not one."""
+    return get_current_trace_id() is not None and not is_service_span(otel_trace.get_current_span())
 
 
 @contextmanager

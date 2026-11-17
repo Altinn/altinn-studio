@@ -33,6 +33,7 @@ def _intake_failure_hint(exc: BaseException) -> str:
 async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
 
+    from shared import telemetry
     from shared.utils.logging_utils import get_logger
 
     log = get_logger(__name__)
@@ -82,6 +83,7 @@ async def handle(state: AgentState) -> AgentState:
     except Exception as exc:
         error_type = type(exc).__name__
         log.exception("The intake failed")
+        telemetry.record_run_error(error_type)
         hint = _intake_failure_hint(exc)
         sink.send(
             AgentEvent(

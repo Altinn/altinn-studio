@@ -27,6 +27,8 @@ dependencies = [
 
     # Observability
     "langfuse>=5.2.0,<6",
+    "opentelemetry-instrumentation-fastapi>=0.66b2",
+    "opentelemetry-instrumentation-logging>=0.66b2",
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
@@ -100,6 +102,7 @@ select = [
     "PIE",   # flake8-pie: unnecessary statements and duplicate class fields
     "RUF",   # Ruff-specific: mutable class defaults, ambiguous Unicode, lost asyncio tasks
     "ASYNC", # flake8-async: blocking calls in async functions
+    "G",     # flake8-logging-format: no formatted log messages, since values go in `extra=`
 ]
 ignore = [
     "E501",     # Line too long: the formatter controls line length

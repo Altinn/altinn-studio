@@ -31,12 +31,14 @@ import contextlib
 import hashlib
 import json
 import os
+import time
 from collections import deque
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from shared import telemetry
 from shared.telemetry import GEN_AI_TOOL_NAME
 from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
@@ -135,12 +137,8 @@ def _max_tool_use_concurrency() -> int:
     try:
         value = int(raw)
     except ValueError:
-        log.warning("ALTINITY_MAX_TOOL_USE_CONCURRENCY is not a whole number, so the default is used")
         return _DEFAULT_MAX_TOOL_USE_CONCURRENCY
-    if value < 1:
-        log.warning("ALTINITY_MAX_TOOL_USE_CONCURRENCY is below 1, so 1 is used")
-        return 1
-    return value
+    return max(value, 1)
 
 
 @dataclass
@@ -158,7 +156,6 @@ class LoopResult:
     final_text: str | None = None
     error: str | None = None
     turns: int = 0
-    usage: dict[str, int] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +215,6 @@ async def run_loop(
     compaction = compaction or CompactionConfig()
     ctx.max_result_chars = compaction.max_result_chars
     messages: list[Message] = [*(history or []), UserMessage(content=user_message)]
-    total_usage = {"input_tokens": 0, "output_tokens": 0}
     # Sliding window of per-turn tool signatures, used to detect when
     # the model is calling the same tool with the same input over and
     # over without making progress (the thrash pattern we hit on
@@ -236,7 +232,6 @@ async def run_loop(
                 reason=TerminationReason.CANCELLED,
                 messages=messages,
                 turns=turn - 1,
-                usage=total_usage,
             )
 
         await _emit(on_event, "turn_start", {"turn": turn, "messages": len(messages)})
@@ -276,17 +271,16 @@ async def run_loop(
             )
         except Exception as exc:  # adapter failure — propagate as ERROR
             log.exception("The model call failed, so the loop stops")
+            telemetry.record_run_error(telemetry.error_type(exc))
             await _emit(on_event, "terminated", {"reason": "error", "turn": turn, "error": str(exc)})
             return LoopResult(
                 reason=TerminationReason.ERROR,
                 messages=messages,
                 error=str(exc),
                 turns=turn,
-                usage=total_usage,
             )
 
         messages.append(response)
-        _accumulate_usage(total_usage, response.usage)
         await _emit(
             on_event,
             "assistant_message",
@@ -299,7 +293,6 @@ async def run_loop(
                 reason=TerminationReason.CANCELLED,
                 messages=messages,
                 turns=turn,
-                usage=total_usage,
             )
 
         # A turn cut off at the max_tokens budget must NEVER read as a
@@ -311,6 +304,7 @@ async def run_loop(
         if truncated:
             consecutive_truncations += 1
             if consecutive_truncations > _MAX_CONSECUTIVE_TRUNCATIONS:
+                telemetry.record_run_error(telemetry.OUTPUT_TRUNCATED)
                 await _emit(
                     on_event,
                     "terminated",
@@ -320,7 +314,6 @@ async def run_loop(
                     reason=TerminationReason.ERROR,
                     messages=messages,
                     turns=turn,
-                    usage=total_usage,
                     error=(
                         f"Model output hit the max_tokens budget {consecutive_truncations} "
                         "turns in a row — the task's per-turn output doesn't fit. "
@@ -344,7 +337,6 @@ async def run_loop(
                 messages=messages,
                 final_text=final,
                 turns=turn,
-                usage=total_usage,
             )
 
         # Anti-thrash: if the model has fired the same (name, input)
@@ -363,7 +355,6 @@ async def run_loop(
                 reason=TerminationReason.STUCK,
                 messages=messages,
                 turns=turn,
-                usage=total_usage,
                 error=f"Repeated {_STUCK_REPEAT_LIMIT}× call to {stuck_sig} without progress.",
             )
 
@@ -391,13 +382,7 @@ async def run_loop(
         reason=TerminationReason.MAX_TURNS,
         messages=messages,
         turns=max_turns,
-        usage=total_usage,
     )
-
-
-def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:
-    for key, value in delta.items():
-        acc[key] = acc.get(key, 0) + int(value)
 
 
 def _tool_signature(tool_use: ToolUseBlock) -> str:
@@ -538,6 +523,7 @@ async def _run_one(
         with contextlib.suppress(Exception):
             span.update(input={"args": tool_use.input})
 
+        started = time.perf_counter()
         block = await _execute_tool(
             tool_use=tool_use,
             registry=registry,
@@ -545,6 +531,8 @@ async def _run_one(
             max_result_chars=max_result_chars,
             on_event=on_event,
         )
+        name = tool_use.name if tool_use.name in registry else telemetry.UNKNOWN_TOOL
+        telemetry.record_tool_call(name, block.is_error, time.perf_counter() - started)
 
         with contextlib.suppress(Exception):
             span.update(

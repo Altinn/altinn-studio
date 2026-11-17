@@ -49,6 +49,7 @@ from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
 from agents.services.llm.recent_turns import truncate_to_history_limit
+from shared import telemetry
 from shared.config.base_config import get_config
 from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.langfuse_utils import get_current_trace_id
@@ -702,6 +703,7 @@ def _apply_result_to_state(
     result: LoopResult,
     ctx: LoopContext,
 ) -> None:
+    telemetry.record_loop_result(result.reason.value, result.turns)
     state.next_action = "stop"
 
     state.allow_app_changes = ctx.allow_app_changes

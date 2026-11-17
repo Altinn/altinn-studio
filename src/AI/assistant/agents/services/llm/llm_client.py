@@ -14,6 +14,7 @@ from langfuse import get_client
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.prompts import get_prompt_with_langfuse
+from shared import telemetry
 from shared.config.base_config import get_config
 from shared.models import AgentAttachment
 from shared.telemetry import ERROR_TYPE, GEN_AI_REQUEST_MODEL, GEN_AI_RESPONSE_FINISH_REASONS, error_type
@@ -95,19 +96,15 @@ class LLMClient:
         if role == "planner":
             model = model or config.LLM_MODEL_PLANNER
             if config.LLM_TEMPERATURE_PLANNER is not None:
-                try:
+                with contextlib.suppress(ValueError):
                     temperature = float(config.LLM_TEMPERATURE_PLANNER)
-                except ValueError:
-                    log.warning("LLM_TEMPERATURE_PLANNER is not a number; using the provider default")
         else:
             # Default fallback — used by check_security_with_llm /
             # suggest_goals_with_llm, which call get_llm_client() with no role.
             model = model or (config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL)
             if config.LLM_TEMPERATURE is not None:
-                try:
+                with contextlib.suppress(ValueError):
                     temperature = float(config.LLM_TEMPERATURE)
-                except ValueError:
-                    log.warning("LLM_TEMPERATURE is not a number; using the provider default")
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
@@ -166,8 +163,6 @@ class LLMClient:
                 if temperature is not None:
                     chat_kwargs["temperature"] = temperature
             self.llm = ChatOpenAI(**chat_kwargs)
-        else:
-            log.warning("No LLM API key is configured")
 
         self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not self.use_anthropic
 
@@ -188,6 +183,12 @@ class LLMClient:
         )
 
         self.use_anthropic = True
+
+    @property
+    def provider(self) -> str:
+        if self.use_anthropic:
+            return telemetry.PROVIDER_ANTHROPIC
+        return telemetry.PROVIDER_AZURE_OPENAI if config.AZURE_API_KEY else telemetry.PROVIDER_OPENAI
 
     def _require_anthropic_client(self) -> Anthropic:
         if self.anthropic_client is None:
@@ -242,20 +243,23 @@ class LLMClient:
             raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
 
         langfuse = get_client()
-        with langfuse.start_as_current_observation(
-            name=f"llm_call_{self.role}",
-            as_type="generation",
-            model=self.model,
-            input={
-                "system_message": system_prompt,
-                "user_message": user_prompt,
-                "role": self.role,
-                "model_metadata": self.get_model_metadata(),
-                "attachment_count": len(attachments) if attachments else 0,
-                "attachment_names": [att.name for att in attachments] if attachments else [],
-            },
-            metadata={"role": self.role},
-        ) as span:
+        with (
+            langfuse.start_as_current_observation(
+                name=f"llm_call_{self.role}",
+                as_type="generation",
+                model=self.model,
+                input={
+                    "system_message": system_prompt,
+                    "user_message": user_prompt,
+                    "role": self.role,
+                    "model_metadata": self.get_model_metadata(),
+                    "attachment_count": len(attachments) if attachments else 0,
+                    "attachment_names": [att.name for att in attachments] if attachments else [],
+                },
+                metadata={"role": self.role},
+            ) as span,
+            telemetry.model_call(self.provider, self.model) as model_usage,
+        ):
             if langfuse_prompt is not None:
                 with contextlib.suppress(Exception):
                     langfuse.update_current_generation(prompt=langfuse_prompt)
@@ -318,6 +322,7 @@ class LLMClient:
                             "total_tokens": usage.get("total_tokens", 0),
                         }
 
+                model_usage.update(usage_details)
                 with contextlib.suppress(Exception):
                     span.update(
                         output={"response": response_text},
@@ -368,19 +373,22 @@ class LLMClient:
         langfuse_prompt=None,
     ) -> str:
         """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models  Returns: Response text"""
-        with trace_generation(
-            f"llm_call_{self.role}",
-            model=self.model,
-            input={
-                "system_message": system_message,
-                "user_message": user_message,
-                "role": self.role,
-                "model_metadata": self.get_model_metadata(),
-                "attachment_count": len(attachments) if attachments else 0,
-                "attachment_names": [att.name for att in attachments] if attachments else [],
-            },
-            metadata={"role": self.role},
-        ) as span:
+        with (
+            trace_generation(
+                f"llm_call_{self.role}",
+                model=self.model,
+                input={
+                    "system_message": system_message,
+                    "user_message": user_message,
+                    "role": self.role,
+                    "model_metadata": self.get_model_metadata(),
+                    "attachment_count": len(attachments) if attachments else 0,
+                    "attachment_names": [att.name for att in attachments] if attachments else [],
+                },
+                metadata={"role": self.role},
+            ) as span,
+            telemetry.model_call(self.provider, self.model) as model_usage,
+        ):
             langfuse = get_client()
             if langfuse_prompt is not None:
                 with contextlib.suppress(Exception):
@@ -436,6 +444,7 @@ class LLMClient:
                             "total_tokens": usage.get("total_tokens", 0),
                         }
 
+                model_usage.update(usage_details)
                 with contextlib.suppress(Exception):
                     span.update(
                         output={"response": response_text},
