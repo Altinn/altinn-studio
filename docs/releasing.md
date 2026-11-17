@@ -25,7 +25,8 @@ to be added to it before the first stable release from that branch. Pull request
 workflows run on every push that changes the component's changelog. They release the latest version in it when that
 version has no GitHub release yet, draft or published. If a release fails after the releaser has created the draft,
 delete the draft and rerun the failed workflow run. A rerun builds the commit the original run built, where a new run
-would build the branch as it is now.
+would build the branch as it is now. Finish a failed prerelease before you create its `release/<component>/vX.Y`
+branch: once that branch exists, the releaser no longer publishes prereleases of that line.
 
 ## Prereleases
 
