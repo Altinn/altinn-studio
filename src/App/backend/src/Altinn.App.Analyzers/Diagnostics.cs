@@ -24,6 +24,15 @@ public static class Diagnostics
             "HttpContextAccessor dangerous usage",
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
+
+        // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
+        public static readonly DiagnosticDescriptor AsyncVoid = Error(
+            "ALTINNAPP0502",
+            Category.CodeSmells,
+            "Async method returns void",
+            "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "
+                + "exception it throws cannot be caught and stops the app. Return Task instead, and await it."
+        );
     }
 
     public static class FormDataWrapperGenerator

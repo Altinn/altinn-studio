@@ -85,12 +85,13 @@ def spec_label_coverage(*, output: Any = None, expected_output: Any = None, **_:
 
 
 def spec_field_count(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """Roughly the right number of fields, not exactly."""
+    """Roughly the right number of fields, not exactly. Headings and paragraphs vary by run, so they do not count."""
     expected = (expected_output or {}).get("field_count")
     if not expected:
         return []
     spec = (output or {}).get("spec") if isinstance(output, dict) else None
-    actual = len(spec_labels(spec)) if spec else 0
+    fields = [field for page in (spec or {}).get("pages") or [] for field in page.get("fields") or []]
+    actual = sum(field.get("field_type") not in ("header", "paragraph") for field in fields)
     ratio = actual / expected if expected else 0
     return [
         Evaluation(

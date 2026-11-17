@@ -1,5 +1,8 @@
 """Puts the last turns of a session before a gate message. A short follow-up,
-such as "ja, fiks det", is clear only with these turns."""
+such as "ja, fiks det", is clear only with these turns.
+
+The agent loop replays the same turns with the same limits, so the gate reads
+all of the history that the loop can act on."""
 
 import json
 from collections.abc import Sequence
@@ -7,7 +10,7 @@ from typing import Any
 
 from shared.utils.spotlight import defang_delimiter
 
-CONTEXT_TURNS = 4
+HISTORY_MAX_TURNS = 12
 HISTORY_MAX_CHARS_PER_TURN = 6000
 CONVERSATION_TAG = "recent_conversation"
 _TRUNCATION_MARK = "\n…[truncated]"
@@ -29,14 +32,14 @@ def truncate_to_history_limit(text: str) -> str:
 
 
 def _select_recent_turns(conversation: Sequence[Any] | None) -> list[dict[str, str]]:
-    turns = [_read_turn(entry) for entry in list(conversation or [])[-CONTEXT_TURNS:]]
+    turns = [_read_turn(entry) for entry in list(conversation or [])[-HISTORY_MAX_TURNS:]]
     return [turn for turn in turns if turn["role"] and turn["content"]]
 
 
 def _read_turn(entry: Any) -> dict[str, str]:
     """Each turn has the same length limit as in the agent loop. This makes sure
     that the gate reads all of the text that the agent loop can act on."""
-    content = truncate_to_history_limit(_read_field(entry, "content"))
+    content = truncate_to_history_limit(_read_field(entry, "content").strip())
     return {"role": _read_field(entry, "role"), "content": content}
 
 

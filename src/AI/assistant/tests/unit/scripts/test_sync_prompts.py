@@ -20,7 +20,7 @@ _spec.loader.exec_module(sync_prompts)
 
 RETIRED = "assistant_response_generation"
 LOCAL = "goal_suggestions"
-IN_SYNC = "scope_check"
+IN_SYNC = "spec_extraction"
 LOCAL_TEMPLATE = "intake_planning_user"
 LOCAL_JUDGE = "intent_match"
 
@@ -332,7 +332,7 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
         names = sync_prompts._local_prompt_names()
 
         assert "no_hallucination" not in names
-        assert "scope_check" in names
+        assert "goal_suggestions" in names
 
     def test_judge_templates_are_still_reported(self, capsys):
         sync_prompts._report_judges()

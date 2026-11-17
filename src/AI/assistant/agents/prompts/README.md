@@ -1,7 +1,8 @@
 # Prompts
 
-This directory holds the prompts for the gates before the graph, intake and spec. The loop's system prompt is not
-here. [`context.py`](../core/context.py) builds it in code.
+This directory holds the prompts for intake, spec and the goal suggestions. The loop's system prompt is not here.
+[`context.py`](../core/context.py) builds it in code. The request gate asks a decision model, not a language model, so
+its questions are in [`services/decisions/questions.py`](../services/decisions/questions.py).
 
 A system prompt is a Markdown file with YAML frontmatter. A user prompt template in `templates/` has `{{variable}}`
 placeholders, the same syntax as Langfuse.
