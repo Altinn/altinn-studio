@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` reports navigation validation settings that may behave differently or need review, including CustomButton actions configured in layouts. TODOs identify what to review and test. Your settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
-- `studioctl app upgrade v9` warns about every feedback task: instances waiting in one when the first v9 version is deployed may not move on by themselves, so deploy it in a quiet period. Feedback tasks behind eFormidling or Fiks Arkiv `<bpmn:task>` steps are now flagged too. ([#21261](https://github.com/Altinn/altinn-studio/pull/21261))
+- `studioctl app upgrade v9` warns about every feedback task: instances waiting in one when the first v9 version is deployed may not move on by themselves, so deploy it in a quiet period. ([#21261](https://github.com/Altinn/altinn-studio/pull/21261))
 
 ### Changed
 
