@@ -62,8 +62,14 @@
     property1: 1,
     property2: 1,
     property3: null,
-    price: null,
+    price: 200,
     quantity: 1,
-    total: null
+    total: 200,
+    lines: [
+      {
+        label: total,
+        amount: 200
+      }
+    ]
   }
 }
