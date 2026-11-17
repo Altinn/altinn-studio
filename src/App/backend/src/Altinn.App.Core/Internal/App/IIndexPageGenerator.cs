@@ -19,12 +19,20 @@ internal interface IIndexPageGenerator
     /// <param name="org">The organization identifier.</param>
     /// <param name="app">The application identifier.</param>
     /// <param name="appGlobalState">The bootstrap global state for the app.</param>
-    /// <param name="appFrontendAssetBaseUrlOverride">Optional app frontend asset base URL override (only used in development).</param>
+    /// <param name="appFrontendAssetBaseUrlOverride">
+    /// Optional app frontend asset base URL override, from the <c>frontendVersion</c> query parameter in development
+    /// and test environments, or from the <c>AppFrontendAssetBaseUrl</c> setting in development.
+    /// </param>
+    /// <param name="appFrontendScriptCrossOrigin">
+    /// Whether the app frontend script tag gets the <c>crossorigin</c> attribute. Set it to false when the script is
+    /// loaded from a host that does not send CORS headers, or the browser refuses to run it.
+    /// </param>
     /// <returns>The generated HTML content.</returns>
     Task<string> Generate(
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? appFrontendAssetBaseUrlOverride = null
+        string? appFrontendAssetBaseUrlOverride = null,
+        bool appFrontendScriptCrossOrigin = true
     );
 }

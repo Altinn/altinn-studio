@@ -31,10 +31,12 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
-        string? appFrontendAssetBaseUrl = null
+        string? appFrontendAssetBaseUrl = null,
+        bool appFrontendScriptCrossOrigin = true
     )
     {
         appFrontendAssetBaseUrl ??= $"/{org}/{app}/altinn-app-frontend";
+        var appFrontendScriptCrossOriginAttribute = appFrontendScriptCrossOrigin ? " crossorigin" : "";
 
         var featureToggles = _frontendFeatures.GetDictionary();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
@@ -78,7 +80,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
                 window.featureToggles = {{featureTogglesJson}};
                 window.altinnAppGlobalData = {{globalDataJson}};
               </script>
-              <script src="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.js" crossorigin></script>
+              <script src="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.js"{{appFrontendScriptCrossOriginAttribute}}></script>
             {{externalScripts}}{{customJsScripts}}</body>
             </html>
             """;

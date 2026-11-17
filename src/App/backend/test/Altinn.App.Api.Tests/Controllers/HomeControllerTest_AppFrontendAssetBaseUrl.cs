@@ -38,7 +38,7 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("href=\"/configured/frontend/altinn-app-frontend.css\"", html);
-        Assert.Contains("src=\"/configured/frontend/altinn-app-frontend.js\"", html);
+        Assert.Contains("src=\"/configured/frontend/altinn-app-frontend.js\" crossorigin></script>", html);
     }
 
     [Fact]
@@ -54,10 +54,71 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase
         Assert.DoesNotContain("loading our built-in frontend is not yet supported", html);
     }
 
-    private static void ConfigureStatelessAnonymousApp(IServiceCollection services)
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Staging")]
+    public async Task Index_UsesFrontendVersionQueryParameterInDevelopmentAndTestEnvironments(string environment)
+    {
+        OverrideAppSetting("AppSettings:AppFrontendAssetBaseUrl", "/configured/frontend/");
+
+        using var client = GetRootedClient(
+            Org,
+            App,
+            configureServices: services => ConfigureStatelessAnonymousApp(services, environment)
+        );
+        using var response = await client.GetAsync($"{Org}/{App}/?frontendVersion=9.0.0-preview.6");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(
+            "href=\"https://altinn.studio/designer/app-dist/9.0.0-preview.6/altinn-app-frontend.css\"",
+            html
+        );
+        // Without crossorigin, because app-dist sends no CORS headers.
+        Assert.Contains(
+            "src=\"https://altinn.studio/designer/app-dist/9.0.0-preview.6/altinn-app-frontend.js\"></script>",
+            html
+        );
+    }
+
+    [Fact]
+    public async Task Index_IgnoresFrontendVersionQueryParameterInProduction()
+    {
+        using var client = GetRootedClient(
+            Org,
+            App,
+            configureServices: services => ConfigureStatelessAnonymousApp(services, Environments.Production)
+        );
+        using var response = await client.GetAsync($"{Org}/{App}/?frontendVersion=9.0.0-preview.6");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains($"src=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.DoesNotContain("app-dist", html);
+    }
+
+    [Theory]
+    [InlineData("https://evil.example/x")]
+    [InlineData("%22%3E%3Cscript%3Ealert(1)%3C%2Fscript%3E")]
+    public async Task Index_IgnoresFrontendVersionQueryParameterThatIsNotAVersion(string frontendVersion)
+    {
+        using var client = GetRootedClient(Org, App, configureServices: ConfigureStatelessAnonymousApp);
+        using var response = await client.GetAsync($"{Org}/{App}/?frontendVersion={frontendVersion}");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains($"src=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.DoesNotContain("evil.example", html);
+        Assert.DoesNotContain("<script>alert(1)", html);
+    }
+
+    private static void ConfigureStatelessAnonymousApp(IServiceCollection services) =>
+        ConfigureStatelessAnonymousApp(services, Environments.Development);
+
+    private static void ConfigureStatelessAnonymousApp(IServiceCollection services, string environment)
     {
         var webHostEnvironmentMock = new Mock<IWebHostEnvironment>();
-        webHostEnvironmentMock.SetupGet(e => e.EnvironmentName).Returns(Environments.Development);
+        webHostEnvironmentMock.SetupGet(e => e.EnvironmentName).Returns(environment);
         webHostEnvironmentMock.SetupGet(e => e.ApplicationName).Returns("Altinn.App.Api");
         webHostEnvironmentMock.SetupGet(e => e.ContentRootPath).Returns(Directory.GetCurrentDirectory());
         webHostEnvironmentMock

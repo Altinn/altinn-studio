@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
@@ -119,17 +120,26 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
+            string? frontendVersionAssetBaseUrl = FrontendVersionOverride.GetAssetBaseUrl(
+                Request.Query[FrontendVersionOverride.QueryParameterName].ToString(),
+                AltinnEnvironments.GetHostingEnvironment(_env)
+            );
             string? appFrontendAssetBaseUrlOverride =
-                _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
-                    ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
-                    : null;
+                frontendVersionAssetBaseUrl
+                ?? (
+                    _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
+                        ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
+                        : null
+                );
 
             var appGlobalState = await _bootstrapGlobalService.GetGlobalState(_appId.Org, _appId.App, returnUrl, lang);
             var html = await _indexPageGenerator.Generate(
                 _appId.Org,
                 _appId.App,
                 appGlobalState,
-                appFrontendAssetBaseUrlOverride
+                appFrontendAssetBaseUrlOverride,
+                // app-dist sends no CORS headers, so the browser refuses a crossorigin script from it.
+                appFrontendScriptCrossOrigin: frontendVersionAssetBaseUrl is null
             );
             return Content(html, "text/html; charset=utf-8");
         }
