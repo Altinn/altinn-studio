@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/WorkflowEngine.Operator/WorkflowEngine.Operator.csproj" />
-    <ProjectReference Include="../../../../Runtime/workflow-engine/tests/WorkflowEngine.TestKit/WorkflowEngine.TestKit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

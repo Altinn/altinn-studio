@@ -78,9 +78,10 @@ lists them. The step's state is the operator's own data, so the host keeps it ou
 and the engine's dashboard at the root. In `Development` the host calls an operator on <http://localhost:8090> without
 a token. Set `OperatorCommandSettings__TokenPath` to a token file to send one.
 
-`make test` runs the tests. The integration tests start PostgreSQL with Testcontainers, so they need Docker or Podman.
-The core operator's [`make test-integration`](../operator/README.md#develop) runs this host with the operator. CI runs
-it when either side or the engine library changes.
+`make test` runs the tests of the command and the callback contract, which need no database. The host's integration
+test is the core operator's [`make test-integration`](../operator/README.md#develop). It runs this host with the real
+operator and PostgreSQL, so no test here keeps a copy of the operator's requests. CI runs it when either side or the
+engine library changes.
 
 ## Deployment
 
