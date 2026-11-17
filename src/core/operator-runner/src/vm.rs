@@ -10,7 +10,10 @@ use sandbox::{
     init::InitSystem,
 };
 use sandbox_hosting::{AnyError, delete_in_time, native_linux_platform, validate_immutable_image_reference};
-use tokio::{io::AsyncReadExt as _, time::Instant};
+use tokio::{
+    io::AsyncReadExt as _,
+    time::{Instant, timeout_at},
+};
 
 use crate::{
     output::{Collected, Limits, collect},
@@ -114,27 +117,27 @@ impl Vm {
     ///
     /// # Errors
     ///
-    /// Returns an error when the write fails.
-    pub async fn write_file(&self, path: &str, contents: Bytes) -> Result<(), AnyError> {
-        self.handle
-            .write_file(&SandboxPath::new(path), Box::pin(io::Cursor::new(contents)))
-            .await
-            .map_err(Into::into)
+    /// Returns an error when the write fails, or when it does not complete by `deadline`.
+    pub async fn write_file(&self, path: &str, contents: Bytes, deadline: Instant) -> Result<(), AnyError> {
+        let target = SandboxPath::new(path);
+        let write = self.handle.write_file(&target, Box::pin(io::Cursor::new(contents)));
+        Ok(timeout_at(deadline, write).await.map_err(|_| too_late(path))??)
     }
 
     /// Reads a file in the guest.
     ///
     /// # Errors
     ///
-    /// Returns an error when the read fails, or when the file is larger than `limit` bytes.
-    pub async fn read_file(&self, path: &str, limit: u64) -> Result<Vec<u8>, AnyError> {
+    /// Returns an error when the read fails, when it does not complete by `deadline`, or when the file is larger than
+    /// `limit` bytes.
+    pub async fn read_file(&self, path: &str, limit: u64, deadline: Instant) -> Result<Vec<u8>, AnyError> {
         let mut contents = Vec::new();
-        self.handle
-            .read_file(&SandboxPath::new(path))
-            .await?
-            .take(limit + 1)
-            .read_to_end(&mut contents)
-            .await?;
+        let read = async {
+            let file = self.handle.read_file(&SandboxPath::new(path)).await?;
+            file.take(limit + 1).read_to_end(&mut contents).await?;
+            Ok::<_, AnyError>(())
+        };
+        timeout_at(deadline, read).await.map_err(|_| too_late(path))??;
         if contents.len() as u64 > limit {
             return Err(io::Error::other(format!("{path} is larger than {limit} bytes")).into());
         }
@@ -152,4 +155,8 @@ impl Vm {
         let mut started = self.handle.start_execution(StartExecutionRequest::new(spec)).await?;
         collect(&mut started.events, deadline, limits).await
     }
+}
+
+fn too_late(path: &str) -> io::Error {
+    io::Error::new(io::ErrorKind::TimedOut, format!("the VM did not move {path} in time"))
 }

@@ -21,10 +21,14 @@ const PATCH_PATH: &str = "/job/changes.patch";
 const MAX_PATCH_BYTES: u64 = 20 * 1024 * 1024;
 const MAX_REPORT_BYTES: u64 = 8 * 1024 * 1024;
 const PREPARE_TIMEOUT: Duration = Duration::from_mins(2);
-const PATCH_TIMEOUT: Duration = Duration::from_mins(1);
+/// The time after the command to read the report and to make and read the patch. The core operator's budget for the
+/// result has room for it.
+const FINISH_TIMEOUT: Duration = Duration::from_mins(1);
+/// The output of a step only goes into the error of a failed run, which its status carries. The core operator reads a
+/// status of at most 64 KiB, and JSON can escape a byte in six.
 const STEP_OUTPUT_LIMITS: Limits = Limits {
-    stdout: 64 * 1024,
-    stderr: 64 * 1024,
+    stdout: 8 * 1024,
+    stderr: 8 * 1024,
 };
 
 /// Extracts the app and commits it. The patch starts at this commit. studioctl must have a clean working tree.
@@ -111,7 +115,7 @@ impl Command {
 pub struct Run {
     pub command: Command,
     pub archive: Bytes,
-    /// The command stops at this time. The VM must also start before this time.
+    /// The command stops at this time. The VM must also start, and the app be in it, before this time.
     pub deadline: Instant,
 }
 
@@ -181,12 +185,13 @@ async fn run_in_vm(vm: &Vm, run: Run) -> Result<Outcome, RunError> {
     let spec = run.command.spec();
     prepare_app(vm, run.archive, run.deadline).await?;
     let command = vm.run_script(spec.script, run.deadline, spec.output_limits).await?;
+    let finish = Instant::now() + FINISH_TIMEOUT;
     let report = match spec.report_file {
-        Some(path) => read_report(vm, path).await,
+        Some(path) => read_report(vm, path, finish).await,
         None => None,
     };
     let patch = if spec.changes_app {
-        patch_of(vm, command.ending).await?
+        patch_of(vm, command.ending, finish).await?
     } else {
         None
     };
@@ -195,8 +200,8 @@ async fn run_in_vm(vm: &Vm, run: Run) -> Result<Outcome, RunError> {
 
 /// Takes the archive, so that the operator runner does not keep it in memory after the write.
 async fn prepare_app(vm: &Vm, archive: Bytes, deadline: Instant) -> Result<(), RunError> {
-    vm.write_file(ARCHIVE_PATH, archive).await?;
     let deadline = deadline.min(Instant::now() + PREPARE_TIMEOUT);
+    vm.write_file(ARCHIVE_PATH, archive, deadline).await?;
     let prepared = vm.run_script(PREPARE_SCRIPT, deadline, STEP_OUTPUT_LIMITS).await?;
     if prepared.ending == Ending::Exited(0) {
         Ok(())
@@ -207,8 +212,8 @@ async fn prepare_app(vm: &Vm, archive: Bytes, deadline: Instant) -> Result<(), R
 
 /// Returns the report of the command, or `None` when the command wrote no JSON object. A command that stops early
 /// writes none, and the client then has its output.
-async fn read_report(vm: &Vm, path: &str) -> Option<Map<String, Value>> {
-    match vm.read_file(path, MAX_REPORT_BYTES).await {
+async fn read_report(vm: &Vm, path: &str, deadline: Instant) -> Option<Map<String, Value>> {
+    match vm.read_file(path, MAX_REPORT_BYTES, deadline).await {
         Ok(contents) => parse_report(&contents),
         Err(error) => {
             tracing::warn!(%error, "the command wrote no report");
@@ -233,23 +238,21 @@ fn parse_report(contents: &[u8]) -> Option<Map<String, Value>> {
 
 /// A command that timed out has no patch, because its changes are not complete. App code made the patch, so the
 /// operator runner checks it before it returns it.
-async fn patch_of(vm: &Vm, ending: Ending) -> Result<Option<Vec<u8>>, RunError> {
+async fn patch_of(vm: &Vm, ending: Ending, deadline: Instant) -> Result<Option<Vec<u8>>, RunError> {
     if ending == Ending::TimedOut {
         return Ok(None);
     }
-    let patch = read_patch(vm).await?;
+    let patch = read_patch(vm, deadline).await?;
     patch::check(&patch).map_err(RunError::RefusedPatch)?;
     Ok(Some(patch))
 }
 
-async fn read_patch(vm: &Vm) -> Result<Vec<u8>, AnyError> {
-    let made = vm
-        .run_script(PATCH_SCRIPT, Instant::now() + PATCH_TIMEOUT, STEP_OUTPUT_LIMITS)
-        .await?;
+async fn read_patch(vm: &Vm, deadline: Instant) -> Result<Vec<u8>, AnyError> {
+    let made = vm.run_script(PATCH_SCRIPT, deadline, STEP_OUTPUT_LIMITS).await?;
     if made.ending != Ending::Exited(0) {
         return Err(io::Error::other(format!("git could not make the patch: {}", to_text(&made.stderr))).into());
     }
-    vm.read_file(PATCH_PATH, MAX_PATCH_BYTES).await
+    vm.read_file(PATCH_PATH, MAX_PATCH_BYTES, deadline).await
 }
 
 fn to_outcome(command: &Collected, report: Option<Map<String, Value>>, patch: Option<&[u8]>) -> Outcome {
@@ -337,13 +340,15 @@ mod tests {
         /// the VM by its name, so the test starts it first.
         async fn upgrade(&self, patch: &'static str) -> Result<Outcome, RunError> {
             let vm = self.vms.start(&[]).await?;
+            let deadline = Instant::now() + Duration::from_mins(1);
             let report = Bytes::from_static(br#"{"exitCode": 0}"#);
-            vm.write_file("/job/report.json", report).await?;
-            vm.write_file(PATCH_PATH, Bytes::from_static(patch.as_bytes())).await?;
+            vm.write_file("/job/report.json", report, deadline).await?;
+            vm.write_file(PATCH_PATH, Bytes::from_static(patch.as_bytes()), deadline)
+                .await?;
             let run = Run {
                 command: Command::UpgradeV9,
                 archive: Bytes::from_static(b"app"),
-                deadline: Instant::now() + Duration::from_mins(1),
+                deadline,
             };
             self.vms.run(run).await
         }
