@@ -36,6 +36,7 @@ from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketState
 
 from agents.services.events import sink
+from shared.telemetry import ERROR_TYPE, error_type
 
 logger = logging.getLogger(__name__)
 
@@ -73,30 +74,17 @@ async def _stream_developer_events(stream: _DeveloperStream, developer: str):
     Stops when the WebSocket disconnects or another WebSocket takes over.
     """
     ws = stream.websocket
-    logger.info(f"🎬 _stream_developer_events started for developer {developer} (cursor={stream.cursor})")
 
     while True:
-        new_events = sink.get_developer_events_since(developer, stream.cursor)
-        if new_events:
-            logger.info(f"📦 Found {len(new_events)} new events (cursor={stream.cursor}) for developer {developer}")
-
-        for event in new_events:
-            ok = await _safe_send_json(ws, event.model_dump())
-            if not ok:
-                logger.info(
-                    f"🔌 WS closed while streaming event {event.type} session={event.session_id} developer={developer}"
-                )
+        for event in sink.get_developer_events_since(developer, stream.cursor):
+            if not await _safe_send_json(ws, event.model_dump()):
                 return
-            logger.info(f"✅ WS sent: type={event.type}, session={event.session_id}, developer={developer}")
             stream.cursor += 1
 
         try:
-            logger.debug(f"⏳ Waiting for developer events (cursor={stream.cursor}) developer={developer}")
-            got_new = await sink.wait_for_developer_events(developer, known_count=stream.cursor, timeout=30.0)
-            if not got_new:
-                logger.debug(f"⏰ Wait timed out (cursor={stream.cursor}) developer={developer}, looping")
+            await sink.wait_for_developer_events(developer, known_count=stream.cursor, timeout=30.0)
         except Exception as e:
-            logger.warning(f"Wait error for developer {developer}: {e}")
+            logger.warning("Waiting for events failed", extra={ERROR_TYPE: error_type(e)})
 
 
 async def _take_over_stream(ws: WebSocket, developer: str) -> _DeveloperStream:
@@ -118,7 +106,6 @@ async def _take_over_stream(ws: WebSocket, developer: str) -> _DeveloperStream:
         _streams[developer] = stream
 
         if previous is not None and previous.websocket is not ws:
-            logger.info(f"🔁 Another WebSocket streams the events of developer {developer}; closing the previous one")
             with contextlib.suppress(Exception):
                 await previous.websocket.close(code=1000, reason="Another connection receives the events")
         return stream
@@ -166,7 +153,6 @@ def register_websocket_routes(app: FastAPI):
 
         try:
             await websocket.accept()
-            logger.info("🔗 WebSocket connected")
 
             await _safe_send_json(
                 websocket,
@@ -180,11 +166,9 @@ def register_websocket_routes(app: FastAPI):
             # --- Phase 1: wait for initial registration -----------------------
             session_id, developer = await _receive_initial_registration(websocket)
             if not developer:
-                logger.info("🔌 WebSocket closed before developer registration")
                 return
 
             sink.register_developer_session(developer, session_id or "")
-            logger.info(f"📋 Developer registered: {developer}, initial session: {session_id}")
 
             # --- Phase 2: stream ALL developer events + keep reading ----------
             # The stream never restarts on new session registrations — it delivers
@@ -220,9 +204,6 @@ def register_websocket_routes(app: FastAPI):
                         new_developer = data.get("developer") or developer
                         if new_session_id:
                             sink.register_developer_session(new_developer, new_session_id)
-                            logger.info(
-                                f"� Additional session registered: {new_session_id} -> developer {new_developer}"
-                            )
                             await _safe_send_json(
                                 websocket,
                                 {
@@ -236,7 +217,7 @@ def register_websocket_routes(app: FastAPI):
                 pass
 
         except Exception as e:
-            logger.error(f"WebSocket error: {e}")
+            logger.warning("The WebSocket connection failed", extra={ERROR_TYPE: error_type(e)})
 
         finally:
             _release_stream(stream, developer)
@@ -244,7 +225,6 @@ def register_websocket_routes(app: FastAPI):
                 stream.task.cancel()
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     await stream.task
-            logger.info(f"🔌 WebSocket disconnected (developer={developer})")
 
     @app.get("/api/ws/status")
     async def get_websocket_status():

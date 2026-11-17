@@ -50,8 +50,6 @@ _langfuse_filter = SuppressLangfuseTimeouts()
 for _handler in logging.root.handlers:
     _handler.addFilter(_langfuse_filter)
 
-logger = logging.getLogger(__name__)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -61,22 +59,14 @@ async def lifespan(app: FastAPI):
 
     # Initialize Langfuse if enabled
     if config.LANGFUSE_ENABLED:
-        try:
-            from shared.utils.langfuse_utils import init_langfuse
+        from shared.utils.langfuse_utils import init_langfuse
 
-            init_langfuse()
-            logger.info(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
-        except Exception as e:
-            logger.warning(f"⚠️  Failed to initialize Langfuse: {e}")
+        init_langfuse()
 
     loop = asyncio.get_running_loop()
     sink.set_main_loop(loop)
-    logger.info("Event sink configured with main event loop")
 
     yield  # ---- application is running ----
-
-    # --- Shutdown ---
-    logger.info("Shutting down Altinity Agent API...")
 
 
 # Create FastAPI app
@@ -120,7 +110,6 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info(f"Starting Altinity Agent API on {config.API_HOST}:{config.API_PORT}")
     uvicorn.run(
         app,
         host=config.API_HOST,

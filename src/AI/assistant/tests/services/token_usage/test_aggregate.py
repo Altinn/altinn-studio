@@ -1,6 +1,7 @@
 import logging
 
 from services.token_usage.aggregate import Observation, Trace, aggregate_token_usage
+from shared.telemetry import LANGFUSE_TRACE_ID
 
 LOADED_AT = "2026-05-04T02:00:00.000Z"
 SERVICE_OWNER = "ttd"
@@ -222,6 +223,10 @@ class TestDateParts:
         assert row["date"] == "2026-05-03"
 
 
+def _logged_trace_ids(caplog) -> list[str]:
+    return [getattr(record, LANGFUSE_TRACE_ID) for record in caplog.records]
+
+
 class TestEdgeCases:
     def test_empty_observations_returns_empty(self):
         assert aggregate_token_usage([], {}, LOADED_AT) == []
@@ -234,7 +239,7 @@ class TestEdgeCases:
             rows = aggregate_token_usage(observations, traces, LOADED_AT)
 
         assert rows[0]["serviceresourceid"] == "app_ttd_unknown"
-        assert DEFAULT_TRACE_ID in caplog.text
+        assert _logged_trace_ids(caplog) == [DEFAULT_TRACE_ID]
 
     def test_warns_when_user_id_empty(self, caplog):
         """An ownerless trace we can't account for must not crash the run."""
@@ -246,7 +251,7 @@ class TestEdgeCases:
 
         assert row["serviceownercode"] == "unknown"
         assert row["total_tokens"] == 150
-        assert DEFAULT_TRACE_ID in caplog.text
+        assert _logged_trace_ids(caplog) == [DEFAULT_TRACE_ID]
 
     def test_attributes_langfuse_internal_traces_to_langfuse(self, caplog):
         """Langfuse's own evaluators stamp no user and no app metadata, but the
@@ -269,7 +274,7 @@ class TestEdgeCases:
             rows = aggregate_token_usage(observations, {}, LOADED_AT)
 
         assert rows == []
-        assert "unknown-trace" in caplog.text
+        assert _logged_trace_ids(caplog) == ["unknown-trace"]
 
     def test_warns_when_model_missing(self, caplog):
         observations = [make_observation()]
@@ -280,7 +285,7 @@ class TestEdgeCases:
             [row] = aggregate_token_usage(observations, traces, LOADED_AT)
 
         assert "unknown" in row["tokens_by_model"]
-        assert DEFAULT_TRACE_ID in caplog.text
+        assert _logged_trace_ids(caplog) == [DEFAULT_TRACE_ID]
 
 
 class TestTokensByModel:

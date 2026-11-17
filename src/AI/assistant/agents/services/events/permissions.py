@@ -16,12 +16,8 @@ import asyncio
 import uuid
 from dataclasses import dataclass, field
 
-from shared.utils.logging_utils import get_logger
-
 from .events import AgentEvent
 from .jobs import sink
-
-log = get_logger(__name__)
 
 PERMISSION_TIMEOUT_SECONDS = 300
 
@@ -49,7 +45,6 @@ class PermissionBroker:
         # Asking then would emit a prompt the sink suppresses (cancelled
         # session) while we block on an answer that can never come.
         if sink.is_cancelled(session_id):
-            log.info("🔐 Permission request skipped for cancelled session %s", session_id)
             return False
 
         async with self._lock:
@@ -70,18 +65,12 @@ class PermissionBroker:
                         },
                     )
                 )
-                log.info(
-                    "🔐 Permission requested for session %s (%s)",
-                    session_id,
-                    action_description,
-                )
             else:
                 pending.waiters += 1
 
         try:
             return await asyncio.wait_for(asyncio.shield(pending.future), timeout=PERMISSION_TIMEOUT_SECONDS)
         except TimeoutError:
-            log.info("🔐 Permission request timed out for session %s", session_id)
             # Resolve the shared future so every waiter in the batch sees
             # the same declined outcome and a late answer can't flip it.
             if not pending.future.done():
@@ -105,10 +94,6 @@ class PermissionBroker:
         pending = self._pending.get(session_id)
         if pending is not None and not pending.future.done():
             pending.future.set_result(False)
-            log.info(
-                "🔐 Pending permission request declined by cancellation for session %s",
-                session_id,
-            )
 
     def resolve(self, session_id: str, request_id: str, granted: bool) -> bool:
         """Deliver the user's answer.  Returns False for unknown/stale ids."""
@@ -120,11 +105,6 @@ class PermissionBroker:
             return False
         pending.future.set_result(granted)
         self._emit_resolution(session_id, request_id, granted)
-        log.info(
-            "🔐 Permission %s for session %s",
-            "granted" if granted else "declined",
-            session_id,
-        )
         return True
 
     @staticmethod

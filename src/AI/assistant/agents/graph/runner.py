@@ -1,7 +1,6 @@
 """LangGraph runner for agent workflow"""
 
 import asyncio
-import logging as _logging
 
 from langfuse import get_client, propagate_attributes
 from langgraph.graph import END, StateGraph
@@ -122,8 +121,6 @@ def build_graph():
 
 graph = build_graph()
 
-_log = _logging.getLogger(__name__)
-
 WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
 
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
@@ -166,11 +163,6 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
-        _log.info(
-            "Out-of-scope goal for session %s (%s)",
-            state.session_id,
-            scope_result.reason,
-        )
         if state.allow_app_changes:
             raise GoalRejected(decline_text)
         if not _emit_chat_decline(state, event_sink, decline_text):
@@ -239,17 +231,13 @@ async def _check_security(state: AgentState):
     )
 
     if parsed.failed:
-        _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
-        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
         suggestions = await suggest_goal_correction(
             state.user_goal, parsed.reason, conversation=state.conversation_history
         )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
-
-    _log.info("Goal passed the security gate for session %s", state.session_id)
 
 
 def _mark_as_experiment_item(state: AgentState, root_span) -> dict[str, str]:
@@ -386,10 +374,6 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
 
 def run_in_background(state: AgentState, event_sink: EventSink | None = None):
     """Start workflow in background task"""
-    import logging
-
-    log = logging.getLogger(__name__)
-
     if event_sink is None:
         event_sink = sink
 
@@ -397,7 +381,7 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
         try:
             await run_once(state, event_sink)
         except WorkflowCancelled:
-            log.info(f"🛑 Workflow cancelled for session {state.session_id}")
+            pass
         except GoalRejected as e:
             event_sink.send(
                 AgentEvent(
@@ -412,11 +396,10 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
                     },
                 )
             )
-        except Exception as e:
+        except Exception:
             if event_sink.is_cancelled(state.session_id):
-                log.info(f"🛑 Workflow error after cancellation for session {state.session_id}: {e}")
                 return
-            log.error(f"Workflow failed with exception: {e}", exc_info=True)
+            log.exception("The run failed")
             event_sink.send(
                 AgentEvent(
                     type="error",

@@ -3,6 +3,7 @@ Repository management service for cloning and managing Altinn app repos.
 Handles cloning from gitea, temporary storage, and cleanup.
 """
 
+import contextlib
 import hashlib
 import shutil
 import subprocess
@@ -15,6 +16,8 @@ from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
+
+_BRANCH_NOT_CREATED = "Could not create the branch, so the session works on the current one"
 config = get_config()
 
 
@@ -76,7 +79,6 @@ class RepoManager:
         if session_id in self.active_repos:
             existing_path = self.active_repos[session_id]
             if existing_path.exists():
-                log.info(f"Using existing cloned repo for session {session_id}: {existing_path}")
                 # Each turn starts from the saved state. Thus the model cannot
                 # read an edit that the user does not have, and tell the user
                 # that the edit is in the app.
@@ -86,33 +88,25 @@ class RepoManager:
                     try:
                         checkout_cmd = ["git", "checkout", branch]
                         subprocess.run(checkout_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
-                        log.info(f"Checked out branch {branch} for existing session {session_id}")
-                    except subprocess.CalledProcessError as e:
-                        log.warning(f"Failed to checkout branch {branch} for existing session: {e.stderr}")
+                    except subprocess.CalledProcessError:
                         # Try to create and checkout the branch
                         try:
                             create_branch_cmd = ["git", "checkout", "-b", branch]
                             subprocess.run(
                                 create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True
                             )
-                            log.info(f"Created and checked out new branch {branch} for existing session {session_id}")
-                        except subprocess.CalledProcessError as e2:
-                            log.error(f"Failed to create branch {branch}: {e2.stderr}")
+                        except subprocess.CalledProcessError:
+                            log.warning(_BRANCH_NOT_CREATED)
                 return existing_path
 
         # Remove any existing directory with this name
         if repo_path.exists():
-            log.info(f"Removing existing repo directory: {repo_path}")
             shutil.rmtree(repo_path)
-
-        log.info(f"Cloning repository {repo_url} to {repo_path}")
 
         try:
             clone_url = self._apply_base_url(repo_url)
 
             self._run_git(["clone", clone_url, str(repo_path)], effective_api_key, timeout=300)
-
-            log.info(f"Successfully cloned {repo_url} for session {session_id}")
 
             # If a branch was specified, checkout that branch
             if branch:
@@ -120,15 +114,13 @@ class RepoManager:
                     # First try to checkout existing branch
                     checkout_cmd = ["git", "checkout", branch]
                     subprocess.run(checkout_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
-                    log.info(f"Checked out existing branch {branch} for session {session_id}")
                 except subprocess.CalledProcessError:
                     # Branch doesn't exist, create it
                     try:
                         create_branch_cmd = ["git", "checkout", "-b", branch]
                         subprocess.run(create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
-                        log.info(f"Created and checked out new branch {branch} for session {session_id}")
-                    except subprocess.CalledProcessError as e:
-                        log.error(f"Failed to create branch {branch}: {e.stderr}")
+                    except subprocess.CalledProcessError:
+                        log.warning(_BRANCH_NOT_CREATED)
                         # Continue anyway - we'll work on default branch
 
             # Store the active repo mapping (token already persisted above)
@@ -138,14 +130,10 @@ class RepoManager:
             return repo_path
 
         except subprocess.CalledProcessError as e:
-            error_msg = f"Failed to clone repository {repo_url}: {e.stderr}"
-            log.error(error_msg)
-            raise Exception(error_msg) from e
+            raise Exception(f"Failed to clone repository {repo_url}: {e.stderr}") from e
         except subprocess.TimeoutExpired as e:
             # The message of the exception has the command, and the command has the API key.
-            error_msg = f"Failed to clone repository {repo_url}: no answer after {e.timeout} seconds"
-            log.error(error_msg)
-            raise Exception(error_msg) from None
+            raise Exception(f"Failed to clone repository {repo_url}: no answer after {e.timeout} seconds") from None
 
     def get_session_start_commit(self, session_id: str) -> str | None:
         """The commit that the session started from. A later start that uses the clone again keeps it."""
@@ -161,23 +149,18 @@ class RepoManager:
 
         repo_path = self.active_repos[session_id]
 
-        log.info(f"Pushing branch {branch_name} for session {session_id}")
-
         try:
             api_key = self.session_api_keys.get(session_id)
             if not api_key:
                 raise Exception(f"No API key found for session {session_id}. API key must be provided during clone.")
 
             self._run_git(["push", "origin", branch_name], api_key, cwd=repo_path)
-
-            log.info(f"Successfully pushed branch {branch_name} for session {session_id}")
             self.unreported_pushes[session_id] = branch_name
             return True
 
         except subprocess.CalledProcessError as e:
-            error_msg = f"Failed to push branch {branch_name}: {e.stderr}"
-            log.error(error_msg)
-            raise Exception(error_msg) from e
+            log.warning("Could not push the branch")
+            raise Exception(f"Failed to push branch {branch_name}: {e.stderr}") from e
 
     def take_unreported_push(self, session_id: str) -> str | None:
         """Return the pushed branch that Designer must check out, and remove the record.
@@ -196,14 +179,12 @@ class RepoManager:
             session_id: Session identifier
         """
         if session_id not in self.active_repos:
-            log.warning(f"No active repository to cleanup for session {session_id}")
             return
 
         repo_path = self.active_repos[session_id]
 
-        try:
+        with contextlib.suppress(Exception):
             if repo_path.exists():
-                log.info(f"Cleaning up repository for session {session_id}: {repo_path}")
                 shutil.rmtree(repo_path)
 
             # Remove from active repos and session mappings
@@ -212,10 +193,6 @@ class RepoManager:
                 del self.session_api_keys[session_id]
             self.start_commits.pop(session_id, None)
             self.unreported_pushes.pop(session_id, None)
-            log.info(f"Successfully cleaned up session {session_id}")
-
-        except Exception as e:
-            log.error(f"Failed to cleanup repository for session {session_id}: {e}")
 
     def get_session_repo_path(self, session_id: str) -> Path | None:
         """

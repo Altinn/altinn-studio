@@ -8,9 +8,6 @@ from agents.prompts import get_prompt_with_langfuse, render_template
 from agents.services.llm import LLMClient
 from shared.models import AgentAttachment
 from shared.utils.langfuse_utils import trace_generation
-from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
 
 
 @dataclass

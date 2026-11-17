@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 from shared.config import get_config
+from shared.telemetry import LANGFUSE_OBSERVATION_ID, LANGFUSE_TRACE_ID
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -65,9 +66,8 @@ def aggregate_token_usage(
         trace = traces_by_id.get(observation["trace_id"])
         if trace is None:
             log.warning(
-                "Skipping observation %s — parent trace %s not found",
-                observation["id"],
-                observation["trace_id"],
+                "An observation's trace is missing, so its tokens are left out",
+                extra={LANGFUSE_OBSERVATION_ID: observation["id"], LANGFUSE_TRACE_ID: observation["trace_id"]},
             )
             continue
 
@@ -101,9 +101,8 @@ def aggregate_token_usage(
         model = observation["model"]
         if not model:
             log.warning(
-                "Missing model for observation on trace %s — bucketing under '%s'",
-                observation["trace_id"],
-                UNKNOWN,
+                "An observation has no model, so its tokens count as unknown",
+                extra={LANGFUSE_TRACE_ID: observation["trace_id"]},
             )
             model = UNKNOWN
 
@@ -125,11 +124,7 @@ def _get_service_owner_code(trace: Trace) -> str:
         return service_owner_code
     if _is_langfuse_internal(trace):
         return INTERNAL_OWNER_CODE
-    log.warning(
-        "Missing service owner code for trace %s — bucketing under '%s'",
-        trace["id"],
-        UNKNOWN,
-    )
+    log.warning("A trace has no service owner, so its tokens count as unknown", extra={LANGFUSE_TRACE_ID: trace["id"]})
     return UNKNOWN
 
 
@@ -150,11 +145,7 @@ def _get_app_name(trace: Trace) -> str:
     metadata = trace["metadata"] or {}
     app_name = metadata.get("app_name")
     if not app_name:
-        log.warning(
-            "Missing metadata.app_name for trace %s — bucketing under '%s'",
-            trace["id"],
-            UNKNOWN,
-        )
+        log.warning("A trace has no app name, so its tokens count as unknown", extra={LANGFUSE_TRACE_ID: trace["id"]})
         return UNKNOWN
     return app_name
 

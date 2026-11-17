@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import mimetypes
 import shutil
 from base64 import b64decode, b64encode
@@ -8,8 +7,6 @@ from pathlib import Path
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
-
-logger = logging.getLogger(__name__)
 
 
 class AttachmentUpload(BaseModel):
@@ -88,7 +85,6 @@ class AgentAttachment(BaseModel):
         try:
             text = raw.decode("utf-8-sig")
         except UnicodeDecodeError:
-            logger.warning("Attachment %s is not valid UTF-8; replacing the invalid bytes", self.name)
             text = raw.decode("utf-8-sig", errors="replace")
         return {"type": "text", "text": f"Attachment {self.name}:\n\n{text}"}
 

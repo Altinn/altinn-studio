@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Any
 
 from shared.config.base_config import get_config
+from shared.telemetry import ERROR_TYPE, GEN_AI_REQUEST_MODEL, error_type
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.models import is_claude_model, is_reasoning_model
@@ -176,13 +177,11 @@ class AnthropicAdapter(LLMAdapter):
                             and getattr(block, "type", None) == "tool_use"
                             and on_tool_use_start is not None
                         ):
-                            try:
+                            with contextlib.suppress(Exception):
                                 on_tool_use_start(
                                     getattr(block, "name", "") or "",
                                     getattr(block, "id", "") or "",
                                 )
-                            except Exception:
-                                log.debug("on_tool_use_start raised", exc_info=True)
                     elif event_type == "content_block_delta":
                         delta = getattr(event, "delta", None)
                         delta_type = getattr(delta, "type", None) if delta is not None else None
@@ -190,10 +189,8 @@ class AnthropicAdapter(LLMAdapter):
                             text = getattr(delta, "text", "")
                             if text and on_text_delta is not None:
                                 accumulated_text += text
-                                try:
+                                with contextlib.suppress(Exception):
                                     on_text_delta(text, accumulated_text)
-                                except Exception:
-                                    log.debug("on_text_delta raised", exc_info=True)
                         # input_json_delta is intentionally ignored — the
                         # tool_use_start hook already told the UI which
                         # tool is generating, and surfacing partial JSON
@@ -209,9 +206,7 @@ class AnthropicAdapter(LLMAdapter):
             # errors — the second call will raise the same exception and
             # the loop's outer handler turns it into a clean termination.
             log.warning(
-                "Streaming chat failed (%s: %s); retrying without streaming.",
-                type(exc).__name__,
-                exc,
+                "Streaming failed, so the model call is retried without it", extra={ERROR_TYPE: error_type(exc)}
             )
             return await self._client.messages.create(**kwargs)
 
@@ -271,7 +266,7 @@ class AnthropicAdapter(LLMAdapter):
             )
 
             content: list[ContentBlock] = []
-            dropped_block_types: dict[str, int] = {}
+            dropped_blocks = False
             for block in response.content:
                 block_type = getattr(block, "type", None)
                 if block_type == "text":
@@ -284,13 +279,11 @@ class AnthropicAdapter(LLMAdapter):
                     # are tokens we paid for without seeing, and their presence
                     # means the request config (`thinking` above) isn't doing
                     # what we think it does.
-                    key = str(block_type or "unknown")
-                    dropped_block_types[key] = dropped_block_types.get(key, 0) + 1
-            if dropped_block_types:
+                    dropped_blocks = True
+            if dropped_blocks:
                 log.warning(
-                    "Dropped non-text/tool_use response blocks: %s (model=%s)",
-                    dropped_block_types,
-                    self.model,
+                    "The reply had blocks that the loop drops, such as thinking",
+                    extra={GEN_AI_REQUEST_MODEL: self.model},
                 )
 
             usage_obj = getattr(response, "usage", None)
@@ -307,7 +300,7 @@ class AnthropicAdapter(LLMAdapter):
                 stop_reason=response.stop_reason,
                 usage=usage,
             )
-            _warn_if_truncated(response.stop_reason, usage["output_tokens"], self.max_tokens)
+            _warn_if_truncated(response.stop_reason)
             with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
@@ -532,7 +525,7 @@ class OpenAIAdapter(LLMAdapter):
                 stop_reason=_normalize_openai_stop(choice.finish_reason),
                 usage=usage,
             )
-            _warn_if_truncated(assistant.stop_reason, usage["output_tokens"], self.max_tokens)
+            _warn_if_truncated(assistant.stop_reason)
             with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
@@ -607,15 +600,10 @@ def _tool_schema_to_openai(schema: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _warn_if_truncated(stop_reason: str | None, output_tokens: int, max_tokens: int) -> None:
+def _warn_if_truncated(stop_reason: str | None) -> None:
     """Surface max_tokens truncation as a log line."""
     if stop_reason == "max_tokens":
-        log.warning(
-            "LLM response truncated at max_tokens budget (output_tokens=%d, max_tokens=%d). "
-            "Tool calls may be malformed; consider raising the budget.",
-            output_tokens,
-            max_tokens,
-        )
+        log.warning("The reply stopped at the max_tokens budget, so its tool calls may be broken")
 
 
 def _normalize_openai_stop(reason: str | None) -> str | None:

@@ -84,7 +84,7 @@ class TestBothAnthropicClientsUseTheSameKey:
 
         monkeypatch.setattr(llm_client, "config", config)
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
-        client._init_anthropic_client("planner", "claude-opus-4-8", None)
+        client._init_anthropic_client()
 
         assert client._require_anthropic_client().api_key == "anthropic-resource-key"
 
@@ -94,7 +94,7 @@ class TestBothAnthropicClientsUseTheSameKey:
         config.AZURE_ANTHROPIC_API_KEY = config.AZURE_API_KEY
         monkeypatch.setattr(llm_client, "config", config)
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
-        client._init_anthropic_client("planner", "claude-opus-4-8", None)
+        client._init_anthropic_client()
 
         assert client._require_anthropic_client().api_key == "openai-resource-key"
 
@@ -106,7 +106,7 @@ class TestBothAnthropicClientsUseTheSameKey:
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
 
         with pytest.raises(ValueError, match="AZURE_ANTHROPIC_API_KEY"):
-            client._init_anthropic_client("planner", "claude-opus-4-8", None)
+            client._init_anthropic_client()
 
     def test_no_anthropic_client_still_reads_the_openai_key_directly(self):
         """A grep guard: if a third site appears, it must use the anthropic key."""

@@ -50,6 +50,7 @@ from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
 from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.config.base_config import get_config
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -197,10 +198,7 @@ def _framed_turn(state: AgentState, message: str) -> tuple[str, list]:
 
 
 async def handle(state: AgentState) -> AgentState:
-    log.info("🤖 Agentic loop node executing")
-
     app_version_profile = detect_app_version_profile(state.repo_path)
-    log.info("App version for session %s: v%s", state.session_id, app_version_profile.major_version)
 
     session = SessionContext(
         session_id=state.session_id,
@@ -215,11 +213,6 @@ async def handle(state: AgentState) -> AgentState:
     system_prompt = build_system_prompt(session, skill_listing=format_skill_listing(skills))
 
     registry = _build_registry(skills)
-    log.info(
-        "🧰 Loop registry has %d tools: %s",
-        len(registry),
-        ", ".join(registry.names()),
-    )
 
     ctx = LoopContext(
         session_id=state.session_id,
@@ -313,7 +306,9 @@ def _unsaved_files(ctx: LoopContext) -> list[str]:
     try:
         return sorted({*git_ops.uncommitted_files(ctx.repo_path), *git_ops.unpushed_files(ctx.repo_path)})
     except (OSError, subprocess.SubprocessError) as exc:
-        log.warning("Cannot read the clone of session %s. The node uses the edit list: %s", ctx.session_id, exc)
+        log.warning(
+            "Git could not read the clone, so the tools' list of edits is used", extra={ERROR_TYPE: error_type(exc)}
+        )
         return sorted(ctx.extras.get("changed_files") or set())
 
 
@@ -348,18 +343,12 @@ async def _repair_render_failures(
         try:
             outcome = await check.run(args, ctx)
         except Exception:
-            log.exception("Render check raised for session %s", state.session_id)
             return result
         if outcome.metadata.get("unavailable") or not outcome.is_error:
             return result
         if sink.is_cancelled(state.session_id):
             return result
         if attempt == MAX_RENDER_REPAIR_ROUNDS:
-            log.warning(
-                "Render check still failing for session %s after %s repair round(s)",
-                state.session_id,
-                MAX_RENDER_REPAIR_ROUNDS,
-            )
             state.tests_passed = False
             state.verify_notes = [f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."]
             if _unsaved_files(ctx):
@@ -368,7 +357,6 @@ async def _repair_render_failures(
                 )
             return result
 
-        log.info("Render check failed for session %s; asking the model to fix", state.session_id)
         repair_message, history = _framed_turn(state, outcome.content)
         result = await run_loop(
             user_message=repair_message,
@@ -394,11 +382,6 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     goal = state.user_goal or ""
     if state.form_spec is not None or not state.attachments:
         return goal
-    log.warning(
-        "Loop starting without a form_spec despite %d attachment(s); "
-        "asking the model to stop and request the field list.",
-        len(state.attachments),
-    )
     notice = (
         "⚠️ Spec extraction did not produce a form spec for the attached "
         "file(s).  You do NOT have the field list.  Do not invent fields "
@@ -544,18 +527,6 @@ def _make_event_bridge(session_id: str) -> EventCallback:
             delta_state["pending_text"] = ""
         elif event == "terminated":
             _flush_pending_delta()
-            log.info(
-                "🛑 Loop terminated for session %s: reason=%s",
-                session_id,
-                payload.get("reason"),
-            )
-        elif event == "compacted":
-            log.info(
-                "📦 Loop compacted history for session %s: %d → %d",
-                session_id,
-                payload.get("from", 0),
-                payload.get("to", 0),
-            )
 
     return on_event
 
@@ -592,22 +563,13 @@ def _emit_workflow_completion(
         "sources": _sources_the_user_can_open(ctx),
     }
     if security_notice:
-        log.warning(
-            "Prompt injection reported by the model for session %s: %s",
-            state.session_id,
-            security_notice,
-        )
+        log.warning("The model reported an instruction in content the user supplied")
         # The alert tells the user a document they uploaded carried the
         # instruction, so it must not fire when there was no document.
         if _turn_carried_attachment_content(state):
             # Only the flag crosses into Designer; attacker-influenced prose is
             # never rendered to the user.
             message_data["attachmentInstructionFlagged"] = True
-        else:
-            log.warning(
-                "Ignoring the report for session %s: the turn had no attachment content",
-                state.session_id,
-            )
     # A cancelled turn sends no final message. Thus the repo manager keeps the
     # push, and the final message of the next turn gives the branch.
     pushed_branch = repo_manager.get_repo_manager().take_unreported_push(state.session_id)
@@ -629,7 +591,7 @@ def _emit_workflow_completion(
         history_text = f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
         sink.add_to_conversation_history(state.session_id, "assistant", history_text)
     except Exception:
-        log.exception("Failed to store assistant message in conversation history")
+        log.warning("Could not store the message in conversation history", exc_info=True)
 
     sink.send(
         AgentEvent(
@@ -730,8 +692,7 @@ def _final_summary_text(result: LoopResult, *, changes: str) -> str:
     if result.reason is TerminationReason.CANCELLED:
         return "Forespørselen ble avbrutt."
     if result.reason is TerminationReason.ERROR:
-        # The provider's own text names keys, endpoints and regions: log it, don't ship it.
-        log.error("Loop failed: %s", result.error or "unknown")
+        # The provider's own text names keys, endpoints and regions: don't ship it.
         return f"Noe gikk galt hos meg underveis, så jeg stoppet.  {changes}  Prøv igjen om litt."
     return "Ferdig."
 

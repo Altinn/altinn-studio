@@ -1,6 +1,7 @@
 """LLM client for Altinity agents"""
 
 import asyncio
+import contextlib
 import functools
 import json
 from collections.abc import Sequence
@@ -15,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
 from shared.models import AgentAttachment
+from shared.telemetry import ERROR_TYPE, GEN_AI_REQUEST_MODEL, GEN_AI_RESPONSE_FINISH_REASONS, error_type
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.models import is_claude_model, is_reasoning_model
@@ -96,10 +98,7 @@ class LLMClient:
                 try:
                     temperature = float(config.LLM_TEMPERATURE_PLANNER)
                 except ValueError:
-                    log.warning(
-                        "Invalid planner temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_PLANNER,
-                    )
+                    log.warning("LLM_TEMPERATURE_PLANNER is not a number; using the provider default")
         else:
             # Default fallback — used by check_security_with_llm /
             # suggest_goals_with_llm, which call get_llm_client() with no role.
@@ -108,10 +107,7 @@ class LLMClient:
                 try:
                     temperature = float(config.LLM_TEMPERATURE)
                 except ValueError:
-                    log.warning(
-                        "Invalid default temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE,
-                    )
+                    log.warning("LLM_TEMPERATURE is not a number; using the provider default")
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
@@ -127,19 +123,14 @@ class LLMClient:
             # consume the max_tokens budget. With 8192, the model may spend all tokens
             # on reasoning and return empty output. Use 32768 to leave ample room.
             self.max_tokens = 32768
-            log.info(f"Reasoning model detected ({model}), using max_tokens={self.max_tokens}")
         else:
             self.max_tokens = 8192
 
         # Check if this is a Claude model - use Anthropic SDK instead of OpenAI
         if is_claude_model(model):
-            self._init_anthropic_client(role, model, temperature)
+            self._init_anthropic_client()
         # Prefer Azure OpenAI if available
         elif config.AZURE_API_KEY:
-            log.info(
-                f"Using Azure OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
-            )
-
             llm_params: dict[str, Any] = {
                 "azure_endpoint": config.AZURE_OPENAI_ENDPOINT,
                 "api_key": config.AZURE_API_KEY,
@@ -161,9 +152,6 @@ class LLMClient:
 
             self.llm = AzureChatOpenAI(**llm_params)
         elif config.OPENAI_API_KEY and config.OPENAI_API_KEY != "your_openai_api_key_here":
-            log.info(
-                f"Using OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
-            )
             chat_kwargs: dict[str, Any] = {
                 "api_key": config.OPENAI_API_KEY,
                 "model": model,
@@ -179,11 +167,11 @@ class LLMClient:
                     chat_kwargs["temperature"] = temperature
             self.llm = ChatOpenAI(**chat_kwargs)
         else:
-            log.warning("No LLM API key configured - LLM features will be limited")
+            log.warning("No LLM API key is configured")
 
         self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not self.use_anthropic
 
-    def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
+    def _init_anthropic_client(self) -> None:
         """Initialize the Anthropic/Claude client for Azure AI Foundry"""
         from anthropic import Anthropic
 
@@ -193,12 +181,6 @@ class LLMClient:
                 "Set AZURE_ANTHROPIC_ENDPOINT with AZURE_ANTHROPIC_API_KEY, which "
                 "falls back to AZURE_API_KEY when both endpoints are on one resource."
             )
-
-        log.info(
-            f"Using Anthropic via Azure AI Foundry for LLM operations "
-            f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
-            f"temperature={temperature if temperature is not None else 'default'})"
-        )
         self.anthropic_client = Anthropic(
             api_key=config.AZURE_ANTHROPIC_API_KEY,
             base_url=config.AZURE_ANTHROPIC_ENDPOINT,
@@ -235,8 +217,7 @@ class LLMClient:
     def _build_human_message(self, user_prompt: str, attachments: list[AgentAttachment] | None = None) -> HumanMessage:
         if attachments and not self.supports_vision:
             log.warning(
-                "Attachments provided but model %s does not support multimodal input; attachments will be ignored.",
-                self.model,
+                "The model takes no attachments, so they are left out", extra={GEN_AI_REQUEST_MODEL: self.model}
             )
         if attachments:
             content: list[str | dict] = [{"type": "text", "text": user_prompt}]
@@ -276,10 +257,8 @@ class LLMClient:
             metadata={"role": self.role},
         ) as span:
             if langfuse_prompt is not None:
-                try:
+                with contextlib.suppress(Exception):
                     langfuse.update_current_generation(prompt=langfuse_prompt)
-                except Exception as e:
-                    log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
                 loop = asyncio.get_running_loop()
@@ -339,7 +318,7 @@ class LLMClient:
                             "total_tokens": usage.get("total_tokens", 0),
                         }
 
-                try:
+                with contextlib.suppress(Exception):
                     span.update(
                         output={"response": response_text},
                         usage_details=usage_details if usage_details else None,
@@ -348,25 +327,17 @@ class LLMClient:
                             "response_length": len(response_text),
                         },
                     )
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with response: %s", span_e)
                 return response_text
 
             except TimeoutError as e:
-                log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
-                try:
+                with contextlib.suppress(Exception):
                     span.update(metadata={"error": "timeout"})
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
                 raise TimeoutError(
                     f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request."
                 ) from e
             except Exception as e:
-                log.error(f"LLM call failed: {e}")
-                try:
+                with contextlib.suppress(Exception):
                     span.update(metadata={"error": str(e)})
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with error: %s", span_e)
                 raise
 
     def get_model_metadata(self) -> dict:
@@ -386,8 +357,7 @@ class LLMClient:
                 "temperature": float(llm_temp) if llm_temp is not None else 0.1,
             }
             return metadata
-        except Exception as e:
-            log.warning(f"Error getting model metadata: {e}")
+        except Exception:
             return {"role": str(self.role), "model": "unknown", "temperature": 0.1}
 
     def call_sync(
@@ -413,57 +383,18 @@ class LLMClient:
         ) as span:
             langfuse = get_client()
             if langfuse_prompt is not None:
-                try:
+                with contextlib.suppress(Exception):
                     langfuse.update_current_generation(prompt=langfuse_prompt)
-                except Exception as e:
-                    log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
                 if self.use_anthropic:
                     user_content = _build_anthropic_user_content(user_message, attachments)
-
-                    import time
-
-                    system_len = len(system_message.strip() if system_message else "")
-                    user_len = len(user_message.strip())
-                    log.info("🔵 Anthropic API call starting")
-                    log.info(
-                        f"   System: {system_len} chars, User: {user_len} chars, "
-                        f"Attachments: {len(attachments) if attachments else 0}"
+                    response = self._require_anthropic_client().messages.create(
+                        model=self.model,
+                        system=system_message.strip() if system_message else "",
+                        messages=[{"role": "user", "content": user_content}],
+                        max_tokens=self.max_tokens,
                     )
-                    log.info(f"   Model: {self.model}, Max tokens: {self.max_tokens}")
-                    log.info("   Client timeout: 600s (10 min)")
-                    if isinstance(user_content, list):
-                        log.info(
-                            "   Content blocks: %s",
-                            ", ".join(block["type"] for block in user_content),
-                        )
-
-                    call_start = time.time()
-                    try:
-                        response = self._require_anthropic_client().messages.create(
-                            model=self.model,
-                            system=system_message.strip() if system_message else "",
-                            messages=[{"role": "user", "content": user_content}],
-                            max_tokens=self.max_tokens,
-                        )
-                        call_elapsed = time.time() - call_start
-                        log.info(f"✅ Anthropic API call succeeded in {call_elapsed:.1f}s")
-                    except Exception as api_error:
-                        call_elapsed = time.time() - call_start
-                        log.error(f"❌ Anthropic API call failed after {call_elapsed:.1f}s")
-                        log.error(f"   Error type: {type(api_error).__name__}")
-                        log.error(f"   Error: {api_error}")
-                        if "408" in str(api_error) or "Timeout" in str(api_error):
-                            log.error("   ⚠️  AZURE GATEWAY TIMEOUT DETECTED")
-                            log.error("   The Azure AI Foundry gateway has a ~4 minute timeout limit")
-                            log.error(f"   Your request took {call_elapsed:.1f}s before timing out")
-                            log.error("   Possible solutions:")
-                            log.error("   1. Reduce input size (smaller PDF, fewer tool results)")
-                            log.error(f"   2. Reduce max_tokens (currently {self.max_tokens})")
-                            log.error("   3. Use streaming API (not yet implemented)")
-                            log.error("   4. Split task into smaller subtasks")
-                        raise
 
                     response_text = self._extract_anthropic_text(response)
                     usage_details = {}
@@ -487,13 +418,13 @@ class LLMClient:
 
                     # Detect empty/filtered responses
                     if not response_text or not response_text.strip():
-                        finish_reason = None
-                        if hasattr(llm_response, "response_metadata"):
-                            finish_reason = llm_response.response_metadata.get("finish_reason")
+                        metadata = getattr(llm_response, "response_metadata", None) or {}
                         log.warning(
-                            f"⚠️ LLM returned empty response (role={self.role}, model={self.model}, "
-                            f"finish_reason={finish_reason}, "
-                            f"metadata={getattr(llm_response, 'response_metadata', {})})"
+                            "The model returned an empty reply",
+                            extra={
+                                GEN_AI_REQUEST_MODEL: self.model,
+                                GEN_AI_RESPONSE_FINISH_REASONS: [str(metadata.get("finish_reason"))],
+                            },
                         )
 
                     usage_details = {}
@@ -505,7 +436,7 @@ class LLMClient:
                             "total_tokens": usage.get("total_tokens", 0),
                         }
 
-                try:
+                with contextlib.suppress(Exception):
                     span.update(
                         output={"response": response_text},
                         usage_details=usage_details if usage_details else None,
@@ -514,16 +445,12 @@ class LLMClient:
                             "response_length": len(response_text),
                         },
                     )
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with response: %s", span_e)
 
                 return response_text
 
             except Exception as e:
-                try:
+                with contextlib.suppress(Exception):
                     span.update(metadata={"error": str(e)})
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with error: %s", span_e)
                 raise
 
 
@@ -629,5 +556,5 @@ def suggest_goals_with_llm(
 
     except Exception as e:
         # The old fallbacks were English examples shown to Norwegian users.
-        log.error(f"Failed to generate suggestions: {e}")
+        log.warning("Could not suggest other goals", extra={ERROR_TYPE: error_type(e)})
         return []

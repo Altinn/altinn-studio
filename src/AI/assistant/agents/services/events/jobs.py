@@ -123,17 +123,13 @@ class EventSink:
                 if self._main_loop:
                     buf.set_main_loop(self._main_loop)
                 self._developer_buffers[developer] = buf
-        log.info(f"🔗 Registered session {session_id} -> developer {developer}")
 
     # --- event publishing (called from any thread) ----------------------------
 
     def send(self, event: AgentEvent):
         """Append *event* to the developer buffer of its session. Thread-safe."""
-        log.info(f"📨 EventSink.send: type={event.type}, session={event.session_id}")
-
         with self._state_lock:
             if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
-                log.info(f"🛑 Dropping {event.type} for cancelled session {event.session_id}")
                 return
             self._record(event)
 
@@ -221,7 +217,6 @@ class EventSink:
 
     def cancel_session(self, session_id: str):
         """Cancel a running session. Sends a terminal event so the frontend stops loading."""
-        log.info(f"🛑 Cancelling session {session_id}")
         with self._state_lock:
             self._cancelled.add(session_id)
             self._session_status[session_id] = {
@@ -255,7 +250,6 @@ class EventSink:
         """
         with self._state_lock:
             if session_id in self._cancelled:
-                log.info(f"🛑 Skipping delivery for cancelled session {session_id}")
                 return False
             for event in events:
                 self.send(event)

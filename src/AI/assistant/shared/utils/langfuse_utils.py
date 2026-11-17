@@ -7,6 +7,7 @@ from opentelemetry import context as otel_context
 from opentelemetry.sdk.trace import SpanProcessor
 
 from shared.config.base_config import get_config
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -51,11 +52,9 @@ def init_langfuse():
     global _client, _initialized
 
     if _initialized:
-        log.debug("Langfuse already initialized")
         return _client
 
     if not config.LANGFUSE_ENABLED:
-        log.info("Langfuse tracking is disabled")
         return None
 
     try:
@@ -83,15 +82,10 @@ def init_langfuse():
         _otel_trace.set_tracer_provider(_OtelTracerProvider())
 
         _initialized = True
-        log.info(
-            f"Langfuse initialized successfully (host: {config.LANGFUSE_HOST}, release: {config.LANGFUSE_RELEASE}, env: {config.LANGFUSE_ENVIRONMENT})"
-        )
-
         return _client
 
     except Exception as e:
-        log.error(f"Failed to initialize Langfuse: {e}")
-        log.warning("Langfuse tracking will be disabled")
+        log.warning("Langfuse could not start, so the service sends it nothing", extra={ERROR_TYPE: error_type(e)})
         return None
 
 
@@ -121,8 +115,7 @@ def get_raw_langfuse_prompt(prompt_name: str, **kwargs):
         return None
     try:
         return client.get_prompt(prompt_name, type="text", **kwargs)
-    except Exception as e:
-        log.debug("Could not fetch raw prompt '%s': %s", prompt_name, e)
+    except Exception:
         return None
 
 
@@ -131,9 +124,8 @@ def flush_langfuse():
     if _client and is_langfuse_enabled():
         try:
             _client.flush()
-            log.debug("Langfuse events flushed")
         except Exception as e:
-            log.debug(f"Failed to flush Langfuse: {e}")
+            log.warning("Could not send the buffered events to Langfuse", extra={ERROR_TYPE: error_type(e)})
 
 
 def score_validation(
@@ -170,9 +162,8 @@ def score_validation(
         if score_id:
             kwargs["score_id"] = score_id
         client.create_score(**kwargs)
-        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
     except Exception as e:
-        log.debug("Failed to create Langfuse score '%s': %s", name, e)
+        log.warning("Could not save a score in Langfuse", extra={ERROR_TYPE: error_type(e)})
 
 
 class _NoopSpan:
@@ -197,9 +188,8 @@ def delete_score(score_id: str) -> None:
         return
     try:
         client.api.scores.delete(score_id)
-        log.debug("Langfuse score %s deleted", score_id)
     except Exception as e:
-        log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
+        log.warning("Could not delete a score in Langfuse", extra={ERROR_TYPE: error_type(e)})
 
 
 def get_trace_developer(trace_id: str) -> str | None:
@@ -215,7 +205,7 @@ def get_trace_developer(trace_id: str) -> str | None:
             limit=1,
         ).data
     except Exception as exc:
-        log.debug("Langfuse trace lookup failed for %s: %s", trace_id, exc)
+        log.warning("Could not look up the trace in Langfuse", extra={ERROR_TYPE: error_type(exc)})
         return None
 
     if not root_observations:
@@ -230,8 +220,8 @@ def get_current_trace_id() -> str | None:
         return None
     try:
         return get_client().get_current_trace_id()
-    except Exception:
-        log.exception("Failed to get current Langfuse trace ID")
+    except Exception as exc:
+        log.warning("Could not read the current Langfuse trace ID", extra={ERROR_TYPE: error_type(exc)})
         return None
 
 
