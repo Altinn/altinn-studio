@@ -192,6 +192,20 @@ public sealed class ServiceTaskElementMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    [Theory]
+    [InlineData(new byte[] { 0x3C, 0x61, 0xFF, 0x2F, 0x3E })]
+    [InlineData(new byte[] { 0x3C, 0x61, 0x3E })]
+    public async Task LeavesATodoForAnUnreadableProcess(byte[] content)
+    {
+        _app.WriteBytes(ProcessPath, content);
+
+        var result = await Migrate();
+
+        Assert.StartsWith($"Could not read {ProcessPath} (", Assert.Single(result.Todos), StringComparison.Ordinal);
+        Assert.Empty(result.Warnings);
+        Assert.Equal(content, _app.ReadBytes(ProcessPath));
+    }
+
     [Fact]
     public async Task WithoutAProcess_ReportsNothing()
     {

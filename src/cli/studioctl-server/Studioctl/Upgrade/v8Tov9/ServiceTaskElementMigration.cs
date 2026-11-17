@@ -50,7 +50,10 @@ internal static class ServiceTaskElementMigration
         }
         catch (Exception ex) when (ex is DecoderFallbackException or XmlException)
         {
-            messages.Warn($"Could not read {ProcessPath} ({ex.Message}); skipped the service task element check.");
+            messages.Todo(
+                $"Could not read {ProcessPath} ({ex.Message}); skipped changing built-in service task types on "
+                    + "bpmn:task elements to bpmn:serviceTask. Fix the file and run the upgrade again."
+            );
             return new MigrationResult(messages);
         }
 
