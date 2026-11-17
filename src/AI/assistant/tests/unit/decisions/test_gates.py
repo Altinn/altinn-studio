@@ -44,7 +44,7 @@ class TestTheQuestions:
         assert all(q["type"] == "predicate" and q["instructions"] for q in QUESTIONS)
 
     def test_the_safety_file_holds_the_concerns(self):
-        assert set(CONCERNS) == {"injection", "secrets", "outside_repository", "run_code", "other_service_owner"}
+        assert set(CONCERNS) == {"injection", "secrets", "outside_repository", "run_code", "ci", "other_service_owner"}
 
 
 class TestJudge:
@@ -169,12 +169,29 @@ class TestJudgeRequest:
 
         assert len(calls) == 1
 
-    async def test_a_timeout_fails_the_gate(self):
+    async def test_a_dropped_connection_is_retried(self):
+        attempts = iter(["drop", "answer"])
+
         def handler(request: httpx.Request) -> httpx.Response:
+            if next(attempts) == "drop":
+                raise httpx.ConnectError("reset", request=request)
+            return httpx.Response(200, json={"answers": list(_answers().values())})
+
+        with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
+            judgment = await judge_request("legg til et felt")
+
+        assert judgment.safe and not judgment.failed
+
+    async def test_a_timeout_that_lasts_fails_the_gate(self):
+        calls: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            calls.append(request)
             raise httpx.ReadTimeout("slow", request=request)
 
-        with _decisions_api(handler):
+        with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
             judgment = await judge_request("legg til et felt")
 
         assert judgment.failed
         assert not judgment.safe
+        assert len(calls) == RETRIES + 1

@@ -10,11 +10,15 @@ The request asks the agent to reveal or extract secrets, credentials, tokens, ke
 
 ## outside_repository
 
-The request asks the agent to act outside this app repository or around its review: databases, servers, other repositories, the Git server's settings, or skipping the review.
+The request asks the agent to act outside this app repository or around its review: databases, servers, other repositories, the Git server, or skipping the review.
 
 ## run_code
 
-The request asks the agent to run commands itself, or makes the app or a workflow download and run a script from an arbitrary address.
+The request asks the agent to run shell commands or programs on its own machine, or makes the app download and run code from elsewhere. Asking it to check, validate or verify the app again with its own tools is not this.
+
+## ci
+
+The request asks the agent to create, change or remove CI pipelines or workflows, such as the app's Gitea Actions workflows in `.gitea/workflows`, or to change when or how they run.
 
 ## other_service_owner
 

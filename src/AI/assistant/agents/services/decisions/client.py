@@ -10,9 +10,10 @@ import httpx
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_guardrail
 
-TIMEOUT_SECONDS = 30
+# A call takes about half a second.
+TIMEOUT_SECONDS = 10
 
-# Retried as the OpenAI SDK retries the LLM calls: a rate limit fails the gate, and a failed gate stops the turn.
+# Retried as the OpenAI SDK retries the LLM calls: a failed call fails the gate, and a failed gate stops the turn.
 RETRIES = 2
 RETRY_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 MAX_RETRY_SECONDS = 4.0
@@ -38,15 +39,12 @@ async def decide(messages: list[dict[str, str]], questions: list[dict[str, Any]]
         metadata={"model": config.DECISION_MODEL, "questions": fingerprint},
     ) as span:
         async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS) as client:
-            for attempt in range(RETRIES + 1):
-                response = await client.post(
-                    f"{config.AZURE_OPENAI_ENDPOINT.rstrip('/')}/openai/v1/decisions",
-                    json=body,
-                    headers={"api-key": config.AZURE_API_KEY or ""},
-                )
-                if response.status_code not in RETRY_STATUSES or attempt == RETRIES:
-                    break
-                await asyncio.sleep(_retry_delay(response, attempt))
+            response = await _post(
+                client,
+                f"{config.AZURE_OPENAI_ENDPOINT.rstrip('/')}/openai/v1/decisions",
+                body,
+                {"api-key": config.AZURE_API_KEY or ""},
+            )
         response.raise_for_status()
         decision = response.json()
         answers = {answer["name"]: answer for answer in decision["answers"]}
@@ -55,10 +53,24 @@ async def decide(messages: list[dict[str, str]], questions: list[dict[str, Any]]
         return answers
 
 
-def _retry_delay(response: httpx.Response, attempt: int) -> float:
+async def _post(client: httpx.AsyncClient, url: str, body: dict, headers: dict[str, str]) -> httpx.Response:
+    """Retry a timeout, a dropped connection, a rate limit or a server error. The last attempt raises or returns as is."""
+    for attempt in range(RETRIES):
+        try:
+            response = await client.post(url, json=body, headers=headers)
+        except httpx.TransportError:
+            await asyncio.sleep(_retry_delay(None, attempt))
+            continue
+        if response.status_code not in RETRY_STATUSES:
+            return response
+        await asyncio.sleep(_retry_delay(response, attempt))
+    return await client.post(url, json=body, headers=headers)
+
+
+def _retry_delay(response: httpx.Response | None, attempt: int) -> float:
     """The server's Retry-After in seconds, or an exponential backoff, capped so the user does not wait long."""
     try:
-        delay = float(response.headers["retry-after"])
+        delay = float(response.headers["retry-after"]) if response is not None else 0.5 * 2**attempt
     except KeyError, ValueError:
         delay = 0.5 * 2**attempt
     return min(delay, MAX_RETRY_SECONDS)

@@ -70,7 +70,7 @@ async def judge_request(
     try:
         answers = await decide(messages, QUESTIONS, name="request_gate")
     except Exception as e:
-        log.error(f"The request gate could not run: {e}")
+        log.error(f"The request gate could not run: {e!r}")
         return Judgment(failed=True)
     return judge(answers)
 
