@@ -39,24 +39,29 @@ class TestTheFilesLoad:
 class TestValidationHoldsFromAClone:
     """CI validates a checkout, so validate() may only assert what travels."""
 
-    def test_validation_does_not_require_a_gitignored_file(self):
-        """benchmarks/assets is gitignored, so requiring the PDFs in validate()
-        passed only on a machine that already had them and failed every clone."""
-        assets = (ASSISTANT_ROOT / ".gitignore").read_text()
-        assert "benchmarks/assets/" in assets
+    def test_a_missing_attachment_fails_validation(self):
+        spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
+        item = {**spec.items[0], "input": {**spec.items[0]["input"], "attachments": ["not-in-the-repository.pdf"]}}
 
-        problems = [p for d in ALL_DATASETS for p in validate(d)]
+        problems = validate(spec._replace(items=[item]))
 
-        assert not any("assets/" in problem for problem in problems)
+        assert any("'not-in-the-repository.pdf'" in p and "not in assets/" in p for p in problems)
 
-    def test_a_named_attachment_is_still_checked_where_it_can_be(self):
-        """Reported separately, so a typo in a filename is not silent."""
+    def test_git_tracks_each_attachment_and_its_html_source(self):
+        """Git ignores the rest of benchmarks/assets/, so a file without an exception here fails every clone."""
+        from benchmarks.planner import ASSETS_DIR
+
         spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
         named = [n for i in spec.items for n in i["input"].get("attachments") or []]
+        rules = (ASSISTANT_ROOT / ".gitignore").read_text().splitlines()
 
         assert named, "the spec dataset is the one that names attachments"
-        for absent in missing_assets(spec):
-            assert "not in assets/" in absent
+        assert "benchmarks/assets/*" in rules
+        for name in named:
+            source = Path(name).with_suffix(".html").name
+            assert (ASSETS_DIR / source).is_file(), source
+            assert f"!benchmarks/assets/{name}" in rules, name
+            assert f"!benchmarks/assets/{source}" in rules, source
 
     def test_a_gate_attachment_needs_no_file(self):
         """The security gate is shown filenames and opens nothing, so an injection

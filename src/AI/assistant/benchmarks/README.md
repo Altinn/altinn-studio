@@ -134,8 +134,8 @@ with the userinfo endpoint of Designer. Thus, a Gitea personal access token does
 key with `bootstrap_api_key` (prerequisite 4).
 
 The dataset items refer to attachments in `metadata.attachments`. These files are in
-`benchmarks/assets/`. Git ignores this directory, because binary test fixtures must not be in the
-repository. To use a different directory, use `--assets-dir`.
+`benchmarks/assets/`. Git ignores the files there that we did not make, so that nobody commits a PDF
+that we do not own. To use a different directory, use `--assets-dir`.
 
 ```bash
 # One time: make the bench_* score configs in Langfuse

@@ -98,6 +98,7 @@ def validate(dataset: Dataset) -> list[str]:
         )
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
+    problems.extend(missing_assets(dataset._replace(items=shaped)))
     seen: set[str] = set()
     for item in shaped:
         if item["id"] in seen:
@@ -172,9 +173,6 @@ def main() -> int:
         print(f"  INVALID: {problem}")
     if problems:
         return 1
-    for dataset in datasets:
-        for absent in missing_assets(dataset):
-            print(f"  LOCAL: {absent}")
 
     if args.check:
         for dataset in datasets:

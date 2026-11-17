@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "55a1d094fc83",
-    "code": "ed120d6 clean",
-    "dataset": "82 items 7b1f9b523989",
+    "code": "efefad3 dirty",
+    "dataset": "81 items 610c4b668490",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261116T182038Z-gates-held-to-a-schema-21964-ed120d6d58-4f7b",
-  "label": "gates held to a schema, #21964 ed120d6d58",
-  "recorded_at": "2026-11-16T18:27:34+00:00",
-  "why": "#21964 holds the security and scope gates' replies to a JSON schema, so the security verdict is only safe and reason. It removes the JSON instructions from both gate prompts, names a form in the scope prompt's in-scope rule, and drops the expected action from five Gates/security items. The gate eval now calls both gates through LLMClient with the schema, as production does. It ran security_check v6 and scope_check v6 under the experiment label. The assistant container for the e2e builds was rebuilt from ed120d6d58, so the builds ran the new gate code. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. Every scored behavior has the same score as the #21961 baseline or a higher one. scope.declines-in-users-language is back at 1.0 from 0.867, which the #21961 note put down to run-to-run variation. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
+  "check_id": "20261117T083508Z-own-benchmark-pdf-20668-on-efefad3-bba7",
+  "label": "own benchmark PDF, #20668 on efefad3",
+  "recorded_at": "2026-11-17T08:43:15+00:00",
+  "why": "#20668 replaces the two Planner/spec PDFs that we do not own with soknad-digitaliseringstilskudd.pdf, which we made from the HTML file beside it in benchmarks/assets. Planner/spec has one item, spec-digitaliseringstilskudd, in place of spec-ki-sandkasse and spec-helseattest. In Benchmarks/forms, digitaliseringstilskudd-flere-sider replaces helseattest-barnehage. It sends the same PDF with the goal \"Lag det vedlagte skjemaet\", without the component types that the old goal listed. The labels and the rubric come from a build that was checked against the PDF. Full check with e2e on the uncommitted branch on top of efefad3, with PREVIEW_CHECK_ENABLED off as in production. The assistant container ran the #21964 code, as in the last baseline. All four builds finished with success, and the new e2e item scored 1.0 on every structural score. The spec item scored 1.0 on spec_parses and spec_label_coverage, and 1.02 on spec_field_count. No behavior fails, and seven have new outputs with the same scores. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }

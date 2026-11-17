@@ -457,7 +457,7 @@ BEHAVIORS = (
         text="Emits a form spec that parses",
         checks="The spec is valid JSON and satisfies the form schema, so the next stage consumes it without repair.",
         blind=(
-            "Every PDF in the set was picked by us and they share a layout family. "
+            "The set has one PDF, which we made, so it covers one layout family. "
             "Nothing covers a scanned PDF, a table-heavy one, or a Nynorsk one."
         ),
         eval="Planner/spec",

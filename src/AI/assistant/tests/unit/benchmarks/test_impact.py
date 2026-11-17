@@ -29,6 +29,14 @@ def test_a_dataset_edit_invalidates_the_baseline():
     assert any("not comparable" in line for line in found.explain())
 
 
+def test_a_new_attachment_under_the_same_name_invalidates_the_baseline():
+    """The dataset axis hashes the item ids, so only this rule sees a changed PDF."""
+    for path in ("benchmarks/assets/form.pdf", "benchmarks/assets/form.html"):
+        found = impact.analyze([path])
+        assert found.needs_rebaseline, path
+        assert found.axes == ("dataset",), path
+
+
 def test_an_evaluator_change_invalidates_the_baseline():
     for path in (
         "benchmarks/gates.py",
