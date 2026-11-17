@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.), so a local run can use the
 	// kubeconfig's.
@@ -50,7 +51,8 @@ type Options struct {
 
 // Cluster runs the process's work in a Kubernetes cluster.
 type Cluster struct {
-	mgr ctrl.Manager
+	mgr  ctrl.Manager
+	pods corev1client.PodsGetter
 }
 
 // Runnable is work that starts with the cluster and stops when its context ends. A Runnable with a method
@@ -113,7 +115,11 @@ func New(opts Options) (*Cluster, error) {
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		return nil, fmt.Errorf("add ready check: %w", err)
 	}
-	return &Cluster{mgr: mgr}, nil
+	pods, podsErr := corev1client.NewForConfig(restConfig)
+	if podsErr != nil {
+		return nil, fmt.Errorf("create the client for pod logs: %w", podsErr)
+	}
+	return &Cluster{mgr: mgr, pods: pods}, nil
 }
 
 // Add runs r with the cluster.
@@ -139,7 +145,7 @@ func (c *Cluster) Start(ctx context.Context) error {
 
 // Sandbox runs the Jobs of runs in the cluster.
 func (c *Cluster) Sandbox() *Sandbox {
-	return &Sandbox{Client: c.mgr.GetClient(), Reader: c.mgr.GetAPIReader()}
+	return &Sandbox{Client: c.mgr.GetClient(), Reader: c.mgr.GetAPIReader(), Pods: c.pods}
 }
 
 // TokenReviewer reviews tokens with the cluster's API server.

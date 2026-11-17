@@ -219,6 +219,18 @@ The operator answers:
 `stepId` is the same for every attempt of a step, so a handler can use it as the idempotency key for a call it must not
 repeat. The operator decodes only the fields that its handlers read, so the engine may send more.
 
+## Telemetry
+
+- `altinn.core_operator.run.duration` times each run from its create to its final status, by kind, caller, status and
+  reason, and its count is the number of runs that ended. It counts the ends that the operator sees: an outcome, a step
+  that ends the run, and a cancel. A run that the engine fails on its own, when a step's retries run out, is only in
+  the engine's `altinn.workflow_engine.workflow.execution.failed`.
+- `altinn.core_operator.queue.wait.duration` times each run from its create to its admission.
+- The callback spans and the run API's spans of a run carry its id as `altinn.core_operator.subject_id`, as the
+  engine's spans of the run's workflow do.
+- The operator runner logs JSON. Before the operator deletes a run's Job, it logs the operator runner's warnings and
+  errors itself, since the pipeline collects no container logs and the log goes with the pod.
+
 ## Develop
 
 The [Makefile](Makefile) has the checks that CI runs: `make fmt`, `make lint`, `make test` and `make build`.

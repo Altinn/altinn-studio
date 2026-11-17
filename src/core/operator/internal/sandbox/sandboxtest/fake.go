@@ -20,6 +20,8 @@ type Sandbox struct {
 	CreateErr error
 	// FailReads makes the reads fail.
 	FailReads error
+	// RunnerLog is what the operator runner of each run has logged.
+	RunnerLog []byte
 	mu        sync.Mutex
 }
 
@@ -106,6 +108,12 @@ func (s *Sandbox) DeleteJob(_ context.Context, namespace, runID string) error {
 	defer s.mu.Unlock()
 	delete(s.jobs, key(namespace, runID))
 	return nil
+}
+
+func (s *Sandbox) Log(_ context.Context, _, _ string) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.RunnerLog, s.FailReads
 }
 
 // Add adds a Job that the steps did not create, such as one whose run the engine has forgotten.

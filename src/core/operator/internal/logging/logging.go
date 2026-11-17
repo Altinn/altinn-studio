@@ -55,3 +55,13 @@ func FromContext(ctx context.Context) logr.Logger {
 func IntoContext(ctx context.Context, logger logr.Logger) context.Context {
 	return logr.NewContext(ctx, logger)
 }
+
+// Warn logs a WARN record, which logr has no level for, through the zap logger under logger. Any other logger gets
+// an info record.
+func Warn(logger logr.Logger, msg string, keysAndValues ...any) {
+	if underlier, ok := logger.GetSink().(zapr.Underlier); ok {
+		underlier.GetUnderlying().Sugar().Warnw(msg, keysAndValues...)
+		return
+	}
+	logger.Info(msg, keysAndValues...)
+}
