@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import classes from './Alert.module.css';
 import type { StudioAlertProps } from '@studio/components';
 import { StudioAlert, StudioLink } from '@studio/components';
@@ -12,9 +12,20 @@ type AlertProps = {
   title: ReactElement | string;
   url?: string;
   children?: ReactElement;
+  /** Rendered under the chart, outside its fixed height: a list, a note. */
+  footer?: ReactNode;
 } & Omit<StudioAlertProps, 'children' | 'title'>;
 
-export const Alert = ({ color, count, title, url, children, className, ...rest }: AlertProps) => {
+export const Alert = ({
+  color,
+  count,
+  title,
+  url,
+  children,
+  footer,
+  className,
+  ...rest
+}: AlertProps) => {
   const { t } = useTranslation();
   return (
     <StudioAlert
@@ -42,6 +53,7 @@ export const Alert = ({ color, count, title, url, children, className, ...rest }
         )}
       </div>
       {children && <div className={classes.chart}>{children}</div>}
+      {footer}
     </StudioAlert>
   );
 };

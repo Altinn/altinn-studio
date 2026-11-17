@@ -21,13 +21,22 @@ const formatTooltipTitle = (startMs: number, bucketSizeInMs: number): string[] =
   return [dateHeader, `${formatTime(startDate)} – ${formatTime(endDate)}`];
 };
 
-export const getChartOptions = (bucketSize: number, range: number): ChartOptions<'bar'> => {
+/** The time axis of a metric chart: whole buckets covering the range up to now. */
+export const getChartTimeAxis = (
+  bucketSize: number,
+  range: number,
+): { min: number; max: number; bucketSizeInMs: number } => {
   const minuteInMs = 60 * 1000;
   const bucketSizeInMs = bucketSize * minuteInMs;
   const rangeInMs = range * minuteInMs;
   const now = Date.now();
   const max = Math.ceil(now / bucketSizeInMs) * bucketSizeInMs;
   const min = Math.floor((now - rangeInMs) / bucketSizeInMs) * bucketSizeInMs;
+  return { min, max, bucketSizeInMs };
+};
+
+export const getChartOptions = (bucketSize: number, range: number): ChartOptions<'bar'> => {
+  const { min, max, bucketSizeInMs } = getChartTimeAxis(bucketSize, range);
   return {
     responsive: true,
     maintainAspectRatio: false,

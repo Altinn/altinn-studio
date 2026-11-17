@@ -13,6 +13,8 @@ export const appHealthMetricsPath = (org: string, env: string, app: string) =>
   `${adminApiBasePath}/metrics/${org}/${env}/app/health?app=${app}`; // Get
 export const appDailyMetricsPath = (org: string, env: string, days: number) =>
   `${adminApiBasePath}/app-daily-metrics/${org}/${env}?days=${days}`; // Get
+export const appDeploymentsPath = (org: string, env: string, app: string, since: string) =>
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/deployments?since=${encodeURIComponent(since)}`; // Get
 export const appDailyMetricsDetailsPath = (org: string, env: string, app: string, days: number) =>
   `${adminApiBasePath}/app-daily-metrics/${org}/${env}/${app}?days=${days}`; // Get
 export const platformAppDailyMetricsPath = (env: string, days: number) =>

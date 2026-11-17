@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   appDailyMetricsDetailsPath,
   appDailyMetricsPath,
+  appDeploymentsPath,
   platformAppDailyMetricsPath,
   resumeWorkflowPath,
   workflowCollectionsPath,
@@ -76,6 +77,14 @@ describe('platformAppDailyMetricsPath', () => {
   it('asks for the environment and the period', () => {
     expect(platformAppDailyMetricsPath('production', 30)).toBe(
       '/designer/api/v1/platform/app-daily-metrics?env=production&days=30',
+    );
+  });
+});
+
+describe('appDeploymentsPath', () => {
+  it('passes the timestamp URL-encoded', () => {
+    expect(appDeploymentsPath(org, env, app, '2026-11-10T00:00:00+01:00')).toBe(
+      `/designer/api/v1/admin/applications/${org}/${env}/${app}/deployments?since=2026-11-10T00%3A00%3A00%2B01%3A00`,
     );
   });
 });

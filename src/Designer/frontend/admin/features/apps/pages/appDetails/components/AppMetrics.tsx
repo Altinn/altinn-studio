@@ -31,6 +31,10 @@ import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
+import { useAppDeploymentsQuery } from 'admin/features/apps/hooks/queries/useAppDeploymentsQuery';
+import { TypicalTimeMetric } from './TypicalTimeMetric/TypicalTimeMetric';
+import { useMemo } from 'react';
+import { useNow } from 'admin/features/apps/hooks/useNow';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
@@ -66,6 +70,15 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     error: appErrorMetricsError,
     isError: appErrorMetricsIsError,
   } = useAppErrorMetricsQuery(org, environment, app, range!, {
+    hideDefaultError: true,
+  });
+
+  // The deployments in the range, for the dashed lines in the charts. A failure here only
+  // leaves the lines out; the charts still show. The window starts at the first render, so a
+  // page open for hours keeps the same request and the same lines.
+  const now = useNow(false);
+  const since = useMemo(() => new Date(now - range * 60 * 1000).toISOString(), [now, range]);
+  const { data: deployments } = useAppDeploymentsQuery(org, environment, app, since, {
     hideDefaultError: true,
   });
 
@@ -159,7 +172,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     return appMetrics?.map((metric) => (
-      <AppMetric key={metric.name} metric={metric} range={range} />
+      <AppMetric key={metric.name} metric={metric} range={range} deployments={deployments} />
     ));
   };
 
@@ -176,6 +189,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
         {renderAppHealthMetrics()}
         {renderAppErrorMetrics()}
         {renderAppMetrics()}
+        <TypicalTimeMetric org={org} environment={environment} app={app} />
       </div>
     </StudioCard>
   );
