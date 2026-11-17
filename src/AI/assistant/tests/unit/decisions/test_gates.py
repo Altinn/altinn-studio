@@ -4,8 +4,8 @@ import json
 from unittest.mock import patch
 
 import httpx
-import pytest
 
+from agents.services.decisions.client import MAX_RETRY_SECONDS, RETRIES
 from agents.services.decisions.gates import (
     CONCERN_THRESHOLD,
     CONCERNS,
@@ -119,19 +119,55 @@ class TestJudgeRequest:
         assert [q["name"] for q in body["questions"]] == [RELEVANCE, *CONCERNS]
         assert body["model"] == "gpt-6-luna"
 
-    @pytest.mark.parametrize(
-        "failure",
-        [
-            lambda request: httpx.Response(500, json={"error": "boom"}),
-            lambda request: httpx.Response(400, json={"error": {"code": "unknown_parameter"}}),
-        ],
-    )
-    async def test_an_error_response_fails_the_gate(self, failure):
-        with _decisions_api(failure):
+    async def test_a_server_error_that_lasts_fails_the_gate(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500, json={"error": "boom"})
+
+        with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
             judgment = await judge_request("legg til et felt")
 
         assert judgment.failed
         assert not judgment.safe
+
+    async def test_a_rate_limit_is_retried_after_the_delay_azure_asks_for(self):
+        statuses = iter([429, 200])
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if next(statuses) == 429:
+                return httpx.Response(429, headers={"retry-after": "2"})
+            return httpx.Response(200, json={"answers": list(_answers().values())})
+
+        with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep") as sleep:
+            judgment = await judge_request("legg til et felt")
+
+        assert judgment.safe and not judgment.failed
+        sleep.assert_awaited_once_with(2.0)
+
+    async def test_a_rate_limit_that_lasts_fails_the_gate(self):
+        calls: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            calls.append(request)
+            return httpx.Response(429, headers={"retry-after": "60"})
+
+        with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep") as sleep:
+            judgment = await judge_request("legg til et felt")
+
+        assert judgment.failed
+        assert len(calls) == RETRIES + 1
+        assert all(call.args == (MAX_RETRY_SECONDS,) for call in sleep.await_args_list)
+
+    async def test_a_client_error_is_not_retried(self):
+        calls: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            calls.append(request)
+            return httpx.Response(400, json={"error": {"code": "unknown_parameter"}})
+
+        with _decisions_api(handler):
+            assert (await judge_request("legg til et felt")).failed
+
+        assert len(calls) == 1
 
     async def test_a_timeout_fails_the_gate(self):
         def handler(request: httpx.Request) -> httpx.Response:
