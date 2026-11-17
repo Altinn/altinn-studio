@@ -19,6 +19,12 @@ on:
 permissions:
   contents: read
 
+# One run at a time, so that a later push sees the draft release that an earlier run created, rather than
+# releasing the same version again from a newer commit.
+concurrency:
+  group: release-codelists
+  cancel-in-progress: false
+
 jobs:
   resolve-release-context:
     name: Resolve release context

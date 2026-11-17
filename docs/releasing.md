@@ -24,7 +24,8 @@ works from the `libraries` environment. That environment accepts `main`, and eac
 to be added to it before the first stable release from that branch. Pull request runs are not accepted, so these
 workflows run on every push that changes the component's changelog. They release the latest version in it when that
 version has no GitHub release yet, draft or published. If a release fails after the releaser has created the draft,
-delete the draft and run the workflow by hand on the branch.
+delete the draft and rerun the failed workflow run. A rerun builds the commit the original run built, where a new run
+would build the branch as it is now.
 
 ## Prereleases
 
@@ -42,7 +43,9 @@ delete the draft and run the workflow by hand on the branch.
    prerelease line on `main`, combines the changelog sections of the line's prereleases, and opens the pull request
    against `release/<component>/vX.Y`. It creates that branch from `main` when it is missing, which requires write
    access. A contributor without it asks a maintainer to create the branch, then runs the command again.
-2. Merge the pull request.
+2. For the app libraries, codelists and fileanalyzers, add `release/<component>/vX.Y` to the deployment branch rules
+   of the `libraries` environment, if it is not there yet. Until then, the release fails at `NuGet login`.
+3. Merge the pull request.
 
 ### Patches
 
