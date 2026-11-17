@@ -92,21 +92,10 @@ public class LocalFrontendService : ILocalFrontendService
             && !string.IsNullOrWhiteSpace(route.PublicHost)
         )
         {
-            return new FrontendRoute(destinationUri.Host, destinationUri.Port, FrontendUrl(route));
+            return new FrontendRoute(destinationUri.Host, destinationUri.Port, route.PublicUrl(_localtestBaseUrl));
         }
 
         return null;
-    }
-
-    private string FrontendUrl(BoundTopologyComponentRoute route)
-    {
-        var uri = new Uri(_localtestBaseUrl);
-        return new UriBuilder(uri)
-        {
-            Host = route.PublicHost,
-            Path = string.IsNullOrEmpty(route.PublicPathPrefix) ? string.Empty : route.PublicPathPrefix,
-            Query = string.Empty,
-        }.Uri.ToString();
     }
 
     private sealed record FrontendRoute(string TargetHost, int TargetPort, string PublicUrl);

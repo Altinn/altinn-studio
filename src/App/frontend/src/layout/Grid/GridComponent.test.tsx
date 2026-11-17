@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { RenderGrid } from 'src/layout/Grid/GridComponent';
@@ -152,5 +152,33 @@ describe('GridComponent', () => {
     expect(cells.length).toBeGreaterThanOrEqual(1);
     const firstCell = cells[0];
     expect(firstCell).toHaveAttribute('colspan', '3');
+  });
+
+  it('keeps cells aligned when a hidden column overlaps a spanning cell', async () => {
+    await renderGenericComponentTest({
+      type: 'Grid',
+      renderer: (props) => <RenderGrid {...props} />,
+      component: {
+        rows: [
+          {
+            header: true,
+            cells: [{ text: 'First' }, { text: 'Hidden', columnOptions: { hidden: true } }, { text: 'Last' }],
+          },
+          {
+            cells: [
+              { text: 'Spanning content', cellStyle: { colSpan: ['if', true, 2, 'else', 1] } },
+              { text: 'Trailing content' },
+            ],
+          },
+        ],
+      },
+    });
+
+    const [header, body] = screen.getAllByRole('row');
+    expect(within(header).getAllByRole('columnheader')).toHaveLength(2);
+    expect(within(body).getAllByRole('cell')).toHaveLength(2);
+    expect(screen.getByText('Spanning content').closest('td')).toHaveAttribute('colspan', '1');
+    expect(screen.getByText('Trailing content')).toBeInTheDocument();
+    expect(screen.queryByText('Hidden')).not.toBeInTheDocument();
   });
 });

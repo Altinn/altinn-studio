@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { StudioDragAndDrop } from '@studio/components';
+import { StudioDragAndDrop } from '@designer/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -21,7 +21,7 @@ import {
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
@@ -138,6 +138,24 @@ describe('DesignView', () => {
     const pdfAccordionButton = screen.getByText(pdfLayoutName);
     expect(pdfAccordionButton).toBeInTheDocument();
     consoleWarnSpy.mockRestore();
+  });
+
+  it('lists the PDF page and lets a page be added when the folder has only a PDF page', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutName = 'PdfLayout';
+    renderDesignView({
+      layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
+      externalLayout: { [pdfLayoutName]: layout1Mock },
+      pagesModel: { pages: [], pdfLayoutName },
+    });
+
+    await user.click(screen.getByText(pdfLayoutName));
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(pdfLayoutName);
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.pages_add') }));
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${1}`,
+    });
   });
 
   it('does not render Accordion when pagesModel has no pages', () => {

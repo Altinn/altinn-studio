@@ -1,0 +1,182 @@
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
+using Altinn.Platform.Storage.Interface.Models;
+using Moq;
+using Xunit.Abstractions;
+
+namespace Altinn.App.Core.Tests.Internal.Pdf;
+
+public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
+{
+    [Fact]
+    public async Task GetFileName_DefaultFileName_WithoutTexts_ShouldUseAppId()
+    {
+        var appResources = CreateAppResources([]);
+        var translationService = CreateTranslationService(appResources);
+
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object
+        );
+
+        Assert.Equal("not-really-an-app.pdf", fileName);
+    }
+
+    [Fact]
+    public async Task GetFileName_DefaultFileName_KeepsSpaces()
+    {
+        var appResources = CreateAppResources([new() { Id = "appName", Value = "Not Really An App" }]);
+        var translationService = CreateTranslationService(appResources);
+
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object
+        );
+
+        Assert.Equal("Not Really An App.pdf", fileName);
+    }
+
+    [Fact]
+    public async Task GetFileName_WithCustomFileNameTextResourceKey_ShouldUseCustomFileName()
+    {
+        const string customTextResourceKey = "custom.pdf.filename";
+        var appResources = CreateAppResources([new() { Id = customTextResourceKey, Value = "My Custom Receipt" }]);
+        var translationService = CreateTranslationService(appResources);
+
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object,
+            customTextResourceKey
+        );
+
+        Assert.Equal("My Custom Receipt.pdf", fileName);
+    }
+
+    [Fact]
+    public async Task GetFileName_WithCustomFileNameIncludingPdfExtension_ShouldNotDuplicateExtension()
+    {
+        const string customTextResourceKey = "custom.pdf.filename.with.extension";
+        var appResources = CreateAppResources([new() { Id = customTextResourceKey, Value = "My Custom Receipt.pdf" }]);
+        var translationService = CreateTranslationService(appResources);
+
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object,
+            customTextResourceKey
+        );
+
+        Assert.Equal("My Custom Receipt.pdf", fileName);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task GetFileName_WithMissingOrEmptyCustomText_ShouldThrow(string? customText)
+    {
+        const string customTextResourceKey = "custom.pdf.filename";
+        List<TextResourceElement> texts = [new() { Id = "appName", Value = "Not Really An App" }];
+        if (customText is not null)
+        {
+            texts.Add(new() { Id = customTextResourceKey, Value = customText });
+        }
+        var appResources = CreateAppResources(texts);
+        var translationService = CreateTranslationService(appResources);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            PdfFileNameResolver.GetFileName(
+                translationService,
+                CreateDataAccessorMock(appResources).Object,
+                customTextResourceKey
+            )
+        );
+
+        Assert.Equal(
+            $"The PDF file name text resource '{customTextResourceKey}' is missing or empty.",
+            exception.Message
+        );
+    }
+
+    [Fact]
+    public async Task GetFileName_WithEmptyDefaultText_ShouldThrow()
+    {
+        var appResources = CreateAppResources([new() { Id = BuiltInTextResources.PdfDefaultFileName.Key, Value = "" }]);
+        var translationService = CreateTranslationService(appResources);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            PdfFileNameResolver.GetFileName(translationService, CreateDataAccessorMock(appResources).Object)
+        );
+
+        Assert.Equal(
+            $"The PDF file name text resource '{BuiltInTextResources.PdfDefaultFileName.Key}' is missing or empty.",
+            exception.Message
+        );
+    }
+
+    private static Mock<IAppResources> CreateAppResources(List<TextResourceElement> texts)
+    {
+        var appResources = new Mock<IAppResources>();
+        appResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource
+                {
+                    Id = "digdir-not-really-an-app-nb",
+                    Language = LanguageConst.Nb,
+                    Org = "digdir",
+                    Resources = texts,
+                }
+            );
+        return appResources;
+    }
+
+    private TranslationService CreateTranslationService(Mock<IAppResources> appResources)
+    {
+        return new TranslationService(
+            new AppIdentifier("digdir", "not-really-an-app"),
+            appResources.Object,
+            FakeLoggerXunit.Get<TranslationService>(outputHelper)
+        );
+    }
+
+    private static Mock<IInstanceDataAccessor> CreateDataAccessorMock(Mock<IAppResources> appResources)
+    {
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = [new() { Id = Guid.NewGuid().ToString(), DataType = "Model" }],
+        };
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        dataAccessorMock.Setup(m => m.Instance).Returns(instance);
+
+        // The layout evaluator state fills in the variables of a custom file name
+        var uiFolderComponent = new UiFolderComponent(
+            new List<PageComponent>(),
+            "layout",
+            new DataType { Id = "Model" }
+        );
+        var layoutModel = new LayoutModel([uiFolderComponent], null);
+        appResources.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
+        var layoutEvaluatorState = new LayoutEvaluatorState(
+            dataAccessorMock.Object,
+            layoutModel,
+            Mock.Of<ITranslationService>(),
+            new FrontEndSettings(),
+            gatewayAction: null,
+            language: null
+        );
+        dataAccessorMock.Setup(m => m.GetLayoutEvaluatorState()).Returns(layoutEvaluatorState);
+
+        return dataAccessorMock;
+    }
+}

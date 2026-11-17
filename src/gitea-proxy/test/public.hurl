@@ -157,6 +157,73 @@ GET {{proxy_on_pub}}/api/v2/anything
 Cookie: scenario=apikey_user
 HTTP 403
 
+# API keys must not manage independent Gitea personal access tokens.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+X-Api-Key: apikey_user
+Content-Type: application/json
+{"name":"forbidden-token","scopes":["all"]}
+HTTP 403
+
+# Basic auth carrying a Studio API key has the same restriction.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+Authorization: Basic YWN0dWFsLXVzZXI6YXBpa2V5X3VzZXI=
+Content-Type: application/json
+{"name":"forbidden-token","scopes":["all"]}
+HTTP 403
+
+# Token management also requires browser authentication for listing and deletion.
+GET {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+X-Api-Key: apikey_user
+HTTP 403
+
+DELETE {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens/1
+X-Api-Key: apikey_user
+HTTP 403
+
+# Match nginx's normalized URI, including encoded names and trailing slashes.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/%74okens
+X-Api-Key: apikey_user
+HTTP 403
+
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens/?page=1
+X-Api-Key: apikey_user
+HTTP 403
+
+# Browser authentication still permits personal access token management.
+POST {{proxy_on_pub}}/api/v1/users/{{VALID_USERNAME}}/tokens
+Cookie: scenario=valid_user
+Content-Type: application/json
+{"name":"browser-token","scopes":["all"]}
+HTTP 200
+[Asserts]
+jsonpath "$.headers['x-webauth-user']" == "{{VALID_USERNAME}}"
+
+# Rejected Studio credentials must not fall back to native Gitea token management.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+X-Api-Key: invalid
+HTTP 403
+
+# Gitea accepts native tokens through Basic auth as well as the token scheme.
+# Neither form may manage tokens without a Designer browser session.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+Authorization: Basic dXNlcjppbnZhbGlk
+HTTP 403
+
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+Authorization: token pat-abc
+HTTP 403
+
+# All rejected Designer identity responses must deny token management.
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+Cookie: scenario=unauthorized
+Authorization: token pat-abc
+HTTP 403
+
+POST {{proxy_on_pub}}/api/v1/users/{{APIKEY_USERNAME}}/tokens
+Cookie: scenario=forbidden
+Authorization: token pat-abc
+HTTP 403
+
 # ApiKey rejected on arbitrary non-git, non-API URLs (default-deny)
 GET {{proxy_on_pub}}/some/random/path
 Cookie: scenario=apikey_user

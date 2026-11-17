@@ -3,13 +3,13 @@ import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-quer
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Branch } from 'app-shared/types/api/BranchTypes';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 export const useCreateBranchMutation = (
   org: string,
   app: string,
-  options?: UseMutationOptions<Branch, AxiosError, string>,
-): UseMutationResult<Branch, AxiosError, string> => {
+  options?: UseMutationOptions<Branch, HttpError, string>,
+): UseMutationResult<Branch, HttpError, string> => {
   const { createBranch } = useServicesContext();
   const queryClient = useQueryClient();
 

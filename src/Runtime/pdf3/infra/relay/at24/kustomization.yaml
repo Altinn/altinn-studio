@@ -16,5 +16,5 @@ patches:
               - name: pdf3-relay
                 env:
                   # tt02's DIS Edge, since at24 has no DIS Core of its own
-                  - name: PDF3_UPSTREAM_URL
-                    value: https://studio.platform.tt02.altinn.cloud/pdf/v3/generate
+                  - name: PDF3_UPSTREAM_BASE_URL
+                    value: https://studio.platform.tt02.altinn.cloud/pdf/v3

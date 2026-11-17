@@ -46,17 +46,24 @@ class TestSpanAttributes:
         assert attributes[EXPERIMENT_ITEM_ROOT_OBSERVATION_ID] == "root-span-id"
 
     def test_description_is_omitted_rather_than_sent_empty(self):
-        assert EXPERIMENT_DESCRIPTION not in _context().span_attributes("r")
-        assert EXPERIMENT_DESCRIPTION not in _context(description="").span_attributes("r")
+        assert EXPERIMENT_DESCRIPTION not in _context().root_span_attributes("r")
+        assert EXPERIMENT_DESCRIPTION not in _context(description="").root_span_attributes("r")
 
-    def test_description_is_included_when_set(self):
-        attributes = _context(description="all benchmarks").span_attributes("r")
+    def test_description_is_included_on_the_root_when_set(self):
+        attributes = _context(description="all benchmarks").root_span_attributes("r")
 
         assert attributes[EXPERIMENT_DESCRIPTION] == "all benchmarks"
 
+    def test_child_spans_do_not_carry_the_description(self):
+        """The spec sets the description on the item root only."""
+        attributes = _context(description="all benchmarks").span_attributes("r")
+
+        assert EXPERIMENT_DESCRIPTION not in attributes
+        assert attributes[EXPERIMENT_ITEM_ID] == "item-1"
+
     def test_every_value_is_a_string(self):
         """OTel attributes are typed; a non-string would be dropped."""
-        attributes = _context(description="d").span_attributes("r")
+        attributes = _context(description="d").root_span_attributes("r")
 
         assert all(isinstance(v, str) for v in attributes.values())
 
@@ -79,11 +86,13 @@ class TestRunnerWiring:
         )
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
-        state = SimpleNamespace(experiment=_context())
-        runner._mark_as_experiment_item(cast(AgentState, state), SimpleNamespace(id="root-1"))
+        state = SimpleNamespace(experiment=_context(description="d"))
+        for_children = runner._mark_as_experiment_item(cast(AgentState, state), SimpleNamespace(id="root-1"))
 
         assert recorded[EXPERIMENT_NAME] == "nightly-2026-08-21"
         assert recorded[EXPERIMENT_ITEM_ROOT_OBSERVATION_ID] == "root-1"
+        assert recorded[EXPERIMENT_DESCRIPTION] == "d"
+        assert for_children == _context().span_attributes("root-1")
 
     def test_an_ordinary_run_stamps_nothing(self, monkeypatch):
         from types import SimpleNamespace
@@ -97,9 +106,12 @@ class TestRunnerWiring:
         )
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
-        runner._mark_as_experiment_item(cast(AgentState, SimpleNamespace(experiment=None)), SimpleNamespace(id="r"))
+        for_children = runner._mark_as_experiment_item(
+            cast(AgentState, SimpleNamespace(experiment=None)), SimpleNamespace(id="r")
+        )
 
         assert recorded == {}
+        assert for_children == {}
 
     def test_run_once_actually_calls_it(self):
         """Guards the call site: the helper is useless if nothing invokes it."""
@@ -107,4 +119,6 @@ class TestRunnerWiring:
 
         from agents.graph import runner
 
-        assert "_mark_as_experiment_item(state, root_span)" in inspect.getsource(runner.run_once)
+        source = inspect.getsource(runner.run_once)
+        assert "_mark_as_experiment_item(state, root_span)" in source
+        assert "propagate_span_attributes(experiment_attributes)" in source

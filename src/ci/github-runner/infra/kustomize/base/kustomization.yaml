@@ -14,6 +14,7 @@ replacements:
           name: github-runners
         fieldPaths:
           - spec.jobTargetRef.template.spec.containers.[name=coordinator].image
+          - spec.jobTargetRef.template.spec.initContainers.[name=wait-for-egress-policy].image
   - source:
       kind: ScaledJob
       name: github-runners

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Designer.Tests.TestAttributes;
 using Designer.Tests.Utils;
 using Xunit;
 
@@ -377,6 +378,97 @@ public class GitRepositoryTests
         }
     }
 
+    [SkipOnOsPlatformsTheory("WINDOWS")]
+    [InlineData("App/linked-file.txt")]
+    [InlineData("App/linked-directory/target.txt")]
+    public async Task ReadTextByRelativePathAsync_PathThroughSymbolicLink_ShouldThrowArgumentException(
+        string relativePath
+    )
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            repository.GitRepository.ReadTextByRelativePathAsync(relativePath)
+        );
+    }
+
+    [SkipOnOsPlatformsTheory("WINDOWS")]
+    [InlineData("App/linked-file.txt")]
+    [InlineData("App/linked-directory/target.txt")]
+    public async Task ReadTextByAbsolutePathAsync_PathThroughSymbolicLink_ShouldThrowArgumentException(
+        string relativePath
+    )
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+        string absolutePath = Path.Join(repository.RepositoryDirectory, relativePath);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            repository.GitRepository.ReadTextByAbsolutePath(absolutePath)
+        );
+    }
+
+    [SkipOnOsPlatformsTheory("WINDOWS")]
+    [InlineData("App/linked-file.txt")]
+    [InlineData("App/linked-directory/target.txt")]
+    public void OpenStreamByRelativePath_PathThroughSymbolicLink_ShouldThrowArgumentException(string relativePath)
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        Assert.Throws<ArgumentException>(() => repository.GitRepository.OpenStreamByRelativePath(relativePath));
+    }
+
+    [SkipOnOsPlatformsTheory("WINDOWS")]
+    [InlineData("App/linked-file.txt")]
+    [InlineData("App/linked-directory/target.txt")]
+    public void FileExistsByRelativePath_PathThroughSymbolicLink_ShouldReturnFalse(string relativePath)
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        Assert.False(repository.GitRepository.FileExistsByRelativePath(relativePath));
+    }
+
+    [SkipOnOsPlatformsFact("WINDOWS")]
+    public async Task WriteTextByRelativePathAsync_PathThroughSymbolicLinkedDirectory_ShouldThrowArgumentException()
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            repository.GitRepository.WriteTextByRelativePathAsync("App/linked-directory/target.txt", "overwritten")
+        );
+        Assert.Equal(repository.LinkTarget.FileContent, File.ReadAllText(repository.LinkTarget.FilePath));
+    }
+
+    [SkipOnOsPlatformsFact("WINDOWS")]
+    public void FindFiles_RepositoryWithSymbolicLinks_ShouldSkipLinks()
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        Assert.Equal(
+            [Path.Join(repository.RepositoryDirectory, "App", "regular.txt")],
+            repository.GitRepository.FindFiles(["*.txt"])
+        );
+        Assert.Empty(repository.GitRepository.FindFiles(["App/linked-directory/*.txt"]));
+    }
+
+    [SkipOnOsPlatformsFact("WINDOWS")]
+    public void GetFilesByRelativeDirectory_DirectoryWithSymbolicLinks_ShouldSkipLinks()
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        Assert.Equal(
+            [Path.Join(repository.RepositoryDirectory, "App", "regular.txt")],
+            repository.GitRepository.GetFilesIncludingSubdirectories("App")
+        );
+    }
+
+    [SkipOnOsPlatformsFact("WINDOWS")]
+    public void GetDirectoriesByRelativeDirectory_DirectoryWithSymbolicLinks_ShouldSkipLinks()
+    {
+        using var repository = new RepositoryWithSymbolicLinks();
+
+        Assert.Equal(["regular-directory"], repository.GitRepository.GetDirectories("App"));
+    }
+
     private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(
         string org,
         string repository,
@@ -391,5 +483,58 @@ public class GitRepositoryTests
         );
 
         return gitRepository;
+    }
+
+    /// <summary>
+    /// A repository whose App folder holds a regular file and directory next to a link to a file and a link to the
+    /// directory that holds that file.
+    /// </summary>
+    private sealed class RepositoryWithSymbolicLinks : IDisposable
+    {
+        public RepositoryWithSymbolicLinks()
+        {
+            RepositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+                "ttd",
+                TestDataHelper.GenerateTestRepoName(),
+                "testUser"
+            );
+            string appDirectory = Path.Join(RepositoryDirectory, "App");
+            Directory.CreateDirectory(Path.Join(appDirectory, "regular-directory"));
+            File.WriteAllText(Path.Join(appDirectory, "regular.txt"), "regular");
+            LinkTarget.LinkFileFrom(Path.Join(appDirectory, "linked-file.txt"));
+            LinkTarget.LinkDirectoryFrom(Path.Join(appDirectory, "linked-directory"));
+            GitRepository = new GitRepositoryWithProtectedMembers(
+                TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+                RepositoryDirectory
+            );
+        }
+
+        public LinkTargetDirectory LinkTarget { get; } = new("target.txt", "link target");
+
+        public string RepositoryDirectory { get; }
+
+        public GitRepositoryWithProtectedMembers GitRepository { get; }
+
+        public void Dispose()
+        {
+            Directory.Delete(RepositoryDirectory, recursive: true);
+            LinkTarget.Dispose();
+        }
+    }
+
+    private sealed class GitRepositoryWithProtectedMembers(string repositoriesRootDirectory, string repositoryDirectory)
+        : Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+            repositoriesRootDirectory,
+            repositoryDirectory
+        )
+    {
+        public Task<string> ReadTextByAbsolutePath(string absoluteFilePath) =>
+            ReadTextByAbsolutePathAsync(absoluteFilePath);
+
+        public string[] GetFilesIncludingSubdirectories(string relativeDirectory) =>
+            GetFilesByRelativeDirectory(relativeDirectory, searchInSubdirectories: true);
+
+        public string[] GetDirectories(string relativeDirectory) =>
+            GetDirectoriesByRelativeDirectory(relativeDirectory);
     }
 }

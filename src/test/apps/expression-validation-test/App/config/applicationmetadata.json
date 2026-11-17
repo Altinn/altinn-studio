@@ -37,7 +37,7 @@
           "prefix": "SF_"
         }
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -52,7 +52,7 @@
         "image/png",
         "image/jpeg"
       ],
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxSize": 25,
       "maxCount": 10,
       "minCount": 0,
@@ -68,7 +68,7 @@
         "image/png",
         "image/jpeg"
       ],
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxSize": 25,
       "maxCount": 10,
       "minCount": 0,

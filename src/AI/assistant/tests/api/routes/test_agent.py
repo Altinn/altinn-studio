@@ -24,7 +24,7 @@ def _start_payload() -> dict:
         "session_id": "session-1",
         "goal": "Add a field to the form",
         "repo_url": "https://dev.altinn.studio/repos/ttd/my-app.git",
-        "org": "ttd",
+        "cost_org": "ttd",
     }
 
 
@@ -41,6 +41,7 @@ def _stubbed_agent_start(repo_path):
     """Stub the side effects of a successful start so the body returns 200 without cloning."""
     repo_manager = Mock()
     repo_manager.clone_repo_for_session.return_value = str(repo_path)
+    repo_manager.get_session_start_commit.return_value = "0123abcd"
     sink_stub = Mock()
     sink_stub.get_conversation_history.return_value = []
     with (
@@ -109,8 +110,8 @@ class TestPermissionGateDefaults:
         request = StartReq(
             session_id="sess-1",
             goal="add a field",
-            repo_url="http://gitea/repo.git",
-            org="ttd",
+            repo_url="http://gitea/ttd/repo.git",
+            cost_org="ttd",
         )
 
         assert request.allow_app_changes is False
@@ -124,7 +125,51 @@ class TestPermissionGateDefaults:
             repo_path="/tmp/repo",
             app_name="test-app",
             developer="dev",
-            org="ttd",
+            repo_owner="ttd",
+            cost_org="ttd",
         )
 
         assert state.allow_app_changes is False
+
+
+class TestCostOrg:
+    def test_takes_the_repo_owner_from_the_repo_url_and_the_cost_org_from_the_request(self, tmp_path):
+        payload = {
+            **_start_payload(),
+            "repo_url": "https://dev.altinn.studio/repos/kari/my-app.git",
+            "cost_org": "ttd",
+        }
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.run_in_background") as run_in_background:
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 200
+        state = run_in_background.call_args.args[0]
+        assert state.repo_owner == "kari"
+        assert state.cost_org == "ttd"
+
+    def test_rejects_a_request_without_cost_org(self, tmp_path):
+        payload = _start_payload()
+        del payload["cost_org"]
+        with _stubbed_agent_start(tmp_path):
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 422
+
+
+class TestStartCommit:
+    def test_the_session_gets_the_commit_its_clone_started_on(self, tmp_path):
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.run_in_background") as run_in_background:
+            response = _post_start(TestClient(app), "kari")
+
+        assert response.status_code == 200
+        assert run_in_background.call_args.args[0].start_commit == "0123abcd"
+
+
+class TestRepoUrl:
+    def test_rejects_a_repo_url_without_an_owner_before_the_session_is_registered(self, tmp_path):
+        payload = {**_start_payload(), "repo_url": "https://dev.altinn.studio/my-app.git"}
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.sink") as sink_stub:
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 422
+        sink_stub.register_developer_session.assert_not_called()

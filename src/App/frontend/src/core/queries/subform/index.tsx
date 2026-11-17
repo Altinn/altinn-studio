@@ -1,0 +1,66 @@
+import { toast } from 'react-toastify';
+
+import { useMutation } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
+import { useInvalidateInstanceDataCache } from 'src/core/queries/instance';
+import { mutationResult } from 'src/core/queries/mutationResult';
+import {
+  useOptimisticallyAppendDataElements,
+  useOptimisticallyRemoveDataElement,
+  useStrictInstanceId,
+} from 'src/features/instance/InstanceContext';
+import { useLanguage } from 'src/features/language/useLanguage';
+
+export const useAddEntryMutation = (dataType: string) => {
+  const instanceId = useStrictInstanceId();
+  const { langAsString } = useLanguage();
+  const { doSubformEntryAdd } = useAppMutations();
+  const invalidateInstanceData = useInvalidateInstanceDataCache();
+  const optimisticallyAppendDataElements = useOptimisticallyAppendDataElements();
+
+  const mutation = useMutation({
+    mutationKey: ['addSubform', dataType],
+    mutationFn: async (data: unknown) => await doSubformEntryAdd(instanceId, dataType, data),
+    onSuccess: (data) => {
+      optimisticallyAppendDataElements([data]);
+      invalidateInstanceData();
+    },
+    onError: (error) => {
+      window.logErrorOnce('Failed to add subform entry:', error);
+
+      if (isAxiosError(error) && error.response?.status === 409) {
+        toast(langAsString('form_filler.error_max_count_reached_subform_server', [dataType]), { type: 'error' });
+      } else {
+        toast(langAsString('form_filler.error_add_subform'), { type: 'error' });
+      }
+    },
+  });
+  return mutationResult(mutation);
+};
+
+export const useDeleteEntryMutation = () => {
+  const instanceId = useStrictInstanceId();
+  const { langAsString } = useLanguage();
+  const { doSubformEntryDelete } = useAppMutations();
+  const invalidateInstanceDataCache = useInvalidateInstanceDataCache();
+  const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
+
+  const mutation = useMutation({
+    mutationKey: ['deleteSubform'],
+    mutationFn: async (id: string) => {
+      await doSubformEntryDelete(instanceId, id);
+      return id;
+    },
+    onSuccess: (id) => {
+      optimisticallyRemoveDataElement(id);
+      invalidateInstanceDataCache();
+    },
+    onError: (error) => {
+      console.error('Failed to delete subform:', error);
+      toast(langAsString('form_filler.error_delete_subform'), { type: 'error' });
+    },
+  });
+  return mutationResult(mutation);
+};

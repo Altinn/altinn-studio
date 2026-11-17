@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ListAdminPage } from './ListAdminPage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -43,8 +43,10 @@ describe('ListAdminPage', () => {
     });
     renderListAdminPage();
 
-    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
-      replace: true,
+    await waitFor(() => {
+      expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
+        replace: true,
+      });
     });
   });
 
@@ -66,7 +68,7 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     renderListAdminPage();
 
-    const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
+    const prodEnvButton = await screen.findByText(textMock('resourceadm.deploy_prod_env'));
     await user.click(prodEnvButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`, {

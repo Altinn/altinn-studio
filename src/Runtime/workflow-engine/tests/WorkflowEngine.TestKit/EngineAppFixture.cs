@@ -52,6 +52,33 @@ public abstract class EngineAppFixture : IAsyncLifetime
     public WireMockServer WireMock { get; private set; } = null!;
 
     /// <summary>
+    /// Resets WireMock so the given paths answer 500 and everything else answers 200.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="SetupDefaultStub"/> registers its catch-all at the default priority, which beats
+    /// any path stub added afterwards, so a test that wants a path to fail has to reset and put
+    /// the catch-all back at the lowest precedence itself. This is that dance in one place:
+    /// a hand-rolled copy that forgets the priority makes its failing stub lose silently, and the
+    /// test then times out in <see cref="WaitForWorkflowStatus"/> instead of failing on the assertion.
+    /// </remarks>
+    public void FailPaths(params string[] paths)
+    {
+        WireMock.Reset();
+        foreach (var path in paths)
+        {
+            WireMock
+                .Given(Request.Create().WithPath(path).UsingAnyMethod())
+                .AtPriority(1)
+                .RespondWith(Response.Create().WithStatusCode(500));
+        }
+        // Lower priority values win, so the catch-all sits at the lowest precedence.
+        WireMock
+            .Given(Request.Create().UsingAnyMethod())
+            .AtPriority(int.MaxValue)
+            .RespondWith(Response.Create().WithStatusCode(200));
+    }
+
+    /// <summary>
     /// Creates an <see cref="HttpClient"/> pointing to the locally running engine.
     /// </summary>
     public HttpClient CreateEngineClient() => _createEngineClient();

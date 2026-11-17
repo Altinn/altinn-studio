@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioTable } from '@studio/components';
+import { StudioTable } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './ContactPointTableHeader.module.css';
 

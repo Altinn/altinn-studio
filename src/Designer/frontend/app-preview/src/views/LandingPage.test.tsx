@@ -2,20 +2,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
 import { renderWithProviders } from '../../test/mocks';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@designer/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
+import { createPreviewInstance } from 'app-shared/api/mutations';
+
+const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
+vi.mock('app-shared/utils/previewAvailability', () => ({
+  get isPreviewDisabled() {
+    return previewAvailability.isPreviewDisabled;
+  },
+}));
 
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 vi.mock('react-router-dom', async () => ({
   ...(await vi.importActual('react-router-dom')),
   useParams: vi.fn(() => ({
@@ -31,6 +39,19 @@ vi.mock('app-shared/api/mutations', () => ({
 describe('LandingPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    previewAvailability.isPreviewDisabled = false;
+  });
+
+  it('should inform that preview is temporarily disabled instead of loading it', async () => {
+    previewAvailability.isPreviewDisabled = true;
+    vi.mocked(createPreviewInstance).mockClear();
+    renderLandingPage();
+
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
+
+    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(screen.queryByTitle(textMock('preview.title'))).not.toBeInTheDocument();
+    expect(createPreviewInstance).not.toHaveBeenCalled();
   });
 
   it('should display a spinner initially when loading user', () => {

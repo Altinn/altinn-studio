@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './AddPolicyRuleButton.module.css';
-import { PlusIcon } from '@studio/icons';
-import { StudioParagraph } from '@studio/components';
+import { PlusIcon } from '@designer/icons';
+import { StudioParagraph } from '@designer/components';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import type { PolicyRuleResource, PolicyRuleCard } from '../../types';
 import { emptyPolicyRule, createNewPolicyResource, getNewRuleId } from '../../utils';

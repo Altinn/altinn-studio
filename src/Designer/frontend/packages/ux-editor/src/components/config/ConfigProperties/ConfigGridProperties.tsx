@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
-import { StudioProperty, StudioConfigCard } from '@studio/components';
+import { StudioProperty, StudioConfigCard } from '@designer/components';
 import cn from 'classnames';
 import type { BaseConfigProps } from './types';
 import { componentComparison, propHasValues } from './ConfigPropertiesUtils';

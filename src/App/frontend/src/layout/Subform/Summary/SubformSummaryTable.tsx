@@ -24,6 +24,10 @@ import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -116,11 +120,17 @@ export function SubformSummaryTable({
 }: Pick<Summary2Props, 'targetBaseComponentId'>): React.JSX.Element | null {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
-  const description = useEvalOptionalText(
-    config.textResourceBindings?.description,
-    Expressions.Subform.textResourceBindings.description,
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Subform.textResourceBindings.summaryTitle,
   );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Subform.textResourceBindings.title,
+  );
+  const title = summaryTitle ?? resolvedTitle;
+  const labelText = useSummaryLabelText(targetBaseComponentId);
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
 
   const navigation = useNavigation();
 
@@ -156,6 +166,7 @@ export function SubformSummaryTable({
           hideIndicators
           weight='regular'
           textResourceBindings={{
+            ...labelText,
             title,
           }}
           className={classes2.summaryLabelMargin}
@@ -184,9 +195,9 @@ export function SubformSummaryTable({
         >
           {title && (
             <Caption
+              {...captionProps}
               id={`subform-${componentId}-caption`}
               title={<Lang id={title} />}
-              description={description && <Lang id={description} />}
             />
           )}
           <Table.Head id={`subform-${componentId}-table-body`}>

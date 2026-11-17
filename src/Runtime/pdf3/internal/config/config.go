@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/common/telemetry"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/telemetry/attr"
@@ -128,27 +130,15 @@ func equalConfigValue(value string, candidate string) bool {
 	return strings.EqualFold(strings.TrimSpace(value), strings.TrimSpace(candidate))
 }
 
-// OTelSignals are the telemetry signals pdf3 exports.
-type OTelSignals struct {
-	Traces  bool
-	Metrics bool
-	Logs    bool
-}
-
-// Any reports whether pdf3 exports any signal.
-func (s OTelSignals) Any() bool {
-	return s.Traces || s.Metrics || s.Logs
-}
-
 // ResolveOTelSignals returns the signals pdf3 exports. In a cluster it exports all of them. In
 // localtest, exporting is opt-in, to avoid noisy connection errors in the default setup:
 // OTEL_EXPORTER_OTLP_ENDPOINT turns on every signal, and a signal's own endpoint turns on that
 // signal, so no exporter falls back to a default endpoint that isn't there.
-func ResolveOTelSignals(environment string) OTelSignals {
+func ResolveOTelSignals(environment string) telemetry.Signals {
 	if environment != EnvironmentLocaltest || os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
-		return OTelSignals{Traces: true, Metrics: true, Logs: true}
+		return telemetry.AllSignals()
 	}
-	return OTelSignals{
+	return telemetry.Signals{
 		Traces:  os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") != "",
 		Metrics: os.Getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") != "",
 		Logs:    os.Getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT") != "",

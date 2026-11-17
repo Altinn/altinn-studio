@@ -8,11 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { StudioButton, StudioCenter, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioCenter, StudioParagraph } from '@designer/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
-import { ArrowRightIcon } from '@studio/icons';
+import { ArrowRightIcon } from '@designer/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
+import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 
 export const Preview = () => {
   const { t } = useTranslation();
@@ -37,9 +39,19 @@ export const Preview = () => {
         className={classes.closePreviewButton}
         onClick={togglePreview}
       />
-      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+      <PreviewContent noPageSelected={noPageSelected} />
     </div>
   );
+};
+
+type PreviewContentProps = {
+  noPageSelected: boolean;
+};
+
+const PreviewContent = ({ noPageSelected }: PreviewContentProps) => {
+  if (isPreviewDisabled) return <PreviewDisabledInfo className={classes.alert} />;
+  if (noPageSelected) return <NoSelectedPageMessage />;
+  return <PreviewFrame />;
 };
 
 // Message to display when no page is selected

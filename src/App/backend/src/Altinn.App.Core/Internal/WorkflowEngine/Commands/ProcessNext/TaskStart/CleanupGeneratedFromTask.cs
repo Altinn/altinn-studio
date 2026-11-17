@@ -22,7 +22,7 @@ internal sealed class CleanupGeneratedFromTask : IWorkflowEngineCommand
 
     public string GetKey() => Key;
 
-    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+    public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
     {
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = instanceDataMutator.Instance;
@@ -47,6 +47,6 @@ internal sealed class CleanupGeneratedFromTask : IWorkflowEngineCommand
             instance.Data?.Remove(dataElement);
         }
 
-        return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+        return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
     }
 }

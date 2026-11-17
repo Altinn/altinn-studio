@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
@@ -106,6 +107,22 @@ public class UiFoldersServiceTests : IDisposable
 
         // Assert
         Assert.Equal("pdf", pdfLayoutSet.TaskType);
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_RemovesTaskFromTaskIdsAndLeavesTaskIdAlone()
+    {
+        // Arrange
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(_testRepoPath, "myModel", "Task_1", ["Task_1", "Task_2"]);
+
+        // Act
+        await service.DeleteLayoutSet(editingContext, "Task_1", CancellationToken.None);
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(_testRepoPath, "myModel");
+        Assert.Equal(new[] { "Task_2" }, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+        Assert.Equal("Task_1", (string)dataType["taskId"]);
     }
 
     private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext(

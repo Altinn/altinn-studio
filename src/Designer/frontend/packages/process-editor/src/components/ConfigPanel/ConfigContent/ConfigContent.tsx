@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { EditTaskName } from './EditTaskName';
-import { StudioDetails, useStudioRecommendedNextActionContext } from '@studio/components';
+import { StudioDetails, useStudioRecommendedNextActionContext } from '@designer/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { EditActions } from './EditActions';

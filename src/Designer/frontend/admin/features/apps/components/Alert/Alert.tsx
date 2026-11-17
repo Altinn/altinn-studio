@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import classes from './Alert.module.css';
-import type { StudioAlertProps } from '@studio/components';
-import { StudioAlert, StudioLink } from '@studio/components';
+import type { StudioAlertProps } from '@designer/components';
+import { StudioAlert, StudioLink } from '@designer/components';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { ExternalLinkIcon } from '@studio/icons';
+import { ExternalLinkIcon } from '@designer/icons';
 
 type AlertProps = {
   color: string;
@@ -34,7 +34,7 @@ export const Alert = ({ color, count, title, url, children, className, ...rest }
             rel='noopener noreferrer'
             target='_blank'
             className={classes.link}
-            icon={<ExternalLinkIcon title={t('general.open_app_in_new_window')} />}
+            icon={<ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />}
             iconPlacement={'right'}
           >
             {t('admin.metrics.errors.link')}

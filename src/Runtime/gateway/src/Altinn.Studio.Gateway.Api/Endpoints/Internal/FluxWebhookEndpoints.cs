@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Endpoints.Internal.Contracts;
@@ -29,15 +30,18 @@ internal static class FluxWebhookEndpoints
         return internalApiV1;
     }
 
-    private static async Task<IResult> HandleFluxWebhook(
+    internal static async Task<IResult> HandleFluxWebhook(
         FluxEvent fluxEvent,
         HelmReleaseClient helmReleaseClient,
         IHttpClientFactory httpClientFactory,
         IHostEnvironment hostEnvironment,
+        GatewayMetrics metrics,
         ILogger<Program> logger,
         CancellationToken cancellationToken
     )
     {
+        // The webhook's own span. Flux sends no trace context, so it's the root of a trace of its own.
+        Activity? webhookSpan = Activity.Current;
         logger.LogInformation(
             "Received Flux event: {Reason} for {Kind}/{Name} in {Namespace}",
             fluxEvent.Reason,
@@ -61,46 +65,97 @@ internal static class FluxWebhookEndpoints
             return Results.Ok();
         }
 
-        var helmReleaseName = fluxEvent.InvolvedObject.Name;
-        var helmReleaseNamespace = fluxEvent.InvolvedObject.Namespace;
+        var fluxReason = fluxEvent.Reason;
+        webhookSpan?.SetTag(ServiceTelemetry.Attributes.FluxReason, fluxReason);
 
-        if (string.IsNullOrEmpty(helmReleaseName) || string.IsNullOrEmpty(helmReleaseNamespace))
+        // Each deploy event is counted once, with error.type when Designer didn't get it, however that failed.
+        string? originEnvironment = null;
+        string? errorType = null;
+        try
         {
-            logger.LogWarning("HelmRelease name or namespace is missing");
+            var helmReleaseName = fluxEvent.InvolvedObject.Name;
+            var helmReleaseNamespace = fluxEvent.InvolvedObject.Namespace;
+
+            if (string.IsNullOrEmpty(helmReleaseName) || string.IsNullOrEmpty(helmReleaseNamespace))
+            {
+                logger.LogWarning("HelmRelease name or namespace is missing");
+                errorType = ServiceTelemetry.ErrorTypes.HelmReleaseUnresolved;
+                webhookSpan.SetError(errorType);
+                return Results.Ok();
+            }
+
+            var info = await TryResolveHelmReleaseInfo(
+                helmReleaseClient,
+                helmReleaseName,
+                helmReleaseNamespace,
+                logger,
+                cancellationToken
+            );
+
+            if (info is null)
+            {
+                errorType = ServiceTelemetry.ErrorTypes.HelmReleaseUnresolved;
+                webhookSpan.SetError(errorType);
+                return Results.Ok();
+            }
+
+            originEnvironment = info.SourceEnvironment;
+            // The correlation keys go on both spans, so that either trace can be found from the other's.
+            SetDeployEventAttributes(webhookSpan, info, fluxReason);
+
+            errorType = await SendDeployEvent(
+                fluxEvent,
+                info,
+                fluxReason,
+                httpClientFactory,
+                hostEnvironment,
+                logger,
+                cancellationToken
+            );
+            webhookSpan.SetErrorIfAny(errorType);
             return Results.Ok();
         }
+        catch (Exception ex) when (errorType is null)
+        {
+            // Looking up the HelmRelease failed, such as an error from the Kubernetes API. The request fails with it.
+            errorType = ServiceTelemetry.ErrorTypeOf(ex);
+            webhookSpan.SetError(errorType);
+            throw;
+        }
+        finally
+        {
+            metrics.RecordDeployEvent(fluxReason, originEnvironment, errorType);
+        }
+    }
 
-        var info = await TryResolveHelmReleaseInfo(
-            helmReleaseClient,
-            helmReleaseName,
-            helmReleaseNamespace,
-            logger,
-            cancellationToken
-        );
-
-        if (info is null)
-            return Results.Ok();
-
-        var targetEnvironment = hostEnvironment.EnvironmentName;
-
+    /// <summary>
+    /// Passes the deploy event on to the Studio environment that deployed the app, in the deploy's own trace when the
+    /// HelmRelease carries one.
+    /// </summary>
+    /// <returns>Why Designer didn't get the event, or null when it did.</returns>
+    private static async Task<string?> SendDeployEvent(
+        FluxEvent fluxEvent,
+        HelmReleaseInfo info,
+        string fluxReason,
+        IHttpClientFactory httpClientFactory,
+        IHostEnvironment hostEnvironment,
+        ILogger logger,
+        CancellationToken cancellationToken
+    )
+    {
         var deployEvent = new DeployEventRequest
         {
             BuildId = info.BuildId,
             Message = fluxEvent.Message,
             Timestamp = fluxEvent.Timestamp,
             EventType = fluxEvent.Reason,
-            Environment = targetEnvironment,
+            Environment = hostEnvironment.EnvironmentName,
         };
 
-        Activity? activity = null;
+        using Activity? activity = TryStartTraceActivity(info.TraceParent, info.TraceState, logger);
+        SetDeployEventAttributes(activity, info, fluxReason);
         try
         {
-            activity = TryStartTraceActivity(info.TraceParent, info.TraceState, logger);
-            activity?.SetTag("org", info.Org);
-            activity?.SetTag("app", info.App);
-            activity?.SetTag("flux.reason", fluxEvent.Reason);
-            activity?.SetTag("flux.build_id", info.BuildId);
-
             using var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
             using var response = await httpClient.PostAsJsonAsync(
                 $"designer/api/v1/{info.Org}/{info.App}/deployments/webhooks/events",
@@ -110,19 +165,23 @@ internal static class FluxWebhookEndpoints
             );
             response.EnsureSuccessStatusCode();
             logger.LogInformation("Successfully sent deploy event to Designer for {Org}/{App}", info.Org, info.App);
+            return null;
         }
         catch (Exception ex)
         {
-            activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.AddException(ex);
-            logger.LogError(ex, "Failed to send deploy event for {Name}", helmReleaseName);
+            string errorType = ServiceTelemetry.ErrorTypeOf(ex);
+            activity.SetError(errorType);
+            logger.LogError(ex, "Failed to send deploy event for {Org}/{App}", info.Org, info.App);
+            return errorType;
         }
-        finally
-        {
-            activity?.Dispose();
-        }
+    }
 
-        return Results.Ok();
+    private static void SetDeployEventAttributes(Activity? span, HelmReleaseInfo info, string fluxReason)
+    {
+        span.SetApp(info.App);
+        span.SetOriginEnvironment(info.SourceEnvironment);
+        span?.SetTag(ServiceTelemetry.Attributes.FluxReason, fluxReason);
+        span?.SetTag(AltinnAttributes.AppDeployBuildId, info.BuildId);
     }
 
     private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfo(
@@ -231,9 +290,10 @@ internal static class FluxWebhookEndpoints
             links = [new ActivityLink(currentContext)];
         }
 
+        // The deploy's own trace, which Designer started, continues here: the gateway consumes Flux's event about it.
         var activity = ServiceTelemetry.Source.StartActivity(
             "FluxWebhook.ProcessEvent",
-            ActivityKind.Internal,
+            ActivityKind.Consumer,
             parentContext,
             links: links
         );

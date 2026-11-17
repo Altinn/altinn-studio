@@ -8,9 +8,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon } from '@studio/icons';
+import { ArrowLeftIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { ProblemStatusIndicator } from './ProblemStatusIndicator';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';

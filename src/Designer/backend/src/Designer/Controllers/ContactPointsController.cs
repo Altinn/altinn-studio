@@ -87,9 +87,14 @@ public class ContactPointsController(IContactPointsService service) : Controller
             Environments = request.Environments,
             ReportFrequency = request.ReportFrequency,
             Methods = request
-                .Methods.Select(m => new ContactMethod { MethodType = m.MethodType, Value = m.Value })
+                .Methods.Select(m => new ContactMethod { MethodType = m.MethodType, Value = NormalizeValue(m) })
                 .ToList(),
         };
+
+    private static string NormalizeValue(ContactMethodRequest method) =>
+        method.MethodType == ContactMethodType.Sms && PhoneNumber.TryNormalize(method.Value, out string? phoneNumber)
+            ? phoneNumber
+            : method.Value;
 
     private static ContactPointResponse MapToResponse(ContactPoint contactPoint) =>
         new()

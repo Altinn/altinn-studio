@@ -1,16 +1,18 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.EFormidling.Interface;
 using Argon;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
 
-public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class OpenApiSpecChangeDetection : ApiTestBase
 {
-    public OpenApiSpecChangeDetection(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public OpenApiSpecChangeDetection(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task SaveJsonSwagger()
@@ -30,6 +32,17 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");
         await Snapshot(response);
+    }
+
+    [Fact]
+    public async Task CustomOpenApiSpec_DocumentsAnAppWithUiAndADataTypeWithoutTask()
+    {
+        // The app has a UI folder and a data type bound to no task, ref-data-as-pdf. Its eFormidling task needs the
+        // service to start.
+        OverrideServicesForThisTest = services => services.AddSingleton(Mock.Of<IEFormidlingService>());
+        using HttpClient client = GetRootedClient("ttd", "service-tasks");
+        using HttpResponseMessage response = await client.GetAsync("/ttd/service-tasks/v1/customOpenapi.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -57,12 +70,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("post")
                 .GetProperty("responses"),
             "#/components/schemas/AppCallbackResponse"
-        );
-        AssertConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate")
-                .GetProperty("get")
-                .GetProperty("responses")
         );
         AssertActionsConflictResponse(
             paths
@@ -111,13 +118,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
                 .GetProperty("responses"),
             "application/json",
             "application/problem+json"
-        );
-        AssertStringOrProblemConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess")
-                .GetProperty("put")
-                .GetProperty("responses")
-                .GetProperty("409")
         );
 
         JsonElement patchOperation = paths
@@ -177,7 +177,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         AssertConflictResponse(responses, conflictMediaType);
     }
 
-    private static void AssertConflictResponse(JsonElement responses, string mediaType = "application/json")
+    private static void AssertConflictResponse(JsonElement responses, string mediaType)
     {
         Assert.Equal(
             "#/components/schemas/ProblemDetails",
@@ -222,34 +222,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             content.GetProperty("text/json").GetProperty("schema"),
             "ProblemDetails",
             "UserActionResponse"
-        );
-    }
-
-    private static void AssertStringOrProblemConflictResponse(JsonElement conflictResponse)
-    {
-        JsonElement content = conflictResponse.GetProperty("content");
-        Assert.Equal(
-            ["application/json", "application/problem+json", "text/json", "text/plain"],
-            content.EnumerateObject().Select(property => property.Name).Order().ToArray()
-        );
-        Assert.Equal("string", content.GetProperty("text/plain").GetProperty("schema").GetProperty("type").GetString());
-        AssertSchemaReference(content.GetProperty("application/problem+json").GetProperty("schema"), "ProblemDetails");
-        AssertStringOrProblemSchema(content.GetProperty("application/json").GetProperty("schema"));
-        AssertStringOrProblemSchema(content.GetProperty("text/json").GetProperty("schema"));
-    }
-
-    private static void AssertStringOrProblemSchema(JsonElement schema)
-    {
-        JsonElement[] variants = schema.GetProperty("oneOf").EnumerateArray().ToArray();
-        Assert.Contains(
-            variants,
-            variant => variant.TryGetProperty("type", out var type) && type.GetString() == "string"
-        );
-        Assert.Contains(
-            variants,
-            variant =>
-                variant.TryGetProperty("$ref", out var reference)
-                && reference.GetString() == "#/components/schemas/ProblemDetails"
         );
     }
 

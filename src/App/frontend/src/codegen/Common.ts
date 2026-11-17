@@ -57,6 +57,17 @@ const common = {
     ),
   ISummaryOverridesCommon: () =>
     new CG.obj(new CG.prop('hidden', new CG.bool().optional()), new CG.prop('emptyFieldText', new CG.str().optional())),
+  summaryShowNextButton: () =>
+    new CG.prop(
+      'showNextButton',
+      new CG.bool()
+        .optional()
+        .setTitle('Show next button after editing', 'Vis neste-knappen etter redigering')
+        .setDescription(
+          'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+          'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+        ),
+    ),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
@@ -111,8 +122,8 @@ const common = {
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
           .setDescription(
-            'Show the optional indicator on the label of non-required fields. Enabled by default.',
-            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+            'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
           )
           .optional({ default: true }),
       ),
@@ -251,8 +262,10 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for label', 'Datamodellbinding for ledetekst')
           .setDescription(
-            'Describes the location in the data model where the component should store its labels',
-            'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+            'Location in the data model for the translated labels. Must point to a string for single-select components ' +
+              'or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+            'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg ' +
+              'eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
           )
           .optional(),
       ),
@@ -261,8 +274,8 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for metadata', 'Datamodellbinding for metadata')
           .setDescription(
-            'Describes the location in the data model where the component should store its metadata',
-            'Angir hvor i datamodellen komponenten skal lagre metadata.',
+            'Location in the data model for options metadata. Must point to a string.',
+            'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
           )
           .optional(),
       ),
@@ -617,7 +630,7 @@ const common = {
       ),
     ),
   ITableColumnFormatting: () => new CG.obj().additionalProperties(CG.common('ITableColumnProperties')),
-  ITableColumnProperties: () =>
+  ITableColumnWidth: () =>
     new CG.obj(
       new CG.prop(
         'width',
@@ -630,6 +643,10 @@ const common = {
           )
           .setPattern(/^([0-9]{1,2}%|100%|auto)$/),
       ),
+    ),
+  ITableColumnProperties: () =>
+    new CG.obj(
+      ...CG.common('ITableColumnWidth').getProperties(),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
       new CG.prop(
@@ -960,6 +977,16 @@ const common = {
           .setDescription(
             'Enables a progress indicator in the upper right corner of the app (when on data tasks/forms)',
             'Viser en fremdriftsindikator øverst til høyre i appen under dataoppgaver og skjemaer.',
+          ),
+      ),
+      new CG.prop(
+        'hideOptionalIndicator',
+        new CG.bool()
+          .optional({ default: false })
+          .setTitle('Hide optional indicator', 'Skjul markering av valgfrie felt')
+          .setDescription(
+            "Hides the marking that says a field is optional. Defaults to false, which we recommend because the marking makes it explicit which fields are optional. A component's own labelSettings.optionalIndicator overrides it.",
+            'Skjuler markeringen som viser at et felt er valgfritt. Standard er false, som vi anbefaler fordi markeringen gjør det tydelig hvilke felt som er valgfrie. En komponents egen labelSettings.optionalIndicator overstyrer den.',
           ),
       ),
       new CG.prop(

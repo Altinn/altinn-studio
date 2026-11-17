@@ -22,8 +22,10 @@ describe('Organization lookup', () => {
     cy.gotoNavPage('OrganisationLookupPage');
 
     // Check that the component is rendered
-    cy.findByText(/Her legger du inn organisasjonsnummer/i).should('exist');
-    cy.findByRole('button', { name: /Hjelpetekst for legg til virksomhet/i }).should('exist');
+    cy.get('[data-componentid="organisationLookup"]').within(() => {
+      cy.findByText(/Her legger du inn organisasjonsnummer/i).should('exist');
+      cy.findByRole('button', { name: /Hjelpetekst for legg til virksomhet/i }).should('exist');
+    });
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).should('exist');
     cy.findByRole('button', { name: /Hent opplysninger/i }).should('exist');
 

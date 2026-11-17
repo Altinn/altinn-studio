@@ -4,7 +4,7 @@ import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 export interface ISelectDataModelProps {
   inputId?: string;

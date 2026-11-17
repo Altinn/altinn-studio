@@ -250,7 +250,7 @@ internal static class TestHelpers
 
     public class CustomFiksArkivMessageHandler : IFiksArkivMessageHandler
     {
-        public Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context) =>
+        public Task HandleMessage(FiksArkivReceivedMessage message, StageContext context) =>
             throw new NotImplementedException();
     }
 

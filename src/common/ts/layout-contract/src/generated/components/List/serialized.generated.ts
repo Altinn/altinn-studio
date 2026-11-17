@@ -3,6 +3,7 @@ import {
   FormComponentProps,
   IQueryParameters,
   IRawDataModelBinding,
+  ITableColumnWidth,
   LabeledComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -31,6 +32,7 @@ export type CompListSerialized = {
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
   tableHeaders: { [key: string]: string };
+  tableColumns?: { [key: string]: ITableColumnWidth };
   sortableColumns?: string[];
   pagination?: IPagination;
   dataListId: string;
@@ -42,4 +44,4 @@ export type CompListSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: f8e6592a6d3831851b4b4132bc5da02146e71f100c8a19e35bc385146ed56540
+// Source hash: 38af8152eed2614ed7e82e7a591a1901adaeaa7827b8deb6b8964b2517e55562

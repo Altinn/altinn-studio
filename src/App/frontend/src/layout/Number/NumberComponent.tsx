@@ -4,8 +4,8 @@ import { Number } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
+import { getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';

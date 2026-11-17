@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "dompurify": "^3.2.6",
+    "dompurify": "^3.4.17",
     "html-react-parser": "^6.0.0",
     "markdown-to-jsx": "7.7.17",
     "react": "19.2.8",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.2.2"
+    "vite": "8.2.4"
   },
   "license": "MIT",
   "private": true,

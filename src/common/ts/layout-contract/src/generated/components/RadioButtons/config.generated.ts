@@ -28,9 +28,13 @@ export interface CompRadioButtonsExternal
   showAsCard?: boolean;
 }
 
+export interface RadioButtonsSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type RadioButtonsSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'RadioButtons' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & RadioButtonsSummaryOverrides)
+  | ({ componentType: 'RadioButtons' } & RadioButtonsSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -56,8 +60,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompRadioButtonsExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: RadioButtonsSummaryOverrides;
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: ff8193e42ec1d2bad1a781e073970cdcd70805b21627e70965c9391e6795f329
+// Source hash: a82aa4d43e7574cac967644d4e7b6934951acdb4a2bbcce16f4d7f8115daf547

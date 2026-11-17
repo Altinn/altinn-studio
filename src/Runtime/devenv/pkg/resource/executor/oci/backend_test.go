@@ -23,7 +23,7 @@ func TestApplyOCIArtifactPushesArtifact(t *testing.T) {
 	}
 }
 
-func TestApplyOCIArtifactPackagesHelmChart(t *testing.T) {
+func TestApplyOCIArtifactPushesHelmChart(t *testing.T) {
 	t.Parallel()
 
 	helmClient := &fakeHelm{}
@@ -38,10 +38,7 @@ func TestApplyOCIArtifactPackagesHelmChart(t *testing.T) {
 	if _, err := backend.Apply(t.Context(), executor.BackendContext{GraphID: "test"}, artifact); err != nil {
 		t.Fatalf("Apply(OCIArtifact helm-chart) error = %v", err)
 	}
-	if helmClient.packaged != "charts/deployment" {
-		t.Fatalf("packaged = %q", helmClient.packaged)
-	}
-	if !strings.Contains(helmClient.pushed, "oci://localhost:5001") {
+	if helmClient.pushed != "charts/deployment|oci://localhost:5001" {
 		t.Fatalf("pushed = %q", helmClient.pushed)
 	}
 }
@@ -56,16 +53,10 @@ func (f *fakeOCI) PushArtifact(url, path, source, revision string) error {
 }
 
 type fakeHelm struct {
-	packaged string
-	pushed   string
+	pushed string
 }
 
-func (f *fakeHelm) PackageChart(chartPath, destDir string) (string, error) {
-	f.packaged = chartPath
-	return destDir + "/chart.tgz", nil
-}
-
-func (f *fakeHelm) PushChart(chartFile, ociRef string) error {
-	f.pushed = chartFile + "|" + ociRef
+func (f *fakeHelm) PushChart(chartPath, ociRef string) error {
+	f.pushed = chartPath + "|" + ociRef
 	return nil
 }

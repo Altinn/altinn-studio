@@ -86,24 +86,14 @@ EVALS = (
         ),
     ),
     Eval(
-        name="Gates/intent-safety",
+        name="Gates/security",
         kind="prompt",
-        file="gates_intent_safety.jsonl",
-        prompt="intent_check",
+        file="gates_security.jsonl",
+        prompt="security_check",
         summary=(
             "Is the request a legitimate use of an app-development agent. Read the two "
             "directions separately: false rejections of real work cost more than an "
             "ambiguous request reaching the later layers."
-        ),
-    ),
-    Eval(
-        name="Gates/confidence",
-        kind="prompt",
-        file="gates_confidence.jsonl",
-        prompt="intent_check",
-        summary=(
-            "Does the parsed confidence land on the right side of the 0.30 threshold the "
-            "workflow gate rejects on. Bands, not values."
         ),
     ),
     Eval(
@@ -161,7 +151,7 @@ EVALS = (
         summary=(
             "Indirect prompt-injection corpus from the lokkedue project. The payload "
             "arrives inside an attachment or a file the agent reads, which is the one "
-            "channel Gates/intent-safety cannot cover because that gate sees filenames "
+            "channel Gates/security cannot cover because that gate sees filenames "
             "only. Injection resistance is model-dependent, so it belongs in a model "
             "comparison."
         ),

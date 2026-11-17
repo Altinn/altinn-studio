@@ -145,6 +145,14 @@ public class AltinnAppGitRepository : AltinnGitRepository
         return applicationMetaData;
     }
 
+    /// <summary>
+    /// Serializes the application metadata to the text of <c>applicationmetadata.json</c>.
+    /// </summary>
+    public static string SerializeApplicationMetadata(ApplicationMetadata applicationMetadata)
+    {
+        return JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
+    }
+
     public async Task<ServiceConfiguration> GetServiceConfiguration(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -176,7 +184,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// <param name="applicationMetadata">The updated application metadata to persist.</param>
     public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
     {
-        string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
+        string metadataAsJson = SerializeApplicationMetadata(applicationMetadata);
         string appMetadataRelativeFilePath = Path.Combine(ConfigFolderPath, AppMetadataFilename);
         await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
     }
@@ -977,19 +985,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
     public bool DoesImageExist(string imageFilePath)
     {
         return FileExistsByRelativePath(GetPathToImage(imageFilePath));
-    }
-
-    /// <summary>
-    /// Gets specified image from App/wwwroot folder of local repo
-    /// </summary>
-    /// <param name="imageFilePath">The file path of the image</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The image as stream</returns>
-    public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string imagePath = GetPathToImage(imageFilePath);
-        return OpenStreamByRelativePath(imagePath);
     }
 
     /// <summary>

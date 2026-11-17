@@ -12,6 +12,3 @@ documentation. Since they were written by hand, there might be some unintentiona
 objects (bugs).
 
 Refer back to the official API docs for the most up-to-date information.
-
-
-

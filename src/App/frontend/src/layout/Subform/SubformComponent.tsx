@@ -8,17 +8,17 @@ import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
+import { useAddEntryMutation, useDeleteEntryMutation } from 'src/core/queries/subform';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useEnterSubform } from 'src/hooks/useNavigatePage';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -62,7 +62,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const lock = FormStore.data.useLocking(componentId);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
-  const isAddingDisabled = useIsAnyProcessing();
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const isAddingDisabled = useIsAnyProcessing() || instanceLocked;
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -70,6 +71,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const addEntry = () =>
     performProcess(async () => {
+      // Adding an entry writes to the instance, which is locked
+      if (instanceLocked) {
+        return;
+      }
       const currentLock = await lock();
       try {
         const result = await addSubformEntryMutation.mutateAsync({});
@@ -226,6 +231,7 @@ function SubformTableRow({
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
     ? langAsString(evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource))
@@ -278,7 +284,7 @@ function SubformTableRow({
       <Table.Cell className={classes.buttonCell}>
         <div className={classes.buttonInCellWrapper}>
           <Button
-            disabled={isDeleting}
+            disabled={isDeleting || instanceLocked}
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
@@ -297,10 +303,15 @@ function SubformTableRow({
         <Table.Cell className={classes.buttonCell}>
           <div className={classes.buttonInCellWrapper}>
             <Button
-              disabled={isDeleting}
+              disabled={isDeleting || instanceLocked}
               variant='tertiary'
               color='danger'
-              onClick={() => deleteSubformEntry(id)}
+              onClick={() => {
+                // Deleting an entry writes to the instance, which is locked
+                if (!instanceLocked) {
+                  deleteSubformEntry(id);
+                }
+              }}
               aria-label={deleteButtonText}
               className={classes.tableButton}
             >

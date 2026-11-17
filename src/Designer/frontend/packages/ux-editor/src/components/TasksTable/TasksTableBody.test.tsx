@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
-import { StudioTable } from '@studio/components';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { StudioTable } from '@designer/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import {
   layoutSet1NameMock,
   layoutSet2NameMock,

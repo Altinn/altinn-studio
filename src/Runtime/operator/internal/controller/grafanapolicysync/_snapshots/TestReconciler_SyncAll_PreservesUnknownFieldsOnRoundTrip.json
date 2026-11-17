@@ -1,0 +1,31 @@
+{
+  "group_by": [
+    "grafana_folder",
+    "alertname"
+  ],
+  "receiver": "grafana-default-email",
+  "routes": [
+    {
+      "continue": true,
+      "object_matchers": [
+        [
+          "Type",
+          "=",
+          "Unrelated"
+        ]
+      ],
+      "receiver": "team-a"
+    },
+    {
+      "object_matchers": [
+        [
+          "Type",
+          "=",
+          "Altinn"
+        ]
+      ],
+      "receiver": "altinn-studio-gateway",
+      "repeat_interval": "5m"
+    }
+  ]
+}

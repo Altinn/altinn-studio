@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,10 +9,12 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.ControlPlaneController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Telemetry;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -53,7 +56,11 @@ public class ReceiveDeployEventTests
         );
     }
 
-    private HttpClient CreateClientWithMaskinportenAuth(bool shouldAuthenticate, string scope = null)
+    private HttpClient CreateClientWithMaskinportenAuth(
+        bool shouldAuthenticate,
+        string scope = null,
+        AppDeployMetrics metrics = null
+    )
     {
         string configPath = GetConfigPath();
         IConfiguration configuration = new ConfigurationBuilder()
@@ -76,6 +83,11 @@ public class ReceiveDeployEventTests
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureTestServices(services =>
                 {
+                    if (metrics is not null)
+                    {
+                        services.Replace(ServiceDescriptor.Singleton(metrics));
+                    }
+
                     // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
                     ServiceDescriptor initializerDescriptor = services.FirstOrDefault(d =>
                         d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
@@ -232,6 +244,196 @@ public class ReceiveDeployEventTests
         Assert.Single(events);
         Assert.Equal(eventType, events[0].EventType);
         Assert.Equal(message, events[0].Message);
+    }
+
+    [Theory]
+    [InlineData("InstallSucceeded", DeploymentType.Deploy, "deploy", "install_succeeded", null)]
+    [InlineData("UpgradeFailed", DeploymentType.Deploy, "deploy", "upgrade_failed", "upgrade_failed")]
+    [InlineData("UninstallSucceeded", DeploymentType.Decommission, "undeploy", "uninstall_succeeded", null)]
+    public async Task ReceiveDeployEvent_WithFluxResult_RecordsHowTheDeployEnded(
+        string eventType,
+        DeploymentType deploymentType,
+        string expectedPipelineType,
+        string expectedResult,
+        string expectedErrorType
+    )
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            org,
+            app,
+            envName: "at22",
+            deploymentType: deploymentType
+        );
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        var request = new DeployEventRequest
+        {
+            BuildId = deploymentType == DeploymentType.Deploy ? deploymentEntity.Build.Id : null,
+            EventType = eventType,
+            Message = eventType,
+            Timestamp = new DateTimeOffset(deploymentEntity.Created).AddMinutes(9),
+            Environment = "at22",
+        };
+
+        var pipelineSucceeded = new DeployEventRequest
+        {
+            BuildId = deploymentEntity.Build.Id,
+            EventType = "PipelineSucceeded",
+            Message = "Pipeline succeeded",
+            Timestamp = new DateTimeOffset(deploymentEntity.Created).AddMinutes(6),
+            Environment = "at22",
+        };
+        using var pipelineResponse = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(pipelineSucceeded)
+        );
+        Assert.Equal(HttpStatusCode.OK, pipelineResponse.StatusCode);
+
+        // Act
+        using var response = await client.PostAsync(WebhookUrl(org, app), JsonContent.Create(request));
+        using var repeated = await client.PostAsync(WebhookUrl(org, app), JsonContent.Create(request));
+
+        // Assert
+        // The repeated event is ignored: 200 for a deploy, and 404 for an undeploy, which is no longer pending.
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            deploymentType == DeploymentType.Deploy ? HttpStatusCode.OK : HttpStatusCode.NotFound,
+            repeated.StatusCode
+        );
+        RecordedAppDeployMeasurement deploy = Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.InRange(deploy.Value, 539.99, 540.01);
+        Assert.Equal(expectedPipelineType, deploy.Tags["altinn.designer.app_deploy.pipeline.type"]);
+        Assert.Equal("at22", deploy.Tags["altinn.environment"]);
+        Assert.Equal("ttd", deploy.Tags["altinn.service_owner"]);
+        Assert.Equal(expectedResult, deploy.Tags["altinn.designer.app_deploy.result"]);
+        Assert.Equal(expectedErrorType, deploy.Tags.GetValueOrDefault("error.type"));
+
+        RecordedAppDeployMeasurement flux = Assert.Single(
+            metrics.Measurements(AppDeployMetrics.FluxDurationMetricName)
+        );
+        Assert.InRange(flux.Value, 179.99, 180.01);
+        Assert.Equal(expectedResult, flux.Tags["altinn.designer.app_deploy.result"]);
+        Assert.Equal("ttd", flux.Tags["altinn.service_owner"]);
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_WithFluxResultAfterAFailedPipeline_KeepsThePipelineResult()
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        DeployEventRequest Event(string eventType) =>
+            new()
+            {
+                BuildId = deploymentEntity.Build.Id,
+                EventType = eventType,
+                Message = eventType,
+                Timestamp = DateTimeOffset.UtcNow,
+                Environment = "at22",
+            };
+
+        // Act
+        using var pipelineFailed = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("PipelineFailed"))
+        );
+        using var installSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("InstallSucceeded"))
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, pipelineFailed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, installSucceeded.StatusCode);
+        Assert.Empty(metrics.Measurements(AppDeployMetrics.DurationMetricName));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_WithFluxResultBeforeThePipelineSucceeded_RecordsNoFluxDuration()
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        DateTimeOffset created = new(deploymentEntity.Created);
+        DeployEventRequest Event(string eventType, int minutes) =>
+            new()
+            {
+                BuildId = deploymentEntity.Build.Id,
+                EventType = eventType,
+                Message = eventType,
+                Timestamp = created.AddMinutes(minutes),
+                Environment = "at22",
+            };
+
+        // Act: Flux reconciled on its own at 7 minutes, before Designer saw the pipeline succeed at 8.
+        using var pipelineSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("PipelineSucceeded", 8))
+        );
+        using var upgradeSucceeded = await client.PostAsync(
+            WebhookUrl(org, app),
+            JsonContent.Create(Event("UpgradeSucceeded", 7))
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, upgradeSucceeded.StatusCode);
+        Assert.Single(metrics.Measurements(AppDeployMetrics.DurationMetricName));
+        Assert.Empty(metrics.Measurements(AppDeployMetrics.FluxDurationMetricName));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_WithPipelineEvent_RecordsNoResult()
+    {
+        // Arrange
+        string org = "ttd";
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
+        using var metrics = new AppDeployMetricsRecorder();
+        using var client = CreateClientWithMaskinportenAuth(
+            shouldAuthenticate: true,
+            scope: RequiredScope,
+            metrics: metrics.Metrics
+        );
+        var request = new DeployEventRequest
+        {
+            BuildId = deploymentEntity.Build.Id,
+            EventType = "PipelineSucceeded",
+            Message = "Pipeline succeeded",
+            Timestamp = DateTimeOffset.UtcNow,
+            Environment = "at22",
+        };
+
+        // Act
+        using var response = await client.PostAsync(WebhookUrl(org, app), JsonContent.Create(request));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(metrics.Measurements(AppDeployMetrics.DurationMetricName));
     }
 
     [Fact]

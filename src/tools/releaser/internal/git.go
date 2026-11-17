@@ -79,7 +79,7 @@ func WithLogger(log Logger) GitCLIOption {
 
 // NewGitCLI creates a new GitCLI instance.
 func NewGitCLI(opts ...GitCLIOption) *GitCLI {
-	//nolint:exhaustruct // repoRoot fields initialized by sync.Once on first call
+	//nolint:exhaustruct_v5 // repoRoot fields initialized by sync.Once on first call
 	g := &GitCLI{
 		log:     NopLogger{},
 		workdir: "",
@@ -335,8 +335,7 @@ func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
 		return 0, nil
 	}
 
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 		return exitErr.ExitCode(), nil
 	}
 	return -1, fmt.Errorf("%w: %s: %w", ErrGitCommandFailed, strings.Join(args, " "), err)

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CommitAndPushContent, type CommitAndPushContentProps } from './CommitAndPushContent';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
 import { renderWithProviders } from '../../../../mocks/renderWithProviders';

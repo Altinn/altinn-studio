@@ -1,0 +1,28 @@
+{
+  "name": "English locale",
+  "disabledBackend": true,
+  "profileSettings": {
+    "language": "en"
+  },
+  "testCases": [
+    {
+      "name": "Currency uses the selected language",
+      "expression": ["formatNumber", 10000.5, ["object", "currency", "NOK"]],
+      "expects": "NOK 10,000.5"
+    },
+    {
+      "name": "Unit uses the selected language",
+      "expression": ["formatNumber", 10000.5, ["object", "unit", "kilogram"]],
+      "expects": "10,000.5 kg"
+    },
+    {
+      "name": "An explicit prefix preserves currency grouping",
+      "expression": [
+        "formatNumber",
+        10000,
+        ["object", "currency", "NOK", "number", ["object", "prefix", "SEK "]]
+      ],
+      "expects": "SEK 10,000"
+    }
+  ]
+}

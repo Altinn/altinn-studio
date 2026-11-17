@@ -1,50 +1,44 @@
-## Script to fetch all running Altinn 3 apps
+# Fetch all apps
 
-This script fetches all repositories and source code for running Altinn 3 apps in the tt02 and prod environments, and makes sure they are updated to the latest released version in that environment.
+[`fetch.sh`](fetch.sh) clones every Altinn 3 app that runs in tt02 and production, and checks out the commit of the
+version deployed there. Use the result to search across all apps, for example to see who uses an API before you
+change it. It needs `bash`, `curl`, `jq` and `git`.
 
-Requires `bash`, `curl`, `jq` and `git`.
+The script asks each service owner's `kuberneteswrapper` which apps it runs and at which version, and then finds the
+commit behind that version in the releases of altinn.studio, or of dev.altinn.studio when altinn.studio has none.
 
-1. Pick a suitable empty folder to check out the code in. Keep it outside this repository, since every app becomes its own Git repository.
-2. Run the script from the repository root, pointing it at that folder (we chose `all-apps`):
+## Usage
+
+Create an empty folder outside this repository, since every app becomes its own Git repository, and pass it to the
+script:
 
 ```sh
 mkdir ~/all-apps
 ./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps
 ```
 
-By default the script fetches apps from both tt02 and prod. To fetch from only some environments, pass a comma-separated list as the second argument, or set `FETCH_ENVIRONMENTS`. The argument takes precedence:
+To fetch from fewer environments, pass a comma-separated list as the second argument or set `FETCH_ENVIRONMENTS`. The
+argument wins:
 
 ```sh
 ./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps tt02
 FETCH_ENVIRONMENTS=prod ./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps
 ```
 
-Running the script again updates the apps that are already checked out. API responses are cached in `.cache` inside the target folder for an hour.
+- Running the script again updates the apps that are already there. It does not delete apps that no longer run in
+  an environment.
+- The script caches API responses for an hour in `.cache` inside the target folder.
+- When an app fails to clone, the script leaves `fetch-failed.txt` in its folder and skips the app on later runs.
+  Delete the folder to try again.
 
-If cloning an app fails, the script leaves a `fetch-failed.txt` file in its folder and skips the app on later runs. Delete the folder to try again.
+The script runs on both macOS and Linux, so it must work with both the BSD and the GNU versions of tools such as
+`stat`.
 
-## Running verifications
+## Tests across all apps
 
-You now have all the files for all the apps on disk, and can use VS Code or other search tools to find usages of APIs, or whatever else you want to verify.
-
-### Use test code from the app frontend
-
-[`src/App/frontend`](../../App/frontend) contains example code that checks the status of various things in all apps.
-In `src/App/frontend`, copy `template.env` to `.env` (if you haven't done so already) and set `ALTINN_ALL_APPS_DIR` to the absolute path of the folder you created with all the apps (e.g. `/Users/<you>/all-apps`, since `~` is not expanded).
-Run tests that use this concept, e.g. `src/utils/layout/schema.test.ts`. To check, for example, which apps set a given parameter on their Input/TextArea components, you can extend the test with a bit of your own code:
-
-```ts
-for (const component of (layout as any).data.layout) {
-  if (component.type.toLowerCase() === 'input' || component.type.toLowerCase() === 'textarea') {
-    if (component.maxLength !== undefined) {
-      debugger;
-    }
-  }
-}
-```
-
-Running this with the debugger attached finds all components that set `maxLength`. Remember to check component types regardless of upper/lower case. The app frontend normalizes this when it parses layouts, so the rest of the code doesn't have to, but these layout files have not been parsed that way yet.
-
-### TODO
-
-- Delete checked-out apps no longer in the environment
+App frontend has tests that read every app in the folder, such as
+[`schema.test.ts`](../../App/frontend/src/utils/layout/schema.test.ts). Set `ALTINN_ALL_APPS_DIR` in
+`src/App/frontend/.env`, copied from `template.env`, to the absolute path of the folder, since the file does not expand `~`.
+To answer a question such as which apps set `maxLength` on an input, extend one of those tests and run it with a
+debugger attached. Compare component types without regard to case, since these layouts have not been through App
+frontend's parser, which normalizes them.

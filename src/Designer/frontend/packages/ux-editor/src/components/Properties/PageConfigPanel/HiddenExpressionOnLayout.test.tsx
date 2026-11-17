@@ -8,11 +8,11 @@ import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { BooleanExpression } from '@studio/components';
-import { GeneralRelationOperator } from '@studio/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import type { BooleanExpression } from '@designer/components';
+import { GeneralRelationOperator } from '@designer/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data
 const layoutSet = layoutSet1NameMock;
@@ -22,7 +22,7 @@ const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-vi.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
+vi.mock('@designer/hooks/src/hooks/useDebounce.ts', () => ({
   useDebounce: vi.fn().mockReturnValue({
     debounce: vi.fn((fn) => fn()),
   }),

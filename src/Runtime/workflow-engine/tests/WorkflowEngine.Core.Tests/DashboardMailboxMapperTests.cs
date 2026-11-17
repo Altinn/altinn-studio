@@ -31,9 +31,9 @@ public class DashboardMailboxMapperTests
     [InlineData("message only", true, false, false, false, "delivered")]
     [InlineData("parked receiver", false, true, true, false, "waiting")]
     [InlineData("receiver woken by its message", true, true, true, true, "paired")]
-    [InlineData("receiver born with its message", true, true, false, true, "paired")]
+    [InlineData("receiver created with its message", true, true, false, true, "paired")]
     [InlineData("receiver released by the closure", false, true, true, true, "closed")]
-    [InlineData("receiver born with the closing signal", false, true, false, true, "closed")]
+    [InlineData("receiver created with the closing signal", false, true, false, true, "closed")]
     [Theory]
     public void MapMailboxPosition_NamesEveryStateTheRendezvousCanLeaveAtAPosition(
         string shape,

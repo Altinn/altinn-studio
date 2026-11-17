@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1039,8 +1040,7 @@ func removeStudioctlServerState(cfg *config.Config) error {
 }
 
 func classifyClientError(err error) error {
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
+	if _, ok := errors.AsType[*net.OpError](err); ok {
 		return fmt.Errorf("%w: %s", ErrNotRunning, err.Error())
 	}
 	var pathErr *os.PathError
@@ -1071,9 +1071,9 @@ func readLatestStudioctlServerLogTailSince(dir string, since time.Time) string {
 	if err != nil {
 		return ""
 	}
-	for i := len(files) - 1; i >= 0; i-- {
-		if !files[i].ModTime.Before(since) {
-			return readStudioctlServerLogTail(files[i].Path)
+	for _, file := range slices.Backward(files) {
+		if !file.ModTime.Before(since) {
+			return readStudioctlServerLogTail(file.Path)
 		}
 	}
 	return ""

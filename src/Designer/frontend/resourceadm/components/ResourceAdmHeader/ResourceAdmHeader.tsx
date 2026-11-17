@@ -5,9 +5,9 @@ import {
   StudioPageHeader,
   type StudioProfileMenuGroup,
   type StudioProfileMenuItem,
-} from '@studio/components';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioAvatar } from '@studio/components';
+} from '@designer/components';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioAvatar } from '@designer/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';

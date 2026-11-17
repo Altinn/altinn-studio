@@ -3,10 +3,10 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { StudioFileUploader } from '@studio/components';
+import { StudioFileUploader } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
-import type { AxiosError } from 'axios';
+import { FileNameErrorResult, FileNameUtils } from '@designer/pure-functions';
+import type { HttpError } from 'app-shared/utils/networking';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
@@ -22,7 +22,7 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+    hideDefaultError: (error: HttpError<ApiError>) => isErrorUnknown(error),
   });
 
   const onSubmit = (file: File) => {
@@ -46,7 +46,7 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
 
-      onError: (error: AxiosError<ApiError>) => {
+      onError: (error: HttpError<ApiError>) => {
         if (isErrorUnknown(error)) {
           toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }

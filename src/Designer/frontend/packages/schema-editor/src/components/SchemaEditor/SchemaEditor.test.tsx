@@ -9,12 +9,12 @@ import {
   makePointerFromArray,
   SchemaModel,
 } from '@altinn/schema-model';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { typeItemId } from '@studio/testing/testids';
+import { typeItemId } from '@designer/testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 import { organization } from 'app-shared/mocks/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

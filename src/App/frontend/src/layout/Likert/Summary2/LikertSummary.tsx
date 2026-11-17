@@ -3,6 +3,7 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -12,6 +13,7 @@ import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import {
   SummaryContains,
@@ -30,6 +32,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
   const isCompact = useSummaryProp('isCompact');
   const rows = useLikertRows(targetBaseComponentId);
   const config = useComponentConfig(targetBaseComponentId, 'Likert');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Likert');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Likert.readOnly);
   const required = useEvalExpression(config.required, Expressions.Likert.required);
@@ -73,12 +76,17 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
       >
         <div className={classes.summaryItemWrapper}>
           <div className={classes.summaryItem}>
-            <Heading
-              data-size='xs'
-              level={4}
-            >
-              <Lang id={title} />
-            </Heading>
+            <LabelContent
+              {...labelProps}
+              label={
+                <Heading
+                  data-size='xs'
+                  level={4}
+                >
+                  <Lang id={title} />
+                </Heading>
+              }
+            />
           </div>
           {rows.filter(typedBoolean).map((row) => (
             <DataModelLocationProvider

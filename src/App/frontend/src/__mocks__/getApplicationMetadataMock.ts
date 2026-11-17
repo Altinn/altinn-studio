@@ -19,7 +19,7 @@ export const getApplicationMetadataMock = (
           autoCreate: true,
           classRef: 'Altinn.App.Models.Skjema',
         },
-        taskId: 'Task_1',
+        taskIds: ['Task_1'],
         maxCount: 1,
         minCount: 1,
       },
@@ -68,7 +68,7 @@ export const getApplicationMetadataMock = (
         appLogic: {
           classRef: '...',
         },
-        taskId: 'Task_1',
+        taskIds: ['Task_1'],
         maxCount: 0,
         minCount: 0,
       },

@@ -1,0 +1,9 @@
+# Build context: src/
+# Send only the shared Go module and pdf3's.
+**
+!common/go/**
+common/go/bin
+!Runtime/pdf3/go.mod
+!Runtime/pdf3/go.sum
+!Runtime/pdf3/cmd/**
+!Runtime/pdf3/internal/**

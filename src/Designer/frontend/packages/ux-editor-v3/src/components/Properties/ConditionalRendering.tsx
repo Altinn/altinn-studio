@@ -1,4 +1,4 @@
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import classes from './ConditionalRendering.module.css';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Trans } from 'react-i18next';

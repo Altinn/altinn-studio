@@ -3,7 +3,7 @@ import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import type { DeployDropdownProps } from './DeployDropdown';
 import { DeployDropdown } from './DeployDropdown';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { AppRelease } from 'app-shared/types/AppRelease';

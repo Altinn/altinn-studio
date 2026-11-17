@@ -24,14 +24,14 @@ public class DefaultTaskValidatorTests
             new()
             {
                 Id = UnlimitedDataType,
-                TaskId = UnlimitedTaskId,
+                TaskIds = [UnlimitedTaskId],
                 MaxCount = 0,
                 MinCount = 0,
             },
             new()
             {
                 Id = OneRequiredDataType,
-                TaskId = OneRequiredElementTaskId,
+                TaskIds = [OneRequiredElementTaskId],
                 MinCount = 1,
                 MaxCount = 1,
             },
@@ -124,5 +124,30 @@ public class DefaultTaskValidatorTests
         issue
             .CustomTextParameters.Should()
             .BeEquivalentTo(new Dictionary<string, string> { ["maxCount"] = "1", ["dataType"] = OneRequiredDataType });
+    }
+
+    [Theory]
+    [InlineData("Task_1", true)]
+    [InlineData("Task_2", true)]
+    [InlineData(OneRequiredElementTaskId, false)]
+    public async Task OneRequiredInSeveralTasks_NoData_ReturnsErrorOnlyAtThoseTasks(string taskId, bool expectError)
+    {
+        _applicationMetadata.DataTypes.Add(
+            new()
+            {
+                Id = "SharedDataId",
+                TaskIds = ["Task_1", "Task_2"],
+                MinCount = 1,
+                MaxCount = 1,
+            }
+        );
+
+        var issues = await _sut.ValidateTask(_instance, taskId, null);
+
+        issues
+            .Where(i => i.Field == "SharedDataId")
+            .Select(i => i.Code)
+            .Should()
+            .BeEquivalentTo(expectError ? ["TooFewDataElementsOfType"] : Array.Empty<string>());
     }
 }

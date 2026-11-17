@@ -1,0 +1,4 @@
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["655bddb4-9673-4652-b27e-3ea4f3133418.2","4bb2b4be-0f98-494b-9840-313c764fdb31.1"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no/","keyIds":["655bddb4-9673-4652-b27e-3ea4f3133418.2","4bb2b4be-0f98-494b-9840-313c764fdb31.1"],"expiries":["2024-03-20T00:00:00Z","2024-02-24T00:00:00Z"]}
+]

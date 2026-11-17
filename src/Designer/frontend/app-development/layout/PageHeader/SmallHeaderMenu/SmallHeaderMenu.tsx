@@ -2,11 +2,11 @@ import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { type StudioProfileMenuItem } from '@studio/components';
-import { StudioDropdown, StudioParagraph, StudioAvatar } from '@studio/components';
+import { type StudioProfileMenuItem } from '@designer/components';
+import { StudioDropdown, StudioParagraph, StudioAvatar } from '@designer/components';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
-import { MenuHamburgerIcon } from '@studio/icons';
+import { MenuHamburgerIcon } from '@designer/icons';
 import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
@@ -75,7 +75,7 @@ const DropdownMenuGroups = ({ profileText }: DropdownMenuGroupsProps): ReactElem
     showName: false,
     items: profileMenuItems.map((item: StudioProfileMenuItem) => ({
       name: item.itemName,
-      action: item.action,
+      action: item.action.type === 'link' ? { ...item.action, isOutsideRouter: true } : item.action,
     })),
   };
 
