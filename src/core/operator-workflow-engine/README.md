@@ -45,11 +45,15 @@ The engine's own API has no authentication. The NetworkPolicy lets only the oper
 
 ## The database
 
-The engine stores workflows in a dedicated Azure Database for PostgreSQL flexible server in each environment, and
-applies its migrations at startup. The server is provisioned in altinn-studio-infra, outside this repository. The host
-logs in with its Entra identity, the workload identity of the `core-operator-workflow-engine` ServiceAccount. A connection
-string without a password makes the engine fetch an Entra token for it and refresh it before it expires. The
-connection string has this shape:
+The engine stores workflows in its own database on the existing Studio PostgreSQL server in each environment, and
+applies its migrations at startup. altinn-studio-infra provisions the database, outside this repository. The host's
+role owns the database, because the migrations create the schema `engine`, and has no access to the server's other
+databases. The host connects directly on port 5432 and not through a transaction pooler such as PgBouncer: the engine
+keeps a `LISTEN` connection and takes session advisory locks, which transaction pooling breaks.
+
+The host logs in with its Entra identity, the workload identity of the `core-operator-workflow-engine`
+ServiceAccount. A connection string without a password makes the engine fetch an Entra token for it and refresh it
+before it expires. The connection string has this shape:
 
 ```text
 Host=<server>.postgres.database.azure.com;Port=5432;Database=<database>;Username=<role of the Entra identity>;Ssl Mode=VerifyFull;GSS Encryption Mode=Disable
@@ -61,7 +65,7 @@ SecretStore lives in the `default` namespace, and an ExternalSecret can only use
 so this namespace has its own SecretStore. It authenticates as the engine's identity. That identity therefore needs:
 
 - a federated credential for `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine`,
-- a Postgres role on the server, and
+- a Postgres role that owns the database, and
 - read access to the Key Vault secret.
 
 ## Configuration
