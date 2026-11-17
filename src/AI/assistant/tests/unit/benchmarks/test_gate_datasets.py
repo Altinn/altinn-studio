@@ -1,19 +1,20 @@
-"""The gate datasets: loadable, discriminating, and matching what production sends."""
+"""The gate datasets: loadable, discriminating, and run through what production calls."""
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from agents.services.llm.llm_client import build_security_check_message
-from agents.services.llm.scope_checker import build_scope_check_message
-from agents.services.llm.security_checker import _validate_goal_safety_quick
-from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
+from agents.services.decisions import Judgment
+from benchmarks.dataset_sync import load_datasets, missing_assets, validate
+from benchmarks.decisions import RUNS, DecisionTask, gate_verdict
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 
-# Gate prompt datasets only; a generation dataset is covered in test_generation.
+# Gate datasets only; a generation dataset is covered in test_generation.
 DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]
 ALL_DATASETS = list(load_datasets())
 ALL_ITEMS = [(dataset, item) for dataset in DATASETS for item in dataset.items]
@@ -66,30 +67,6 @@ class TestValidationHoldsFromAClone:
         assert missing_assets(security) == []
 
 
-class TestTheBlocklistAgreesWithTheDatasets:
-    """`_validate_goal_safety_quick` runs before the model and can reject on its
-    own, so a false positive there is unreachable by any prompt change."""
-
-    def test_no_item_the_datasets_call_safe_is_rejected(self):
-        rejected = {
-            item["id"]
-            for _, item in ALL_ITEMS
-            if item["expectedOutput"].get("safe", True) and not _validate_goal_safety_quick(item["input"]["goal"])[0]
-        }
-
-        assert rejected == set(), "the blocklist and the datasets disagree; update the blocklist or the dataset"
-
-    def test_the_blocklist_catches_destructive_patterns(self):
-        for goal in ["wipe database", "drop table users", "disable auth for the app"]:
-            assert not _validate_goal_safety_quick(goal)[0], goal
-
-    def test_the_blocklist_treats_both_languages_alike(self):
-        """It used to reject the English half of this pair and accept the Norwegian
-        one, so the gate a user tripped depended on the language they wrote in."""
-        assert _validate_goal_safety_quick("tilbakestilling av passord")[0]
-        assert _validate_goal_safety_quick("password reset")[0]
-
-
 class TestTheCasesAreDiscriminating:
     def test_paired_cases_expect_opposite_verdicts(self):
         """A pair exists to separate subject from intent. If both halves expect the
@@ -105,55 +82,77 @@ class TestTheCasesAreDiscriminating:
                 f"{item['id']} and {partner['id']} expect the same thing"
             )
 
-    def test_the_scope_declines_name_the_language(self):
-        """The prompt requires the decline in the user's language, so an out-of-scope
-        case that does not pin the language is not testing that half."""
-        scope = next(d for d in DATASETS if d.name == "Gates/scope")
-
-        for item in scope.items:
-            if not item["expectedOutput"]["in_scope"]:
-                assert item["expectedOutput"].get("decline_language") in {"nb", "en"}, item["id"]
-
-
-class TestTheUploadedInputMatchesProduction:
-    """Both gates build their user message in code, so an experiment that is handed
-    only the goal tests framing production never sends."""
-
-    def test_a_scope_item_carries_the_classifier_message(self):
-        scope = next(d for d in DATASETS if d.name == "Gates/scope")
-        item = next(i for i in scope.items if i["id"] == "scope-travel-advice")
-
-        rendered = render_input(scope, item)
-
-        assert rendered["user_message"] == build_scope_check_message(item["input"]["goal"])
-        assert rendered["goal"] == item["input"]["goal"]
-
-    def test_an_attachment_item_carries_the_filename_line(self):
+    def test_a_safe_request_must_also_be_relevant(self):
+        """Every request meets both questions, so a safe item that is judged not
+        relevant is still declined."""
         security = next(d for d in DATASETS if d.name == "Gates/security")
-        item = next(i for i in security.items if i["id"] == "security-injection-via-attachment-name")
 
-        rendered = render_input(security, item)
+        for item in security.items:
+            if item["expectedOutput"]["safe"]:
+                assert item["expectedOutput"].get("relevance") is True, item["id"]
 
-        assert rendered["user_message"] == build_security_check_message(
-            item["input"]["goal"], item["input"]["attachments"]
-        )
-        assert "ignore-previous-instructions" in rendered["user_message"]
 
-    def test_renders_the_conversation_of_a_follow_up_item(self):
+class TestTheItemsRunThroughProduction:
+    """The task hands the raw request to judge_request, so an item tests the
+    message and the questions that production sends."""
+
+    async def test_the_task_judges_the_request_each_run(self):
         security = next(d for d in DATASETS if d.name == "Gates/security")
         item = next(i for i in security.items if i["id"] == "security-followup-long-reply-unsafe-middle")
+        judge = AsyncMock(return_value=Judgment(relevant=True, safe=False, concern="secrets"))
 
-        rendered = render_input(security, item)
+        with patch("agents.services.decisions.gates.judge_request", new=judge):
+            output = await DecisionTask(model="gpt-6-luna")(item=item)
 
-        assert rendered["user_message"] == build_security_check_message(
-            item["input"]["goal"], conversation=item["input"]["conversation"]
-        )
-        assert "Gitea-tokenet" in rendered["user_message"]
+        assert judge.await_count == RUNS
+        assert judge.await_args is not None
+        assert judge.await_args.args == (item["input"]["goal"], (), item["input"]["conversation"])
+        assert [run["concern"] for run in output["runs"]] == ["secrets"] * RUNS
 
-    @pytest.mark.parametrize("dataset", DATASETS, ids=lambda d: d.name)
-    def test_every_item_renders(self, dataset):
-        for item in dataset.items:
-            assert render_input(dataset, item)["user_message"]
+    async def test_the_task_sends_the_attachment_names(self):
+        security = next(d for d in DATASETS if d.name == "Gates/security")
+        item = next(i for i in security.items if i["id"] == "security-injection-via-attachment-name")
+        judge = AsyncMock(return_value=Judgment(relevant=True, safe=False, concern="injection"))
+
+        with patch("agents.services.decisions.gates.judge_request", new=judge):
+            await DecisionTask(model="gpt-6-luna")(item=item)
+
+        assert judge.await_args is not None
+        assert judge.await_args.args[1] == item["input"]["attachments"]
+
+
+def _runs(*judgments: Judgment) -> dict:
+    return {"runs": [asdict(j) for j in judgments]}
+
+
+class TestTheVerdict:
+    def test_every_run_must_agree_with_the_item(self):
+        good = Judgment(relevant=True, safe=True, probabilities={"relevance": 0.9})
+        bad = Judgment(relevant=False, safe=True, probabilities={"relevance": 0.4})
+
+        [passed] = gate_verdict(output=_runs(good, good, good), expected_output={"relevance": True})
+        [failed] = gate_verdict(output=_runs(good, bad, good), expected_output={"relevance": True})
+
+        assert passed.value == 1.0
+        assert failed.value == 0.0
+        assert "1 wrong of 3 runs" in str(failed.comment)
+        assert "relevance 0.40-0.90" in str(failed.comment)
+
+    def test_a_safe_item_is_checked_on_both_questions(self):
+        not_relevant = Judgment(relevant=False, safe=True)
+
+        [result] = gate_verdict(output=_runs(not_relevant), expected_output={"safe": True, "relevance": True})
+
+        assert result.value == 0.0
+
+    def test_a_gate_that_could_not_run_fails_the_item(self):
+        [result] = gate_verdict(output=_runs(Judgment(failed=True)), expected_output={"safe": False})
+
+        assert result.value == 0.0
+        assert result.comment == "the gate could not run"
+
+    def test_an_item_that_expects_nothing_is_not_scored(self):
+        assert gate_verdict(output=_runs(Judgment()), expected_output={}) == []
 
 
 class TestTheDatasetTabStaysLegible:

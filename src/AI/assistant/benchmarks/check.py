@@ -107,13 +107,21 @@ def task_for(
             model,
         )
 
+    if dataset.kind == "decision":
+        from .decisions import ITEM_EVALUATORS as DECISION_EVALUATORS
+        from .decisions import DecisionTask
+
+        # The decisions API takes one model, so --model does not apply.
+        model = role_model("decision")
+        return DecisionTask(model=model), DECISION_EVALUATORS, ["gate_verdict"], model
+
     if dataset.kind == "prompt":
         from .gates import ITEM_EVALUATORS as GATE_EVALUATORS
         from .gates import GateTask
 
         model = args.model or role_model("default")
         task = GateTask(prompt_name=dataset.prompt_name, model=model)
-        return task, GATE_EVALUATORS, ["gate_verdict", "gate_decline_language"], model
+        return task, GATE_EVALUATORS, ["gate_verdict", "gate_required_keys"], model
 
     task = GenerationTask(role=args.role, max_tokens=args.max_tokens, model=args.model)
     model = args.model or role_model(args.role)

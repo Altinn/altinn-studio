@@ -512,7 +512,7 @@ def test_documentation_beside_a_prompt_is_not_a_prompt():
 
 
 def test_a_prompt_itself_still_moves_the_axis():
-    hits = impact.analyze(["src/AI/assistant/agents/prompts/scope_check.md"]).hits
+    hits = impact.analyze(["src/AI/assistant/agents/prompts/goal_suggestions.md"]).hits
 
     assert [h.axis for h in hits] == ["prompts"]
 
@@ -651,7 +651,7 @@ def run(args):
 
     def test_the_gate_never_compares_a_markdown_file_as_code(self):
         found = impact.analyze(
-            ["agents/prompts/scope_check.md"],
+            ["agents/prompts/goal_suggestions.md"],
             before=lambda _path: "same",
             after=lambda _path: "same",
         )

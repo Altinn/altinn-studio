@@ -14,20 +14,21 @@ Code: `src/AI/assistant/benchmarks/manifest.py`, `src/AI/assistant/benchmarks/re
 
 `src/AI/assistant/benchmarks/registry.py` lists each eval and its kind.
 
-## Four kinds of eval
+## Five kinds of eval
 
-Code: `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
+Code: `src/AI/assistant/benchmarks/decisions.py`, `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
 
-The kinds differ in how much of the agent they run. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
+The kinds differ in how much of the agent they run. A decision eval sends a request to the request gate of production three times, because the decision model does not always give the same probability. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
 
 ```mermaid
 flowchart LR
-  P["prompt: one gate call"] --> L["planner: one planner call with a file"]
+  D["decision: the request gate, three runs"] --> P["prompt: one intake call"]
+  P --> L["planner: one planner call with a file"]
   L --> G["generation: one actor turn, tools do not run"]
   G --> E["e2e: full run, tools run, pages render"]
 ```
 
-_From the fastest kind to the most complete kind. An e2e item takes minutes. A prompt item takes seconds._
+_From the fastest kind to the most complete kind. An e2e item takes minutes. A decision or prompt item takes seconds._
 
 The e2e eval compares the committed app with a structural rubric: the number of pages, the minimum number of input components, the expected field titles and the navigation. The rubric does not list file names, because two correct runs can use different IDs. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
 

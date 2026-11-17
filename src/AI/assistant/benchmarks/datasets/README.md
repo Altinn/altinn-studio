@@ -16,7 +16,7 @@ the pull request does not have a new `BASELINE.json`. Without `--strict`, the re
 {
   "id": "scope-travel-as-example-content",
   "input": { "goal": "..." },
-  "expectedOutput": { "in_scope": true },
+  "expectedOutput": { "relevance": true },
   "metadata": { "note": "why this case exists", "language": "nb" }
 }
 ```
@@ -33,16 +33,15 @@ mistake first. For example, a request for travel advice is out of scope. A reque
 that asks for the travel destination is in scope. A test makes sure that the two cases of a pair
 expect opposite verdicts. A pair with the same verdict proves nothing.
 
-## The code renders the user message
+## The gate items run through production
 
-The gates do not keep their user message in the Langfuse prompt. `scope_checker` and `llm_client`
-make it in Python. The prompt has only the system part. Thus, an experiment with only the goal
-does not test the text that production sends.
+The gate datasets keep only the request: the goal, the attachment filenames and the recent
+conversation. `benchmarks/decisions.py` sends each item through `judge_request`, the call that
+production makes, so there is no copy of the message or the questions to drift. The decision model
+is not deterministic, so each item runs three times and passes only when every run does.
 
-For the gate datasets, the files have the fields that people read. `dataset_sync` renders
-`user_message` with the same functions that production calls: `build_scope_check_message` and
-`build_security_check_message`. There is no copy of the text, so the two cannot become different. A
-test makes sure that the rendered message is the same as the result of the function.
+A safe item in `gates_security.jsonl` also expects `relevance`, because every request meets both
+questions in the same call.
 
 ## Items from production traces
 

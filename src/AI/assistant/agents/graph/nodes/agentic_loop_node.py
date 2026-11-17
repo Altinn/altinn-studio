@@ -48,10 +48,10 @@ from agents.core import (
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
-from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
+from shared.utils.recent_turns import truncate_to_history_limit
 from shared.utils.spotlight import defang_delimiter
 
 log = get_logger(__name__)

@@ -4,7 +4,7 @@ request. A follow-up such as "ja, fiks det" is clear only with these turns."""
 import json
 
 from agents.graph.state import ConversationMessage
-from agents.services.llm.recent_turns import (
+from shared.utils.recent_turns import (
     CONTEXT_TURNS,
     CONVERSATION_TAG,
     HISTORY_MAX_CHARS_PER_TURN,

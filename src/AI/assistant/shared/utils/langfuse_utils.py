@@ -267,3 +267,17 @@ def trace_generation(name: str, **kwargs):
 
     with get_client().start_as_current_observation(name=name, as_type="generation", **kwargs) as span:
         yield span
+
+
+@contextmanager
+def trace_guardrail(name: str, **kwargs):
+    """
+    Creates a Langfuse guardrail observation, for a check that is not a language model,
+    only when an active parent trace exists. Falls back to a no-op otherwise.
+    """
+    if not is_langfuse_enabled() or not _has_active_trace():
+        yield _NoopSpan()
+        return
+
+    with get_client().start_as_current_observation(name=name, as_type="guardrail", **kwargs) as span:
+        yield span

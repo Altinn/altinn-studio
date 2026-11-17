@@ -1,20 +1,23 @@
-# Graph: gates, intake, spec and the loop node
+# Graph: request gate, intake, spec and the loop node
 
-Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/security_checker.py`
+Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/decisions/`
 
-## Runner and gates
+## Runner and request gate
 
-`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The security check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The security check fails closed: if it cannot run, a write request stops.
+`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then one request gate runs before the graph, in chat mode and in workflow mode. A chat session can become a workflow session, so both modes get the same check. The gate is one call to the Azure OpenAI decisions API. A decision model is not a language model: it gives a probability for each question and writes no text. The gate asks if the request is relevant, and asks one question for each safety concern in `questions/safety.md`. If the call fails, the request stops.
 
 ```mermaid
 flowchart TD
-  S["Scope check, all runs"] --> Q{"In scope?"}
-  Q -- No --> X["Chat: polite decline. Workflow: reject"]
-  Q -- Yes --> I["Security check, workflow mode only"]
-  I -- "safe" --> G["Run the graph"]
+  D["Decisions call, all runs"] --> F{"Failed?"}
+  F -- Yes --> U["Reject: gate not available"]
+  F -- No --> S{"Safe?"}
+  S -- No --> R["Reject with suggestions"]
+  S -- Yes --> Q{"Relevant?"}
+  Q -- No --> X["Chat: fixed decline. Workflow: reject"]
+  Q -- Yes --> G["Run the graph"]
 ```
 
-_The gates. An unsafe goal stops with `GoalRejected` and gets suggestions. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
+_The request gate. A request is unsafe when the probability of one concern is 0.2 or more, and relevant when the probability is 0.5 or more. A suggestion is shown only if the gate accepts it. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
 
 ```mermaid
 flowchart LR
