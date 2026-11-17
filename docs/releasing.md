@@ -43,9 +43,7 @@ the `libraries` environment. Pull request runs cannot use that environment, so t
    prerelease line on `main`, combines the changelog sections of the line's prereleases, and opens the pull request
    against `release/<component>/vX.Y`. It creates that branch from `main` when it is missing, which requires write
    access. A contributor without it asks a maintainer to create the branch, then runs the command again.
-2. For the app libraries, codelists and fileanalyzers, add the branch to the deployment branches of the `libraries`
-   environment. The environment rejects the release otherwise.
-3. Merge the pull request.
+2. Merge the pull request.
 
 ### Patches
 
