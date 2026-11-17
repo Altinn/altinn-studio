@@ -180,7 +180,7 @@ type server struct {
 
 func newServer(name, address string, handler http.Handler) *server {
 	traced := otelhttp.NewHandler(handler, name, otelhttp.WithSpanNameFormatter(
-		func(_ string, r *http.Request) string { return strings.TrimSpace(r.Method + " " + route(r.URL.Path)) },
+		func(_ string, r *http.Request) string { return spanName(r.Method, r.URL.Path) },
 	))
 	return &server{name: name, address: address, handler: traced}
 }
@@ -221,6 +221,18 @@ func (s *server) Start(ctx context.Context) error {
 		}
 		return nil
 	}
+}
+
+// spanName names a request's span as the semantic conventions do: the method and the route, with HTTP for a method
+// that HTTP does not define, so that a client cannot put a value in a span name through either.
+func spanName(method, path string) string {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete,
+		http.MethodConnect, http.MethodOptions, http.MethodTrace:
+	default:
+		method = "HTTP"
+	}
+	return strings.TrimSpace(method + " " + route(path))
 }
 
 // route names the route of a path for span names, with run ids and command keys left out. A path that no route serves
