@@ -6,9 +6,6 @@ using WorkflowEngine.Operator.Extensions;
 
 namespace WorkflowEngine.Operator.Tests.Extensions;
 
-/// <summary>
-/// Tests the defaults and validation of <see cref="OperatorCommandSettings"/>.
-/// </summary>
 public class OperatorCommandExtensionsTests
 {
     [Fact]

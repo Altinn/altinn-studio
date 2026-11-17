@@ -5,8 +5,7 @@
 !Runtime/workflow-engine/**
 !core/operator-workflow-engine/**
 
-# Build outputs, including EF/MSBuild-generated literal backslash dirs on macOS
-# such as `bin\Debug`, must stay out of the Docker build context.
+# Build outputs, including literal backslash dirs such as `bin\Debug` on macOS
 **/bin*
 **/bin*/**
 **/obj*

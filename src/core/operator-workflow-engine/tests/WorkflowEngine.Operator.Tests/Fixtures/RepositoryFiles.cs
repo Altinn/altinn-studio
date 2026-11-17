@@ -7,19 +7,14 @@ namespace WorkflowEngine.Operator.Tests.Fixtures;
 /// </summary>
 internal static class RepositoryFiles
 {
-    /// <summary>
-    /// The folder with the callback contract examples, <c>src/core/operator/api/callbacks</c>.
-    /// </summary>
     public static string CallbackContractDirectory =>
         Path.Combine(Root(), "src", "core", "operator", "api", "callbacks");
 
     /// <summary>
-    /// Walks up from this source file to the folder that holds <c>.git</c>, a directory in a clone and a file in a
-    /// worktree.
+    /// Walks up from this source file to the folder with <c>.git</c>, a directory in a clone and a file in a worktree.
     /// </summary>
     /// <remarks>
-    /// The source file's path is compiled in, so this works wherever the tests run from, but only on the machine that
-    /// built them, which is how they always run.
+    /// The compiled-in source path works from any folder, but only on the machine that built the tests.
     /// </remarks>
     private static string Root([CallerFilePath] string sourceFile = "")
     {

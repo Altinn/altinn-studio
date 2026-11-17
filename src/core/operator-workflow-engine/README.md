@@ -1,109 +1,90 @@
 # operator-workflow-engine
 
 The operator-workflow-engine hosts the [workflow engine](../../Runtime/workflow-engine/README.md) for the
-[core operator](../operator/README.md). It composes the engine library and adds one command, `OperatorCommand`,
-which runs a step by calling the operator. It runs in the Studio cluster, and the operator is its only client.
+[core operator](../operator/README.md). It adds one command, `OperatorCommand`, which runs a step by calling the
+operator. It runs in the Studio cluster, and the operator is its only client.
 
-## Why it exists
+The operator runs as one replica and keeps nothing of a run itself. The engine keeps each run as a workflow, so a run
+survives a restart of the operator. The engine also gives the operator retries, deferrals, wait budgets, cancellation
+and idempotent creates, so the operator has no retry or timer code of its own.
+[A run, step by step](../operator/README.md#a-run-step-by-step) describes the steps.
 
-The operator runs work that must outlive a request: a run waits in a queue, then for a pod, then for the caller's
-archive, then for a result, and then the operator cleans up. The operator should survive a restart in the middle of
-that without losing a run, and it runs as one replica. So it keeps nothing of a run itself, and it writes no retry or
-timer code of its own. The engine keeps the run, in the workflow's labels and step states, and gives it durable steps:
-
-- a step that fails is retried with backoff,
-- a step that waits defers, and the engine calls it again later without holding a worker,
-- a wait budget bounds each wait,
-- a run can be canceled,
-- an idempotency key turns two creates at the same time into one run, and
-- labels let a caller find its runs again by their source.
-
-The [Altinn app host](../../Runtime/workflow-engine-app/README.md) serves apps in the runtime clusters, with its own
-command and callback authentication. This host has its own database, so the operator's runs never share a queue with
-app workflows.
+This host has its own database, so the operator's runs never share a queue with app workflows. The
+[Altinn app host](../../Runtime/workflow-engine-app/README.md) serves the apps.
 
 ## How a step reaches the operator
 
-The operator enqueues one workflow for each run through the engine's API, with an `operator` command for each step.
-The [operator README](../operator/README.md#a-run-step-by-step) lists the steps. For each attempt of a step, the
-command posts the callback payload to `OperatorCommandSettings.CommandEndpoint` followed by the step's command key,
-such as `run.admit`. The operator answers with the step's outcome. The
-[callback contract](../operator/README.md#callback-contract) describes the payload and the answers. The command keeps
-a 422 as the step's error as it is, and retries other answers unless the step's `NonRetryableHttpStatusCodes` list
-them, as the engine's `WebhookCommand` does.
+For each attempt of a step, the command posts the callback payload to `OperatorCommandSettings.CommandEndpoint`
+followed by the step's command key, such as `run.admit`. The operator answers with the step's outcome, as the
+[callback contract](../operator/README.md#callback-contract) describes:
 
-The examples in [`api/callbacks`](../operator/api/callbacks) are the contract. The tests of this host check that the
-command sends and reads them, and the operator's tests check its side against the same files. Change them together
-with both sides.
+- A 422 problem ends the step. The step keeps the problem as its error as it is.
+- A status code in the step's `NonRetryableHttpStatusCodes` also ends the step, as for the engine's `WebhookCommand`.
+- The engine retries the step after other answers, such as 503.
 
-The command authenticates with a projected ServiceAccount token with the audience `core-operator`, which the
-Deployment mounts at `OperatorCommandSettings.TokenPath`. The operator checks it with a TokenReview. The kubelet
-rotates the token before it expires, so the command reads the file for every callback. When the file cannot be read,
-the step fails with a retryable error rather than calling the operator, which would refuse it for good.
+The examples in [`api/callbacks`](../operator/api/callbacks) are the contract. The tests of both sides read them, so
+change them together with both sides.
 
-The engine's own API has no authentication. The NetworkPolicy lets only the operator's pods reach it.
+The command sends a projected ServiceAccount token with the audience `core-operator`. The operator checks it as
+[Identities](../operator/README.md#identities) describes. The engine's own API has no authentication, so its
+NetworkPolicy lets only the operator's pods reach it.
 
 ## The database
 
-The engine stores workflows in its own database on the existing Studio PostgreSQL server in each environment, and
-applies its migrations at startup. altinn-studio-infra provisions the database, outside this repository. The host's
-role owns the database, because the migrations create the schema `engine`, and has no access to the server's other
-databases. The host connects directly on port 5432 and not through a transaction pooler such as PgBouncer: the engine
-keeps a `LISTEN` connection and takes session advisory locks, which transaction pooling breaks.
+The engine stores workflows in its own database on the existing Studio PostgreSQL server in each environment.
+altinn-studio-infra provisions the database. The host's role owns the database, because the engine's migrations create
+the schema `engine` at startup. The role has no access to the server's other databases.
 
-The host logs in with its Entra identity, the workload identity of the `core-operator-workflow-engine`
-ServiceAccount. A connection string without a password makes the engine fetch an Entra token for it and refresh it
-before it expires. The connection string has this shape:
+The host connects directly on port 5432, not through a transaction pooler such as PgBouncer. The engine keeps a
+`LISTEN` connection and takes session advisory locks, and transaction pooling breaks both.
+
+The host logs in as its Entra identity, the workload identity of the `core-operator-workflow-engine` ServiceAccount.
+The connection string has no password, so the engine fetches an Entra token and refreshes it before it expires:
 
 ```text
 Host=<server>.postgres.database.azure.com;Port=5432;Database=<database>;Username=<role of the Entra identity>;Ssl Mode=VerifyFull;GSS Encryption Mode=Disable
 ```
 
-The host reads the connection string from `/app/secrets/secrets.json`. An ExternalSecret renders that file from the
-Key Vault secret `core-operator-workflow-engine-connection-string` in the Studio Key Vault. The Key Vault's existing
-SecretStore lives in the `default` namespace, and an ExternalSecret can only use a SecretStore in its own namespace,
-so this namespace has its own SecretStore. It authenticates as the engine's identity. That identity therefore needs:
+The Key Vault secret `core-operator-workflow-engine-connection-string` in the Studio Key Vault holds the connection
+string, and [secrets.yaml](infra/kustomize/base/secrets.yaml) gives it to the host. The identity needs:
 
-- a federated credential for `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine`,
-- a Postgres role that owns the database, and
-- read access to the Key Vault secret.
+- a federated credential for `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine`
+- a Postgres role that owns the database
+- read access to the Key Vault secret
 
 ## Configuration
 
-`ASPNETCORE_ENVIRONMENT` is the Studio environment, `dev` or `prod`, set by each overlay in
-[`infra/kustomize`](infra/kustomize). No environment needs settings of its own yet, so there are no per-environment
-`appsettings` files. `OperatorCommandSettings` holds its own defaults, which are those of the Studio cluster: the
-operator's callback router and the token the Deployment mounts.
+`ASPNETCORE_ENVIRONMENT` is the Studio environment, `dev` or `prod`. No environment has settings of its own yet, so
+there are no per-environment `appsettings` files.
 
-The engine's [failure-storm breaker](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md) stays off. It
-keeps one failing app from flooding the engine with retries. Here every step calls the same operator, so when the
-operator fails, every namespace fails with it, and the breaker would hold runs back after the operator recovers. Off is
-the engine's default, and `appsettings.json` still says so, so that a change of the default does not turn it on here.
+The engine's [failure-storm throttling](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md) stays off.
+It keeps one failing app from flooding the engine with retries. Here every step calls the same operator, so all
+namespaces fail together, and the throttling would hold runs back after the operator recovers. `appsettings.json` turns
+it off, so a change of the engine's default does not turn it on here.
 
-The engine keeps a finished workflow for 14 days. A caller can read the status of its run, and find it by its source,
-until then.
+The engine keeps a finished workflow for 14 days. Until then, a caller can read the run's status and find the run by
+its labels.
 
 ## Telemetry
 
-The host is a process of the core operator, so it uses the operator's attribute names. The command names the run on the
-step's span and the workflow's entry span with `altinn.core_operator.domain`, `altinn.core_operator.caller` and
-`altinn.core_operator.subject_id`, and its `OperatorCommand.Execute` span carries `altinn.core_operator.command_key`.
-The operator puts the same keys on its spans. The state is the operator's own data, so the host
-neither logs it nor puts it on telemetry.
+The host is a process of the core operator, so its attributes use the operator's names under `altinn.core_operator.`.
+The operator sets the same keys on its spans, so one search finds a run in both.
+[`OperatorTelemetryAttributes`](src/WorkflowEngine.Operator/Commands/OperatorCommand/OperatorTelemetryAttributes.cs)
+lists them. The step's state is the operator's own data, so the host keeps it out of logs and telemetry.
 
 ## Running locally
 
-`make run` starts PostgreSQL in a container on port 9544 and runs the host on <http://localhost:9090>, with Swagger at
-`/swagger` and the engine's dashboard at the root. In `Development` the host calls an operator on
-<http://localhost:8090> and sends no token. Point `OperatorCommandSettings__TokenPath` at a file to send one.
+`make run` starts PostgreSQL in a container and runs the host on <http://localhost:9090>, with Swagger at `/swagger`
+and the engine's dashboard at the root. In `Development` the host calls an operator on <http://localhost:8090> without
+a token. Set `OperatorCommandSettings__TokenPath` to a token file to send one.
 
-`make test` runs the tests. The integration tests start PostgreSQL with Testcontainers, so they need Docker or another
-Docker-compatible engine. The core operator's `make test-integration` runs this host from its source with the operator,
-and CI runs it when either side or the engine library changes.
+`make test` runs the tests. The integration tests start PostgreSQL with Testcontainers, so they need Docker or Podman.
+The core operator's [`make test-integration`](../operator/README.md#develop) runs this host with the operator. CI runs
+it when either side or the engine library changes.
 
 ## Deployment
 
 [`deploy-core-operator-workflow-engine.yaml`](../../../.github/workflows/deploy-core-operator-workflow-engine.yaml)
-builds the image, pins it in the manifests and pushes them as an OCI artifact, which it tags with each environment.
-Flux in the Studio clusters of dev and prod applies the artifact from
+builds the image, pins it in the manifests and pushes them as an OCI artifact, tagged with each environment. Flux in
+the Studio clusters of dev and prod deploys it as `core-operator-workflow-engine`, from
 [`core-operator-workflow-engine.yaml`](../../../infra/studio/syncroot/base/core-operator-workflow-engine.yaml).

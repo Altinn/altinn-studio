@@ -98,12 +98,11 @@ spec:
             - name: secrets
               mountPath: /app/secrets
               readOnly: true
-            # The operator's TokenReview accepts this token as the engine's identity on the callback port.
+            # The token the command sends to the operator's callbacks.
             - name: core-operator-token
               mountPath: /var/run/secrets/core-operator
               readOnly: true
-            # readOnlyRootFilesystem is true, so give the runtime a writable /tmp. Without it .NET
-            # cannot create its diagnostic IPC socket, which makes dotnet-counters/gcdump impossible.
+            # .NET needs a writable /tmp for the diagnostic socket that dotnet-counters and dotnet-gcdump use.
             - name: tmp
               mountPath: /tmp
           livenessProbe:

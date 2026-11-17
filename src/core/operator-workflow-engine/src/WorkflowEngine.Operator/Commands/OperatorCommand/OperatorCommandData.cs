@@ -8,8 +8,7 @@ namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 internal sealed record OperatorCommandData
 {
     /// <summary>
-    /// The operator handler the step runs, such as <c>run.admit</c>. The command posts to it as the last path
-    /// segment of <see cref="OperatorCommandSettings.CommandEndpoint"/>.
+    /// The operator handler the step runs, such as <c>run.admit</c>.
     /// </summary>
     [JsonPropertyName("commandKey")]
     public required string CommandKey { get; init; }

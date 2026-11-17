@@ -5,8 +5,7 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Operator.Tests.Fixtures;
 
 /// <summary>
-/// Runs the real <see cref="Program"/> entry point against PostgreSQL in a container, with WireMock in the role of
-/// the core operator's callback router.
+/// Runs <see cref="Program"/> against PostgreSQL in a container, with WireMock as the operator's callback router.
 /// </summary>
 public sealed class OperatorTestFixture : EngineAppFixture<Program>
 {

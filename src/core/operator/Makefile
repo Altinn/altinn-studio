@@ -31,7 +31,7 @@ test: fmt vet setup-envtest manifests ## Run the tests, including the envtest of
 		go test -count=1 ./... -coverprofile cover.out
 
 .PHONY: test-integration
-test-integration: setup-envtest ## Run runs against the engine host from its source, with Postgres in a container.
+test-integration: setup-envtest ## Run the operator against the engine host, with Postgres in a container.
 	@postgres="$$(docker run -d --rm -e POSTGRES_PASSWORD=postgres -p 127.0.0.1::5432 docker.io/library/postgres:18)"; \
 	trap 'docker stop "$$postgres" > /dev/null' EXIT; \
 	port="$$(docker port "$$postgres" 5432/tcp | head -n 1 | cut -d: -f2)"; \

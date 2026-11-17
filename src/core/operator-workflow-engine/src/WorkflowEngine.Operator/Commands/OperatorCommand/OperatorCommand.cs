@@ -38,9 +38,6 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         _logger = logger;
     }
 
-    /// <summary>
-    /// Creates a <see cref="CommandDefinition"/> with <see cref="OperatorCommandData"/>.
-    /// </summary>
     public static CommandDefinition Create(
         OperatorCommandData data,
         TimeSpan? maxExecutionTime = null,
@@ -118,8 +115,8 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                // The operator refuses a callback without a token, and a refusal fails the step for good. A token
-                // that cannot be read is a fault of this pod, not of the step, so the step retries instead.
+                // Without a token, the operator would refuse the callback and fail the step for good. The fault is
+                // this pod's, not the step's, so the step retries.
                 _logger.TokenUnavailable(_settings.TokenPath, ex);
                 return ExecutionResult.RetryableError(
                     $"OperatorCommand could not read the ServiceAccount token at '{_settings.TokenPath}': {ex.Message}",
@@ -199,8 +196,8 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         var statusCode = (int)response.StatusCode;
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
-        // The operator ends a step with a 422 problem, which the step keeps as its error as it is, for the operator to
-        // read back. src/core/operator/api/callbacks/response-end.json is an example.
+        // The operator ends a step with a 422 problem, such as src/core/operator/api/callbacks/response-end.json.
+        // The step keeps it as its error as it is, for the operator to read back.
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
             return ExecutionResult.CriticalError(errorBody, httpStatusCode: statusCode);
 
@@ -233,16 +230,13 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
     private HttpClient CreateClient()
     {
         var client = _httpClientFactory.CreateClient();
-        // Without a trailing slash, the base address would lose its last segment when the command key is resolved
-        // against it.
+        // Without a trailing slash, the command key would replace the base address's last segment.
 #pragma warning disable S1075
         client.BaseAddress = new Uri(_settings.CommandEndpoint.TrimEnd('/') + '/');
 #pragma warning restore S1075
 
-        // The step's execution budget is the single authority over how long a callback may run: the executor
-        // cancels the token passed to SendAsync when the step's MaxExecutionTime (or the engine's default) is up.
-        // HttpClient's own 100 s default would cut off a long poll regardless of that budget, and its timeout
-        // would not be classified as cleanly as the cancellation is.
+        // The executor cancels the callback when the step's execution budget runs out. HttpClient's default timeout
+        // of 100 seconds would cut off a long poll first.
         client.Timeout = Timeout.InfiniteTimeSpan;
 
         return client;
@@ -254,8 +248,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
 
 internal static partial class OperatorCommandLogs
 {
-    // Routing fields only. Never log the OperatorCallbackPayload: its payload and state are the operator's own data,
-    // which the engine stores without reading.
+    // Log routing fields only. The state is the operator's own data, which the engine stores without reading.
     [LoggerMessage(
         LogLevel.Information,
         "Sending OperatorCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, domain: {Domain}, caller: {Caller}, subject: {SubjectId})"
@@ -270,7 +263,7 @@ internal static partial class OperatorCommandLogs
         string subjectId
     );
 
-    // The operator's reason is not logged here. It reaches the engine log with the deferral.
+    // The engine logs the operator's reason with the deferral.
     [LoggerMessage(
         LogLevel.Information,
         "OperatorCommand '{CommandKey}' deferred (workflowId: {WorkflowId}); re-checking in {Delay}"

@@ -16,8 +16,7 @@ using WorkflowEngine.Resilience;
 namespace WorkflowEngine.Operator.Tests.Fixtures;
 
 /// <summary>
-/// Unit test fixture for <see cref="Operator.Commands.OperatorCommand.OperatorCommand"/>: a WireMock server in the role of the
-/// operator's callback router, a token file, and the command resolved from DI with a real HTTP client factory.
+/// The command with a real HTTP client factory, a token file, and WireMock as the operator's callback router.
 /// </summary>
 internal sealed class OperatorCommandTestFixture : IDisposable
 {
@@ -76,36 +75,21 @@ internal sealed class OperatorCommandTestFixture : IDisposable
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    /// <summary>
-    /// WireMock in the role of the operator's callback router.
-    /// </summary>
     public WireMockServer CallbackRouter { get; }
 
-    /// <summary>
-    /// A temporary directory that holds the token file at <see cref="OperatorCommandSettings.TokenPath"/>.
-    /// </summary>
     public string TokenDirectory { get; }
 
     public OperatorCommandSettings Settings { get; }
 
     public ServiceProvider ServiceProvider { get; }
 
-    /// <summary>
-    /// Creates a fixture whose command reads its token from a file.
-    /// </summary>
     public static OperatorCommandTestFixture Create() => new(withToken: true);
 
-    /// <summary>
-    /// Creates a fixture whose command is configured to send no token.
-    /// </summary>
     public static OperatorCommandTestFixture CreateWithoutToken() => new(withToken: false);
 
     public ICommand GetOperatorCommand() =>
         ServiceProvider.GetServices<ICommand>().Single(c => c.CommandType == "operator");
 
-    /// <summary>
-    /// Creates a command like the registered one that reads its token from <paramref name="tokenPath"/>.
-    /// </summary>
     public ICommand CreateOperatorCommand(string tokenPath) =>
         new Operator.Commands.OperatorCommand.OperatorCommand(
             Options.Create(Settings with { TokenPath = tokenPath }),
@@ -114,9 +98,6 @@ internal sealed class OperatorCommandTestFixture : IDisposable
             NullLogger<Operator.Commands.OperatorCommand.OperatorCommand>.Instance
         );
 
-    /// <summary>
-    /// Makes the callback router answer every callback with <paramref name="statusCode"/> and <paramref name="body"/>.
-    /// </summary>
     public void RespondWith(int statusCode, string? body = null)
     {
         CallbackRouter.Reset();
@@ -138,8 +119,7 @@ internal sealed class OperatorCommandTestFixture : IDisposable
         new() { CommandKey = commandKey };
 
     /// <summary>
-    /// Creates a <see cref="CommandExecutionContext"/> with pre-deserialized typed data, matching what the engine's
-    /// executor would produce.
+    /// Creates the context that the engine's executor would pass, with the typed data already deserialized.
     /// </summary>
     public static CommandExecutionContext CreateExecutionContext(
         OperatorCommandData commandData,
