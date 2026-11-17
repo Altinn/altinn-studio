@@ -10,8 +10,7 @@ import (
 )
 
 // WithOTelLogs sends the operator's log records to OpenTelemetry as well as to core. The logger
-// provider exports only WARN and above, and logr has no WARN level, so in practice that is the
-// records logged with Error.
+// provider exports only WARN and above: the records of Error and of logging.Warn.
 //
 // A record carries the trace context of a context.Context value logged with it, so it links to
 // its trace. core never writes such a value.

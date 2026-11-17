@@ -107,8 +107,7 @@ func newCluster(cfg *config.Config, opts kube.Options) (*kube.Cluster, error) {
 	return cluster, nil
 }
 
-// setup adds the servers and the garbage collector of the enabled handler groups to the cluster. The runs reach their
-// Jobs through box and their operator runners through host.
+// setup adds the servers and the garbage collector of the enabled handler groups to the cluster.
 func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandbox.Sandbox, host *runner.Client) error {
 	authenticator := auth.NewAuthenticator(
 		cluster.TokenReviewer(),
@@ -131,8 +130,6 @@ func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandb
 	router := callbacks.NewRouter(clk, groups...)
 	callbackMux := http.NewServeMux()
 	callbackMux.Handle("POST "+callbacks.PathPrefix, authenticator.RequireEngine(router))
-	// The cluster starts the servers once its cache has synced. The queue's warmup starts with the callbacks, since
-	// the engine's retries reach the queue only from then.
 	callbackServer := newServer("callbacks", cfg.CallbackAddress, callbackMux)
 	callbackServer.onServe = onServe
 	if err := cluster.Add(callbackServer); err != nil {
@@ -192,8 +189,7 @@ func (s *server) Start(ctx context.Context) error {
 		Handler:           s.handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		IdleTimeout:       idleTimeout,
-		// Requests end with the cluster, so a long poll answers at once and a callback in flight is retried by the
-		// engine.
+		// Requests end with the cluster, so a long poll answers at once and the engine retries a callback in flight.
 		BaseContext: func(net.Listener) context.Context { return logging.IntoContext(ctx, logger) },
 	}
 	var listenConfig net.ListenConfig

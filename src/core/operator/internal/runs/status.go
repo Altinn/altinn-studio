@@ -24,8 +24,8 @@ const (
 	StatusAwaitingArchive Status = "awaiting-archive"
 	// StatusRunning means the command runs in the microVM.
 	StatusRunning Status = "running"
-	// StatusCompleted means the command ran and has a result, whatever its exit code. Whether it did what the caller
-	// wanted is in the result, such as in its report. The caller fetches it by resultExpiresAt.
+	// StatusCompleted means the command ran and has a result, whatever its exit code. The caller fetches it by
+	// resultExpiresAt.
 	StatusCompleted Status = "completed"
 	// StatusFailed means the run could not complete, and its RunError says why. A new run may succeed.
 	StatusFailed Status = "failed"
@@ -112,7 +112,6 @@ func readRun(workflow *engine.Workflow) *record {
 		CreatedAt:  workflow.CreatedAt,
 		FinishedAt: workflow.UpdatedAt,
 	}}
-	// Each step hands the state on with what it learned, so the newest state has all of it.
 	if state, err := parseState(workflow.InitialState); err == nil {
 		rec.state = *state
 	}
@@ -146,8 +145,8 @@ func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, comman
 	current := slices.IndexFunc(steps, func(step engine.Step) bool { return step.Status != engine.StatusCompleted })
 	switch {
 	case r.state.Outcome != "" && command >= 0:
-		// The outcome outlives the result in the Job, and a cancel or a failure in run.cleanup does not change it. The
-		// run finished when run.await-result had it.
+		// A cancel or a failure in run.cleanup does not change the outcome. The run finished when run.await-result had
+		// it.
 		if steps[command].UpdatedAt != nil {
 			r.FinishedAt = steps[command].UpdatedAt
 		}
@@ -167,9 +166,8 @@ func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, comman
 		r.Error = failure(steps, command)
 		r.Status = endStatus(r.Error.Reason)
 	case current < 0 || current >= command:
-		// The engine marks a canceled workflow Canceled at its next fetch. From run.await-result on, the step may get the
-		// result first, and the run completes, so the run follows the engine and does not show canceled and later
-		// completed.
+		// From run.await-result on, the step can get the result before the engine marks a cancel. So the run shows
+		// running until the engine settles it, and never shows canceled and then completed.
 		r.Status, r.FinishedAt = StatusRunning, nil
 	case workflow.CancellationRequestedAt != nil:
 		// Before the command runs, the cancel is final, because the operator deletes the Job with it.

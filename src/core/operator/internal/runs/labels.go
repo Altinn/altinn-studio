@@ -15,10 +15,6 @@ const maxLabelValue = 100
 
 var labelValuePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
 
-// A run's labels say what the run is for, such as the app and the commit of an upgrade. The kind lists their keys in
-// the catalog, and the caller sends a value for each. The run's workflow has them as labels, so a caller finds its runs
-// again by them, and a dashboard can count runs by them. The command never sees them.
-
 // normalizedLabels copies the labels with their values in lowercase, so names that Gitea compares without case are
 // the same labels.
 func normalizedLabels(labels map[string]string) map[string]string {

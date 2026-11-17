@@ -243,7 +243,6 @@ func TestFindListsTheCallersRunsNewestFirst(t *testing.T) {
 	Expect(err).To(MatchError(HavePrefix("A label key must be")), "kind is a filter of its own")
 }
 
-// An archive that arrived after run.await-archive gave up would start the command of a run that has failed.
 func TestUploadEndsWithTheUploadTimeout(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)

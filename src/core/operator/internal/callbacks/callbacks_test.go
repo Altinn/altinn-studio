@@ -28,8 +28,7 @@ func readContract(t *testing.T, name string) []byte {
 	return data
 }
 
-// The files in api/callbacks are the contract with operator-workflow-engine, whose tests read them too. The payload
-// has fields that the operator does not read, which decoding leaves out.
+// The payload has fields that the operator does not read, which decoding leaves out.
 func TestContractPayloadDecodes(t *testing.T) {
 	RegisterTestingT(t)
 

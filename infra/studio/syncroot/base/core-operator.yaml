@@ -1,4 +1,4 @@
-# The core operator does the cluster work of the assistant and Designer, so that they hold no Kubernetes permission. See
+# The core operator does cluster work for the assistant and Designer, so that they hold no Kubernetes permission. See
 # src/core/operator/README.md.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository

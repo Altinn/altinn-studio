@@ -1,6 +1,6 @@
-// Package callbacks serves the callback API: operator-workflow-engine runs each step of an operator workflow by
-// posting it to /workflow-engine-callbacks/{commandKey}. The README's "Callback contract" describes the payload and
-// the answers, and api/callbacks has examples that the tests of both sides read.
+// Package callbacks serves the callback API, which operator-workflow-engine calls for each step of an operator
+// workflow. The README's "Callback contract" describes it, and the tests of both sides read the examples in
+// api/callbacks.
 package callbacks
 
 import (
@@ -36,8 +36,8 @@ const (
 // OperatorCommand under it.
 const CommandType = "operator"
 
-// Payload is the body of a callback, OperatorCallbackPayload in operator-workflow-engine, with the fields the
-// operator reads. The engine sends more, such as stepId and deferCount, and decoding leaves them out.
+// Payload is the body of a callback, OperatorCallbackPayload in operator-workflow-engine, with the fields that the
+// operator reads.
 type Payload struct {
 	ExecutionReferenceTime time.Time  `json:"executionReferenceTime"`
 	State                  *string    `json:"state"`

@@ -33,11 +33,9 @@ const (
 )
 
 // Queue decides which runs may start, and keeps a run's place from its create until its Job holds it. It reads the
-// sandbox's slots, the kind's limit for each caller and the active Jobs itself, since they describe the sandbox as it is
-// now. It lives in memory, and the engine rebuilds it after a restart: each queued run calls run.admit again, a run at
-// run.create-job or waiting for its Job renews its reservation, and later runs have Jobs. The ResourceQuota that gives
-// the slots cannot stand in for the queue: its limits apply to pods, not Jobs, so it lets the operator create a Job too
-// many, whose pod then waits.
+// sandbox's slots, the kind's limits and the active Jobs on each admit, so it sees the sandbox as it is now. It lives
+// in memory, and the engine's retries rebuild it after a restart. The ResourceQuota cannot replace it, because the
+// quota's limits apply to pods and let one Job too many through.
 type Queue struct {
 	started time.Time
 	clock   clock.Clock
@@ -58,8 +56,8 @@ type place struct {
 	admitted bool
 }
 
-// NewQueue returns a queue that admits no one until Open. The operator's timeScale shortens the warmup and the times
-// after which the queue forgets a run, as it shortens the rechecks of the steps.
+// NewQueue returns a queue that admits no run until Open. The configuration's TimeScale shortens the warmup and the
+// TTLs.
 func NewQueue(cfg *config.Config, box sandbox.Sandbox, clk clock.Clock) *Queue {
 	return &Queue{cfg: cfg, sandbox: box, clock: clk, places: make(map[string]*place)}
 }

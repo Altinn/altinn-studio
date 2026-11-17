@@ -87,9 +87,8 @@ type Config struct {
 	CallbackAddress      string            `koanf:"callbackAddress"`
 	ProbeAddress         string            `koanf:"probeAddress"`
 	HandlerGroups        []string          `koanf:"handlerGroups"`
-	// TimeScale shortens the operator's own waits and budgets, such as its rechecks and the upload timeout, by this
-	// factor. Only the integration test in cmd/ sets it, so a run takes seconds, and no configuration file can. Zero
-	// leaves them as they are.
+	// TimeScale shortens the operator's own waits and budgets by this factor, so a run takes seconds. Only the
+	// integration test in cmd/ sets it, and no configuration file can. Zero leaves them as they are.
 	TimeScale float64 `koanf:"-"`
 }
 
@@ -108,8 +107,7 @@ type Kind struct {
 	PodTemplate string `koanf:"podTemplate"`
 	// Command is the operator runner's id of the command that a run of this kind runs.
 	Command string `koanf:"command"`
-	// Labels are the keys of the labels of each run of this kind, such as the app and the commit. The caller sends a
-	// value for each and no other key. A caller finds its runs again by them, and the command never sees them.
+	// Labels are the label keys of each run of this kind. The caller sends a value for each and no other key.
 	Labels []string `koanf:"labels"`
 	// MaxActivePerCaller caps the sandbox's slots that one caller's runs may take. Zero sets no cap.
 	MaxActivePerCaller int           `koanf:"maxActivePerCaller"`
@@ -117,8 +115,8 @@ type Kind struct {
 	QueueTimeout       time.Duration `koanf:"queueTimeout"`
 	// RunTimeout is how long the operator runner lets the command run.
 	RunTimeout time.Duration `koanf:"runTimeout"`
-	// RequiresArchive says whether the command runs on the files of the caller's archive, so a run waits for the
-	// caller's upload. When false, the default, the operator starts the command as soon as the pod is ready.
+	// RequiresArchive says whether the command runs on the caller's archive. When false, the operator starts the
+	// command as soon as the pod is ready.
 	RequiresArchive bool `koanf:"requiresArchive"`
 }
 

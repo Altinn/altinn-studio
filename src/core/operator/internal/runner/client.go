@@ -1,7 +1,6 @@
 // Package runner is a client for the operator runner in the pod of a run Job (src/core/operator-runner). The operator
-// passes the caller's archive on to the operator runner, reads the run's status until it ends, and passes the result on
-// to the caller. The operator runner keeps one run per pod and keeps its result until the caller has fetched it, so
-// each call can be repeated after a restart of the operator.
+// runner keeps one run per pod and keeps its result until the caller has fetched it, so the operator can repeat each
+// call after a restart.
 package runner
 
 import (
