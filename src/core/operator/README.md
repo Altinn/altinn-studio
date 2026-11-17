@@ -31,9 +31,9 @@ flowchart LR
   runs -->|"status"| host
 ```
 
-- The operator-workflow-engine is a host of the workflow engine. It stores each run as a workflow in Postgres and
-  calls the operator for each step. The engine supplies the retries, the waits, the wait budgets and the cancellation.
-  The workflow's labels and states hold all that the operator knows of a run.
+- The [operator-workflow-engine](../operator-workflow-engine/README.md) is a host of the workflow engine. It stores
+  each run as a workflow in Postgres and calls the operator for each step. The engine supplies the retries, the waits,
+  the wait budgets and the cancellation. The workflow's labels and states hold all that the operator knows of a run.
 - The [operator runner](../operator-runner/README.md) runs one command in a new microVM in the Job's pod. It keeps the
   archive and the result until the caller has fetched the result.
 
