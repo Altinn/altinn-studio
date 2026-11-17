@@ -7,11 +7,10 @@ have declined (e.g. a phone-number lookup matching Altinn's "lookup-service"
 feature by name).
 """
 
-import json
 from collections.abc import Sequence
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from agents.prompts import get_prompt_with_langfuse
 from shared.utils.logging_utils import get_logger
@@ -23,6 +22,9 @@ log = get_logger(__name__)
 
 
 class ScopeCheckResult(BaseModel):
+    # A validation error is logged, and the reply it rejects can quote the user's question.
+    model_config = ConfigDict(hide_input_in_errors=True)
+
     in_scope: bool
     decline_message: str | None = None
     reason: str | None = None
@@ -44,35 +46,11 @@ async def check_scope_async(query: str, conversation_history: Sequence[Any] | No
     system_prompt, lf_prompt = get_prompt_with_langfuse("scope_check")
     user_prompt = build_scope_check_message(query, conversation_history)
 
-    client = get_llm_client()
     try:
-        response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
-    except Exception as e:
-        log.warning(f"Scope check LLM call failed, defaulting to in-scope: {e}")
-        return ScopeCheckResult(in_scope=True, reason=f"Scope check failed open: {e}")
-
-    cleaned = response.strip()
-    if cleaned.startswith("```"):
-        fence_end = cleaned.find("\n")
-        first_line = cleaned[:fence_end] if fence_end != -1 else cleaned
-        cleaned = cleaned[len(first_line) :].strip() if first_line.startswith("```") else cleaned
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3].strip()
-
-    try:
-        data = json.loads(cleaned)
-        if not isinstance(data, dict):
-            raise ValueError("Parsed JSON is not an object")
-        in_scope = data.get("in_scope", True)
-        if not isinstance(in_scope, bool):
-            # Truthiness would misread string booleans ("false" is truthy);
-            # a verdict that isn't an actual boolean is a parse failure.
-            raise ValueError(f"in_scope is not a boolean: {in_scope!r}")
-        return ScopeCheckResult(
-            in_scope=in_scope,
-            decline_message=data.get("decline_message"),
-            reason=data.get("reason"),
+        response = await get_llm_client().call_async(
+            system_prompt, user_prompt, langfuse_prompt=lf_prompt, response_schema=ScopeCheckResult
         )
-    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as e:
-        log.warning(f"Failed to parse scope check response, defaulting to in-scope: {response!r} ({e})")
-        return ScopeCheckResult(in_scope=True, reason="Failed to parse scope check response")
+        return ScopeCheckResult.model_validate_json(response)
+    except Exception as e:
+        log.warning(f"Scope check failed, defaulting to in-scope: {e}")
+        return ScopeCheckResult(in_scope=True, reason=f"Scope check failed open: {e}")

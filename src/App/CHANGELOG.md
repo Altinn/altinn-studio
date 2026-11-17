@@ -14,7 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
-## [9.0.0-preview.11] - 2026-11-16
+## [9.0.0-preview.12] - 2026-11-17
 
 ### Added
 
@@ -24,11 +24,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0502`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0502](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0502), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
 - Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 
 ### Fixed
 
+- Attachments in `AttachmentList` no longer show as plain text until the page is reloaded after the user changes a field or a `CustomButton` runs a server action. Files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
 - Expression handling in backend now supports accessing base class properties, when a derived class is used in the data model class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` and `AD0001` instead, which still fail a build that treats warnings as errors. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
 - A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))

@@ -15,9 +15,17 @@ Run the commands below from `src/tools/releaser`.
 
 Tags are named `<component>/vX.Y.Z`.
 
-The release workflow runs only for a merged pull request with the `release/<component>` label. A pull request from a
-fork cannot publish a release, so after it merges, run the component's release workflow by hand on the branch it
-merged into.
+The studioctl release workflow runs for a merged pull request with the `release/studioctl` label. A pull request from
+a fork cannot publish a release, so after it merges, run the release workflow by hand on the branch it merged into.
+
+The app libraries, codelists and fileanalyzers publish to nuget.org through trusted publishing, which only works from
+the `libraries` environment. Pull request runs cannot use that environment, so their release workflows run on push:
+
+- A push that changes the changelog releases its latest version, unless that version has a GitHub release, draft or
+  published.
+- If a release fails, delete its draft and rerun the failed run. A new run would build the branch as it is now.
+- Finish a failed prerelease before you create its release branch. The releaser stops publishing a line's prereleases
+  once the branch exists.
 
 ## Prereleases
 
