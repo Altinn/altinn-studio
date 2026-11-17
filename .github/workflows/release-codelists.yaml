@@ -35,8 +35,8 @@ jobs:
       # Draft releases are only visible with write access
       contents: write
     outputs:
-      release: ${{ steps.context.outputs.release }}
-      version: ${{ steps.context.outputs.version }}
+      release: ${{ steps.resolve.outputs.release }}
+      version: ${{ steps.resolve.outputs.package-version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,50 +44,11 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Setup Go
-        uses: ./.github/actions/setup-go-cached
+      - name: Resolve release
+        id: resolve
+        uses: ./.github/actions/resolve-library-release
         with:
-          module: src/tools/releaser
-
-      - name: Resolve version
-        id: context
-        env:
-          BASE_BRANCH: ${{ github.ref_name }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          version="$(go run . resolve-version --component codelists --base-branch "$BASE_BRANCH")"
-
-          # resolve-version prints the tag-style version (v9.0.0-preview.1). Everything downstream
-          # feeds MSBuild, which rejects the prefix, so normalize it here at the single source.
-          version="${version#v}"
-
-          # Fully anchored: a partial match would accept trailing junk, and a version such as
-          # `9.0.0-` reaches `dotnet pack` only to fail there, after the tag and release exist.
-          if [[ ! "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
-            echo "Resolved version is not major.minor.patch[-prerelease]: $version" >&2
-            exit 1
-          fi
-
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-          # The releaser creates a draft release, which gets its tag when someone publishes it. A release for
-          # this version, draft or published, means it is released already, or that a failed attempt left a
-          # draft to delete before trying again.
-          tag="codelists/v${version}"
-          # GraphQL finds drafts by tag name, which REST's releases/tags endpoint does not.
-          # shellcheck disable=SC2016 # the $ names are GraphQL variables
-          release="$(gh api graphql \
-            -f query='query($owner: String!, $name: String!, $tag: String!) { repository(owner: $owner, name: $name) { release(tagName: $tag) { isDraft } } }' \
-            -f owner="${REPOSITORY%/*}" -f name="${REPOSITORY#*/}" -f tag="$tag" \
-            --jq '.data.repository.release | select(. != null) | .isDraft')"
-          if [[ -n "$release" ]]; then
-            echo "${tag} already has a GitHub release; nothing to release."
-            echo "release=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "release=true" >> "$GITHUB_OUTPUT"
-          fi
-        working-directory: src/tools/releaser
+          component: codelists
 
   release:
     name: Build, release and publish
@@ -150,7 +111,7 @@ jobs:
         run: |
           # Matched explicitly rather than with a sed substitution: a sed that does not match
           # passes the version through unchanged, which produced an invalid AssemblyVersion
-          # instead of failing. Same anchored pattern as the Resolve version step.
+          # instead of failing. resolve-library-release checks the same pattern.
           if [[ ! "$RELEASE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "RELEASE_VERSION is not major.minor.patch[-prerelease]: $RELEASE_VERSION" >&2
             exit 1

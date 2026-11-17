@@ -1,0 +1,65 @@
+name: "Resolve library release"
+description: "Resolve the version to release from a component's changelog, and whether it still needs a release"
+inputs:
+  component:
+    description: "Releaser component, such as app or codelists"
+    required: true
+outputs:
+  version:
+    description: "The version as the releaser tags it, such as v9.0.0-preview.1"
+    value: ${{ steps.resolve.outputs.version }}
+  package-version:
+    description: "The version without the v prefix, as NuGet and MSBuild take it"
+    value: ${{ steps.resolve.outputs.package-version }}
+  release:
+    description: "'true' when the version has no GitHub release yet, draft or published"
+    value: ${{ steps.resolve.outputs.release }}
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Go
+      uses: ./.github/actions/setup-go-cached
+      with:
+        module: src/tools/releaser
+
+    - name: Resolve version
+      id: resolve
+      shell: bash
+      working-directory: src/tools/releaser
+      env:
+        BASE_BRANCH: ${{ github.ref_name }}
+        COMPONENT: ${{ inputs.component }}
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+      run: |
+        version="$(go run . resolve-version --component "$COMPONENT" --base-branch "$BASE_BRANCH")"
+
+        # Fully anchored: a partial match would accept trailing junk, and a version such as `v9.0.0-` reaches
+        # `dotnet pack` only to fail there, after the release exists.
+        if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+          echo "Resolved version is not vX.Y.Z[-prerelease]: $version" >&2
+          exit 1
+        fi
+
+        # The releaser creates a draft release, which gets its tag when someone publishes it. A release for this
+        # version, draft or published, means it is released already, or that a failed attempt left a draft to
+        # delete before trying again. GraphQL finds drafts by tag name, which REST's releases/tags endpoint does
+        # not, but only with write access to the repository.
+        tag="${COMPONENT}/${version}"
+        # shellcheck disable=SC2016 # the $ names are GraphQL variables
+        existing="$(gh api graphql \
+          -f query='query($owner: String!, $name: String!, $tag: String!) { repository(owner: $owner, name: $name) { release(tagName: $tag) { isDraft } } }' \
+          -f owner="${REPOSITORY%/*}" -f name="${REPOSITORY#*/}" -f tag="$tag" \
+          --jq '.data.repository.release | select(. != null) | .isDraft')"
+
+        release=true
+        if [[ -n "$existing" ]]; then
+          echo "${tag} already has a GitHub release; nothing to release."
+          release=false
+        fi
+
+        {
+          echo "version=$version"
+          echo "package-version=${version#v}"
+          echo "release=$release"
+        } >> "$GITHUB_OUTPUT"
