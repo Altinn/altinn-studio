@@ -25,7 +25,7 @@ followed by the step's command key, such as `run.admit`. The operator answers wi
 The examples in [`api/callbacks`](../operator/api/callbacks) are the contract. The tests of both sides read them, so
 change them together with both sides.
 
-The command sends a projected ServiceAccount token with the audience `core-operator`. The operator checks it as
+The command sends a projected ServiceAccount token with the audience `operator`. The operator checks it as
 [Identities](../operator/README.md#identities) describes. The engine's own API has no authentication, so its
 NetworkPolicy lets only the operator's pods reach it.
 
@@ -38,17 +38,17 @@ the schema `engine` at startup. The role has no access to the server's other dat
 The host connects directly on port 5432, not through a transaction pooler such as PgBouncer. The engine keeps a
 `LISTEN` connection and takes session advisory locks, and transaction pooling breaks both.
 
-The host logs in as its Entra identity, the workload identity of the `core-operator-workflow-engine` ServiceAccount.
+The host logs in as its Entra identity, the workload identity of the `operator-workflow-engine` ServiceAccount.
 The connection string has no password, so the engine fetches an Entra token and refreshes it before it expires:
 
 ```text
 Host=<server>.postgres.database.azure.com;Port=5432;Database=<database>;Username=<role of the Entra identity>;Ssl Mode=VerifyFull;GSS Encryption Mode=Disable
 ```
 
-The Key Vault secret `core-operator-workflow-engine-connection-string` in the Studio Key Vault holds the connection
+The Key Vault secret `operator-workflow-engine-connection-string` in the Studio Key Vault holds the connection
 string, and [secrets.yaml](infra/kustomize/base/secrets.yaml) gives it to the host. The identity needs:
 
-- a federated credential for `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine`
+- a federated credential for `system:serviceaccount:operator-workflow-engine:operator-workflow-engine`
 - a Postgres role that owns the database
 - read access to the Key Vault secret
 
@@ -86,5 +86,5 @@ it when either side or the engine library changes.
 
 [`deploy-core-operator-workflow-engine.yaml`](../../../.github/workflows/deploy-core-operator-workflow-engine.yaml)
 builds the image, pins it in the manifests and pushes them as an OCI artifact, tagged with each environment. Flux in
-the Studio clusters of dev and prod deploys it as `core-operator-workflow-engine`, from
-[`core-operator-workflow-engine.yaml`](../../../infra/studio/syncroot/base/core-operator-workflow-engine.yaml).
+the Studio clusters of dev and prod deploys it as `operator-workflow-engine`, from
+[`operator-workflow-engine.yaml`](../../../infra/studio/syncroot/base/operator-workflow-engine.yaml).

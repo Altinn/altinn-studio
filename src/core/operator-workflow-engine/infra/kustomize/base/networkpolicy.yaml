@@ -2,11 +2,11 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: core-operator-workflow-engine-ingress
+  name: operator-workflow-engine-ingress
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: core-operator-workflow-engine
+      app.kubernetes.io/name: operator-workflow-engine
   policyTypes:
     - Ingress
   ingress:

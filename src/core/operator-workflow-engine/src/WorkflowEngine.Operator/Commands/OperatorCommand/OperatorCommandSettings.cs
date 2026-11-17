@@ -13,7 +13,7 @@ internal sealed record OperatorCommandSettings
     /// </summary>
     [JsonPropertyName("commandEndpoint")]
     public string CommandEndpoint { get; set; } =
-        "http://core-operator.core-operator.svc.cluster.local:8090/workflow-engine-callbacks/";
+        "http://operator.core-operator.svc.cluster.local:8090/workflow-engine-callbacks/";
 #pragma warning restore S5332
 
     /// <summary>

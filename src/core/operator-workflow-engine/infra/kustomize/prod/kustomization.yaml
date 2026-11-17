@@ -5,17 +5,17 @@ resources:
 patches:
   - target:
       kind: Deployment
-      name: core-operator-workflow-engine
+      name: operator-workflow-engine
     patch: |-
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: core-operator-workflow-engine
+        name: operator-workflow-engine
       spec:
         template:
           spec:
             containers:
-              - name: core-operator-workflow-engine
+              - name: operator-workflow-engine
                 env:
                   - name: ASPNETCORE_ENVIRONMENT
                     value: "prod"
