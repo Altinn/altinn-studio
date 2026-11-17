@@ -6,5 +6,6 @@ resources:
   - ../base/sandbox-node.yaml
   - ../base/operator-runner.yaml
   - ../base/core-operator.yaml
+  - ../base/core-operator-workflow-engine.yaml
   - ../base/victoriametrics-operator.yaml
   - ../base/observability-victoria.yaml

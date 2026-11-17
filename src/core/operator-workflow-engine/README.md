@@ -28,8 +28,9 @@ The operator enqueues one workflow for each run through the engine's API, with a
 The [operator README](../operator/README.md#a-run-step-by-step) lists the steps. For each attempt of a step, the
 command posts the callback payload to `OperatorCommandSettings.CommandEndpoint` followed by the step's command key,
 such as `run.admit`. The operator answers with the step's outcome. The
-[callback contract](../operator/README.md#callback-contract) describes the payload and the answers. The command
-classifies the answers the way the app host's `AppCommand` does.
+[callback contract](../operator/README.md#callback-contract) describes the payload and the answers. The command keeps
+a 422 as the step's error as it is, and retries other answers unless the step's `NonRetryableHttpStatusCodes` list
+them, as the engine's `WebhookCommand` does.
 
 The examples in [`api/callbacks`](../operator/api/callbacks) are the contract. The tests of this host check that the
 command sends and reads them, and the operator's tests check its side against the same files. Change them together
@@ -46,7 +47,7 @@ The engine's own API has no authentication. The NetworkPolicy lets only the oper
 
 The engine stores workflows in a dedicated Azure Database for PostgreSQL flexible server in each environment, and
 applies its migrations at startup. The server is provisioned in altinn-studio-infra, outside this repository. The host
-logs in with its Entra identity, the workload identity of the `operator-workflow-engine` ServiceAccount. A connection
+logs in with its Entra identity, the workload identity of the `core-operator-workflow-engine` ServiceAccount. A connection
 string without a password makes the engine fetch an Entra token for it and refresh it before it expires. The
 connection string has this shape:
 
@@ -55,17 +56,17 @@ Host=<server>.postgres.database.azure.com;Port=5432;Database=<database>;Username
 ```
 
 The host reads the connection string from `/app/secrets/secrets.json`. An ExternalSecret renders that file from the
-Key Vault secret `operator-workflow-engine-connection-string` in the Studio Key Vault. The Key Vault's existing
+Key Vault secret `core-operator-workflow-engine-connection-string` in the Studio Key Vault. The Key Vault's existing
 SecretStore lives in the `default` namespace, and an ExternalSecret can only use a SecretStore in its own namespace,
 so this namespace has its own SecretStore. It authenticates as the engine's identity. That identity therefore needs:
 
-- a federated credential for `system:serviceaccount:operator-workflow-engine:operator-workflow-engine`,
+- a federated credential for `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine`,
 - a Postgres role on the server, and
 - read access to the Key Vault secret.
 
 ## Configuration
 
-`ASPNETCORE_ENVIRONMENT` is the Studio environment, `dev`, `staging` or `prod`, set by each overlay in
+`ASPNETCORE_ENVIRONMENT` is the Studio environment, `dev` or `prod`, set by each overlay in
 [`infra/kustomize`](infra/kustomize). No environment needs settings of its own yet, so there are no per-environment
 `appsettings` files. `OperatorCommandSettings` holds its own defaults, which are those of the Studio cluster: the
 operator's callback router and the token the Deployment mounts.
@@ -80,9 +81,10 @@ until then.
 
 ## Telemetry
 
-The command names the run on the step's span and the workflow's entry span with `altinn.core_operator.domain`,
-`altinn.core_operator.caller` and `altinn.core_operator.subject_id`, so the operator can put the same keys on its
-spans. Its `OperatorCommand.Execute` span carries the command key. The state is the operator's own data, so the host
+The host is a process of the core operator, so it uses the operator's attribute names. The command names the run on the
+step's span and the workflow's entry span with `altinn.core_operator.domain`, `altinn.core_operator.caller` and
+`altinn.core_operator.subject_id`, and its `OperatorCommand.Execute` span carries `altinn.core_operator.command_key`.
+The operator puts the same keys on its spans. The state is the operator's own data, so the host
 neither logs it nor puts it on telemetry.
 
 ## Running locally
@@ -99,5 +101,5 @@ and CI runs it when either side or the engine library changes.
 
 [`deploy-core-operator-workflow-engine.yaml`](../../../.github/workflows/deploy-core-operator-workflow-engine.yaml)
 builds the image, pins it in the manifests and pushes them as an OCI artifact, which it tags with each environment.
-Flux in the Studio cluster applies the artifact from
-[`operator-workflow-engine.yaml`](../../../infra/studio/syncroot/base/operator-workflow-engine.yaml).
+Flux in the Studio clusters of dev and prod applies the artifact from
+[`core-operator-workflow-engine.yaml`](../../../infra/studio/syncroot/base/core-operator-workflow-engine.yaml).

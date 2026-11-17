@@ -22,13 +22,16 @@ permissions:
   contents: read
 
 jobs:
+  # The core operator runs in dev and prod only, so its engine host does too.
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
+      use-preapproved: true
       inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-studio-environments: dev,preapproved-prod
 
   push-artifact:
-    name: Push operator-workflow-engine as OCI artifact
+    name: Push core-operator-workflow-engine as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
     env:
@@ -49,8 +52,8 @@ jobs:
           SHA="${GITHUB_SHA::10}"
           {
             echo "short-sha=$SHA"
-            echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/operator-workflow-engine:${SHA}"
-            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/operator-workflow-engine-repo:${SHA}"
+            echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-workflow-engine:${SHA}"
+            echo "config-repo=altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/core-operator-workflow-engine-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
       - name: az login
@@ -124,4 +127,4 @@ jobs:
       - name: tag artifact
         run: |
           flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
-            --tag ${{ matrix.environment }}
+            --tag ${{ matrix.environment == 'preapproved-prod' && 'prod' || matrix.environment }}

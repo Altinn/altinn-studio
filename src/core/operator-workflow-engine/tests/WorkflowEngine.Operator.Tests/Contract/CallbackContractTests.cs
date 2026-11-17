@@ -69,6 +69,27 @@ public class CallbackContractTests
     }
 
     [Fact]
+    public async Task ResponseEnd_FailsTheStepWithTheProblemAsItsError()
+    {
+        // Arrange
+        var example = await File.ReadAllTextAsync(
+            Path.Combine(RepositoryFiles.CallbackContractDirectory, "response-end.json"),
+            TestContext.Current.CancellationToken
+        );
+        using var fixture = OperatorCommandTestFixture.Create();
+        fixture.RespondWith(422, example);
+        var context = OperatorCommandTestFixture.CreateExecutionContext(OperatorCommandTestFixture.CreateCommandData());
+
+        // Act
+        var result = await fixture.GetOperatorCommand().Execute(context, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(example, result.Message);
+        Assert.Equal(422, result.HttpStatusCode);
+    }
+
+    [Fact]
     public async Task ResponseDefer_DefersTheStepWithDelayReasonAndState()
     {
         // Arrange
