@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/core-operator/internal/callbacks"
+	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox"
@@ -149,12 +150,12 @@ func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (call
 // jobOf is the sandbox Job of a run, from the kind that the run keeps.
 func jobOf(run *stepRun) sandbox.Job {
 	return sandbox.Job{
-		RunID:      run.id,
-		Kind:       run.state.Kind,
-		Caller:     run.caller,
-		Namespace:  run.state.Spec.Namespace,
-		Template:   run.state.Spec.PodTemplate,
-		RunTimeout: run.state.Spec.RunTimeout,
+		RunID:     run.id,
+		Kind:      run.state.Kind,
+		Caller:    run.caller,
+		Namespace: run.state.Spec.Namespace,
+		Template:  run.state.Spec.PodTemplate,
+		Deadline:  config.JobDeadline(run.state.Spec.RunTimeout),
 	}
 }
 
@@ -238,9 +239,8 @@ func (s *Steps) startWithoutArchive(ctx context.Context, run *stepRun) error {
 	if err != nil {
 		return err
 	}
-	err = s.host.Start(
-		ctx, run.state.pod(run.id), run.state.Spec.Command, bytes.NewReader(archive), int64(len(archive)),
-	)
+	body := bytes.NewReader(archive)
+	err = s.host.Start(ctx, run.state.pod(run.id), run.state.Spec.Command, run.state.Spec.RunTimeout, body, body.Size())
 	if err != nil {
 		return runnerError(ReasonStartFailed, err)
 	}

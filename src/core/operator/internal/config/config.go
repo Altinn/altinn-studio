@@ -48,17 +48,18 @@ const (
 	ResultTimeout = 5 * time.Minute
 	// ResultGrace is how long the operator runner keeps the result after the first fetch, for a fetch that broke off.
 	ResultGrace = 30 * time.Second
-	// JobDeadlineSlack covers the engine's time between the steps.
-	JobDeadlineSlack = time.Minute
-	// MaxRunTimeout is the longest run timeout whose Job deadline fits under MaxJobDeadline: the time to start the
-	// pod, to receive the archive, to run the command and to keep the result. Kubernetes stops a Job at its deadline,
-	// which must not come before the operator runner has handed over the result.
-	MaxRunTimeout = MaxJobDeadline - PodBudget - UploadTimeout - ResultTimeout - ResultGrace - JobDeadlineSlack
 	// MaxLabels is the most labels a kind may have, and so the most a caller may send.
 	MaxLabels = 16
 	// MaxNameLength keeps a kind name a Kubernetes label value.
 	MaxNameLength = 63
 )
+
+// JobDeadline is the deadline of a run's Job: the time to start the pod, to receive the archive, to run the command and
+// to keep the result, and a minute for the engine's time between the steps. Kubernetes stops a Job at its deadline,
+// which must not come before the operator runner has handed over the result.
+func JobDeadline(runTimeout time.Duration) time.Duration {
+	return PodBudget + UploadTimeout + runTimeout + ResultTimeout + ResultGrace + time.Minute
+}
 
 // GroupRuns is the handler group for sandbox runs: the run API, the run.* callbacks and the garbage collector.
 const GroupRuns = "runs"
@@ -114,7 +115,8 @@ type Kind struct {
 	MaxActivePerCaller int           `koanf:"maxActivePerCaller"`
 	MaxQueuedPerCaller int           `koanf:"maxQueuedPerCaller"`
 	QueueTimeout       time.Duration `koanf:"queueTimeout"`
-	RunTimeout         time.Duration `koanf:"runTimeout"`
+	// RunTimeout is how long the operator runner lets the command run.
+	RunTimeout time.Duration `koanf:"runTimeout"`
 	// RequiresArchive says whether the command runs on the files of the caller's archive, so a run waits for the
 	// caller's upload. When false, the default, the operator starts the command as soon as the pod is ready.
 	RequiresArchive bool `koanf:"requiresArchive"`
@@ -255,11 +257,9 @@ func kindProblems(name string, kind Kind) []string {
 		problems = append(problems,
 			fmt.Sprintf("kind %s needs maxActive, maxActivePerCaller and maxQueuedPerCaller of at least 1", name))
 	}
-	if kind.RunTimeout <= 0 || kind.RunTimeout > MaxRunTimeout {
-		problems = append(
-			problems,
-			fmt.Sprintf("kind %s needs a runTimeout above 0 and at most %s", name, MaxRunTimeout),
-		)
+	if kind.RunTimeout <= 0 || JobDeadline(kind.RunTimeout) > MaxJobDeadline {
+		longest := MaxJobDeadline - JobDeadline(0)
+		problems = append(problems, fmt.Sprintf("kind %s needs a runTimeout above 0 and at most %s", name, longest))
 	}
 	if kind.QueueTimeout <= 0 {
 		problems = append(problems, fmt.Sprintf("kind %s needs a positive queueTimeout", name))

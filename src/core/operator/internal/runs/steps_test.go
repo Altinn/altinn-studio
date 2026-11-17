@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"altinn.studio/core-operator/internal/callbacks"
+	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox"
@@ -231,7 +232,7 @@ func TestARunKeepsItsKindWhenTheCatalogChanges(t *testing.T) {
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	job, ok := h.sandbox.Job(testNamespace, run.ID)
 	Expect(ok).To(BeTrue())
-	Expect(job.RunTimeout).To(Equal(660*time.Second), "the Job's deadline fits the run's own budgets")
+	Expect(job.Deadline).To(Equal(config.JobDeadline(660*time.Second)), "the Job's deadline fits the run's own budgets")
 	h.readyPod(run.ID)
 	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
 	h.upload(t, run.ID, "app")

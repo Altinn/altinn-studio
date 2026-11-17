@@ -138,9 +138,9 @@ func (h *harness) create(t *testing.T, caller, app string) *Run {
 // upload sends an archive to the run's operator runner, as the run API passes on the caller's upload.
 func (h *harness) upload(t *testing.T, runID, content string) {
 	t.Helper()
-	archive := gzipArchive(t, content)
+	archive := bytes.NewReader(gzipArchive(t, content))
 	pod := runner.Pod{Namespace: testNamespace, RunID: runID, IP: podIP}
-	if err := h.steps.host.Start(t.Context(), pod, "upgrade-v9", bytes.NewReader(archive), -1); err != nil {
+	if err := h.steps.host.Start(t.Context(), pod, "upgrade-v9", time.Minute, archive, -1); err != nil {
 		t.Fatal(err)
 	}
 }

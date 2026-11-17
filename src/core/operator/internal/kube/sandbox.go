@@ -15,7 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/sandbox"
 )
 
@@ -56,15 +55,6 @@ func jobLabels(job sandbox.Job) map[string]string {
 // accepts a Job from the operator only when its pod spec and pod annotations equal the template's, so both are copied
 // as they are, and only labels are added.
 func BuildJob(template *corev1.PodTemplate, job sandbox.Job) *batchv1.Job {
-	// The pod may take the whole of run.await-pod's budget to be ready and run.await-archive's to receive the archive
-	// before the command's own timeout starts. After the command, the operator runner keeps the result for the caller.
-	// Config validation keeps the sum under the policy's maximum.
-	deadline := min(
-		config.PodBudget+config.UploadTimeout+job.RunTimeout+config.ResultTimeout+config.ResultGrace+
-			config.JobDeadlineSlack,
-		config.MaxJobDeadline,
-	)
-
 	podLabels := maps.Clone(template.Template.Labels)
 	if podLabels == nil {
 		podLabels = make(map[string]string)
@@ -79,7 +69,7 @@ func BuildJob(template *corev1.PodTemplate, job sandbox.Job) *batchv1.Job {
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit:            new(int32(0)),
-			ActiveDeadlineSeconds:   new(int64(deadline / time.Second)),
+			ActiveDeadlineSeconds:   new(int64(job.Deadline / time.Second)),
 			TTLSecondsAfterFinished: new(jobTTLAfterFinished),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{

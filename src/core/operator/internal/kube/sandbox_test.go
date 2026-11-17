@@ -33,15 +33,15 @@ var (
 	errNoPermission = errors.New("the Role does not allow it")
 )
 
-// testJob is the Job of a run of upgrade-v9 for the assistant, with a run timeout of 660 s.
+// testJob is the Job of a run of upgrade-v9 for the assistant.
 func testJob(runID string) sandbox.Job {
 	return sandbox.Job{
-		RunID:      runID,
-		Kind:       "upgrade-v9",
-		Caller:     "assistant",
-		Namespace:  testNamespace,
-		Template:   "operator-runner",
-		RunTimeout: 660 * time.Second,
+		RunID:     runID,
+		Kind:      "upgrade-v9",
+		Caller:    "assistant",
+		Namespace: testNamespace,
+		Template:  "operator-runner",
+		Deadline:  25 * time.Minute,
 	}
 }
 
@@ -118,11 +118,7 @@ func TestBuildJobCopiesThePodTemplate(t *testing.T) {
 	Expect(template.Template.Spec.Containers[0].Image).To(Equal("operator-runner:1"))
 	Expect(template.Template.Annotations).NotTo(HaveKey("x"))
 
-	// The deadline grows with the run timeout, so the command's own timeout always fits in it.
-	longer := run
-	longer.RunTimeout += time.Minute
-	deadline := *BuildJob(template, run).Spec.ActiveDeadlineSeconds
-	Expect(*BuildJob(template, longer).Spec.ActiveDeadlineSeconds - deadline).To(Equal(int64(60)))
+	Expect(*job.Spec.ActiveDeadlineSeconds).To(Equal(int64(25 * 60)))
 }
 
 func TestBuildJobWorksWithoutTemplateLabels(t *testing.T) {

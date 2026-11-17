@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	// runResultSlack is how long await-result may wait beyond the kind's run timeout: the operator runner's own timeout
-	// stops the command, and then it still has to return the result.
+	// runResultSlack is how long await-result may wait beyond the kind's run timeout: the operator runner stops the
+	// command at the run timeout, and then it still has to return the result.
 	runResultSlack = 2 * time.Minute
 	// cleanupSlack is how long run.cleanup may wait beyond the time that the operator runner keeps the result, for the
 	// operator runner to exit and the operator to see it.
