@@ -76,9 +76,6 @@ impl Routes {
     /// run claims it, so a client can send an archive again after an upload that did not complete. A repeat for the
     /// claimed run answers with the status of the run, and the operator runner discards the archive.
     async fn start(&self, request: Request<Incoming>, run_id: &str) -> Response<Body> {
-        if self.host.is_stopping() {
-            return stopping();
-        }
         let Some(run_id) = RunId::parse(run_id) else {
             return problem(StatusCode::BAD_REQUEST, "The run id must be a UUID.");
         };
@@ -94,12 +91,9 @@ impl Routes {
         let Some(timeout) = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok()) else {
             return problem(StatusCode::BAD_REQUEST, "The query must give the timeout in seconds.");
         };
-        if self.host.is_claimed() {
+        if let Some(refused) = self.host.refusal(&run_id) {
             self.discard(request.into_body()).await;
-            return self
-                .host
-                .status_of(&run_id)
-                .map_or_else(claimed_by_other, |status| accepted(&run_id, status));
+            return answer(&run_id, refused);
         }
         if !is_archive(request.headers()) {
             return problem(
@@ -117,12 +111,7 @@ impl Routes {
         }
         let started = self.host.start(&run_id, command, Duration::from_secs(timeout), archive);
         drop(upload);
-        match started {
-            Start::Started => accepted(&run_id, Status::Running),
-            Start::AlreadyClaimed(status) => accepted(&run_id, status),
-            Start::ClaimedByOther => claimed_by_other(),
-            Start::Stopping => stopping(),
-        }
+        answer(&run_id, started)
     }
 
     /// `GET /runs/{runId}?wait={seconds}` and `GET /runs/{runId}/result?wait={seconds}`.
@@ -198,6 +187,15 @@ fn route(method: &Method, path: &str) -> Option<Route> {
             Some(Route::Read(run_id.to_string(), Read::Result))
         }
         _ => None,
+    }
+}
+
+fn answer(run_id: &RunId, start: Start) -> Response<Body> {
+    match start {
+        Start::Started => accepted(run_id, Status::Running),
+        Start::AlreadyClaimed(status) => accepted(run_id, status),
+        Start::ClaimedByOther => claimed_by_other(),
+        Start::Stopping => stopping(),
     }
 }
 

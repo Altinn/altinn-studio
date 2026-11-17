@@ -1,11 +1,16 @@
 use std::{fmt, future, mem, rc::Rc, time::Duration};
 
 use bytes::Bytes;
+use sandbox_hosting::AnyError;
 use serde::Serialize;
 use tokio::{sync::watch, time::Instant};
 use tokio_util::sync::CancellationToken;
 
 use crate::run::{Command, Outcome, Run, RunError, Runner};
+
+/// The time after the first fetch of the result that the operator runner keeps it, so that a client that restarted can
+/// fetch it again.
+const RESULT_GRACE: Duration = Duration::from_secs(30);
 
 /// The id that the client gives a run: a UUID in the form with hyphens. The operator runner compares run ids in lower
 /// case.
@@ -98,7 +103,7 @@ pub enum Answer {
 }
 
 /// What [`Host::start`] did.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Start {
     /// The run claimed the operator runner, and its command starts.
     Started,
@@ -109,10 +114,33 @@ pub enum Start {
     Stopping,
 }
 
-/// The state of the one run that the operator runner serves.
+/// The reason why the operator runner stops.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Stop {
+    /// A client fetched the result, and the grace after the first fetch passed.
+    Fetched,
+    /// No client fetched the result within the retention. For example, the operator stopped and did not come back.
+    Expired,
+    /// No run claimed the operator runner in time. For example, the operator stopped before it sent the archive.
+    Unclaimed,
+    /// A signal told the operator runner to stop. For example, the operator deleted the Job.
+    Signaled,
+}
+
+/// The times that decide when the operator runner stops.
+#[derive(Clone, Copy, Debug)]
+pub struct Timeouts {
+    /// The time from when the operator runner is ready until a run must claim it.
+    pub request: Duration,
+    /// The time from the end of the run that the operator runner keeps a result that no client fetched.
+    pub retention: Duration,
+}
+
+/// The one run that the operator runner serves, from its claim until the operator runner exits.
 ///
 /// The first request that delivers a complete archive claims the operator runner for its run id. The run continues when
-/// the client goes away. The operator runner keeps the result until a client fetches it.
+/// the client goes away. The operator runner keeps the result until a client fetches it, and then stops and deletes the
+/// VM.
 pub struct Host {
     state: watch::Sender<State>,
     runner: Rc<dyn Runner>,
@@ -189,8 +217,7 @@ impl Host {
         self.stopping.cancel();
     }
 
-    #[must_use]
-    pub fn is_stopping(&self) -> bool {
+    fn is_stopping(&self) -> bool {
         self.stopping.is_cancelled()
     }
 
@@ -210,39 +237,39 @@ impl Host {
     }
 
     /// Returns the status of the run, or `None` if this run id did not claim the operator runner.
-    #[must_use]
-    pub fn status_of(&self, run_id: &RunId) -> Option<Status> {
+    fn status_of(&self, run_id: &RunId) -> Option<Status> {
         self.state.borrow().phase.status_of(run_id)
     }
 
-    /// Claims the operator runner for the run and starts the run in its own task. The run does not depend on the
-    /// request that started it.
-    pub fn start(self: &Rc<Self>, run_id: &RunId, command: Command, timeout: Duration, archive: Bytes) -> Start {
+    /// Returns what a start of this run gets instead of a claim, or `None` if the run can claim the operator runner. The
+    /// routes ask before they read the archive.
+    #[must_use]
+    pub fn refusal(&self, run_id: &RunId) -> Option<Start> {
         if self.is_stopping() {
-            return Start::Stopping;
+            return Some(Start::Stopping);
         }
-        let mut start = Start::Started;
-        self.state.send_if_modified(|state| {
-            if matches!(state.phase, Phase::Unclaimed) {
-                state.phase = Phase::Running(run_id.clone());
-                return true;
-            }
-            start = state
-                .phase
-                .status_of(run_id)
-                .map_or(Start::ClaimedByOther, Start::AlreadyClaimed);
-            false
-        });
-        if start == Start::Started {
-            tracing::info!(%run_id, command = command.name(), archive_bytes = archive.len(), "the run starts");
-            let run = Run {
-                command,
-                archive,
-                deadline: Instant::now() + timeout,
-            };
-            tokio::task::spawn_local(self.clone().run_to_end(run_id.clone(), run));
+        self.is_claimed().then(|| {
+            self.status_of(run_id)
+                .map_or(Start::ClaimedByOther, Start::AlreadyClaimed)
+        })
+    }
+
+    /// Claims the operator runner for the run and starts the run in its own task, unless [`Host::refusal`] refuses it.
+    /// The run does not depend on the request that started it.
+    pub fn start(self: &Rc<Self>, run_id: &RunId, command: Command, timeout: Duration, archive: Bytes) -> Start {
+        if let Some(refused) = self.refusal(run_id) {
+            return refused;
         }
-        start
+        self.state
+            .send_modify(|state| state.phase = Phase::Running(run_id.clone()));
+        tracing::info!(%run_id, command = command.name(), archive_bytes = archive.len(), "the run starts");
+        let run = Run {
+            command,
+            archive,
+            deadline: Instant::now() + timeout,
+        };
+        tokio::task::spawn_local(self.clone().run_to_end(run_id.clone(), run));
+        Start::Started
     }
 
     /// Returns the result of the run, or `None` if this run id did not claim the operator runner. While the command
@@ -272,15 +299,70 @@ impl Host {
         Some(())
     }
 
+    /// Serves the run until the operator runner must stop, and then deletes the VM. The operator runner refuses new runs
+    /// from then on.
+    ///
+    /// When `signal` completes, this stops the running command, and waits until the run has its result.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the VM could not be deleted.
+    pub async fn serve_until_stop(
+        &self,
+        timeouts: Timeouts,
+        signal: impl Future<Output = ()>,
+    ) -> Result<Stop, AnyError> {
+        let stop = tokio::select! {
+            stop = self.served(timeouts.retention) => stop,
+            () = self.unclaimed_after(timeouts.request) => Stop::Unclaimed,
+            () = signal => {
+                self.stop();
+                self.idle().await;
+                Stop::Signaled
+            }
+        };
+        self.stop();
+        if stop == Stop::Expired {
+            tracing::warn!("no client fetched the result in time, so the operator runner stops");
+        } else {
+            tracing::info!(?stop, "the operator runner stops");
+        }
+        // The run deletes its VM when the command ends. The operator runner deletes the VM again here, because a signal
+        // stops the run before that, and because that delete can fail.
+        self.runner.delete_vm().await.map(|()| stop)
+    }
+
+    /// Completes when a client fetched the result and the grace passed, or when the retention of the result passed.
+    async fn served(&self, retention: Duration) -> Stop {
+        let ended_at = self.ended().await;
+        tokio::select! {
+            () = self.fetched() => {
+                tokio::time::sleep(RESULT_GRACE).await;
+                Stop::Fetched
+            }
+            () = tokio::time::sleep_until(ended_at + retention) => Stop::Expired,
+        }
+    }
+
+    /// Completes after `timeout` if no run claimed the operator runner. If an archive arrives at that time, it waits for
+    /// the archive. If a run claimed the operator runner, the operator runner continues until the result is served.
+    async fn unclaimed_after(&self, timeout: Duration) {
+        tokio::time::sleep(timeout).await;
+        self.claimed_or_idle().await;
+        if self.is_claimed() {
+            future::pending::<()>().await;
+        }
+    }
+
     /// Completes when a run claimed the operator runner, or when no archive arrives. The time to wait for a run uses
     /// this, so that it does not stop the operator runner while an archive arrives.
-    pub async fn claimed_or_idle(&self) {
+    async fn claimed_or_idle(&self) {
         self.wait_until(|state| !matches!(state.phase, Phase::Unclaimed) || state.uploads == 0)
             .await;
     }
 
     /// Completes when the run ended, with the time when it ended.
-    pub async fn ended(&self) -> Instant {
+    async fn ended(&self) -> Instant {
         self.wait_for(|state| match &state.phase {
             Phase::Ended(ended) => Some(ended.at),
             _ => None,
@@ -289,13 +371,13 @@ impl Host {
     }
 
     /// Completes when a client fetched the result of the ended run.
-    pub async fn fetched(&self) {
+    async fn fetched(&self) {
         self.wait_until(|state| matches!(&state.phase, Phase::Ended(ended) if ended.fetched))
             .await;
     }
 
     /// Completes when no command runs.
-    pub async fn idle(&self) {
+    async fn idle(&self) {
         self.wait_until(|state| !matches!(state.phase, Phase::Running(_))).await;
     }
 
@@ -338,7 +420,7 @@ impl Host {
     }
 
     /// Runs the command and keeps its result. When the command ends, the operator runner deletes the VM at once. When
-    /// the operator runner stops during the run, the operator runner deletes the VM later, before it exits.
+    /// the operator runner stops during the run, [`Host::serve_until_stop`] deletes the VM.
     async fn run_to_end(self: Rc<Self>, run_id: RunId, run: Run) {
         let ran = tokio::select! {
             ran = self.runner.run(run) => Some(ran),
@@ -412,12 +494,13 @@ fn reply_of(ran: Result<Outcome, RunError>) -> Reply {
 
 #[cfg(test)]
 mod tests {
-    use std::{io, rc::Rc, time::Duration};
+    use std::{future, io, rc::Rc, time::Duration};
 
     use bytes::Bytes;
     use serde_json::{Value, json};
+    use tokio::time::Instant;
 
-    use super::{Answer, Host, Reply, RunId, Start, Status, Summary};
+    use super::{Answer, Host, RESULT_GRACE, Reply, RunId, Start, Status, Stop, Summary, Timeouts};
     use crate::{
         fake::{FakeRunner, RUN_ID},
         run::{Command, Outcome, RunError},
@@ -433,6 +516,19 @@ mod tests {
 
     fn host(runner: &Rc<FakeRunner>) -> Rc<Host> {
         Host::new(runner.clone())
+    }
+
+    const TIMEOUTS: Timeouts = Timeouts {
+        request: Duration::from_mins(6),
+        retention: Duration::from_mins(5),
+    };
+
+    fn waiting_for_stop(
+        host: &Rc<Host>,
+        signal: impl Future<Output = ()> + 'static,
+    ) -> tokio::task::JoinHandle<Option<Stop>> {
+        let host = host.clone();
+        tokio::task::spawn_local(async move { host.serve_until_stop(TIMEOUTS, signal).await.ok() })
     }
 
     async fn result(host: &Host) -> Result<Value, Box<dyn std::error::Error>> {
@@ -555,8 +651,6 @@ mod tests {
             result(&host).await?,
             json!({ "status": "failed", "error": "The operator runner stopped before the command ended." })
         );
-        // The operator runner deletes the VM before it exits.
-        assert_eq!(runner.deletes.get(), 0);
         assert_eq!(start(&host, &run_id()), Start::Stopping);
         Ok(())
     }
@@ -584,5 +678,134 @@ mod tests {
 
         assert!(matches!(ended, Some(Answer::Ended(_))), "{ended:?}");
         assert_eq!(started.elapsed(), Duration::from_secs(23));
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn stops_when_no_run_claims_it_in_time() {
+        let host = Host::new(Rc::new(FakeRunner::default()));
+        let started = Instant::now();
+
+        let stop = host.serve_until_stop(TIMEOUTS, future::pending()).await.ok();
+
+        assert_eq!(stop, Some(Stop::Unclaimed));
+        assert_eq!(started.elapsed(), TIMEOUTS.request);
+        assert!(host.is_stopping());
+        assert_eq!(start(&host, &run_id()), Start::Stopping);
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn waits_for_an_archive_that_arrives_at_the_request_timeout() -> Result<(), tokio::task::JoinError> {
+        let host = Host::new(Rc::new(FakeRunner::default()));
+        let waiting = waiting_for_stop(&host, future::pending());
+        let upload = host.upload();
+
+        tokio::time::sleep(TIMEOUTS.request * 2).await;
+        assert!(!waiting.is_finished());
+        drop(upload);
+
+        assert_eq!(waiting.await?, Some(Stop::Unclaimed));
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn waits_for_a_claimed_run_past_the_request_timeout() -> Result<(), tokio::task::JoinError> {
+        let runner = Rc::new(FakeRunner::default());
+        runner.hold.set(true);
+        let host = Host::new(runner.clone());
+        let waiting = waiting_for_stop(&host, future::pending());
+        let upload = host.upload();
+        assert_eq!(start(&host, &run_id()), Start::Started);
+        drop(upload);
+
+        tokio::time::sleep(TIMEOUTS.request + TIMEOUTS.retention).await;
+        assert!(!waiting.is_finished());
+        runner.release.notify_one();
+        host.ended().await;
+        assert!(matches!(
+            host.result(&run_id(), Duration::ZERO).await,
+            Some(Answer::Ended(_))
+        ));
+
+        assert_eq!(waiting.await?, Some(Stop::Fetched));
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn serves_the_result_for_the_grace_after_the_first_fetch() -> Result<(), tokio::task::JoinError> {
+        let host = Host::new(Rc::new(FakeRunner::default()));
+        let waiting = waiting_for_stop(&host, future::pending());
+        assert_eq!(start(&host, &run_id()), Start::Started);
+        host.ended().await;
+        tokio::time::sleep(Duration::from_mins(1)).await;
+
+        let first = host.result(&run_id(), Duration::ZERO).await;
+        let fetched_at = Instant::now();
+        tokio::time::sleep(Duration::from_secs(29)).await;
+        assert!(!waiting.is_finished());
+        let again = host.result(&run_id(), Duration::ZERO).await;
+
+        assert!(matches!(first, Some(Answer::Ended(_))), "{first:?}");
+        assert_eq!(first, again);
+        assert_eq!(waiting.await?, Some(Stop::Fetched));
+        assert_eq!(fetched_at.elapsed(), RESULT_GRACE);
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn does_not_count_a_status_read_as_the_fetch() -> Result<(), tokio::task::JoinError> {
+        let runner = Rc::new(FakeRunner::default());
+        runner.hold.set(true);
+        let host = Host::new(runner.clone());
+        let waiting = waiting_for_stop(&host, future::pending());
+        assert_eq!(start(&host, &run_id()), Start::Started);
+        runner.started.notified().await;
+
+        let running = host.summary(&run_id(), Duration::from_secs(30)).await;
+        runner.release.notify_one();
+        let mut ended = Vec::new();
+        for _ in 0..4 {
+            ended.push(host.summary(&run_id(), Duration::from_secs(30)).await);
+            tokio::time::sleep(Duration::from_mins(1)).await;
+        }
+        let ended_at = host.ended().await;
+
+        assert_eq!(running, Some(Answer::Running));
+        assert!(
+            ended.iter().all(|answer| matches!(answer, Some(Answer::Ended(_)))),
+            "{ended:?}"
+        );
+        assert_eq!(waiting.await?, Some(Stop::Expired));
+        assert_eq!(ended_at.elapsed(), TIMEOUTS.retention);
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn stops_at_once_on_a_signal_when_no_run_runs() {
+        let host = Host::new(Rc::new(FakeRunner::default()));
+
+        let stop = host.serve_until_stop(TIMEOUTS, future::ready(())).await.ok();
+
+        assert_eq!(stop, Some(Stop::Signaled));
+        assert!(host.is_stopping());
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn stops_the_running_command_on_a_signal_and_waits_for_its_result() -> Result<(), tokio::task::JoinError> {
+        let runner = Rc::new(FakeRunner::default());
+        runner.hold.set(true);
+        let host = Host::new(runner.clone());
+        assert_eq!(start(&host, &run_id()), Start::Started);
+        runner.started.notified().await;
+
+        let stop = waiting_for_stop(&host, future::ready(())).await?;
+
+        assert_eq!(stop, Some(Stop::Signaled));
+        assert_eq!(host.status_of(&run_id()), Some(Status::Failed));
+        assert_eq!(
+            runner.deletes.get(),
+            1,
+            "the operator runner deletes the VM of the stopped run before it exits"
+        );
+        Ok(())
     }
 }

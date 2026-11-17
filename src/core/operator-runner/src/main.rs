@@ -2,9 +2,8 @@ use std::{net::SocketAddr, num::NonZeroU64, process::ExitCode, rc::Rc, time::Dur
 
 use clap::Parser;
 use operator_runner::{
-    host::Host,
+    host::{Host, Stop, Timeouts},
     http,
-    lifecycle::{Stop, Timeouts, wait_for_stop},
     policy::{AllowedHosts, AllowlistPolicy},
     routes::Routes,
     vm::{VmArguments, Vms},
@@ -14,10 +13,6 @@ use sandbox_hosting::{AnyError, ProviderArguments, ShutdownSignals, require_kvm}
 use sandbox_microsandbox::{LOG_DIRECTIVES, MicrosandboxNetworkBackend};
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
-
-/// The time after the first fetch of the result that the operator runner keeps it, so that a client that restarted can
-/// fetch it again.
-const RESULT_GRACE: Duration = Duration::from_secs(30);
 
 #[derive(Parser)]
 #[command(about = "Run one command on app code in a new microVM for the core operator, then exit")]
@@ -56,7 +51,6 @@ async fn main() -> Result<ExitCode, AnyError> {
     let timeouts = Timeouts {
         request: Duration::from_secs(request_timeout_seconds.get()),
         retention: Duration::from_secs(result_retention_seconds.get()),
-        grace: RESULT_GRACE,
     };
     provider
         .run_with_service(async |service| serve_one_run(service, vm, listen_address, timeouts).await)
@@ -70,22 +64,13 @@ async fn serve_one_run(
     listen_address: SocketAddr,
     timeouts: Timeouts,
 ) -> Result<Stop, AnyError> {
-    let vms = Rc::new(open_vms(service, vm)?);
-    let host = Host::new(vms.clone());
+    let host = Host::new(Rc::new(open_vms(service, vm)?));
     let routes = Rc::new(Routes::new(host.clone()));
     let listener = TcpListener::bind(listen_address).await?;
     let mut signals = ShutdownSignals::new()?;
     tracing::info!(%listen_address, ?timeouts, "the operator runner is ready for one run");
-    let stop = http::serve(listener, routes, wait_for_stop(&host, timeouts, signals.receive())).await;
-    if stop == Stop::Expired {
-        tracing::warn!("no client fetched the result in time, so the operator runner stops");
-    } else {
-        tracing::info!(?stop, "the operator runner stops");
-    }
-    // The run deletes its VM when the command ends. The operator runner deletes the VM again here, because a signal
-    // stops the run before that, and because that delete can fail. If the operator runner cannot delete the VM, it
-    // exits with an error.
-    vms.delete().await.map(|()| stop)
+    // If the operator runner cannot delete the VM, it exits with an error.
+    http::serve(listener, routes, host.serve_until_stop(timeouts, signals.receive())).await
 }
 
 fn open_vms(service: SandboxService, vm: VmArguments) -> Result<Vms, AnyError> {

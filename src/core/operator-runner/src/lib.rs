@@ -1,6 +1,5 @@
 pub mod host;
 pub mod http;
-pub mod lifecycle;
 pub mod output;
 pub mod patch;
 pub mod policy;
