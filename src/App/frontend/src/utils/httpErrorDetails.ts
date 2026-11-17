@@ -1,32 +1,32 @@
-import { isAxiosError } from 'src/utils/isAxiosError';
+import { isHttpError } from '@studio/http-client';
 
-export interface AxiosErrorDetails {
-  method: string | undefined;
-  url: string | undefined;
+export interface HttpErrorDetails {
+  method: string;
+  url: string;
   responseStatus: number | undefined;
   responseData: unknown;
 }
 
 /**
  * Extracts the request/response info for a failed request.
- * Returns null for errors that did not come from axios.
+ * Returns null for errors that did not come from the http client.
  */
-export function getAxiosErrorDetails(error: unknown): AxiosErrorDetails | null {
-  if (!isAxiosError(error)) {
+export function getHttpErrorDetails(error: unknown): HttpErrorDetails | null {
+  if (!isHttpError(error)) {
     return null;
   }
 
-  const { config, response } = error;
+  const { request, response } = error;
   return {
-    method: config?.method?.toUpperCase(),
-    url: config?.url,
+    method: request.method,
+    url: request.url,
     responseStatus: response?.status,
     responseData: response?.data,
   };
 }
 
 /**
- * Formats a response body for display. Axios parses json responses, so the body is usually an object,
+ * Formats a response body for display. The http client parses json responses, so the body is usually an object,
  * but it can also be a raw string (for instance an html error page from a gateway) or missing entirely.
  * Returns undefined when there is nothing (useful) to show.
  */
