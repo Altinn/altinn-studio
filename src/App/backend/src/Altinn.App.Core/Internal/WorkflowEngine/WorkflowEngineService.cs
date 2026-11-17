@@ -170,7 +170,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
-    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForServiceTaskAdoption(
+    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForServiceTaskWithoutWorkflow(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         string state,
@@ -180,7 +180,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         EnqueueAndWaitForWorkflow(
             instance,
             () =>
-                _processNextRequestFactory.CreateServiceTaskAdoption(
+                _processNextRequestFactory.CreateServiceTaskWithoutWorkflowRun(
                     instance,
                     state,
                     CreateProcessNextIdempotencyKey(instance, instanceVersions),
@@ -228,9 +228,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             return idle;
         }
 
-        // v9 keeps an instance processing through a service task, so an idle instance in one with no workflow
-        // running or failed was left there by v8, which ran the task again on the next process/next. Reporting it as
-        // failed shows the frontend's retry, and process/next and process/resume run the task.
+        // A service task without workflow: only v8 leaves an instance idle in a service task. Failed, so the frontend
+        // offers its retry. See docs/workflow-engine-integration.md#service-tasks-without-workflow.
         WorkflowTaskStatus Settled() =>
             ProcessStatusHelper.IsIdle(instance) && _processNextRequestFactory.IsServiceTask(currentTask.AltinnTaskType)
                 ? new WorkflowTaskStatus(
@@ -511,7 +510,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             BuildWorkflowFailure(currentChain),
-                            HasCommittedProcessState(currentChain)
+                            GetChainCommit(currentChain) == ChainCommit.Committed
                         );
                     }
                 }
@@ -533,11 +532,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     bool anchoredChainParked =
                         activeWorkflows.Count > 0 && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
 
-                    // The commit guard is defensive: should a pre-commit step ever learn to defer, fall
-                    // through to the ordinary wait (and its timeout) rather than returning a process state
-                    // that does not exist yet. A chain with no commit step, such as one that runs the
-                    // current service task, has nothing left to commit.
-                    if (anchoredChainParked && !HasPendingProcessStateCommit(currentChain))
+                    // The committed-state guard is defensive: should a pre-commit step ever learn to
+                    // defer, fall through to the ordinary wait (and its timeout) rather than returning a
+                    // process state that does not exist yet.
+                    if (anchoredChainParked && GetChainCommit(currentChain) != ChainCommit.Pending)
                     {
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
@@ -589,7 +587,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             freshInstance.Instance,
             freshInstance.Metadata,
             new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-            HasCommittedProcessState(currentChain)
+            GetChainCommit(currentChain) == ChainCommit.Committed
         );
     }
 
@@ -705,19 +703,32 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return ExtractTargetTask(workflow?.Labels);
     }
 
-    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
-        hierarchyWorkflows.Any(workflow =>
-            workflow.Steps.Any(step =>
-                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
-            )
-        );
+    /// <summary>
+    /// Where the chain's process state commit stands. A chain that runs a service task without workflow has no commit
+    /// step: it neither changes the process state nor leaves a change pending.
+    /// </summary>
+    private enum ChainCommit
+    {
+        NoCommitStep,
+        Pending,
+        Committed,
+    }
 
-    private static bool HasPendingProcessStateCommit(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
-        hierarchyWorkflows.Any(workflow =>
-            workflow.Steps.Any(step =>
-                step.OperationId == CommitProcessState.Key && step.Status != PersistentItemStatus.Completed
-            )
-        );
+    private static ChainCommit GetChainCommit(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
+    {
+        List<StepStatusResponse> commitSteps = hierarchyWorkflows
+            .SelectMany(workflow => workflow.Steps)
+            .Where(step => step.OperationId == CommitProcessState.Key)
+            .ToList();
+        if (commitSteps.Count == 0)
+        {
+            return ChainCommit.NoCommitStep;
+        }
+
+        return commitSteps.Exists(step => step.Status == PersistentItemStatus.Completed)
+            ? ChainCommit.Committed
+            : ChainCommit.Pending;
+    }
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {

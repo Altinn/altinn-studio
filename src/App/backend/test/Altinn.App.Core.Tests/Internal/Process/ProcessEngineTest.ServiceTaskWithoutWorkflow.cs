@@ -1,8 +1,12 @@
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Models.Process;
@@ -13,16 +17,16 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 
-// v8 left an instance it failed in a service task idle in that task, with no workflow, and ran the task again on the
-// next process/next. These tests cover how v9 takes such an instance over.
+// An instance v8 left in a service task whose run failed is idle in the task, with no workflow for it.
 public sealed partial class ProcessEngineTest
 {
-    private const string AdoptedServiceTaskType = "adopted-service";
+    private const string ServiceTaskWithoutWorkflowType = "service-without-workflow";
 
     [Theory]
     [InlineData(null, false)]
     [InlineData(null, true)]
-    [InlineData("reject", false)]
+    [InlineData("write", false)]
+    [InlineData(ServiceTaskWithoutWorkflowType, false)]
     public async Task Next_OnAServiceTaskV8LeftWithoutWorkflow_RunsTheTaskAndGoesOnAfterIt(string? action, bool parked)
     {
         Instance instance = CreateServiceTaskInstance();
@@ -34,7 +38,7 @@ public sealed partial class ProcessEngineTest
         SetupServiceTaskWithoutWorkflow(workflowService);
         workflowService
             .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskAdoption(
+                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
                     instance,
                     _storageVersions,
                     It.IsAny<string>(),
@@ -83,6 +87,107 @@ public sealed partial class ProcessEngineTest
                 ),
             Times.Never
         );
+        fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
+    }
+
+    // v8 skipped the service task on a reject and took the reject flow, and the v8 frontend's failed service task
+    // view offered that as its back button. A reject the BPMN allows from the task must not run the task and move
+    // the process forward instead.
+    [Fact]
+    public async Task Next_WithAnAllowedReject_OnAServiceTaskV8LeftWithoutWorkflow_DoesNotRunTheTaskAndMoveForward()
+    {
+        Instance instance = CreateServiceTaskInstance();
+        Instance afterTask = CreateEndedInstance();
+        await using var fixture = CreateServiceTaskFixture();
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetAltinnTaskExtension("Task_Service"))
+            .Returns(new AltinnTaskExtension { AltinnActions = [new AltinnAction("reject")] });
+        fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_Service", "reject"))
+            .ReturnsAsync(
+                new ProcessTask
+                {
+                    Id = "Task_1",
+                    Incoming = ["Flow_back"],
+                    Outgoing = ["Flow_1"],
+                    Name = "Utfylling",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = AltinnTaskTypes.Data } },
+                }
+            );
+        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
+        SetupServiceTaskWithoutWorkflow(workflowService);
+        workflowService
+            .Setup(s =>
+                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ProcessNextWorkflowResult(afterTask, _storageVersions, null, true));
+        SetupWorkflowResult(fixture, CreateTask1Instance());
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = "reject",
+                Language = null,
+            }
+        );
+
+        workflowService.Verify(
+            s =>
+                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        Assert.True(result.Success);
+        Assert.Equal("Task_1", result.ProcessStateChange.NewProcessState?.CurrentTask?.ElementId);
+        // The reject flow, as from any task: abandoned, without validation.
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_Service", "reject"), Times.Once);
+        fixture.Mock<IValidationService>().VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData("confirm")]
+    [InlineData("reject")]
+    public async Task Next_WithAnotherActionOnAServiceTaskV8LeftWithoutWorkflow_IsRefusedAsV8RefusedIt(string action)
+    {
+        // A reject the BPMN does not allow from the task is no different from any other action.
+        Instance instance = CreateServiceTaskInstance();
+        await using var fixture = CreateServiceTaskFixture();
+        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = action,
+                Language = null,
+            }
+        );
+
+        Assert.False(result.Success);
+        Assert.Equal(ProcessErrorType.Conflict, result.ErrorType);
+        Assert.Equal("User action not supported.", result.ErrorTitle);
+        workflowService.VerifyNoOtherCalls();
         fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
     }
 
@@ -146,7 +251,7 @@ public sealed partial class ProcessEngineTest
         SetupServiceTaskWithoutWorkflow(workflowService);
         workflowService
             .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskAdoption(
+                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
                     instance,
                     _storageVersions,
                     It.IsAny<string>(),
@@ -187,7 +292,7 @@ public sealed partial class ProcessEngineTest
         SetupServiceTaskWithoutWorkflow(workflowService);
         workflowService
             .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskAdoption(
+                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
                     instance,
                     _storageVersions,
                     It.IsAny<string>(),
@@ -232,7 +337,7 @@ public sealed partial class ProcessEngineTest
     private static Fixture CreateServiceTaskFixture()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceTask>(new AdoptedServiceTask());
+        services.AddSingleton<IServiceTask>(new ServiceTaskRunWithoutWorkflow());
         return Fixture.Create(services);
     }
 
@@ -260,15 +365,15 @@ public sealed partial class ProcessEngineTest
                 CurrentTask = new()
                 {
                     ElementId = "Task_Service",
-                    AltinnTaskType = AdoptedServiceTaskType,
+                    AltinnTaskType = ServiceTaskWithoutWorkflowType,
                     Flow = 3,
                 },
             },
         };
 
-    private sealed class AdoptedServiceTask : IServiceTask
+    private sealed class ServiceTaskRunWithoutWorkflow : IServiceTask
     {
-        public string Type => AdoptedServiceTaskType;
+        public string Type => ServiceTaskWithoutWorkflowType;
 
         public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));

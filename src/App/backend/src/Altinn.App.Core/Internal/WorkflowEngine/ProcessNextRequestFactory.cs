@@ -193,11 +193,10 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// Creates the workflow that runs the current service task of an instance left in it without a workflow, as v8
-    /// left a failed one. It acquires the instance and runs <see cref="WorkflowStepSet.GetServiceTaskAdoptionSteps"/>.
-    /// When the task concludes, the process goes on as after any service task.
+    /// Creates the workflow that runs a service task without workflow: it acquires the instance and runs
+    /// <see cref="WorkflowStepSet.GetServiceTaskWithoutWorkflowSteps"/>.
     /// </summary>
-    public async Task<WorkflowEnqueueEnvelope> CreateServiceTaskAdoption(
+    public async Task<WorkflowEnqueueEnvelope> CreateServiceTaskWithoutWorkflowRun(
         Instance instance,
         string state,
         string idempotencyKey,
@@ -215,17 +214,15 @@ internal sealed class ProcessNextRequestFactory
                 $"The current task '{currentTask.ElementId}' is not a service task."
             );
 
-        WorkflowStepSet adoption = WorkflowStepSet.GetServiceTaskAdoptionSteps(serviceTask);
+        WorkflowStepSet steps = WorkflowStepSet.GetServiceTaskWithoutWorkflowSteps(serviceTask);
         var workflow = new WorkflowRequest
         {
             OperationId = $"{PrimaryOperationIdPrefix} Run {currentTask.ElementId}",
             Steps =
             [
                 CreateStep(ProcessingStatusAcquirer.Key),
-                .. adoption
-                    .LifecycleSteps.ToStepRequests(_stepOptionsResolver)
-                    .WithProcessElement(currentTask.ElementId),
-                .. adoption.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver),
+                .. steps.LifecycleSteps.ToStepRequests(_stepOptionsResolver).WithProcessElement(currentTask.ElementId),
+                .. steps.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver),
             ],
             State = state,
         };

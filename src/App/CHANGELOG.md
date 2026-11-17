@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- An instance that v8 left in a service task that failed now runs that task again after the upgrade to v9. Before, `process/next` moved on without it, so the instance went on without its PDF, shipment or other work, and `process/resume` answered `409`. Now both run the task and the process goes on after it, and the frontend shows the task's retry view until then. The task's start hooks do not run again. ([#20991](https://github.com/Altinn/altinn-studio/issues/20991))
+- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task's start hooks do not run again. ([#20991](https://github.com/Altinn/altinn-studio/issues/20991))
 
 ## [9.0.0-preview.12] - 2026-11-17
 

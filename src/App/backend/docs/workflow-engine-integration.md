@@ -197,17 +197,19 @@ retention period, which bounds how long a resume is possible.
   its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
   auxiliary workflows until a resume.
 
-## Service tasks from v8
+## Service tasks without workflow
 
 v8 ran a service task in the request that entered it. When the task failed, it left the instance idle in the task and
 ran the task again on the next `process/next`. v9 keeps the instance processing through a service task, so an idle
-instance in a service task with no workflow running or failed comes from v8.
+instance in a service task, with no workflow running or failed, comes from v8: a service task without workflow.
 
 - Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
-- `process/next` and `process/resume` both run the task, in one workflow keyed like `process/next` on the instance
-  version. It acquires the instance, runs `CleanupGeneratedFromTask` so the task replaces what an earlier run
-  generated, and then the task's steps. The task-start hooks and stages do not run again, since v8 ran them. The
-  process then goes on as after any service task, and both requests wait for it as `process/next` waits.
+- `process/next` and `process/resume` run the task, in one workflow keyed like `process/next` on the instance version.
+  It acquires the instance, runs `CleanupGeneratedFromTask` so the task replaces what an earlier run generated, and then
+  the task's steps. The task-start hooks and stages do not run again, since v8 ran them. The process then goes on as
+  after any service task, and both requests wait for it as `process/next` waits.
+- As in v8, `process/next` with a reject the BPMN allows from the task abandons it without running it, and any other
+  action than `write` or the task type is refused with a 409.
 - If the task fails again, the workflow fails as any service task does, and `process/resume` resumes it.
 
 ## Mailboxes
@@ -277,6 +279,6 @@ app does not guard against it. Names would not help either, since a redeploy can
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
-- The workflow that runs a service task from v8 fails permanently if the instance changed after the request read it,
-  and so does a resume, since the acquire retries against the same versions. An operator abandons the workflow, and
-  the task is then offered again.
+- The workflow that runs a service task without workflow fails permanently if the instance changed after the
+  request read it, and so does a resume, since the acquire retries against the same versions. An operator abandons
+  the workflow, and the task is then offered again.

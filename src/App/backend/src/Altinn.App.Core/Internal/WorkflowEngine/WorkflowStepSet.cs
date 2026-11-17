@@ -105,11 +105,11 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// The steps that run a service task an instance was left in without a workflow, as v8 left a failed one: the
-    /// cleanup a task start begins with, so the task replaces what an earlier run generated, and the task's own steps.
-    /// The task-start hooks and stages do not run again, since they ran when the task started.
+    /// The steps that run a service task without workflow: the task-start cleanup, so the task replaces what an earlier
+    /// run generated, and the task's own steps. Not the start hooks and stages, which ran when the task started; see
+    /// docs/workflow-engine-integration.md#service-tasks-without-workflow.
     /// </summary>
-    public static WorkflowStepSet GetServiceTaskAdoptionSteps(ResolvedServiceTask serviceTask) =>
+    public static WorkflowStepSet GetServiceTaskWithoutWorkflowSteps(ResolvedServiceTask serviceTask) =>
         new WorkflowStepSet().AddStep(CleanupGeneratedFromTask.Key).AddServiceTask(serviceTask);
 
     /// <summary>

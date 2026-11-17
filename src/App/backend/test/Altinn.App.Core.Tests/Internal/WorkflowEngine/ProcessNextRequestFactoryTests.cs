@@ -2648,7 +2648,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task CreateServiceTaskAdoption_RunsTheTaskWithoutItsStartHooksOrStages()
+    public async Task CreateServiceTaskWithoutWorkflowRun_RunsTheTaskWithoutItsStartHooksOrStages()
     {
         // v8 started the task, running its hooks and start work, before the task failed and left the instance in it.
         var factory = CreateFactory(
@@ -2669,14 +2669,14 @@ public class ProcessNextRequestFactoryTests
             },
         };
 
-        WorkflowEnqueueEnvelope adoption = await factory.CreateServiceTaskAdoption(
+        WorkflowEnqueueEnvelope envelope = await factory.CreateServiceTaskWithoutWorkflowRun(
             instance,
             SignedTestState,
-            "adoption-key",
+            "run-key",
             language: null
         );
 
-        WorkflowRequest workflow = Assert.Single(adoption.Request.Workflows);
+        WorkflowRequest workflow = Assert.Single(envelope.Request.Workflows);
         Assert.Equal("Process next: Run Task_Service", workflow.OperationId);
         Assert.Equal(
             [
@@ -2688,11 +2688,11 @@ public class ProcessNextRequestFactoryTests
         );
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.DependsOn);
-        Assert.Equal("adoption-key", adoption.IdempotencyKey);
-        Assert.Equal(new InstanceIdentifier(TestInstance).InstanceGuid.ToString(), adoption.CollectionKey);
+        Assert.Equal("run-key", envelope.IdempotencyKey);
+        Assert.Equal(new InstanceIdentifier(TestInstance).InstanceGuid.ToString(), envelope.CollectionKey);
         // A transition into the task, as status reads and the admin panel see it.
-        Assert.Equal("Task_Service", adoption.Request.Labels![ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
-        Assert.False(adoption.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceTaskLabel));
+        Assert.Equal("Task_Service", envelope.Request.Labels![ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.False(envelope.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceTaskLabel));
 
         // A transition into the same task plans the hook and the start stages, so their absence above is the rule.
         List<string> taskStart = ExtractCommandKeys(
