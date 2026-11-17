@@ -75,8 +75,13 @@ jobs:
           # this version, draft or published, means it is released already, or that a failed attempt left a
           # draft to delete before trying again.
           tag="codelists/v${version}"
-          tags="$(gh api --paginate "repos/${REPOSITORY}/releases?per_page=100" --jq '.[].tag_name')"
-          if grep -Fxq "$tag" <<<"$tags"; then
+          # GraphQL finds drafts by tag name, which REST's releases/tags endpoint does not.
+          # shellcheck disable=SC2016 # the $ names are GraphQL variables
+          release="$(gh api graphql \
+            -f query='query($owner: String!, $name: String!, $tag: String!) { repository(owner: $owner, name: $name) { release(tagName: $tag) { isDraft } } }' \
+            -f owner="${REPOSITORY%/*}" -f name="${REPOSITORY#*/}" -f tag="$tag" \
+            --jq '.data.repository.release | select(. != null) | .isDraft')"
+          if [[ -n "$release" ]]; then
             echo "${tag} already has a GitHub release; nothing to release."
             echo "release=false" >> "$GITHUB_OUTPUT"
           else
