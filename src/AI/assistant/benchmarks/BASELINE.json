@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "55a1d094fc83",
-    "code": "d35c5c3 clean",
-    "dataset": "83 items f419890050ee",
+    "code": "e13971f clean",
+    "dataset": "87 items 259bb6306c05",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261117T135823Z-decision-model-request-gate-21981-on-d35c5c3-28f2",
-  "label": "decision-model request gate, #21981 on d35c5c3",
-  "recorded_at": "2026-11-17T14:00:29+00:00",
-  "why": "#21981 replaces the scope and security gates with one call to the decisions API on gpt-6-luna, and changes the gate datasets. Gates/scope uses the key relevance, drops decline_language and has 37 items in place of 31. Gates/security keeps 30 items, with the CI item marked unsafe. Both datasets run through judge_request, three runs per item, and an item passes only when every run does. Full check without e2e on d35c5c3, with a clean tree. Every eval that ran scores as in the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 0.889 for gen_required_tools, 1.000 for gen_stopped_cleanly and 0.000 for gen_content_pairings. The e2e builds did not run, because no local Studio stack was running. The four Benchmarks/forms goals pass the new gate in three runs each, with relevance at least 0.98 and every concern at 0.00, so the gate does not stop those builds. The build behaviors have no score, so the run is adopted with --force. The next baseline with e2e gives them a reference again. The judge is gpt-6.1-sol."
+  "check_id": "20261117T142133Z-decision-model-request-gate-with-e2e-21981-on-e13971f5b6-1f8f",
+  "label": "decision-model request gate with e2e, #21981 on e13971f5b6",
+  "recorded_at": "2026-11-17T14:26:46+00:00",
+  "why": "#21981 replaces the scope and security gates with one call to the decisions API on gpt-6-luna, and changes the gate datasets. Gates/scope uses the key relevance, drops decline_language and has 37 items in place of 31. Gates/security keeps 30 items, with the CI item marked unsafe. Both datasets run through judge_request, three runs per item, and an item passes only when every run does. Full check with e2e on e13971f, with a clean tree. The assistant container ran the same commit against the local Designer stack and the app ttd/assistant-bench, with PREVIEW_CHECK_ENABLED off as in production. Every scored behavior matches the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, on Loop/traces 0.889 for gen_required_tools, 1.000 for gen_stopped_cleanly and 0.000 for gen_content_pairings, and 1.000 on bench_completed, bench_field_coverage, bench_order_integrity and bench_texts_bound. All four builds finished with success. The render check was off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force, as the last baseline was. The judge is gpt-6.1-sol."
 }
