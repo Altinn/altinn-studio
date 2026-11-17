@@ -1,6 +1,9 @@
 package runs
 
 import (
+	"cmp"
+	"context"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -29,43 +32,35 @@ const (
 	warmup = retryMaxDelay + max(AdmitRecheck, quotaRecheck) + engineLatency
 )
 
-// Queue decides which runs may start. It lives in memory, and the engine rebuilds it after a restart: each queued run
-// calls run.admit again, a run at run.create-job or waiting for its Job renews its reservation, and later runs have
-// Jobs. The ResourceQuota cannot stand in for the queue: its KVM, CPU and memory limits apply to pods, not Jobs, so
-// it lets the operator create a Job too many, whose pod then waits.
+// Queue decides which runs may start, and keeps a run's place from its create until its Job holds it. It reads the
+// kind's current limits and active Jobs itself, since they describe the sandbox as it is now. It lives in memory, and
+// the engine rebuilds it after a restart: each queued run calls run.admit again, a run at run.create-job or waiting for
+// its Job renews its reservation, and later runs have Jobs. The ResourceQuota cannot stand in for the queue: its KVM,
+// CPU and memory limits apply to pods, not Jobs, so it lets the operator create a Job too many, whose pod then waits.
 type Queue struct {
-	started  time.Time
-	clock    clock.Clock
-	waiting  map[string]*waitingRun
-	admitted map[string]*admittedRun
-	// timeScale shortens the warmup and the times after which the queue forgets a run, as the operator's timeScale
-	// shortens the rechecks of the steps.
-	timeScale float64
-	mu        sync.Mutex
+	started time.Time
+	clock   clock.Clock
+	sandbox sandbox.Sandbox
+	cfg     *config.Config
+	places  map[string]*place
+	mu      sync.Mutex
 }
 
-type waitingRun struct {
-	ref    time.Time
-	seen   time.Time
-	runID  string
-	kind   string
-	caller string
+// place is a run's place in its kind's queue: in line while the run asks again, and then reserved while the run renews
+// it, until the run's Job holds the place.
+type place struct {
+	ref      time.Time
+	seen     time.Time
+	runID    string
+	kind     string
+	caller   string
+	admitted bool
 }
 
-type admittedRun struct {
-	at     time.Time
-	kind   string
-	caller string
-}
-
-// NewQueue returns a queue that admits no one until Open.
-func NewQueue(clk clock.Clock, timeScale float64) *Queue {
-	return &Queue{
-		clock:     clk,
-		timeScale: timeScale,
-		waiting:   make(map[string]*waitingRun),
-		admitted:  make(map[string]*admittedRun),
-	}
+// NewQueue returns a queue that admits no one until Open. The operator's timeScale shortens the warmup and the times
+// after which the queue forgets a run, as it shortens the rechecks of the steps.
+func NewQueue(cfg *config.Config, box sandbox.Sandbox, clk clock.Clock) *Queue {
+	return &Queue{cfg: cfg, sandbox: box, clock: clk, places: make(map[string]*place)}
 }
 
 // Open starts the warmup. The operator calls it when it starts to serve callbacks, after its cache has synced, since
@@ -84,46 +79,46 @@ type Admission struct {
 	Admitted bool
 }
 
-// Register puts a new run in the queue before its first run.admit, so the queue limit and the position count it at
-// once.
+// Register puts a new run in line before its first run.admit, so the queue limit and the position count it at once.
 func (q *Queue) Register(runID, kind, caller string, ref time.Time) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if _, ok := q.admitted[runID]; ok {
-		return
+	if found, ok := q.places[runID]; !ok || !found.admitted {
+		q.places[runID] = &place{runID: runID, kind: kind, caller: caller, ref: ref, seen: q.clock.Now()}
 	}
-	now := q.clock.Now()
-	q.waiting[runID] = &waitingRun{runID: runID, kind: kind, caller: caller, ref: ref, seen: now}
 }
 
-// Admit registers a run with its place in line, ref, and admits it when it is among the oldest runs of the kind that
-// fit under the limits. jobs are the kind's unfinished Jobs.
-func (q *Queue) Admit(runID, kind, caller string, ref time.Time, limits config.Kind, jobs []sandbox.Ref) Admission {
+// Admit admits a run when it is among the oldest runs of its kind that fit under the kind's limits, and otherwise keeps
+// its place in line by ref, or by now when ref is zero. It ends the run when its kind has left the catalog.
+func (q *Queue) Admit(ctx context.Context, run *stepRun, ref time.Time) (Admission, error) {
+	limits, ok := q.cfg.Kinds[run.state.Kind]
+	if !ok {
+		return Admission{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
+	}
+	jobs, err := q.sandbox.ActiveJobs(ctx, run.state.Spec.Namespace, run.state.Kind)
+	if err != nil {
+		return Admission{}, fmt.Errorf("list the active Jobs: %w", err)
+	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	now := q.clock.Now()
 	q.forgetStaleLocked(now)
 
-	if _, ok := q.admitted[runID]; ok {
-		return Admission{Admitted: true}
+	entry, ok := q.places[run.id]
+	if ok && entry.admitted || slices.ContainsFunc(jobs, func(job sandbox.Ref) bool { return job.RunID == run.id }) {
+		return Admission{Admitted: true}, nil
 	}
-	if slices.ContainsFunc(jobs, func(job sandbox.Ref) bool { return job.RunID == runID }) {
-		return Admission{Admitted: true}
-	}
-
-	entry, ok := q.waiting[runID]
 	if !ok {
-		entry = &waitingRun{runID: runID, kind: kind, caller: caller}
-		q.waiting[runID] = entry
+		entry = &place{runID: run.id, kind: run.state.Kind, caller: run.caller}
+		q.places[run.id] = entry
 	}
-	entry.ref = ref
-	entry.seen = now
+	entry.ref, entry.seen = cmp.Or(ref, now), now
 
-	candidates := q.waitingLocked(kind)
-	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.timeScale) {
-		return Admission{Position: slices.Index(candidates, entry) + 1}
+	candidates := q.waitingLocked(run.state.Kind)
+	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.cfg.TimeScale) {
+		return Admission{Position: slices.Index(candidates, entry) + 1}, nil
 	}
-	active, perCaller := q.activeLocked(kind, jobs)
+	active, perCaller := q.activeLocked(run.state.Kind, jobs)
 	for _, candidate := range candidates {
 		if active >= limits.MaxActive {
 			break
@@ -131,45 +126,43 @@ func (q *Queue) Admit(runID, kind, caller string, ref time.Time, limits config.K
 		if perCaller[candidate.caller] >= limits.MaxActivePerCaller {
 			continue
 		}
-		if candidate.runID == runID {
-			delete(q.waiting, runID)
-			q.admitted[runID] = &admittedRun{kind: kind, caller: caller, at: now}
-			return Admission{Admitted: true}
+		if candidate == entry {
+			entry.admitted = true
+			return Admission{Admitted: true}, nil
 		}
 		// An older run fits. Its place is kept for it until it asks.
 		active++
 		perCaller[candidate.caller]++
 	}
 
-	return Admission{Position: slices.Index(candidates, entry) + 1}
+	return Admission{Position: slices.Index(candidates, entry) + 1}, nil
 }
 
-// KeepAdmitted renews the reservation of an admitted run that has no Job yet.
-func (q *Queue) KeepAdmitted(runID, kind, caller string) {
+// KeepAdmitted renews the reservation of an admitted run that has no Job yet, also in a queue that has restarted since
+// the run was admitted.
+func (q *Queue) KeepAdmitted(run *stepRun) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	delete(q.waiting, runID)
-	q.admitted[runID] = &admittedRun{kind: kind, caller: caller, at: q.clock.Now()}
+	now := q.clock.Now()
+	q.places[run.id] = &place{runID: run.id, kind: run.state.Kind, caller: run.caller, seen: now, admitted: true}
 }
 
 // Forget removes a run that finished, was canceled or gave up waiting.
 func (q *Queue) Forget(runID string) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	delete(q.waiting, runID)
-	delete(q.admitted, runID)
+	delete(q.places, runID)
 }
 
 // Position returns the 1-based position of a queued run in its kind's queue.
 func (q *Queue) Position(runID string) (int, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	entry, ok := q.waiting[runID]
-	if !ok {
+	entry, ok := q.places[runID]
+	if !ok || entry.admitted {
 		return 0, false
 	}
-	candidates := q.waitingLocked(entry.kind)
-	return slices.Index(candidates, entry) + 1, true
+	return slices.Index(q.waitingLocked(entry.kind), entry) + 1, true
 }
 
 // Waiting counts the queued runs of a caller for a kind.
@@ -178,8 +171,8 @@ func (q *Queue) Waiting(kind, caller string) int {
 	defer q.mu.Unlock()
 	q.forgetStaleLocked(q.clock.Now())
 	count := 0
-	for _, entry := range q.waiting {
-		if entry.kind == kind && entry.caller == caller {
+	for _, entry := range q.places {
+		if !entry.admitted && entry.kind == kind && entry.caller == caller {
 			count++
 		}
 	}
@@ -192,21 +185,22 @@ func (q *Queue) WaitingByKind() map[string]int {
 	defer q.mu.Unlock()
 	q.forgetStaleLocked(q.clock.Now())
 	counts := make(map[string]int)
-	for _, entry := range q.waiting {
-		counts[entry.kind]++
+	for _, entry := range q.places {
+		if !entry.admitted {
+			counts[entry.kind]++
+		}
 	}
 	return counts
 }
 
 func (q *Queue) forgetStaleLocked(now time.Time) {
-	for id, entry := range q.waiting {
-		if now.Sub(entry.seen) > scaled(waitingTTL, q.timeScale) {
-			delete(q.waiting, id)
+	for id, entry := range q.places {
+		ttl := waitingTTL
+		if entry.admitted {
+			ttl = admittedTTL
 		}
-	}
-	for id, entry := range q.admitted {
-		if now.Sub(entry.at) > scaled(admittedTTL, q.timeScale) {
-			delete(q.admitted, id)
+		if now.Sub(entry.seen) > scaled(ttl, q.cfg.TimeScale) {
+			delete(q.places, id)
 		}
 	}
 }
@@ -220,8 +214,8 @@ func (q *Queue) activeLocked(kind string, jobs []sandbox.Ref) (int, map[string]i
 		perCaller[job.Caller]++
 	}
 	active := len(jobs)
-	for id, entry := range q.admitted {
-		if entry.kind == kind && !withJob[id] {
+	for id, entry := range q.places {
+		if entry.admitted && entry.kind == kind && !withJob[id] {
 			active++
 			perCaller[entry.caller]++
 		}
@@ -230,14 +224,14 @@ func (q *Queue) activeLocked(kind string, jobs []sandbox.Ref) (int, map[string]i
 }
 
 // waitingLocked returns the kind's queued runs, oldest first. The run id breaks ties so the order is stable.
-func (q *Queue) waitingLocked(kind string) []*waitingRun {
-	var candidates []*waitingRun
-	for _, entry := range q.waiting {
-		if entry.kind == kind {
+func (q *Queue) waitingLocked(kind string) []*place {
+	var candidates []*place
+	for _, entry := range q.places {
+		if !entry.admitted && entry.kind == kind {
 			candidates = append(candidates, entry)
 		}
 	}
-	slices.SortFunc(candidates, func(a, b *waitingRun) int {
+	slices.SortFunc(candidates, func(a, b *place) int {
 		if c := a.ref.Compare(b.ref); c != 0 {
 			return c
 		}

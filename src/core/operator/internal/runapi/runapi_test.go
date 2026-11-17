@@ -51,7 +51,8 @@ func newAPI(t *testing.T) *apiHarness {
 		Kinds: map[string]config.Kind{kind: kindConfig},
 	}
 	box := sandboxtest.New()
-	service := runs.NewService(cfg, runs.NewQueue(clk, 0), engine.NewClient(fakeEngine.URL(), http.DefaultClient),
+	queue := runs.NewQueue(cfg, box, clk)
+	service := runs.NewService(cfg, queue, engine.NewClient(fakeEngine.URL(), http.DefaultClient),
 		runner.NewClient(http.DefaultClient, runner.Port, box), box, clk)
 	return &apiHarness{clock: clk, engine: fakeEngine, handler: New(service).Handler()}
 }

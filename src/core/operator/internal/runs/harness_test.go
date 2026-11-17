@@ -87,13 +87,13 @@ func newHarness(t *testing.T) *harness {
 	_, port := host.Address()
 
 	cfg := testConfig()
-	queue := NewQueue(clk, 0)
+	box := sandboxtest.New()
+	queue := NewQueue(cfg, box, clk)
 	queue.Open()
 	clk.Advance(warmup)
 	engineClient := engine.NewClient(fakeEngine.URL(), http.DefaultClient)
-	box := sandboxtest.New()
 	hostClient := runner.NewClient(http.DefaultClient, port, box)
-	steps := NewSteps(cfg, queue, box, hostClient, clk)
+	steps := NewSteps(queue, box, hostClient)
 	return &harness{
 		clock:     clk,
 		cfg:       cfg,

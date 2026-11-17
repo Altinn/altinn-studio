@@ -94,8 +94,8 @@ func TestCreateJobDefersWhileTheQuotaIsFull(t *testing.T) {
 	// The run keeps its place while it waits, also past the time an admitted run without a Job is forgotten.
 	h.clock.Advance(2 * time.Minute)
 	Expect(h.call(t, run.ID, StepCreateJob).deferred()).To(BeTrue())
-	active, _ := h.queue.activeLocked(testKind, nil)
-	Expect(active).To(Equal(1))
+	next := h.create(t, "assistant", "next")
+	Expect(h.call(t, next.ID, StepAdmit).deferred()).To(BeTrue())
 
 	h.sandbox.CreateErr = nil
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
@@ -333,11 +333,12 @@ func TestAwaitPodKeepsTheReservationUntilTheJobShows(t *testing.T) {
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "key")
-	h.queue = NewQueue(h.clock, 0)
-	h.steps.queue = h.queue
+	h.steps.queue = NewQueue(h.cfg, h.sandbox, h.clock)
+	h.steps.queue.Open()
 	Expect(h.call(t, run.ID, StepAwaitPod).deferred()).To(BeTrue())
-	active, _ := h.queue.activeLocked(testKind, nil)
-	Expect(active).To(Equal(1))
+	h.clock.Advance(warmup)
+	next := h.create(t, "assistant", "next")
+	Expect(h.call(t, next.ID, StepAdmit).deferred()).To(BeTrue(), "the caller's next run waits")
 }
 
 // While the template rolls out, the admission policy compares a new Job with the template it cached a moment before,
