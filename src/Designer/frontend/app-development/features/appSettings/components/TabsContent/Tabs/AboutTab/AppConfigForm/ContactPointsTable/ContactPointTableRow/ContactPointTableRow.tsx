@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { StudioButton, StudioTable, StudioDeleteButton } from '@studio/components';
+import { StudioButton, StudioTable, StudioDeleteButton } from '@designer/components';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ContactPointTableRow.module.css';
 

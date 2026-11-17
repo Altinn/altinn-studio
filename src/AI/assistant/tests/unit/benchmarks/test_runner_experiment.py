@@ -5,17 +5,20 @@ from __future__ import annotations
 import argparse
 import json
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
-from benchmarks import check, registry
+from benchmarks import check, provenance, registry, remote
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask
+from benchmarks.lf_api import LangfuseApi
 
 
 class _Dataset:
     def __init__(self, items):
         self.items = items
-        self.version = "2026-09-08T14:22:00Z"
+        # The SDK sets a version only when get_dataset asks for one, and check does not ask.
+        self.version = None
 
 
 class _Client:
@@ -30,7 +33,17 @@ class _Client:
 
     def run_experiment(self, **kwargs):
         self.calls.append(kwargs)
-        return SimpleNamespace(item_results=[], format=lambda: "formatted result")
+        scored = [
+            SimpleNamespace(
+                item=item,
+                evaluations=[SimpleNamespace(name="gate_verdict", value=1.0, comment=None)],
+                output=None,
+                trace_id=None,
+                error=None,
+            )
+            for item in kwargs["data"]
+        ]
+        return SimpleNamespace(item_results=scored, format=lambda: "formatted result")
 
     def flush(self):
         self.flushed += 1
@@ -162,6 +175,40 @@ class TestTheRunRecordsWhatItRanAgainst:
     def test_the_description_names_the_commit(self, client):
         _run_one(client, "Gates/scope")
         assert "Gates/scope" in client.last["description"]
+
+
+class TestARunReadBackFromLangfuseComparesWithItsLocalCopy:
+    """The bug this covers: Langfuse held no judge and no dataset for a run. On a machine without the local
+    copy of the baseline, `check` refused every comparison on those two axes."""
+
+    def _langfuse_holding(self, client):
+        """What the experiment endpoints return for the run that `client` recorded."""
+        experiment = {"id": "exp-1", "name": client.last["run_name"], "metadata": client.last["metadata"]}
+        items = [
+            {"experimentItemId": item.id, "scores": [{"name": "gate_verdict", "value": 1.0}]}
+            for item in client.last["data"]
+        ]
+
+        class _Api:
+            def _get(self, path, **_params):
+                rows = [experiment] if path.endswith("/experiments") else items
+                return {"data": rows, "meta": {}}
+
+        return cast(LangfuseApi, _Api())
+
+    def test_no_blocking_axis_differs(self, client, monkeypatch):
+        monkeypatch.setattr(check, "_judge_model", lambda: "sentinel-judge")
+        local = check.run(
+            label="round trip",
+            only=("Gates/scope",),
+            run_eval=check.langfuse_runner(_args(), check_id="check-1", label="round trip"),
+        )
+        fetched = remote.fetch("check-1", api=self._langfuse_holding(client))
+
+        assert fetched.provenance.judge == "sentinel-judge"
+        assert local.provenance.dataset and local.provenance.dataset.startswith("2 items ")
+        assert fetched.provenance.dataset == local.provenance.dataset
+        assert provenance.blocking_differences(local.provenance, fetched.provenance, under_test=()) == ()
 
 
 class TestTheMetadataAttributesAnE2eRunToTheAgent:

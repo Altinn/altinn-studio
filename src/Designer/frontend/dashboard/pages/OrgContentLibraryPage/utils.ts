@@ -4,7 +4,7 @@ import type {
   CodeListData as LibraryCodeListData,
   CodeListFile as LibraryCodeListFile,
   OrdinaryCodeListFile as LibraryOrdinaryCodeListFile,
-} from '@studio/content-library';
+} from '@designer/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -15,7 +15,7 @@ import type {
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 import type { BackendLibraryFile, FileKind, LibraryFile } from 'app-shared/types/LibraryFile';
 
 export function textResourceWithLanguageToMutationArgs({

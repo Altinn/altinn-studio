@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FeatureFlag, experimentalFeatureFlags } from '@studio/feature-flags';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { FeatureFlag, experimentalFeatureFlags } from '@designer/feature-flags';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import nb from '@altinn-studio/language/src/nb.json';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ExperimentalFeatures } from './ExperimentalFeatures';

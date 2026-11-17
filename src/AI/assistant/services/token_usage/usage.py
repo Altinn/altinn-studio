@@ -57,6 +57,11 @@ def _as_observation(payload: dict[str, Any]) -> Observation:
         "trace_id": payload["traceId"],
         "start_time": payload["startTime"],
         "model": payload.get("model"),
-        "usage": payload.get("usage"),
+        # Observations API v2 returns these three in the usage field group, not a `usage` object.
+        "usage": {
+            "input": payload.get("inputUsage"),
+            "output": payload.get("outputUsage"),
+            "total": payload.get("totalUsage"),
+        },
         "usage_details": payload.get("usageDetails") or {},
     }

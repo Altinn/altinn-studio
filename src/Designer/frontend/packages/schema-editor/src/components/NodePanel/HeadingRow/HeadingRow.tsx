@@ -16,7 +16,7 @@ import {
   StudioButton,
   StudioDropdown,
   StudioHeading,
-} from '@studio/components';
+} from '@designer/components';
 
 import {
   BooleanIcon,
@@ -26,7 +26,7 @@ import {
   ObjectIcon,
   PlusIcon,
   StringIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';

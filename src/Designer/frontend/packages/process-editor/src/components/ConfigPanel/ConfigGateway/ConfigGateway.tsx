@@ -4,8 +4,8 @@ import {
   StudioSectionHeader,
   StudioSuggestion,
   type StudioSuggestionItem,
-} from '@studio/components';
-import { ArrayUtils } from '@studio/pure-functions';
+} from '@designer/components';
+import { ArrayUtils } from '@designer/pure-functions';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';

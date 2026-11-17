@@ -4,19 +4,18 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class UserDefinedMetadataControllerTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
 
-    public UserDefinedMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public UserDefinedMetadataControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task PutUserDefinedMetadata_HappyPath_ReturnsOk()

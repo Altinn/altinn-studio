@@ -12,9 +12,7 @@ When Langfuse is on, the loader serves the Langfuse version with the label `prod
 does not have the prompt, the loader uses the local file without an error. The Langfuse SDK caches a prompt for 60
 seconds by default.
 
-The Langfuse name is the file name without `.md` and without the directory. `intent_security.md` is the exception,
-served as `intent_check`. For a file with another name, give `local_path` to the loader and add the pair to
-`SERVED_FROM` in [`sync_prompts.py`](../../scripts/sync_prompts.py), so that the drift report finds the file.
+The Langfuse name is the file name without `.md` and without the directory.
 
 ## Change a prompt
 

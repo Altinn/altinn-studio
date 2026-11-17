@@ -16,6 +16,11 @@ public class PageGroup
     public bool? MarkWhenCompleted { get; set; }
 
     /// <summary>
+    /// Whether the navigation group and its subforms start expanded.
+    /// </summary>
+    public bool? ExpandedByDefault { get; set; }
+
+    /// <summary>
     /// Name
     /// </summary>
     public string? Name { get; set; }

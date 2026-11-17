@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Analyzers.Tests.Fixtures;
 using Altinn.App.Core.Features.Process;
 using Microsoft.CodeAnalysis;
@@ -355,24 +354,4 @@ public class ProcessTaskElementAnalyzerTests
               </bpmn:process>
             </bpmn:definitions>
             """;
-
-    private sealed class AltinnAppOptionsProvider(bool isAltinnApp) : AnalyzerConfigOptionsProvider
-    {
-        private readonly Options _options = new(isAltinnApp);
-
-        public override AnalyzerConfigOptions GlobalOptions => _options;
-
-        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => _options;
-
-        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => _options;
-
-        private sealed class Options(bool isAltinnApp) : AnalyzerConfigOptions
-        {
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            {
-                value = isAltinnApp && key == "build_property.IsAltinnApp" ? "true" : null;
-                return value is not null;
-            }
-        }
-    }
 }

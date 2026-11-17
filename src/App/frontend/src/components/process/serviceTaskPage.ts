@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
+import { useIsProcessNextPending } from 'src/core/queries/process';
 import { findProcessTask, useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';

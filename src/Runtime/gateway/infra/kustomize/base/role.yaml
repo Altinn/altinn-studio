@@ -29,6 +29,15 @@ rules:
       - get
       - list
       - watch
+  # To check services at the addresses apps get from apps-config.
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - apps-runtime-common-config-env
+    verbs:
+      - get
   # Flux CD resources
   - apiGroups:
       - helm.toolkit.fluxcd.io

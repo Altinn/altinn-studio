@@ -2,7 +2,7 @@ import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 
 type ToolbarItemProps = {
   componentTitle: string;

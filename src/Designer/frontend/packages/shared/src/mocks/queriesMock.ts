@@ -245,6 +245,9 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
+  getResourceEnvironments: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<string[]>(['tt02', 'prod'])),
   getAltinn2ResourcePolicies: vi
     .fn()
     .mockImplementation(() =>
@@ -431,6 +434,9 @@ export const queriesMock: ServicesContextProps = {
   deleteChatMessage: vi.fn().mockImplementation(() => Promise.resolve()),
   sendChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
   clearChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
+  startAssistantWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
+  cancelAssistantWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
+  respondToAssistantPermission: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),

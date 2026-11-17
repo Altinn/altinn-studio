@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 /**
  * Query to get all services using a specific access package
@@ -16,10 +16,10 @@ import type { AxiosError } from 'axios';
 export const useResourceAccessPackageServicesQuery = (
   accessPackageUrn: string,
   env: string,
-): UseQueryResult<AccessPackageResource[], AxiosError> => {
+): UseQueryResult<AccessPackageResource[], HttpError> => {
   const { getAccessPackageServices } = useServicesContext();
 
-  return useQuery<AccessPackageResource[], AxiosError>({
+  return useQuery<AccessPackageResource[], HttpError>({
     queryKey: [QueryKey.ResourcePolicyAccessPackageServices, accessPackageUrn, env],
     queryFn: () => getAccessPackageServices(accessPackageUrn, env),
   });

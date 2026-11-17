@@ -1,6 +1,6 @@
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { useText } from '../../../../hooks';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import { useFormItemContext } from '../../../../containers/FormItemContext';
 import { addExpressionToFormItem, getUndefinedExpressionProperties } from '../utils';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';

@@ -4,8 +4,8 @@ import type { RenderHookResult, RenderOptions } from '@testing-library/react';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import React from 'react';
-import { PageName } from '@studio/content-library';
-import type { ContentLibraryRouter } from '@studio/content-library';
+import { PageName } from '@designer/content-library';
+import type { ContentLibraryRouter } from '@designer/content-library';
 import userEvent from '@testing-library/user-event';
 
 // Test data:

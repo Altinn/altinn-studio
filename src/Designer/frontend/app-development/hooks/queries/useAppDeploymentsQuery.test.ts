@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { focusManager } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RunningAppStatus } from 'app-shared/types/api/RunningApp';
 import { renderHookWithProviders } from '../../test/mocks';
@@ -81,23 +81,6 @@ describe('useAppDeploymentsQuery', () => {
     await advanceTime(3 * UNKNOWN_ENVIRONMENT_POLL_INTERVAL_MS);
 
     expect(getDeployments).toHaveBeenCalledTimes(3);
-  });
-
-  it('polls while an app is updating, though the backend is older and sends only running apps', async () => {
-    const olderBackend = (status: RunningAppStatus): DeploymentsResponse => ({
-      pipelineDeploymentList: [],
-      runningAppList: deployments(status).environmentList.map(({ runningApp }) => runningApp),
-    });
-    const getDeployments = vi
-      .fn()
-      .mockResolvedValueOnce(olderBackend('updating'))
-      .mockResolvedValue(olderBackend('ready'));
-    await renderAndLoad(getDeployments);
-
-    await advanceTime(UPDATING_APP_POLL_INTERVAL_MS);
-    await advanceTime(3 * UPDATING_APP_POLL_INTERVAL_MS);
-
-    expect(getDeployments).toHaveBeenCalledTimes(2);
   });
 
   it('does not poll when no app is updating', async () => {

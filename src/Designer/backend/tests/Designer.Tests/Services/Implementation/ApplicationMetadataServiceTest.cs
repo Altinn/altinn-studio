@@ -107,7 +107,8 @@ public class ApplicationMetadataServiceTest
                 mockStorageAppMetadataClient.Object,
                 mockAltinnGitRepositoryFactory.Object,
                 Mock.Of<IHttpContextAccessor>(),
-                mockGiteaClient.Object
+                mockGiteaClient.Object,
+                Mock.Of<IAppVersionService>()
             );
 
             return new Fixture(service, mockStorageAppMetadataClient, mockAltinnGitRepositoryFactory, mockGiteaClient);

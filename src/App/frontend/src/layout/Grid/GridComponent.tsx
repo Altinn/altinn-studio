@@ -28,6 +28,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import { getLabelSettings } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
@@ -166,7 +167,7 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
         });
 
         if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-          // eslint-disable-next-line react-compiler/react-compiler
+          // eslint-disable-next-line react-hooks/immutability
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 
@@ -340,7 +341,7 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
   const required = useComponentIsRequired(config);
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;

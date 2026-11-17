@@ -8,15 +8,15 @@ import {
   StudioSpinner,
   StudioHeading,
   StudioAlert,
-} from '@studio/components';
-import { DateUtils } from '@studio/pure-functions';
+} from '@designer/components';
+import { DateUtils } from '@designer/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import {
   runningAppProblems,
   wasRestartedAfterPublish,
   type RunningApp,
 } from 'app-shared/types/api/RunningApp';
-import { ExternalLinkIcon } from '@studio/icons';
+import { ExternalLinkIcon } from '@designer/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type DeploymentStatusProps = {

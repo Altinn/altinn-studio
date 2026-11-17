@@ -1,6 +1,6 @@
-import { StudioTag } from '@studio/components';
+import { StudioTag } from '@designer/components';
 import { useState } from 'react';
-import { ArrowsCirclepathIcon } from '@studio/icons';
+import { ArrowsCirclepathIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useNow } from 'admin/features/apps/hooks/useNow';
 import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';

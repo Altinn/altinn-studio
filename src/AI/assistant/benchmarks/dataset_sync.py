@@ -10,7 +10,7 @@ from typing import Any, NamedTuple
 
 from langfuse import get_client
 
-from agents.services.llm.llm_client import build_intent_parse_message
+from agents.services.llm.llm_client import build_security_check_message
 from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks import registry
 from benchmarks.lf_api import LangfuseApi
@@ -61,7 +61,7 @@ def load_datasets() -> Iterator[Dataset]:
 
 MESSAGE_BUILDERS = {
     "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
-    "intent_check": lambda item: build_intent_parse_message(
+    "security_check": lambda item: build_security_check_message(
         item["input"]["goal"], item["input"].get("attachments"), item["input"].get("conversation")
     ),
 }
@@ -98,6 +98,7 @@ def validate(dataset: Dataset) -> list[str]:
         )
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
+    problems.extend(missing_assets(dataset._replace(items=shaped)))
     seen: set[str] = set()
     for item in shaped:
         if item["id"] in seen:
@@ -112,7 +113,7 @@ def validate(dataset: Dataset) -> list[str]:
 
 
 def missing_assets(dataset: Dataset) -> list[str]:
-    """Attachments a planner item names that are not on this machine."""
+    """Attachments a planner item names that are not in assets/."""
     if dataset.kind != "planner":
         return []
     from .planner import ASSETS_DIR
@@ -172,9 +173,6 @@ def main() -> int:
         print(f"  INVALID: {problem}")
     if problems:
         return 1
-    for dataset in datasets:
-        for absent in missing_assets(dataset):
-            print(f"  LOCAL: {absent}")
 
     if args.check:
         for dataset in datasets:

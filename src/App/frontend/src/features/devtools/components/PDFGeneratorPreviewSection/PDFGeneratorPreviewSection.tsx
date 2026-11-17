@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useSubformUiFolders } from 'src/core/queries/pdfPreview';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { isStudioPreview } from 'src/utils/isDev';
 import type { PdfPreviewTarget } from 'src/utils/urls/appUrlHelper';

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
+import type { ChatThread, UserMessage, AssistantMessage, Message } from '@designer/assistant';
+import { MessageAuthor } from '@designer/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -88,11 +88,15 @@ export const useAssistantThreads = (): AssistantThreadState => {
     [deleteChatMessage],
   );
 
-  // Pulls a server-persisted message into the cache — the render path for
-  // assistant messages the backend already stored (persistedMessageId set).
+  // Gets the thread's messages again, so that the cache has the answers that Designer saved.
+  // invalidateQueries does not restart the first fetch of a thread, which can have read the thread
+  // before the save, so that fetch is cancelled first.
   const refreshMessages = useCallback(
     (threadId: string): void => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ChatMessages, org, app, threadId] });
+      const queryKey = [QueryKey.ChatMessages, org, app, threadId];
+      void queryClient
+        .cancelQueries({ queryKey })
+        .then(() => queryClient.invalidateQueries({ queryKey }));
     },
     [queryClient, org, app],
   );

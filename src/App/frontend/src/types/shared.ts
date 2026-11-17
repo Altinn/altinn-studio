@@ -56,7 +56,7 @@ export interface IDataType {
   allowedContributers?: string[] | null;
   allowedContributors?: string[] | null;
   appLogic?: IApplicationLogic | null;
-  taskId?: string | null;
+  taskIds?: string[] | null;
   maxSize?: number | null;
   maxCount: number;
   minCount: number;
@@ -398,6 +398,8 @@ export interface IPlatformFrontendSettings {
   accessManagementUrl?: string;
   rolesAndRightsHelpUrl?: string;
   arbeidsflatePartiesUrl?: string;
+  /** Undefined in environments where apps can't reach Altinn Broker. */
+  brokerApiBaseUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

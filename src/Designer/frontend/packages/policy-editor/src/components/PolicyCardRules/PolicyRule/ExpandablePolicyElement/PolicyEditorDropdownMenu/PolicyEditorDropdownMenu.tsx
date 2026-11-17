@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
-import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
+import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 
 export type PolicyEditorDropdownMenuProps = {
   handleClone: () => void;

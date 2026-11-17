@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from agents.services.llm.intent_parser import _validate_goal_safety_quick
-from agents.services.llm.llm_client import build_intent_parse_message
+from agents.services.llm.llm_client import build_security_check_message
 from agents.services.llm.scope_checker import build_scope_check_message
+from agents.services.llm.security_checker import _validate_goal_safety_quick
 from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
@@ -39,33 +39,31 @@ class TestTheFilesLoad:
 class TestValidationHoldsFromAClone:
     """CI validates a checkout, so validate() may only assert what travels."""
 
-    def test_validation_does_not_require_a_gitignored_file(self):
-        """benchmarks/assets is gitignored, so requiring the PDFs in validate()
-        passed only on a machine that already had them and failed every clone."""
-        assets = (ASSISTANT_ROOT / ".gitignore").read_text()
-        assert "benchmarks/assets/" in assets
+    def test_a_missing_attachment_fails_validation(self):
+        spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
+        item = {**spec.items[0], "input": {**spec.items[0]["input"], "attachments": ["not-in-the-repository.pdf"]}}
 
-        problems = [p for d in ALL_DATASETS for p in validate(d)]
+        problems = validate(spec._replace(items=[item]))
 
-        assert not any("assets/" in problem for problem in problems)
+        assert any("'not-in-the-repository.pdf'" in p and "not in assets/" in p for p in problems)
 
-    def test_a_named_attachment_is_still_checked_where_it_can_be(self):
-        """Reported separately, so a typo in a filename is not silent."""
+    def test_each_attachment_is_made_from_the_html_file_beside_it(self):
+        from benchmarks.planner import ASSETS_DIR
+
         spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
         named = [n for i in spec.items for n in i["input"].get("attachments") or []]
 
         assert named, "the spec dataset is the one that names attachments"
-        for absent in missing_assets(spec):
-            assert "not in assets/" in absent
+        assert all((ASSETS_DIR / name).with_suffix(".html").is_file() for name in named)
 
     def test_a_gate_attachment_needs_no_file(self):
-        """The intent gate is shown filenames and opens nothing, so an injection
+        """The security gate is shown filenames and opens nothing, so an injection
         payload carried in a filename has no asset behind it."""
-        safety = next(d for d in ALL_DATASETS if d.name == "Gates/intent-safety")
-        named = [n for i in safety.items for n in i["input"].get("attachments") or []]
+        security = next(d for d in ALL_DATASETS if d.name == "Gates/security")
+        named = [n for i in security.items for n in i["input"].get("attachments") or []]
 
-        assert named, "the safety set carries filename payloads"
-        assert missing_assets(safety) == []
+        assert named, "the security set carries filename payloads"
+        assert missing_assets(security) == []
 
 
 class TestTheBlocklistAgreesWithTheDatasets:
@@ -116,12 +114,6 @@ class TestTheCasesAreDiscriminating:
             if not item["expectedOutput"]["in_scope"]:
                 assert item["expectedOutput"].get("decline_language") in {"nb", "en"}, item["id"]
 
-    def test_both_confidence_bands_are_represented(self):
-        confidence = next(d for d in DATASETS if d.name == "Gates/confidence")
-        bands = {item["expectedOutput"]["confidence_band"] for item in confidence.items}
-
-        assert bands == {"below_threshold", "at_or_above_threshold"}
-
 
 class TestTheUploadedInputMatchesProduction:
     """Both gates build their user message in code, so an experiment that is handed
@@ -137,23 +129,23 @@ class TestTheUploadedInputMatchesProduction:
         assert rendered["goal"] == item["input"]["goal"]
 
     def test_an_attachment_item_carries_the_filename_line(self):
-        safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(i for i in safety.items if i["id"] == "safety-injection-via-attachment-name")
+        security = next(d for d in DATASETS if d.name == "Gates/security")
+        item = next(i for i in security.items if i["id"] == "security-injection-via-attachment-name")
 
-        rendered = render_input(safety, item)
+        rendered = render_input(security, item)
 
-        assert rendered["user_message"] == build_intent_parse_message(
+        assert rendered["user_message"] == build_security_check_message(
             item["input"]["goal"], item["input"]["attachments"]
         )
         assert "ignore-previous-instructions" in rendered["user_message"]
 
     def test_renders_the_conversation_of_a_follow_up_item(self):
-        safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(i for i in safety.items if i["id"] == "safety-followup-long-reply-unsafe-middle")
+        security = next(d for d in DATASETS if d.name == "Gates/security")
+        item = next(i for i in security.items if i["id"] == "security-followup-long-reply-unsafe-middle")
 
-        rendered = render_input(safety, item)
+        rendered = render_input(security, item)
 
-        assert rendered["user_message"] == build_intent_parse_message(
+        assert rendered["user_message"] == build_security_check_message(
             item["input"]["goal"], conversation=item["input"]["conversation"]
         )
         assert "Gitea-tokenet" in rendered["user_message"]

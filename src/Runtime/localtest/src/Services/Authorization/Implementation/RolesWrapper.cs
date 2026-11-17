@@ -26,15 +26,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public async Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
         {
             var data = await _testDataService.GetTestData();
-            if(data.Authorization.Roles.TryGetValue(coveredByUserId.ToString(), out var user))
+            if (!data.Authorization.Roles.TryGetValue(coveredByUserId.ToString(), out var user))
             {
-                if(user.TryGetValue(offeredByPartyId.ToString(), out var roles))
-                {
-                    return roles;
-                }
+                return new List<Role>();
             }
 
-            return new List<Role>();
+            var roles = user.GetValueOrDefault(offeredByPartyId.ToString()) ?? [];
+            // A sub-unit inherits the roles held for its main unit, as in Access Management's hierarchy
+            if (data.GetInheritedFromPartyId(offeredByPartyId) is int mainUnitPartyId
+                && user.TryGetValue(mainUnitPartyId.ToString(), out var mainUnitRoles))
+            {
+                roles = [.. roles, .. mainUnitRoles.Where(role => !roles.Any(own => string.Equals(own.Value, role.Value, StringComparison.OrdinalIgnoreCase)))];
+            }
+
+            return roles;
         }
     }
 }

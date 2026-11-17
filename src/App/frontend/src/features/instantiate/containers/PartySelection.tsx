@@ -8,6 +8,7 @@ import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
 import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
@@ -20,7 +21,6 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';

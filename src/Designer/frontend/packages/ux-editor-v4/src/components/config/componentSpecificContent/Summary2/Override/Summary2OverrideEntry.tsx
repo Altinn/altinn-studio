@@ -1,4 +1,4 @@
-import { CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@designer/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +17,7 @@ import {
   StudioProperty,
   StudioCard,
   StudioDivider,
-} from '@studio/components';
+} from '@designer/components';
 
 type Summary2OverrideEntryProps = {
   index: number;

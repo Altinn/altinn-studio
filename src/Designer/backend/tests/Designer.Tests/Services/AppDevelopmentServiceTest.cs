@@ -467,6 +467,45 @@ public class AppDevelopmentServiceTest : IDisposable
         Assert.Null(layoutSetConfig.Tasks);
     }
 
+    [Theory]
+    [InlineData(true, "datamodel")]
+    [InlineData(false, "unUsedDatamodel")]
+    public async Task GetAppMetadataModelIds_WhenOnlyUnReferenced_ShouldReadTaskIdsInV9AppsAndTaskIdInV8Apps(
+        bool isV9App,
+        string expectedModelId
+    )
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareRepo();
+        _appVersionServiceMock.Setup(s => s.IsV9App(It.IsAny<AltinnRepoEditingContext>())).Returns(isV9App);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(CreatedTestRepoPath, "datamodel", "Task_1", taskIds: []);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(
+            CreatedTestRepoPath,
+            "unUsedDatamodel",
+            taskId: null,
+            ["Task_2"]
+        );
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(CreatedTestRepoPath, "HvemErHvem_M", "Task_3", ["Task_3"]);
+
+        // Act
+        IEnumerable<string> modelIds = await _appDevelopmentService.GetAppMetadataModelIds(editingContext, true);
+
+        // Assert
+        Assert.Equal(new[] { expectedModelId }, modelIds);
+    }
+
+    private async Task<AltinnRepoEditingContext> PrepareRepo()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+        return AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);
+    }
+
     private async Task<AltinnRepoEditingContext> PrepareV9Repo()
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();

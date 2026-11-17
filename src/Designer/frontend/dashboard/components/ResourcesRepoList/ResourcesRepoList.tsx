@@ -7,7 +7,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioLink, StudioSpinner, StudioHeading, StudioAlert } from '@studio/components';
+import { StudioLink, StudioSpinner, StudioHeading, StudioAlert } from '@designer/components';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';

@@ -103,6 +103,16 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 }
               />
             )}
+            {config.tableColumns && (
+              <colgroup>
+                {Object.keys(config.tableHeaders).map((key) => (
+                  <col
+                    key={key}
+                    style={{ width: config.tableColumns?.[key]?.width }}
+                  />
+                ))}
+              </colgroup>
+            )}
             <Table.Head>
               <Table.Row>
                 {Object.entries(config.tableHeaders).map(([key, value]) => (
@@ -118,7 +128,12 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                   {Object.entries(config.tableHeaders).map(([key]) => {
                     const binding = dataModelBindings?.[key];
                     if (!binding || !dataModelBindings?.group) {
-                      return null;
+                      return (
+                        <Table.Cell
+                          key={key}
+                          align='left'
+                        />
+                      );
                     }
                     const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
                     const data = dot.pick(relativePath, row);

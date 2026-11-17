@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
-import axios from 'axios';
+import { del } from 'app-shared/utils/networking';
 
 export const useInstanceDeletionMutation = (
   org: string,
@@ -11,8 +11,7 @@ export const useInstanceDeletionMutation = (
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () =>
-      await axios.delete(instanceDeletePath(org, environment, app, instanceId)),
+    mutationFn: async () => await del(instanceDeletePath(org, environment, app, instanceId)),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.AppInstanceDetails, org, environment, app, instanceId],

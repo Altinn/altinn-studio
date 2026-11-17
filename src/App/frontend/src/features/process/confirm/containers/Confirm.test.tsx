@@ -31,11 +31,7 @@ describe('Confirm', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <Confirm />,
       instanceId: instance.id,
-      apis: {
-        instanceApi: {
-          getInstance: async () => ({ ...instance, process: getProcessDataMock() }),
-        },
-      },
+      queries: { getInstance: async () => ({ ...instance, process: getProcessDataMock() }) },
     });
 
     const orgNumber = screen.getByText(subunitParty.orgNumber ?? '', { exact: false });

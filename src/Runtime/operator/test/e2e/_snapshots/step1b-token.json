@@ -1,0 +1,9 @@
+{
+  "claims": {
+    "client_id": "<sanitized-client-id>",
+    "scopes": [
+      "altinn:serviceowner/instances.read"
+    ]
+  },
+  "success": true
+}

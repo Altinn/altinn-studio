@@ -10,15 +10,72 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
+
+## [9.0.0-preview.12] - 2026-11-17
+
+### Added
+
+- New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+- System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
+
+### Changed
+
+- Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0502`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0502](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0502), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
+- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
+- The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
+
+### Fixed
+
+- Attachments in `AttachmentList` no longer show as plain text until the page is reloaded after the user changes a field or a `CustomButton` runs a server action. Files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
+- Expression handling in backend now supports accessing base class properties, when a derived class is used in the data model class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` and `AD0001` instead, which still fail a build that treats warnings as errors. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))
+- Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
+- Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))
+- App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
+- Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
+- Navigation groups configured with `expandedByDefault: true` now start expanded, including inactive groups. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
+- Navigation validation settings now accept `show: ["Invalid"]` at app and task scope without errors. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
+- List tables with many text cells render faster, including read-only tables. ([#21814](https://github.com/Altinn/altinn-studio/pull/21814))
+- Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+- In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
+
+## [9.0.0-preview.10] - 2026-11-09
+
 ### Added
 
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
 
 ### Changed
 
+- Breaking: the data patch API in `Altinn.App.Api` no longer exposes JsonPatch.Net: ([#21762](https://github.com/Altinn/altinn-studio/pull/21762))
+  - `DataPatchRequest.Patch` and `PatchListItem.Patch` are a `List<JsonPatchOperation>`, built with `JsonPatchOperation.ParseList`
+  - `InternalPatchService` and `DataPatchResult` are internal, and the controller constructors no longer take the service
+  - `move`, `copy` and `#`-prefixed paths get `400 Bad Request`, and a failed `test` has a new `detail` text
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Build check `ALTINNAPP1017` reports each `taskIds` entry that names no task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0603` and `ALTINNAPP0604` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those from process hooks, service tasks and `IDataClient` calls with the app's own token. Add those tasks to `taskIds`. Task-start hooks run after the new task is saved, so they write in that task. After process end, only `autoDeleteOnProcessEnd` deletions are allowed. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+
+### Fixed
+
+- Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
+- When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Read-only fields that are required, such as calculated sums, no longer show the "Må fylles ut" tag, since the user cannot fill them in. ([#21565](https://github.com/Altinn/altinn-studio/issues/21565))
+
+### Removed
+
+- Breaking: `GET .../data/{dataGuid}/validate` is removed, with `ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask`, the issue code only it returned, and `Altinn.App.Core.Models.Validation.ValidationException`, which only it threw. Call `GET .../instances/{instanceOwnerPartyId}/{instanceGuid}/validate` instead, with the appropriate query parameters. ([#21783](https://github.com/Altinn/altinn-studio/pull/21783))
+- Breaking: `AppSettings.EnforceDataTypeTaskId` is removed: the app APIs always refuse writes to a data type outside its tasks. Bind a data type your app writes in several tasks to each of them with `taskIds`. `studioctl app upgrade v9` removes the setting. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

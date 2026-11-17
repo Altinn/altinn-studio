@@ -79,15 +79,11 @@ const render = async (
       </InstanceRouter>
     ),
     queries: {
+      getInstance: getInstanceMock,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = layouts;
         }),
-    },
-    apis: {
-      instanceApi: {
-        getInstance: getInstanceMock,
-      },
     },
   });
 };
@@ -278,8 +274,7 @@ describe('PDFWrapper', () => {
           </InstanceRouter>
         ),
         waitUntilLoaded: false,
-        queries: { fetchFormBootstrapForInstance },
-        apis: { instanceApi: { getInstance: async () => instance } },
+        queries: { fetchFormBootstrapForInstance, getInstance: async () => instance },
       });
       return { result, fetchFormBootstrapForInstance };
     };

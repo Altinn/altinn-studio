@@ -8,6 +8,7 @@ README. Docs for service owners and app developers are on [docs.altinn.studio](h
 | [cicd.md](cicd.md)                                               | How we write workflows and build images                   |
 | [coding-standards.md](coding-standards.md)                       | How we write code                                         |
 | [documentation.md](documentation.md)                             | Where documentation goes and how to write it              |
+| [observability.md](observability.md)                             | What services report, and dashboards and alerts on it     |
 | [releasing.md](releasing.md)                                     | How to release a component                                |
 | [repositories.md](repositories.md)                               | The other repositories we work with, and what lives where |
 | [infrastructure/environments.md](infrastructure/environments.md) | The clusters we run on, and how deployment reaches them   |

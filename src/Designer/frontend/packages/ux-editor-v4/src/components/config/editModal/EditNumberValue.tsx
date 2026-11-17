@@ -11,7 +11,7 @@ import {
 } from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
-import { StudioDecimalInput, StudioSelect } from '@studio/components';
+import { StudioDecimalInput, StudioSelect } from '@designer/components';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;

@@ -1,0 +1,81 @@
+{
+  "name": "Coercion",
+  "disabledBackend": true,
+  "testCases": [
+    {
+      "name": "A number without formatting returns a string",
+      "expression": ["formatNumber", 1234.5],
+      "expects": "1234.5"
+    },
+    {
+      "name": "Zero is not treated as missing",
+      "expression": ["formatNumber", 0],
+      "expects": "0"
+    },
+    {
+      "name": "An empty options object leaves the numeric text unchanged",
+      "expression": ["formatNumber", 1234.5, ["object"]],
+      "expects": "1234.5"
+    },
+    {
+      "name": "Numeric strings follow standard numeric coercion",
+      "expression": ["formatNumber", "00123.40"],
+      "expects": "123.4"
+    },
+    {
+      "name": "Scientific notation follows standard numeric coercion",
+      "expression": ["formatNumber", "1.25e3"],
+      "expects": "1250"
+    },
+    {
+      "name": "Null remains null",
+      "expression": ["formatNumber", null],
+      "expects": null
+    },
+    {
+      "name": "The null string follows standard numeric coercion",
+      "expression": ["formatNumber", "null"],
+      "expects": null
+    },
+    {
+      "name": "Missing data remains null",
+      "expression": ["formatNumber", ["dataModel", "missing"]],
+      "expects": null
+    },
+    {
+      "name": "Invalid numeric strings use the standard error",
+      "expression": ["formatNumber", "abc"],
+      "expectsFailure": "Expected number, got value \"abc\""
+    },
+    {
+      "name": "Empty strings use the standard error",
+      "expression": ["formatNumber", ""],
+      "expectsFailure": "Expected number, got value \"\""
+    },
+    {
+      "name": "Booleans use the standard error",
+      "expression": ["formatNumber", true],
+      "expectsFailure": "Expected number, got value true"
+    },
+    {
+      "name": "The value is required",
+      "expression": ["formatNumber"],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Extra arguments are rejected",
+      "expression": ["formatNumber", 42, ["object"], "extra"],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Formatting must be an object",
+      "expression": ["formatNumber", 42, 23],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "An explicit null is not an object",
+      "expression": ["formatNumber", 42, null],
+      "expectsFailure": "Invalid"
+    }
+  ]
+}

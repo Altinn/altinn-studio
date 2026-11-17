@@ -3,10 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
+
+import pytest
 
 from agents.altinn import app_version
 from agents.core import skills
 from benchmarks import provenance
+
+
+@pytest.fixture
+def example_skill(tmp_path, monkeypatch) -> Path:
+    """The only bundled skill: one with a version file and a reference that loads on demand."""
+    skill_dir = tmp_path / "studio-example"
+    (skill_dir / "references").mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("---\nname: studio-example\ndescription: An example.\n---\nBody.\n")
+    (skill_dir / "references" / "v9.md").write_text("v9 text.\n")
+    (skill_dir / "references" / "task-types.md").write_text("Task types.\n")
+    monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
+    return skill_dir
 
 
 class TestModelsAxisProvenance:
@@ -81,14 +96,10 @@ class TestDigestsCoverEveryAppVersion:
 
         assert provenance._hash_actor_prompt() == before
 
-    def test_the_skill_text_for_one_app_version_moves_the_tools_digest(self, tmp_path, monkeypatch):
-        skill_dir = tmp_path / "altinn-example"
-        skill_dir.mkdir()
-        (skill_dir / "SKILL.md").write_text("---\ndescription: An example.\n---\nBody.\n")
-        (skill_dir / "v9.md").write_text("Old v9 text.\n")
-        monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
+    @pytest.mark.parametrize("reference", ["references/v9.md", "references/task-types.md"])
+    def test_each_reference_file_moves_the_tools_digest(self, example_skill, reference):
         before = provenance._hash_tools()
-        (skill_dir / "v9.md").write_text("New v9 text.\n")
+        (example_skill / reference).write_text("Changed.\n")
 
         assert provenance._hash_tools() != before
 

@@ -6,6 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -32,12 +33,8 @@ const render = async (instances = mockActiveInstances) => {
   }));
   const renderResult = await renderWithInstanceAndLayout({
     renderer: () => <InstanceSelectionWrapper />,
-    apis: {
-      instanceApi: {
-        getActiveInstances: async () => instances || [],
-        create: instanceCreateMock,
-      },
-    },
+    queries: { getActiveInstances: async () => instances || [] },
+    mutations: { createInstance: instanceCreateMock },
   });
   return {
     ...renderResult,
@@ -95,12 +92,10 @@ describe('InstanceSelection', () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
     await renderWithoutInstanceAndLayout({
       renderer: () => <InstanceSelectionWrapper />,
-      apis: {
-        instanceApi: {
-          getActiveInstances: async () => mockActiveInstances,
-          create: async () => {
-            throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
-          },
+      queries: { getActiveInstances: async () => mockActiveInstances },
+      mutations: {
+        createInstance: async () => {
+          throw createHttpErrorMock(410, undefined, 'Gone');
         },
       },
     });

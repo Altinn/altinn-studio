@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getAttachmentDataMock } from 'src/__mocks__/getAttachmentsMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceAtServiceTaskMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import {
   RepeatingGroupProvider,
@@ -14,18 +15,14 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
-
-const { deleteAttachments } = vi.hoisted(() => ({ deleteAttachments: vi.fn(async () => true) }));
-vi.mock('src/features/attachments/useAttachmentDeletionInRepGroups', () => ({
-  useAttachmentDeletionInRepGroups: () => deleteAttachments,
-}));
+import type { IData } from 'src/types/shared';
 
 const layout: ILayout = [
   {
     id: 'group',
     type: 'RepeatingGroup',
     dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'rows' } },
-    children: ['name'],
+    children: ['name', 'file'],
     hiddenRow: ['equals', ['dataModel', 'rows.name'], 'hidden'],
     edit: { editButton: ['notEquals', ['dataModel', 'rows.name'], 'locked'] },
   },
@@ -33,6 +30,15 @@ const layout: ILayout = [
     id: 'name',
     type: 'Input',
     dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'rows.name' } },
+  },
+  {
+    id: 'file',
+    type: 'FileUpload',
+    dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'rows.attachments' } },
+    displayMode: 'simple',
+    maxFileSizeInMB: 10,
+    maxNumberOfAttachments: 10,
+    minNumberOfAttachments: 0,
   },
 ];
 
@@ -62,26 +68,35 @@ function Navigation() {
   );
 }
 
-async function render(rows: { altinnRowId: string; name: string }[], { onServiceTaskPage = false } = {}) {
-  await renderWithInstanceAndLayout({
+async function render(
+  rows: { altinnRowId: string; name: string; attachments?: string[] }[],
+  { onServiceTaskPage = false, attachments = [] }: { onServiceTaskPage?: boolean; attachments?: IData[] } = {},
+) {
+  const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
+  instance.data.push(...attachments);
+  window.altinnAppGlobalData.applicationMetadata.dataTypes.push({
+    id: 'file',
+    allowedContentTypes: ['application/pdf'],
+    maxCount: 10,
+    minCount: 0,
+  });
+
+  return renderWithInstanceAndLayout({
+    instanceId: instance.id,
     renderer: (
       <RepeatingGroupProvider baseComponentId='group'>
         <Navigation />
       </RepeatingGroupProvider>
     ),
     queries: {
+      getInstance: async () => instance,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = { FormLayout: { data: { layout } } };
           obj.dataModels[defaultDataTypeMock].initialData = { rows };
         }),
     },
-    apis: onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined,
   });
-}
-
-async function getInstanceAtServiceTask() {
-  return getInstanceAtServiceTaskMock();
 }
 
 it('skips hidden and non-editable rows and returns the opened row for focus', async () => {
@@ -107,24 +122,39 @@ it('leaves an empty group closed when navigating to the next row', async () => {
 });
 
 it('deletes a row and its attachments', async () => {
-  await render([
-    { altinnRowId: 'first-row', name: 'first' },
-    { altinnRowId: 'second-row', name: 'second' },
-  ]);
+  const attachment = getAttachmentDataMock();
+  const otherAttachment = getAttachmentDataMock();
+  const { mutations } = await render(
+    [
+      { altinnRowId: 'first-row', name: 'first', attachments: [attachment.id] },
+      { altinnRowId: 'second-row', name: 'second', attachments: [otherAttachment.id] },
+    ],
+    { attachments: [attachment, otherAttachment] },
+  );
   await userEvent.click(screen.getByRole('button', { name: 'Delete first row' }));
+  await waitFor(() =>
+    expect(mutations.doAttachmentRemove.mock).toHaveBeenCalledWith(
+      getInstanceWithProcessMock().id,
+      attachment.id,
+      'nb',
+    ),
+  );
+  expect(screen.getByTestId('rows')).toHaveTextContent('2');
+  mutations.doAttachmentRemove.resolve();
   await waitFor(() => expect(screen.getByTestId('rows')).toHaveTextContent('1'));
-  expect(deleteAttachments).toHaveBeenCalledWith(0);
+  expect(mutations.doAttachmentRemove.mock).toHaveBeenCalledTimes(1);
 });
 
 it("deletes neither a row nor its attachments on a service task's page", async () => {
-  await render(
+  const attachment = getAttachmentDataMock();
+  const { mutations } = await render(
     [
-      { altinnRowId: 'first-row', name: 'first' },
+      { altinnRowId: 'first-row', name: 'first', attachments: [attachment.id] },
       { altinnRowId: 'second-row', name: 'second' },
     ],
-    { onServiceTaskPage: true },
+    { onServiceTaskPage: true, attachments: [attachment] },
   );
   await userEvent.click(screen.getByRole('button', { name: 'Delete first row' }));
-  expect(deleteAttachments).not.toHaveBeenCalled();
+  expect(mutations.doAttachmentRemove.mock).not.toHaveBeenCalled();
   expect(screen.getByTestId('rows')).toHaveTextContent('2');
 });

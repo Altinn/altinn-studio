@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/cabundletest"
 )
 
 var (
@@ -20,11 +21,12 @@ var (
 )
 
 func TestNewCABundleInstallPatch(t *testing.T) {
-	caFile := t.TempDir() + "/ca.pem"
-	if err := os.WriteFile(caFile, []byte("test-ca"), 0o600); err != nil {
-		t.Fatalf("write CA file: %v", err)
-	}
+	caFile := cabundletest.WriteFile(t)
 	t.Setenv(cabundle.EnvStudioCABundle, caFile)
+	want, err := os.ReadFile(caFile)
+	if err != nil {
+		t.Fatalf("read CA file: %v", err)
+	}
 
 	patch, configured, err := newCABundleInstallPatch()
 	if err != nil {
@@ -45,8 +47,8 @@ func TestNewCABundleInstallPatch(t *testing.T) {
 	if err != nil || !found {
 		t.Fatalf("missing CA data: found=%v err=%v", found, err)
 	}
-	if data != "test-ca" {
-		t.Fatalf("CA data = %q", data)
+	if data != string(want) {
+		t.Fatalf("CA data = %q, want %q", data, want)
 	}
 }
 

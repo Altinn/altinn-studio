@@ -15,7 +15,8 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 - Start with the README of the component you change. The [root README](README.md) says how the parts fit
   together.
 - Follow the [coding standards](docs/coding-standards.md) and the [documentation rules](docs/documentation.md).
-  Workflows, builds and deployments follow the conventions in [docs/cicd.md](docs/cicd.md).
+  Workflows, builds and deployments follow the conventions in [docs/cicd.md](docs/cicd.md), and telemetry, dashboards
+  and alerts follow [docs/observability.md](docs/observability.md).
 - Before you push, run the checks of the component you changed with its Makefile or package scripts, which run the
   same checks as CI. Also run `yarn spell:quick`, and `yarn docs:validate` when you changed docs.
 - Update the docs your change affects in the same pull request. When service owners or app developers will notice the
@@ -31,7 +32,8 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 - Write the description for the reviewer, as the [pull request template](.github/pull_request_template.md) asks.
   When the pull request changes after review, rewrite the description to describe it as it is now, and say what
   changed in a comment.
-- Pull requests are squash-merged, except [upstream syncs](src/App/docs/upstream-sync.md), which need a merge commit.
+- Pull requests are squash-merged, except test app syncs from `make sync-test-apps`, which need a merge commit to keep
+  the subtree history.
 - List commits that only reformat code in [.git-blame-ignore-revs](.git-blame-ignore-revs), and run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` so that `git blame` skips them.
 

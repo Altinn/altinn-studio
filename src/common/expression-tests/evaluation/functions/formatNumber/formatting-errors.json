@@ -1,0 +1,16 @@
+{
+  "name": "Formatting errors",
+  "disabledBackend": true,
+  "testCases": [
+    {
+      "name": "Unsupported unit uses expression diagnostics",
+      "expression": ["formatNumber", 42, ["object", "unit", "unsupported-unit"]],
+      "expectsFailure": "Number formatting error:"
+    },
+    {
+      "name": "Invalid currency uses expression diagnostics",
+      "expression": ["formatNumber", 42, ["object", "currency", "invalid"]],
+      "expectsFailure": "Number formatting error:"
+    }
+  ]
+}

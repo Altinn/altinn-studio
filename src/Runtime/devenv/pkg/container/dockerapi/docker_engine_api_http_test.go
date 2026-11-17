@@ -11,9 +11,6 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
-
-	cerrdefs "github.com/containerd/errdefs"
-	"github.com/moby/moby/client"
 )
 
 func TestNew_APIVersionNegotiation(t *testing.T) {
@@ -30,10 +27,14 @@ func TestNew_APIVersionNegotiation(t *testing.T) {
 	}{
 		{name: "environment host", daemonAPI: "1.41", wantAPI: "1.41"},
 		{name: "minimum API", daemonAPI: "1.40", wantAPI: "1.40"},
-		{name: "newer daemon", daemonAPI: "99.99", wantAPI: client.MaxAPIVersion},
+		{name: "newer daemon", daemonAPI: "99.99", wantAPI: maxAPIVersion},
+		// As with moby's client, a ping with an empty or no Api-Version negotiates maxAPIVersion.
+		{name: "daemon without an API version", wantAPI: maxAPIVersion},
 		{name: "environment API pin", daemonAPI: "1.41", envAPI: "1.40", wantAPI: "1.40"},
 		{name: "old daemon", daemonAPI: "1.39", wantError: "minimum supported API version"},
 		{name: "malformed environment API", daemonAPI: "1.41", envAPI: "1.41.0", wantError: "invalid API version"},
+		// As with moby's client, a lone v counts as unset.
+		{name: "environment API without a number", daemonAPI: "1.41", envAPI: "v", wantAPI: "1.41"},
 		{name: "explicit host", daemonAPI: "1.41", wantAPI: "1.41", explicitHost: true},
 		{
 			name: "explicit host ignores environment API", daemonAPI: "1.41", envAPI: "1.41.0",
@@ -159,6 +160,27 @@ func TestClient_NotFoundErrors(t *testing.T) {
 	}
 }
 
+func TestClient_EmptyIDFailsBeforeRequest(t *testing.T) {
+	t.Parallel()
+	c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+		t.Errorf("unexpected request: %s %s", req.Method, req.URL)
+		w.WriteHeader(http.StatusNotFound)
+	})
+	ctx := t.Context()
+	_, inspectErr := c.ContainerInspect(ctx, "")
+	_, imageErr := c.ImageInspect(ctx, "")
+	for name, err := range map[string]error{
+		"ContainerInspect": inspectErr,
+		"ContainerRemove":  c.ContainerRemove(ctx, "", true),
+		"ImageInspect":     imageErr,
+		"NetworkRemove":    c.NetworkRemove(ctx, ""),
+	} {
+		if !errors.Is(err, errEmptyID) {
+			t.Errorf("%s(\"\") error = %v, want %v", name, err, errEmptyID)
+		}
+	}
+}
+
 func TestNetworkRemove_SDKErrorClassification(t *testing.T) {
 	t.Parallel()
 	for _, status := range []int{http.StatusConflict, http.StatusForbidden} {
@@ -176,7 +198,7 @@ func TestNetworkRemove_SDKErrorClassification(t *testing.T) {
 				if !errors.Is(err, types.ErrNetworkInUse) {
 					t.Fatalf("NetworkRemove() error = %v, want ErrNetworkInUse", err)
 				}
-			} else if !cerrdefs.IsPermissionDenied(err) {
+			} else if !hasStatus(err, http.StatusForbidden) {
 				t.Fatalf("NetworkRemove() error = %v, want wrapped permission error", err)
 			}
 		})
@@ -241,14 +263,12 @@ func newHTTPTestClient(t *testing.T, handler http.HandlerFunc) *Client {
 	t.Helper()
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
-	cli, err := client.New(
-		client.WithHost("tcp://"+strings.TrimPrefix(server.URL, "http://")),
-		client.WithAPIVersion("1.41"),
-	)
+	api, err := newEngine("tcp://"+strings.TrimPrefix(server.URL, "http://"), nil)
 	if err != nil {
-		t.Fatalf("client.New() error = %v", err)
+		t.Fatalf("newEngine() error = %v", err)
 	}
-	c := &Client{cli: cli}
+	api.version = "1.41"
+	c := &Client{api: api}
 	t.Cleanup(func() { closeBestEffort(c) })
 	return c
 }

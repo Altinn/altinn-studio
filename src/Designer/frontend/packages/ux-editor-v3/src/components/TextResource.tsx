@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
+import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@designer/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -19,7 +19,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioButton, StudioParagraph, StudioSelect } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioSelect } from '@designer/components';
 
 export interface TextResourceProps {
   description?: string;

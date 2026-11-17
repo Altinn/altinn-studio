@@ -1,8 +1,8 @@
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];

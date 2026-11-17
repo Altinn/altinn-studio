@@ -15,7 +15,7 @@ import { PageRoutes } from './routes/PageRoutes';
 import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,

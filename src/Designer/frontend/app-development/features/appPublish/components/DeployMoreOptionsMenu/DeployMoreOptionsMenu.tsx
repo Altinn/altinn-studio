@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import {
   ArrowsCirclepathIcon,
   CloudSlashIcon,
   ExternalLinkIcon,
   MenuElipsisVerticalIcon,
-} from '@studio/icons';
-import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
+} from '@designer/icons';
+import { UndeployDialog } from '../UndeployDialog';
 import { RestartAppDialog } from '../RestartAppDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
 import { useTranslation } from 'react-i18next';
@@ -90,8 +90,9 @@ export const DeployMoreOptionsMenu = ({
           onClose={() => setIsRestartDialogOpen(false)}
         />
       )}
-      <UndeployConsequenceDialog
+      <UndeployDialog
         environment={environment}
+        envTitle={envTitle}
         isOpen={isUndeployDialogOpen}
         onClose={() => setIsUndeployDialogOpen(false)}
       />

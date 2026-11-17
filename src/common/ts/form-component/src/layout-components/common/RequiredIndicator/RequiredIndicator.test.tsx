@@ -23,4 +23,10 @@ describe('RequiredIndicator', () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('renders nothing when read-only', () => {
+    const { container } = renderWithTranslations(<RequiredIndicator required readOnly />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

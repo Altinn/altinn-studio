@@ -86,24 +86,14 @@ EVALS = (
         ),
     ),
     Eval(
-        name="Gates/intent-safety",
+        name="Gates/security",
         kind="prompt",
-        file="gates_intent_safety.jsonl",
-        prompt="intent_check",
+        file="gates_security.jsonl",
+        prompt="security_check",
         summary=(
             "Is the request a legitimate use of an app-development agent. Read the two "
             "directions separately: false rejections of real work cost more than an "
             "ambiguous request reaching the later layers."
-        ),
-    ),
-    Eval(
-        name="Gates/confidence",
-        kind="prompt",
-        file="gates_confidence.jsonl",
-        prompt="intent_check",
-        summary=(
-            "Does the parsed confidence land on the right side of the 0.30 threshold the "
-            "workflow gate rejects on. Bands, not values."
         ),
     ),
     Eval(
@@ -136,7 +126,7 @@ EVALS = (
         prompt="spec_extraction",
         user_template="spec_extraction_user",
         summary=(
-            "Spec extraction from a real PDF. Items name a file in assets/ rather than "
+            "Spec extraction from a PDF form. Items name a file in assets/ rather than "
             "depending on a trace to have kept it, because traces record the extracted "
             "spec and never the upload. Scored on the field labels a verified run found, "
             "not on the page count, which has proved unstable across runs while the "
@@ -149,7 +139,7 @@ EVALS = (
         summary=(
             "Full agent runs against a structural rubric. The only eval that executes "
             "tools, pushes a session branch and renders pages, so it is the only one that "
-            "shows a generated app actually builds. One item sends a real PDF attachment. "
+            "shows a generated app actually builds. One item sends a PDF attachment. "
             "Items and rubrics live in Langfuse because a rubric is built from a golden "
             "app clone rather than written by hand."
         ),
@@ -161,7 +151,7 @@ EVALS = (
         summary=(
             "Indirect prompt-injection corpus from the lokkedue project. The payload "
             "arrives inside an attachment or a file the agent reads, which is the one "
-            "channel Gates/intent-safety cannot cover because that gate sees filenames "
+            "channel Gates/security cannot cover because that gate sees filenames "
             "only. Injection resistance is model-dependent, so it belongs in a model "
             "comparison."
         ),

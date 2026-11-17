@@ -98,11 +98,9 @@ _TRUNCATION_PARTIAL_NOTICE = (
     "missing and re-issue only that work, in smaller batches."
 )
 
-# With this many turns left, inject a wrap-up notice so the model stops
-# exploring and lands what it has.  A max_turns termination throws away
-# the final message and leaves the work uncommitted (modulo the
-# auto-commit safety net) — far worse than a slightly less polished
-# result.
+# When this many turns remain, the loop tells the model to save its work.
+# A run that stops at max_turns has no final message.  Its edits that are
+# not saved do not go to the app, because only the model commits.
 _WRAPUP_WARNING_TURNS = 4
 
 _WRAPUP_NOTICE = (
@@ -222,6 +220,7 @@ async def run_loop(
     have context.  It is prepended verbatim before `user_message`.
     """
     compaction = compaction or CompactionConfig()
+    ctx.max_result_chars = compaction.max_result_chars
     messages: list[Message] = [*(history or []), UserMessage(content=user_message)]
     total_usage = {"input_tokens": 0, "output_tokens": 0}
     # Sliding window of per-turn tool signatures, used to detect when
@@ -369,8 +368,7 @@ async def run_loop(
         # Anti-thrash: if the model has fired the same (name, input)
         # signature several turns in a row, calling the same tools
         # again won't help.  Bail with a clear reason so the agentic
-        # node can surface a useful message + auto-commit any partial
-        # progress.
+        # node can surface a useful message.
         recent_tool_signatures.append([_tool_signature(tu) for tu in tool_uses])
         stuck_sig = _detect_stuck(recent_tool_signatures)
         if stuck_sig is not None:

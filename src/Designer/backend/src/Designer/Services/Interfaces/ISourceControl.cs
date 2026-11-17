@@ -32,13 +32,6 @@ public interface ISourceControl
     );
 
     /// <summary>
-    /// Stores a App token for user
-    /// </summary>
-    /// <param name="token">The token from GITEA</param>
-    /// <param name="developer">The developer username</param>
-    void StoreAppTokenForUser(string token, string developer);
-
-    /// <summary>
     /// Returns the local repo location
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>

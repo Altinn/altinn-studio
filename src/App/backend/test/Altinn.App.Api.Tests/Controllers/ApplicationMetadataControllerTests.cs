@@ -1,19 +1,18 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataControllerTests : ApiTestBase
 {
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
 
-    public ApplicationMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public ApplicationMetadataControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task VeryfyExtraFieldsInApplicationMetadataIsPreserved()

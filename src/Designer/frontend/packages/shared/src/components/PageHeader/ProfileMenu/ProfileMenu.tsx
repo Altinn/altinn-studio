@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { repositoryOwnerPath, userLogoutAfterPath } from 'app-shared/api/paths';
 import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';

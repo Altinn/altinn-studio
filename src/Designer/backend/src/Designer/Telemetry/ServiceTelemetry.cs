@@ -51,6 +51,9 @@ internal static partial class ServiceTelemetry
     public static void SetEndUser(this Activity? activity, string userName) =>
         activity?.SetTag(Attributes.EndUserId, userName);
 
+    public static void SetAppDeployBuild(this Activity? activity, string buildId) =>
+        activity?.SetTag(Attributes.AppDeployBuildId, buildId);
+
     private static string RepoTypeOf(string serviceOwner, string repository) =>
         RepositoryNames.KindOf(serviceOwner, repository) switch
         {

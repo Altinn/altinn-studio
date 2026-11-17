@@ -7,7 +7,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
-import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { useProcessNextOutsideFormProvider } from 'src/features/process/useProcessNext';
 import { ActionButtonComponent } from 'src/layout/ActionButton/ActionButtonComponent';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
@@ -15,16 +15,11 @@ import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonCompo
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
-import { doProcessNext } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppQueriesContext } from 'src/core/queries/types';
 import type { IProcess } from 'src/types/shared';
-
-vi.mock('src/queries/queries', async () => ({
-  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
-  doProcessNext: vi.fn(),
-}));
 
 describe('FormProvider', () => {
   it('does not change form data when a PDF renders a task other than the current one', async () => {
@@ -90,6 +85,7 @@ describe('FormProvider', () => {
 });
 
 describe("FormProvider on a service task's page", () => {
+  const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>();
   const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
 
   /** The process the backend returns, which each test can change. */
@@ -147,7 +143,8 @@ describe("FormProvider on a service task's page", () => {
       ),
       component: { dataModelBindings: { simpleBinding: inputBinding } },
       query,
-      apis: { instanceApi: { getInstance } },
+      queries: { getInstance },
+      mutations: { doProcessNext },
     });
   }
 
@@ -195,7 +192,7 @@ describe("FormProvider on a service task's page", () => {
       type: 'Button',
       renderer: (props) => <ButtonComponent {...props} />,
       component: { textResourceBindings: { title: 'Submit' } },
-      apis: { instanceApi: { getInstance } },
+      queries: { getInstance },
     });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
@@ -207,7 +204,7 @@ describe("FormProvider on a service task's page", () => {
       type: 'ActionButton',
       renderer: (props) => <ActionButtonComponent {...props} />,
       component: { action: 'reject', buttonStyle: 'primary', textResourceBindings: { title: 'Reject' } },
-      apis: { instanceApi: { getInstance } },
+      queries: { getInstance },
     });
 
     expect(screen.getByRole('button', { name: 'Reject' })).toBeDisabled();
@@ -225,7 +222,7 @@ describe("FormProvider on a service task's page", () => {
           { id: 'nextPage', type: 'ClientAction' },
         ],
       },
-      apis: { instanceApi: { getInstance } },
+      queries: { getInstance },
     });
     expect(screen.getByRole('button', { name: 'Look up' })).toBeDisabled();
   });
@@ -239,7 +236,7 @@ describe("FormProvider on a service task's page", () => {
         textResourceBindings: { title: 'Next page' },
         actions: [{ id: 'nextPage', type: 'ClientAction' }],
       },
-      apis: { instanceApi: { getInstance } },
+      queries: { getInstance },
     });
     expect(screen.getByRole('button', { name: 'Next page' })).toBeEnabled();
   });
@@ -255,8 +252,8 @@ describe("FormProvider on a service task's page", () => {
       renderer: (props) => <NavigationButtonsComponent {...props} />,
       component: navigationButtons,
       initialPage: 'page1',
-      apis: { instanceApi: { getInstance } },
       queries: {
+        getInstance,
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.layouts = {

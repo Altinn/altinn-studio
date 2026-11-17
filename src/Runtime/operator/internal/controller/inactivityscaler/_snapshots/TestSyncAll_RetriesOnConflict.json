@@ -1,0 +1,51 @@
+[
+  {
+    "baseline": {
+      "minReplicas": {
+        "set": false
+      },
+      "replicas": {
+        "set": true,
+        "value": 2
+      }
+    },
+    "kind": "Deployment",
+    "managed": "true",
+    "name": "ttd-conflict-app-deployment-v2",
+    "namespace": "default",
+    "replicas": 1
+  },
+  {
+    "baseline": {
+      "minReplicas": {
+        "set": false
+      },
+      "replicas": {
+        "set": true,
+        "value": 2
+      }
+    },
+    "kind": "Deployment",
+    "managed": "true",
+    "name": "gateway",
+    "namespace": "runtime-gateway",
+    "replicas": 1
+  },
+  {
+    "baseline": {
+      "minReplicas": {
+        "set": true,
+        "value": 2
+      },
+      "replicas": {
+        "set": false
+      }
+    },
+    "kind": "HorizontalPodAutoscaler",
+    "managed": "true",
+    "minReplicas": 1,
+    "name": "pdf3-relay-hpa",
+    "namespace": "runtime-pdf3",
+    "reconcile": "disabled"
+  }
+]

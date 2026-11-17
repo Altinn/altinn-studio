@@ -7,15 +7,15 @@ import {
   StudioParagraph,
   StudioSwitch,
   StudioTag,
-} from '@studio/components';
-import type { FeatureFlag } from '@studio/feature-flags';
+} from '@designer/components';
+import type { FeatureFlag } from '@designer/feature-flags';
 import {
   experimentalFeatureFlags,
   featureFlagConfig,
   useExperimentalFeaturesMode,
   useFeatureFlagsContext,
   useFeatureToggle,
-} from '@studio/feature-flags';
+} from '@designer/feature-flags';
 import classes from './ExperimentalFeatures.module.css';
 
 export function ExperimentalFeatures(): ReactElement {

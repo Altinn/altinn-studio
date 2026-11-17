@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "333710f2f15b",
-    "code": "519a974 clean",
-    "dataset": "116 items 90d5f6e70f83",
+    "actor_prompt": "55a1d094fc83",
+    "code": "e1fdd6f dirty",
+    "dataset": "81 items 610c4b668490",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261021T081022Z-repo-owner-from-repo-url-519a974da8-d01f",
-  "label": "repo owner from repo_url 519a974da8",
-  "recorded_at": "2026-10-21T08:15:41+00:00",
-  "why": "Takes the repository owner from repo_url in #21389, which changes benchmarks/preview_check.py. Full check with e2e and the preview check: every pinned behavior scored, at the same scores as the earlier baseline."
+  "check_id": "20261117T093220Z-own-benchmark-pdf-with-write-in-options-20668-on-e1fdd6f-6190",
+  "label": "own benchmark PDF with write-in options, #20668 on e1fdd6f",
+  "recorded_at": "2026-11-17T09:40:46+00:00",
+  "why": "#20668 replaces the two Planner/spec PDFs that we do not own with soknad-digitaliseringstilskudd.pdf, which we made from the HTML file beside it in benchmarks/assets. Planner/spec has one item, spec-digitaliseringstilskudd, in place of spec-ki-sandkasse and spec-helseattest. In Benchmarks/forms, digitaliseringstilskudd-flere-sider replaces helseattest-barnehage. It sends the same PDF with the goal \"Lag det vedlagte skjemaet\", without the component types that the old goal listed. The labels and the rubric come from a build that was checked against the PDF. After review, spec_field_count counts only input fields, not headings and paragraphs, and the form's three write-in options say \"Annet \u2013 fyll inn:\" or \"Andre \u2013 fyll inn:\", so the item expects 43 fields with no exception. Full check with e2e on the uncommitted branch on top of e1fdd6f, with PREVIEW_CHECK_ENABLED off as in production. The assistant container ran the #21964 code, as in the last baseline. All four builds finished with success, and the new e2e item scored 1.0 on every structural score. The spec item scored 1.0 on spec_parses, spec_label_coverage and spec_field_count. No behavior fails. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }

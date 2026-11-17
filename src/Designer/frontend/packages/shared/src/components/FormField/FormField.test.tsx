@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@designer/components';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
 import type { FormFieldProps } from './FormField';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

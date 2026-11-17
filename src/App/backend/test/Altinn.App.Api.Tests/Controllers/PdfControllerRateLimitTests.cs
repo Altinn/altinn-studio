@@ -6,7 +6,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Pdf;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,15 +14,15 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class PdfControllerRateLimitTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class PdfControllerRateLimitTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private static readonly Guid _instanceGuid = new("ace19a86-3468-40ee-9393-ee7e0c1ab768");
 
-    public PdfControllerRateLimitTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public PdfControllerRateLimitTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task Previews_Over_The_Limit_Are_Rejected_Across_Instances()

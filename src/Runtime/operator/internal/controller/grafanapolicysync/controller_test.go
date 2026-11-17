@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/grafanaapi"
@@ -105,15 +105,6 @@ func newGrafanaCR(url string) *unstructured.Unstructured {
 	return grafanaapi.NewGrafanaWithExternalURL(grafanaNamespace, grafanaName, url)
 }
 
-func matchPayloadSnapshot(t *testing.T, payload map[string]any) {
-	t.Helper()
-	data, err := json.Marshal(payload)
-	if err != nil {
-		t.Fatalf("marshal payload: %v", err)
-	}
-	snaps.MatchJSON(t, data)
-}
-
 func TestReconciler_SyncAll_AppendsManagedRouteAndPreservesUnrelated(t *testing.T) {
 	g := NewWithT(t)
 
@@ -163,7 +154,7 @@ func TestReconciler_SyncAll_AppendsManagedRouteAndPreservesUnrelated(t *testing.
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(putCalls).To(Equal(1))
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_PreservesUnknownFieldsOnRoundTrip(t *testing.T) {
@@ -213,7 +204,7 @@ func TestReconciler_SyncAll_PreservesUnknownFieldsOnRoundTrip(t *testing.T) {
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_NoChangesDoesNotPut(t *testing.T) {
@@ -306,7 +297,7 @@ func TestReconciler_SyncAll_UpdatesManagedRoute(t *testing.T) {
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_DoesNotOverwriteUnmanagedAltinnMatcherRoute(t *testing.T) {
@@ -355,7 +346,7 @@ func TestReconciler_SyncAll_DoesNotOverwriteUnmanagedAltinnMatcherRoute(t *testi
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_OverwritesSameReceiverWithOtherMatcher(t *testing.T) {
@@ -404,7 +395,7 @@ func TestReconciler_SyncAll_OverwritesSameReceiverWithOtherMatcher(t *testing.T)
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_RemovesDuplicateManagedRoutes(t *testing.T) {
@@ -460,7 +451,7 @@ func TestReconciler_SyncAll_RemovesDuplicateManagedRoutes(t *testing.T) {
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_SyncAll_ErrorsWhenPolicyTreeMissingReceiver(t *testing.T) {
@@ -563,7 +554,7 @@ func TestReconciler_SyncAll_AppendsManagedRouteWhenRoutesMissing(t *testing.T) {
 
 	err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
-	matchPayloadSnapshot(t, putPayload)
+	snapshot.MatchJSON(t, putPayload, "")
 }
 
 func TestReconciler_PutPolicyTree_IgnoresResponseCloseErrorOnSuccess(t *testing.T) {

@@ -143,23 +143,6 @@ public class GetDeployments
         );
     }
 
-    [Fact]
-    public async Task GetDeployments_StillServesWhatOlderFrontendsRead()
-    {
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod", "ready", null));
-        SetupRunning("at22", null);
-        SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
-
-        using JsonDocument response = JsonDocument.Parse(await GetDeploymentsJson());
-
-        // A frontend loaded before environmentList existed reads runningAppList, and shows the app as not published
-        // in every environment without it.
-        JsonElement running = Assert.Single(response.RootElement.GetProperty("runningAppList").EnumerateArray());
-        Assert.Equal("tt02", running.GetProperty("environment").GetString());
-        Assert.Equal("8", running.GetProperty("version").GetString());
-        Assert.Equal("1234", running.GetProperty("buildId").GetString());
-    }
-
     private async Task<DeploymentsResponse> GetDeploymentsResponse() =>
         JsonSerializer.Deserialize<DeploymentsResponse>(await GetDeploymentsJson(), JsonSerializerOptions);
 

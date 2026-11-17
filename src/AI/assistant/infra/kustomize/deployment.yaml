@@ -43,6 +43,8 @@ spec:
               value: "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
+            - name: DESIGNER_BASE_URL
+              value: "http://altinn-designer:3000"
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:

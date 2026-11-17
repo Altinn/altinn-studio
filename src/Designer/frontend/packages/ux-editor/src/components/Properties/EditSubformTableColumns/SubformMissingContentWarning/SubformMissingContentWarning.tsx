@@ -1,5 +1,5 @@
-import { PencilIcon } from '@studio/icons';
-import { StudioButton, StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
+import { PencilIcon } from '@designer/icons';
+import { StudioButton, StudioParagraph, StudioHeading, StudioAlert } from '@designer/components';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformMissingContentWarning.module.css';

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
+import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { getTargetTaskFromProcess } from 'src/features/process/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { TaskKeys } from 'src/routesBuilder';
 
 /**

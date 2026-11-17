@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
@@ -50,15 +49,13 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new Json.Patch.JsonPatch(
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property1"),
-                                JsonNode.Parse("\"2\"")
-                            ),
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property2"),
-                                JsonNode.Parse("\"2\"")
-                            )
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],
@@ -255,15 +252,13 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new Json.Patch.JsonPatch(
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property1"),
-                                JsonNode.Parse("\"2\"")
-                            ),
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property2"),
-                                JsonNode.Parse("\"2\"")
-                            )
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],

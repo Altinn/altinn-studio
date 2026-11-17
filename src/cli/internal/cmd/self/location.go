@@ -17,7 +17,8 @@ import (
 // ErrNoWritableInstallLocation is returned when no install location can be used.
 var ErrNoWritableInstallLocation = errors.New("no writable install location found")
 
-const installedCommandName = "studioctl"
+// InstalledCommandName is the command studioctl installs as, whatever the file that installed it is called.
+const InstalledCommandName = "studioctl"
 
 // Candidate describes a possible binary install directory.
 type Candidate struct {
@@ -30,7 +31,7 @@ type Candidate struct {
 
 // ExistingInstallDir returns the directory of an existing studioctl on PATH.
 func ExistingInstallDir() (string, bool) {
-	path, err := exec.LookPath(installedCommandName)
+	path, err := exec.LookPath(InstalledCommandName)
 	if err != nil || path == "" {
 		return "", false
 	}
@@ -50,7 +51,7 @@ func DetectCandidates(out *ui.Output) []Candidate {
 	pathDirs := filepath.SplitList(os.Getenv("PATH"))
 	inPath := make(map[string]bool, len(pathDirs))
 	for _, p := range pathDirs {
-		inPath[filepath.Clean(p)] = true
+		inPath[pathKey(p)] = true
 	}
 
 	var candidates []Candidate
@@ -65,7 +66,7 @@ func DetectCandidates(out *ui.Output) []Candidate {
 			localBin := filepath.Join(home, ".local", "bin")
 			candidates = append(candidates, Candidate{
 				Path:        localBin,
-				InPath:      inPath[filepath.Clean(localBin)],
+				InPath:      inPath[pathKey(localBin)],
 				Writable:    installLocationWritable(localBin, out),
 				NeedsSudo:   false,
 				Recommended: false,
@@ -90,14 +91,14 @@ func unixInstallLocationCandidates(inPath map[string]bool, out *ui.Output) []Can
 	return []Candidate{
 		{
 			Path:        localBin,
-			InPath:      inPath[filepath.Clean(localBin)],
+			InPath:      inPath[pathKey(localBin)],
 			Writable:    installLocationWritable(localBin, out),
 			NeedsSudo:   false,
 			Recommended: false,
 		},
 		{
 			Path:        usrLocalBin,
-			InPath:      inPath[filepath.Clean(usrLocalBin)],
+			InPath:      inPath[pathKey(usrLocalBin)],
 			Writable:    usrLocalWritable,
 			NeedsSudo:   !usrLocalWritable,
 			Recommended: false,
@@ -114,11 +115,10 @@ func windowsInstallLocationCandidates(inPath map[string]bool, out *ui.Output) []
 	localBin := filepath.Join(home, ".local", "bin")
 	var candidates []Candidate
 
-	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-		appDataBin := filepath.Join(localAppData, "Programs", "studioctl")
+	if appDataBin, ok := windowsOwnInstallDir(); ok {
 		candidates = append(candidates, Candidate{
 			Path:        appDataBin,
-			InPath:      inPath[filepath.Clean(appDataBin)],
+			InPath:      inPath[pathKey(appDataBin)],
 			Writable:    installLocationWritable(appDataBin, out),
 			NeedsSudo:   false,
 			Recommended: false,
@@ -127,13 +127,38 @@ func windowsInstallLocationCandidates(inPath map[string]bool, out *ui.Output) []
 
 	candidates = append(candidates, Candidate{
 		Path:        localBin,
-		InPath:      inPath[filepath.Clean(localBin)],
+		InPath:      inPath[pathKey(localBin)],
 		Writable:    installLocationWritable(localBin, out),
 		NeedsSudo:   false,
 		Recommended: false,
 	})
 
 	return candidates
+}
+
+// IsCandidateLocation reports whether dir is one of candidates.
+func IsCandidateLocation(dir string, candidates []Candidate) bool {
+	for _, candidate := range candidates {
+		if pathKey(candidate.Path) == pathKey(dir) {
+			return true
+		}
+	}
+	return false
+}
+
+// IsOwnInstallDir reports whether dir is %LOCALAPPDATA%\Programs\studioctl, the Windows install directory no other
+// program uses.
+func IsOwnInstallDir(dir string) bool {
+	own, ok := windowsOwnInstallDir()
+	return ok && pathKey(dir) == pathKey(own)
+}
+
+func windowsOwnInstallDir() (string, bool) {
+	localAppData := os.Getenv("LOCALAPPDATA")
+	if localAppData == "" {
+		return "", false
+	}
+	return filepath.Join(localAppData, "Programs", "studioctl"), true
 }
 
 func markRecommendedInstallLocation(candidates []Candidate) {
@@ -178,13 +203,22 @@ func LocationInPath(dir string, candidates []Candidate) bool {
 }
 
 func dirInPath(dir string) bool {
-	cleanDir := filepath.Clean(dir)
+	key := pathKey(dir)
 	for _, pathDir := range filepath.SplitList(os.Getenv("PATH")) {
-		if filepath.Clean(pathDir) == cleanDir {
+		if pathKey(pathDir) == key {
 			return true
 		}
 	}
 	return false
+}
+
+// pathKey identifies a PATH directory. Windows compares paths without regard to case.
+func pathKey(dir string) string {
+	key := filepath.Clean(dir)
+	if runtime.GOOS == osutil.OSWindows {
+		return strings.ToLower(key)
+	}
+	return key
 }
 
 func installLocationWritable(dir string, out *ui.Output) bool {
@@ -197,7 +231,6 @@ func installLocationWritable(dir string, out *ui.Output) bool {
 		return false
 	}
 
-	//nolint:gosec // G703: this is an intentional writability probe on the user-selected install directory.
 	info, err := os.Stat(cleanDir)
 	if err != nil {
 		parent := filepath.Dir(cleanDir)
@@ -221,7 +254,6 @@ func installLocationWritable(dir string, out *ui.Output) bool {
 	if err := f.Close(); err != nil && out != nil {
 		out.Verbosef("failed to close test file %s: %v", testFile, err)
 	}
-	//nolint:gosec // G703: this removes the temporary probe file created in the validated install directory above.
 	if err := os.Remove(testFile); err != nil && out != nil {
 		out.Verbosef("failed to remove test file %s: %v", testFile, err)
 	}
@@ -270,9 +302,6 @@ func LocationPathInstructions(dir string) string {
 			`  2. Under "User variables", select "Path" and click "Edit"`,
 			"  3. Click \"New\" and add: "+displayDir,
 			"  4. Click OK and restart your terminal",
-			"",
-			"Or run this in PowerShell (as Administrator):",
-			fmt.Sprintf(`  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, displayDir),
 		)
 
 	default:

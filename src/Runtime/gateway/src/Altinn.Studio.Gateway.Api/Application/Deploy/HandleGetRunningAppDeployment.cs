@@ -25,6 +25,8 @@ internal static class HandleGetRunningAppDeployment
             "default",
             cancellationToken
         );
-        return deployment is null ? Results.NotFound() : Results.Ok(deployment);
+        // Most apps run in only some environments, and Designer asks each of them. A 404 would count as a failed
+        // request in Designer's telemetry.
+        return deployment is null ? Results.NoContent() : Results.Ok(deployment);
     }
 }

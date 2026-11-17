@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
+import { useGetOptionsQuery, useGetOptionsUrl } from 'src/core/queries/options';
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
@@ -11,7 +12,6 @@ import { useSaveDataModelBindings } from 'src/features/formData/useDataModelBind
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -135,13 +135,13 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
   // three (source, optionsId or static options).
 
   if (config.source) {
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
     const unsorted = useSourceOptions(config.source);
     return { unsorted, isFetching: false, downstreamParameters: undefined };
   }
 
   if (config.optionsId) {
+    // eslint-disable-next-line react-hooks/hooks
     const staticOptions = FormStore.bootstrap.useStaticOptionsMap();
     const bootstrapOptions = staticOptions[config.optionsId];
     const shouldFetchFromApi = hasDynamicOptionsConfig(config);
@@ -154,19 +154,16 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
       };
     }
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
     const url = useOptionsUrl(config);
     if (!url) {
       throw new Error(`Failed to fetch options for node ${indexedId}: Unable to construct URL`);
     }
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
     const { error, isFetching, data } = useGetOptionsQuery(url);
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
     useLogFetchError(error, config);
 
     return {
@@ -178,7 +175,6 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
   }
 
   if (config.options) {
-    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const unsorted = useMemo(() => castOptionsToStrings(config.options ?? []), [config.options]);
     return { unsorted, isFetching: false, downstreamParameters: undefined };

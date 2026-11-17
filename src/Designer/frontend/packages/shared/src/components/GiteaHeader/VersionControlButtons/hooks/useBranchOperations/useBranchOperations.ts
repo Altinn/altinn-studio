@@ -7,7 +7,7 @@ import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBra
 import { HttpResponseUtils } from 'app-shared/utils/httpResponseUtils';
 import { DEFAULT_APP_BRANCH } from 'app-shared/constants';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 export interface UseBranchOperationsResult {
   checkoutExistingBranch: (branchName: string) => void;
@@ -35,7 +35,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   const discardChangesMutation = useDiscardChangesMutation(org, app);
   const deleteBranchMutation = useDeleteBranchMutation(org, app);
 
-  const handleCheckoutError = (error: AxiosError<UncommittedChangesError>): void => {
+  const handleCheckoutError = (error: HttpError<UncommittedChangesError>): void => {
     if (HttpResponseUtils.isConflict(error) && error.response?.data) {
       setUncommittedChangesError(error.response.data);
     }

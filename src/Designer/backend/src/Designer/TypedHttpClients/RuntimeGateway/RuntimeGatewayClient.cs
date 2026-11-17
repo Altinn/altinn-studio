@@ -97,7 +97,9 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/running";
 
         using var response = await client.GetAsync(requestUrl, cancellationToken);
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        // Gateways answer 204 when the app does not run, so that telemetry does not count it as a failed request.
+        // Those not yet updated answer 404.
+        if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotFound)
         {
             return null;
         }

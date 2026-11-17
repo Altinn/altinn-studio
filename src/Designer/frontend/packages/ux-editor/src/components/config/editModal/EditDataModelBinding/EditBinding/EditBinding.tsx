@@ -10,9 +10,9 @@ import {
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
-import { StudioConfigCard, StudioSpinner } from '@studio/components';
+import { StudioConfigCard, StudioSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import { getFormItemConfig } from '@altinn/ux-editor/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 import { getComponentDefinition } from '@altinn/ux-editor/data/componentCatalog';
@@ -49,7 +49,7 @@ export const EditBinding = ({
 
     const value =
       updatedBinding ??
-      formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
+      getFormItemConfig(component.type).defaultProperties?.['dataModelBindings']?.[bindingKey];
 
     const dataModelBindings = { ...component.dataModelBindings };
     if (value === undefined || value === null) {
