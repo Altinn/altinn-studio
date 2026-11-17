@@ -92,9 +92,10 @@ credentials: it reads whatever the platform provisions for it. Deployed, that is
 local run studioctl is the platform, and it cannot yet hand over the credentials Studio issues - so to test against a
 real external API you supply a client for studioctl to provision in their place, with
 `studioctl app maskinporten set`. That is a gap in the local harness, not a second identity for the app.
-Calls to Altinn APIs as the service owner need no client locally, since localtest issues the token. In
-`9.0.0-preview.12` and earlier, that holds only for `AuthenticationMethod.ServiceOwner()`, not for
-`UseMaskinportenAltinnAuthorization` or `GetAltinnExchangedToken`.
+Calls to Altinn APIs as the service owner need no client locally, since localtest issues the token. Localtest issues
+only plain service owner tokens: a token request with a consumer org, a resource or a system user throws
+`NotSupportedException` in a local run. In `9.0.0-preview.12` and earlier, that holds only for
+`AuthenticationMethod.ServiceOwner()`, not for `UseMaskinportenAltinnAuthorization` or `GetAltinnExchangedToken`.
 
 The consequence that matters is about scopes. Maskinporten grants scopes per client registration, and the client a
 local run uses is not the registration the deployed app uses. So a scope selected in Studio is not thereby available
