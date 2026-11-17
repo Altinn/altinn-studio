@@ -14,8 +14,7 @@ internal sealed record OperatorCallbackResponse
     public string? State { get; init; }
 
     /// <summary>
-    /// Present when the step ran without error but what it waits for has not happened yet. Its presence is what
-    /// classifies the callback as a deferral rather than a completion.
+    /// Present when the step waits. It makes the answer a deferral rather than a completion.
     /// </summary>
     [JsonPropertyName("defer")]
     public OperatorCallbackDeferral? Defer { get; init; }
@@ -27,7 +26,7 @@ internal sealed record OperatorCallbackResponse
 internal sealed record OperatorCallbackDeferral
 {
     /// <summary>
-    /// How long to wait before the next check. This deferral only; the step's wait budget caps the total.
+    /// How long to wait before the next check. The step's wait budget caps the total.
     /// </summary>
     [JsonPropertyName("delay")]
     public TimeSpan Delay { get; init; }

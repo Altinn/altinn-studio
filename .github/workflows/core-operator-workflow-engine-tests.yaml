@@ -57,8 +57,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build
 
-  # Runs against this host and the engine library, with the core operator's real wiring. The operator's own workflow
-  # does not run it, since it does not run when the engine library changes.
+  # The operator's own workflow does not run this test, since it does not run when the engine library changes.
   integration:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Integration test with the core operator
@@ -86,8 +85,7 @@ jobs:
       - name: Test
         run: make test-integration
 
-  # Nothing else builds the image before the deploy workflow does on main, so a broken Dockerfile, ignore file or
-  # base image would otherwise first show there.
+  # Without this job, a broken Dockerfile, ignore file or base image first shows in the deploy workflow on main.
   docker-build:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build image

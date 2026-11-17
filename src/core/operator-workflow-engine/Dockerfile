@@ -18,7 +18,7 @@ COPY core/operator-workflow-engine/ core/operator-workflow-engine/
 RUN find common Runtime core -type d \( -name 'bin*' -o -name 'obj*' \) -prune -exec rm -rf '{}' +
 
 WORKDIR /build/core/operator-workflow-engine/src/WorkflowEngine.Operator
-# Warnings fail builds and tests, not image builds. Publish raises warnings of its own, which must not block an image.
+# Publish raises warnings of its own, so warnings fail builds and tests but not the image.
 RUN dotnet restore "WorkflowEngine.Operator.csproj" /p:TreatWarningsAsErrors=false
 RUN dotnet publish "WorkflowEngine.Operator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:CSharpier_Bypass=true /p:RunAnalyzers=false /p:TreatWarningsAsErrors=false /p:InformationalVersion=$BUILD_VERSION
 

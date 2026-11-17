@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 
 /// <summary>
-/// Configuration settings for the core operator integration. The defaults are those of the Studio cluster.
+/// How the command calls the core operator. The defaults are those of the Studio cluster.
 /// </summary>
 internal sealed record OperatorCommandSettings
 {
@@ -17,9 +17,8 @@ internal sealed record OperatorCommandSettings
 #pragma warning restore S5332
 
     /// <summary>
-    /// The file that holds the projected ServiceAccount token the command sends as its bearer token. The default is
-    /// where the Deployment mounts it. Empty sends no token, which only a local operator without authentication
-    /// accepts.
+    /// The file with the projected ServiceAccount token the command sends as its bearer token. Empty sends no token,
+    /// which only a local operator accepts.
     /// </summary>
     [JsonPropertyName("tokenPath")]
     public string TokenPath { get; set; } = "/var/run/secrets/core-operator/token";

@@ -9,10 +9,6 @@ using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Operator.Tests.Commands.OperatorCommand;
 
-/// <summary>
-/// Tests <see cref="Operator.Commands.OperatorCommand.OperatorCommand"/>'s validation at enqueue, through the
-/// <see cref="ICommand"/> interface the engine calls.
-/// </summary>
 public class OperatorCommandValidationTests
 {
     private static readonly ICommand _command = CreateCommand();

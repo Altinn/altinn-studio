@@ -11,8 +11,7 @@ resources:
   - deployment.yaml
   - networkpolicy.yaml
 
-# Copy the image annotation onto the container spec. The deploy workflow pins the annotation with yq before it pushes
-# the manifests.
+# The deploy workflow pins the image in the annotation, and this copies it to the container.
 replacements:
   - source:
       kind: Deployment

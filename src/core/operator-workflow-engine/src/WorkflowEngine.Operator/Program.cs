@@ -26,7 +26,6 @@ builder.Services.AddGracefulShutdown(
     applicationShutdownTimeout: TimeSpan.FromSeconds(35)
 );
 
-// The core operator's command
 builder.Services.ConfigureOperatorCommand();
 builder.Services.AddCommand<OperatorCommand>();
 

@@ -17,8 +17,7 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Operator.Tests.Integration;
 
 /// <summary>
-/// Runs a core operator run workflow through the engine's HTTP API, with PostgreSQL in a container and WireMock in
-/// the role of the operator's callback router.
+/// Runs a run's workflow through the engine's HTTP API, with WireMock as the operator's callback router.
 /// </summary>
 [Collection(OperatorTestCollection.Name)]
 public sealed class OperatorRunWorkflowTests(OperatorTestFixture fixture) : IAsyncLifetime
@@ -100,8 +99,7 @@ public sealed class OperatorRunWorkflowTests(OperatorTestFixture fixture) : IAsy
     }
 
     /// <summary>
-    /// The enqueue request the operator sends for a run: one workflow with the six run steps, the run as the context
-    /// and the labels the operator lists runs by.
+    /// The enqueue request the operator sends for a run.
     /// </summary>
     private static WorkflowEnqueueRequest CreateRunRequest(string kind = "upgrade-v9") =>
         new()
@@ -141,9 +139,8 @@ public sealed class OperatorRunWorkflowTests(OperatorTestFixture fixture) : IAsy
         };
 
     /// <summary>
-    /// Makes WireMock answer each callback like the operator: a step in <paramref name="deferrals"/> defers that many
-    /// times before it completes. Every answer carries a state named after the step and its call count, so the test
-    /// can see where each step's state came from.
+    /// Answers each callback like the operator. A step in <paramref name="deferrals"/> defers that many times before
+    /// it completes. Each answer's state names the step and its call count, so the test sees where a state came from.
     /// </summary>
     private ConcurrentQueue<OperatorCall> StubOperator(Dictionary<string, int> deferrals)
     {

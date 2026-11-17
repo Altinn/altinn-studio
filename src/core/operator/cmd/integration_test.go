@@ -34,22 +34,19 @@ import (
 	"altinn.studio/core-operator/internal/sandbox/sandboxtest"
 )
 
-// postgresEnv names the connection string of the Postgres that the engine host uses. make test-integration starts a
-// Postgres and sets it. Without it, the test is skipped.
+// postgresEnv holds the connection string of the engine host's Postgres, which make test-integration starts.
 const postgresEnv = "OPERATOR_ENGINE_POSTGRES"
 
 const (
 	engineHost = "../../operator-workflow-engine/src/WorkflowEngine.Operator"
 	namespace  = "sandbox-runs"
-	// timeScale makes the operator's rechecks and its upload timeout last a hundredth: the upload timeout is 3 seconds.
+	// timeScale cuts the operator's rechecks and its upload timeout to a hundredth. The upload timeout is 3 seconds.
 	timeScale = 0.01
 )
 
-// Runs against the real engine host, operator-workflow-engine from its source, and the real wiring of the operator.
-// The engine runs every step through the operator's callbacks, so these runs check what the other tests cannot: the
-// request that the operator enqueues, the state that the engine passes on, its deferrals and wait budgets, the errors
-// it records and their reasons in a run's status, and that a run outlives a restart of the operator. The sandbox and
-// the operator runner are in memory.
+// TestRunsAgainstTheEngine runs the operator with its real wiring against the engine host, built from its source.
+// The sandbox and the operator runner are in memory. It checks what only the real engine does, as the operator's
+// README lists under Develop.
 func TestRunsAgainstTheEngine(t *testing.T) {
 	RegisterTestingT(t)
 	postgres := os.Getenv(postgresEnv)
@@ -107,7 +104,7 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 		token: tokenFor(t, clientset, "default", "assistant", "core-operator"),
 	}
 	designer := &client{api: c.api, token: tokenFor(t, clientset, "default", "designer", "core-operator")}
-	// Only a caller's token for the operator opens the run API, and only the engine's its callbacks.
+	// Only a caller's token for the operator opens the run API, and only the engine's token opens the callbacks.
 	for token, want := range map[string]int{
 		"":          http.StatusUnauthorized,
 		engineToken: http.StatusForbidden,
@@ -270,7 +267,7 @@ func startEngine(t *testing.T, postgres, callbackAddress, token string) string {
 		"ConnectionStrings__WorkflowEngine="+postgres,
 		"OperatorCommandSettings__CommandEndpoint=http://"+callbackAddress+"/workflow-engine-callbacks/",
 		"OperatorCommandSettings__TokenPath="+tokenFile,
-		// The operator's rechecks are a hundredth, so the engine may run a deferred step as soon.
+		// Let the engine run a deferred step as soon as the scaled rechecks ask.
 		"EngineSettings__MinStepDeferDelay=00:00:00.010",
 	)
 	// The host writes to the file itself, and the test reads it when it fails.
@@ -373,7 +370,7 @@ type client struct {
 	token  string
 }
 
-// do sends a request with a body that is bytes or a reader, and returns the status and the body of the answer.
+// do returns the status and the body of the answer. The body is bytes or a reader.
 func (c *client) do(method, path, contentType string, body any) (int, string) {
 	var reader io.Reader
 	switch value := body.(type) {

@@ -7,9 +7,8 @@ using WorkflowEngine.Operator.Tests.Fixtures;
 namespace WorkflowEngine.Operator.Tests.Contract;
 
 /// <summary>
-/// Checks <see cref="Operator.Commands.OperatorCommand.OperatorCommand"/> against the callback contract examples in
-/// <c>src/core/operator/api/callbacks</c>. The operator's tests read the same files, so the two sides cannot drift
-/// apart without one of them failing.
+/// Checks the command against the callback examples in <c>src/core/operator/api/callbacks</c>. The operator's tests
+/// read the same files, so neither side can drift from them without a failing test.
 /// </summary>
 public class CallbackContractTests
 {

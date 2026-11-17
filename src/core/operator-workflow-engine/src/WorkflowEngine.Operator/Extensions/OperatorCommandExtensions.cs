@@ -6,10 +6,6 @@ internal static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        /// <summary>
-        /// Binds <see cref="OperatorCommandSettings"/> from the configuration section of that name, and checks it at
-        /// startup.
-        /// </summary>
         public IServiceCollection ConfigureOperatorCommand()
         {
             const string ns = nameof(OperatorCommandSettings);

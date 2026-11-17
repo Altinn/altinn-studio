@@ -1,5 +1,4 @@
-# Only the core operator enqueues, reads and cancels workflows. The engine API has no authentication of its own, so
-# this policy is what keeps other callers out.
+# The engine's API has no authentication, so this policy lets only the core operator reach it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

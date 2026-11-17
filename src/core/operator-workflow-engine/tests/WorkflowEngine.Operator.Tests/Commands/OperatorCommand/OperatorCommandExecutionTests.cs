@@ -6,10 +6,6 @@ using WorkflowEngine.Operator.Tests.Fixtures;
 
 namespace WorkflowEngine.Operator.Tests.Commands.OperatorCommand;
 
-/// <summary>
-/// Tests <see cref="Operator.Commands.OperatorCommand.OperatorCommand"/>'s execution against WireMock in the role of
-/// the operator's callback router.
-/// </summary>
 public class OperatorCommandExecutionTests
 {
     [Fact]
