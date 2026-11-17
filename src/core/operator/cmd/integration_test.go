@@ -65,8 +65,8 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 	cfg.TimeScale = timeScale
 	cfg.APIAddress, cfg.CallbackAddress, cfg.ProbeAddress = freeAddress(t), freeAddress(t), freeAddress(t)
-	engine := "core-operator-workflow-engine"
-	engineToken := tokenFor(t, clientset, engine, engine, "core-operator")
+	engine := "operator-workflow-engine"
+	engineToken := tokenFor(t, clientset, engine, engine, "operator")
 	cfg.EngineURL = "http://" + startEngine(t, postgres, cfg.CallbackAddress, engineToken)
 	upgrade := config.Kind{
 		Namespace: namespace, PodTemplate: "operator-runner", Command: "upgrade-v9",
@@ -101,14 +101,14 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 
 	c := &client{
 		api: "http://" + cfg.APIAddress, engine: cfg.EngineURL,
-		token: tokenFor(t, clientset, "default", "assistant", "core-operator"),
+		token: tokenFor(t, clientset, "default", "assistant", "operator"),
 	}
-	designer := &client{api: c.api, token: tokenFor(t, clientset, "default", "designer", "core-operator")}
+	designer := &client{api: c.api, token: tokenFor(t, clientset, "default", "designer", "operator")}
 	// Only a caller's token for the operator opens the run API, and only the engine's token opens the callbacks.
 	for token, want := range map[string]int{
 		"":          http.StatusUnauthorized,
 		engineToken: http.StatusForbidden,
-		tokenFor(t, clientset, "default", "someone-else", "core-operator"):               http.StatusForbidden,
+		tokenFor(t, clientset, "default", "someone-else", "operator"):                    http.StatusForbidden,
 		tokenFor(t, clientset, "default", "assistant", "https://kubernetes.default.svc"): http.StatusUnauthorized,
 	} {
 		Expect((&client{api: c.api, token: token}).call(http.MethodGet, "/api/v1/kinds", "", nil)).To(Equal(want))
