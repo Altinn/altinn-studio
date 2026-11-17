@@ -24,9 +24,9 @@ const DirEnv = "CORE_OPERATOR_CONFIG_DIR"
 
 const (
 	defaultDir                  = "/etc/core-operator"
-	defaultEngineURL            = "http://core-operator-workflow-engine.core-operator-workflow-engine.svc:9090"
-	defaultEngineServiceAccount = "system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine"
-	defaultAudience             = "core-operator"
+	defaultEngineURL            = "http://operator-workflow-engine.operator-workflow-engine.svc:9090"
+	defaultEngineServiceAccount = "system:serviceaccount:operator-workflow-engine:operator-workflow-engine"
+	defaultAudience             = "operator"
 	defaultAPIAddress           = ":8080"
 	defaultCallbackAddress      = ":8090"
 	defaultProbeAddress         = ":8081"

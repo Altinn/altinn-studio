@@ -180,10 +180,10 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 		}
 	})
 
-	assistant := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "core-operator")
-	engine := "core-operator-workflow-engine"
-	engineToken := tokenFor(t, clientset, engine, engine, "core-operator")
-	stranger := tokenFor(t, clientset, "default", "someone-else", "core-operator")
+	assistant := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "operator")
+	engine := "operator-workflow-engine"
+	engineToken := tokenFor(t, clientset, engine, engine, "operator")
+	stranger := tokenFor(t, clientset, "default", "someone-else", "operator")
 	apiServerToken := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "https://kubernetes.default.svc")
 
 	api := "http://" + cfg.APIAddress

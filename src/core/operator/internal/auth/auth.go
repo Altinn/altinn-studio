@@ -234,8 +234,8 @@ func (a *Authenticator) authenticate(w http.ResponseWriter, r *http.Request) (Pr
 	case err == nil:
 		return principal, true
 	case errors.Is(err, ErrUnauthenticated):
-		w.Header().Set("WWW-Authenticate", `Bearer realm="core-operator"`)
-		problem.Write(w, r, http.StatusUnauthorized, "Send a ServiceAccount token with the audience core-operator.")
+		w.Header().Set("WWW-Authenticate", `Bearer realm="`+a.audience+`"`)
+		problem.Write(w, r, http.StatusUnauthorized, "Send a ServiceAccount token with the audience "+a.audience+".")
 	case errors.Is(err, ErrForbidden):
 		problem.Write(w, r, http.StatusForbidden, "The ServiceAccount is not a caller of the core operator.")
 	default:

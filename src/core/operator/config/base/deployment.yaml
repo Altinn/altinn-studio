@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: core-operator
+  name: operator
   namespace: core-operator
   labels:
     app.kubernetes.io/name: core-operator
@@ -23,7 +23,7 @@ spec:
       labels:
         app.kubernetes.io/name: core-operator
     spec:
-      serviceAccountName: core-operator
+      serviceAccountName: operator
       # The operator calls the Kubernetes API: it reviews tokens, and creates and deletes Jobs.
       automountServiceAccountToken: true
       enableServiceLinks: false
@@ -35,7 +35,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: core-operator
+        - name: operator
           image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator:latest
           imagePullPolicy: IfNotPresent
           ports:
@@ -96,7 +96,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: core-operator-config
+            name: operator-config
         - name: tmp
           emptyDir:
             sizeLimit: 64Mi

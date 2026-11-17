@@ -5,7 +5,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: core-operator
+  name: operator
   namespace: core-operator
 spec:
   podSelector:
@@ -33,10 +33,10 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: core-operator-workflow-engine
+              kubernetes.io/metadata.name: operator-workflow-engine
           podSelector:
             matchLabels:
-              app.kubernetes.io/name: core-operator-workflow-engine
+              app.kubernetes.io/name: operator-workflow-engine
       ports:
         - protocol: TCP
           port: 8090

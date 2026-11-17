@@ -150,8 +150,12 @@ this decision specifies.
 
 - **Name.** The name is `core-operator`. The code is in `src/core/operator`, as
   [Organize `src/` by the cluster that runs each component](2026-10-27-src-folder-organization.md) specifies. The
-  runtime operator stays in its folder. The Go module, the image, the workflow and the syncroot entry use the
-  name `core-operator`.
+  runtime operator stays in its folder. A name keeps the prefix `core-` only where another operator can be beside it,
+  such as the runtime operator or a third-party operator in the Studio cluster. So the Go module, the image, the
+  workflow, the syncroot entry, the namespace and the telemetry use `core-operator`. The names in its namespace and
+  the token audience use `operator`. The parts of the operator follow the same rule against their own kind. In the
+  Studio cluster they are `operator-runner` and `operator-workflow-engine`. In the registry and the telemetry, where a
+  runtime operator's parts can be beside them, they keep `core-`.
 - **Language.** The language is Go with controller-runtime, as
   [Adopt Go for cloud-native runtime services and tooling](2025-10-17-using-go.md) specifies. The job host stays in
   Rust, because the Sandbox SDK is in Rust. This ADR does not make the language decision again.

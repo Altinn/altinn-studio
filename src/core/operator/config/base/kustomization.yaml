@@ -10,18 +10,18 @@ resources:
   - networkpolicy.yaml
 # The overlays merge in kinds.yaml. The hash in the name rolls out the Deployment when the configuration changes.
 configMapGenerator:
-  - name: core-operator-config
+  - name: operator-config
     namespace: core-operator
     files:
       - config.yaml
 replacements:
   - source:
       kind: Deployment
-      name: core-operator
+      name: operator
       fieldPath: metadata.annotations.[altinn.studio/image]
     targets:
       - select:
           kind: Deployment
-          name: core-operator
+          name: operator
         fieldPaths:
-          - spec.template.spec.containers.[name=core-operator].image
+          - spec.template.spec.containers.[name=operator].image
