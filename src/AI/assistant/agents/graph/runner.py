@@ -145,21 +145,9 @@ class GoalRejected(Exception):
 
 
 async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
-    """Judge the goal before the graph. Returns the decline text when the turn was
-    already fully handled (a chat question that is not relevant) — the caller must
-    then skip the graph. Raises GoalRejected for every other rejection.
-
-    One decisions call judges every run, chat or write, since a chat session can
-    turn into a write session:
-    - Safety fails closed: a turn the gate could not judge stops.
-    - Relevance is product behavior, not security: the assistant must not act as a
-      general-purpose chatbot on government infrastructure. A write request that is
-      not relevant rejects like any other invalid goal; a chat question gets a
-      polite decline delivered as a normal reply.
-
-    An unclear goal passes. The loop reads the app to find what to change, and when
-    it cannot tell, its prompt has it end with a message that says what it needs.
-    """
+    """Judge the goal with one decisions call before the graph, in chat and write runs alike.
+    Returns the decline text when a chat question that is not relevant has been answered, so the
+    caller skips the graph, and raises GoalRejected for every other rejection."""
     _raise_if_cancelled(state, event_sink)
     attachment_names = [attachment.name for attachment in state.attachments or []]
     judgment = await judge_request(state.user_goal, attachment_names, state.conversation_history)

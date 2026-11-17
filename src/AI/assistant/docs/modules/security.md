@@ -6,7 +6,7 @@ The security model has four layers. Each layer covers a risk that the other laye
 
 **Network access.** A NetworkPolicy blocks connections from pods other than the Designer pods.
 
-**Request gate.** This layer runs in both modes, because a chat session can become a workflow session. Before the graph starts, a decision model gives a probability for each abuse concern: prompt injection, secrets, actions outside the repository, running code, and other service owners' apps. It sees the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal. If the gate cannot run, the request stops.
+**Request gate.** This layer runs in both modes, because a chat request also reaches the loop. Before the graph starts, a decision model gives a probability for each abuse concern: prompt injection, secrets, actions outside the repository, running code, and other service owners' apps. It reads the same earlier turns that the loop replays, and the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal. If the gate cannot run, the request stops.
 
 **Structural containment.** This layer runs in both modes. It is the boundary that actually stops an attack:
 

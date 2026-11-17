@@ -85,7 +85,7 @@ class TestEachJudgment:
 
     @pytest.mark.parametrize("allow_app_changes", [True, False])
     async def test_an_unsafe_request_is_rejected_in_chat_too(self, allow_app_changes):
-        """A chat session can turn into a write session, so chat meets the same bar."""
+        """A chat request reaches the loop too, so chat meets the same bar."""
         suggest = AsyncMock(return_value=[SUGGESTION])
         with (
             _judged(UNSAFE),
