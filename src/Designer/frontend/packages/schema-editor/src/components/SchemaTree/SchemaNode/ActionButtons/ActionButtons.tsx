@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { FilesIcon, ReferenceIcon, TrashIcon } from '@studio/icons';
+import { FilesIcon, ReferenceIcon, TrashIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';

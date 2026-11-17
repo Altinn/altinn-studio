@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "32bcee5d3c09",
-    "code": "faee743 clean",
+    "actor_prompt": "55a1d094fc83",
+    "code": "ae360d4 clean",
     "dataset": "84 items d7671477fb57",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "3633d27c3dc2"
+    "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261111T140032Z-21862-no-unsaved-edits-between-messages-faee743e7d-9d4e",
-  "label": "21862 no unsaved edits between messages faee743e7d",
-  "recorded_at": "2026-11-11T14:07:19+00:00",
-  "why": "#21862 keeps no unsaved edits between messages. It adds a rule about saved changes to the final-answer contracts, and discard_file_changes now deletes a file that the last commit does not have. This moves the actor_prompt and tools digests. Full check with e2e: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview is turned off on main, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
+  "check_id": "20261113T085949Z-agent-skills-format-21938-ae360d4d5c-6eac",
+  "label": "Agent Skills format, #21938 ae360d4d5c",
+  "recorded_at": "2026-11-13T09:07:19+00:00",
+  "why": "#21938 moves the skills to the Agent Skills format, which changes the actor prompt and the tool schemas. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. In each build the actor loaded the skills by their new names, and it loaded references/v8.md for each skill that has one before its first write. Against the #21937 baseline, every scored behavior has the same score except scope.declines-in-users-language, which went up by one item on gpt-6-luna. The scope prompt has no skills. The replay items of Loop/traces keep the system prompt that production recorded, with the old skill names, so they do not measure the new listing. The run before this one, on the same commit, lost simple-contact-one-page before the actor started, because the security gate returned details.fields as a list and SecurityCheckResult expects a string. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
 }

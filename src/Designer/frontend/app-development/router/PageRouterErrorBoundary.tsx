@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioParagraph, StudioPageError, StudioLink } from '@studio/components';
+import { StudioParagraph, StudioPageError, StudioLink } from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 
 export const ErrorBoundary = (): ReactElement => {

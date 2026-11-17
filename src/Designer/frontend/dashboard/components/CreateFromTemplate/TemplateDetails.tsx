@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioHeading, StudioParagraph, StudioTag } from '@studio/components';
+import { StudioCard, StudioHeading, StudioParagraph, StudioTag } from '@designer/components';
 import classes from './TemplateSelector.module.css';
 
 export type TemplateDetailsProps = {

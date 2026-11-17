@@ -1,0 +1,77 @@
+name: Assistant - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/AI/assistant/**'
+      - 'src/common/ts/layout-contract/schemas/**'
+      - '.github/workflows/assistant-build-test.yaml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Workbench usage guide; eval behavior is defined in code and datasets.
+      - '!src/AI/assistant/benchmarks/EVALS.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    if: ${{ !github.event.pull_request.draft }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    # uv installs the Python version in .python-version and puts the venv on PATH.
+    - name: Set up uv
+      uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      with:
+        version: '0.13.0'
+        working-directory: src/AI/assistant
+        activate-environment: true
+
+    - name: Install dependencies
+      working-directory: src/AI/assistant
+      run: uv sync --locked
+
+    - name: Lint
+      working-directory: src/AI/assistant
+      run: ruff check --output-format=github .
+
+    - name: Check formatting
+      working-directory: src/AI/assistant
+      run: ruff format --check .
+
+    - name: Type check
+      working-directory: src/AI/assistant
+      run: pyright
+
+    - name: Run unit tests
+      working-directory: src/AI/assistant
+      run: python -m pytest
+
+    - name: Start server
+      working-directory: src/AI/assistant
+      run: |
+        uvicorn api.main:app --host 0.0.0.0 --port 8071 > server.log 2>&1 &
+        sleep 5
+        curl --fail --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8071/health
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/assistant
+      run: cat server.log

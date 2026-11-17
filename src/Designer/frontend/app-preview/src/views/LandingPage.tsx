@@ -3,7 +3,7 @@ import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage, useMediaQuery } from '@studio/hooks';
+import { useLocalStorage, useMediaQuery } from '@designer/hooks';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -17,7 +17,7 @@ import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayou
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@studio/components';
+import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@designer/components';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';

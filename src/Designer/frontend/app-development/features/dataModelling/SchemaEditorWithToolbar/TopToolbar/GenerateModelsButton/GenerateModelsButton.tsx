@@ -1,9 +1,9 @@
-import { StudioSaveIcon } from '@studio/icons';
+import { StudioSaveIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useDataModelGenerationStatusQuery, useSchemaQuery } from '../../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
 import { toast } from 'react-toastify';
-import { StudioBadge, StudioButton, StudioSpinner } from '@studio/components';
+import { StudioBadge, StudioButton, StudioSpinner } from '@designer/components';
 import classes from './GenerateModelsButton.module.css';
 
 export interface GenerateModelsButtonProps {

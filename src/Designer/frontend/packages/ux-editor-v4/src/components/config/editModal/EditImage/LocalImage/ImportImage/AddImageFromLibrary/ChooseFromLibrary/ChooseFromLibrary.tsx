@@ -1,5 +1,5 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 import { useTranslation } from 'react-i18next';
 import { ImageLibraryPreview } from './ImageLibraryPreview';

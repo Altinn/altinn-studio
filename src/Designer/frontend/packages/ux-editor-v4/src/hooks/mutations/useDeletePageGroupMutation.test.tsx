@@ -8,7 +8,7 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { useDeletePageGroupMutation } from './useDeletePageGroupMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
-import { org, app, selectedLayoutSet } from '@studio/testing/testids';
+import { org, app, selectedLayoutSet } from '@designer/testing/testids';
 
 const createTestPageGroups = (): PagesModel => ({
   groups: [

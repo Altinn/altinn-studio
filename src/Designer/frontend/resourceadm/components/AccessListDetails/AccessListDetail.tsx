@@ -7,14 +7,14 @@ import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import {
   StudioButton,
   StudioHeading,
   StudioLink,
   StudioTextfield,
   StudioDialog,
-} from '@studio/components';
+} from '@designer/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';

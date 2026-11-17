@@ -3,7 +3,7 @@ import { mapChatMessageToFrontend, useChatMessagesQuery } from './useChatMessage
 import { MessageAuthor } from 'app-shared/types/api';
 import type { ChatMessage } from 'app-shared/types/api';
 import { renderHookWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { waitFor } from '@testing-library/react';
 
 const baseMessage: ChatMessage = {

@@ -3,7 +3,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 
 // Test data:

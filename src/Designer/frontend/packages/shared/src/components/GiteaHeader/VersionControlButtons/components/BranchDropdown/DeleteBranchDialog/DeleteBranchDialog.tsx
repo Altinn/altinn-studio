@@ -6,8 +6,8 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioTextfield,
-} from '@studio/components';
-import { TrashIcon } from '@studio/icons';
+} from '@designer/components';
+import { TrashIcon } from '@designer/icons';
 import classes from './DeleteBranchDialog.module.css';
 
 export interface DeleteBranchDialogProps {

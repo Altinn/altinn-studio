@@ -7,18 +7,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from agents.core import LoopContext, PreviewRenderCheckTool
 from agents.services.preview.render_check import PageRenderResult, PreviewCheckUnavailable
-from shared.config.base_config import BaseConfig
 
 ENGINE_PATH = "agents.core.tools.preview_render_check_tool.render_check"
-
-
-@pytest.fixture(autouse=True)
-def _enabled_deployment(monkeypatch):
-    monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
 
 
 def _ctx(
@@ -62,13 +54,6 @@ class TestPermissionGating:
 
 
 class TestPreconditions:
-    async def test_disabled_deployment_says_skip(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", False)
-        result = await PreviewRenderCheckTool().run(_args(), _ctx(tmp_path))
-        assert result.is_error
-        assert "do NOT retry" in result.content
-        assert result.metadata["unavailable"] is True
-
     async def test_requires_commit_first(self, tmp_path):
         result = await PreviewRenderCheckTool().run(_args(), _ctx(tmp_path, committed=False))
         assert result.is_error

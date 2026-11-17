@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationPageSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useValidationOnNavigationPageSettingsMutation } from './useValidationOnNavigationPageSettingsMutation';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 

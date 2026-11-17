@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 import { GroupConfigPanel, type GroupConfigPanelProps } from './GroupConfigPanel';
@@ -11,7 +11,7 @@ import { groupsPagesModelMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 

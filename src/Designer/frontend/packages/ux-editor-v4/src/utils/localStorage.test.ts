@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cleanupStaleLocalStorageKeys } from './localStorageUtils';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 
 describe('cleanupStaleLocalStorageKeys', () => {
   it('Removes the selectedFormLayoutSetName key from local storage', () => {

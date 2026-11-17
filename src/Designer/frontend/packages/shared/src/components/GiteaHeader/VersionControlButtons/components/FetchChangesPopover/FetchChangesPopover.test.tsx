@@ -3,16 +3,16 @@ import type { Mock } from 'vitest';
 import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 describe('FetchChangesPopover', () => {
   it('should fetch changes and confirm the update when the app is up to date', async () => {

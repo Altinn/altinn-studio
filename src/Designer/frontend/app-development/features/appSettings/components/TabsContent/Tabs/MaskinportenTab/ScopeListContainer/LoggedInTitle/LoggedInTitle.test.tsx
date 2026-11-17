@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LoggedInTitle } from './LoggedInTitle';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('LoggedInTitle', () => {
   it('should render a heading with the correct text', () => {

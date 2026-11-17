@@ -6,8 +6,8 @@ import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBra
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { HttpError } from 'app-shared/utils/networking';
 
 vi.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');

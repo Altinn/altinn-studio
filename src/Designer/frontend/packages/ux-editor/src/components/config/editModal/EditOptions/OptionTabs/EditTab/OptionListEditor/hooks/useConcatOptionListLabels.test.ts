@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { TextResource } from '@studio/pure-functions';
+import type { TextResource } from '@designer/pure-functions';
 import type { Option } from 'app-shared/types/Option';
 import { useConcatOptionListLabels } from './useConcatOptionListLabels';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data:
 const textResources: TextResource[] = [

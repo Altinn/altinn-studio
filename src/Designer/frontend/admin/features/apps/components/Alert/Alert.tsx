@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import classes from './Alert.module.css';
-import type { StudioAlertProps } from '@studio/components';
-import { StudioAlert, StudioLink } from '@studio/components';
+import type { StudioAlertProps } from '@designer/components';
+import { StudioAlert, StudioLink } from '@designer/components';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { ExternalLinkIcon } from '@studio/icons';
+import { ExternalLinkIcon } from '@designer/icons';
 
 type AlertProps = {
   color: string;

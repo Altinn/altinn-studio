@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strconv"
 
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	serverpkg "altinn.studio/studioctl/internal/cmd/server"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -329,7 +329,10 @@ func (c *ServerCommand) startStudioctlServer(ctx context.Context) error {
 	if ensureStarted == nil {
 		ensureStarted = studioctlserver.EnsureStarted
 	}
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	return ensureStarted(ctx, c.cfg, topology.IngressPort())
 }
 

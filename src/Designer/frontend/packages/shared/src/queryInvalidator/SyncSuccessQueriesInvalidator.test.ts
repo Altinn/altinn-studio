@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { SyncSuccessQueriesInvalidator } from './SyncSuccessQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { waitFor } from '@testing-library/react';
-import { org, app, selectedLayoutSet } from '@studio/testing/testids';
+import { org, app, selectedLayoutSet } from '@designer/testing/testids';
 
 vi.mock('@tanstack/react-query');
 

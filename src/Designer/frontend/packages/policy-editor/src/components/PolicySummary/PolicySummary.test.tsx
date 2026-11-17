@@ -7,7 +7,7 @@ import {
 } from '../../contexts/PolicyEditorContext';
 import { mockAction1, mockAction2, mockAction3 } from '../../../test/mocks/policyActionMocks';
 import type { PolicySubject } from '../../types';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
